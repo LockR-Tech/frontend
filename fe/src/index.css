@@ -1,0 +1,310 @@
+@import "tailwindcss";
+
+/* ============================================
+   LAUNDRY LOCKER - ADAPTIVE COLOR SYSTEM
+   Light: Warm tones (tông ấm)
+   Dark: Cool tones (tông lạnh)
+   ============================================ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES - Color Variables
+   ============================================ */
+
+/* LIGHT MODE - Tông ấm (Warm Undertones) */
+:root {
+  --background: #FDFCFA;
+  --foreground: #292524;
+  --card: #FFFFFF;
+  --card-foreground: #292524;
+  --popover: #FFFFFF;
+  --popover-foreground: #292524;
+  --primary: #5B7A91;
+  --primary-foreground: #FDFCFA;
+  --secondary: #C4A882;
+  --secondary-foreground: #292524;
+  --muted: #E8E2D9;
+  --muted-foreground: #78716C;
+  --accent: #F5F0E8;
+  --accent-foreground: #44403C;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #E7E5E4;
+  --input: #E7E5E4;
+  --ring: #5B7A91;
+  --radius: 0.625rem;
+  --sidebar-background: #312E2B;
+  --sidebar-foreground: #FAFAF9;
+  --sidebar-primary: #5B7A91;
+  --sidebar-primary-foreground: #FDFCFA;
+  --sidebar-accent: #44403C;
+  --sidebar-accent-foreground: #FAFAF9;
+  --sidebar-border: #44403C;
+  --sidebar-ring: #5B7A91;
+}
+
+/* DARK MODE - Tông lạnh (Cool Undertones) */
+.dark {
+  --background: #0C1523;
+  --foreground: #DCE9F5;
+  --card: #111E30;
+  --card-foreground: #DCE9F5;
+  --popover: #142036;
+  --popover-foreground: #DCE9F5;
+  --primary: #7BAAD1;
+  --primary-foreground: #0C1523;
+  --secondary: #1C3254;
+  --secondary-foreground: #DCE9F5;
+  --muted: #0F1C2E;
+  --muted-foreground: #6E9AB8;
+  --accent: #192D4A;
+  --accent-foreground: #DCE9F5;
+  --destructive: #B91C1C;
+  --destructive-foreground: #FEF2F2;
+  --border: #1E3557;
+  --input: #0F1C2E;
+  --ring: #7BAAD1;
+  --sidebar-background: #070F1D;
+  --sidebar-foreground: #DCE9F5;
+  --sidebar-primary: #7BAAD1;
+  --sidebar-primary-foreground: #0C1523;
+  --sidebar-accent: #111E30;
+  --sidebar-accent-foreground: #DCE9F5;
+  --sidebar-border: #162640;
+  --sidebar-ring: #7BAAD1;
+}
+
+/* ============================================
+   TAILWIND V4 THEME CONFIGURATION
+   ============================================ */
+
+@theme {
+  /* Semantic Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  /* Sidebar colors */
+  --color-sidebar-background: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Brand Colors - Warm */
+  --color-brand-50: #FDFCFA;
+  --color-brand-100: #F5F0E8;
+  --color-brand-200: #E8E2D9;
+  --color-brand-300: #D4C4B0;
+  --color-brand-400: #C4A882;
+  --color-brand-500: #B8956A;
+  --color-brand-600: #5B7A91;
+  --color-brand-700: #4A6275;
+  --color-brand-800: #3D5262;
+  --color-brand-900: #2F3F4A;
+  --color-brand-950: #1F2A32;
+
+  /* Cool Colors - for Dark Mode */
+  --color-cool-50: #FAFCFF;
+  --color-cool-100: #E8F4FC;
+  --color-cool-200: #B0C8DA;
+  --color-cool-300: #9BBBD3;
+  --color-cool-400: #7BAAD1;
+  --color-cool-500: #5A94C5;
+  --color-cool-600: #32689C;
+  --color-cool-700: #26547A;
+  --color-cool-800: #1E4062;
+  --color-cool-900: #0F2030;
+  --color-cool-950: #081018;
+
+  /* Radius */
+  --radius-lg: 0.625rem;
+  --radius-md: 0.5rem;
+  --radius-sm: 0.375rem;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   UTILITY CLASSES (Không dùng @layer)
+   ============================================ */
+
+/* Gradient backgrounds */
+.bg-gradient-brand {
+  background-image: linear-gradient(to bottom right, var(--primary), #4A6275);
+}
+
+.dark .bg-gradient-brand {
+  background-image: linear-gradient(to bottom right, #7BAAD1, #1C3254);
+}
+
+.bg-gradient-subtle {
+  background-image: linear-gradient(to bottom, #F5F0E8, var(--background));
+}
+
+.dark .bg-gradient-subtle {
+  background-image: linear-gradient(to bottom, #111E30, var(--background));
+}
+
+.bg-gradient-dark {
+  background-image: linear-gradient(to bottom right, #1E293B, #0F172A, #020617);
+}
+
+/* Glassmorphism */
+.glass {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(232, 226, 217, 0.5);
+}
+
+.dark .glass {
+  background-color: rgba(12, 21, 35, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 53, 87, 0.5);
+}
+
+/* Status badges */
+.badge-active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.dark .badge-active {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-pending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.dark .badge-pending {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-processing {
+  background-color: rgba(91, 122, 145, 0.1);
+  color: #5B7A91;
+  border: 1px solid rgba(91, 122, 145, 0.2);
+}
+
+.dark .badge-processing {
+  background-color: rgba(123, 170, 209, 0.2);
+  color: #7BAAD1;
+  border: 1px solid rgba(123, 170, 209, 0.3);
+}
+
+.badge-inactive {
+  background-color: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
+  border: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+.dark .badge-inactive {
+  background-color: rgba(100, 116, 139, 0.3);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.4);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.2s;
+}
+
+.card-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #D4C4B0;
+}
+
+.dark .card-hover:hover {
+  border-color: #334155;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 9999px;
+  background: #F5F0E8;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: #D4C4B0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C4A882;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0C1523;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1E3557;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #2A4A74;
+}
+
+/* ============================================
+   SELECTION STYLING
+   ============================================ */
+
+::selection {
+  background: #D4C4B0;
+  color: #292524;
+}
+
+.dark ::selection {
+  background: #1E3557;
+  color: #DCE9F5;
+}

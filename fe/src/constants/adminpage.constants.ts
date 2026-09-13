@@ -1,0 +1,35 @@
+export const ADMIN_DASHBOARD = {
+  TITLE: "admin.dashboard.title",
+  SETTINGS: "admin.dashboard.settings",
+  CREATE_SCENARIO: "admin.dashboard.createScenario",
+  TABS: {
+    ORGANIZATION: "admin.dashboard.tabs.organization",
+    TEAMS: "admin.dashboard.tabs.teams",
+    USERS: "admin.dashboard.tabs.users",
+    SUBSCRIPTION: "admin.dashboard.tabs.subscription",
+    PAYMENT: "admin.dashboard.tabs.payment",
+    INSTALLED_APPS: "admin.dashboard.tabs.installedApps",
+    VARIABLES: "admin.dashboard.tabs.variables",
+  },
+  CARDS: {
+    OPERATIONS_TITLE: "admin.dashboard.cards.operations.title",
+    OPERATIONS_SUBTITLE: "admin.dashboard.cards.operations.subtitle",
+    DATA_TITLE: "admin.dashboard.cards.dataTransfer.title",
+    DATA_SUBTITLE: "admin.dashboard.cards.dataTransfer.subtitle",
+    PROMO_TITLE: "admin.dashboard.cards.promo.title",
+    PROMO_SUBTITLE: "admin.dashboard.cards.promo.subtitle",
+    PROMO_CTA: "admin.dashboard.cards.promo.cta",
+  },
+  STATISTICS: {
+    TITLE: "admin.dashboard.statistics.title",
+    YEAR_PLACEHOLDER: "admin.dashboard.statistics.yearSelectPlaceholder",
+  },
+  RECOMMENDATIONS: {
+    TITLE: "admin.dashboard.recommendations.title",
+    COMMUNITY: "admin.dashboard.recommendations.community",
+    ACADEMY: "admin.dashboard.recommendations.academy",
+    HELPCENTER: "admin.dashboard.recommendations.helpCenter",
+    PARTNER_DIRECTORY: "admin.dashboard.recommendations.partnerDirectory",
+  },
+  USED: "admin.dashboard.used",
+};

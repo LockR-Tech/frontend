@@ -1,0 +1,13 @@
+{
+  // Cloudflare Worker phục vụ static SPA (admin web). Deploy bằng:
+  //   npm run build && npx wrangler deploy
+  // Tên phải khớp Worker đang gắn domain admin.locker-drone.tech.
+  "name": "laundry-locker-frontend-1",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": "./dist",
+    // Trả index.html cho route không khớp -> React Router (client-side) chạy đúng
+    // khi F5 ở /admin/users, v.v.
+    "not_found_handling": "single-page-application"
+  }
+}

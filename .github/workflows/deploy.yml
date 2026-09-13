@@ -1,0 +1,137 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'fe/**'
+      - 'landingPage/**'
+      - '.github/workflows/deploy.yml'
+    # Không đặt paths-ignore cạnh paths trong cùng một event: GitHub Actions từ chối
+    # workflow ngay lúc khởi động (run 0 job, không có log). Cũng không cần nữa —
+    # DEPLOY-LOG.md nằm ở gốc repo nên vốn đã không khớp danh sách paths ở trên.
+  workflow_dispatch:
+
+permissions:
+  contents: write        # cần để commit DEPLOY-LOG.md
+
+jobs:
+  deploy-admin-fe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 'fe/package-lock.json'
+
+      - name: Install dependencies (FE)
+        working-directory: ./fe
+        run: npm ci || npm install
+
+      - name: Build (FE)
+        working-directory: ./fe
+        run: npm run build
+
+      - name: Deploy Admin FE to Cloudflare
+        working-directory: ./fe
+        run: npx --yes wrangler@4.114.0 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  deploy-landing-page:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 'landingPage/package-lock.json'
+
+      - name: Install dependencies (Landing Page)
+        working-directory: ./landingPage
+        run: npm ci || npm install
+
+      - name: Build (Landing Page)
+        working-directory: ./landingPage
+        run: npm run build
+
+      - name: Deploy Landing Page to Cloudflare
+        working-directory: ./landingPage
+        run: npx --yes wrangler@4.114.0 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  # Job tổng hợp: chạy sau hai job trên dù thành công hay thất bại, ghi kết quả ra
+  # trang Actions và vào DEPLOY-LOG.md trong repo để theo dõi lâu dài.
+  ghi-nhat-ky:
+    needs: [deploy-admin-fe, deploy-landing-page]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ghi tóm tắt vào trang Actions
+        run: |
+          FE='${{ needs.deploy-admin-fe.result }}'
+          LP='${{ needs.deploy-landing-page.result }}'
+          {
+            echo "## Deploy frontend → Cloudflare"
+            echo ""
+            echo "| Thành phần | Kết quả | Địa chỉ |"
+            echo "|---|---|---|"
+            echo "| Web admin | $FE | https://admin.locker-drone.tech |"
+            echo "| Landing page | $LP | https://locker-drone.tech |"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Commit | \`${{ github.sha }}\` |"
+            echo "| Người đẩy | @${{ github.actor }} |"
+            echo "| Thời điểm | $(date -u '+%Y-%m-%d %H:%M UTC') |"
+            if [ "$FE" != "success" ] || [ "$LP" != "success" ]; then
+              echo ""
+              echo "### Có thành phần deploy THẤT BẠI"
+              echo "Nguyên nhân hay gặp:"
+              echo "- thiếu/hết hạn secret \`CLOUDFLARE_API_TOKEN\` hoặc \`CLOUDFLARE_ACCOUNT_ID\`"
+              echo "- \`tsc -b\` đỏ → lỗi kiểu dữ liệu, xem bước Build"
+              echo "- tên Worker trong \`wrangler.jsonc\` không khớp Worker đang gắn domain"
+            fi
+            echo ""
+            echo "> Nhắc: Vite nướng \`VITE_API_BASE_URL\` từ \`fe/.env\` vào bundle **lúc build**."
+            echo "> Nếu \`fe/.env\` đang trỏ localhost thì bản deploy sẽ gọi localhost."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Ghi nhật ký deploy vào repo
+        run: |
+          LOG=DEPLOY-LOG.md
+          if [ ! -f "$LOG" ]; then
+            {
+              echo "# Nhật ký deploy — frontend"
+              echo ""
+              echo "Do workflow \`deploy.yml\` tự ghi sau **mỗi** lần chạy, kể cả khi thất bại."
+              echo "Bản ghi mới nhất nằm trên cùng."
+              echo ""
+              echo "| Thời điểm (UTC) | Web admin | Landing | Commit | Người đẩy |"
+              echo "|---|---|---|---|---|"
+            } > "$LOG"
+          fi
+          SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          ROW="| $(date -u '+%Y-%m-%d %H:%M') | ${{ needs.deploy-admin-fe.result }} | ${{ needs.deploy-landing-page.result }} | [\`$SHORT\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) | @${{ github.actor }} |"
+          awk -v row="$ROW" '/^\|---\|/ && !done { print; print row; done=1; next } { print }' "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$LOG"
+          git diff --cached --quiet || git commit -m "chore(deploy): ghi nhật ký deploy frontend [skip ci]"
+          git push origin HEAD:${{ github.ref_name }} || echo "không push được nhật ký (nhánh có thể được bảo vệ) — bỏ qua"

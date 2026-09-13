@@ -1,0 +1,589 @@
+{
+  "brand": {
+    "title": "LockerWash",
+    "subtitle": "Smart lockers, on demand"
+  },
+  "signin": {
+    "title": "Sign in to your account"
+  },
+  "label": {
+    "email": "E-mail",
+    "password": "Password"
+  },
+  "placeholder": {
+    "email": "you@domain.com",
+    "password": "••••••••"
+  },
+  "link": {
+    "forgot": "Forgot password?"
+  },
+  "info": {
+    "devHint": "Need access? Click Login to use mock account (dev)."
+  },
+  "right": {
+    "title": "Clean clothes, on your schedule.",
+    "subtitle": "24/7 locker access"
+  },
+  "button": {
+    "login": "Sign In",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create New",
+    "search": "Search",
+    "filter": "Filter",
+    "refresh": "Refresh",
+    "detail": "Detail",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "viewAll": "View All",
+    "logout": "Logout"
+  },
+  "common": {
+    "loading": "Loading...",
+    "noData": "No data",
+    "mockData": "Using mock data",
+    "empty": "Empty",
+    "all": "All",
+    "status": "Status",
+    "action": "Action",
+    "actions": "Actions",
+    "name": "Name",
+    "description": "Description",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "note": "Note",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "header": {
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "notifications": "Notifications"
+  },
+  "table": {
+    "rowsPerPage": "Rows per page",
+    "of": "of",
+    "showing": "Showing",
+    "results": "results"
+  },
+  "admin": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "orders": "Orders",
+      "stores": "Stores",
+      "lockers": "Lockers",
+      "services": "Services",
+      "payments": "Payments",
+      "loyalty": "Loyalty",
+      "partners": "Partners",
+      "feedback": "Feedback",
+      "scheduler": "Scheduler",
+      "notifications": "Notifications",
+      "promotions": "Promotions",
+      "settings": "Settings",
+      "maintenance": "Maintenance",
+      "drones": "Drones"
+    },
+    "dashboard": {
+      "title": "Overview",
+      "welcome": "Welcome back",
+      "monthlyOrders": "Monthly Orders",
+      "monthlyRevenue": "Monthly Revenue",
+      "newUsers": "New Users"
+    },
+    "users": {
+      "title": "User Management",
+      "description": "Manage user accounts in the system",
+      "addUser": "Add User",
+      "searchPlaceholder": "Search users...",
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending"
+      },
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "provider": "Provider",
+        "verified": "Verified",
+        "createdAt": "Created At"
+      },
+      "verified": {
+        "yes": "Verified",
+        "no": "Pending"
+      },
+      "noName": "Unnamed"
+    },
+    "orders": {
+      "title": "Order Management",
+      "description": "Manage and track orders in the system",
+      "createOrder": "Create Order",
+      "createSuccess": "Order created successfully",
+      "searchPlaceholder": "Search orders...",
+      "columns": {
+        "id": "Order ID",
+        "customer": "Customer",
+        "service": "Service",
+        "total": "Total",
+        "status": "Status",
+        "createdAt": "Created At"
+      },
+      "status": {
+        "initialized": "Initialized",
+        "reserved": "Reserved",
+        "waiting": "Waiting",
+        "collected": "Collected",
+        "processing": "Processing",
+        "ready": "Ready",
+        "returned": "Returned",
+        "completed": "Completed",
+        "canceled": "Canceled"
+      }
+    },
+    "stores": {
+      "title": "Store Management",
+      "description": "Manage stores in the system",
+      "addStore": "Add Store",
+      "searchPlaceholder": "Search stores...",
+      "columns": {
+        "store": "Store",
+        "contact": "Contact",
+        "address": "Address",
+        "hours": "Hours",
+        "lockers": "Lockers",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "modal": {
+        "createTitle": "Add New Store",
+        "editTitle": "Edit Store",
+        "name": "Store Name",
+        "namePlaceholder": "e.g. District 1 Store",
+        "address": "Address",
+        "addressPlaceholder": "123 Le Loi, District 1, HCM City",
+        "phone": "Phone Number",
+        "phonePlaceholder": "0901234567",
+        "openTime": "Opening Time",
+        "closeTime": "Closing Time",
+        "description": "Description (optional)",
+        "descriptionPlaceholder": "Short description of the store",
+        "saving": "Saving...",
+        "createBtn": "Create Store",
+        "saveBtn": "Save Changes",
+        "createSuccess": "Store created successfully!",
+        "editSuccess": "Store updated successfully!",
+        "createFailed": "Failed to create store",
+        "editFailed": "Failed to update store"
+      }
+    },
+    "lockers": {
+      "title": "Locker Management",
+      "description": "Manage and monitor smart lockers in the system",
+      "searchPlaceholder": "Search lockers...",
+      "columns": {
+        "code": "Code",
+        "store": "Store",
+        "status": "Status",
+        "boxes": "Boxes"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "maintenance": "Maintenance",
+        "disconnected": "Disconnected"
+      }
+    },
+    "partners": {
+      "title": "Partner Management",
+      "description": "Manage and approve partners in the system",
+      "searchPlaceholder": "Search partners...",
+      "columns": {
+        "partner": "Partner",
+        "representative": "Representative",
+        "address": "Address",
+        "stores": "Stores",
+        "status": "Status"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "suspended": "Suspended"
+      }
+    },
+    "feedback": {
+      "title": "Feedback",
+      "empty": "No feedback yet"
+    },
+    "scheduler": {
+      "title": "Scheduler",
+      "description": "Manage automated tasks and manual triggers",
+      "statusTitle": "Scheduler Status",
+      "systemStatus": "System Status",
+      "loading": "Loading...",
+      "cannotConnect": "Cannot connect",
+      "running": "Running",
+      "stopped": "Stopped",
+      "autoJobs": "Automated jobs",
+      "historyTitle": "Job history",
+      "noResults": "No jobs have been run",
+      "noResultsDesc": "Results will appear here",
+      "frequencyLabel": "Frequency:",
+      "lastRunLabel": "Last run:",
+      "runNow": "Run now",
+      "runningNow": "Running...",
+      "auto": "Automatic",
+      "infoTitle": "Information",
+      "info1": "Scheduler jobs run automatically at configured intervals",
+      "info2": "Admin can trigger manually for testing or urgent processing",
+      "info3": "Job results are kept for the last 10 runs",
+      "jobs": {
+        "autoCancel": {
+          "title": "Auto-Cancel Orders",
+          "description": "Automatically cancel INITIALIZED orders not confirmed within 30 minutes. Releases box and sends notification to customer.",
+          "frequency": "Every 5 minutes"
+        },
+        "releaseBoxes": {
+          "title": "Release Boxes",
+          "description": "Release boxes from COMPLETED orders after 5 minutes. Clears PIN code for security.",
+          "frequency": "Every 2 minutes"
+        },
+        "pickupReminders": {
+          "title": "Pickup Reminders",
+          "description": "Send pickup reminder notifications to customers with RETURNED orders over 24 hours.",
+          "frequency": "Every 1 hour"
+        }
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Manage application preferences",
+      "language": "Language",
+      "languageHelp": "Choose display language",
+      "theme": "Theme",
+      "themeHelp": "Switch between light / dark / system",
+      "analytics": "Analytics",
+      "analyticsHelp": "Send anonymous usage data to help improve the app",
+      "devMode": "Developer mode",
+      "devModeHelp": "Show additional debug information",
+      "reset": "Reset",
+      "save": "Save changes",
+      "saving": "Saving..."
+    },
+    "notifications": {
+      "title": "Notification Management",
+      "description": "Manage and send notifications to users",
+      "createBtn": "Create Notification",
+      "broadcastBtn": "Broadcast",
+      "searchPlaceholder": "Search by title, recipient...",
+      "emptyMessage": "No notifications found",
+      "filter": {
+        "status": "Status",
+        "type": "Type",
+        "channel": "Channel",
+        "allStatus": "All",
+        "allTypes": "All Types",
+        "allChannels": "All Channels"
+      },
+      "status": {
+        "unread": "Unread",
+        "read": "Read",
+        "archived": "Archived"
+      },
+      "channel": {
+        "inApp": "In-App",
+        "email": "Email",
+        "sms": "SMS",
+        "push": "Push"
+      },
+      "type": {
+        "orderCreated": "Order Created",
+        "orderConfirmed": "Order Confirmed",
+        "orderReady": "Order Ready",
+        "orderCompleted": "Completed",
+        "orderCancelled": "Cancelled",
+        "paymentSuccessful": "Payment OK",
+        "paymentFailed": "Payment Failed",
+        "promotion": "Promotion",
+        "systemAlert": "System",
+        "loyaltyPointsEarned": "Points Earned",
+        "loyaltyRewardUnlocked": "Reward Unlocked"
+      },
+      "stats": {
+        "total": "Total Notifications",
+        "unread": "Unread",
+        "read": "Read",
+        "archived": "Archived",
+        "deliveryRate": "Delivery Rate",
+        "avgReadTime": "Avg. Read Time",
+        "minutes": "min"
+      },
+      "columns": {
+        "recipient": "Recipient",
+        "title": "Title",
+        "type": "Type",
+        "channel": "Channel",
+        "status": "Status",
+        "createdAt": "Created At"
+      },
+      "actions": {
+        "markRead": "Mark as Read",
+        "archive": "Archive",
+        "resend": "Resend",
+        "delete": "Delete"
+      },
+      "broadcast": {
+        "title": "Broadcast Notification",
+        "notifType": "Notification Type",
+        "channel": "Channel",
+        "subject": "Title",
+        "subjectPlaceholder": "Enter notification title",
+        "content": "Content",
+        "contentPlaceholder": "Enter notification content...",
+        "target": "Target Audience",
+        "allUsers": "All Users",
+        "specific": "Specific",
+        "recipientIdsPlaceholder": "Enter user IDs separated by commas (e.g. 1, 2, 3)",
+        "scheduledFor": "Scheduled Time (optional)",
+        "scheduledHint": "Leave empty to send immediately",
+        "sendBtn": "Send Broadcast",
+        "sending": "Sending...",
+        "successMsg": "Broadcast sent to {count} users",
+        "errorMsg": "Failed to send broadcast, please try again",
+        "requiredFields": "Please enter title and content"
+      },
+      "create": {
+        "title": "Create Notification",
+        "recipient": "Recipient ID",
+        "recipientPlaceholder": "Enter user ID",
+        "notifType": "Notification Type",
+        "channel": "Channel",
+        "subject": "Title",
+        "subjectPlaceholder": "Enter notification title",
+        "content": "Content",
+        "contentPlaceholder": "Enter notification content...",
+        "relatedOrder": "Related Order ID",
+        "relatedOrderPlaceholder": "Enter order ID (optional)",
+        "sendBtn": "Send Notification",
+        "sending": "Sending...",
+        "successMsg": "Notification sent successfully",
+        "errorMsg": "Failed to send notification",
+        "invalidRecipient": "Invalid recipient ID",
+        "requiredFields": "Please enter title and content"
+      }
+    },
+    "promotions": {
+      "title": "Promotion Management",
+      "description": "Create and manage voucher codes and discount campaigns",
+      "createBtn": "Create Promotion",
+      "searchPlaceholder": "Search by code or campaign name...",
+      "emptyMessage": "No promotions found",
+      "status": {
+        "all": "All",
+        "active": "Active",
+        "upcoming": "Upcoming",
+        "expired": "Expired",
+        "depleted": "Depleted",
+        "inactive": "Inactive"
+      },
+      "columns": {
+        "code": "Code",
+        "title": "Campaign Name",
+        "discount": "Discount",
+        "minOrder": "Min Order",
+        "period": "Period",
+        "usage": "Usage",
+        "status": "Status"
+      },
+      "discount": {
+        "noLimit": "No limit",
+        "freeService": "Free Service"
+      },
+      "modal": {
+        "createTitle": "Create New Promotion",
+        "editTitle": "Edit Promotion",
+        "code": "Promotion Code",
+        "codeHint": "3–20 chars, only A-Z, 0-9, _",
+        "codePlaceholder": "e.g. SAVE20, SUMMER26",
+        "titleField": "Campaign Name",
+        "titlePlaceholder": "e.g. 20% Off Summer Sale",
+        "description": "Description",
+        "descriptionPlaceholder": "Short description of the promotion...",
+        "discountType": "Discount Type",
+        "discountTypePercent": "Percentage (%)",
+        "discountTypeFixed": "Fixed Amount (VND)",
+        "discountTypeFree": "Free Service",
+        "discountValue": "Discount Value",
+        "discountValueHint": "Enter value (0–100 for %, amount for VND)",
+        "maxDiscount": "Max Discount (VND)",
+        "maxDiscountPlaceholder": "Empty = no limit",
+        "minOrder": "Min Order Amount (VND)",
+        "minOrderPlaceholder": "Empty = no limit",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "totalLimit": "Total Usage Limit",
+        "totalLimitPlaceholder": "Empty = unlimited",
+        "perUserLimit": "Per User Limit",
+        "isActive": "Activate Immediately",
+        "stackable": "Allow combining with other promotions",
+        "createSuccess": "Promotion created successfully",
+        "editSuccess": "Promotion updated successfully",
+        "createFailed": "Failed to create promotion",
+        "editFailed": "Failed to update promotion",
+        "requiredCode": "Please enter code and campaign name",
+        "requiredDates": "Please select start and end dates",
+        "invalidDates": "End date must be after start date"
+      }
+    }
+  },
+  "partner": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "orders": "Orders",
+      "staff": "Staff",
+      "revenue": "Revenue",
+      "stores": "Stores",
+      "services": "Services",
+      "notifications": "Notifications",
+      "settings": "Settings"
+    },
+    "common": {
+      "updating": "Updating...",
+      "settings": "Settings",
+      "logout": "Logout"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Store activity overview",
+      "errorTitle": "Failed to load dashboard",
+      "welcome": "Welcome",
+      "pendingOrders": "Pending Orders",
+      "ordersNeedAction": "orders need action",
+      "stats": {
+        "todayOrders": "Today's Orders",
+        "total": "Total",
+        "processing": "Processing",
+        "processingShort": "Processing",
+        "revenue": "Revenue",
+        "thisMonth": "This Month",
+        "earnings": "Earnings",
+        "stores": "Stores",
+        "active": "Active"
+      }
+    },
+    "orders": {
+      "title": "Order Management",
+      "subtitle": "Track and process laundry orders",
+      "loadingTitle": "Loading orders...",
+      "errorTitle": "Failed to load orders",
+      "description": "Manage orders",
+      "tabs": {
+        "all": "All",
+        "waiting": "Waiting Pickup",
+        "collected": "Collected",
+        "processing": "Processing",
+        "ready": "Ready to Return",
+        "returned": "Returned",
+        "completed": "Completed"
+      },
+      "empty": {
+        "title": "No Orders",
+        "message": "No orders in this status."
+      },
+      "columns": {
+        "orderCode": "Order Code",
+        "customer": "Customer",
+        "locker": "Locker",
+        "service": "Service",
+        "weight": "Weight",
+        "total": "Total"
+      },
+      "results": "orders",
+      "actions": {
+        "accept": "Issue Pickup Code",
+        "process": "Start Washing",
+        "markReady": "Issue Return Code",
+        "enterWeight": "Update Weight"
+      },
+      "status": {
+        "waitingReturn": "Waiting Staff Return",
+        "waitingPickup": "Waiting Customer Pickup"
+      }
+    },
+    "services": {
+      "title": "Service Management",
+      "subtitle": "View services assigned to your store",
+      "loadingTitle": "Loading services...",
+      "errorTitle": "Failed to load services",
+      "description": "Manage services"
+    },
+    "revenue": {
+      "title": "Revenue",
+      "subtitle": "Track revenue and transactions",
+      "loadingTitle": "Loading revenue data...",
+      "errorTitle": "Failed to load revenue data",
+      "description": "View revenue reports"
+    },
+    "lockers": {
+      "title": "Locker Management",
+      "subtitle": "Monitor and manage lockers",
+      "loadingTitle": "Loading locker info...",
+      "errorTitle": "Failed to load lockers",
+      "reportIssue": "Report Issue",
+      "description": "Manage lockers",
+      "empty": {
+        "title": "No Lockers",
+        "message": "Your store has no lockers assigned. Please contact Admin for support."
+      }
+    },
+    "staff": {
+      "title": "Staff Management",
+      "subtitle": "Manage staff and issue access codes",
+      "loadingTitle": "Loading staff list...",
+      "errorTitle": "Failed to load staff list",
+      "description": "Manage staff"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Manage system notifications",
+      "loadingTitle": "Loading notifications...",
+      "errorTitle": "Failed to load notifications",
+      "description": "Manage notifications"
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Manage store information",
+      "loadingTitle": "Loading settings...",
+      "errorTitle": "Failed to load settings",
+      "description": "Account settings"
+    }
+  },
+  "dropdown": {
+    "viewDetail": "View Detail",
+    "edit": "Edit",
+    "delete": "Delete",
+    "approve": "Approve",
+    "reject": "Reject",
+    "suspend": "Suspend",
+    "activate": "Activate",
+    "maintenance": "Maintenance"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  }
+}

@@ -1,0 +1,545 @@
+{
+  "brand": {
+    "title": "LockerWash",
+    "subtitle": "スマートロッカー、オンデマンドで"
+  },
+  "signin": {
+    "title": "アカウントにサインイン"
+  },
+  "label": {
+    "email": "メール",
+    "password": "パスワード"
+  },
+  "placeholder": {
+    "email": "you@domain.com",
+    "password": "••••••••"
+  },
+  "link": {
+    "forgot": "パスワードを忘れた？"
+  },
+  "info": {
+    "devHint": "アクセスが必要？ログインをクリックしてモックアカウントを使用（開発用）。"
+  },
+  "right": {
+    "title": "あなたのスケジュールで清潔な衣類。",
+    "subtitle": "24時間365日ロッカーアクセス"
+  },
+  "button": {
+    "login": "サインイン",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "create": "新規作成",
+    "search": "検索",
+    "filter": "フィルタ",
+    "refresh": "更新",
+    "detail": "詳細",
+    "confirm": "確認",
+    "close": "閉じる",
+    "back": "戻る",
+    "viewAll": "すべて表示",
+    "logout": "ログアウト"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "noData": "データなし",
+    "mockData": "モックデータを使用中",
+    "empty": "空",
+    "all": "すべて",
+    "status": "ステータス",
+    "action": "アクション",
+    "actions": "アクション",
+    "name": "名前",
+    "description": "説明",
+    "createdAt": "作成日",
+    "updatedAt": "更新日",
+    "phone": "電話",
+    "email": "メール",
+    "address": "住所",
+    "note": "メモ",
+    "yes": "はい",
+    "no": "いいえ"
+  },
+  "header": {
+    "language": "言語",
+    "theme": "テーマ",
+    "themeLight": "ライト",
+    "themeDark": "ダーク",
+    "themeSystem": "システム",
+    "notifications": "通知"
+  },
+  "table": {
+    "rowsPerPage": "ページあたりの行数",
+    "of": "の",
+    "showing": "表示中",
+    "results": "結果"
+  },
+  "admin": {
+    "sidebar": {
+      "dashboard": "ダッシュボード",
+      "users": "ユーザー",
+      "orders": "注文",
+      "stores": "店舗",
+      "lockers": "ロッカー",
+      "services": "サービス",
+      "payments": "支払い",
+      "loyalty": "ロイヤルティ",
+      "partners": "パートナー",
+      "feedback": "フィードバック",
+      "scheduler": "スケジューラ",
+      "notifications": "通知",
+      "promotions": "プロモーション",
+      "settings": "設定",
+      "maintenance": "メンテナンス",
+      "drones": "ドローン"
+    },
+    "dashboard": {
+      "title": "概要",
+      "welcome": "お帰りなさい",
+      "monthlyOrders": "月間注文数",
+      "monthlyRevenue": "月間収益",
+      "newUsers": "新規ユーザー"
+    },
+    "users": {
+      "title": "ユーザー管理",
+      "description": "システムのユーザーアカウントを管理",
+      "addUser": "ユーザーを追加",
+      "searchPlaceholder": "ユーザーを検索...",
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ"
+      },
+      "columns": {
+        "user": "ユーザー",
+        "role": "役割",
+        "status": "ステータス",
+        "provider": "プロバイダ",
+        "verified": "認証済み",
+        "createdAt": "作成日"
+      },
+      "verified": {
+        "yes": "認証済み",
+        "no": "保留中"
+      }
+    },
+    "orders": {
+      "title": "注文管理",
+      "description": "システムの注文を管理および追跡",
+      "createOrder": "注文を作成",
+      "createSuccess": "注文が正常に作成されました",
+      "searchPlaceholder": "注文を検索...",
+      "columns": {
+        "id": "注文ID",
+        "customer": "顧客",
+        "service": "サービス",
+        "total": "合計",
+        "status": "ステータス",
+        "createdAt": "作成日"
+      },
+      "status": {
+        "initialized": "初期化済み",
+        "reserved": "予約済み",
+        "waiting": "待機中",
+        "collected": "回収済み",
+        "processing": "処理中",
+        "ready": "準備完了",
+        "returned": "返却済み",
+        "completed": "完了",
+        "canceled": "キャンセル"
+      }
+    },
+    "stores": {
+      "title": "店舗管理",
+      "description": "システムの店舗を管理",
+      "addStore": "店舗を追加",
+      "searchPlaceholder": "店舗を検索...",
+      "columns": {
+        "store": "店舗",
+        "contact": "連絡先",
+        "address": "住所",
+        "hours": "営業時間",
+        "lockers": "ロッカー",
+        "status": "ステータス"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ"
+      },
+      "modal": {
+        "createTitle": "新しい店舗を追加",
+        "editTitle": "店舗を編集",
+        "name": "店舗名",
+        "namePlaceholder": "例: 1区店舗",
+        "address": "住所",
+        "addressPlaceholder": "123 Le Loi, District 1, HCM City",
+        "phone": "電話番号",
+        "phonePlaceholder": "0901234567",
+        "openTime": "開店時間",
+        "closeTime": "閉店時間",
+        "description": "説明 (任意)",
+        "descriptionPlaceholder": "店舗の簡単な説明",
+        "saving": "保存中...",
+        "createBtn": "店舗を作成",
+        "saveBtn": "変更を保存",
+        "createSuccess": "店舗を作成しました！",
+        "editSuccess": "店舗を更新しました！",
+        "createFailed": "店舗の作成に失敗しました",
+        "editFailed": "店舗の更新に失敗しました"
+      }
+    },
+    "lockers": {
+      "title": "ロッカー管理",
+      "description": "システムのスマートロッカーを管理および監視",
+      "searchPlaceholder": "ロッカーを検索...",
+      "columns": {
+        "code": "コード",
+        "store": "店舗",
+        "status": "ステータス",
+        "boxes": "ボックス"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ",
+        "maintenance": "メンテナンス",
+        "disconnected": "切断"
+      }
+    },
+    "partners": {
+      "title": "パートナー管理",
+      "description": "システムのパートナーを管理および承認",
+      "searchPlaceholder": "パートナーを検索...",
+      "columns": {
+        "partner": "パートナー",
+        "representative": "担当者",
+        "address": "住所",
+        "stores": "店舗",
+        "status": "ステータス"
+      },
+      "status": {
+        "pending": "保留中",
+        "approved": "承認済み",
+        "rejected": "拒否",
+        "suspended": "停止"
+      }
+    },
+    "feedback": {
+      "title": "フィードバック",
+      "empty": "まだフィードバックはありません"
+    },
+    "scheduler": {
+      "title": "スケジューラー",
+      "description": "自動タスクと手動トリガーの管理",
+      "statusTitle": "スケジューラーの状態",
+      "systemStatus": "システム状態",
+      "loading": "読み込み中...",
+      "cannotConnect": "接続できません",
+      "running": "稼働中",
+      "stopped": "停止中",
+      "autoJobs": "自動ジョブ",
+      "historyTitle": "ジョブ履歴",
+      "noResults": "実行されたジョブはありません",
+      "noResultsDesc": "結果はここに表示されます",
+      "frequencyLabel": "頻度:",
+      "lastRunLabel": "最終実行:",
+      "runNow": "今すぐ実行",
+      "runningNow": "実行中...",
+      "auto": "自動",
+      "infoTitle": "情報",
+      "info1": "スケジューラージョブは設定された間隔で自動実行されます",
+      "info2": "管理者はテストや緊急処理のために手動でトリガーできます",
+      "info3": "ジョブ結果は直近10回分が保存されます",
+      "jobs": {
+        "autoCancel": {
+          "title": "注文自動キャンセル",
+          "description": "30分以内に確認されなかったINITIALIZED注文を自動キャンセルします。ボックスを解放し顧客に通知します。",
+          "frequency": "5分ごと"
+        },
+        "releaseBoxes": {
+          "title": "ボックス解放",
+          "description": "COMPLETED注文から5分後にボックスを解放します。セキュリティのためPINコードをクリアします。",
+          "frequency": "2分ごと"
+        },
+        "pickupReminders": {
+          "title": "受取リマインダー",
+          "description": "24時間以上経過したRETURNED注文の顧客に受取リマインダーを送信します。",
+          "frequency": "1時間ごと"
+        }
+      }
+    },
+    "settings": {
+      "title": "設定",
+      "subtitle": "アプリ設定の管理",
+      "language": "言語",
+      "languageHelp": "表示言語を選択",
+      "theme": "テーマ",
+      "themeHelp": "ライト / ダーク / システムを切替",
+      "analytics": "分析",
+      "analyticsHelp": "アプリ改善のため匿名データを送信",
+      "devMode": "開発者モード",
+      "devModeHelp": "デバッグ情報を表示",
+      "reset": "リセット",
+      "save": "変更を保存",
+      "saving": "保存中..."
+    },
+    "notifications": {
+      "title": "通知管理",
+      "description": "ユーザーへの通知を管理・送信",
+      "createBtn": "通知を作成",
+      "broadcastBtn": "ブロードキャスト",
+      "searchPlaceholder": "タイトル、受信者で検索...",
+      "emptyMessage": "通知はありません",
+      "filter": {
+        "status": "ステータス",
+        "type": "種類",
+        "channel": "チャンネル",
+        "allStatus": "すべて",
+        "allTypes": "すべての種類",
+        "allChannels": "すべてのチャンネル"
+      },
+      "status": {
+        "unread": "未読",
+        "read": "既読",
+        "archived": "アーカイブ済"
+      },
+      "channel": {
+        "inApp": "アプリ内",
+        "email": "メール",
+        "sms": "SMS",
+        "push": "プッシュ"
+      },
+      "type": {
+        "orderCreated": "注文作成",
+        "orderConfirmed": "注文確認",
+        "orderReady": "注文満備",
+        "orderCompleted": "完了",
+        "orderCancelled": "キャンセル",
+        "paymentSuccessful": "決済成功",
+        "paymentFailed": "決済失敗",
+        "promotion": "プロモーション",
+        "systemAlert": "システム",
+        "loyaltyPointsEarned": "ポイント獲得",
+        "loyaltyRewardUnlocked": "報酬解除"
+      },
+      "stats": {
+        "total": "通知合計",
+        "unread": "未読",
+        "read": "既読",
+        "archived": "アーカイブ",
+        "deliveryRate": "配信成功率",
+        "avgReadTime": "平均閲覧時間",
+        "minutes": "分"
+      },
+      "columns": {
+        "recipient": "受信者",
+        "title": "タイトル",
+        "type": "種類",
+        "channel": "チャンネル",
+        "status": "ステータス",
+        "createdAt": "作成日"
+      },
+      "actions": {
+        "markRead": "既読にマーク",
+        "archive": "アーカイブ",
+        "resend": "再送信",
+        "delete": "削除"
+      },
+      "broadcast": {
+        "title": "ブロードキャスト通知",
+        "notifType": "通知種類",
+        "channel": "送信チャンネル",
+        "subject": "タイトル",
+        "subjectPlaceholder": "通知タイトルを入力",
+        "content": "内容",
+        "contentPlaceholder": "通知内容を入力...",
+        "target": "送信対象",
+        "allUsers": "全ユーザー",
+        "specific": "特定ユーザー",
+        "recipientIdsPlaceholder": "ユーザーIDをカンマ区切りで入力（例: 1, 2, 3）",
+        "scheduledFor": "送信時刻（任意）",
+        "scheduledHint": "空白の場合は即時送信",
+        "sendBtn": "ブロードキャスト送信",
+        "sending": "送信中...",
+        "successMsg": "{count}人のユーザーに送信しました",
+        "errorMsg": "ブロードキャストの送信に失敗しました",
+        "requiredFields": "タイトルと内容を入力してください"
+      },
+      "create": {
+        "title": "通知を作成",
+        "recipient": "受信者ID",
+        "recipientPlaceholder": "ユーザーIDを入力",
+        "notifType": "通知種類",
+        "channel": "チャンネル",
+        "subject": "タイトル",
+        "subjectPlaceholder": "通知タイトルを入力",
+        "content": "内容",
+        "contentPlaceholder": "通知内容を入力...",
+        "relatedOrder": "関連注文ID",
+        "relatedOrderPlaceholder": "注文IDを入力（任意）",
+        "sendBtn": "送信",
+        "sending": "送信中...",
+        "successMsg": "通知を送信しました",
+        "errorMsg": "通知の送信に失敗しました",
+        "invalidRecipient": "無効な受信者ID",
+        "requiredFields": "タイトルと内容を入力してください"
+      }
+    },
+    "promotions": {
+      "title": "プロモーション管理",
+      "description": "バウチャーコードや割引キャンペーンを作成・管理",
+      "createBtn": "プロモーションを作成",
+      "searchPlaceholder": "コードやキャンペーン名で検索...",
+      "emptyMessage": "プロモーションはありません",
+      "status": {
+        "all": "すべて",
+        "active": "アクティブ",
+        "upcoming": "間もなく開始",
+        "expired": "期限切れ",
+        "depleted": "上限到達",
+        "inactive": "無効"
+      },
+      "columns": {
+        "code": "コード",
+        "title": "キャンペーン名",
+        "discount": "割引",
+        "minOrder": "最小注文",
+        "period": "期間",
+        "usage": "使用回数",
+        "status": "ステータス"
+      },
+      "discount": {
+        "noLimit": "制限なし",
+        "freeService": "無料サービス"
+      },
+      "modal": {
+        "createTitle": "新規プロモーションを作成",
+        "editTitle": "プロモーションを編集",
+        "code": "プロモーションコード",
+        "codeHint": "3～20文字、A-Z・0-9・_のみ",
+        "codePlaceholder": "例: SAVE20, SUMMER26",
+        "titleField": "キャンペーン名",
+        "titlePlaceholder": "例: 夏の20%割引",
+        "description": "説明",
+        "descriptionPlaceholder": "プロモーションの簡単な説明...",
+        "discountType": "割引種類",
+        "discountTypePercent": "パーセント (%)",
+        "discountTypeFixed": "定額 (VND)",
+        "discountTypeFree": "サービス無料",
+        "discountValue": "割引値",
+        "discountValueHint": "値を入力（0～100%、VND金額）",
+        "maxDiscount": "最大割引額 (VND)",
+        "maxDiscountPlaceholder": "空白 = 制限なし",
+        "minOrder": "最小注文金額 (VND)",
+        "minOrderPlaceholder": "空白 = 制限なし",
+        "startDate": "開始日",
+        "endDate": "終了日",
+        "totalLimit": "総使用回数上限",
+        "totalLimitPlaceholder": "空白 = 無制限",
+        "perUserLimit": "ユーザーごとの上限",
+        "isActive": "即座に有効化",
+        "stackable": "他のプロモーションと組み合わせ可",
+        "createSuccess": "プロモーションを作成しました",
+        "editSuccess": "プロモーションを更新しました",
+        "createFailed": "作成に失敗しました",
+        "editFailed": "更新に失敗しました",
+        "requiredCode": "コードとキャンペーン名を入力してください",
+        "requiredDates": "開始日と終了日を選択してください",
+        "invalidDates": "終了日は開始日より後でなければなりません"
+      }
+    }
+  },
+  "partner": {
+    "sidebar": {
+      "dashboard": "ダッシュボード",
+      "orders": "注文",
+      "staff": "スタッフ",
+      "revenue": "収益",
+      "stores": "店舗",
+      "services": "サービス",
+      "notifications": "通知",
+      "settings": "設定"
+    },
+    "dashboard": {
+      "title": "ダッシュボード",
+      "welcome": "ようこそ",
+      "pendingOrders": "保留中の注文",
+      "ordersNeedAction": "件の注文が対応が必要",
+      "stats": {
+        "todayOrders": "今日の注文",
+        "total": "合計",
+        "processing": "処理中",
+        "processingShort": "処理中",
+        "revenue": "収益",
+        "thisMonth": "今月",
+        "earnings": "収入",
+        "stores": "店舗",
+        "active": "アクティブ"
+      }
+    },
+    "orders": {
+      "title": "注文",
+      "description": "注文を管理",
+      "empty": {
+        "title": "注文なし",
+        "message": "このステータスの注文はありません。"
+      },
+      "columns": {
+        "orderCode": "注文コード",
+        "customer": "顧客",
+        "locker": "ロッカー",
+        "service": "サービス",
+        "weight": "重量",
+        "total": "合計"
+      },
+      "results": "件の注文",
+      "actions": {
+        "accept": "ピックアップコード発行",
+        "process": "洗濯開始",
+        "markReady": "返却コード発行",
+        "enterWeight": "重量更新"
+      },
+      "status": {
+        "waitingReturn": "スタッフ返却待ち",
+        "waitingPickup": "顧客ピックアップ待ち"
+      }
+    },
+    "lockers": {
+      "title": "ロッカー",
+      "description": "ロッカーを管理"
+    },
+    "services": {
+      "title": "サービス",
+      "description": "サービスを管理"
+    },
+    "staff": {
+      "title": "スタッフ",
+      "description": "スタッフを管理"
+    },
+    "revenue": {
+      "title": "収益",
+      "description": "収益レポートを表示"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "通知を管理"
+    },
+    "settings": {
+      "title": "設定",
+      "description": "アカウント設定"
+    }
+  },
+  "dropdown": {
+    "viewDetail": "詳細を見る",
+    "edit": "編集",
+    "delete": "削除",
+    "approve": "承認",
+    "reject": "拒否",
+    "suspend": "停止",
+    "activate": "有効化",
+    "maintenance": "メンテナンス"
+  },
+  "pagination": {
+    "previous": "前へ",
+    "next": "次へ"
+  }
+}

@@ -1,0 +1,589 @@
+{
+  "brand": {
+    "title": "LockerWash",
+    "subtitle": "Tủ giặt thông minh, theo yêu cầu"
+  },
+  "signin": {
+    "title": "Đăng nhập vào tài khoản của bạn"
+  },
+  "label": {
+    "email": "E-mail",
+    "password": "Mật khẩu"
+  },
+  "placeholder": {
+    "email": "you@domain.com",
+    "password": "••••••••"
+  },
+  "link": {
+    "forgot": "Quên mật khẩu?"
+  },
+  "info": {
+    "devHint": "Cần truy cập? Nhấn Login để sử dụng tài khoản giả lập (dev)."
+  },
+  "right": {
+    "title": "Quần áo sạch, theo lịch của bạn.",
+    "subtitle": "Truy cập tủ 24/7"
+  },
+  "button": {
+    "login": "Đăng nhập",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "refresh": "Làm mới",
+    "detail": "Chi tiết",
+    "confirm": "Xác nhận",
+    "close": "Đóng",
+    "back": "Quay lại",
+    "viewAll": "Xem tất cả",
+    "logout": "Đăng xuất"
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "noData": "Không có dữ liệu",
+    "mockData": "Đang sử dụng mock data",
+    "empty": "Trống",
+    "all": "Tất cả",
+    "status": "Trạng thái",
+    "action": "Thao tác",
+    "actions": "Thao tác",
+    "name": "Tên",
+    "description": "Mô tả",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật",
+    "phone": "Số điện thoại",
+    "email": "Email",
+    "address": "Địa chỉ",
+    "note": "Ghi chú",
+    "yes": "Có",
+    "no": "Không"
+  },
+  "header": {
+    "language": "Ngôn ngữ",
+    "theme": "Giao diện",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "themeSystem": "Hệ thống",
+    "notifications": "Thông báo"
+  },
+  "table": {
+    "rowsPerPage": "Số hàng/trang",
+    "of": "củ",
+    "showing": "Hiển thị",
+    "results": "kết quả"
+  },
+  "admin": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Người dùng",
+      "orders": "Đơn hàng",
+      "stores": "Cửa hàng",
+      "lockers": "Tủ đồ",
+      "services": "Dịch vụ",
+      "payments": "Thanh toán",
+      "loyalty": "Khách hàng thân thiết",
+      "partners": "Đối tác",
+      "feedback": "Phản hồi",
+      "scheduler": "Lập lịch",
+      "notifications": "Thông báo",
+      "promotions": "Khuyến mãi",
+      "settings": "Cài đặt",
+      "maintenance": "Bảo trì tủ",
+      "drones": "Drone"
+    },
+    "dashboard": {
+      "title": "Tổng quan",
+      "welcome": "Chào mừng trở lại",
+      "monthlyOrders": "Số đơn hàng trong tháng",
+      "monthlyRevenue": "Doanh thu tháng này",
+      "newUsers": "Người dùng mới"
+    },
+    "users": {
+      "title": "Quản lý người dùng",
+      "description": "Quản lý tài khoản người dùng trong hệ thống",
+      "addUser": "Thêm người dùng",
+      "searchPlaceholder": "Tìm kiếm người dùng...",
+      "status": {
+        "active": "Hoạt động",
+        "inactive": "Vô hiệu",
+        "pending": "Chờ xác thực"
+      },
+      "columns": {
+        "user": "Người dùng",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "provider": "Đăng nhập",
+        "verified": "Xác thực",
+        "createdAt": "Ngày tạo"
+      },
+      "verified": {
+        "yes": "Đã xác thực",
+        "no": "Chờ xác thực"
+      },
+      "noName": "Chưa đặt tên"
+    },
+    "orders": {
+      "title": "Quản lý đơn hàng",
+      "description": "Quản lý và theo dõi đơn hàng trong hệ thống",
+      "createOrder": "Tạo đơn hàng",
+      "createSuccess": "Đã tạo đơn hàng thành công",
+      "searchPlaceholder": "Tìm kiếm đơn hàng...",
+      "columns": {
+        "id": "Mã đơn",
+        "customer": "Khách hàng",
+        "service": "Dịch vụ",
+        "total": "Tổng tiền",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo"
+      },
+      "status": {
+        "initialized": "Khởi tạo",
+        "reserved": "Đã đặt",
+        "waiting": "Chờ thu gom",
+        "collected": "Đã thu gom",
+        "processing": "Đang xử lý",
+        "ready": "Sẵn sàng",
+        "returned": "Đã trả",
+        "completed": "Hoàn thành",
+        "canceled": "Đã hủy"
+      }
+    },
+    "stores": {
+      "title": "Quản lý cửa hàng",
+      "description": "Quản lý các cửa hàng trong hệ thống",
+      "addStore": "Thêm cửa hàng",
+      "searchPlaceholder": "Tìm kiếm cửa hàng...",
+      "columns": {
+        "store": "Cửa hàng",
+        "contact": "Liên hệ",
+        "address": "Địa chỉ",
+        "hours": "Giờ mở cửa",
+        "lockers": "Tủ đồ",
+        "status": "Trạng thái"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "inactive": "Vô hiệu"
+      },
+      "modal": {
+        "createTitle": "Thêm cửa hàng mới",
+        "editTitle": "Chỉnh sửa cửa hàng",
+        "name": "Tên cửa hàng",
+        "namePlaceholder": "Ví dụ: Cửa hàng Quận 1",
+        "address": "Địa chỉ",
+        "addressPlaceholder": "123 Lê Lợi, Quận 1, TP.HCM",
+        "phone": "Số điện thoại",
+        "phonePlaceholder": "0901234567",
+        "openTime": "Giờ mở cửa",
+        "closeTime": "Giờ đóng cửa",
+        "description": "Mô tả (tùy chọn)",
+        "descriptionPlaceholder": "Mô tả ngắn về cửa hàng",
+        "saving": "Đang lưu...",
+        "createBtn": "Tạo cửa hàng",
+        "saveBtn": "Lưu thay đổi",
+        "createSuccess": "Đã tạo cửa hàng thành công!",
+        "editSuccess": "Đã cập nhật cửa hàng thành công!",
+        "createFailed": "Không thể tạo cửa hàng",
+        "editFailed": "Không thể cập nhật cửa hàng"
+      }
+    },
+    "lockers": {
+      "title": "Quản lý tủ đồ",
+      "description": "Quản lý và giám sát các tủ đồ thông minh trong hệ thống",
+      "searchPlaceholder": "Tìm kiếm tủ đồ...",
+      "columns": {
+        "code": "Mã tủ",
+        "store": "Cửa hàng",
+        "status": "Trạng thái",
+        "boxes": "Ngăn tủ"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "inactive": "Vô hiệu",
+        "maintenance": "Bảo trì",
+        "disconnected": "Mất kết nối"
+      }
+    },
+    "partners": {
+      "title": "Quản lý đối tác",
+      "description": "Quản lý và phê duyệt đối tác trong hệ thống",
+      "searchPlaceholder": "Tìm kiếm đối tác...",
+      "columns": {
+        "partner": "Đối tác",
+        "representative": "Ngườii đại diện",
+        "address": "Địa chỉ",
+        "stores": "Cửa hàng",
+        "status": "Trạng thái"
+      },
+      "status": {
+        "pending": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Từ chối",
+        "suspended": "Đình chỉ"
+      }
+    },
+    "feedback": {
+      "title": "Phản hồi",
+      "empty": "Chưa có phản hồi"
+    },
+    "scheduler": {
+      "title": "Lập lịch",
+      "description": "Quản lý các tác vụ tự động và trigger thủ công",
+      "statusTitle": "Trạng thái Scheduler",
+      "systemStatus": "Trạng thái hệ thống",
+      "loading": "Đang tải...",
+      "cannotConnect": "Không thể kết nối",
+      "running": "Đang hoạt động",
+      "stopped": "Đã tắt",
+      "autoJobs": "Các job tự động",
+      "historyTitle": "Lịch sử chạy job",
+      "noResults": "Chưa có job nào được chạy",
+      "noResultsDesc": "Các kết quả sẽ hiển thị ở đây",
+      "frequencyLabel": "Tần suất:",
+      "lastRunLabel": "Chạy gần nhất:",
+      "runNow": "Chạy ngay",
+      "runningNow": "Đang chạy...",
+      "auto": "Tự động",
+      "infoTitle": "Thông tin",
+      "info1": "Các scheduler job chạy tự động theo tần suất đã cấu hình",
+      "info2": "Admin có thể trigger thủ công để test hoặc xử lý gấp",
+      "info3": "Kết quả chạy job được lưu lại 10 lần gần nhất",
+      "jobs": {
+        "autoCancel": {
+          "title": "Auto-Cancel Orders",
+          "description": "Tự động hủy các đơn hàng INITIALIZED quá 30 phút không xác nhận. Giải phóng box và gửi notification cho khách.",
+          "frequency": "Mỗi 5 phút"
+        },
+        "releaseBoxes": {
+          "title": "Release Boxes",
+          "description": "Giải phóng các box từ đơn hàng COMPLETED sau 5 phút. Xóa PIN code để đảm bảo bảo mật.",
+          "frequency": "Mỗi 2 phút"
+        },
+        "pickupReminders": {
+          "title": "Pickup Reminders",
+          "description": "Gửi notification nhắc nhở khách đến lấy đồ cho các đơn hàng RETURNED quá 24 giờ.",
+          "frequency": "Mỗi 1 giờ"
+        }
+      }
+    },
+    "settings": {
+      "title": "Cài đặt",
+      "subtitle": "Quản lý tùy chọn ứng dụng",
+      "language": "Ngôn ngữ",
+      "languageHelp": "Chọn ngôn ngữ hiển thị",
+      "theme": "Giao diện",
+      "themeHelp": "Chuyển đổi sáng / tối / hệ thống",
+      "analytics": "Phân tích",
+      "analyticsHelp": "Gửi dữ liệu ẩn danh để cải thiện ứng dụng",
+      "devMode": "Chế độ dev",
+      "devModeHelp": "Hiện thêm thông tin debug",
+      "reset": "Đặt lại",
+      "save": "Lưu thay đổi",
+      "saving": "Đang lưu..."
+    },
+    "notifications": {
+      "title": "Quản lý thông báo",
+      "description": "Quản lý và gửi thông báo đến người dùng",
+      "createBtn": "Tạo thông báo",
+      "broadcastBtn": "Broadcast",
+      "searchPlaceholder": "Tìm theo tiêu đề, người nhận...",
+      "emptyMessage": "Không có thông báo nào",
+      "filter": {
+        "status": "Trạng thái",
+        "type": "Loại thông báo",
+        "channel": "Kênh",
+        "allStatus": "Tất cả",
+        "allTypes": "Tất cả loại",
+        "allChannels": "Tất cả kênh"
+      },
+      "status": {
+        "unread": "Chưa đọc",
+        "read": "Đã đọc",
+        "archived": "Đã lưu trữ"
+      },
+      "channel": {
+        "inApp": "In-App",
+        "email": "Email",
+        "sms": "SMS",
+        "push": "Push"
+      },
+      "type": {
+        "orderCreated": "Tạo đơn",
+        "orderConfirmed": "Xác nhận đơn",
+        "orderReady": "Đơn sẵn sàng",
+        "orderCompleted": "Hoàn thành",
+        "orderCancelled": "Hủy đơn",
+        "paymentSuccessful": "TT thành công",
+        "paymentFailed": "TT thất bại",
+        "promotion": "Khuyến mãi",
+        "systemAlert": "Hệ thống",
+        "loyaltyPointsEarned": "Tích điểm",
+        "loyaltyRewardUnlocked": "Phần thưởng"
+      },
+      "stats": {
+        "total": "Tổng thông báo",
+        "unread": "Chưa đọc",
+        "read": "Đã đọc",
+        "archived": "Đã lưu trữ",
+        "deliveryRate": "Tỷ lệ gửi thành công",
+        "avgReadTime": "Thời gian đọc TB",
+        "minutes": "phút"
+      },
+      "columns": {
+        "recipient": "Người nhận",
+        "title": "Tiêu đề",
+        "type": "Loại",
+        "channel": "Kênh",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo"
+      },
+      "actions": {
+        "markRead": "Đánh dấu đã đọc",
+        "archive": "Lưu trữ",
+        "resend": "Gửi lại",
+        "delete": "Xóa"
+      },
+      "broadcast": {
+        "title": "Gửi broadcast thông báo",
+        "notifType": "Loại thông báo",
+        "channel": "Kênh gửi",
+        "subject": "Tiêu đề",
+        "subjectPlaceholder": "Nhập tiêu đề thông báo",
+        "content": "Nội dung",
+        "contentPlaceholder": "Nhập nội dung thông báo...",
+        "target": "Đối tượng nhận",
+        "allUsers": "Tất cả người dùng",
+        "specific": "Cụ thể",
+        "recipientIdsPlaceholder": "Nhập ID người dùng, cách nhau bởi dấu phẩy (VD: 1, 2, 3)",
+        "scheduledFor": "Thời gian gửi (tuỳ chọn)",
+        "scheduledHint": "Để trống để gửi ngay lập tức",
+        "sendBtn": "Gửi broadcast",
+        "sending": "Đang gửi...",
+        "successMsg": "Đã gửi broadcast đến {count} người dùng",
+        "errorMsg": "Gửi broadcast thất bại, vui lòng thử lại",
+        "requiredFields": "Vui lòng nhập tiêu đề và nội dung"
+      },
+      "create": {
+        "title": "Tạo thông báo mới",
+        "recipient": "ID Người nhận",
+        "recipientPlaceholder": "Nhập ID người dùng",
+        "notifType": "Loại thông báo",
+        "channel": "Kênh gửi",
+        "subject": "Tiêu đề",
+        "subjectPlaceholder": "Nhập tiêu đề thông báo",
+        "content": "Nội dung",
+        "contentPlaceholder": "Nhập nội dung thông báo...",
+        "relatedOrder": "ID Đơn hàng liên quan",
+        "relatedOrderPlaceholder": "Nhập ID đơn hàng (nếu có)",
+        "sendBtn": "Gửi thông báo",
+        "sending": "Đang gửi...",
+        "successMsg": "Thông báo đã được gửi thành công",
+        "errorMsg": "Gửi thông báo thất bại",
+        "invalidRecipient": "ID người nhận không hợp lệ",
+        "requiredFields": "Vui lòng nhập tiêu đề và nội dung"
+      }
+    },
+    "promotions": {
+      "title": "Quản lý khuyến mãi",
+      "description": "Tạo và quản lý mã voucher, chương trình giảm giá",
+      "createBtn": "Tạo khuyến mãi",
+      "searchPlaceholder": "Tìm theo mã, tên chương trình...",
+      "emptyMessage": "Không có khuyến mãi nào",
+      "status": {
+        "all": "Tất cả",
+        "active": "Đang hoạt động",
+        "upcoming": "Sắp diễn ra",
+        "expired": "Hết hạn",
+        "depleted": "Hết lượt",
+        "inactive": "Vô hiệu"
+      },
+      "columns": {
+        "code": "Mã",
+        "title": "Tên chương trình",
+        "discount": "Giảm giá",
+        "minOrder": "Đơn tối thiểu",
+        "period": "Thời hạn",
+        "usage": "Lượt dùng",
+        "status": "Trạng thái"
+      },
+      "discount": {
+        "noLimit": "Không giới hạn",
+        "freeService": "Miễn phí DV"
+      },
+      "modal": {
+        "createTitle": "Tạo khuyến mãi mới",
+        "editTitle": "Chỉnh sửa khuyến mãi",
+        "code": "Mã khuyến mãi",
+        "codeHint": "3–20 ký tự, chỉ A-Z, 0-9, _",
+        "codePlaceholder": "VD: GIAM20, SUMMER26",
+        "titleField": "Tên chương trình",
+        "titlePlaceholder": "VD: Giảm 20% mùa hè",
+        "description": "Mô tả",
+        "descriptionPlaceholder": "Mô tả ngắn về chương trình...",
+        "discountType": "Loại giảm giá",
+        "discountTypePercent": "Phần trăm (%)",
+        "discountTypeFixed": "Số tiền cố định (VND)",
+        "discountTypeFree": "Miễn phí dịch vụ",
+        "discountValue": "Giá trị giảm",
+        "discountValueHint": "Nhập giá trị (0–100 cho %, số tiền cho VND)",
+        "maxDiscount": "Giảm tối đa (VND)",
+        "maxDiscountPlaceholder": "Để trống = không giới hạn",
+        "minOrder": "Đơn tối thiểu (VND)",
+        "minOrderPlaceholder": "Để trống = không giới hạn",
+        "startDate": "Ngày bắt đầu",
+        "endDate": "Ngày kết thúc",
+        "totalLimit": "Tổng lượt dùng",
+        "totalLimitPlaceholder": "Để trống = không giới hạn",
+        "perUserLimit": "Mỗi người dùng",
+        "isActive": "Kích hoạt ngay",
+        "stackable": "Cho phép kết hợp với KM khác",
+        "createSuccess": "Tạo khuyến mãi thành công",
+        "editSuccess": "Cập nhật thành công",
+        "createFailed": "Tạo thất bại",
+        "editFailed": "Cập nhật thất bại",
+        "requiredCode": "Vui lòng nhập mã và tên chương trình",
+        "requiredDates": "Vui lòng chọn ngày bắt đầu và kết thúc",
+        "invalidDates": "Ngày kết thúc phải sau ngày bắt đầu"
+      }
+    }
+  },
+  "partner": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "orders": "Đơn hàng",
+      "staff": "Nhân viên",
+      "revenue": "Doanh thu",
+      "stores": "Cửa hàng",
+      "services": "Dịch vụ",
+      "notifications": "Thông báo",
+      "settings": "Cài đặt"
+    },
+    "common": {
+      "updating": "Đang cập nhật...",
+      "settings": "Cài đặt",
+      "logout": "Đăng xuất"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Tổng quan hoạt động cửa hàng",
+      "errorTitle": "Không thể tải dashboard",
+      "welcome": "Chào mừng",
+      "pendingOrders": "Đơn hàng chờ xử lý",
+      "ordersNeedAction": "đơn hàng cần xử lý",
+      "stats": {
+        "todayOrders": "Đơn hôm nay",
+        "total": "Tổng",
+        "processing": "Đang xử lý",
+        "processingShort": "Đang xử lý",
+        "revenue": "Doanh thu",
+        "thisMonth": "Tháng này",
+        "earnings": "Thu về",
+        "stores": "Cửa hàng",
+        "active": "Hoạt động"
+      }
+    },
+    "orders": {
+      "title": "Quản lý đơn hàng",
+      "subtitle": "Theo dõi và xử lý đơn hàng giặt ủi",
+      "loadingTitle": "Đang tải danh sách đơn hàng...",
+      "errorTitle": "Không thể tải danh sách đơn hàng",
+      "description": "Quản lý đơn hàng",
+      "tabs": {
+        "all": "Tất cả",
+        "waiting": "Chờ lấy đồ",
+        "collected": "Đã lấy",
+        "processing": "Đang giặt",
+        "ready": "Sẵn sàng trả",
+        "returned": "Đã trả",
+        "completed": "Hoàn thành"
+      },
+      "empty": {
+        "title": "Chưa có đơn hàng",
+        "message": "Không có đơn hàng nào ở trạng thái này."
+      },
+      "columns": {
+        "orderCode": "Mã đơn",
+        "customer": "Khách hàng",
+        "locker": "Locker",
+        "service": "Dịch vụ",
+        "weight": "Cân nặng",
+        "total": "Tổng tiền"
+      },
+      "results": "đơn hàng",
+      "actions": {
+        "accept": "Cấp mã lấy đồ",
+        "process": "Bắt đầu giặt",
+        "markReady": "Cấp mã trả đồ",
+        "enterWeight": "Cập nhật KG"
+      },
+      "status": {
+        "waitingReturn": "Chờ Staff trả đồ",
+        "waitingPickup": "Chờ khách lấy đồ"
+      }
+    },
+    "services": {
+      "title": "Quản lý dịch vụ",
+      "subtitle": "Xem các dịch vụ được gán cho cửa hàng",
+      "loadingTitle": "Đang tải danh sách dịch vụ...",
+      "errorTitle": "Không thể tải danh sách dịch vụ",
+      "description": "Quản lý dịch vụ"
+    },
+    "revenue": {
+      "title": "Doanh thu",
+      "subtitle": "Theo dõi doanh thu và giao dịch",
+      "loadingTitle": "Đang tải dữ liệu doanh thu...",
+      "errorTitle": "Không thể tải dữ liệu doanh thu",
+      "description": "Xem báo cáo doanh thu"
+    },
+    "lockers": {
+      "title": "Quản lý Locker",
+      "subtitle": "Theo dõi trạng thái và quản lý các tủ locker",
+      "loadingTitle": "Đang tải thông tin locker...",
+      "errorTitle": "Không thể tải danh sách locker",
+      "reportIssue": "Báo cáo sự cố",
+      "description": "Quản lý tủ đồ",
+      "empty": {
+        "title": "Chưa có locker nào",
+        "message": "Cửa hàng của bạn chưa được gán locker. Vui lòng liên hệ Admin để được hỗ trợ."
+      }
+    },
+    "staff": {
+      "title": "Quản lý nhân viên",
+      "subtitle": "Quản lý nhân viên và cấp mã truy cập",
+      "loadingTitle": "Đang tải danh sách nhân viên...",
+      "errorTitle": "Không thể tải danh sách nhân viên",
+      "description": "Quản lý nhân viên"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "subtitle": "Quản lý thông báo từ hệ thống",
+      "loadingTitle": "Đang tải thông báo...",
+      "errorTitle": "Không thể tải thông báo",
+      "description": "Quản lý thông báo"
+    },
+    "settings": {
+      "title": "Cài đặt",
+      "subtitle": "Quản lý thông tin cửa hàng",
+      "loadingTitle": "Đang tải thông tin...",
+      "errorTitle": "Không thể tải thông tin",
+      "description": "Cài đặt tài khoản"
+    }
+  },
+  "dropdown": {
+    "viewDetail": "Xem chi tiết",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "approve": "Phê duyệt",
+    "reject": "Từ chối",
+    "suspend": "Đình chỉ",
+    "activate": "Kích hoạt",
+    "maintenance": "Bảo trì"
+  },
+  "pagination": {
+    "previous": "Trước",
+    "next": "Sau"
+  }
+}

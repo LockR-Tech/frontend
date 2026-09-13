@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120" class="lockr-icon">
+  <defs>
+    <linearGradient id="shineGradient" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="rgba(255,255,255,0)" />
+      <stop offset="45%" stop-color="rgba(255,255,255,0.95)" />
+      <stop offset="55%" stop-color="rgba(255,255,255,0.95)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+    </linearGradient>
+
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur" />
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- mask: text shape defines visible area for the shine rect -->
+    <mask id="text-mask" maskUnits="userSpaceOnUse">
+      <!-- white = show, black = hide -->
+      <rect width="100%" height="100%" fill="black" />
+      <text id="maskText" x="50%" y="66%" text-anchor="middle" fill="white"
+        font-family="Gugi, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial"
+        font-weight="400" font-size="54">Lock.R</text>
+    </mask>
+
+    <style><![CDATA[
+      .lockr-icon { overflow: visible; }
+      .logo-text { fill: #C97C4F; font-family: Gugi, system-ui, sans-serif; font-weight: 400; font-size: 54px; text-anchor: middle; }
+      .shimmer-rect { transform: translateX(-140%); }
+      .glow-copy { opacity: 0; filter: url(#glow); }
+
+      /* single sweep on hover */
+      .lockr-icon:hover .shimmer-rect {
+        animation: sweep 1.2s ease-in-out forwards;
+      }
+
+      .lockr-icon:hover .glow-copy {
+        animation: glow 1.2s ease-in-out forwards;
+      }
+
+      @keyframes sweep {
+        0% { transform: translateX(-140%); opacity: 0; }
+        10% { opacity: 1; }
+        50% { transform: translateX(0%); opacity: 1; }
+        100% { transform: translateX(140%); opacity: 0; }
+      }
+
+      @keyframes glow {
+        0% { opacity: 0; }
+        30% { opacity: 0.0; }
+        45% { opacity: 1; }
+        65% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+    ]]></style>
+  </defs>
+
+  <!-- base text -->
+  <text class="logo-text" x="50%" y="66%">Lock.R</text>
+  <!-- glow copy sits above base text but below the shine; it will glow via filter when shimmer passes -->
+  <text class="logo-text glow-copy" x="50%" y="66%">Lock.R</text>
+
+  <!-- Animated white beam clipped to text shape -->
+  <rect class="shimmer-rect" x="-60%" y="0" width="80%" height="120" fill="url(#shineGradient)" mask="url(#text-mask)" />
+
+</svg>

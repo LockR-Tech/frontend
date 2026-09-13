@@ -1,0 +1,11 @@
+{
+  // Cloudflare Worker phục vụ static cho Landing Page
+  // Deploy bằng: npm run build && npx wrangler deploy
+  // Tên Worker này sẽ được gắn với domain chính (vd: locker-drone.tech hoặc www.locker-drone.tech)
+  "name": "laundry-locker-landing",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
