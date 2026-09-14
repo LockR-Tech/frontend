@@ -80,10 +80,11 @@
       "dashboard": "Dashboard",
       "users": "Người dùng",
       "orders": "Đơn hàng",
-      "stores": "Cửa hàng",
-      "lockers": "Tủ đồ",
+      "stores": "Địa điểm",
+      "lockers": "Kiosk",
       "services": "Dịch vụ",
       "payments": "Thanh toán",
+      "revenue": "Doanh thu",
       "loyalty": "Khách hàng thân thiết",
       "partners": "Đối tác",
       "feedback": "Phản hồi",
@@ -91,7 +92,7 @@
       "notifications": "Thông báo",
       "promotions": "Khuyến mãi",
       "settings": "Cài đặt",
-      "maintenance": "Bảo trì tủ",
+      "maintenance": "Bảo trì thiết bị",
       "drones": "Drone"
     },
     "dashboard": {
@@ -105,11 +106,18 @@
       "title": "Quản lý người dùng",
       "description": "Quản lý tài khoản người dùng trong hệ thống",
       "addUser": "Thêm người dùng",
+      "createSuccess": "Tạo người dùng mới thành công",
+      "createFailed": "Tạo người dùng thất bại",
+      "updateSuccess": "Cập nhật thông tin người dùng thành công",
+      "updateFailed": "Cập nhật người dùng thất bại",
       "searchPlaceholder": "Tìm kiếm người dùng...",
       "status": {
         "active": "Hoạt động",
         "inactive": "Vô hiệu",
-        "pending": "Chờ xác thực"
+        "pending": "Chờ xác thực",
+        "enabledSuccess": "Đã kích hoạt người dùng thành công",
+        "disabledSuccess": "Đã vô hiệu hóa người dùng thành công",
+        "toggleFailed": "Cập nhật trạng thái người dùng thất bại"
       },
       "columns": {
         "user": "Người dùng",
@@ -152,16 +160,16 @@
       }
     },
     "stores": {
-      "title": "Quản lý cửa hàng",
-      "description": "Quản lý các cửa hàng trong hệ thống",
-      "addStore": "Thêm cửa hàng",
-      "searchPlaceholder": "Tìm kiếm cửa hàng...",
+      "title": "Quản lý địa điểm",
+      "description": "Quản lý các địa điểm đặt Kiosk trong hệ thống",
+      "addStore": "Thêm địa điểm",
+      "searchPlaceholder": "Tìm kiếm địa điểm...",
       "columns": {
-        "store": "Cửa hàng",
+        "store": "Địa điểm",
         "contact": "Liên hệ",
         "address": "Địa chỉ",
         "hours": "Giờ mở cửa",
-        "lockers": "Tủ đồ",
+        "lockers": "Kiosk",
         "status": "Trạng thái"
       },
       "status": {
@@ -169,36 +177,36 @@
         "inactive": "Vô hiệu"
       },
       "modal": {
-        "createTitle": "Thêm cửa hàng mới",
-        "editTitle": "Chỉnh sửa cửa hàng",
-        "name": "Tên cửa hàng",
-        "namePlaceholder": "Ví dụ: Cửa hàng Quận 1",
+        "createTitle": "Thêm địa điểm mới",
+        "editTitle": "Chỉnh sửa địa điểm",
+        "name": "Tên địa điểm",
+        "namePlaceholder": "Ví dụ: KTX ĐH FPT TP.HCM",
         "address": "Địa chỉ",
-        "addressPlaceholder": "123 Lê Lợi, Quận 1, TP.HCM",
+        "addressPlaceholder": "Lô E2a-7, Đường D1, Khu Công nghệ cao, TP. Thủ Đức",
         "phone": "Số điện thoại",
         "phonePlaceholder": "0901234567",
         "openTime": "Giờ mở cửa",
         "closeTime": "Giờ đóng cửa",
         "description": "Mô tả (tùy chọn)",
-        "descriptionPlaceholder": "Mô tả ngắn về cửa hàng",
+        "descriptionPlaceholder": "Mô tả ngắn về địa điểm đặt Kiosk",
         "saving": "Đang lưu...",
-        "createBtn": "Tạo cửa hàng",
+        "createBtn": "Tạo địa điểm",
         "saveBtn": "Lưu thay đổi",
-        "createSuccess": "Đã tạo cửa hàng thành công!",
-        "editSuccess": "Đã cập nhật cửa hàng thành công!",
-        "createFailed": "Không thể tạo cửa hàng",
-        "editFailed": "Không thể cập nhật cửa hàng"
+        "createSuccess": "Đã tạo địa điểm thành công!",
+        "editSuccess": "Đã cập nhật địa điểm thành công!",
+        "createFailed": "Không thể tạo địa điểm",
+        "editFailed": "Không thể cập nhật địa điểm"
       }
     },
     "lockers": {
-      "title": "Quản lý tủ đồ",
-      "description": "Quản lý và giám sát các tủ đồ thông minh trong hệ thống",
-      "searchPlaceholder": "Tìm kiếm tủ đồ...",
+      "title": "Quản lý Kiosk",
+      "description": "Quản lý và giám sát các Kiosk thông minh trong hệ thống",
+      "searchPlaceholder": "Tìm kiếm Kiosk...",
       "columns": {
-        "code": "Mã tủ",
-        "store": "Cửa hàng",
+        "code": "Mã Kiosk",
+        "store": "Địa điểm",
         "status": "Trạng thái",
-        "boxes": "Ngăn tủ"
+        "boxes": "Ngăn Kiosk"
       },
       "status": {
         "active": "Hoạt động",

@@ -40,11 +40,14 @@ const StoresPage = lazy(() => import("../pages/Admin/stores"));
 const StoreDetailPage = lazy(() => import("../pages/Admin/stores/detail"));
 const ServicesPage = lazy(() => import("../pages/Admin/services"));
 const PaymentsPage = lazy(() => import("../pages/Admin/payments"));
+const RevenuePage = lazy(() => import("../pages/Admin/revenue"));
+const RevenueDetailPage = lazy(() => import("../pages/Admin/revenue/detail"));
 const LoyaltyPage = lazy(() => import("../pages/Admin/loyalty"));
 const SchedulerPage = lazy(() => import("../pages/Admin/scheduler"));
 const LockersAdminPage = lazy(() => import("../pages/Admin/lockers"));
 const LockerLayoutPage = lazy(() => import("../pages/Admin/lockers/layout-view"));
 const MaintenanceAdminPage = lazy(() => import("../pages/Admin/maintenance"));
+const TechnicianDetailPage = lazy(() => import("../pages/Admin/maintenance/technician-detail"));
 const NotificationsPage = lazy(() => import("../pages/Admin/notifications"));
 const PromotionsPage = lazy(() => import("../pages/Admin/promotions"));
 const DronesPage = lazy(() => import("../pages/Admin/drones"));
@@ -239,6 +242,14 @@ const routesConfig: RouteObject[] = [
         ),
       },
       {
+        path: "maintenance/technicians/:technicianId",
+        element: (
+          <LazyWrapper>
+            <TechnicianDetailPage />
+          </LazyWrapper>
+        ),
+      },
+      {
         path: "orders",
         element: (
           <LazyWrapper>
@@ -259,6 +270,22 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <PaymentsPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "revenue",
+        element: (
+          <LazyWrapper>
+            <RevenuePage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "revenue/:id",
+        element: (
+          <LazyWrapper>
+            <RevenueDetailPage />
           </LazyWrapper>
         ),
       },

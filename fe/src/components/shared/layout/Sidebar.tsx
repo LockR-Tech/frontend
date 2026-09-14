@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,21 +8,35 @@ import {
   User,
   Menu,
   X,
+  ChevronsUpDown,
+  Shield,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useAuth } from "~/context/auth-context";
 import { useSidebar } from "~/context/sidebar-context";
 import { useTranslation } from "react-i18next";
 import type { NavItem } from "~/types/common/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
 interface SidebarProps {
   items: NavItem[];
   userName?: string;
   onSettingsClick?: () => void;
 }
-
-const SIDEBAR_WIDTH = 280;
-const SIDEBAR_COLLAPSED_WIDTH = 80;
 
 export function Sidebar({
   items,
@@ -34,6 +47,7 @@ export function Sidebar({
     isExpanded,
     toggleSidebar: toggleDesktopSidebar,
     setIsExpanded,
+    sidebarWidth,
   } = useSidebar();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
@@ -41,15 +55,14 @@ export function Sidebar({
   const { logout } = useAuth();
   const { t } = useTranslation();
 
-  // Detect tablet and below (md breakpoint = 768px)
+  // Detect tablet / mobile screens
   useEffect(() => {
     const checkScreenSize = () => {
       const width = window.innerWidth;
-      setIsTablet(width < 1024); // lg breakpoint
+      setIsTablet(width < 1024);
       if (width >= 1024) {
         setIsMobileOpen(false);
       } else if (width < 768) {
-        // Mobile: always collapsed until opened
         setIsExpanded(false);
       }
     };
@@ -57,7 +70,7 @@ export function Sidebar({
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
+  }, [setIsExpanded]);
 
   const toggleSidebar = useCallback(() => {
     if (isTablet) {
@@ -72,241 +85,214 @@ export function Sidebar({
     window.location.href = "/auth/login";
   }, [logout]);
 
-  const currentWidth = isExpanded ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED_WIDTH;
-
   return (
-    <>
-      {/* Mobile Overlay */}
-      <AnimatePresence>
-        {isMobileOpen && isTablet && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsMobileOpen(false)}
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          />
-        )}
-      </AnimatePresence>
+    <TooltipProvider delayDuration={150}>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && isTablet && (
+        <div
+          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+        />
+      )}
 
-      {/* Mobile Toggle Button - Fixed on mobile/tablet */}
+      {/* Mobile Toggle Button */}
       <button
         onClick={toggleSidebar}
         className={cn(
-          "fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-sidebar-background text-white shadow-lg lg:hidden",
-          "hover:bg-sidebar-accent transition-colors",
+          "fixed top-3.5 left-4 z-50 p-2 rounded-lg bg-card text-foreground border border-border shadow-xs lg:hidden",
+          "hover:bg-accent transition-colors",
         )}
         aria-label="Toggle menu"
       >
-        {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
+        {isMobileOpen ? <X size={18} /> : <Menu size={18} />}
       </button>
 
-      {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{
-          width: isTablet ? (isMobileOpen ? SIDEBAR_WIDTH : 0) : currentWidth,
-          x: isTablet && !isMobileOpen ? -SIDEBAR_WIDTH : 0,
-        }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+      {/* Sidebar Container */}
+      <aside
         className={cn(
-          "fixed left-0 top-0 h-screen bg-sidebar-background flex flex-col z-50",
-          isTablet && !isMobileOpen && "overflow-hidden",
+          "fixed left-0 top-0 h-screen bg-card text-card-foreground border-r border-border flex flex-col z-50 transition-all duration-300 ease-in-out",
+          isTablet && !isMobileOpen && "-translate-x-full lg:translate-x-0",
         )}
+        style={{
+          width: isTablet ? (isMobileOpen ? 260 : 0) : sidebarWidth,
+        }}
       >
-        {/* Logo & Toggle */}
-        <div className="flex items-center justify-between p-4 border-b border-sidebar-border h-16">
-          <AnimatePresence mode="wait">
+        {/* Brand Header */}
+        <div className="flex items-center justify-between px-4 h-16 border-b border-border/60 shrink-0">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+              L
+            </div>
             {(isExpanded || isMobileOpen) && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-                className="flex items-center gap-3"
-              >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary to-sidebar-ring flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-lg">L</span>
-                </div>
-                <span className="text-white font-semibold text-lg">
-                  Laundry
+              <div className="flex flex-col min-w-0 transition-opacity duration-200">
+                <span className="font-semibold text-sm text-foreground truncate tracking-tight">
+                  Laundry Locker
                 </span>
-              </motion.div>
+                <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1 truncate">
+                  <Shield size={10} className="text-muted-foreground" />
+                  Admin Portal
+                </span>
+              </div>
             )}
-          </AnimatePresence>
+          </div>
 
-          {/* Desktop Toggle */}
+          {/* Desktop Toggle Button */}
           {!isTablet && (
             <button
               onClick={toggleSidebar}
               className={cn(
-                "p-2 rounded-lg transition-colors",
-                "hover:bg-sidebar-accent text-sidebar-foreground/70 hover:text-sidebar-foreground",
+                "p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
                 !isExpanded && "mx-auto",
               )}
               aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
             >
               {isExpanded ? (
-                <ChevronLeft size={20} />
+                <ChevronLeft size={16} />
               ) : (
-                <ChevronRight size={20} />
+                <ChevronRight size={16} />
               )}
             </button>
           )}
 
-          {/* Mobile Close */}
+          {/* Mobile Close Button */}
           {isTablet && isMobileOpen && (
             <button
               onClick={() => setIsMobileOpen(false)}
-              className="p-2 rounded-lg text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           )}
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-800 scrollbar-track-transparent">
-          {items.map((item, idx) => {
+        {/* Navigation List */}
+        <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">
+          {items.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname.includes(item.path);
+            const label = t(item.label);
 
-            return (
+            const linkContent = (
               <NavLink
-                key={idx}
                 to={item.path}
                 onClick={() => isTablet && setIsMobileOpen(false)}
-                className={({ isActive: active }) =>
-                  cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative",
-                    "hover:bg-sidebar-accent/50",
-                    active
-                      ? "bg-sidebar-accent text-white shadow-lg shadow-sidebar-primary/20"
-                      : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
-                    !isExpanded && !isMobileOpen && "justify-center px-2",
-                  )
-                }
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors relative group",
+                  isActive
+                    ? "bg-accent text-foreground font-medium shadow-xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+                  !isExpanded && !isMobileOpen && "justify-center px-2",
+                )}
               >
-                <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-                  <Icon size={22} />
-                </div>
-
-                <AnimatePresence mode="wait">
-                  {(isExpanded || isMobileOpen) && (
-                    <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="font-medium whitespace-nowrap overflow-hidden"
-                    >
-                      {t(item.label)}
-                    </motion.span>
+                <Icon
+                  size={18}
+                  className={cn(
+                    "shrink-0 transition-colors",
+                    isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground",
                   )}
-                </AnimatePresence>
+                />
 
-                {isActive && (isExpanded || isMobileOpen) && (
-                  <motion.div
-                    layoutId="activeIndicator"
-                    className="absolute right-2 w-1.5 h-1.5 bg-primary rounded-full"
-                  />
+                {(isExpanded || isMobileOpen) && (
+                  <span className="truncate flex-1">{label}</span>
                 )}
 
-                {/* Tooltip for collapsed state */}
-                {!isExpanded && !isMobileOpen && !isTablet && (
-                  <div className="absolute left-full ml-2 px-3 py-2 bg-sidebar-accent text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-lg">
-                    {t(item.label)}
-                    <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-blue-900" />
-                  </div>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                 )}
               </NavLink>
             );
+
+            // If sidebar is collapsed, wrap with Tooltip
+            if (!isExpanded && !isMobileOpen && !isTablet) {
+              return (
+                <Tooltip key={item.path}>
+                  <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={12} className="text-xs font-medium">
+                    {label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
+
+            return <div key={item.path}>{linkContent}</div>;
           })}
         </nav>
 
-        {/* User Section */}
-        <div className="p-3 space-y-2">
-          {/* Settings — only shown when caller provides onSettingsClick */}
-          {onSettingsClick && (
-            <button
-              onClick={onSettingsClick}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all",
-                "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
-                !isExpanded && !isMobileOpen && "justify-center",
-              )}
-            >
-              <Settings size={20} />
-              <AnimatePresence mode="wait">
-                {(isExpanded || isMobileOpen) && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: "auto" }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="font-medium whitespace-nowrap overflow-hidden"
-                  >
-                    {t("admin.sidebar.settings")}
-                  </motion.span>
+        {/* User Profile / Menu Footer */}
+        <div className="p-3 border-t border-border/60 shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn(
+                  "w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-accent transition-colors text-left group",
+                  !isExpanded && !isMobileOpen && "justify-center p-1.5",
                 )}
-              </AnimatePresence>
-            </button>
-          )}
+              >
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-foreground font-medium text-xs shrink-0 border border-border">
+                  <User size={15} />
+                </div>
 
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all",
-              "text-destructive hover:text-destructive/80 hover:bg-destructive/10",
-              !isExpanded && !isMobileOpen && "justify-center",
-            )}
-          >
-            <LogOut size={20} />
-            <AnimatePresence mode="wait">
-              {(isExpanded || isMobileOpen) && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="font-medium whitespace-nowrap overflow-hidden"
-                >
-                  {t("button.logout")}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
+                {(isExpanded || isMobileOpen) && (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">
+                      {userName}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      Quản trị viên
+                    </p>
+                  </div>
+                )}
 
-          {/* User Info */}
-          <div
-            className={cn(
-              "flex items-center gap-3 px-3 py-3 rounded-xl bg-sidebar-accent/30",
-              !isExpanded && !isMobileOpen && "justify-center",
-            )}
-          >
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-ring flex items-center justify-center flex-shrink-0 shadow-lg">
-              <User size={18} className="text-white" />
-            </div>
-            <AnimatePresence mode="wait">
-              {(isExpanded || isMobileOpen) && (
-                <motion.div
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden min-w-0"
-                >
-                  <p className="text-white font-medium text-sm truncate">
+                {(isExpanded || isMobileOpen) && (
+                  <ChevronsUpDown
+                    size={14}
+                    className="text-muted-foreground group-hover:text-foreground shrink-0"
+                  />
+                )}
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              side={!isExpanded && !isMobileOpen ? "right" : "top"}
+              align="end"
+              sideOffset={8}
+              className="w-56"
+            >
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium text-foreground leading-none">
                     {userName}
                   </p>
-                  <p className="text-sidebar-primary text-xs truncate">Admin</p>
-                </motion.div>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    admin@laundrylocker.vn
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+
+              {onSettingsClick && (
+                <DropdownMenuItem
+                  onClick={onSettingsClick}
+                  className="cursor-pointer gap-2"
+                >
+                  <Settings size={15} />
+                  <span>{t("admin.sidebar.settings")}</span>
+                </DropdownMenuItem>
               )}
-            </AnimatePresence>
-          </div>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+              >
+                <LogOut size={15} />
+                <span>{t("button.logout")}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </motion.aside>
-    </>
+      </aside>
+    </TooltipProvider>
   );
 }

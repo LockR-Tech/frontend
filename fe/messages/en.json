@@ -91,7 +91,7 @@
       "notifications": "Notifications",
       "promotions": "Promotions",
       "settings": "Settings",
-      "maintenance": "Maintenance",
+      "maintenance": "Device Maintenance",
       "drones": "Drones"
     },
     "dashboard": {
@@ -105,11 +105,18 @@
       "title": "User Management",
       "description": "Manage user accounts in the system",
       "addUser": "Add User",
+      "createSuccess": "User created successfully",
+      "createFailed": "Failed to create user",
+      "updateSuccess": "User updated successfully",
+      "updateFailed": "Failed to update user",
       "searchPlaceholder": "Search users...",
       "status": {
         "active": "Active",
         "inactive": "Inactive",
-        "pending": "Pending"
+        "pending": "Pending",
+        "enabledSuccess": "User enabled successfully",
+        "disabledSuccess": "User disabled successfully",
+        "toggleFailed": "Failed to update user status"
       },
       "columns": {
         "user": "User",

@@ -39,9 +39,9 @@ export function TableToolbar({
           size="sm"
           onClick={onClearFilters}
           disabled={!canClearFilters}
-          className="h-9"
+          className="h-9 text-xs border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
         >
-          <X size={16} className="mr-1.5" />
+          <X size={14} className="mr-1.5" />
           Xóa lọc
         </Button>
       )}
@@ -53,9 +53,9 @@ export function TableToolbar({
           size="sm"
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="h-9"
+          className="h-9 text-xs border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
         >
-          <RefreshCw size={16} className={cn("mr-1.5", isRefreshing && "animate-spin")} />
+          <RefreshCw size={14} className={cn("mr-1.5", isRefreshing && "animate-spin")} />
           Tải lại
         </Button>
       )}
@@ -66,9 +66,9 @@ export function TableToolbar({
           size="sm"
           onClick={createButton.onClick}
           disabled={createButton.disabled}
-          className="h-9 bg-primary hover:opacity-90"
+          className="h-9 px-3.5 bg-primary text-primary-foreground hover:opacity-90 shadow-xs text-xs font-medium"
         >
-          <CreateIcon size={16} className="mr-1.5" />
+          <CreateIcon size={14} className="mr-1.5" />
           {createButton.label}
         </Button>
       )}
