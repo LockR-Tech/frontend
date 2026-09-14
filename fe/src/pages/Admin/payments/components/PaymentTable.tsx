@@ -13,6 +13,7 @@ import {
   Undo2,
   Ban,
   Eye,
+  ArrowUpRight,
 } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { Badge } from "~/components/ui/badge";
@@ -43,56 +44,66 @@ const columnHelper = createColumnHelper<PaymentResponse>();
 const getStatusBadge = (status: PaymentStatus) => {
   const variants: Record<
     PaymentStatus,
-    { bg: string; text: string; icon: React.ElementType; label: string }
+    { bg: string; text: string; border: string; icon: React.ElementType; label: string }
   > = {
     [PaymentStatus.COMPLETED]: {
-      bg: "bg-green-50",
-      text: "text-green-700",
+      bg: "bg-emerald-50 hover:bg-emerald-100/90 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50",
+      text: "text-emerald-700 dark:text-emerald-300",
+      border: "border-emerald-200/80 dark:border-emerald-800/50",
       icon: CheckCircle2,
       label: "Thành công",
     },
     [PaymentStatus.PENDING]: {
-      bg: "bg-yellow-50",
-      text: "text-yellow-700",
+      bg: "bg-amber-50 hover:bg-amber-100/90 dark:bg-amber-950/40 dark:hover:bg-amber-900/50",
+      text: "text-amber-700 dark:text-amber-300",
+      border: "border-amber-200/80 dark:border-amber-800/50",
       icon: Clock,
       label: "Chờ thanh toán",
     },
     [PaymentStatus.PROCESSING]: {
-      bg: "bg-blue-50",
-      text: "text-blue-700",
+      bg: "bg-sky-50 hover:bg-sky-100/90 dark:bg-sky-950/40 dark:hover:bg-sky-900/50",
+      text: "text-sky-700 dark:text-sky-300",
+      border: "border-sky-200/80 dark:border-sky-800/50",
       icon: RotateCcw,
       label: "Đang xử lý",
     },
     [PaymentStatus.FAILED]: {
-      bg: "bg-red-50",
-      text: "text-red-700",
+      bg: "bg-rose-50 hover:bg-rose-100/90 dark:bg-rose-950/40 dark:hover:bg-rose-900/50",
+      text: "text-rose-700 dark:text-rose-300",
+      border: "border-rose-200/80 dark:border-rose-800/50",
       icon: XCircle,
       label: "Thất bại",
     },
     [PaymentStatus.REFUNDED]: {
-      bg: "bg-muted/30",
-      text: "text-foreground/80",
+      bg: "bg-purple-50 hover:bg-purple-100/90 dark:bg-purple-950/40 dark:hover:bg-purple-900/50",
+      text: "text-purple-700 dark:text-purple-300",
+      border: "border-purple-200/80 dark:border-purple-800/50",
       icon: Undo2,
       label: "Đã hoàn tiền",
     },
     [PaymentStatus.CANCELED]: {
-      bg: "bg-orange-50",
-      text: "text-orange-700",
+      bg: "bg-slate-100 hover:bg-slate-200/90 dark:bg-slate-800/50 dark:hover:bg-slate-800",
+      text: "text-slate-600 dark:text-slate-400",
+      border: "border-slate-200 dark:border-slate-700",
       icon: Ban,
       label: "Đã hủy",
     },
   };
 
   const variant = variants[status] ?? {
-    bg: "bg-muted/30",
+    bg: "bg-muted/40 hover:bg-muted/60",
     text: "text-foreground/80",
+    border: "border-border",
     icon: Ban,
     label: (status as string) || "—",
   };
   const Icon = variant.icon;
   return (
-    <Badge className={`${variant.bg} ${variant.text} border-0 font-medium`}>
-      <Icon className="mr-1 h-3 w-3" />
+    <Badge
+      variant="outline"
+      className={`${variant.bg} ${variant.text} ${variant.border} font-medium px-2.5 py-0.5 text-xs transition-colors`}
+    >
+      <Icon className="mr-1.5 h-3.5 w-3.5 shrink-0" />
       {variant.label}
     </Badge>
   );
@@ -174,9 +185,15 @@ export function PaymentTable({
     columnHelper.accessor("amount", {
       header: "Số tiền",
       cell: ({ row }) => (
-        <span className="text-lg font-bold text-green-600">
-          {formatCurrency(row.original.amount)}
-        </span>
+        <div>
+          <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 leading-tight">
+            {formatCurrency(row.original.amount)}
+          </span>
+          <div className="flex items-center gap-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+            <ArrowUpRight className="w-3 h-3 shrink-0" />
+            <span>+100% thu</span>
+          </div>
+        </div>
       ),
     }),
 
@@ -198,20 +215,30 @@ export function PaymentTable({
     }),
 
     columnHelper.accessor("createdAt", {
-      header: "Thời gian",
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.createdAt
-            ? new Date(row.original.createdAt).toLocaleString("vi-VN", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "-"}
-        </span>
-      ),
+      header: "Thời gian (hh:mm:ss)",
+      cell: ({ row }) => {
+        const rawDate = row.original.createdAt;
+        if (!rawDate) return <span className="text-sm text-muted-foreground">—</span>;
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return <span className="text-xs font-mono text-muted-foreground">{rawDate}</span>;
+        const timeStr = d.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+        const dateStr = d.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+        return (
+          <div className="font-mono text-xs">
+            <p className="font-bold text-foreground tracking-tight">{timeStr}</p>
+            <p className="text-[11px] text-muted-foreground">{dateStr}</p>
+          </div>
+        );
+      },
     }),
 
     columnHelper.display({

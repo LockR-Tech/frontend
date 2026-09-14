@@ -35,10 +35,17 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Quản lý thanh toán"
-        description="Quản lý và theo dõi các giao dịch thanh toán"
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <PageHeader
+          title="Quản lý thanh toán"
+          description="Quản lý và theo dõi các giao dịch thanh toán"
+        />
+        <a href="/admin/revenue">
+          <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-card hover:bg-secondary text-foreground transition-colors">
+            Xem phân tích doanh thu →
+          </button>
+        </a>
+      </div>
 
       <PaymentStats statistics={statistics} />
 

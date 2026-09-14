@@ -34,60 +34,51 @@ import {
 
 const statusConfig: Record<
   OrderStatus,
-  { label: string; color: string; bg: string; icon: React.ElementType }
+  { label: string; style: string; icon: React.ElementType }
 > = {
   [OrderStatus.INITIALIZED]: {
     label: "Khởi tạo",
-    color: "text-foreground/80",
-    bg: "bg-muted/50",
+    style: "bg-secondary text-muted-foreground border-border",
     icon: Clock,
   },
   [OrderStatus.RESERVED]: {
     label: "Đã đặt",
-    color: "text-blue-700",
-    bg: "bg-blue-100",
+    style: "bg-secondary text-foreground border-border",
     icon: Package,
   },
   [OrderStatus.WAITING]: {
     label: "Chờ thu gom",
-    color: "text-yellow-700",
-    bg: "bg-yellow-100",
+    style: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
     icon: Truck,
   },
   [OrderStatus.COLLECTED]: {
     label: "Đã thu gom",
-    color: "text-purple-700",
-    bg: "bg-purple-100",
+    style: "bg-secondary text-foreground border-border",
     icon: CheckCircle2,
   },
   [OrderStatus.PROCESSING]: {
     label: "Đang xử lý",
-    color: "text-indigo-700",
-    bg: "bg-indigo-100",
+    style: "bg-secondary text-foreground border-border",
     icon: RotateCcw,
   },
   [OrderStatus.READY]: {
     label: "Sẵn sàng",
-    color: "text-teal-700",
-    bg: "bg-teal-100",
+    style: "bg-secondary text-foreground border-border",
     icon: CheckCircle2,
   },
   [OrderStatus.RETURNED]: {
     label: "Đã trả",
-    color: "text-orange-700",
-    bg: "bg-orange-100",
+    style: "bg-secondary text-foreground border-border",
     icon: Box,
   },
   [OrderStatus.COMPLETED]: {
     label: "Hoàn thành",
-    color: "text-green-700",
-    bg: "bg-green-100",
+    style: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
     icon: CheckCircle2,
   },
   [OrderStatus.CANCELED]: {
     label: "Đã hủy",
-    color: "text-red-700",
-    bg: "bg-red-100",
+    style: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
     icon: XCircle,
   },
 };
@@ -100,13 +91,21 @@ const formatCurrency = (amount: number) => {
 };
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("vi-VN", {
+  if (!dateString) return "—";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return dateString;
+  const dateStr = d.toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+  });
+  const timeStr = d.toLocaleTimeString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
   });
+  return `${dateStr} ${timeStr}`;
 };
 
 export default function OrderDetailPage() {
@@ -179,39 +178,47 @@ export default function OrderDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+      <div className="flex items-center justify-between border-b border-border/60 pb-5">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Chi tiết đơn hàng</h1>
-            <p className="text-sm text-muted-foreground">{order.id}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Chi tiết đơn hàng</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Mã đơn: #{order.id}</p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsStatusModalOpen(true)}>
-            <Edit3 className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={() => setIsStatusModalOpen(true)}>
+            <Edit3 className="mr-1.5 h-3.5 w-3.5" />
             Cập nhật trạng thái
           </Button>
           {canCancel && (
-            <Button variant="destructive" onClick={handleCancel}>
-              <Ban className="mr-2 h-4 w-4" />
+            <Button variant="destructive" size="sm" onClick={handleCancel}>
+              <Ban className="mr-1.5 h-3.5 w-3.5" />
               Hủy đơn
             </Button>
           )}
         </div>
       </div>
 
-      <div
-        className={`${status.bg} ${status.color} rounded-lg p-4 flex items-center gap-3`}
-      >
-        <StatusIcon className="h-6 w-6" />
-        <div>
-          <p className="font-medium">Trạng thái: {status.label}</p>
-          <p className="text-sm opacity-80">
-            Cập nhật lần cuối: {formatDate(order.updatedAt || order.createdAt)}
-          </p>
+      {/* Status Banner */}
+      <div className="rounded-xl border border-border bg-card p-4 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-secondary text-foreground flex items-center justify-center shrink-0 border border-border/60">
+            <StatusIcon size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Trạng thái hiện tại:</span>
+              <Badge variant="outline" className={`${status.style} text-xs font-semibold px-2 py-0.5 rounded`}>
+                {status.label}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Cập nhật lần cuối: {formatDate(order.updatedAt || order.createdAt)}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -359,10 +366,11 @@ export default function OrderDetailPage() {
                   Trạng thái
                 </span>
                 <Badge
-                  className={`text-xs border-0 ${
+                  variant="outline"
+                  className={`text-xs ${
                     order.status === "COMPLETED"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-muted/50 text-muted-foreground"
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                      : "bg-secondary text-muted-foreground border-border"
                   }`}
                 >
                   {order.status === "COMPLETED"
@@ -379,7 +387,7 @@ export default function OrderDetailPage() {
               <Separator />
               <div className="flex justify-between font-bold">
                 <span>Tổng tiền</span>
-                <span className="text-primary">
+                <span className="text-foreground">
                   {formatCurrency(order.totalPrice)}
                 </span>
               </div>
@@ -417,22 +425,23 @@ export default function OrderDetailPage() {
                     {complaints.map((c) => (
                       <div
                         key={c.id}
-                        className="p-2.5 bg-muted/30 rounded-lg space-y-1.5"
+                        className="p-2.5 bg-secondary/50 rounded-lg space-y-1.5 border border-border/50"
                       >
                         <div className="flex flex-wrap items-center gap-1.5">
                           <Badge
                             variant="outline"
-                            className="text-xs font-medium"
+                            className="text-xs font-medium bg-card"
                           >
                             {c.type}
                           </Badge>
                           <Badge
-                            className={`text-xs border-0 ${
+                            variant="outline"
+                            className={`text-xs ${
                               c.status === "RESOLVED"
-                                ? "bg-green-100 text-green-700"
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
                                 : c.status === "REJECTED"
-                                  ? "bg-muted/50 text-muted-foreground"
-                                  : "bg-orange-100 text-orange-700"
+                                  ? "bg-secondary text-muted-foreground border-border"
+                                  : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
                             }`}
                           >
                             {c.status === "RESOLVED"

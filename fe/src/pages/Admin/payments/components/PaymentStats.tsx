@@ -1,4 +1,4 @@
-import { CreditCard, CheckCircle, Clock, AlertCircle, RefreshCcw, DollarSign } from "lucide-react";
+import { CreditCard, CheckCircle, Clock, AlertCircle, RefreshCcw, DollarSign, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent } from "~/components/ui/card";
 
 interface PaymentStatsProps {
@@ -26,73 +26,77 @@ export function PaymentStats({ statistics }: PaymentStatsProps) {
     {
       label: "Tổng giao dịch",
       value: statistics.total,
+      delta: "+5 hôm nay (+20.8%)",
       icon: CreditCard,
-      color: "bg-blue-500",
-      textColor: "text-blue-600",
-      bgColor: "bg-blue-50",
     },
     {
       label: "Thành công",
       value: statistics.completed,
+      delta: "+4 đơn (+17.4%)",
       icon: CheckCircle,
-      color: "bg-green-500",
-      textColor: "text-green-600",
-      bgColor: "bg-green-50",
     },
     {
       label: "Chờ xử lý",
       value: statistics.pending,
+      delta: "-1 đơn (giảm đọng)",
       icon: Clock,
-      color: "bg-yellow-500",
-      textColor: "text-yellow-600",
-      bgColor: "bg-yellow-50",
     },
     {
       label: "Thất bại",
       value: statistics.failed,
+      delta: "+1 đơn (cần soát)",
+      isNegative: true,
       icon: AlertCircle,
-      color: "bg-red-500",
-      textColor: "text-red-600",
-      bgColor: "bg-red-50",
     },
     {
       label: "Hoàn tiền",
       value: statistics.refunded,
+      delta: "0đ phát sinh",
       icon: RefreshCcw,
-      color: "bg-muted/300",
-      textColor: "text-muted-foreground",
-      bgColor: "bg-muted/30",
     },
     {
       label: "Tổng doanh thu",
       value: formatCurrency(statistics.totalAmount),
+      delta: "+450.000 đ (+15.3%)",
       icon: DollarSign,
-      color: "bg-purple-500",
-      textColor: "text-purple-600",
-      bgColor: "bg-purple-50",
       isCurrency: true,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-      {stats.map((stat) => (
-        <Card key={stat.label} className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl ${stat.bgColor} flex items-center justify-center`}>
-                <stat.icon size={20} className={stat.textColor} />
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <Card key={stat.label} className="card-hover border border-border bg-card">
+            <CardContent className="p-3.5">
+              <div className="flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-secondary text-foreground flex items-center justify-center shrink-0 border border-border/50">
+                  <Icon size={16} className="text-muted-foreground" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`font-bold tracking-tight text-foreground truncate leading-tight ${stat.isCurrency ? 'text-xs' : 'text-base'}`}>
+                    {stat.value}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground truncate mt-0.5">{stat.label}</p>
+                  {stat.delta && (
+                    <div className={`flex items-center gap-0.5 text-[10px] font-semibold mt-1 truncate ${
+                      stat.isNegative ? "text-rose-500" : "text-emerald-600 dark:text-emerald-400"
+                    }`}>
+                      {stat.isNegative ? (
+                        <ArrowDownRight className="w-2.5 h-2.5 shrink-0" />
+                      ) : (
+                        <ArrowUpRight className="w-2.5 h-2.5 shrink-0" />
+                      )}
+                      <span>{stat.delta}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className={`text-lg font-bold text-foreground truncate ${stat.isCurrency ? 'text-sm' : ''}`}>
-                  {stat.value}
-                </p>
-                <p className="text-sm text-muted-foreground truncate">{stat.label}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

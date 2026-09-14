@@ -35,16 +35,22 @@ import {
 } from "~/stores/apis/admin";
 import { PaymentStatus, PaymentMethod } from "~/types/admin/enums";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmtDate(d?: string) {
   if (!d) return "—";
-  return new Date(d).toLocaleString("vi-VN", {
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return d;
+  const dateStr = date.toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+  });
+  const timeStr = date.toLocaleTimeString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
   });
+  return `${timeStr} ${dateStr}`;
 }
 
 function fmtCurrency(amount: number) {
@@ -59,38 +65,38 @@ const STATUS_CONFIG: Record<
   { bg: string; text: string; icon: React.ElementType; label: string }
 > = {
   [PaymentStatus.COMPLETED]: {
-    bg: "bg-green-50",
-    text: "text-green-700",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-700 dark:text-emerald-400",
     icon: CheckCircle2,
     label: "Thành công",
   },
   [PaymentStatus.PENDING]: {
-    bg: "bg-yellow-50",
-    text: "text-yellow-700",
+    bg: "bg-amber-500/10",
+    text: "text-amber-700 dark:text-amber-400",
     icon: Clock,
     label: "Chờ thanh toán",
   },
   [PaymentStatus.PROCESSING]: {
-    bg: "bg-blue-50",
-    text: "text-blue-700",
+    bg: "bg-secondary",
+    text: "text-foreground",
     icon: RotateCcw,
     label: "Đang xử lý",
   },
   [PaymentStatus.FAILED]: {
-    bg: "bg-red-50",
-    text: "text-red-700",
+    bg: "bg-destructive/10",
+    text: "text-destructive",
     icon: XCircle,
     label: "Thất bại",
   },
   [PaymentStatus.REFUNDED]: {
-    bg: "bg-muted/30",
-    text: "text-foreground/80",
+    bg: "bg-secondary",
+    text: "text-muted-foreground",
     icon: Undo2,
     label: "Đã hoàn tiền",
   },
   [PaymentStatus.CANCELED]: {
-    bg: "bg-orange-50",
-    text: "text-orange-700",
+    bg: "bg-secondary",
+    text: "text-muted-foreground",
     icon: Ban,
     label: "Đã hủy",
   },
@@ -98,37 +104,31 @@ const STATUS_CONFIG: Record<
 
 const METHOD_CONFIG: Record<
   string,
-  { icon: React.ElementType; label: string; color: string }
+  { icon: React.ElementType; label: string }
 > = {
   [PaymentMethod.MOMO]: {
     icon: Smartphone,
     label: "MoMo",
-    color: "text-pink-500",
   },
   [PaymentMethod.ZALOPAY]: {
     icon: Smartphone,
     label: "ZaloPay",
-    color: "text-blue-400",
   },
   [PaymentMethod.VNPAY]: {
     icon: CreditCard,
     label: "VNPay",
-    color: "text-blue-500",
   },
   [PaymentMethod.BANK_TRANSFER]: {
     icon: Banknote,
     label: "Chuyển khoản",
-    color: "text-green-500",
   },
   [PaymentMethod.WALLET]: {
     icon: Wallet,
     label: "Ví điện tử",
-    color: "text-purple-500",
   },
   [PaymentMethod.CASH]: {
     icon: Banknote,
     label: "Tiền mặt",
-    color: "text-muted-foreground",
   },
 };
 
@@ -191,7 +191,7 @@ export function PaymentDetailModal({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
-            <CreditCard size={18} className="text-green-600" />
+            <CreditCard size={18} className="text-muted-foreground" />
             Chi tiết thanh toán #{paymentId}
           </DialogTitle>
         </DialogHeader>
@@ -214,18 +214,18 @@ export function PaymentDetailModal({
         {payment && (
           <div className="space-y-5">
             {/* Amount highlight */}
-            <div className="rounded-xl bg-linear-to-r from-green-50 to-emerald-50 border border-green-100 p-4 flex items-center justify-between">
+            <div className="rounded-xl bg-secondary/50 border border-border p-4 flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground mb-0.5">Số tiền</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold tracking-tight text-foreground">
                   {fmtCurrency(payment.amount)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <MethodIcon size={20} className={methodCfg?.color} />
+                <MethodIcon size={18} className="text-muted-foreground" />
                 <Badge
                   variant="outline"
-                  className="bg-white font-medium text-xs"
+                  className="font-medium text-xs bg-card"
                 >
                   {methodCfg?.label ?? payment.method}
                 </Badge>
@@ -258,7 +258,7 @@ export function PaymentDetailModal({
 
             {payment.description && (
               <LabelValue label="Mô tả">
-                <span className="text-foreground/80 font-normal">
+                <span className="text-muted-foreground font-normal">
                   {payment.description}
                 </span>
               </LabelValue>

@@ -161,9 +161,9 @@ export function CreateOrderModal({
                 <SelectValue placeholder="Chọn loại đơn hàng" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={OrderType.LAUNDRY}>Giặt ủi</SelectItem>
-                <SelectItem value={OrderType.DRY_CLEAN}>Giặt khô</SelectItem>
-                <SelectItem value={OrderType.STORAGE}>Gửi đồ</SelectItem>
+                <SelectItem value={OrderType.LAUNDRY}>Gửi hàng qua Kiosk</SelectItem>
+                <SelectItem value={OrderType.DRY_CLEAN}>Giao nhận Drone</SelectItem>
+                <SelectItem value={OrderType.STORAGE}>Thuê ô lưu trữ</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -231,7 +231,7 @@ export function CreateOrderModal({
             {/* Total */}
             <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
               <span className="font-medium">Tổng cộng:</span>
-              <span className="text-xl font-bold text-blue-600">
+              <span className="text-xl font-bold text-foreground">
                 {new Intl.NumberFormat("vi-VN", {
                   style: "currency",
                   currency: "VND",

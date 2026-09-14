@@ -45,22 +45,15 @@ interface OrderTableProps {
 
 const columnHelper = createColumnHelper<OrderResponse>();
 
-// Unified icon wrapper
+// Unified clean icon wrapper
 const IconWrapper = ({
   children,
-  color = "blue",
 }: {
   children: React.ReactNode;
-  color?: "blue" | "gray";
+  color?: string;
 }) => {
-  const colorClasses = {
-    blue: "bg-blue-50 text-blue-600",
-    gray: "bg-muted/50 text-muted-foreground",
-  };
   return (
-    <div
-      className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClasses[color]}`}
-    >
+    <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-secondary text-foreground border border-border/50">
       {children}
     </div>
   );
@@ -96,97 +89,75 @@ const TruncatedText = ({
 };
 
 const getStatusBadge = (status: OrderStatus) => {
-  const variants: Record<
+  const statusMeta: Record<
     OrderStatus,
     {
-      bg: string;
-      text: string;
-      border: string;
+      style: string;
       label: string;
       icon: React.ElementType;
     }
   > = {
     [OrderStatus.INITIALIZED]: {
-      bg: "bg-muted/30",
-      text: "text-foreground/80",
-      border: "border-border/50",
+      style: "bg-secondary text-muted-foreground border-border",
       label: "Khởi tạo",
       icon: Clock,
     },
     [OrderStatus.RESERVED]: {
-      bg: "bg-blue-50",
-      text: "text-blue-700",
-      border: "border-blue-200",
+      style: "bg-secondary text-foreground border-border",
       label: "Đã đặt",
       icon: CheckCircle2,
     },
     [OrderStatus.WAITING]: {
-      bg: "bg-amber-50",
-      text: "text-amber-700",
-      border: "border-amber-200",
+      style: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
       label: "Chờ thu gom",
       icon: Truck,
     },
     [OrderStatus.COLLECTED]: {
-      bg: "bg-purple-50",
-      text: "text-purple-700",
-      border: "border-purple-200",
+      style: "bg-secondary text-foreground border-border",
       label: "Đã thu gom",
       icon: CheckCircle2,
     },
     [OrderStatus.PROCESSING]: {
-      bg: "bg-indigo-50",
-      text: "text-indigo-700",
-      border: "border-indigo-200",
+      style: "bg-secondary text-foreground border-border",
       label: "Đang xử lý",
       icon: RotateCcw,
     },
     [OrderStatus.READY]: {
-      bg: "bg-teal-50",
-      text: "text-teal-700",
-      border: "border-teal-200",
+      style: "bg-secondary text-foreground border-border",
       label: "Sẵn sàng",
       icon: CheckCircle2,
     },
     [OrderStatus.RETURNED]: {
-      bg: "bg-orange-50",
-      text: "text-orange-700",
-      border: "border-orange-200",
+      style: "bg-secondary text-foreground border-border",
       label: "Đã trả",
       icon: Box,
     },
     [OrderStatus.COMPLETED]: {
-      bg: "bg-green-50",
-      text: "text-green-700",
-      border: "border-green-200",
+      style: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
       label: "Hoàn thành",
       icon: CheckCircle2,
     },
     [OrderStatus.CANCELED]: {
-      bg: "bg-red-50",
-      text: "text-red-700",
-      border: "border-red-200",
+      style: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
       label: "Đã hủy",
       icon: XCircle,
     },
   };
 
-  const variant = variants[status] ?? {
-    bg: "bg-muted/30",
-    text: "text-foreground/80",
-    border: "border-border/50",
+  const meta = statusMeta[status] ?? {
+    style: "bg-secondary text-foreground border-border",
     label: (status as string) || "—",
     icon: Clock,
   };
-  const Icon = variant.icon;
+  const Icon = meta.icon;
 
   return (
     <Badge
-      className={`${variant.bg} ${variant.text} ${variant.border} font-medium`}
       variant="outline"
+      className={`${meta.style} font-medium text-xs px-2 py-0.5 rounded-md inline-flex items-center gap-1.5`}
     >
       <Icon className="mr-1 h-3.5 w-3.5" />
-      {variant.label}
+      {meta.label}
     </Badge>
   );
 };
@@ -287,19 +258,29 @@ export function OrderTable({
 
     columnHelper.accessor("createdAt", {
       header: t("common.createdAt"),
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.createdAt
-            ? new Date(row.original.createdAt).toLocaleDateString("vi-VN", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "N/A"}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const rawDate = row.original.createdAt;
+        if (!rawDate) return <span className="text-sm text-muted-foreground">N/A</span>;
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return <span className="text-xs font-mono text-muted-foreground">{rawDate}</span>;
+        const timeStr = d.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+        const dateStr = d.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+        return (
+          <div className="font-mono text-xs">
+            <p className="font-semibold text-foreground tracking-tight">{timeStr}</p>
+            <p className="text-[11px] text-muted-foreground">{dateStr}</p>
+          </div>
+        );
+      },
     }),
 
     columnHelper.display({

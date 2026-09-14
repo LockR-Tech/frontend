@@ -52,13 +52,19 @@ const STATUS_META: Record<
   [OrderStatus.CANCELED]:    { label: "Đã hủy",    icon: XCircle },
 };
 
-const formatDate = (dateString: string) =>
-  new Date(dateString).toLocaleString("vi-VN", {
+const formatDate = (dateString: string) => {
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return dateString;
+  return d.toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
   });
+};
 
 export function OrderTimeline({ order }: OrderTimelineProps) {
   const isCanceled = order.status === OrderStatus.CANCELED;
@@ -74,7 +80,7 @@ export function OrderTimeline({ order }: OrderTimelineProps) {
       {/* Horizontal stepper */}
       {isCanceled ? (
         <div className="flex items-center gap-2 px-1">
-          <div className="flex items-center gap-1.5 text-red-600">
+          <div className="flex items-center gap-1.5 text-destructive">
             <XCircle className="h-5 w-5 shrink-0" />
             <span className="text-sm font-medium">Đơn hàng đã bị hủy</span>
           </div>
