@@ -46,45 +46,47 @@ export function FeedbackTab() {
       {isError && <ErrorBanner onRetry={refetch} />}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <Select
-          value={minRating}
-          onValueChange={(v) => {
-            setMinRating(v);
-            setPage(0);
-          }}
-        >
-          <SelectTrigger className="w-40 h-9">
-            <SelectValue placeholder="Sao tối thiểu" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả sao</SelectItem>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <SelectItem key={n} value={String(n)}>
-                {"★".repeat(n)} ({n} sao)
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-2.5 items-center">
+          <Select
+            value={minRating}
+            onValueChange={(v) => {
+              setMinRating(v);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-40 h-9 text-xs">
+              <SelectValue placeholder="Sao tối thiểu" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả sao</SelectItem>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {"★".repeat(n)} ({n} sao)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select
-          value={isResolved}
-          onValueChange={(v) => {
-            setIsResolved(v);
-            setPage(0);
-          }}
-        >
-          <SelectTrigger className="w-40 h-9">
-            <SelectValue placeholder="Trạng thái" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả</SelectItem>
-            <SelectItem value="false">Chưa xử lý</SelectItem>
-            <SelectItem value="true">Đã xử lý</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select
+            value={isResolved}
+            onValueChange={(v) => {
+              setIsResolved(v);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-40 h-9 text-xs">
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="false">Chưa xử lý</SelectItem>
+              <SelectItem value="true">Đã xử lý</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <span className="text-sm text-muted-foreground ml-auto">
+        <span className="text-xs text-muted-foreground">
           {isLoading ? "..." : `${total.toLocaleString("vi-VN")} phản hồi`}
         </span>
       </div>
@@ -97,17 +99,17 @@ export function FeedbackTab() {
           ))}
         </div>
       ) : (
-        <Card className="border-0 shadow-sm overflow-hidden">
+        <Card className="overflow-hidden border border-border">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Khách hàng</TableHead>
-                <TableHead>Đánh giá</TableHead>
-                <TableHead className="max-w-xs">Nội dung</TableHead>
-                <TableHead>Đơn hàng</TableHead>
-                <TableHead className="text-center">Xử lý</TableHead>
-                <TableHead>Thời gian</TableHead>
-                <TableHead />
+              <TableRow className="bg-secondary/60 hover:bg-secondary/60">
+                <TableHead className="font-semibold text-foreground">Khách hàng</TableHead>
+                <TableHead className="font-semibold text-foreground">Đánh giá</TableHead>
+                <TableHead className="font-semibold text-foreground max-w-xs">Nội dung</TableHead>
+                <TableHead className="font-semibold text-foreground">Đơn hàng</TableHead>
+                <TableHead className="font-semibold text-foreground text-center">Trạng thái</TableHead>
+                <TableHead className="font-semibold text-foreground">Thời gian</TableHead>
+                <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -115,7 +117,7 @@ export function FeedbackTab() {
                 <TableRow>
                   <TableCell
                     colSpan={7}
-                    className="text-center py-10 text-muted-foreground/70"
+                    className="text-center py-10 text-muted-foreground text-sm"
                   >
                     Không có phản hồi nào
                   </TableCell>
@@ -124,38 +126,39 @@ export function FeedbackTab() {
               {list.map((fb) => (
                 <TableRow
                   key={fb.id}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer hover:bg-secondary/40 transition-colors"
                   onClick={() => navigate(`/admin/feedback/${fb.id}`)}
                 >
                   <TableCell>
                     <div>
-                      <p className="font-medium text-foreground">{fb.userName}</p>
-                      <p className="text-xs text-muted-foreground/70">{fb.email}</p>
+                      <p className="font-medium text-foreground text-sm">{fb.userName || "Khách hàng"}</p>
+                      <p className="text-xs text-muted-foreground">{fb.email || "—"}</p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <StarRow rating={fb.rating} />
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground font-medium">
                         {fb.rating}/5
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="max-w-xs">
-                    <p className="text-sm text-foreground/80 line-clamp-2">
-                      {fb.comment}
+                    <p className="text-xs text-foreground/80 line-clamp-2">
+                      {fb.comment || "—"}
                     </p>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-xs text-muted-foreground">
                     {fb.relatedOrderId ? `#${fb.relatedOrderId}` : "—"}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge
-                      className={
+                      variant="outline"
+                      className={`text-[11px] ${
                         fb.isResolved
-                          ? "bg-green-100 text-green-700 border-green-200"
-                          : "bg-yellow-100 text-yellow-700 border-yellow-200"
-                      }
+                          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                          : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+                      }`}
                     >
                       {fb.isResolved ? "Đã xử lý" : "Chờ xử lý"}
                     </Badge>
@@ -167,10 +170,10 @@ export function FeedbackTab() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
                       onClick={() => navigate(`/admin/feedback/${fb.id}`)}
                     >
-                      <Eye size={15} />
+                      <Eye size={14} />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -182,7 +185,7 @@ export function FeedbackTab() {
 
       {/* Pagination */}
       {total > 20 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"
@@ -191,7 +194,7 @@ export function FeedbackTab() {
           >
             Trước
           </Button>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             Trang {page + 1} / {Math.ceil(total / 20)}
           </span>
           <Button

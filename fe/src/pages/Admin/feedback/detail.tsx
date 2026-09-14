@@ -163,16 +163,16 @@ export default function FeedbackDetailPage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-3 border-b border-border/60 pb-5">
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => navigate(-1)}>
             <ArrowLeft size={16} />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-foreground">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Chi tiết phản hồi #{fb.id}
             </h1>
-            <p className="text-sm text-muted-foreground/70">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Tạo lúc {fmtDate(fb.createdAt)}
             </p>
           </div>
@@ -180,10 +180,11 @@ export default function FeedbackDetailPage() {
 
         <div className="flex items-center gap-2">
           <Badge
+            variant="outline"
             className={
               isResolved
-                ? "bg-green-100 text-green-700 border-green-200"
-                : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 text-xs px-2.5 py-0.5"
+                : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 text-xs px-2.5 py-0.5"
             }
           >
             {isResolved ? "Đã xử lý" : "Chờ xử lý"}
@@ -193,15 +194,15 @@ export default function FeedbackDetailPage() {
             size="sm"
             disabled={updatingStatus}
             onClick={handleToggleResolved}
-            className="gap-1.5"
+            className="gap-1.5 h-8 text-xs"
           >
             {isResolved ? (
               <>
-                <Clock size={14} /> Đánh dấu chờ xử lý
+                <Clock size={13} /> Đánh dấu chờ xử lý
               </>
             ) : (
               <>
-                <CheckCircle2 size={14} /> Đánh dấu đã xử lý
+                <CheckCircle2 size={13} /> Đánh dấu đã xử lý
               </>
             )}
           </Button>
@@ -212,21 +213,21 @@ export default function FeedbackDetailPage() {
         {/* ─── Left: feedback content + reply ─────────────────────────────── */}
         <div className="md:col-span-2 space-y-5">
           {/* Rating & comment */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Star size={16} className="text-yellow-500" />
+                <Star size={16} className="text-foreground/70" />
                 Nội dung đánh giá
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div
-                className={`flex items-center gap-4 p-4 rounded-xl border ${ratingColor}`}
+                className="flex items-center gap-4 p-4 rounded-xl border border-border bg-secondary/50"
               >
-                <div className="text-4xl font-extrabold">{fb.rating}</div>
+                <div className="text-4xl font-extrabold tracking-tight text-foreground">{fb.rating}</div>
                 <div>
-                  <StarRow rating={fb.rating} size={20} />
-                  <p className="text-xs mt-1 opacity-75">
+                  <StarRow rating={fb.rating} size={18} />
+                  <p className="text-xs text-muted-foreground mt-1">
                     {fb.rating >= 4
                       ? "Rất hài lòng"
                       : fb.rating === 3
@@ -255,7 +256,7 @@ export default function FeedbackDetailPage() {
                     </span>
                     <Badge variant="outline">#{fb.relatedOrderId}</Badge>
                     {fb.serviceType && (
-                      <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                      <Badge variant="outline" className="text-xs">
                         {fb.serviceType}
                       </Badge>
                     )}
@@ -276,19 +277,19 @@ export default function FeedbackDetailPage() {
 
           {/* Admin reply (existing) */}
           {fb.adminReply && (
-            <Card className="border-green-200 bg-green-50 shadow-sm">
+            <Card className="border-border bg-secondary/30 shadow-xs">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold flex items-center gap-2 text-green-900">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
                   <MessageSquare size={16} />
                   Phản hồi từ quản trị viên
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="bg-white border border-green-100 p-4 rounded-xl text-foreground leading-relaxed whitespace-pre-wrap text-sm">
+                <div className="bg-card border border-border p-4 rounded-xl text-foreground leading-relaxed whitespace-pre-wrap text-sm">
                   {fb.adminReply}
                 </div>
                 {fb.repliedAt && (
-                  <p className="text-xs text-green-700">
+                  <p className="text-xs text-muted-foreground">
                     Đã phản hồi lúc {fmtDate(fb.repliedAt)}
                   </p>
                 )}
@@ -298,7 +299,7 @@ export default function FeedbackDetailPage() {
 
           {/* Resolution info */}
           {(fb.resolvedBy || fb.resolvedAt) && (
-            <Card className="border-blue-100 bg-blue-50 shadow-sm">
+            <Card className="border-border bg-secondary/30 shadow-xs">
               <CardContent className="p-4 flex flex-wrap gap-6">
                 {fb.resolvedBy && (
                   <LabelValue label="Giải quyết bởi">
@@ -315,10 +316,10 @@ export default function FeedbackDetailPage() {
           )}
 
           {/* Reply form */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <MessageSquare size={16} className="text-blue-500" />
+                <MessageSquare size={16} className="text-muted-foreground" />
                 {fb.adminReply ? "Cập nhật phản hồi" : "Thêm phản hồi"}
               </CardTitle>
             </CardHeader>
@@ -334,14 +335,14 @@ export default function FeedbackDetailPage() {
                 className="resize-none"
               />
               {replyError && (
-                <p className="text-sm text-red-600">{replyError}</p>
+                <p className="text-sm text-destructive">{replyError}</p>
               )}
               <div className="flex justify-end">
                 <Button
                   size="sm"
                   disabled={replying}
                   onClick={handleReply}
-                  className="gap-2"
+                  className="gap-2 bg-primary text-primary-foreground hover:opacity-90 shadow-xs"
                 >
                   <MessageSquare size={14} />
                   {replying ? "Đang gửi..." : "Gửi phản hồi"}
@@ -354,7 +355,7 @@ export default function FeedbackDetailPage() {
         {/* ─── Right: user info + timeline ─────────────────────────────────── */}
         <div className="space-y-5">
           {/* User info */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <User size={16} />
@@ -363,14 +364,14 @@ export default function FeedbackDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarFallback className="bg-blue-600 text-white font-bold">
+                <Avatar className="h-12 w-12 border border-border">
+                  <AvatarFallback className="bg-secondary text-foreground font-bold">
                     {fb.userName?.[0]?.toUpperCase() ?? "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-semibold text-foreground">{fb.userName}</p>
-                  <p className="text-xs text-muted-foreground/70">ID #{fb.userId}</p>
+                  <p className="text-xs text-muted-foreground">Mã KH #{fb.userId}</p>
                 </div>
               </div>
 
@@ -379,7 +380,7 @@ export default function FeedbackDetailPage() {
               <div className="space-y-3">
                 {fb.userEmail && (
                   <div className="flex items-start gap-2.5">
-                    <Mail size={14} className="text-muted-foreground/70 mt-0.5 shrink-0" />
+                    <Mail size={14} className="text-muted-foreground mt-0.5 shrink-0" />
                     <span className="text-sm text-foreground/80 break-all">
                       {fb.userEmail}
                     </span>
@@ -387,7 +388,7 @@ export default function FeedbackDetailPage() {
                 )}
                 {fb.userPhone && (
                   <div className="flex items-center gap-2.5">
-                    <Phone size={14} className="text-muted-foreground/70 shrink-0" />
+                    <Phone size={14} className="text-muted-foreground shrink-0" />
                     <span className="text-sm text-foreground/80">
                       {fb.userPhone}
                     </span>
@@ -398,7 +399,7 @@ export default function FeedbackDetailPage() {
           </Card>
 
           {/* Timeline */}
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Calendar size={16} />
@@ -406,15 +407,15 @@ export default function FeedbackDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ol className="relative border-l border-border/50 ml-2 space-y-5">
+              <ol className="relative border-l border-border ml-2 space-y-5">
                 <li className="ml-4">
-                  <div className="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-white" />
+                  <div className="absolute -left-1 mt-1.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-background" />
                   <p className="text-xs text-muted-foreground">Tạo đánh giá</p>
                   <p className="text-sm font-medium">{fmtDate(fb.createdAt)}</p>
                 </li>
                 {fb.repliedAt && (
                   <li className="ml-4">
-                    <div className="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+                    <div className="absolute -left-1 mt-1.5 w-2.5 h-2.5 rounded-full bg-muted-foreground ring-4 ring-background" />
                     <p className="text-xs text-muted-foreground">Admin phản hồi</p>
                     <p className="text-sm font-medium">
                       {fmtDate(fb.repliedAt)}
@@ -423,7 +424,7 @@ export default function FeedbackDetailPage() {
                 )}
                 {fb.resolvedAt && (
                   <li className="ml-4">
-                    <div className="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-purple-500 border-2 border-white" />
+                    <div className="absolute -left-1 mt-1.5 w-2.5 h-2.5 rounded-full bg-foreground ring-4 ring-background" />
                     <p className="text-xs text-muted-foreground">Đã giải quyết</p>
                     <p className="text-sm font-medium">
                       {fmtDate(fb.resolvedAt)}
@@ -432,7 +433,7 @@ export default function FeedbackDetailPage() {
                 )}
                 {fb.updatedAt !== fb.createdAt && (
                   <li className="ml-4">
-                    <div className="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-muted border-2 border-white" />
+                    <div className="absolute -left-1 mt-1.5 w-2.5 h-2.5 rounded-full bg-border ring-4 ring-background" />
                     <p className="text-xs text-muted-foreground">Cập nhật gần nhất</p>
                     <p className="text-sm font-medium">
                       {fmtDate(fb.updatedAt)}

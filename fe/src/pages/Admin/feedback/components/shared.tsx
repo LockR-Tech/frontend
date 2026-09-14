@@ -2,12 +2,16 @@ import { Star, RotateCcw, AlertCircle } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 
 export function fmtDate(d: string) {
-  return new Date(d).toLocaleString("vi-VN", {
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return d;
+  return date.toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
   });
 }
 
@@ -19,7 +23,7 @@ export function StarRow({ rating }: { rating: number }) {
           key={i}
           size={13}
           className={
-            i <= rating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/30"
+            i <= rating ? "text-amber-500 fill-amber-500" : "text-muted-foreground/20"
           }
         />
       ))}
@@ -30,29 +34,29 @@ export function StarRow({ rating }: { rating: number }) {
 export function RatingBadge({ rating }: { rating: number }) {
   const cls =
     rating >= 4
-      ? "bg-green-100 text-green-700 border-green-200"
+      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
       : rating === 3
-        ? "bg-yellow-100 text-yellow-700 border-yellow-200"
-        : "bg-red-100 text-red-700 border-red-200";
+        ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+        : "bg-destructive/10 text-destructive border-destructive/20";
   return (
-    <Badge className={`text-xs font-bold ${cls}`}>
+    <Badge variant="outline" className={`text-xs font-semibold ${cls}`}>
       {"★".repeat(rating)}
-      {rating <= 2 ? " — Không hài lòng" : rating === 3 ? " — Bình thường" : ""}
+      {rating <= 2 ? " — Kém" : rating === 3 ? " — Ổn" : " — Tốt"}
     </Badge>
   );
 }
 
 export function ErrorBanner({ onRetry }: { onRetry?: () => void }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-      <AlertCircle size={18} className="text-red-600 shrink-0" />
-      <p className="text-sm text-red-700 flex-1">Không thể tải dữ liệu.</p>
+    <div className="flex items-center gap-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+      <AlertCircle size={16} className="text-destructive shrink-0" />
+      <p className="text-xs text-destructive flex-1 font-medium">Không thể tải dữ liệu.</p>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="flex items-center gap-1 text-sm text-red-700 font-medium hover:underline"
+          className="flex items-center gap-1 text-xs text-destructive font-semibold hover:underline"
         >
-          <RotateCcw size={14} /> Thử lại
+          <RotateCcw size={13} /> Thử lại
         </button>
       )}
     </div>
@@ -65,14 +69,14 @@ export const REPORT_STATUS_META: Record<
 > = {
   PENDING: {
     label: "Chờ xử lý",
-    cls: "bg-red-100 text-red-700 border-red-200",
+    cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   },
   RESOLVED: {
     label: "Đã giải quyết",
-    cls: "bg-green-100 text-green-700 border-green-200",
+    cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
   },
   REJECTED: {
     label: "Từ chối",
-    cls: "bg-muted/50 text-muted-foreground border-border/50",
+    cls: "bg-secondary text-muted-foreground border-border",
   },
 };
