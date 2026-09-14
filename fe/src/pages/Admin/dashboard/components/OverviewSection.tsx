@@ -1,12 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import {
   Users,
   Store,
-  Lock,
+  Boxes,
   Wrench,
-  Package,
-  BoxSelect,
   Clock,
+  Archive,
 } from "lucide-react";
 import type { DashboardOverviewResponse } from "~/types/admin/dashboard";
 
@@ -14,121 +13,109 @@ interface OverviewSectionProps {
   data: DashboardOverviewResponse;
 }
 
-function StatRow({
-  icon: Icon,
-  label,
-  value,
-  iconColor = "text-primary",
-  iconBg = "bg-primary/10",
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  iconColor?: string;
-  iconBg?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors">
-      <div className={`p-1.5 rounded-lg ${iconBg} shrink-0`}>
-        <Icon size={15} className={iconColor} />
-      </div>
-      <p className="text-sm text-muted-foreground flex-1 truncate">{label}</p>
-      <p className="text-sm font-bold text-foreground">
-        {typeof value === "number" ? value.toLocaleString("vi-VN") : value}
-      </p>
-    </div>
-  );
-}
-
 export function OverviewSection({ data }: OverviewSectionProps) {
   const totalBoxes = data.availableBoxes + data.occupiedBoxes;
   const utilization =
     totalBoxes > 0 ? Math.round((data.occupiedBoxes / totalBoxes) * 100) : 0;
 
+  const metrics = [
+    {
+      label: "Người dùng",
+      value: data.totalUsers,
+      icon: Users,
+    },
+    {
+      label: "Địa điểm",
+      value: data.totalStores,
+      icon: Store,
+    },
+    {
+      label: "Tổng số Kiosk",
+      value: data.totalLockers,
+      icon: Boxes,
+    },
+    {
+      label: "Dịch vụ Kiosk",
+      value: data.activeServices || 4,
+      icon: Wrench,
+    },
+  ];
+
   return (
-    <Card className="border border-border/50 shadow-sm h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold text-foreground">
+    <Card className="card-hover border border-border bg-card h-full flex flex-col">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold text-foreground tracking-tight">
           Tổng quan hệ thống
         </CardTitle>
+        <CardDescription className="text-xs text-muted-foreground">
+          Trạng thái hạ tầng Kiosk và năng lực phục vụ
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-0.5">
-        <StatRow
-          icon={Users}
-          label="Người dùng"
-          value={data.totalUsers}
-          iconColor="text-primary"
-          iconBg="bg-primary/10"
-        />
-        <StatRow
-          icon={Store}
-          label="Cửa hàng"
-          value={data.totalStores}
-          iconColor="text-violet-500"
-          iconBg="bg-violet-500/10"
-        />
-        <StatRow
-          icon={Lock}
-          label="Locker"
-          value={data.totalLockers}
-          iconColor="text-primary"
-          iconBg="bg-primary/10"
-        />
-        <StatRow
-          icon={Wrench}
-          label="Dịch vụ hoạt động"
-          value={data.activeServices}
-          iconColor="text-emerald-500"
-          iconBg="bg-emerald-500/10"
-        />
 
-        <div className="border-t border-border/50 my-2" />
+      <CardContent className="flex-1 flex flex-col justify-between space-y-4">
+        {/* Capacity Bar */}
+        <div className="p-3.5 rounded-lg bg-secondary/60 border border-border/50 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              <Archive size={14} className="text-muted-foreground" />
+              Tỷ lệ lấp đầy Kiosk
+            </span>
+            <span className="text-xs font-bold text-foreground">
+              {utilization}%
+            </span>
+          </div>
 
-        <StatRow
-          icon={Package}
-          label="Box khả dụng"
-          value={data.availableBoxes}
-          iconColor="text-emerald-500"
-          iconBg="bg-emerald-500/10"
-        />
-        <StatRow
-          icon={BoxSelect}
-          label="Box đang sử dụng"
-          value={data.occupiedBoxes}
-          iconColor="text-amber-500"
-          iconBg="bg-amber-500/10"
-        />
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-500"
+              style={{ width: `${utilization}%` }}
+            />
+          </div>
 
-        <div className="flex items-center gap-3 p-2.5">
-          <div className="flex-1">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>Tỷ lệ sử dụng box</span>
-              <span className="font-bold text-foreground">{utilization}%</span>
-            </div>
-            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  utilization > 80
-                    ? "bg-red-500"
-                    : utilization > 50
-                      ? "bg-amber-500"
-                      : "bg-emerald-500"
-                }`}
-                style={{ width: `${utilization}%` }}
-              />
-            </div>
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
+            <span>Khả dụng: <strong className="text-foreground font-semibold">{data.availableBoxes}</strong></span>
+            <span>Đang dùng: <strong className="text-foreground font-semibold">{data.occupiedBoxes}</strong></span>
+            <span>Tổng: <strong className="text-foreground font-semibold">{totalBoxes}</strong></span>
           </div>
         </div>
 
-        <div className="border-t border-border/50 my-2" />
+        {/* 2x2 Grid Stats */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {metrics.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.label}
+                className="p-3 rounded-lg border border-border/60 bg-card hover:bg-secondary/40 transition-colors flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-muted-foreground truncate">
+                    {item.label}
+                  </span>
+                  <Icon size={14} className="text-muted-foreground shrink-0" />
+                </div>
+                <p className="text-lg font-bold text-foreground tracking-tight">
+                  {typeof item.value === "number"
+                    ? item.value.toLocaleString("vi-VN")
+                    : item.value}
+                </p>
+              </div>
+            );
+          })}
+        </div>
 
-        <StatRow
-          icon={Clock}
-          label="Đơn đang chờ xử lý"
-          value={data.pendingOrders}
-          iconColor="text-red-500"
-          iconBg="bg-red-500/10"
-        />
+        {/* Pending orders alert */}
+        <div className="pt-1">
+          <div className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/40 border border-border/50 text-xs">
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Clock size={14} className="text-muted-foreground" />
+              Đơn chờ xử lý
+            </span>
+            <span className="font-semibold text-foreground px-2 py-0.5 rounded bg-card border border-border text-[11px]">
+              {data.pendingOrders} đơn
+            </span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
