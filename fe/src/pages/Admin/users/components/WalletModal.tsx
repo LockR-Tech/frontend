@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Wallet, Loader2, Plus, Minus } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -42,12 +43,15 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
     }
     try {
       await adjust({ userId, amount: sign * value, reason: reason || undefined }).unwrap();
+      toast.success(sign > 0 ? "Nạp tiền vào ví thành công" : "Trừ tiền ví thành công");
       setAmount("");
       setReason("");
       refetch();
     } catch (e: unknown) {
       const err = e as { data?: { message?: string } };
-      setError(err?.data?.message ?? "Điều chỉnh số dư thất bại.");
+      const msg = err?.data?.message ?? "Điều chỉnh số dư thất bại.";
+      setError(msg);
+      toast.error(msg);
     }
   };
 
@@ -56,21 +60,21 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
-            <Wallet size={18} className="text-blue-600" />
+            <Wallet size={18} className="text-muted-foreground" />
             Ví của {userName || `user #${userId}`}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <div className="rounded-lg bg-muted/40 p-4 text-center">
+          <div className="rounded-lg bg-secondary/50 border border-border p-4 text-center">
             <p className="text-xs text-muted-foreground">Số dư hiện tại</p>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-2xl font-bold tracking-tight text-foreground mt-0.5">
               {isLoading ? "..." : formatVnd(balance)}
             </p>
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
               {error}
             </div>
           )}
@@ -104,7 +108,7 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
             variant="outline"
             onClick={() => handleAdjust(-1)}
             disabled={isAdjusting}
-            className="text-red-600"
+            className="text-destructive hover:text-destructive"
           >
             {isAdjusting ? <Loader2 size={15} className="mr-2 animate-spin" /> : <Minus size={15} className="mr-2" />}
             Trừ tiền
@@ -112,7 +116,6 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
           <Button
             onClick={() => handleAdjust(1)}
             disabled={isAdjusting}
-            className="bg-blue-600 text-white hover:bg-blue-700"
           >
             {isAdjusting ? <Loader2 size={15} className="mr-2 animate-spin" /> : <Plus size={15} className="mr-2" />}
             Cộng tiền

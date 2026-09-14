@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   User,
@@ -31,18 +33,10 @@ import { useUpdateUserMutation } from "~/stores/apis/admin";
 import { UserLoyaltySection } from "./components/UserLoyaltySection";
 
 const getRoleBadge = (role: string) => {
-  const styles: Record<string, string> = {
-    ADMIN: "bg-purple-50 text-purple-700 border-purple-200",
-    SUPER_ADMIN: "bg-red-50 text-red-700 border-red-200",
-    STAFF: "bg-blue-50 text-blue-700 border-blue-200",
-    USER: "bg-muted/30 text-foreground/80 border-border/50",
-    PARTNER: "bg-orange-50 text-orange-700 border-orange-200",
-    MODERATOR: "bg-teal-50 text-teal-700 border-teal-200",
-  };
   return (
     <Badge
       variant="outline"
-      className={`${styles[role] || styles.USER} font-medium text-xs`}
+      className="bg-secondary text-foreground border-border font-medium text-xs px-2.5 py-0.5 rounded-md"
     >
       {role}
     </Badge>
@@ -65,6 +59,7 @@ const formatDate = (dateString: string) =>
   });
 
 export default function UserDetailPage() {
+  const { t } = useTranslation();
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user, isLoading } = useUserDetail(userId);
@@ -101,10 +96,12 @@ export default function UserDetailPage() {
     setIsSaving(true);
     try {
       await updateUser({ id: Number(userId), data: formData }).unwrap();
+      toast.success(t("admin.users.updateSuccess", "Cập nhật thông tin người dùng thành công"));
       setIsDirty(false);
       navigate("/admin/users");
     } catch (error) {
       console.error("❌ [User] Save failed:", error);
+      toast.error(t("admin.users.updateFailed", "Cập nhật người dùng thất bại"));
     } finally {
       setIsSaving(false);
     }
@@ -184,7 +181,7 @@ export default function UserDetailPage() {
               </Button>
               <Button
                 onClick={() => setShowConfirm(true)}
-                className="gap-2 bg-blue-600 hover:bg-blue-700"
+                className="gap-2 bg-primary text-primary-foreground hover:opacity-90"
                 disabled={isSaving}
               >
                 <Save className="h-4 w-4" />
@@ -197,8 +194,8 @@ export default function UserDetailPage() {
               variant="outline"
               className={
                 user.enabled
-                  ? "bg-green-50 text-green-700"
-                  : "bg-muted/30 text-foreground/80"
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                  : "bg-secondary text-muted-foreground border-border"
               }
             >
               {user.enabled ? "Đang hoạt động" : "Đã khóa"}
@@ -220,9 +217,9 @@ export default function UserDetailPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-start gap-6">
-                <Avatar className="h-24 w-24 border-2 border-white shadow-md flex-shrink-0">
+                <Avatar className="h-24 w-24 border-2 border-border shadow-xs flex-shrink-0">
                   <AvatarImage src={user.imageUrl} alt={formData.name} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-lg font-bold">
+                  <AvatarFallback className="bg-secondary text-foreground text-lg font-bold border border-border">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -289,7 +286,7 @@ export default function UserDetailPage() {
                   </p>
                   <p className="font-medium">
                     {user.emailVerified ? (
-                      <span className="text-green-600">Đã xác minh</span>
+                      <span className="text-emerald-700 dark:text-emerald-400 font-medium">Đã xác minh</span>
                     ) : (
                       <span className="text-muted-foreground">Chưa xác minh</span>
                     )}
@@ -321,7 +318,7 @@ export default function UserDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-bold text-foreground">
                   {formatCurrency(user.totalSpent || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
@@ -343,18 +340,18 @@ export default function UserDetailPage() {
                 <p className="text-sm text-muted-foreground">Trạng thái</p>
                 <div className="mt-2 flex items-center gap-2">
                   <span
-                    className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                      user.enabled ? "bg-green-500" : "bg-muted-foreground/50"
+                    className={`relative inline-flex rounded-full h-2 w-2 ${
+                      user.enabled ? "bg-emerald-500" : "bg-muted-foreground/50"
                     }`}
                   ></span>
-                  <span className="font-medium">
+                  <span className="font-medium text-sm">
                     {user.enabled ? "Hoạt động" : "Đã khóa"}
                   </span>
                 </div>
               </div>
-              <div className="border-t pt-4">
+              <div className="border-t border-border/60 pt-4">
                 <p className="text-sm text-muted-foreground">ID người dùng</p>
-                <p className="font-mono text-sm font-medium mt-2 bg-muted/30 p-2 rounded">
+                <p className="font-mono text-sm font-medium mt-2 bg-secondary p-2 rounded-md border border-border/50">
                   {user.id}
                 </p>
               </div>
@@ -375,7 +372,7 @@ export default function UserDetailPage() {
                   {formatDate(user.createdAt)}
                 </p>
               </div>
-              <div className="border-t pt-4">
+              <div className="border-t border-border/60 pt-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>Cập nhật cuối cùng</span>
@@ -385,7 +382,7 @@ export default function UserDetailPage() {
                 </p>
               </div>
               {user.lastLogin && (
-                <div className="border-t pt-4">
+                <div className="border-t border-border/60 pt-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
                     <span>Lần đăng nhập cuối</span>
@@ -418,7 +415,7 @@ export default function UserDetailPage() {
             <AlertDialogAction
               onClick={handleSave}
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary text-primary-foreground hover:opacity-90"
             >
               {isSaving ? "Đang lưu..." : "Xác nhận lưu"}
             </AlertDialogAction>

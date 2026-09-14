@@ -50,7 +50,7 @@ export function PartnerStats({ statistics }: PartnerStatsProps) {
       textColor: "text-muted-foreground",
     },
     {
-      label: "Tổng cửa hàng",
+      label: "Tổng địa điểm",
       value: statistics.totalStores,
       icon: Store,
       color: "bg-purple-500",

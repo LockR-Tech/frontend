@@ -35,6 +35,7 @@ import { useTranslation } from "react-i18next";
 import { useUpdateUserStatusMutation } from "~/stores/apis/admin";
 import type { AdminUserResponse } from "~/types";
 import { WalletModal } from "./WalletModal";
+import { toast } from "sonner";
 
 interface UserTableProps {
   users: AdminUserResponse[];
@@ -78,50 +79,29 @@ const TruncatedText = ({
   );
 };
 
-// Provider icon mapping with Lucide icons only
+// Provider icon mapping with subtle neutral icons
 const ProviderIcon = ({ provider }: { provider: string }) => {
-  const iconMap: Record<string, { icon: React.ReactNode; color: string }> = {
-    EMAIL: { icon: <Mail size={14} />, color: "text-blue-600 bg-blue-50" },
-    GOOGLE: { icon: <Search size={14} />, color: "text-red-500 bg-red-50" },
-    FACEBOOK: {
-      icon: <Facebook size={14} />,
-      color: "text-blue-700 bg-blue-100",
-    },
-    PHONE: {
-      icon: <Smartphone size={14} />,
-      color: "text-green-600 bg-green-50",
-    },
+  const iconMap: Record<string, React.ReactNode> = {
+    EMAIL: <Mail size={13} />,
+    GOOGLE: <Search size={13} />,
+    FACEBOOK: <Facebook size={13} />,
+    PHONE: <Smartphone size={13} />,
   };
 
-  const { icon, color } = iconMap[provider] || {
-    icon: <UserIcon size={14} />,
-    color: "text-muted-foreground bg-muted/50",
-  };
+  const icon = iconMap[provider] || <UserIcon size={13} />;
 
   return (
-    <div
-      className={`w-6 h-6 rounded flex items-center justify-center ${color}`}
-    >
+    <div className="w-6 h-6 rounded bg-secondary text-muted-foreground border border-border/50 flex items-center justify-center shrink-0">
       {icon}
     </div>
   );
 };
 
 const getRoleBadge = (role: string) => {
-  const styles: Record<string, string> = {
-    ADMIN: "bg-purple-50 text-purple-700 border-purple-200",
-    SUPER_ADMIN: "bg-red-50 text-red-700 border-red-200",
-    MANAGER: "bg-blue-50 text-blue-700 border-blue-200",
-    CUSTOMER: "bg-muted/30 text-foreground/80 border-border/50",
-    MAINTENANCE: "bg-orange-50 text-orange-700 border-orange-200",
-    TECHNICIAN: "bg-cyan-50 text-cyan-700 border-cyan-200",
-    STAFF: "bg-teal-50 text-teal-700 border-teal-200",
-  };
-
   return (
     <Badge
       variant="outline"
-      className={`${styles[role] || styles.CUSTOMER} font-medium text-xs`}
+      className="bg-secondary text-foreground border-border font-medium text-xs px-2.5 py-0.5 rounded-md"
     >
       {role}
     </Badge>
@@ -152,6 +132,13 @@ export function UserTable({
         id: user.id,
         data: { enabled: !user.enabled },
       }).unwrap();
+      toast.success(
+        !user.enabled
+          ? t("admin.users.status.enabledSuccess", "Đã kích hoạt người dùng thành công")
+          : t("admin.users.status.disabledSuccess", "Đã vô hiệu hóa người dùng thành công")
+      );
+    } catch {
+      toast.error(t("admin.users.status.toggleFailed", "Cập nhật trạng thái người dùng thất bại"));
     } finally {
       setPendingIds((prev) => {
         const next = new Set(prev);
@@ -259,16 +246,23 @@ export function UserTable({
         const raw = row.original.createdAt;
         const d = raw ? new Date(raw) : null;
         const valid = d && !Number.isNaN(d.getTime());
+        if (!valid) return <span className="text-sm text-muted-foreground">—</span>;
+        const timeStr = d!.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+        const dateStr = d!.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
         return (
-          <span className="text-sm text-muted-foreground">
-            {valid
-              ? d!.toLocaleDateString("vi-VN", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "—"}
-          </span>
+          <div className="font-mono text-xs">
+            <p className="font-semibold text-foreground tracking-tight">{timeStr}</p>
+            <p className="text-[11px] text-muted-foreground">{dateStr}</p>
+          </div>
         );
       },
     }),

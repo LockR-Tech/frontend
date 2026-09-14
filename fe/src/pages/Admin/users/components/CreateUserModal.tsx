@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { UserPlus, Loader2, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -17,15 +19,11 @@ import { useCreateUserMutation } from "~/stores/apis/admin";
 const ALL_ROLES = ["CUSTOMER", "ADMIN", "MAINTENANCE", "TECHNICIAN"] as const;
 
 const ROLE_STYLES: Record<string, string> = {
-  ADMIN:
-    "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/30",
-  MANAGER:
-    "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30",
-  CUSTOMER: "bg-muted/30 text-foreground/80 border-border/50",
-  MAINTENANCE:
-    "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30",
-  TECHNICIAN:
-    "bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/30",
+  ADMIN: "bg-primary text-primary-foreground border-primary",
+  MANAGER: "bg-secondary text-foreground border-border font-semibold",
+  CUSTOMER: "bg-secondary text-muted-foreground border-border",
+  MAINTENANCE: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  TECHNICIAN: "bg-secondary text-foreground border-border",
 };
 
 interface Props {
@@ -44,6 +42,7 @@ const EMPTY_FORM = {
 };
 
 export function CreateUserModal({ open, onClose }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,18 +81,18 @@ export function CreateUserModal({ open, onClose }: Props) {
     };
     try {
       await createUser(payload).unwrap();
+      toast.success(t("admin.users.createSuccess", "Tạo người dùng mới thành công"));
       setForm({ ...EMPTY_FORM });
       onClose();
     } catch (e: unknown) {
       const err = e as { status?: number; data?: { message?: string } };
       const msg = err?.data?.message ?? "";
+      let errorMsg = msg || t("admin.users.createFailed", "Tạo người dùng thất bại.");
       if (err?.status === 409 || /unique|integrity|constraint|exist|tồn tại/i.test(msg)) {
-        setError(
-          "Email hoặc số điện thoại đã tồn tại. Vui lòng dùng giá trị khác.",
-        );
-      } else {
-        setError(msg || "Tạo người dùng thất bại.");
+        errorMsg = "Email hoặc số điện thoại đã tồn tại. Vui lòng dùng giá trị khác.";
       }
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -109,8 +108,8 @@ export function CreateUserModal({ open, onClose }: Props) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
-            <UserPlus size={18} className="text-blue-600" />
-            Thêm người dùng mới
+            <UserPlus size={18} className="text-muted-foreground" />
+            Tạo người dùng mới
           </DialogTitle>
         </DialogHeader>
 
@@ -232,7 +231,6 @@ export function CreateUserModal({ open, onClose }: Props) {
             <Switch
               checked={form.enabled}
               onCheckedChange={(v) => set("enabled", v)}
-              className="data-[state=checked]:bg-green-500"
             />
           </div>
         </div>
@@ -244,7 +242,6 @@ export function CreateUserModal({ open, onClose }: Props) {
           <Button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             {isLoading ? (
               <>
