@@ -96,7 +96,7 @@ export function ServiceModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Package size={20} className="text-blue-600" />
+            <Package size={20} className="text-muted-foreground" />
             {mode === "create" ? "Thêm dịch vụ mới" : "Chỉnh sửa dịch vụ"}
           </DialogTitle>
         </DialogHeader>
@@ -110,7 +110,7 @@ export function ServiceModal({
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              placeholder="Ví dụ: Giặt ủi thường"
+              placeholder="Ví dụ: Gửi hàng qua Kiosk / Thuê ô lưu trữ"
               required
             />
           </div>
@@ -190,7 +190,6 @@ export function ServiceModal({
             <Button
               type="submit"
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700"
             >
               {isSaving
                 ? "Đang lưu..."
