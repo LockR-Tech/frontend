@@ -75,9 +75,9 @@ export function LockerCard({ locker, onRefresh }: Props) {
   return (
     <>
       <div
-        className={`flex flex-col rounded-xl border bg-white transition-all hover:shadow-md ${
-          isActive ? "border-green-200" : "border-border/50"
-        } ${actionLoading ? "opacity-60 pointer-events-none" : ""}`}
+        className={`flex flex-col rounded-xl border border-border bg-card transition-all hover:border-slate-400 dark:hover:border-slate-600 ${
+          actionLoading ? "opacity-60 pointer-events-none" : ""
+        }`}
       >
         {/* Card header */}
         <div className="p-4 pb-2">
@@ -107,34 +107,28 @@ export function LockerCard({ locker, onRefresh }: Props) {
         <div className="px-4 pb-2">
           <div className="flex items-center justify-between text-[11px] mb-1">
             <span className="text-muted-foreground">
-              <span className="text-green-600 font-bold">{available}</span>/
+              <span className="text-foreground font-semibold">{available}</span>/
               {total} trống
             </span>
             <span className="text-muted-foreground/70">{usagePercent}%</span>
           </div>
-          <div className="h-1.5 bg-muted/50 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-muted/60 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${
-                usagePercent > 80
-                  ? "bg-red-400"
-                  : usagePercent > 50
-                    ? "bg-orange-400"
-                    : "bg-green-400"
-              }`}
+              className="h-full rounded-full bg-primary transition-all"
               style={{ width: `${usagePercent}%` }}
             />
           </div>
         </div>
 
         {/* Action footer */}
-        <div className="flex items-center border-t px-3 py-1.5 gap-1 mt-auto">
+        <div className="flex items-center border-t border-border/60 px-3 py-1.5 gap-1 mt-auto">
           <button
             title={isActive ? "Tắt tủ" : "Bật tủ"}
             onClick={handleToggleActive}
             className={`rounded p-1.5 transition-colors ${
               isActive
-                ? "text-green-600 hover:bg-green-50"
-                : "text-muted-foreground/70 hover:bg-muted"
+                ? "text-emerald-600 hover:bg-emerald-500/10"
+                : "text-muted-foreground hover:bg-secondary"
             }`}
           >
             <Power className="h-3.5 w-3.5" />
@@ -144,8 +138,8 @@ export function LockerCard({ locker, onRefresh }: Props) {
             onClick={handleToggleMaintenance}
             className={`rounded p-1.5 transition-colors ${
               isMaintenance
-                ? "text-yellow-500 hover:bg-yellow-50"
-                : "text-muted-foreground/70 hover:bg-muted"
+                ? "text-amber-600 hover:bg-amber-500/10"
+                : "text-muted-foreground hover:bg-secondary"
             }`}
           >
             <Wrench className="h-3.5 w-3.5" />
@@ -153,13 +147,13 @@ export function LockerCard({ locker, onRefresh }: Props) {
           <button
             title="Cài đặt tủ"
             onClick={() => setShowLockerSetting(true)}
-            className="rounded p-1.5 text-muted-foreground/70 hover:text-foreground/80 hover:bg-muted transition-colors"
+            className="rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <Settings className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground hover:text-blue-600 rounded px-1.5 py-1 hover:bg-blue-50 transition-colors"
+            className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-1.5 py-1 hover:bg-secondary transition-colors"
           >
             {expanded ? "Thu gọn" : "Xem ngăn"}
             {expanded ? (
@@ -174,7 +168,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
               setExpanded(true);
               setShowAddBox(true);
             }}
-            className="rounded p-1.5 text-blue-500 hover:bg-blue-50 transition-colors"
+            className="rounded p-1.5 text-foreground hover:bg-secondary transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
           </button>
@@ -182,7 +176,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
 
         {/* Expanded: Box grid */}
         {expanded && (
-          <div className="px-3 pb-3 border-t pt-3">
+          <div className="px-3 pb-3 border-t border-border/60 pt-3">
             {boxes.length === 0 ? (
               <>
                 <p className="text-xs text-muted-foreground/70 italic py-2 text-center">
@@ -190,7 +184,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
                 </p>
                 <button
                   onClick={() => setShowAddBox(true)}
-                  className="w-full mt-1 flex items-center justify-center gap-1.5 text-xs text-blue-500 hover:text-blue-700 py-2 rounded border border-dashed border-blue-200 hover:bg-blue-50 transition-colors"
+                  className="w-full mt-1 flex items-center justify-center gap-1.5 text-xs text-foreground hover:bg-secondary py-2 rounded border border-dashed border-border transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Thêm ngăn đầu tiên
@@ -220,11 +214,11 @@ export function LockerCard({ locker, onRefresh }: Props) {
                         key={box.id}
                         title={`Ngăn #${box.boxNumber} — ${cfg.label} (nhấn để chỉnh)`}
                         onClick={() => setSelectedBox(box)}
-                        className={`relative w-9 h-9 rounded border flex items-center justify-center text-xs font-bold transition-all cursor-pointer hover:shadow-md hover:scale-105 ${cfg.bg} ${cfg.border} ${cfg.text}`}
+                        className={`relative w-9 h-9 rounded border flex items-center justify-center text-xs font-bold transition-all cursor-pointer hover:shadow-sm ${cfg.bg} ${cfg.border} ${cfg.text}`}
                       >
                         {box.boxNumber}
                         {canOpen && (
-                          <Unlock className="h-2 w-2 absolute top-0.5 right-0.5 text-orange-400" />
+                          <Unlock className="h-2 w-2 absolute top-0.5 right-0.5 text-amber-500" />
                         )}
                       </button>
                     );
@@ -232,7 +226,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
                   <button
                     title="Thêm ngăn mới"
                     onClick={() => setShowAddBox(true)}
-                    className="w-9 h-9 rounded border-2 border-dashed border-blue-300 flex items-center justify-center text-blue-400 hover:bg-blue-50 hover:border-blue-400 transition-colors"
+                    className="w-9 h-9 rounded border border-dashed border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                   >
                     <Plus className="h-4 w-4" />
                   </button>

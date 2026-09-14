@@ -42,10 +42,10 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Thêm tủ đồ mới
+            Thêm Kiosk mới
           </DialogTitle>
           <DialogDescription>
-            Tủ sẽ được gán vào cửa hàng này sau khi tạo.
+            Kiosk sẽ được gán vào địa điểm này sau khi tạo.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
@@ -62,12 +62,12 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">
-              Tên tủ <span className="text-red-500">*</span>
+              Tên Kiosk <span className="text-red-500">*</span>
             </label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="VD: Tủ đầu dãy A"
+              placeholder="VD: Kiosk sảnh chính A"
             />
           </div>
           <div>
@@ -90,9 +90,8 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
           <Button
             onClick={handleSubmit}
             disabled={saving || !form.code || !form.name}
-            className="bg-blue-600 hover:bg-blue-700"
           >
-            {saving ? "Đang tạo..." : "Tạo tủ"}
+            {saving ? "Đang tạo..." : "Tạo Kiosk"}
           </Button>
         </DialogFooter>
       </DialogContent>

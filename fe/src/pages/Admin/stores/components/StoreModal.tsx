@@ -85,8 +85,8 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Store size={20} className="text-blue-600" />
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Store size={18} className="text-muted-foreground" />
             {mode === "create" ? t("admin.stores.modal.createTitle") : t("admin.stores.modal.editTitle")}
           </DialogTitle>
         </DialogHeader>
@@ -192,7 +192,6 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
             <Button
               type="submit"
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700"
             >
               {isSaving
                 ? t("admin.stores.modal.saving")

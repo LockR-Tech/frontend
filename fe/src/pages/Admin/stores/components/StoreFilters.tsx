@@ -44,7 +44,7 @@ export function StoreFilters({
           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
         />
         <Input
-          placeholder="Tìm kiếm cửa hàng..."
+          placeholder="Tìm kiếm địa điểm..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 h-10"

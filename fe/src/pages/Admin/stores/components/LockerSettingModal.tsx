@@ -80,10 +80,10 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-4 w-4 text-muted-foreground" />
-            Cài đặt tủ đồ
+            Cài đặt Kiosk
           </DialogTitle>
           <DialogDescription>
-            Chỉnh sửa thông tin và trạng thái cho tủ này.
+            Chỉnh sửa thông tin và trạng thái cho Kiosk này.
           </DialogDescription>
         </DialogHeader>
 
@@ -91,14 +91,14 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
           <div className="space-y-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">
-                Tên tủ <span className="text-red-500">*</span>
+                Tên Kiosk <span className="text-red-500">*</span>
               </label>
               <Input
                 value={form.name}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, name: e.target.value }))
                 }
-                placeholder="VD: Tủ đầu dãy A"
+                placeholder="VD: Kiosk sảnh chính A"
               />
             </div>
             <div>
@@ -136,7 +136,7 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
               <div>
                 <p className="text-sm font-medium text-foreground/80">Bảo trì</p>
                 <p className="text-xs text-muted-foreground/70">
-                  Tủ sẽ khóa toàn bộ ngăn khi bật
+                  Kiosk sẽ khóa toàn bộ ngăn khi bật
                 </p>
               </div>
               <button
@@ -163,7 +163,6 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
           <Button
             onClick={handleSave}
             disabled={saving || !form.code || !form.name}
-            className="bg-blue-600 hover:bg-blue-700"
           >
             {saving ? "Đang lưu..." : "Lưu"}
           </Button>

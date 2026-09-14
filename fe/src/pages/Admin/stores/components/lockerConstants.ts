@@ -6,27 +6,27 @@ export const BOX_CFG: Record<
 > = {
   [BoxStatus.AVAILABLE]: {
     label: "Trống",
-    bg: "bg-green-50",
-    border: "border-green-300",
-    text: "text-green-700",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    text: "text-emerald-700 dark:text-emerald-400",
   },
   [BoxStatus.OCCUPIED]: {
     label: "Có đồ",
-    bg: "bg-orange-50",
-    border: "border-orange-300",
-    text: "text-orange-700",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/20",
+    text: "text-amber-700 dark:text-amber-400",
   },
   [BoxStatus.RESERVED]: {
     label: "Đã đặt",
-    bg: "bg-blue-50",
-    border: "border-blue-300",
-    text: "text-blue-700",
+    bg: "bg-secondary",
+    border: "border-border",
+    text: "text-foreground",
   },
   [BoxStatus.MAINTENANCE]: {
     label: "Bảo trì",
-    bg: "bg-gray-100",
-    border: "border-gray-300",
-    text: "text-gray-500",
+    bg: "bg-muted/40",
+    border: "border-border",
+    text: "text-muted-foreground",
   },
 };
 
@@ -36,22 +36,22 @@ export const LOCKER_STATUS_CFG: Record<
 > = {
   [LockerStatus.ACTIVE]: {
     label: "Hoạt động",
-    dot: "bg-green-500",
-    badge: "bg-green-50 text-green-700 border-green-200",
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
   },
   [LockerStatus.INACTIVE]: {
     label: "Tắt",
-    dot: "bg-gray-400",
-    badge: "bg-gray-50 text-gray-600 border-gray-200",
+    dot: "bg-muted-foreground/40",
+    badge: "bg-secondary text-muted-foreground border-border",
   },
   [LockerStatus.MAINTENANCE]: {
     label: "Bảo trì",
-    dot: "bg-yellow-400",
-    badge: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    dot: "bg-amber-500",
+    badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   },
   [LockerStatus.DISCONNECTED]: {
     label: "Mất kết nối",
-    dot: "bg-red-500",
-    badge: "bg-red-50 text-red-700 border-red-200",
+    dot: "bg-destructive",
+    badge: "bg-destructive/10 text-destructive border-destructive/20",
   },
 };

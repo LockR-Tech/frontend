@@ -111,39 +111,39 @@ const getStatusBadge = (status: LockerStatus, t: (key: string) => string) => {
     }
   > = {
     [LockerStatus.ACTIVE]: {
-      bg: "bg-green-50",
-      text: "text-green-700",
-      border: "border-green-200",
+      bg: "bg-emerald-500/10",
+      text: "text-emerald-700 dark:text-emerald-400",
+      border: "border-emerald-500/20",
       icon: CheckCircle2,
       label: t("admin.lockers.status.active"),
     },
     [LockerStatus.INACTIVE]: {
-      bg: "bg-muted/30",
-      text: "text-foreground/80",
-      border: "border-border/50",
+      bg: "bg-secondary",
+      text: "text-muted-foreground",
+      border: "border-border",
       icon: XCircle,
       label: t("admin.lockers.status.inactive"),
     },
     [LockerStatus.MAINTENANCE]: {
-      bg: "bg-amber-50",
-      text: "text-amber-700",
-      border: "border-amber-200",
+      bg: "bg-amber-500/10",
+      text: "text-amber-700 dark:text-amber-400",
+      border: "border-amber-500/20",
       icon: Wrench,
       label: t("admin.lockers.status.maintenance"),
     },
     [LockerStatus.DISCONNECTED]: {
-      bg: "bg-red-50",
-      text: "text-red-700",
-      border: "border-red-200",
+      bg: "bg-red-500/10",
+      text: "text-red-700 dark:text-red-400",
+      border: "border-red-500/20",
       icon: WifiOff,
       label: t("admin.lockers.status.disconnected"),
     },
   };
 
   const variant = variants[status] ?? {
-    bg: "bg-muted/30",
-    text: "text-foreground/80",
-    border: "border-border/50",
+    bg: "bg-secondary",
+    text: "text-muted-foreground",
+    border: "border-border",
     icon: XCircle,
     label: (status as string) || "—",
   };
@@ -151,10 +151,10 @@ const getStatusBadge = (status: LockerStatus, t: (key: string) => string) => {
 
   return (
     <Badge
-      className={`${variant.bg} ${variant.text} ${variant.border} font-medium`}
+      className={`${variant.bg} ${variant.text} ${variant.border} font-medium text-xs px-2 py-0.5 rounded-md inline-flex items-center gap-1.5`}
       variant="outline"
     >
-      <Icon className="mr-1 h-3.5 w-3.5" />
+      <Icon className="h-3 w-3" />
       {variant.label}
     </Badge>
   );
