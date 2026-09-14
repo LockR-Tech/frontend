@@ -114,6 +114,27 @@ export interface DeviceStatusResponse {
   lastSeenAt: string | null;
 }
 
+export interface TechnicianRatingItem {
+  id: number;
+  reportId: number;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+export interface TechnicianPerformanceResponse {
+  technicianId: number;
+  totalAssigned: number;
+  inProgress: number;
+  resolved: number;
+  overdue: number;
+  penaltyLevel: 'NORMAL' | 'WARNING' | 'RESTRICTED' | 'SUSPENDED';
+  penaltyReason: string;
+  ratingCount: number;
+  averageRating: number;
+  ratings: TechnicianRatingItem[];
+}
+
 const TAG = 'Lockers' as const;
 
 export const lockerOpsApi = baseApi.injectEndpoints({
@@ -273,6 +294,49 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       query: () => '/api/admin/iot/device-status',
       providesTags: [{ type: TAG, id: 'device-status' }],
     }),
+
+    // Admin view of all reports with optional technician filtering
+    getAllAdminReports: builder.query<
+      ApiResponse<LockerReportResponse[]>,
+      { technicianId?: number; userId?: number } | void
+    >({
+      query: (params) => ({
+        url: '/api/admin/lockers/reports',
+        params: params || undefined,
+      }),
+      providesTags: [TAG],
+    }),
+
+    // Admin direct assignment of a report to a technician
+    assignReportToTechnician: builder.mutation<
+      ApiResponse<LockerReportResponse>,
+      { reportId: number; technicianId: number }
+    >({
+      query: ({ reportId, technicianId }) => ({
+        url: `/api/admin/lockers/reports/${reportId}/assign`,
+        method: 'PUT',
+        params: { technicianId },
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Admin revoke assignment of a report back to OPEN
+    unassignReport: builder.mutation<ApiResponse<LockerReportResponse>, number>({
+      query: (reportId) => ({
+        url: `/api/admin/lockers/reports/${reportId}/unassign`,
+        method: 'PUT',
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Get individual technician performance, SLA breaches, and customer ratings
+    getTechnicianPerformance: builder.query<
+      ApiResponse<TechnicianPerformanceResponse>,
+      number
+    >({
+      query: (technicianId) => `/api/admin/lockers/technicians/${technicianId}/performance`,
+      providesTags: (_r, _e, id) => [{ type: TAG, id: `tech-perf-${id}` }],
+    }),
   }),
 });
 
@@ -296,4 +360,8 @@ export const {
   useCompleteMaintenanceScheduleMutation,
   useDeleteMaintenanceScheduleMutation,
   useGetDeviceStatusesQuery,
+  useGetAllAdminReportsQuery,
+  useAssignReportToTechnicianMutation,
+  useUnassignReportMutation,
+  useGetTechnicianPerformanceQuery,
 } = lockerOpsApi;
