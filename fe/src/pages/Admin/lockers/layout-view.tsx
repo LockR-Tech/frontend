@@ -13,11 +13,29 @@ import {
   Wrench,
   Luggage,
   AlertTriangle,
+  Plus,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import {
   useGetLockerLayoutQuery,
   useReportBoxFaultMutation,
@@ -26,6 +44,7 @@ import {
   useSetBoxCleaningMutation,
   useReturnBoxToServiceMutation,
   useForceOpenBoxMutation,
+  useAddBoxMutation,
   type CellResponse,
 } from "~/stores/apis/admin/lockerOps";
 
@@ -242,32 +261,24 @@ function CellTile({
   );
 }
 
-function getBoxGridStyle(boxNumber: number) {
-  switch (boxNumber) {
-    case 10:
-      // Tall XL suitcase box on the left column, spans all 3 rows
-      return { gridColumn: "1", gridRow: "1 / span 3" };
-    case 1:
-      // Top row, drone box 1
-      return { gridColumn: "2", gridRow: "1" };
-    case 2:
-      // Top row, drone box 2
-      return { gridColumn: "3", gridRow: "1" };
-    case 4:
-      // Middle row, standard box 4
-      return { gridColumn: "2", gridRow: "2" };
-    case 5:
-      // Middle row, standard box 5
-      return { gridColumn: "3", gridRow: "2" };
-    case 7:
-      // Bottom row, standard box 7
-      return { gridColumn: "2", gridRow: "3" };
-    case 8:
-      // Bottom row, standard box 8
-      return { gridColumn: "3", gridRow: "3" };
-    default:
-      return {};
+function getBoxGridStyle(cell: CellResponse, maxRows: number) {
+  // If XL cell (tall compartment spanning vertically)
+  if (cell.cellType === "XL" || cell.colIndex === 0 || cell.boxNumber === 10) {
+    return {
+      gridColumn: "1",
+      gridRow: `1 / span ${maxRows}`,
+    };
   }
+
+  // Standard or Drone cells with rowIndex and colIndex:
+  // Col 1 is reserved for the XL column. Standard columns start from 2 onwards:
+  const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex + 1 : 2;
+  const row = cell.rowIndex ?? 1;
+
+  return {
+    gridColumn: `${col}`,
+    gridRow: `${row}`,
+  };
 }
 
 export default function LockerLayoutPage() {
@@ -284,17 +295,64 @@ export default function LockerLayoutPage() {
   const [cleaning, { isLoading: cleaningBusy }] = useSetBoxCleaningMutation();
   const [returnToService, { isLoading: returning }] = useReturnBoxToServiceMutation();
   const [forceOpen, { isLoading: forceOpening }] = useForceOpenBoxMutation();
+  const [addBox, { isLoading: isAddingBox }] = useAddBoxMutation();
   const [pendingBox, setPendingBox] = useState<number | null>(null);
+
+  // Modal State for Adding a Box
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newBoxNumber, setNewBoxNumber] = useState<number | "">("");
+  const [newCellType, setNewCellType] = useState<string>("STANDARD");
+  const [newSize, setNewSize] = useState<string>("M");
+  const [newRowIndex, setNewRowIndex] = useState<number>(2);
+  const [newColIndex, setNewColIndex] = useState<number>(3);
 
   const layout = data?.data;
 
+  // Render all active cells dynamically configured by Admin
   const cells = useMemo(() => {
-    if (!layout) return [];
-    // Physical cabinet does not have boxes 3, 6, 9
-    return layout.cells.filter(
-      (c) => c.boxNumber !== 3 && c.boxNumber !== 6 && c.boxNumber !== 9,
-    );
+    if (!layout?.cells) return [];
+    return layout.cells;
   }, [layout]);
+
+  const maxRows = useMemo(() => {
+    return Math.max(3, ...cells.map((c) => c.rowIndex ?? 1));
+  }, [cells]);
+
+  const maxCols = useMemo(() => {
+    return Math.max(
+      3,
+      ...cells.map((c) =>
+        c.cellType === "XL" || c.colIndex === 0 || c.boxNumber === 10
+          ? 1
+          : (c.colIndex != null && c.colIndex > 0 ? c.colIndex + 1 : 2)
+      )
+    );
+  }, [cells]);
+
+  const handleAddBox = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBoxNumber || !id) {
+      toast.error("Vui lòng nhập số ô tủ!");
+      return;
+    }
+    try {
+      await addBox({
+        lockerId: id,
+        boxNumber: Number(newBoxNumber),
+        cellType: newCellType,
+        size: newSize,
+        rowIndex: Number(newRowIndex),
+        colIndex: Number(newColIndex),
+        status: "AVAILABLE",
+      }).unwrap();
+      toast.success(`Đã thêm ô #${newBoxNumber} thành công!`);
+      setShowAddModal(false);
+      setNewBoxNumber("");
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Không thể thêm ô tủ mới");
+    }
+  };
 
   const handleFault = async (cell: CellResponse) => {
     const reason = window.prompt(`Lý do báo hỏng ô #${cell.boxNumber}?`, "Khóa không mở");
@@ -419,9 +477,14 @@ export default function LockerLayoutPage() {
             </div>
           </div>
         </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} /> Làm mới
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setShowAddModal(true)} className="bg-primary text-primary-foreground shadow-xs">
+            <Plus className="w-4 h-4 mr-1.5" /> Thêm ô tủ
+          </Button>
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} /> Làm mới
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -469,12 +532,12 @@ export default function LockerLayoutPage() {
           <div
             className="grid gap-3.5 p-5 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border-2 border-slate-300/90 dark:border-slate-700 shadow-inner"
             style={{
-              gridTemplateColumns: "minmax(180px, 1fr) minmax(220px, 1.25fr) minmax(220px, 1.25fr)",
-              gridTemplateRows: "repeat(3, minmax(135px, auto))",
+              gridTemplateColumns: `minmax(180px, 1fr) repeat(${Math.max(1, maxCols - 1)}, minmax(200px, 1.25fr))`,
+              gridTemplateRows: `repeat(${maxRows}, minmax(135px, auto))`,
             }}
           >
             {cells.map((cell) => {
-              const gridStyle = getBoxGridStyle(cell.boxNumber);
+              const gridStyle = getBoxGridStyle(cell, maxRows);
               return (
                 <div
                   key={cell.id}
@@ -500,17 +563,118 @@ export default function LockerLayoutPage() {
           </div>
           <div className="flex flex-wrap items-center gap-4 pt-1 text-xs">
             <span className="inline-flex items-center gap-1.5 font-semibold text-sky-800 dark:text-sky-300 bg-sky-100/90 dark:bg-sky-950/70 px-2.5 py-1 rounded-md border border-sky-300 dark:border-sky-700">
-              <Plane className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" /> Ô tiếp nhận Drone (#1, #2)
+              <Plane className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" /> Ô tiếp nhận Drone ({cells.filter((c) => c.cellType === 'DRONE' || c.boxNumber === 1 || c.boxNumber === 2).map((c) => `#${c.boxNumber}`).join(', ')})
             </span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-md border border-emerald-300 dark:border-emerald-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống khả dụng (#10, #4, #5, #7)
+              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống khả dụng ({cells.filter((c) => c.status === 'AVAILABLE').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
             </span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-1 rounded-md border border-rose-300 dark:border-rose-700">
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Ô hỏng / bảo trì (#8)
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Ô hỏng / bảo trì ({cells.filter((c) => c.status === 'FAULT').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
             </span>
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog: Thêm ô tủ */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <form onSubmit={handleAddBox}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <BoxIcon className="w-5 h-5 text-primary" /> Thêm ô tủ mới vào Kiosk
+              </DialogTitle>
+              <DialogDescription>
+                Thêm một ô tủ vật lý mới vào tủ {layout?.name}. Ô mới sẽ đồng bộ ngay lập tức sang ứng dụng KTV.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="boxNumber" className="text-right font-medium">
+                  Số ô (#)
+                </Label>
+                <Input
+                  id="boxNumber"
+                  type="number"
+                  placeholder="ví dụ: 3, 6, 9"
+                  value={newBoxNumber}
+                  onChange={(e) => setNewBoxNumber(e.target.value ? Number(e.target.value) : "")}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="cellType" className="text-right font-medium">
+                  Loại ô
+                </Label>
+                <Select value={newCellType} onValueChange={setNewCellType}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Chọn loại ô" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STANDARD">Tiêu chuẩn (STANDARD)</SelectItem>
+                    <SelectItem value="DRONE">Tiếp nhận Drone (DRONE)</SelectItem>
+                    <SelectItem value="XL">Khoang vali lớn (XL)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="size" className="text-right font-medium">
+                  Kích cỡ
+                </Label>
+                <Select value={newSize} onValueChange={setNewSize}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Chọn kích cỡ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="S">Nhỏ (S)</SelectItem>
+                    <SelectItem value="M">Trung bình (M)</SelectItem>
+                    <SelectItem value="L">Lớn (L)</SelectItem>
+                    <SelectItem value="XL">Đặc biệt lớn (XL)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="rowIndex" className="text-right font-medium">
+                  Hàng (Row)
+                </Label>
+                <Input
+                  id="rowIndex"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={newRowIndex}
+                  onChange={(e) => setNewRowIndex(Number(e.target.value))}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="colIndex" className="text-right font-medium">
+                  Cột (Col)
+                </Label>
+                <Input
+                  id="colIndex"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={newColIndex}
+                  onChange={(e) => setNewColIndex(Number(e.target.value))}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={isAddingBox}>
+                {isAddingBox ? "Đang thêm..." : "Thêm ô tủ"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

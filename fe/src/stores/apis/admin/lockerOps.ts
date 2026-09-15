@@ -231,6 +231,27 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    // Admin add box to locker
+    addBox: builder.mutation<
+      ApiResponse<CellResponse>,
+      {
+        lockerId: number;
+        boxNumber: number;
+        size?: string;
+        status?: string;
+        cellType?: string;
+        rowIndex?: number;
+        colIndex?: number;
+      }
+    >({
+      query: ({ lockerId, ...body }) => ({
+        url: `/api/admin/lockers/${lockerId}/boxes`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [TAG],
+    }),
+
     // L5 — nhật ký xử lý phiếu bảo trì (work-log)
     getReportLogs: builder.query<ApiResponse<RepairLogResponse[]>, number>({
       query: (reportId) => `/api/maintenance/reports/${reportId}/logs`,
@@ -353,6 +374,7 @@ export const {
   useSetBoxCleaningMutation,
   useReturnBoxToServiceMutation,
   useForceOpenBoxMutation,
+  useAddBoxMutation,
   useGetReportLogsQuery,
   useAddReportLogMutation,
   useGetMaintenanceSchedulesQuery,
