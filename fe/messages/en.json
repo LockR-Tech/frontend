@@ -92,7 +92,8 @@
       "promotions": "Promotions",
       "settings": "Settings",
       "maintenance": "Device Maintenance",
-      "drones": "Drones"
+      "drones": "Drones",
+      "businessSettings": "Business rules"
     },
     "dashboard": {
       "title": "Overview",
@@ -282,14 +283,7 @@
       "language": "Language",
       "languageHelp": "Choose display language",
       "theme": "Theme",
-      "themeHelp": "Switch between light / dark / system",
-      "analytics": "Analytics",
-      "analyticsHelp": "Send anonymous usage data to help improve the app",
-      "devMode": "Developer mode",
-      "devModeHelp": "Show additional debug information",
-      "reset": "Reset",
-      "save": "Save changes",
-      "saving": "Saving..."
+      "themeHelp": "Switch between light / dark / system"
     },
     "notifications": {
       "title": "Notification Management",

@@ -7,7 +7,7 @@ import { useAuth } from "~/context/auth-context";
 import { SidebarProvider, useSidebar } from "~/context/sidebar-context";
 import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
 import { useInitialPrefetch } from "~/hooks/use-route-prefetch";
-import SettingsModal from "./settings";
+import PreferencesModal from "./preferences-modal";
 
 // Inner component that uses sidebar context
 function AdminLayoutInner() {
@@ -58,7 +58,7 @@ function AdminLayoutInner() {
         </main>
       </div>
 
-      <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <PreferencesModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </div>
   );
 }

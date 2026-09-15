@@ -16,6 +16,7 @@ import {
   Plane,
   TrendingUp,
   Wrench,
+  SlidersHorizontal,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -96,6 +97,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: Tag,
     path: "/admin/promotions",
     label: "admin.sidebar.promotions",
+    permission: "admin_access",
+  },
+  {
+    icon: SlidersHorizontal,
+    path: "/admin/settings",
+    label: "admin.sidebar.businessSettings",
     permission: "admin_access",
   },
 ];

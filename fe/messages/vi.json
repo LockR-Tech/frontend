@@ -93,7 +93,8 @@
       "promotions": "Khuyến mãi",
       "settings": "Cài đặt",
       "maintenance": "Bảo trì thiết bị",
-      "drones": "Drone"
+      "drones": "Drone",
+      "businessSettings": "Cấu hình nghiệp vụ"
     },
     "dashboard": {
       "title": "Tổng quan",
@@ -283,14 +284,7 @@
       "language": "Ngôn ngữ",
       "languageHelp": "Chọn ngôn ngữ hiển thị",
       "theme": "Giao diện",
-      "themeHelp": "Chuyển đổi sáng / tối / hệ thống",
-      "analytics": "Phân tích",
-      "analyticsHelp": "Gửi dữ liệu ẩn danh để cải thiện ứng dụng",
-      "devMode": "Chế độ dev",
-      "devModeHelp": "Hiện thêm thông tin debug",
-      "reset": "Đặt lại",
-      "save": "Lưu thay đổi",
-      "saving": "Đang lưu..."
+      "themeHelp": "Chuyển đổi sáng / tối / hệ thống"
     },
     "notifications": {
       "title": "Quản lý thông báo",

@@ -75,7 +75,8 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/phan-hoi": "/admin/feedback",
   "/schedule": "/admin/scheduler",
   "/lap-lich": "/admin/scheduler",
-  
+  "/cau-hinh": "/admin/settings",
+
   // Partner aliases
   "/partner/dashboard": "/partner/dashboard",
   "/partner/order": "/partner/orders",
