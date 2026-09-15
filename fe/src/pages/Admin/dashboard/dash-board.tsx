@@ -64,7 +64,6 @@ export default function Dashboard() {
       icon: Package,
       sublabel: "Toàn bộ mạng lưới Kiosk",
       deltaAmount: "+148 đơn (+13.4%)",
-      trend: { value: "+14.2%", isPositive: true },
     },
     {
       label: "Đơn hôm nay",
@@ -79,7 +78,6 @@ export default function Dashboard() {
       icon: CreditCard,
       sublabel: "Tích lũy hệ thống",
       deltaAmount: "+115.000 đ (+14.2%)",
-      trend: { value: "+9.8%", isPositive: true },
     },
     {
       label: "Doanh thu hôm nay",
