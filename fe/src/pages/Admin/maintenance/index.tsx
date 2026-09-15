@@ -27,7 +27,6 @@ import {
   Zap,
   Users,
   User,
-  Camera,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
@@ -66,7 +65,9 @@ import { MaintenanceSchedules } from "./MaintenanceSchedules";
 import { TechniciansTab } from "./TechniciansTab";
 import type { TechnicianSummary } from "./technician-detail";
 import { AssignReportDialog } from "./AssignReportDialog";
-import { getUserPhotos, getInspectionPhotos, getResolutionPhotos, cleanDescription } from "./maintenancePhotos";
+import { cleanDescription } from "./maintenancePhotos";
+import { ReportPhotoGroups } from "./ReportPhotoGroups";
+import { ResolveReportDialog } from "./ResolveReportDialog";
 import {
   useGetFaultCellsQuery,
   useGetMaintenanceReportsQuery,
@@ -256,7 +257,22 @@ export default function MaintenanceAdminPage() {
     onConfirm: () => {},
   });
 
-  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
+  const [resolvingReport, setResolvingReport] = useState<LockerReportResponse | null>(null);
+
+  // Tên hiển thị "Người tải" cho ảnh phiếu (mọi user, KTV có hậu tố)
+  const userNames = useMemo(() => {
+    const raw = usersQuery.data?.data as unknown;
+    const list: any[] = Array.isArray(raw)
+      ? raw
+      : (raw as { content?: any[] })?.content ?? [];
+    const map: Record<number, string> = {};
+    for (const u of list) {
+      const name = u.fullName || u.name;
+      if (u.id != null && name) map[u.id] = name;
+    }
+    for (const t of technicians) map[t.id] = `${t.fullName} (KTV)`;
+    return map;
+  }, [usersQuery.data, technicians]);
 
   const act = async (
     id: number,
@@ -716,134 +732,7 @@ export default function MaintenanceAdminPage() {
                           </p>
                         )}
 
-                        {/* 1. Ảnh từ User (Khách hàng báo sự cố) */}
-                        {(() => {
-                          const userPhotos = getUserPhotos(r);
-                          if (!userPhotos || userPhotos.length === 0) return null;
-                          return (
-                            <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-                              <span className="text-[11px] font-semibold text-rose-700 dark:text-rose-300 flex items-center gap-1 shrink-0 bg-rose-50 dark:bg-rose-950/50 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-900/60 shadow-2xs">
-                                <Camera className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-                                Ảnh từ User ({userPhotos.length} ảnh):
-                              </span>
-                              <div className="flex items-center gap-2">
-                                {userPhotos.map((photo, pIdx) => (
-                                  <button
-                                    key={pIdx}
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setLightboxImage({
-                                        url: photo.url,
-                                        title: `${photo.label} - Phiếu #${r.id} · ${r.title}`,
-                                      });
-                                    }}
-                                    className="relative w-12 h-12 rounded-md overflow-hidden border border-rose-300 dark:border-rose-800 hover:border-rose-500 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted ring-1 ring-rose-200/50"
-                                    title={photo.tag}
-                                  >
-                                    <img
-                                      src={photo.url}
-                                      alt={photo.label}
-                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <Camera className="w-3.5 h-3.5 text-white" />
-                                    </div>
-                                    <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[8px] text-white text-center truncate px-0.5 font-medium">
-                                      Ảnh User
-                                    </span>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })()}
-
-                        {/* 2. Ảnh hiện trường do KTV chụp */}
-                        {(() => {
-                          const inspectionPhotos = getInspectionPhotos(r);
-                          if (!inspectionPhotos || inspectionPhotos.length === 0) return null;
-                          return (
-                            <div className="mt-2 flex items-center gap-2 flex-wrap">
-                              <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1 shrink-0 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-900/60 shadow-2xs">
-                                <Camera className="w-3.5 h-3.5 text-amber-600" />
-                                Hiện trường KTV ({inspectionPhotos.length} ảnh):
-                              </span>
-                              <div className="flex items-center gap-2">
-                                {inspectionPhotos.map((photo, pIdx) => (
-                                  <button
-                                    key={pIdx}
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setLightboxImage({
-                                        url: photo.url,
-                                        title: `${photo.label} - Phiếu #${r.id} · ${r.title}`,
-                                      });
-                                    }}
-                                    className="relative w-12 h-12 rounded-md overflow-hidden border border-border/80 hover:border-foreground/50 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted"
-                                    title={photo.tag}
-                                  >
-                                    <img
-                                      src={photo.url}
-                                      alt={photo.label}
-                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <Camera className="w-3.5 h-3.5 text-white" />
-                                    </div>
-                                    <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[8px] text-white text-center truncate px-0.5 font-medium">
-                                      {photo.label}
-                                    </span>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })()}
-
-                        {/* 3. Ảnh nghiệm thu hoàn tất của KTV (Chỉ khi RESOLVED) */}
-                        {(() => {
-                          const resolutionPhotos = getResolutionPhotos(r);
-                          if (!resolutionPhotos || resolutionPhotos.length === 0) return null;
-                          return (
-                            <div className="mt-2 flex items-center gap-2 flex-wrap">
-                              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1 shrink-0 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900/60 shadow-2xs">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                Nghiệm thu ({resolutionPhotos.length} ảnh):
-                              </span>
-                              <div className="flex items-center gap-2">
-                                {resolutionPhotos.map((photo, pIdx) => (
-                                  <button
-                                    key={pIdx}
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setLightboxImage({
-                                        url: photo.url,
-                                        title: `${photo.label} - Phiếu #${r.id} · ${r.title}`,
-                                      });
-                                    }}
-                                    className="relative w-12 h-12 rounded-md overflow-hidden border border-emerald-300 dark:border-emerald-700 hover:border-emerald-500 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted ring-1 ring-emerald-200/50"
-                                    title={photo.tag}
-                                  >
-                                    <img
-                                      src={photo.url}
-                                      alt={photo.label}
-                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <Camera className="w-3.5 h-3.5 text-white" />
-                                    </div>
-                                    <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[8px] text-white text-center truncate px-0.5 font-medium">
-                                      {photo.label}
-                                    </span>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })()}
+                        <ReportPhotoGroups report={r} variant="compact" userNames={userNames} />
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
                         <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => openDirections(r)}>
@@ -905,28 +794,7 @@ export default function MaintenanceAdminPage() {
                             size="sm"
                             className="h-8 text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
                             disabled={pending === r.id}
-                            onClick={() =>
-                              setConfirmDialog({
-                                open: true,
-                                title: `Xác nhận hoàn tất xử lý phiếu #${r.id}?`,
-                                description: `Xác nhận sự cố "${r.title}" đã được sửa chữa triệt để? Phiếu sẽ chuyển sang trạng thái Đã hoàn tất và ô tủ liên quan sẽ mở khóa phục vụ khách hàng.`,
-                                actionLabel: "Xác nhận hoàn tất",
-                                variant: "default",
-                                onConfirm: () =>
-                                  act(
-                                    r.id,
-                                    () => resolve(r.id).unwrap(),
-                                    {
-                                      title: `Phiếu #${r.id} đã hoàn tất thành công`,
-                                      description: "Sự cố kỹ thuật đã được đóng hồ sơ và lưu nhật ký.",
-                                    },
-                                    {
-                                      title: "Không xử lý được phiếu",
-                                      description: "Có lỗi khi đóng phiếu sự cố trên hệ thống.",
-                                    },
-                                  ),
-                              })
-                            }
+                            onClick={() => setResolvingReport(r)}
                           >
                             <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn tất
                           </Button>
@@ -1367,32 +1235,32 @@ export default function MaintenanceAdminPage() {
         }}
       />
 
-      {/* Lightbox Dialog for Fullscreen Inspection Photo */}
-      <Dialog open={!!lightboxImage} onOpenChange={(open) => !open && setLightboxImage(null)}>
-        <DialogContent className="max-w-3xl p-4">
-          <DialogHeader className="pb-2 border-b">
-            <DialogTitle className="text-sm font-semibold flex items-center gap-2">
-              <Camera className="w-4 h-4 text-indigo-600" />
-              {lightboxImage?.title || "Hình ảnh hiện trường / Nghiệm thu"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-2 relative rounded-lg overflow-hidden border border-border/80 bg-black/95 flex items-center justify-center min-h-[380px] max-h-[520px]">
-            {lightboxImage && (
-              <img
-                src={lightboxImage.url}
-                alt={lightboxImage.title}
-                className="max-h-[500px] w-auto object-contain rounded-md"
-              />
-            )}
-          </div>
-          <div className="flex items-center justify-between pt-2 text-xs text-muted-foreground">
-            <span>Hình ảnh chụp thực tế từ Mobile App của kỹ thuật viên hiện trường</span>
-            <Button variant="outline" size="sm" onClick={() => setLightboxImage(null)}>
-              Đóng
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Hoàn tất phiếu: tuỳ chọn ghi chú + ảnh nghiệm thu (stage RESOLUTION) */}
+      <ResolveReportDialog
+        open={!!resolvingReport}
+        onOpenChange={(open) => !open && setResolvingReport(null)}
+        title={resolvingReport ? `Xác nhận hoàn tất xử lý phiếu #${resolvingReport.id}?` : ""}
+        description={
+          resolvingReport
+            ? `Xác nhận sự cố "${resolvingReport.title}" đã được sửa chữa triệt để? Phiếu sẽ chuyển sang trạng thái Đã hoàn tất và ô tủ liên quan sẽ mở khóa phục vụ khách hàng.`
+            : undefined
+        }
+        onSubmit={async ({ note, attachments }) => {
+          if (!resolvingReport) return;
+          const id = resolvingReport.id;
+          setPending(id);
+          try {
+            await resolve({ reportId: id, note, attachments }).unwrap();
+            toast.success(`Phiếu #${id} đã hoàn tất thành công`, {
+              description: attachments?.length
+                ? `Sự cố đã được đóng hồ sơ kèm ${attachments.length} ảnh nghiệm thu.`
+                : "Sự cố kỹ thuật đã được đóng hồ sơ và lưu nhật ký.",
+            });
+          } finally {
+            setPending(null);
+          }
+        }}
+      />
 
 
       {/* Drone Technical Manage Dialog */}

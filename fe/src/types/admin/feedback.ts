@@ -2,6 +2,8 @@
 // Admin Feedback & Report Management Types
 // ============================================
 
+import type { ReportAttachmentRequest } from "~/stores/apis/media";
+
 // ─── Feedback (OrderRating) ───────────────────────────────────────────────────
 // NOTE: Admin-wide feedback list endpoint not yet in BE — FeedbackTab shows error gracefully
 
@@ -66,7 +68,11 @@ export interface ReportDTO {
 }
 
 export interface ResolveReportRequest {
+  /** @deprecated backend nhận `note`; giữ để tương thích code cũ. */
   resolution?: string;
+  note?: string;
+  /** Ảnh nghiệm thu (stage RESOLUTION) — xem docs/01-overview/media-storage.md §4.2. */
+  attachments?: ReportAttachmentRequest[];
 }
 
 // ─── Analytics ───────────────────────────────────────────────────────────────

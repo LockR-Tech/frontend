@@ -22,7 +22,6 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldCheck,
-  Camera,
   Layers,
   Send,
   Wrench,
@@ -105,7 +104,8 @@ const formatDateOnly = (dateStr?: string | null) => {
   return `${DD}/${MM}/${YYYY}`;
 };
 
-import { getUserPhotos, getInspectionPhotos, getResolutionPhotos, getReportPhotos, cleanDescription, type InspectionPhoto } from "./maintenancePhotos";
+import { cleanDescription } from "./maintenancePhotos";
+import { ReportPhotoGroups } from "./ReportPhotoGroups";
 
 const SLA_CONFIG = {
   NORMAL: {
@@ -153,7 +153,6 @@ export default function TechnicianDetailPage() {
 
   const [activeTab, setActiveTab] = useState("tickets");
   const [ticketFilter, setTicketFilter] = useState<"ALL" | "IN_PROGRESS" | "RESOLVED" | "OVERDUE">("ALL");
-  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedReportToAssign, setSelectedReportToAssign] = useState<number | null>(null);
   const [unassignTargetId, setUnassignTargetId] = useState<number | null>(null);
@@ -188,6 +187,20 @@ export default function TechnicianDetailPage() {
       : (raw as { content?: any[] })?.content ?? [];
     return list.find((u) => u.id === techId);
   }, [allUsersData, techId]);
+
+  // Tên hiển thị "Người tải" cho ảnh phiếu
+  const photoUserNames = useMemo(() => {
+    const raw = allUsersData?.data as unknown;
+    const list: any[] = Array.isArray(raw)
+      ? raw
+      : (raw as { content?: any[] })?.content ?? [];
+    const map: Record<number, string> = {};
+    for (const u of list) {
+      const name = u.fullName || u.name;
+      if (u.id != null && name) map[u.id] = name;
+    }
+    return map;
+  }, [allUsersData]);
 
   const technician = useMemo(() => {
     const src = singleUser || userFromList;
@@ -797,7 +810,6 @@ export default function TechnicianDetailPage() {
                     const isDone = report.status === "RESOLVED";
                     const isWorking = report.status === "IN_PROGRESS";
                     const isOverdue = isWorking && report.overdue;
-                    const photos = getReportPhotos(report);
                     const slaExt = slaExtensions[report.id];
 
                     return (
@@ -911,136 +923,7 @@ export default function TechnicianDetailPage() {
                             </div>
                           </div>
 
-                          {/* Verification Photos section */}
-                          <div className="pt-2 border-t border-border/60 space-y-2">
-                            {/* 1. Ảnh từ User */}
-                            {(() => {
-                              const userPhotos = getUserPhotos(report);
-                              if (userPhotos.length === 0) return null;
-                              return (
-                                <div>
-                                  <p className="text-xs font-semibold text-rose-700 dark:text-rose-300 flex items-center gap-1.5 mb-1.5">
-                                    <Camera className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-                                    Ảnh từ User báo sự cố ({userPhotos.length} ảnh):
-                                  </p>
-                                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                                    {userPhotos.map((photo, idx) => (
-                                      <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() =>
-                                          setLightboxImage({
-                                            url: photo.url,
-                                            title: `${photo.label} - Phiếu sự cố #${report.id}`,
-                                          })
-                                        }
-                                        className="relative w-20 h-20 rounded-lg overflow-hidden border border-rose-300 dark:border-rose-800 hover:border-rose-500 transition-all group cursor-pointer shadow-xs bg-muted ring-1 ring-rose-200/50 shrink-0"
-                                      >
-                                        <img
-                                          src={photo.url}
-                                          alt={photo.label}
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                        />
-                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <Camera className="w-4 h-4 text-white" />
-                                        </div>
-                                        <span className="absolute bottom-1 left-1 right-1 bg-black/75 text-white text-[9px] px-1 py-0.5 rounded text-center truncate font-medium">
-                                          Ảnh User
-                                        </span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })()}
-
-                            {/* 2. Ảnh hiện trường KTV */}
-                            {(() => {
-                              const inspectionPhotos = getInspectionPhotos(report);
-                              if (inspectionPhotos.length === 0) return null;
-                              return (
-                                <div>
-                                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5 mb-1.5">
-                                    <Camera className="w-3.5 h-3.5 text-amber-600" />
-                                    Ảnh hiện trường do KTV chụp ({inspectionPhotos.length} ảnh):
-                                  </p>
-                                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                                    {inspectionPhotos.map((photo, idx) => (
-                                      <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() =>
-                                          setLightboxImage({
-                                            url: photo.url,
-                                            title: `${photo.label} - Phiếu sự cố #${report.id}`,
-                                          })
-                                        }
-                                        className="relative w-20 h-20 rounded-lg overflow-hidden border border-border/80 hover:border-foreground/50 transition-all group cursor-pointer shadow-xs bg-muted shrink-0"
-                                      >
-                                        <img
-                                          src={photo.url}
-                                          alt={photo.label}
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                        />
-                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <Camera className="w-4 h-4 text-white" />
-                                        </div>
-                                        <span className="absolute bottom-1 left-1 right-1 bg-black/75 text-white text-[9px] px-1 py-0.5 rounded text-center truncate font-medium">
-                                          {photo.label}
-                                        </span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })()}
-
-                            {/* 3. Ảnh nghiệm thu (Chỉ khi RESOLVED) */}
-                            {(() => {
-                              const resolutionPhotos = getResolutionPhotos(report);
-                              if (resolutionPhotos.length === 0) return null;
-                              return (
-                                <div>
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                      Ảnh nghiệm thu hoàn tất ({resolutionPhotos.length} ảnh):
-                                    </p>
-                                    <span className="text-[11px] text-emerald-600 font-medium">
-                                      ✓ Đã nghiệm thu hình ảnh
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                                    {resolutionPhotos.map((photo, idx) => (
-                                      <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() =>
-                                          setLightboxImage({
-                                            url: photo.url,
-                                            title: `${photo.label} - Phiếu sự cố #${report.id}`,
-                                          })
-                                        }
-                                        className="relative w-20 h-20 rounded-lg overflow-hidden border border-emerald-500/40 hover:border-emerald-600 transition-all group cursor-pointer shadow-xs bg-muted shrink-0"
-                                      >
-                                        <img
-                                          src={photo.url}
-                                          alt={photo.label}
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                        />
-                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <Camera className="w-4 h-4 text-white" />
-                                        </div>
-                                        <span className="absolute bottom-1 left-1 right-1 bg-black/75 text-white text-[9px] px-1 py-0.5 rounded text-center truncate font-medium">
-                                          {photo.label}
-                                        </span>
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })()}
-                          </div>
+                          <ReportPhotoGroups report={report} variant="stacked" userNames={photoUserNames} />
                         </CardContent>
                       </Card>
                     );
@@ -1205,24 +1088,6 @@ export default function TechnicianDetailPage() {
       {/* ============================================================ */}
       {/* 4. MODALS & DIALOGS (LIGHTBOX, UNASSIGN CONFIRM, ASSIGN)      */}
       {/* ============================================================ */}
-
-      {/* Lightbox Dialog to view inspection photos */}
-      <Dialog open={!!lightboxImage} onOpenChange={(open) => !open && setLightboxImage(null)}>
-        <DialogContent className="max-w-3xl p-4 bg-background border border-border">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-semibold">{lightboxImage?.title ?? "Hình ảnh nghiệm thu"}</DialogTitle>
-          </DialogHeader>
-          {lightboxImage && (
-            <div className="mt-2 rounded-lg overflow-hidden border border-border bg-black/5 flex items-center justify-center max-h-[70vh]">
-              <img
-                src={lightboxImage.url}
-                alt={lightboxImage.title}
-                className="max-h-[68vh] w-auto object-contain mx-auto"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Unassign Confirmation Alert Dialog */}
       <AlertDialog open={!!unassignTargetId} onOpenChange={(open) => !open && setUnassignTargetId(null)}>
