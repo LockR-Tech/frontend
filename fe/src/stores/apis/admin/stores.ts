@@ -13,6 +13,7 @@ import {
   UpdateStoreStatusRequestSchema,
   createValidator,
 } from '../../../schemas';
+import type { MediaUpload } from '../media';
 
 const TAGS = {
   STORES: 'Stores',
@@ -89,6 +90,27 @@ export const storeManagementApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [TAGS.STORES],
     }),
+
+    // Ảnh cửa hàng: body là MediaUpload lấy từ phản hồi Cloudinary (purpose STORE_IMAGE)
+    updateStoreImage: builder.mutation<
+      ApiResponse<AdminStoreResponse>,
+      { id: number; media: MediaUpload }
+    >({
+      query: ({ id, media }) => ({
+        url: ADMIN_ENDPOINTS.STORE_IMAGE(id),
+        method: 'PUT',
+        body: media,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: TAGS.STORES, id }, TAGS.STORES],
+    }),
+
+    deleteStoreImage: builder.mutation<ApiResponse<AdminStoreResponse>, number>({
+      query: (id) => ({
+        url: ADMIN_ENDPOINTS.STORE_IMAGE(id),
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, id) => [{ type: TAGS.STORES, id }, TAGS.STORES],
+    }),
   }),
 });
 
@@ -99,4 +121,6 @@ export const {
   useUpdateStoreMutation,
   useUpdateStoreStatusMutation,
   useDeleteStoreMutation,
+  useUpdateStoreImageMutation,
+  useDeleteStoreImageMutation,
 } = storeManagementApi;
