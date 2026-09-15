@@ -9,8 +9,9 @@ import {
   useGetBusinessSettingsQuery,
   type SettingScope,
 } from "~/stores/apis/admin/businessSettings";
-import { DEFAULT_SCOPE, SCOPE_TABS, isSettingScope } from "./constants";
+import { DEFAULT_SCOPE, SCOPE_TABS, isSettingScope, scopeTitle } from "./constants";
 import { ScopeSettingsPanel } from "./ScopeSettingsPanel";
+import { AuditHistorySheet } from "./AuditHistorySheet";
 import { collectChanges, type DraftMap, type ScopeDrafts } from "./setting-utils";
 
 /**
@@ -25,9 +26,17 @@ export default function BusinessSettingsPage() {
   // Bản nháp giữ ở cấp trang để chuyển tab không mất thay đổi chưa lưu.
   const [drafts, setDrafts] = useState<ScopeDrafts>({});
   const [search, setSearch] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyKey, setHistoryKey] = useState<string | null>(null);
+
+  const openHistory = useCallback((key: string | null) => {
+    setHistoryKey(key);
+    setHistoryOpen(true);
+  }, []);
 
   const handleTabChange = (value: string) => {
     if (!isSettingScope(value)) return;
+    setHistoryKey(null);
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
@@ -78,7 +87,7 @@ export default function BusinessSettingsPage() {
         />
 
         <Tabs value={activeScope} onValueChange={handleTabChange} className="space-y-5">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="space-y-3">
             <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
               <TabsList className="h-auto w-max gap-1 rounded-xl border border-border/50 bg-muted/60 p-1">
                 {SCOPE_TABS.map((tab) => {
@@ -99,7 +108,7 @@ export default function BusinessSettingsPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="relative w-full xl:w-72">
+              <div className="relative min-w-0 flex-1 sm:max-w-md">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}
@@ -131,10 +140,20 @@ export default function BusinessSettingsPage() {
                 onDraftChange={setDraft}
                 onRevertDraft={revertDraft}
                 onClearDrafts={clearDrafts}
+                onShowHistory={openHistory}
               />
             </TabsContent>
           ))}
         </Tabs>
+
+        <AuditHistorySheet
+          open={historyOpen}
+          scope={activeScope}
+          scopeTitle={scopeTitle(activeScope)}
+          filterKey={historyKey}
+          onFilterKeyChange={setHistoryKey}
+          onOpenChange={setHistoryOpen}
+        />
       </div>
     </TooltipProvider>
   );

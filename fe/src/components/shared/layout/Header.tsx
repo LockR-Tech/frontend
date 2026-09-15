@@ -90,6 +90,8 @@ function Breadcrumb() {
     const isLast = index === paths.length - 1;
 
     let label = pathMap[path] || path;
+    // /admin/settings là trang quy tắc nghiệp vụ; /partner/settings vẫn là "Cài đặt".
+    if (paths[0] === "admin" && path === "settings") label = "Cấu hình nghiệp vụ";
     if (isNumeric(path) && path.length > 3) {
       label = `#${path.slice(0, 6)}${path.length > 6 ? "..." : ""}`;
     }

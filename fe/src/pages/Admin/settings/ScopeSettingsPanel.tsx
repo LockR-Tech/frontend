@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PlugZap, RefreshCw, Save, SearchX, SlidersHorizontal } from "lucide-react";
+import { History, PlugZap, RefreshCw, Save, SearchX, SlidersHorizontal } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -33,6 +33,8 @@ interface ScopeSettingsPanelProps {
   onDraftChange: (scope: SettingScope, key: string, raw: string) => void;
   onRevertDraft: (scope: SettingScope, key: string) => void;
   onClearDrafts: (scope: SettingScope) => void;
+  /** `null` = lịch sử cả nhóm. */
+  onShowHistory: (key: string | null) => void;
 }
 
 export function ScopeSettingsPanel({
@@ -42,6 +44,7 @@ export function ScopeSettingsPanel({
   onDraftChange,
   onRevertDraft,
   onClearDrafts,
+  onShowHistory,
 }: ScopeSettingsPanelProps) {
   const { scope } = tab;
   const { data, error, isLoading, isFetching, refetch } = useGetBusinessSettingsQuery(scope);
@@ -128,16 +131,16 @@ export function ScopeSettingsPanel({
             )}
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="self-start"
-          onClick={() => refetch()}
-          disabled={isFetching}
-        >
-          <RefreshCw className={isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-          Làm mới
-        </Button>
+        <div className="flex shrink-0 gap-2 self-start">
+          <Button variant="outline" size="sm" onClick={() => onShowHistory(null)}>
+            <History className="h-4 w-4" />
+            Lịch sử thay đổi
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+            Làm mới
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -187,6 +190,7 @@ export function ScopeSettingsPanel({
                   onDraftChange={handleDraftChange}
                   onRevertDraft={handleRevertDraft}
                   onReset={handleReset}
+                  onShowHistory={onShowHistory}
                 />
               ))}
             </div>
