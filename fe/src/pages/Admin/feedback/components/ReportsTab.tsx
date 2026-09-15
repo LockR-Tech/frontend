@@ -27,6 +27,10 @@ import { fmtDate, REPORT_STATUS_META, ErrorBanner } from "./shared";
 import { extractList } from "~/lib/extract-list";
 import type { ReportDTO } from "~/types/admin/feedback";
 import { toast } from "sonner";
+import {
+  ResolveReportDialog,
+  type ResolveReportPayload,
+} from "~/pages/Admin/maintenance/ResolveReportDialog";
 
 export function ReportsTab() {
   const [status, setStatus] = useState<string>("all");
@@ -40,18 +44,22 @@ export function ReportsTab() {
 
   const [resolveReport, { isLoading: isResolving }] =
     useResolveReportMutation();
+  const [resolving, setResolving] = useState<ReportDTO | null>(null);
 
-  const handleResolve = async (id: number) => {
-    try {
-      await resolveReport({ id, data: {} }).unwrap();
-      toast.success("Giải quyết báo cáo thành công", {
-        description: `Báo cáo #${id} đã được đánh dấu là đã giải quyết.`,
-      });
-    } catch (err: any) {
-      toast.error("Không giải quyết được báo cáo", {
-        description: err?.data?.message || err?.message || "Vui lòng thử lại sau.",
-      });
-    }
+  // Lỗi được ResolveReportDialog hiển thị (kể cả RESOLUTION_PHOTO_REQUIRED)
+  const handleResolve = async (id: number, payload: ResolveReportPayload) => {
+    await resolveReport({
+      id,
+      data: {
+        ...(payload.note ? { note: payload.note } : {}),
+        ...(payload.attachments?.length ? { attachments: payload.attachments } : {}),
+      },
+    }).unwrap();
+    toast.success("Giải quyết báo cáo thành công", {
+      description: `Báo cáo #${id} đã được đánh dấu là đã giải quyết${
+        payload.attachments?.length ? ` kèm ${payload.attachments.length} ảnh nghiệm thu` : ""
+      }.`,
+    });
   };
 
   const list = extractList<ReportDTO>(data?.data);
@@ -162,7 +170,7 @@ export function ReportsTab() {
                           size="sm"
                           className="h-7 text-xs gap-1"
                           disabled={isResolving}
-                          onClick={() => handleResolve(r.id)}
+                          onClick={() => setResolving(r)}
                         >
                           <CheckCircle2 size={13} />
                           Giải quyết
@@ -201,6 +209,18 @@ export function ReportsTab() {
           </Button>
         </div>
       )}
+
+      <ResolveReportDialog
+        open={!!resolving}
+        onOpenChange={(open) => !open && setResolving(null)}
+        title={resolving ? `Giải quyết báo cáo #${resolving.id}?` : ""}
+        description={resolving?.description}
+        confirmLabel="Giải quyết"
+        errorTitle="Không giải quyết được báo cáo"
+        onSubmit={async (payload) => {
+          if (resolving) await handleResolve(resolving.id, payload);
+        }}
+      />
     </div>
   );
 }
