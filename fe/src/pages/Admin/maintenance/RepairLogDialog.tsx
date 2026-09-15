@@ -1,5 +1,21 @@
-﻿import { useState, useRef } from "react";
-import { History, Send, Image as ImageIcon, ExternalLink, Camera, X, Paperclip, User, Clock, FileText } from "lucide-react";
+import { useState, useRef } from "react";
+import {
+  History,
+  Send,
+  Image as ImageIcon,
+  ExternalLink,
+  Camera,
+  X,
+  Paperclip,
+  User,
+  Clock,
+  FileText,
+  MapPin,
+  Boxes,
+  Wrench,
+  CheckCircle2,
+  AlertTriangle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import {
@@ -13,9 +29,11 @@ import { Badge } from "~/components/ui/badge";
 import {
   useGetReportLogsQuery,
   useAddReportLogMutation,
+  useGetMaintenanceReportsQuery,
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
-import { KTV_NOTES_BY_REPORT } from "./maintenancePhotos";
+import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
+import { KTV_NOTES_BY_REPORT, getUserPhotos } from "./maintenancePhotos";
 
 const formatDT = (s?: string | null) => {
   if (!s) return "—";
@@ -35,10 +53,9 @@ const calcDuration = (a?: string | null, b?: string | null): string => {
 };
 
 /// Nút "Nhật ký" + hộp thoại đầy đủ thông tin phiếu:
-/// - Nội dung user báo cáo
+/// - Chi tiết phiếu: Kiosk, ô tủ, nội dung khách báo, KTV phụ trách, các mốc thời gian SLA
 /// - Ghi chú kỹ thuật của KTV (biên bản, linh kiện thay, thời gian nhận/xong)
 /// - Nhật ký xử lý từng bước (work-log) với ảnh nghiệm thu
-/// - Hỗ trợ đính kèm nhiều ảnh (link URL) trong 1 lần ghi nhật ký
 export function RepairLogDialog({
   reportId,
   title,
@@ -58,10 +75,45 @@ export function RepairLogDialog({
   const [activeSection, setActiveSection] = useState<"info" | "logs">("info");
   const urlInputRef = useRef<HTMLInputElement>(null);
 
-  const { data, isLoading, refetch } = useGetReportLogsQuery(reportId, { skip: !open });
+  const { data, isLoading } = useGetReportLogsQuery(reportId, { skip: !open });
+  const { data: allReportsData } = useGetMaintenanceReportsQuery(undefined, { skip: !open });
+  const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 }, { skip: !open });
   const [addLog, { isLoading: adding }] = useAddReportLogMutation();
+
   const logs = data?.data ?? [];
+  const eff = report ?? allReportsData?.data?.find((r) => r.id === reportId);
   const ktvNotes = KTV_NOTES_BY_REPORT[reportId];
+  const userPhotos = eff ? getUserPhotos(eff) : [];
+
+  const rawUsers = usersData?.data as unknown;
+  const userList: any[] = Array.isArray(rawUsers)
+    ? rawUsers
+    : (rawUsers as { content?: any[] })?.content ?? [];
+
+  const reporterUser = eff?.userId ? userList.find((u) => u.id === eff.userId) : undefined;
+  const assignedUser = eff?.assignedToUserId ? userList.find((u) => u.id === eff.assignedToUserId) : undefined;
+
+  const isReporterTech = Boolean(
+    reporterUser?.roles?.some((role: string) =>
+      role.includes("TECHNICIAN") || role.includes("MAINTENANCE")
+    ) ||
+    eff?.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+    eff?.reporterName?.toLowerCase().includes("ktv") ||
+    eff?.reporterName?.toLowerCase().includes("technician") ||
+    eff?.reporterName?.toLowerCase().includes("maintenance")
+  );
+
+  // If a technician reported the issue, they are also the technician in charge!
+  const effectiveAssignedToUserId = eff?.assignedToUserId ?? (isReporterTech ? eff?.userId : undefined);
+  const effectiveAssignedAt = eff?.assignedAt ?? (isReporterTech ? eff?.createdAt : undefined);
+  const effectiveStatus = eff?.status === "OPEN" && isReporterTech ? "IN_PROGRESS" : eff?.status;
+
+  const effectiveTechnicianName =
+    technicianName ??
+    (assignedUser?.fullName || assignedUser?.name) ??
+    (isReporterTech
+      ? (reporterUser?.fullName || reporterUser?.name || eff?.reporterName)
+      : (eff?.assignedToUserId ? `KTV #${eff.assignedToUserId}` : undefined));
 
   const addImageUrl = () => {
     const u = urlInput.trim();
@@ -80,7 +132,6 @@ export function RepairLogDialog({
   const submit = async () => {
     const text = note.trim();
     if (!text) return;
-    // Embed image URLs at the end of note text
     const fullNote = imageUrls.length > 0
       ? `${text}\n\n[Ảnh đính kèm]\n${imageUrls.join("\n")}`
       : text;
@@ -98,30 +149,36 @@ export function RepairLogDialog({
     }
   };
 
-  // Extract image URLs from a log note
   const extractImages = (content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg)|data:image\/[a-zA-Z]+;base64,[^\s]+)/gi;
     return content.match(urlRegex) || [];
   };
 
-  // Strip image URLs from the display text
   const stripImages = (content: string) =>
     content.replace(/\[Ảnh đính kèm\]\n(https?:\/\/[^\n]+\n?)*/g, "").trim();
 
   return (
     <>
       <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => setOpen(true)}>
-        <History className="w-3.5 h-3.5" /> Nhật ký
+        <FileText className="w-3.5 h-3.5 text-indigo-600" />
+        Nhật ký
+        {logs.length > 0 && (
+          <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 text-indigo-700 font-bold">
+            {logs.length}
+          </span>
+        )}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl p-0">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
           {/* Header */}
-          <DialogHeader className="px-5 pt-4 pb-3 border-b shrink-0">
-            <DialogTitle className="text-sm font-bold flex items-center gap-2">
-              <History className="w-4 h-4 text-indigo-600" />
-              Hồ sơ xử lý · {title}
-            </DialogTitle>
+          <DialogHeader className="px-5 pt-4 pb-2 border-b border-border/60">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-base font-semibold flex items-center gap-2">
+                <History className="w-4 h-4 text-indigo-600" />
+                Hồ sơ xử lý · #{reportId} · {eff?.title ?? title}
+              </DialogTitle>
+            </div>
             {/* Section switcher */}
             <div className="flex gap-1 mt-2">
               <button
@@ -152,65 +209,149 @@ export function RepairLogDialog({
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
-
             {/* ── SECTION: Chi tiết phiếu ── */}
             {activeSection === "info" && (
               <div className="space-y-3">
                 {/* Report meta */}
-                <div className="p-3 rounded-xl border border-border/70 bg-muted/30 space-y-2 text-xs">
-                  <p className="font-semibold text-foreground text-sm">{report?.title ?? title}</p>
-                  {/* User report content */}
-                  {report?.description && (
-                    <div className="space-y-1">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <User className="w-3 h-3" /> Nội dung khách hàng báo cáo:
-                      </span>
-                      <p className="text-foreground bg-muted/50 p-2 rounded-md border border-border/50 leading-relaxed">
-                        {report.description}
+                <div className="p-3.5 rounded-xl border border-border/70 bg-muted/30 space-y-3 text-xs">
+                  {/* Status & Kiosk header */}
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm text-foreground">
+                          #{eff?.id ?? reportId} · {eff?.title ?? title}
+                        </span>
+                        {effectiveStatus === "RESOLVED" ? (
+                          <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-semibold">
+                            Đã hoàn tất
+                          </Badge>
+                        ) : effectiveStatus === "IN_PROGRESS" ? (
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 text-[10px] font-semibold">
+                            Đang xử lý {isReporterTech && !eff?.assignedToUserId ? "(KTV tự báo & phụ trách)" : ""}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] font-semibold">
+                            Mới mở / Chưa phân công
+                          </Badge>
+                        )}
+                        {eff?.overdue && (
+                          <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-[10px]">
+                            Quá hạn SLA
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1.5">
+                        <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-500" />
+                        <span className="font-medium text-foreground">
+                          {eff?.lockerName ?? `Kiosk #${eff?.lockerId ?? "—"}`}
+                          {eff?.lockerCode ? ` (${eff.lockerCode})` : ""}
+                        </span>
+                        {eff?.boxNumber != null && (
+                          <span className="text-foreground font-semibold">
+                            · Ô #{eff.boxNumber} {eff.cellType ? `(${eff.cellType})` : ""}
+                          </span>
+                        )}
                       </p>
-                    </div>
-                  )}
-
-                  {/* Timestamps grid */}
-                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-border/40">
-                    <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian tạo phiếu:</p>
-                      <p className="font-mono text-foreground">{formatDT(report?.createdAt)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian phân công:</p>
-                      <p className="font-mono text-foreground">{formatDT(report?.assignedAt)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Hạn xử lý SLA:</p>
-                      <p className={`font-mono font-semibold ${report?.overdue ? "text-rose-600" : "text-foreground"}`}>
-                        {formatDT(report?.slaDueAt)}
-                        {report?.overdue ? " ⚠️ Quá hạn" : ""}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian hoàn thành:</p>
-                      <p className="font-mono text-foreground">{formatDT(report?.resolvedAt)}</p>
+                      {eff?.lockerAddress && (
+                        <p className="text-[11px] text-muted-foreground pl-5 mt-0.5">{eff.lockerAddress}</p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Duration */}
-                  {(report?.assignedAt || report?.createdAt) && report?.resolvedAt && (
-                    <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground">
-                      Thời gian xử lý thực tế:{" "}
-                      <span className="font-bold text-foreground">
-                        {calcDuration(report?.assignedAt || report?.createdAt, report?.resolvedAt)}
-                      </span>
+                  {/* User report content */}
+                  <div className="space-y-1.5 pt-2 border-t border-border/50">
+                    <span className="text-muted-foreground font-medium flex items-center gap-1">
+                      <User className="w-3.5 h-3.5" /> Nội dung sự cố báo cáo:
+                    </span>
+                    <p className="text-foreground bg-muted/50 p-2.5 rounded-md border border-border/50 leading-relaxed">
+                      {eff?.description || "Không có mô tả chi tiết sự cố."}
+                    </p>
+                    {userPhotos.length > 0 && (
+                      <div className="pt-1.5">
+                        <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mb-1.5">
+                          <Camera className="w-3.5 h-3.5 text-amber-600" /> Ảnh hiện trường User gửi ({userPhotos.length} ảnh):
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {userPhotos.map((p, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setPreviewImage(p.url)}
+                              className="relative group w-16 h-16 rounded-lg overflow-hidden border border-border bg-slate-100 hover:opacity-90 transition-opacity"
+                            >
+                              <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
+                              <span className="absolute bottom-0 inset-x-0 bg-black/70 text-white text-[8px] text-center px-0.5 truncate">
+                                {p.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Timestamps & Personnel grid */}
+                  <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-border/50">
+                    <div>
+                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian tạo phiếu:</p>
+                      <p className="font-mono text-foreground font-medium">{formatDT(eff?.createdAt)}</p>
                     </div>
-                  )}
+                    <div>
+                      <p className="text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> KTV phụ trách:</p>
+                      <p className="font-medium text-foreground">
+                        {effectiveTechnicianName ? (
+                          <span className="font-semibold text-indigo-700 dark:text-indigo-300">
+                            {effectiveTechnicianName}
+                            {isReporterTech && !eff?.assignedToUserId && (
+                              <span className="ml-1 text-[10px] text-muted-foreground font-normal">(Người báo)</span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Chưa phân công</span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian phân công:</p>
+                      <p className="font-mono text-foreground font-medium">
+                        {effectiveAssignedAt ? formatDT(effectiveAssignedAt) : "Chưa phân công"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Hạn xử lý SLA:</p>
+                      <p className={`font-mono font-semibold ${eff?.overdue ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>
+                        {eff?.slaDueAt ? formatDT(eff.slaDueAt) : "Quy chuẩn SLA 4h"}
+                        {eff?.overdue ? " ⚠️ Quá hạn" : ""}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian hoàn tất:</p>
+                      <p className={`font-mono font-medium ${eff?.resolvedAt ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                        {eff?.resolvedAt ? formatDT(eff.resolvedAt) : (effectiveStatus === "RESOLVED" ? "Đã hoàn tất" : "Đang xử lý")}
+                      </p>
+                    </div>
+                    {eff?.resolvedAt && (effectiveAssignedAt || eff?.createdAt) && (
+                      <div>
+                        <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian xử lý:</p>
+                        <p className="font-bold text-foreground">
+                          {calcDuration(effectiveAssignedAt || eff?.createdAt, eff.resolvedAt)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Reporter info */}
-                  {(report?.reporterName || report?.reporterPhone) && (
-                    <div className="pt-1 border-t border-border/40 flex items-center gap-2 text-[11px]">
+                  {(eff?.reporterName || eff?.reporterPhone) && (
+                    <div className="pt-2 border-t border-border/50 flex items-center gap-2 text-[11px] flex-wrap">
                       <span className="text-muted-foreground">Người báo cáo:</span>
                       <span className="font-medium text-foreground">
-                        {[report.reporterName, report.reporterPhone].filter(Boolean).join(" · ")}
+                        {[eff.reporterName, eff.reporterPhone].filter(Boolean).join(" · ")}
                       </span>
+                      {isReporterTech && (
+                        <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] py-0 px-1.5 font-semibold">
+                          Kỹ thuật viên Kiosk (Phụ trách xử lý)
+                        </Badge>
+                      )}
                     </div>
                   )}
                 </div>
