@@ -146,7 +146,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     getLockerLayout: builder.query<ApiResponse<LockerLayoutResponse>, number>({
       query: (lockerId) => `/api/lockers/${lockerId}/layout`,
-      providesTags: (_r, _e, id) => [{ type: TAG, id }],
+      providesTags: (_r, _e, id) => [{ type: TAG, id }, TAG],
     }),
 
     getFaultCells: builder.query<ApiResponse<FaultCellResponse[]>, void>({

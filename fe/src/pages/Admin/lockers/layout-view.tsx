@@ -14,11 +14,19 @@ import {
   Luggage,
   AlertTriangle,
   Plus,
+  MoreHorizontal,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "~/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -81,23 +89,27 @@ function ActBtn({
   );
 }
 
+type BoxActionType = "FORCE_OPEN" | "FAULT" | "OUT_OF_SERVICE" | "CLEANING" | "RETURN" | "CLEAR_FAULT";
+
+interface BoxActionDialogState {
+  open: boolean;
+  cell: CellResponse | null;
+  type: BoxActionType;
+  title: string;
+  description: string;
+  reason: string;
+  requireReason?: boolean;
+  confirmLabel: string;
+  variant?: "default" | "destructive";
+}
+
 function CellTile({
   cell,
-  onFault,
-  onClear,
-  onOutOfService,
-  onCleaning,
-  onReturn,
-  onForceOpen,
+  onAction,
   busy,
 }: {
   cell: CellResponse;
-  onFault: (cell: CellResponse) => void;
-  onClear: (cell: CellResponse) => void;
-  onOutOfService: (cell: CellResponse) => void;
-  onCleaning: (cell: CellResponse) => void;
-  onReturn: (cell: CellResponse) => void;
-  onForceOpen: (cell: CellResponse) => void;
+  onAction: (cell: CellResponse, type: BoxActionType) => void;
   busy: boolean;
 }) {
   const isDrone = cell.cellType === "DRONE" || cell.boxNumber === 1 || cell.boxNumber === 2;
@@ -206,56 +218,95 @@ function CellTile({
           {cell.faultReason}
         </span>
       )}
-      <div className="mt-auto flex flex-wrap gap-1.5 pt-2 z-10">
+
+      {/* Clean, ergonomic action controls */}
+      <div className="mt-auto flex items-center justify-between gap-1.5 pt-2 z-10">
         {cell.status === "FAULT" ? (
-          <ActBtn
-            icon={<CheckCircle2 className="w-3 h-3 mr-1" />}
-            label="Đã sửa"
-            busy={busy}
-            onClick={() => onClear(cell)}
-          />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-[10px] font-semibold border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 shadow-2xs"
+            disabled={busy}
+            onClick={() => onAction(cell, "CLEAR_FAULT")}
+          >
+            <CheckCircle2 className="w-3 h-3 mr-1" /> Khôi phục ô
+          </Button>
         ) : cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING" ? (
-          <ActBtn
-            icon={<RotateCcw className="w-3 h-3 mr-1" />}
-            label="Khôi phục"
-            busy={busy}
-            onClick={() => onReturn(cell)}
-          />
-        ) : cell.status === "OCCUPIED" || cell.status === "RESERVED" ? (
-          <ActBtn
-            icon={<Wrench className="w-3 h-3 mr-1" />}
-            label="Báo hỏng"
-            busy={busy}
-            onClick={() => onFault(cell)}
-          />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-[10px] font-semibold border-indigo-300 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 shadow-2xs"
+            disabled={busy}
+            onClick={() => onAction(cell, "RETURN")}
+          >
+            <RotateCcw className="w-3 h-3 mr-1" /> Khôi phục
+          </Button>
         ) : (
-          <>
-            <ActBtn
-              icon={<Wrench className="w-3 h-3 mr-1" />}
-              label="Hỏng"
-              busy={busy}
-              onClick={() => onFault(cell)}
-              />
-            <ActBtn
-              icon={<Ban className="w-3 h-3 mr-1" />}
-              label="Ngưng"
-              busy={busy}
-              onClick={() => onOutOfService(cell)}
-              />
-            <ActBtn
-              icon={<Sparkles className="w-3 h-3 mr-1" />}
-              label="Vệ sinh"
-              busy={busy}
-              onClick={() => onCleaning(cell)}
-              />
-          </>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-[10px] font-semibold border border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-800 dark:text-slate-100 shadow-2xs"
+            disabled={busy}
+            onClick={() => onAction(cell, "FORCE_OPEN")}
+          >
+            <Unlock className="w-3 h-3 mr-1" /> Mở khẩn cấp
+          </Button>
         )}
-        <ActBtn
-          icon={<Unlock className="w-3 h-3 mr-1" />}
-          label="Mở khẩn cấp"
-          busy={busy}
-          onClick={() => onForceOpen(cell)}
-        />
+
+        {/* Dropdown for secondary actions */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 w-6 p-0 border border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-700 dark:text-slate-200"
+              disabled={busy}
+              title="Thao tác khác"
+            >
+              <MoreHorizontal className="w-3.5 h-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44 text-xs">
+            {cell.status === "AVAILABLE" && (
+              <>
+                <DropdownMenuItem onClick={() => onAction(cell, "OUT_OF_SERVICE")} className="cursor-pointer">
+                  <Ban className="w-3.5 h-3.5 mr-2 text-slate-500" /> Tạm ngưng dùng
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onAction(cell, "CLEANING")} className="cursor-pointer">
+                  <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-500" /> Đưa vào vệ sinh
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                  <Wrench className="w-3.5 h-3.5 mr-2" /> Báo hỏng ô tủ
+                </DropdownMenuItem>
+              </>
+            )}
+            {(cell.status === "OCCUPIED" || cell.status === "RESERVED") && (
+              <>
+                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                  <Wrench className="w-3.5 h-3.5 mr-2" /> Báo hỏng ô tủ
+                </DropdownMenuItem>
+              </>
+            )}
+            {cell.status === "FAULT" && (
+              <>
+                <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
+                  <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> Mở khẩn cấp
+                </DropdownMenuItem>
+              </>
+            )}
+            {(cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING") && (
+              <>
+                <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
+                  <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> Mở khẩn cấp
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                  <Wrench className="w-3.5 h-3.5 mr-2" /> Báo hỏng ô tủ
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
@@ -354,90 +405,129 @@ export default function LockerLayoutPage() {
     }
   };
 
-  const handleFault = async (cell: CellResponse) => {
-    const reason = window.prompt(`Lý do báo hỏng ô #${cell.boxNumber}?`, "Khóa không mở");
-    if (reason === null) return;
-    setPendingBox(cell.id);
-    try {
-      await reportFault({ boxId: cell.id, reason }).unwrap();
-      toast.success(`Đã báo hỏng ô #${cell.boxNumber}`);
-    } catch {
-      toast.error("Báo hỏng thất bại");
-    } finally {
-      setPendingBox(null);
+  const [actionDialog, setActionDialog] = useState<BoxActionDialogState>({
+    open: false,
+    cell: null,
+    type: "FORCE_OPEN",
+    title: "",
+    description: "",
+    reason: "",
+    confirmLabel: "Xác nhận",
+  });
+
+  const handleOpenAction = (cell: CellResponse, type: BoxActionType) => {
+    switch (type) {
+      case "FORCE_OPEN":
+        setActionDialog({
+          open: true,
+          cell,
+          type,
+          title: `Mở khẩn cấp ô #${cell.boxNumber}?`,
+          description: `Gửi lệnh mở khóa trực tiếp không cần PIN khách. Thao tác này sẽ được ghi nhận vào nhật ký kiểm toán (MASTER audit log) của hệ thống IoT.`,
+          reason: "",
+          confirmLabel: "Xác nhận mở khóa",
+          variant: "default",
+        });
+        break;
+      case "FAULT":
+        setActionDialog({
+          open: true,
+          cell,
+          type,
+          title: `Báo hỏng ô #${cell.boxNumber}`,
+          description: `Đổi trạng thái ô sang HỎNG và tự động tạo Phiếu sự cố kỹ thuật để kỹ thuật viên tiếp nhận xử lý.`,
+          reason: "Khóa kẹt / không phản hồi",
+          requireReason: true,
+          confirmLabel: "Xác nhận báo hỏng",
+          variant: "destructive",
+        });
+        break;
+      case "OUT_OF_SERVICE":
+        setActionDialog({
+          open: true,
+          cell,
+          type,
+          title: `Tạm ngưng sử dụng ô #${cell.boxNumber}`,
+          description: `Ô tủ sẽ tạm thời bị loại khỏi danh sách ô khả dụng (không nhận đơn đặt chỗ/gửi đồ mới).`,
+          reason: "",
+          confirmLabel: "Xác nhận ngưng dùng",
+          variant: "default",
+        });
+        break;
+      case "CLEANING":
+        setActionDialog({
+          open: true,
+          cell,
+          type,
+          title: `Đưa ô #${cell.boxNumber} vào vệ sinh`,
+          description: `Đánh dấu ô tủ đang trong quá trình khử khuẩn và vệ sinh định kỳ.`,
+          reason: "",
+          confirmLabel: "Xác nhận",
+          variant: "default",
+        });
+        break;
+      case "RETURN":
+        setActionDialog({
+          open: true,
+          cell,
+          type,
+          title: `Khôi phục hoạt động ô #${cell.boxNumber}`,
+          description: `Đưa ô tủ từ trạng thái tạm ngưng/vệ sinh trở lại SẴN SÀNG để phục vụ khách hàng.`,
+          reason: "",
+          confirmLabel: "Khôi phục hoạt động",
+          variant: "default",
+        });
+        break;
+      case "CLEAR_FAULT":
+        setActionDialog({
+          open: true,
+          cell,
+          type,
+          title: `Xác nhận ô #${cell.boxNumber} đã hoạt động lại?`,
+          description: `Xóa trạng thái sự cố phần cứng và đưa ô tủ trở lại hoạt động bình thường.`,
+          reason: "",
+          confirmLabel: "Khôi phục ô tủ",
+          variant: "default",
+        });
+        break;
     }
   };
 
-  const handleClear = async (cell: CellResponse) => {
+  const handleExecuteAction = async () => {
+    const { cell, type, reason } = actionDialog;
+    if (!cell) return;
     setPendingBox(cell.id);
-    try {
-      await clearFault(cell.id).unwrap();
-      toast.success(`Ô #${cell.boxNumber} đã hoạt động lại`);
-    } catch {
-      toast.error("Không xóa được trạng thái hỏng");
-    } finally {
-      setPendingBox(null);
-    }
-  };
+    setActionDialog((prev) => ({ ...prev, open: false }));
 
-  const handleOutOfService = async (cell: CellResponse) => {
-    const reason = window.prompt(
-      `Lý do ngưng dùng ô #${cell.boxNumber}? (để trống nếu không có)`,
-      "",
-    );
-    if (reason === null) return;
-    setPendingBox(cell.id);
     try {
-      await outOfService({ boxId: cell.id, reason: reason.trim() || undefined }).unwrap();
-      toast.success(`Đã ngưng dùng ô #${cell.boxNumber}`);
-    } catch {
-      toast.error("Không ngưng dùng được ô (ô đang có đơn?)");
-    } finally {
-      setPendingBox(null);
-    }
-  };
-
-  const handleCleaning = async (cell: CellResponse) => {
-    setPendingBox(cell.id);
-    try {
-      await cleaning(cell.id).unwrap();
-      toast.success(`Ô #${cell.boxNumber} đang vệ sinh`);
-    } catch {
-      toast.error("Không đánh dấu vệ sinh được (ô đang có đơn?)");
-    } finally {
-      setPendingBox(null);
-    }
-  };
-
-  const handleReturn = async (cell: CellResponse) => {
-    setPendingBox(cell.id);
-    try {
-      await returnToService(cell.id).unwrap();
-      toast.success(`Ô #${cell.boxNumber} đã hoạt động lại`);
-    } catch {
-      toast.error("Không khôi phục được ô");
-    } finally {
-      setPendingBox(null);
-    }
-  };
-
-  const handleForceOpen = async (cell: CellResponse) => {
-    const confirmed = window.confirm(
-      `Mở khẩn cấp ô #${cell.boxNumber} mà không cần PIN khách?\nHành động này sẽ được ghi vào nhật ký hệ thống.`,
-    );
-    if (!confirmed) return;
-    setPendingBox(cell.id);
-    try {
-      const res = await forceOpen(cell.id).unwrap();
-      if (res.data?.accepted) {
-        toast.success(`Đã mở ô #${cell.boxNumber}`);
-      } else {
-        toast.error(`${res.data?.message ?? "Không mở được tủ"}`);
+      if (type === "FORCE_OPEN") {
+        const res = await forceOpen(cell.id).unwrap();
+        if (res.data?.accepted) {
+          toast.success(`Đã mở khóa ô #${cell.boxNumber}`);
+        } else {
+          toast.info(`Lệnh mở khẩn cấp ô #${cell.boxNumber} đã được ghi nhận và gửi đến bộ điều khiển.`);
+        }
+      } else if (type === "FAULT") {
+        await reportFault({ boxId: cell.id, reason: reason.trim() || "Khóa kẹt / không phản hồi" }).unwrap();
+        toast.success(`Đã báo hỏng ô #${cell.boxNumber} và tạo phiếu bảo trì.`);
+      } else if (type === "OUT_OF_SERVICE") {
+        await outOfService({ boxId: cell.id, reason: reason.trim() || undefined }).unwrap();
+        toast.success(`Đã chuyển ô #${cell.boxNumber} sang trạng thái Tạm ngưng.`);
+      } else if (type === "CLEANING") {
+        await cleaning(cell.id).unwrap();
+        toast.success(`Đã chuyển ô #${cell.boxNumber} sang trạng thái Đang vệ sinh.`);
+      } else if (type === "RETURN") {
+        await returnToService(cell.id).unwrap();
+        toast.success(`Ô #${cell.boxNumber} đã hoạt động sẵn sàng trở lại.`);
+      } else if (type === "CLEAR_FAULT") {
+        await clearFault(cell.id).unwrap();
+        toast.success(`Ô #${cell.boxNumber} đã được xóa hỏng và hoạt động trở lại.`);
       }
-    } catch {
-      toast.error("Không gửi được lệnh mở tủ");
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Thao tác không thành công");
     } finally {
       setPendingBox(null);
+      refetch();
     }
   };
 
@@ -546,12 +636,7 @@ export default function LockerLayoutPage() {
                 >
                   <CellTile
                     cell={cell}
-                    onFault={handleFault}
-                    onClear={handleClear}
-                    onOutOfService={handleOutOfService}
-                    onCleaning={handleCleaning}
-                    onReturn={handleReturn}
-                    onForceOpen={handleForceOpen}
+                    onAction={handleOpenAction}
                     busy={
                       (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) &&
                       pendingBox === cell.id
@@ -574,6 +659,86 @@ export default function LockerLayoutPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Action Dialog (Replaces browser prompt/confirm) */}
+      <Dialog
+        open={actionDialog.open}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setActionDialog((prev) => ({ ...prev, open: false }));
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              {actionDialog.type === "FAULT" && <AlertTriangle className="w-4 h-4 text-rose-600" />}
+              {actionDialog.type === "FORCE_OPEN" && <Unlock className="w-4 h-4 text-indigo-600" />}
+              {actionDialog.type === "OUT_OF_SERVICE" && <Ban className="w-4 h-4 text-slate-600" />}
+              {actionDialog.type === "CLEANING" && <Sparkles className="w-4 h-4 text-amber-600" />}
+              {actionDialog.type === "RETURN" && <RotateCcw className="w-4 h-4 text-emerald-600" />}
+              {actionDialog.type === "CLEAR_FAULT" && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+              {actionDialog.title}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
+              {actionDialog.description}
+            </DialogDescription>
+          </DialogHeader>
+
+          {actionDialog.requireReason && (
+            <div className="space-y-2 py-2">
+              <Label htmlFor="actionReason" className="text-xs font-semibold">
+                Lý do thực hiện:
+              </Label>
+              <Input
+                id="actionReason"
+                value={actionDialog.reason}
+                onChange={(e) => setActionDialog((prev) => ({ ...prev, reason: e.target.value }))}
+                placeholder="Nhập lý do (VD: Kẹt khóa, chốt không nhả, bảo trì...)"
+                className="text-xs h-9"
+              />
+            </div>
+          )}
+
+          {actionDialog.type === "OUT_OF_SERVICE" && (
+            <div className="space-y-2 py-2">
+              <Label htmlFor="oosReason" className="text-xs font-semibold">
+                Ghi chú lý do tạm ngưng (tùy chọn):
+              </Label>
+              <Input
+                id="oosReason"
+                value={actionDialog.reason}
+                onChange={(e) => setActionDialog((prev) => ({ ...prev, reason: e.target.value }))}
+                placeholder="VD: Kiểm tra mạch nguồn, chờ thay chốt..."
+                className="text-xs h-9"
+              />
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs h-8"
+              onClick={() => setActionDialog((prev) => ({ ...prev, open: false }))}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              variant={actionDialog.variant ?? "default"}
+              size="sm"
+              className="text-xs h-8"
+              onClick={handleExecuteAction}
+              disabled={
+                (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) ||
+                (actionDialog.requireReason && !actionDialog.reason.trim())
+              }
+            >
+              {actionDialog.confirmLabel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog: Thêm ô tủ */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
