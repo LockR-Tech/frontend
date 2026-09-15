@@ -213,8 +213,15 @@ function IntegerListEditor({
   const items = splitList(value);
 
   const commit = (input: string) => {
-    const parts = splitList(input);
     setText("");
+    // Bỏ giá trị trùng: danh sách mốc/mệnh giá lặp lại không có ý nghĩa.
+    const seen = new Set(items.map((item) => normalizeValue(setting, item)));
+    const parts = splitList(input).filter((part) => {
+      const key = normalizeValue(setting, part);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     if (parts.length > 0) onChange([...items, ...parts].join(","));
   };
 

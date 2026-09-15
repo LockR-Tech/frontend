@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Globe, Loader2, RotateCcw, Undo2 } from "lucide-react";
+import { Globe, History, Loader2, RotateCcw, Undo2 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { formatDateTime } from "~/lib/datetime";
 import { Badge } from "~/components/ui/badge";
@@ -35,6 +35,7 @@ interface SettingRowProps {
   onDraftChange: (key: string, raw: string) => void;
   onRevertDraft: (key: string) => void;
   onReset: (setting: SettingView) => void;
+  onShowHistory: (key: string) => void;
 }
 
 function SettingRowComponent({
@@ -45,6 +46,7 @@ function SettingRowComponent({
   onDraftChange,
   onRevertDraft,
   onReset,
+  onShowHistory,
 }: SettingRowProps) {
   const label = settingLabel(setting);
   const value = draft ?? currentRaw(setting);
@@ -113,6 +115,14 @@ function SettingRowComponent({
               {setting.updatedByUserId != null && ` · người dùng #${setting.updatedByUserId}`}
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => onShowHistory(setting.key)}
+            className="inline-flex items-center gap-1 font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            <History className="h-3 w-3" />
+            Xem lịch sử
+          </button>
         </div>
       </div>
 
