@@ -14,6 +14,8 @@ import {
   Briefcase,
   Tag,
   Plane,
+  TrendingUp,
+  Wrench,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -43,7 +45,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     permission: "admin_access",
   },
   {
-    icon: Briefcase,
+    icon: Wrench,
     path: "/admin/maintenance",
     label: "admin.sidebar.maintenance",
     permission: "admin_access",
@@ -64,6 +66,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: CreditCard,
     path: "/admin/payments",
     label: "admin.sidebar.payments",
+    permission: "view_payments",
+  },
+  {
+    icon: TrendingUp,
+    path: "/admin/revenue",
+    label: "admin.sidebar.revenue",
     permission: "view_payments",
   },
   {
@@ -94,8 +102,8 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 
 // Sidebar Brand Config
 export const SIDEBAR_BRAND = {
-  logo: "L",
-  name: "Laundry Locker",
+  logo: "K",
+  name: "Smart Kiosk",
   tagline: "Admin Portal",
 };
 

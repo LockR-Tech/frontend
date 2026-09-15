@@ -57,30 +57,30 @@ const STATUS_CONFIG: Record<
   }
 > = {
   [PartnerStatus.APPROVED]: {
-    bg: "bg-green-50",
-    text: "text-green-700",
-    border: "border-green-200",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-700 dark:text-emerald-400",
+    border: "border-emerald-500/20",
     icon: CheckCircle,
     label: "Đã phê duyệt",
   },
   [PartnerStatus.PENDING]: {
-    bg: "bg-amber-50",
-    text: "text-amber-700",
-    border: "border-amber-200",
+    bg: "bg-amber-500/10",
+    text: "text-amber-700 dark:text-amber-400",
+    border: "border-amber-500/20",
     icon: Clock,
     label: "Chờ duyệt",
   },
   [PartnerStatus.REJECTED]: {
-    bg: "bg-red-50",
-    text: "text-red-700",
-    border: "border-red-200",
+    bg: "bg-destructive/10",
+    text: "text-destructive",
+    border: "border-destructive/20",
     icon: XCircle,
     label: "Đã từ chối",
   },
   [PartnerStatus.SUSPENDED]: {
-    bg: "bg-muted/30",
-    text: "text-foreground/80",
-    border: "border-border/50",
+    bg: "bg-secondary",
+    text: "text-muted-foreground",
+    border: "border-border",
     icon: AlertCircle,
     label: "Đã đình chỉ",
   },
@@ -213,30 +213,27 @@ export function PartnerDetailModal({
               {[
                 {
                   icon: Store,
-                  label: "Cửa hàng",
+                  label: "Địa điểm",
                   value: partner.storeCount,
-                  color: "text-indigo-600",
                 },
                 {
                   icon: Users,
                   label: "Nhân viên",
                   value: partner.staffCount,
-                  color: "text-blue-600",
                 },
                 {
                   icon: Percent,
                   label: "Chia sẻ doanh thu",
                   value: `${partner.revenueSharePercent ?? 0}%`,
-                  color: "text-green-600",
                 },
-              ].map(({ icon: Icon, label, value, color }) => (
+              ].map(({ icon: Icon, label, value }) => (
                 <div
                   key={label}
-                  className="rounded-lg border bg-muted/30/60 p-3 text-center"
+                  className="rounded-lg border border-border bg-secondary/30 p-3 text-center"
                 >
-                  <Icon size={18} className={`${color} mx-auto mb-1`} />
+                  <Icon size={16} className="text-muted-foreground mx-auto mb-1.5" />
                   <p className="text-lg font-bold text-foreground">{value}</p>
-                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
                 </div>
               ))}
             </div>
@@ -332,20 +329,19 @@ export function PartnerDetailModal({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        className="text-destructive border-destructive/20 hover:bg-destructive/10"
                         disabled={actionBusy}
                         onClick={handleReject}
                       >
-                        <XCircle size={15} className="mr-1.5" />
+                        <XCircle size={14} className="mr-1.5" />
                         {rejecting ? "Đang từ chối…" : "Từ chối"}
                       </Button>
                       <Button
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
                         disabled={actionBusy}
                         onClick={handleApprove}
                       >
-                        <CheckCircle size={15} className="mr-1.5" />
+                        <CheckCircle size={14} className="mr-1.5" />
                         {approving ? "Đang phê duyệt…" : "Phê duyệt"}
                       </Button>
                     </>
@@ -354,11 +350,11 @@ export function PartnerDetailModal({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                      className="text-muted-foreground hover:text-foreground hover:bg-secondary"
                       disabled={actionBusy}
                       onClick={handleSuspend}
                     >
-                      <AlertCircle size={15} className="mr-1.5" />
+                      <AlertCircle size={14} className="mr-1.5" />
                       {suspending ? "Đang đình chỉ…" : "Đình chỉ"}
                     </Button>
                   )}

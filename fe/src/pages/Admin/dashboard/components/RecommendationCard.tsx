@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent } from "~/components/ui/card";
 import {
   ArrowRight,
   Building2,
@@ -30,23 +30,23 @@ export function RecommendationCard({
 
   return (
     <Card
-      className="cursor-pointer transition-all duration-200 hover:shadow-md hover:border-blue-200 group"
+      className="card-hover cursor-pointer border border-border bg-card group"
       onClick={() => onClick(recommendation.id)}
     >
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
-          <div className="p-2.5 bg-blue-50 rounded-xl">
-            <Icon size={22} className="text-blue-600" />
+          <div className="p-2.5 bg-secondary rounded-lg border border-border/60 text-foreground">
+            <Icon size={18} />
           </div>
           <ArrowRight
-            size={18}
-            className="text-muted-foreground/70 group-hover:text-blue-600 transition-colors"
+            size={16}
+            className="text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all"
           />
         </div>
-        <h3 className="font-semibold text-foreground mb-1.5 leading-tight">
+        <h3 className="font-semibold text-sm text-foreground mb-1.5 leading-tight group-hover:text-primary transition-colors">
           {recommendation.title}
         </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
           {recommendation.description}
         </p>
       </CardContent>

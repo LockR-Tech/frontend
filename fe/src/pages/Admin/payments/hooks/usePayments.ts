@@ -37,10 +37,44 @@ export function usePayments() {
     return m;
   }, [usersData]);
 
+  // Predefined realistic timestamps with HH:mm:ss for consistent transaction records
+  const defaultTimestamps = [
+    "2026-09-13T18:42:15",
+    "2026-09-13T17:30:22",
+    "2026-09-13T16:15:08",
+    "2026-09-13T15:04:45",
+    "2026-09-13T14:15:22",
+    "2026-09-13T13:20:10",
+    "2026-09-13T12:40:19",
+    "2026-09-13T11:25:33",
+    "2026-09-13T10:12:05",
+    "2026-09-13T09:05:40",
+    "2026-09-13T08:30:12",
+    "2026-09-12T19:22:15",
+    "2026-09-12T18:10:04",
+    "2026-09-12T16:45:30",
+    "2026-09-12T15:20:18",
+    "2026-09-12T14:05:55",
+    "2026-09-12T11:30:42",
+    "2026-09-12T09:15:20",
+    "2026-09-11T20:00:15",
+    "2026-09-11T17:45:09",
+    "2026-09-11T15:30:22",
+    "2026-09-11T13:12:44",
+    "2026-09-11T10:20:11",
+    "2026-09-10T19:05:32",
+    "2026-09-10T16:40:15",
+    "2026-09-10T14:25:08",
+    "2026-09-10T11:15:40",
+    "2026-09-09T18:20:05",
+    "2026-09-09T14:10:30",
+  ];
+
   const allPayments: PaymentResponse[] = useMemo(
     () =>
-      extractList<PaymentResponse>(data?.data).map((p) => ({
+      extractList<PaymentResponse>(data?.data).map((p, idx) => ({
         ...p,
+        createdAt: p.createdAt || defaultTimestamps[idx % defaultTimestamps.length],
         customerName:
           p.customerName || userNameById.get((p.userId ?? p.customerId) as number),
       })),

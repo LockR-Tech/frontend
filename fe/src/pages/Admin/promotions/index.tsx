@@ -23,43 +23,36 @@ const STATUS_TABS: {
   value: PromotionStatusFilter;
   labelKey: string;
   icon: React.ElementType;
-  activeClass: string;
 }[] = [
   {
     value: "ALL",
     labelKey: "admin.promotions.status.all",
     icon: Tag,
-    activeClass: "bg-gray-800 text-white",
   },
   {
     value: PromotionStatus.ACTIVE,
     labelKey: "admin.promotions.status.active",
     icon: CheckCircle2,
-    activeClass: "bg-green-600 text-white",
   },
   {
     value: PromotionStatus.UPCOMING,
     labelKey: "admin.promotions.status.upcoming",
     icon: Clock,
-    activeClass: "bg-blue-600 text-white",
   },
   {
     value: PromotionStatus.EXPIRED,
     labelKey: "admin.promotions.status.expired",
     icon: Calendar,
-    activeClass: "bg-muted/300 text-white",
   },
   {
     value: PromotionStatus.DEPLETED,
     labelKey: "admin.promotions.status.depleted",
     icon: PackageX,
-    activeClass: "bg-orange-600 text-white",
   },
   {
     value: PromotionStatus.INACTIVE,
     labelKey: "admin.promotions.status.inactive",
     icon: PowerOff,
-    activeClass: "bg-red-600 text-white",
   },
 ];
 
@@ -123,8 +116,8 @@ export default function PromotionsPage() {
               onClick={() => setStatusFilter(tab.value)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                 isActive
-                  ? `${tab.activeClass} border-transparent shadow-sm`
-                  : "bg-background text-muted-foreground border-border/50 hover:border-border/70"
+                  ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                  : "bg-background text-muted-foreground border-border/60 hover:bg-secondary/50 hover:text-foreground"
               }`}
             >
               <Icon size={12} />
@@ -132,8 +125,8 @@ export default function PromotionsPage() {
               <Badge
                 className={`ml-1 h-4 px-1.5 text-xs border-0 ${
                   isActive
-                    ? "bg-white/20 text-white"
-                    : "bg-muted/50 text-muted-foreground"
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 {count}

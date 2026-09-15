@@ -26,6 +26,7 @@ import {
 import { fmtDate, REPORT_STATUS_META, ErrorBanner } from "./shared";
 import { extractList } from "~/lib/extract-list";
 import type { ReportDTO } from "~/types/admin/feedback";
+import { toast } from "sonner";
 
 export function ReportsTab() {
   const [status, setStatus] = useState<string>("all");
@@ -40,6 +41,19 @@ export function ReportsTab() {
   const [resolveReport, { isLoading: isResolving }] =
     useResolveReportMutation();
 
+  const handleResolve = async (id: number) => {
+    try {
+      await resolveReport({ id, data: {} }).unwrap();
+      toast.success("Giải quyết báo cáo thành công", {
+        description: `Báo cáo #${id} đã được đánh dấu là đã giải quyết.`,
+      });
+    } catch (err: any) {
+      toast.error("Không giải quyết được báo cáo", {
+        description: err?.data?.message || err?.message || "Vui lòng thử lại sau.",
+      });
+    }
+  };
+
   const list = extractList<ReportDTO>(data?.data);
   const total = list.length;
 
@@ -48,26 +62,28 @@ export function ReportsTab() {
       {isError && <ErrorBanner onRetry={refetch} />}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <Select
-          value={status}
-          onValueChange={(v) => {
-            setStatus(v);
-            setPage(0);
-          }}
-        >
-          <SelectTrigger className="w-44 h-9">
-            <SelectValue placeholder="Trạng thái" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả trạng thái</SelectItem>
-            <SelectItem value="PENDING">Chờ xử lý</SelectItem>
-            <SelectItem value="RESOLVED">Đã giải quyết</SelectItem>
-            <SelectItem value="REJECTED">Từ chối</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Select
+            value={status}
+            onValueChange={(v) => {
+              setStatus(v);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="w-44 h-9 text-xs">
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="PENDING">Chờ xử lý</SelectItem>
+              <SelectItem value="RESOLVED">Đã giải quyết</SelectItem>
+              <SelectItem value="REJECTED">Từ chối</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <span className="text-sm text-muted-foreground ml-auto">
+        <span className="text-xs text-muted-foreground">
           {isLoading ? "..." : `${total.toLocaleString("vi-VN")} báo cáo`}
         </span>
       </div>
@@ -80,17 +96,17 @@ export function ReportsTab() {
           ))}
         </div>
       ) : (
-        <Card className="border-0 shadow-sm overflow-hidden">
+        <Card className="overflow-hidden border border-border">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Khách hàng</TableHead>
-                <TableHead>Locker</TableHead>
-                <TableHead>Mô tả</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead>Ngày tạo</TableHead>
-                <TableHead>Giải quyết lúc</TableHead>
-                <TableHead />
+              <TableRow className="bg-secondary/60 hover:bg-secondary/60">
+                <TableHead className="font-semibold text-foreground">Khách hàng</TableHead>
+                <TableHead className="font-semibold text-foreground">Locker</TableHead>
+                <TableHead className="font-semibold text-foreground">Mô tả</TableHead>
+                <TableHead className="font-semibold text-foreground">Trạng thái</TableHead>
+                <TableHead className="font-semibold text-foreground">Ngày tạo</TableHead>
+                <TableHead className="font-semibold text-foreground">Giải quyết lúc</TableHead>
+                <TableHead className="w-24 text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,7 +114,7 @@ export function ReportsTab() {
                 <TableRow>
                   <TableCell
                     colSpan={7}
-                    className="text-center py-10 text-muted-foreground/70"
+                    className="text-center py-10 text-muted-foreground text-sm"
                   >
                     Không có báo cáo nào
                   </TableCell>
@@ -108,28 +124,28 @@ export function ReportsTab() {
                 const statusMeta =
                   REPORT_STATUS_META[r.status] ?? REPORT_STATUS_META.PENDING;
                 return (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} className="hover:bg-secondary/40 transition-colors">
                     <TableCell>
                       <div>
-                        <p className="font-medium text-foreground">
-                          {r.userFullName}
+                        <p className="font-medium text-foreground text-sm">
+                          {r.userFullName || "Khách hàng"}
                         </p>
-                        <p className="text-xs text-muted-foreground/70">{r.userEmail}</p>
+                        <p className="text-xs text-muted-foreground">{r.userEmail || "—"}</p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1.5 text-sm text-foreground/80">
-                        <Lock size={13} className="text-muted-foreground/70 shrink-0" />
-                        {r.lockerName}
+                      <div className="flex items-center gap-1.5 text-xs text-foreground">
+                        <Lock size={13} className="text-muted-foreground shrink-0" />
+                        {r.lockerName || `Tủ #${r.lockerId ?? ""}`}
                       </div>
                     </TableCell>
                     <TableCell className="max-w-56">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {r.description}
                       </p>
                     </TableCell>
                     <TableCell>
-                      <Badge className={`text-xs ${statusMeta.cls}`}>
+                      <Badge variant="outline" className={`text-[11px] ${statusMeta.cls}`}>
                         {statusMeta.label}
                       </Badge>
                     </TableCell>
@@ -139,14 +155,14 @@ export function ReportsTab() {
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                       {r.resolvedAt ? fmtDate(r.resolvedAt) : "—"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-right">
                       {r.status === "PENDING" && (
                         <Button
                           variant="outline"
                           size="sm"
                           className="h-7 text-xs gap-1"
                           disabled={isResolving}
-                          onClick={() => resolveReport({ id: r.id, data: {} })}
+                          onClick={() => handleResolve(r.id)}
                         >
                           <CheckCircle2 size={13} />
                           Giải quyết
@@ -163,7 +179,7 @@ export function ReportsTab() {
 
       {/* Pagination */}
       {total > 20 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"
@@ -172,7 +188,7 @@ export function ReportsTab() {
           >
             Trước
           </Button>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             Trang {page + 1} / {Math.ceil(total / 20)}
           </span>
           <Button

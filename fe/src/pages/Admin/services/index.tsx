@@ -40,7 +40,7 @@ export default function ServicesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Quản lý dịch vụ"
-        description="Quản lý các dịch vụ giặt ủi trong hệ thống"
+        description="Quản lý các dịch vụ Kiosk và gửi nhận trong hệ thống"
       />
 
       <Card className="border-0 shadow-sm">

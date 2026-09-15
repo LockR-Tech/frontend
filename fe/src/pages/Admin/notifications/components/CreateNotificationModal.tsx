@@ -163,7 +163,7 @@ export function CreateNotificationModal({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Bell size={18} className="text-blue-600" />
+            <Bell size={18} className="text-muted-foreground" />
             {t("admin.notifications.create.title")}
           </DialogTitle>
         </DialogHeader>

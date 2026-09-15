@@ -105,10 +105,17 @@
       "title": "ユーザー管理",
       "description": "システムのユーザーアカウントを管理",
       "addUser": "ユーザーを追加",
+      "createSuccess": "ユーザーを作成しました",
+      "createFailed": "ユーザーの作成に失敗しました",
+      "updateSuccess": "ユーザー情報を更新しました",
+      "updateFailed": "ユーザー情報の更新に失敗しました",
       "searchPlaceholder": "ユーザーを検索...",
       "status": {
         "active": "アクティブ",
-        "inactive": "非アクティブ"
+        "inactive": "非アクティブ",
+        "enabledSuccess": "ユーザーを有効化しました",
+        "disabledSuccess": "ユーザーを無効化しました",
+        "toggleFailed": "ユーザーのステータス更新に失敗しました"
       },
       "columns": {
         "user": "ユーザー",

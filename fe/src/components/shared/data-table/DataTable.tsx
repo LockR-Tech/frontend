@@ -133,7 +133,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="bg-muted/80 border-b border-border hover:bg-muted/80"
+                className="bg-secondary/60 border-b border-border hover:bg-secondary/60"
               >
                 {headerGroup.headers.map((header) => (
                   <TableHead
@@ -173,9 +173,8 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className={cn(
-                    "border-b border-border/50 transition-colors duration-200",
-                    "hover:bg-primary/5",
-                    index % 2 === 0 ? "bg-card" : "bg-muted/30"
+                    "border-b border-border/60 transition-colors duration-150 bg-card",
+                    "hover:bg-secondary/50",
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (

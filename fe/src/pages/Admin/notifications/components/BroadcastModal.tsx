@@ -145,7 +145,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Megaphone size={18} className="text-blue-600" />
+            <Megaphone size={18} className="text-muted-foreground" />
             {t("admin.notifications.broadcast.title")}
           </DialogTitle>
         </DialogHeader>

@@ -36,7 +36,7 @@ export function DashboardHeader({
           </Button>
           <Button
             size="default"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            className="flex items-center gap-2"
             onClick={onCreateScenario}
           >
             <Plus size={18} />
@@ -53,7 +53,7 @@ export function DashboardHeader({
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="rounded-full px-4 py-2 text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="rounded-full px-4 py-2 text-sm whitespace-nowrap data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 {tab}
               </TabsTrigger>

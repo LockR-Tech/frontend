@@ -235,7 +235,7 @@ export function PartnerTable({
             <Building2 size={16} />
           </IconWrapper>
           <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold">
-            {row.original.storeCount || 0} cửa hàng
+            {row.original.storeCount || 0} địa điểm
           </Badge>
         </div>
       ),

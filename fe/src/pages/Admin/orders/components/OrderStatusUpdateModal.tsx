@@ -51,31 +51,31 @@ const statusOptions = [
     value: OrderStatus.COLLECTED,
     label: "Đã thu gom",
     icon: CheckCircle2,
-    description: "Staff đã lấy đồ từ tủ",
+    description: "Nhân viên/Shipper đã lấy kiện hàng từ Kiosk",
   },
   {
     value: OrderStatus.PROCESSING,
     label: "Đang xử lý",
     icon: RotateCcw,
-    description: "Đang giặt/ủi/xử lý",
+    description: "Đang xử lý / vận chuyển kiện hàng",
   },
   {
     value: OrderStatus.READY,
     label: "Sẵn sàng",
     icon: CheckCircle2,
-    description: "Đã giặt xong, chờ trả",
+    description: "Đã tới Kiosk đích, chờ trả vào ô",
   },
   {
     value: OrderStatus.RETURNED,
-    label: "Đã trả",
+    label: "Đã trả vào Kiosk",
     icon: Box,
-    description: "Đã trả đồ vào tủ",
+    description: "Đã lưu vào ngăn Kiosk, sẵn sàng cho khách",
   },
   {
     value: OrderStatus.COMPLETED,
     label: "Hoàn thành",
     icon: CheckCircle2,
-    description: "Khách đã lấy đồ",
+    description: "Khách đã nhận kiện hàng thành công",
   },
   {
     value: OrderStatus.CANCELED,
@@ -173,8 +173,8 @@ export function OrderStatusUpdateModal({
           </div>
 
           {selectedStatus && (
-            <div className="p-3 bg-blue-50 rounded-md">
-              <p className="text-sm text-blue-700">
+            <div className="p-3 bg-secondary/60 border border-border rounded-md">
+              <p className="text-xs text-foreground">
                 {statusOptions.find((s) => s.value === selectedStatus)?.description}
               </p>
             </div>

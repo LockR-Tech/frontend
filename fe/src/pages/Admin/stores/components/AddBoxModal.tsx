@@ -94,7 +94,6 @@ export function AddBoxModal({
           <Button
             onClick={handleSubmit}
             disabled={saving || !form.boxNumber}
-            className="bg-blue-600 hover:bg-blue-700"
           >
             {saving ? "Đang thêm..." : "Thêm ngăn"}
           </Button>

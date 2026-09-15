@@ -12,6 +12,7 @@ import {
   Unlock,
   Wrench,
   Luggage,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -29,12 +30,12 @@ import {
 } from "~/stores/apis/admin/lockerOps";
 
 const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
-  AVAILABLE: { label: "Trống", cls: "bg-green-50 border-green-300 text-green-800" },
-  RESERVED: { label: "Đã giữ chỗ", cls: "bg-blue-50 border-blue-300 text-blue-800" },
-  OCCUPIED: { label: "Có đồ", cls: "bg-orange-50 border-orange-300 text-orange-800" },
-  FAULT: { label: "Hỏng", cls: "bg-red-50 border-red-400 text-red-800" },
-  OUT_OF_SERVICE: { label: "Ngưng dùng", cls: "bg-slate-100 border-slate-400 text-slate-700" },
-  CLEANING: { label: "Đang vệ sinh", cls: "bg-cyan-50 border-cyan-300 text-cyan-800" },
+  AVAILABLE: { label: "Trống", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
+  RESERVED: { label: "Đã giữ chỗ", cls: "bg-secondary border-border text-foreground" },
+  OCCUPIED: { label: "Có đồ", cls: "bg-secondary border-border text-foreground" },
+  FAULT: { label: "Hỏng", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
+  OUT_OF_SERVICE: { label: "Ngưng dùng", cls: "bg-secondary/40 border-border text-muted-foreground" },
+  CLEANING: { label: "Đang vệ sinh", cls: "bg-secondary border-border text-muted-foreground" },
 };
 
 function ActBtn({
@@ -42,23 +43,17 @@ function ActBtn({
   label,
   onClick,
   busy,
-  isLight,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
-  busy: boolean;
-  isLight?: boolean;
+  busy?: boolean;
 }) {
   return (
     <Button
       size="sm"
       variant="outline"
-      className={`h-6 px-2 text-[11px] ${
-        isLight
-          ? "border-white/40 bg-black/10 text-white hover:bg-black/20 hover:text-white"
-          : "hover:bg-slate-100"
-      }`}
+      className="h-6 px-2 text-[10px] font-semibold border border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-800 dark:text-slate-100 shadow-2xs"
       disabled={busy}
       onClick={onClick}
     >
@@ -86,72 +81,109 @@ function CellTile({
   onForceOpen: (cell: CellResponse) => void;
   busy: boolean;
 }) {
-  const isDrone = cell.cellType === "DRONE";
-  let bgClass = "";
-  let borderClass = "";
-  let textClass = "";
+  const isDrone = cell.cellType === "DRONE" || cell.boxNumber === 1 || cell.boxNumber === 2;
+  let bgClass = "bg-card";
+  let borderClass = "border-border";
+  let textClass = "text-foreground";
+  let statusBadge = (
+    <span className="text-xs font-medium z-10">
+      {STATUS_STYLE[cell.status]?.label ?? cell.status}
+    </span>
+  );
 
   if (isDrone) {
-    bgClass = "bg-gradient-to-br from-indigo-500 to-indigo-600";
-    borderClass = "border-indigo-400";
-    textClass = "text-white";
+    if (cell.status === "FAULT") {
+      bgClass = "bg-rose-100/90 dark:bg-rose-950/60";
+      borderClass = "border-rose-400 dark:border-rose-700 ring-2 ring-rose-400/30";
+      textClass = "text-rose-950 dark:text-rose-100";
+      statusBadge = (
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-400 z-10">
+          <AlertTriangle className="w-3.5 h-3.5" /> Báo hỏng (Drone)
+        </span>
+      );
+    } else {
+      bgClass = "bg-sky-100/90 dark:bg-sky-950/70";
+      borderClass = "border-sky-400 dark:border-sky-600 ring-2 ring-sky-400/30 shadow-xs";
+      textClass = "text-sky-950 dark:text-sky-100";
+      statusBadge = (
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-800 dark:text-sky-300 z-10">
+          <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" /> Sẵn sàng nhận Drone
+        </span>
+      );
+    }
   } else {
     switch (cell.status) {
       case "AVAILABLE":
-        bgClass = "bg-gradient-to-br from-cyan-500/90 to-cyan-600";
-        borderClass = "border-cyan-400";
-        textClass = "text-white";
+        bgClass = "bg-emerald-50/95 dark:bg-emerald-950/50";
+        borderClass = "border-emerald-300 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500 shadow-xs";
+        textClass = "text-emerald-950 dark:text-emerald-100";
+        statusBadge = (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 z-10">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống (Sẵn sàng)
+          </span>
+        );
         break;
       case "OCCUPIED":
       case "IN_USE":
-        bgClass = "bg-gradient-to-br from-slate-100 to-slate-300";
-        borderClass = "border-slate-300";
-        textClass = "text-slate-600";
-        break;
       case "RESERVED":
-        bgClass = "bg-gradient-to-br from-amber-200 to-amber-500";
-        borderClass = "border-amber-400";
-        textClass = "text-amber-900";
+        bgClass = "bg-amber-50/95 dark:bg-amber-950/50";
+        borderClass = "border-amber-300 dark:border-amber-700 shadow-xs";
+        textClass = "text-amber-950 dark:text-amber-100";
+        statusBadge = (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 z-10">
+            <span className="w-2 h-2 rounded-full bg-amber-500" /> Đang chứa hàng
+          </span>
+        );
         break;
       case "FAULT":
-        bgClass = "bg-gradient-to-br from-red-400 to-red-600";
-        borderClass = "border-red-400";
-        textClass = "text-white";
+        bgClass = "bg-rose-50/95 dark:bg-rose-950/50";
+        borderClass = "border-rose-400 dark:border-rose-700 ring-1 ring-rose-400/30 shadow-xs";
+        textClass = "text-rose-950 dark:text-rose-100";
+        statusBadge = (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 z-10">
+            <AlertTriangle className="w-3.5 h-3.5" /> Báo hỏng
+          </span>
+        );
         break;
       case "CLEANING":
-        bgClass = "bg-gradient-to-br from-blue-300 to-blue-500";
-        borderClass = "border-blue-300";
-        textClass = "text-white";
-        break;
+      case "OUT_OF_SERVICE":
       default:
-        bgClass = "bg-gradient-to-br from-gray-200 to-gray-400";
-        borderClass = "border-gray-300";
-        textClass = "text-gray-700";
+        bgClass = "bg-slate-200/70 dark:bg-slate-800/70";
+        borderClass = "border-slate-300 dark:border-slate-600 shadow-xs";
+        textClass = "text-slate-800 dark:text-slate-200";
+        statusBadge = (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 z-10">
+            <Ban className="w-3.5 h-3.5" /> Tạm ngưng
+          </span>
+        );
         break;
     }
   }
 
-  const isLightText = textClass === "text-white";
-
   return (
     <div
-      className={`relative h-full rounded-xl border-2 p-3 flex flex-col gap-1 overflow-hidden shadow-sm hover:shadow-md transition-all ${bgClass} ${borderClass} ${textClass}`}
+      className={`relative h-full rounded-xl border p-3.5 flex flex-col gap-1 overflow-hidden shadow-xs hover:shadow-md transition-all ${bgClass} ${borderClass} ${textClass}`}
       title={cell.faultReason ?? undefined}
     >
-      {/* Decorative metallic handle */}
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-black/10 rounded-full border border-white/20" />
+      {/* Decorative handle */}
+      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-1 h-10 bg-border/80 rounded-full" />
       
       <div className="flex items-center justify-between z-10">
-        <span className="font-semibold text-sm drop-shadow-sm">Ô #{cell.boxNumber}</span>
-        {isDrone && <Plane className="w-5 h-5 opacity-90 drop-shadow-md" />}
-        {cell.cellType === "XL" && <Luggage className="w-5 h-5 opacity-80" />}
-        {cell.cellType === "STANDARD" && <BoxIcon className="w-5 h-5 opacity-80" />}
+        <div className="flex items-center gap-1.5">
+          <span className="font-bold text-sm tracking-tight">Ô #{cell.boxNumber}</span>
+          {isDrone && (
+            <Badge className="bg-sky-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
+              Drone
+            </Badge>
+          )}
+        </div>
+        {isDrone && <Plane className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-95 drop-shadow-xs" />}
+        {cell.cellType === "XL" && <Luggage className="w-5 h-5 text-emerald-800 dark:text-emerald-300 opacity-80" />}
+        {!isDrone && cell.cellType === "STANDARD" && <BoxIcon className="w-5 h-5 text-emerald-800 dark:text-emerald-300 opacity-80" />}
       </div>
-      <span className="text-xs font-medium z-10 drop-shadow-sm">
-        {STATUS_STYLE[cell.status]?.label ?? cell.status}
-      </span>
+      {statusBadge}
       {cell.faultReason && (
-        <span className="text-[11px] leading-tight line-clamp-2 mt-1 z-10 opacity-90">
+        <span className="text-[11px] leading-tight line-clamp-2 mt-1 z-10 text-red-600 dark:text-red-400">
           {cell.faultReason}
         </span>
       )}
@@ -162,7 +194,6 @@ function CellTile({
             label="Đã sửa"
             busy={busy}
             onClick={() => onClear(cell)}
-            isLight={isLightText}
           />
         ) : cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING" ? (
           <ActBtn
@@ -170,7 +201,6 @@ function CellTile({
             label="Khôi phục"
             busy={busy}
             onClick={() => onReturn(cell)}
-            isLight={isLightText}
           />
         ) : cell.status === "OCCUPIED" || cell.status === "RESERVED" ? (
           <ActBtn
@@ -178,7 +208,6 @@ function CellTile({
             label="Báo hỏng"
             busy={busy}
             onClick={() => onFault(cell)}
-            isLight={isLightText}
           />
         ) : (
           <>
@@ -187,22 +216,19 @@ function CellTile({
               label="Hỏng"
               busy={busy}
               onClick={() => onFault(cell)}
-              isLight={isLightText}
-            />
+              />
             <ActBtn
               icon={<Ban className="w-3 h-3 mr-1" />}
               label="Ngưng"
               busy={busy}
               onClick={() => onOutOfService(cell)}
-              isLight={isLightText}
-            />
+              />
             <ActBtn
               icon={<Sparkles className="w-3 h-3 mr-1" />}
               label="Vệ sinh"
               busy={busy}
               onClick={() => onCleaning(cell)}
-              isLight={isLightText}
-            />
+              />
           </>
         )}
         <ActBtn
@@ -210,11 +236,38 @@ function CellTile({
           label="Mở khẩn cấp"
           busy={busy}
           onClick={() => onForceOpen(cell)}
-          isLight={isLightText}
         />
       </div>
     </div>
   );
+}
+
+function getBoxGridStyle(boxNumber: number) {
+  switch (boxNumber) {
+    case 10:
+      // Tall XL suitcase box on the left column, spans all 3 rows
+      return { gridColumn: "1", gridRow: "1 / span 3" };
+    case 1:
+      // Top row, drone box 1
+      return { gridColumn: "2", gridRow: "1" };
+    case 2:
+      // Top row, drone box 2
+      return { gridColumn: "3", gridRow: "1" };
+    case 4:
+      // Middle row, standard box 4
+      return { gridColumn: "2", gridRow: "2" };
+    case 5:
+      // Middle row, standard box 5
+      return { gridColumn: "3", gridRow: "2" };
+    case 7:
+      // Bottom row, standard box 7
+      return { gridColumn: "2", gridRow: "3" };
+    case 8:
+      // Bottom row, standard box 8
+      return { gridColumn: "3", gridRow: "3" };
+    default:
+      return {};
+  }
 }
 
 export default function LockerLayoutPage() {
@@ -237,10 +290,10 @@ export default function LockerLayoutPage() {
 
   const cells = useMemo(() => {
     if (!layout) return [];
-    return [...layout.cells].sort((a, b) => {
-      if (a.rowIndex !== b.rowIndex) return (a.rowIndex ?? 0) - (b.rowIndex ?? 0);
-      return (a.colIndex ?? 0) - (b.colIndex ?? 0);
-    });
+    // Physical cabinet does not have boxes 3, 6, 9
+    return layout.cells.filter(
+      (c) => c.boxNumber !== 3 && c.boxNumber !== 6 && c.boxNumber !== 9,
+    );
   }, [layout]);
 
   const handleFault = async (cell: CellResponse) => {
@@ -371,60 +424,62 @@ export default function LockerLayoutPage() {
         </Button>
       </div>
 
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Tổng số ô</p>
-            <p className="text-2xl font-bold">{layout.totalCells}</p>
+            <p className="text-sm text-muted-foreground">Tổng số ô vật lý</p>
+            <p className="text-2xl font-bold">{cells.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">Ô trống</p>
-            <p className="text-2xl font-bold text-green-600">{layout.availableCells}</p>
+            <p className="text-2xl font-bold text-emerald-600">
+              {cells.filter((c) => c.status === "AVAILABLE").length}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">Đang dùng</p>
-            <p className="text-2xl font-bold text-orange-600">
-              {layout.totalCells - layout.availableCells - layout.faultCells}
+            <p className="text-2xl font-bold text-amber-600">
+              {cells.filter((c) => c.status === "OCCUPIED" || c.status === "RESERVED" || c.status === "IN_USE").length}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">Ô hỏng</p>
-            <p className="text-2xl font-bold text-red-600">{layout.faultCells}</p>
+            <p className="text-2xl font-bold text-destructive">
+              {cells.filter((c) => c.status === "FAULT").length}
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Sơ đồ vật lý (hàng 1 trên cùng — ô DRONE chỉ nhận hàng từ drone)
+      <Card className="border border-border/80 shadow-xs overflow-hidden">
+        <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Plane className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            Sơ đồ vật lý Kiosk (Hàng 1: Ô tiếp nhận Drone)
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4 p-5">
           <div
-            className="grid gap-3 p-4 bg-muted/20 rounded-xl border border-muted/40"
+            className="grid gap-3.5 p-5 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border-2 border-slate-300/90 dark:border-slate-700 shadow-inner"
             style={{
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gridAutoRows: "minmax(140px, auto)",
+              gridTemplateColumns: "minmax(180px, 1fr) minmax(220px, 1.25fr) minmax(220px, 1.25fr)",
+              gridTemplateRows: "repeat(3, minmax(135px, auto))",
             }}
           >
             {cells.map((cell) => {
-              const span = cell.cellType === "XL" ? 2 : 1;
+              const gridStyle = getBoxGridStyle(cell.boxNumber);
               return (
                 <div
                   key={cell.id}
-                  style={{
-                    gridColumnStart: (cell.colIndex ?? 0) + 1,
-                    gridRowStart: (cell.rowIndex ?? 0) + 1,
-                    gridRowEnd: `span ${span}`,
-                  }}
-                  className="flex flex-col h-full shadow-sm transition-all hover:shadow-md"
+                  style={gridStyle}
+                  className="flex flex-col h-full shadow-xs transition-all hover:shadow-md"
                 >
                   <CellTile
                     cell={cell}
@@ -443,10 +498,16 @@ export default function LockerLayoutPage() {
               );
             })}
           </div>
-          <div className="flex flex-wrap gap-3 pt-2 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><Plane className="w-3 h-3" /> Ô nhận hàng drone</span>
-            <span className="inline-flex items-center gap-1"><Luggage className="w-3 h-3" /> Ô vali (XL)</span>
-            <span className="inline-flex items-center gap-1"><BoxIcon className="w-3 h-3" /> Ô thường</span>
+          <div className="flex flex-wrap items-center gap-4 pt-1 text-xs">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-sky-800 dark:text-sky-300 bg-sky-100/90 dark:bg-sky-950/70 px-2.5 py-1 rounded-md border border-sky-300 dark:border-sky-700">
+              <Plane className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" /> Ô tiếp nhận Drone (#1, #2)
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-md border border-emerald-300 dark:border-emerald-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống khả dụng (#10, #4, #5, #7)
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-1 rounded-md border border-rose-300 dark:border-rose-700">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Ô hỏng / bảo trì (#8)
+            </span>
           </div>
         </CardContent>
       </Card>

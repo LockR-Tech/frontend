@@ -32,8 +32,8 @@ function ForceOpenModal({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-orange-600">
-            <Unlock className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2">
+            <Unlock className="h-5 w-5 text-muted-foreground" />
             Mở ngăn khẩn cấp
           </DialogTitle>
           <DialogDescription>
@@ -41,12 +41,12 @@ function ForceOpenModal({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
-          <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 flex items-center gap-3">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center font-bold text-orange-600 text-lg">
+          <div className="p-4 bg-secondary/50 rounded-lg border border-border flex items-center gap-3">
+            <div className="w-12 h-12 bg-card rounded-lg border border-border flex items-center justify-center font-bold text-foreground text-lg">
               {box.boxNumber}
             </div>
             <div>
-              <p className="font-semibold">
+              <p className="font-semibold text-foreground">
                 Ngăn #{box.boxNumber} — {lockerName}
               </p>
               {box.description && (
@@ -54,9 +54,9 @@ function ForceOpenModal({
               )}
             </div>
           </div>
-          <div className="flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
-            <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
-            <p className="text-sm text-yellow-700">
+          <div className="flex items-start gap-2.5 p-3 bg-secondary/30 rounded-lg border border-border/60">
+            <AlertTriangle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Lệnh mở tủ sẽ được gửi qua MQTT đến thiết bị. Đảm bảo có nhân viên
               tại chỗ trước khi thực hiện.
             </p>
@@ -67,8 +67,8 @@ function ForceOpenModal({
             Hủy
           </Button>
           <Button
+            variant="destructive"
             onClick={onConfirm}
-            className="bg-orange-600 hover:bg-orange-700 text-white"
           >
             <Unlock className="mr-2 h-4 w-4" />
             Xác nhận mở
@@ -191,12 +191,12 @@ export function BoxSettingModal({
             </div>
 
             {box.status === BoxStatus.OCCUPIED && (
-              <div className="pt-1 border-t">
+              <div className="pt-2 border-t border-border/60">
                 <p className="text-xs text-muted-foreground mb-2">Thao tác khẩn cấp</p>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full border-orange-200 text-orange-600 hover:bg-orange-50"
+                  className="w-full text-foreground hover:bg-secondary"
                   onClick={() => setConfirmForceOpen(true)}
                 >
                   <Unlock className="mr-2 h-3.5 w-3.5" />
@@ -213,7 +213,6 @@ export function BoxSettingModal({
             <Button
               onClick={handleSaveStatus}
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700"
             >
               {saving ? "Đang lưu..." : "Lưu"}
             </Button>

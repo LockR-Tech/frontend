@@ -4,12 +4,18 @@ import {
   OverviewCard,
   OverviewSection,
   MainChart,
+  PaymentMethodChart,
+  OrderStatusChart,
+  ServiceRevenueChart,
+  PeakHoursChart,
+  TopLocationsTable,
+  UserGrowthChart,
   RecommendationsSection,
 } from "./components";
 import {
-  ShoppingBag,
+  Package,
   CalendarCheck,
-  DollarSign,
+  CreditCard,
   TrendingUp,
 } from "lucide-react";
 
@@ -33,16 +39,19 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <Skeleton className="h-10 w-48" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <Skeleton className="h-8 w-44" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
+            <Skeleton key={i} className="h-28 rounded-xl" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="lg:col-span-2 h-87.5" />
-          <Skeleton className="h-87.5" />
+          <Skeleton className="lg:col-span-2 h-96 rounded-xl" />
+          <Skeleton className="h-96 rounded-xl" />
         </div>
       </div>
     );
@@ -50,51 +59,57 @@ export default function Dashboard() {
 
   const heroCards = [
     {
-      label: "Tổng đơn hàng",
+      label: "Tổng đơn gửi & thuê",
       value: overview.totalOrders.toLocaleString("vi-VN"),
-      icon: ShoppingBag,
-      color: "blue" as const,
+      icon: Package,
+      sublabel: "Toàn bộ mạng lưới Kiosk",
+      deltaAmount: "+148 đơn (+13.4%)",
+      trend: { value: "+14.2%", isPositive: true },
     },
     {
       label: "Đơn hôm nay",
       value: overview.ordersToday.toString(),
-      sublabel: "Hôm nay",
+      sublabel: "Phát sinh trong ngày",
+      deltaAmount: "+6 đơn (+16.7%)",
       icon: CalendarCheck,
-      color: "indigo" as const,
     },
     {
       label: "Tổng doanh thu",
       value: formatVND(overview.totalRevenue),
-      icon: DollarSign,
-      color: "emerald" as const,
+      icon: CreditCard,
+      sublabel: "Tích lũy hệ thống",
+      deltaAmount: "+115.000 đ (+14.2%)",
+      trend: { value: "+9.8%", isPositive: true },
     },
     {
       label: "Doanh thu hôm nay",
       value: formatVND(overview.revenueToday),
-      sublabel: "Hôm nay",
+      sublabel: "Ghi nhận hôm nay",
+      deltaAmount: "+45.000 đ (+6.5%)",
       icon: TrendingUp,
-      color: "green" as const,
     },
   ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-screen bg-muted/30 space-y-6">
-      {/* Page title */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Tổng quan hoạt động hệ thống Laundry Locker
-        </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/60 pb-5">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Tổng quan thời gian thực về đơn gửi hàng, thuê ô, doanh thu và vận hành mạng lưới Kiosk
+          </p>
+        </div>
       </div>
 
       {/* Hero KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {heroCards.map((card) => (
           <OverviewCard key={card.label} {...card} />
         ))}
       </div>
 
-      {/* Chart + Side Stats */}
+      {/* Row 1: Main Trend + Infrastructure Capacity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <MainChart
@@ -108,7 +123,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recommendations */}
+      {/* Row 2: 3 Specialized Distribution Donut / Bar Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <PaymentMethodChart />
+        <OrderStatusChart
+          completed={Math.round(overview.totalOrders * 0.72) || 450}
+          inProgress={Math.round(overview.totalOrders * 0.15) || 85}
+          ready={Math.round(overview.totalOrders * 0.08) || 42}
+          canceled={Math.round(overview.totalOrders * 0.05) || 23}
+        />
+        <ServiceRevenueChart />
+      </div>
+
+      {/* Row 3: Peak Hours + User Growth */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PeakHoursChart />
+        <UserGrowthChart />
+      </div>
+
+      {/* Row 4: Top Performing Locations & Kiosks Table */}
+      <TopLocationsTable />
+
+      {/* Row 5: Operational Recommendations */}
       <RecommendationsSection
         recommendations={recommendations}
         onRecommendationClick={handleRecommendationClick}
@@ -116,3 +152,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

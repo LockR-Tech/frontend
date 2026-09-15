@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
-  Globe,
   Moon,
   Sun,
   Monitor,
@@ -8,12 +7,13 @@ import {
   Check,
   PanelLeft,
   Bell,
+  ChevronRight,
+  Search,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "~/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "~/context/theme-context";
-import i18n from "~/utils/i18n";
 import { useSidebar } from "~/context/sidebar-context";
 import {
   DropdownMenu,
@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
+import { useGetAllNotificationsQuery } from "~/stores/apis/admin/notifications";
 
 interface HeaderProps {
   className?: string;
@@ -29,9 +30,9 @@ interface HeaderProps {
 
 // Language options
 const languages = [
-  { code: "vi", flag: "🇻🇳" },
-  { code: "en", flag: "🇬🇧" },
-  { code: "ja", flag: "🇯🇵" },
+  { code: "vi", flag: "🇻🇳", label: "Tiếng Việt" },
+  { code: "en", flag: "🇬🇧", label: "English" },
+  { code: "ja", flag: "🇯🇵", label: "日本語" },
 ];
 
 // Theme options
@@ -44,12 +45,12 @@ const themes = [
 // Path mapping for breadcrumbs
 const pathMap: Record<string, string> = {
   admin: "Admin",
-  partner: "Partner",
+  partner: "Đối tác",
   dashboard: "Dashboard",
   users: "Người dùng",
   orders: "Đơn hàng",
-  stores: "Cửa hàng",
-  lockers: "Tủ đồ",
+  stores: "Địa điểm",
+  lockers: "Kiosk",
   services: "Dịch vụ",
   payments: "Thanh toán",
   loyalty: "Khách hàng thân thiết",
@@ -63,30 +64,33 @@ const pathMap: Record<string, string> = {
   detail: "Chi tiết",
   create: "Tạo mới",
   edit: "Chỉnh sửa",
+  drones: "Drone",
+  maintenance: "Bảo trì thiết bị",
+  promotions: "Khuyến mãi",
 };
 
-// Check if string is numeric (for IDs)
 const isNumeric = (str: string) => /^\d+$/.test(str);
 
 function Breadcrumb() {
   const location = useLocation();
   const paths = location.pathname.split("/").filter(Boolean);
 
-  // Only show breadcrumb for nested pages (depth >= 2)
-  // Examples: /admin/lockers/123, /partner/orders/detail
-  if (paths.length < 2) return null;
+  if (paths.length < 2) {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+        <span>Admin</span>
+        <ChevronRight size={13} className="text-muted-foreground/40" />
+        <span className="text-foreground font-semibold">Dashboard</span>
+      </div>
+    );
+  }
 
-  // Build breadcrumb items - skip the first segment (admin/partner) if there are more segments
-  const startIndex = 0;
-  const items = paths.slice(startIndex).map((path, index) => {
-    const actualIndex = index + startIndex;
-    const fullPath = "/" + paths.slice(0, actualIndex + 1).join("/");
-    const isLast = actualIndex === paths.length - 1;
+  const items = paths.map((path, index) => {
+    const fullPath = "/" + paths.slice(0, index + 1).join("/");
+    const isLast = index === paths.length - 1;
 
-    // Format label: map known paths, shorten numeric IDs
     let label = pathMap[path] || path;
     if (isNumeric(path) && path.length > 3) {
-      // Truncate long IDs like "123456" -> "#123..."
       label = `#${path.slice(0, 6)}${path.length > 6 ? "..." : ""}`;
     }
 
@@ -97,20 +101,22 @@ function Breadcrumb() {
   });
 
   return (
-    <nav className="flex items-center gap-1.5 text-sm">
+    <nav className="flex items-center gap-1.5 text-xs font-medium">
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
 
         return (
           <div key={index} className="flex items-center gap-1.5">
-            {index > 0 && <span className="text-muted-foreground/50">/</span>}
+            {index > 0 && (
+              <ChevronRight size={13} className="text-muted-foreground/40 shrink-0" />
+            )}
             {isLast || !item.path ? (
               <span
                 className={cn(
                   isLast
-                    ? "font-medium text-foreground"
+                    ? "font-semibold text-foreground"
                     : "text-muted-foreground",
-                  "max-w-[150px] truncate",
+                  "max-w-[140px] truncate",
                 )}
               >
                 {item.label}
@@ -118,7 +124,7 @@ function Breadcrumb() {
             ) : (
               <Link
                 to={item.path}
-                className="text-muted-foreground hover:text-blue-600 transition-colors max-w-[150px] truncate"
+                className="text-muted-foreground hover:text-foreground transition-colors max-w-[140px] truncate"
               >
                 {item.label}
               </Link>
@@ -139,15 +145,18 @@ export function Header({ className }: HeaderProps) {
   const [openLang, setOpenLang] = useState(false);
   const [openTheme, setOpenTheme] = useState(false);
 
+  const notificationsQuery = useGetAllNotificationsQuery({ page: 0, size: 5 });
+  const notifList = notificationsQuery.data?.data?.content ?? [];
+
   const currentLang =
     languages.find((l) => l.code === i18nInstance.language) || languages[0];
   const currentTheme = themes.find((t) => t.code === theme) || themes[2];
   const ThemeIcon = currentTheme.icon;
 
   const themeLabels: Record<string, string> = {
-    light: t("header.themeLight"),
-    dark: t("header.themeDark"),
-    system: t("header.themeSystem"),
+    light: t("header.themeLight") || "Sáng",
+    dark: t("header.themeDark") || "Tối",
+    system: t("header.themeSystem") || "Hệ thống",
   };
 
   const handleChangeLanguage = (code: string) => {
@@ -159,88 +168,84 @@ export function Header({ className }: HeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full border-b border-border/20 bg-background/80 backdrop-blur-lg",
+        "sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md",
         className,
       )}
     >
-      <div className="flex sm:py-1 py-2 items-center justify-between px-4 sm:px-6">
-        {/* Left: Toggle Sidebar + Breadcrumb */}
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+        {/* Left: Mobile Toggle & Breadcrumb */}
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 lg:hidden"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden"
             onClick={toggleSidebar}
           >
-            <PanelLeft className="h-5 w-5" />
+            <PanelLeft size={18} />
           </Button>
 
-          {/* Breadcrumb - only shows on nested pages */}
-          <div className="hidden sm:flex items-center gap-2 text-muted-foreground">
-            <Breadcrumb />
-          </div>
+          <Breadcrumb />
         </div>
 
-        {/* Right: Language + Theme + Notifications */}
+        {/* Right Controls: Search prompt + Lang + Theme + Notifications */}
         <div className="flex items-center gap-2">
-          {/* Language Dropdown */}
+          {/* Quick Search trigger (visual hint) */}
+          <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-md bg-secondary text-muted-foreground text-xs border border-border/50">
+            <Search size={13} />
+            <span>Tìm kiếm...</span>
+            <kbd className="text-[10px] bg-card px-1.5 py-0.5 rounded border border-border font-mono text-foreground/70">
+              ⌘K
+            </kbd>
+          </div>
+
+          {/* Language Switcher */}
           <DropdownMenu open={openLang} onOpenChange={setOpenLang}>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-8 gap-1.5 px-2.5 font-normal"
+                className="h-8 gap-1.5 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"
               >
-                <span className="text-base">{currentLang.flag}</span>
-                <span className="hidden sm:inline text-sm uppercase">
+                <span>{currentLang.flag}</span>
+                <span className="hidden sm:inline uppercase">
                   {currentLang.code}
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronDown size={13} className="text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-40 bg-popover border border-border"
-            >
+            <DropdownMenuContent align="end" className="w-36">
               {languages.map((lang) => (
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => handleChangeLanguage(lang.code)}
-                  className="cursor-pointer"
+                  className="cursor-pointer text-xs"
                 >
-                  <span className="mr-2 text-base">{lang.flag}</span>
-                  <span className="flex-1">
-                    {lang.code === "vi" && "Tiếng Việt"}
-                    {lang.code === "en" && "English"}
-                    {lang.code === "ja" && "日本語"}
-                  </span>
+                  <span className="mr-2">{lang.flag}</span>
+                  <span className="flex-1">{lang.label}</span>
                   {i18nInstance.language === lang.code && (
-                    <Check className="h-4 w-4 text-blue-600" />
+                    <Check size={14} className="text-primary ml-auto" />
                   )}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Theme Dropdown */}
+          {/* Theme Switcher */}
           <DropdownMenu open={openTheme} onOpenChange={setOpenTheme}>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-8 gap-1.5 px-2.5 font-normal"
+                className="h-8 gap-1.5 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"
               >
-                <ThemeIcon className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm">
+                <ThemeIcon size={15} />
+                <span className="hidden sm:inline">
                   {themeLabels[currentTheme.code]}
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
+                <ChevronDown size={13} className="text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-40 bg-popover border border-border"
-            >
+            <DropdownMenuContent align="end" className="w-36">
               {themes.map((t) => {
                 const Icon = t.icon;
                 return (
@@ -250,12 +255,12 @@ export function Header({ className }: HeaderProps) {
                       setTheme(t.code);
                       setOpenTheme(false);
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-xs"
                   >
-                    <Icon className="mr-2 h-4 w-4" />
+                    <Icon size={14} className="mr-2 text-muted-foreground" />
                     <span className="flex-1">{themeLabels[t.code]}</span>
                     {theme === t.code && (
-                      <Check className="h-4 w-4 text-blue-600" />
+                      <Check size={14} className="text-primary ml-auto" />
                     )}
                   </DropdownMenuItem>
                 );
@@ -263,11 +268,67 @@ export function Header({ className }: HeaderProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background" />
-          </Button>
+          {/* Notifications Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground relative"
+                aria-label="Thông báo hệ thống"
+              >
+                <Bell size={16} />
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-background animate-pulse" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80 sm:w-96 p-0 shadow-lg border border-border/80">
+              <div className="p-3 border-b border-border/60 flex items-center justify-between bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <Bell size={15} className="text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Thông báo hệ thống</span>
+                </div>
+                <Link
+                  to="/admin/notifications"
+                  className="text-[11px] text-primary hover:underline font-medium"
+                >
+                  Xem tất cả
+                </Link>
+              </div>
+              <div className="max-h-72 overflow-y-auto divide-y divide-border/50">
+                {notifList.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-muted-foreground">
+                    Không có thông báo mới nào
+                  </div>
+                ) : (
+                  notifList.slice(0, 5).map((n) => (
+                    <div
+                      key={n.id}
+                      className="p-3 hover:bg-muted/40 transition-colors text-left"
+                    >
+                      <p className="text-xs font-semibold text-foreground truncate">{n.title}</p>
+                      <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
+                      <p className="text-[10px] text-muted-foreground/70 font-mono mt-1">
+                        {(() => {
+                          const d = new Date(n.createdAt);
+                          if (isNaN(d.getTime())) return n.createdAt;
+                          const pad = (v: number) => String(v).padStart(2, "0");
+                          return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+                        })()}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="p-2 border-t border-border/60 text-center bg-muted/20">
+                <Link
+                  to="/admin/notifications"
+                  className="text-xs text-muted-foreground hover:text-foreground font-medium block py-1"
+                >
+                  Mở trung tâm thông báo &gt;
+                </Link>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

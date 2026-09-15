@@ -138,7 +138,7 @@ export default function StoreDetailPage() {
     return (
       <div className="text-center py-12">
         <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground/70" />
-        <h3 className="mt-4 text-lg font-medium">Không tìm thấy cửa hàng</h3>
+        <h3 className="mt-4 text-lg font-medium">Không tìm thấy địa điểm</h3>
         <Button onClick={() => navigate(-1)} className="mt-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Quay lại
@@ -169,7 +169,7 @@ export default function StoreDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận lưu thay đổi?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn lưu các thay đổi của cửa hàng này không?
+              Bạn có chắc chắn muốn lưu các thay đổi của địa điểm này không?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">
@@ -177,7 +177,7 @@ export default function StoreDetailPage() {
             <AlertDialogAction
               onClick={handleSave}
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary text-primary-foreground hover:opacity-90"
             >
               {isSaving ? "Đang lưu..." : "Lưu"}
             </AlertDialogAction>
@@ -186,14 +186,14 @@ export default function StoreDetailPage() {
       </AlertDialog>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-border/60 pb-5">
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{store.name}</h1>
-            <p className="text-sm text-muted-foreground">ID: {store.id}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{store.name}</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Mã địa điểm: #{store.id}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -201,18 +201,20 @@ export default function StoreDetailPage() {
             <>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={handleCancel}
                 disabled={isSaving}
               >
-                <X className="mr-2 h-4 w-4" />
+                <X className="mr-1.5 h-3.5 w-3.5" />
                 Hủy
               </Button>
               <Button
+                size="sm"
                 onClick={() => setShowConfirm(true)}
                 disabled={isSaving}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary text-primary-foreground hover:opacity-90 shadow-xs"
               >
-                <Save className="mr-2 h-4 w-4" />
+                <Save className="mr-1.5 h-3.5 w-3.5" />
                 {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
               </Button>
             </>
@@ -221,8 +223,8 @@ export default function StoreDetailPage() {
             variant="outline"
             className={
               store.active
-                ? "bg-green-50 text-green-700 border-green-200"
-                : "bg-muted/30 text-muted-foreground border-border/50"
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                : "bg-secondary text-muted-foreground border-border"
             }
           >
             {store.active ? "Đang hoạt động" : "Đóng cửa"}
@@ -244,20 +246,20 @@ export default function StoreDetailPage() {
                   "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600";
               }}
             />
-            <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
-            <button className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-white/90 hover:bg-white text-foreground/80 text-xs font-medium px-3 py-1.5 rounded-lg shadow transition-all">
+            <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
+            <button className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-background/90 hover:bg-background text-foreground text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border/40 shadow-xs backdrop-blur-xs transition-all">
               <Camera className="h-3.5 w-3.5" />
               Đổi ảnh
             </button>
             <div className="absolute top-3 left-3">
               <span
-                className={`text-xs font-medium px-2 py-1 rounded-full ${
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border backdrop-blur-xs ${
                   store.active
-                    ? "bg-green-500 text-white"
-                    : "bg-muted/300 text-white"
+                    ? "bg-emerald-500/90 text-white border-emerald-400/40"
+                    : "bg-background/90 text-foreground border-border/40"
                 }`}
               >
-                {store.active ? "● Đang hoạt động" : "● Đóng cửa"}
+                {store.active ? "Đang hoạt động" : "Đóng cửa"}
               </span>
             </div>
           </div>
@@ -267,12 +269,12 @@ export default function StoreDetailPage() {
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                  Tên cửa hàng
+                  Tên địa điểm
                 </label>
                 <Input
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Nhập tên cửa hàng"
+                  placeholder="Nhập tên địa điểm"
                   className="font-medium"
                 />
               </div>
@@ -352,11 +354,11 @@ export default function StoreDetailPage() {
         <Separator />
 
         {/* Bottom Row: Manager | Stats | History */}
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x">
+        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/60">
           {/* Manager */}
           <div className="p-5 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1.5">
-              <User className="h-3.5 w-3.5" /> Quản lý cửa hàng
+              <User className="h-3.5 w-3.5" /> Quản lý địa điểm
             </p>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Họ tên</label>
@@ -388,24 +390,24 @@ export default function StoreDetailPage() {
               <TrendingUp className="h-3.5 w-3.5" /> Thống kê
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-muted/30 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-foreground">
+              <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
+                <p className="text-xl font-bold text-foreground">
                   {store.lockerCount ?? lockersList.length}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">Tổng tủ</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Tổng Kiosk</p>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-foreground">{totalBoxes}</p>
+              <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
+                <p className="text-xl font-bold text-foreground">{totalBoxes}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Tổng box</p>
               </div>
-              <div className="bg-green-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-green-600">
+              <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
+                <p className="text-xl font-bold text-foreground">
                   {availableBoxes}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">Box trống</p>
               </div>
-              <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-blue-600">
+              <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
+                <p className="text-xl font-bold text-foreground">
                   {store.orderCount ?? 0}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">Đơn hàng</p>
@@ -414,7 +416,7 @@ export default function StoreDetailPage() {
             <div className="mt-3">
               <div className="flex justify-between text-xs text-muted-foreground mb-1">
                 <span>Tỉ lệ sử dụng</span>
-                <span className="font-medium">
+                <span className="font-semibold text-foreground">
                   {totalBoxes > 0
                     ? Math.round(
                         ((totalBoxes - availableBoxes) / totalBoxes) * 100,
@@ -423,9 +425,9 @@ export default function StoreDetailPage() {
                   %
                 </span>
               </div>
-              <div className="w-full bg-muted/50 rounded-full h-1.5">
+              <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
                 <div
-                  className="bg-blue-500 h-1.5 rounded-full transition-all"
+                  className="bg-primary h-1.5 rounded-full transition-all"
                   style={{
                     width: `${totalBoxes > 0 ? ((totalBoxes - availableBoxes) / totalBoxes) * 100 : 0}%`,
                   }}
@@ -453,7 +455,7 @@ export default function StoreDetailPage() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground/70">Mã cửa hàng</p>
+                <p className="text-xs text-muted-foreground/70">Mã địa điểm</p>
                 <p className="text-sm font-mono font-semibold text-foreground/80 mt-0.5">
                   #{store.id}
                 </p>
@@ -465,11 +467,11 @@ export default function StoreDetailPage() {
 
       {/* Lockers Section */}
       <Card>
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b">
-          <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground/80">
-            <Package className="h-4 w-4" />
-            Danh sách tủ đồ
-            <Badge variant="secondary" className="ml-1">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/60">
+          <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground">
+            <Package className="h-4 w-4 text-muted-foreground" />
+            Danh sách Kiosk
+            <Badge variant="secondary" className="ml-1 text-xs">
               {lockersList.length}
             </Badge>
           </h2>
@@ -477,34 +479,34 @@ export default function StoreDetailPage() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-xs text-muted-foreground"
+              className="h-8 text-xs text-muted-foreground"
               onClick={() => refetch?.()}
             >
-              <RefreshCw className="h-3 w-3 mr-1" />
+              <RefreshCw className="h-3.5 w-3.5 mr-1" />
               Làm mới
             </Button>
             <Button
               size="sm"
-              className="h-7 text-xs bg-blue-600 hover:bg-blue-700"
+              className="h-8 text-xs"
               onClick={() => setShowAddLocker(true)}
             >
-              <Plus className="h-3 w-3 mr-1" />
-              Thêm tủ
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Thêm Kiosk
             </Button>
           </div>
         </div>
         <div className="p-4">
           {lockersList.length === 0 ? (
-            <div className="py-10 text-center text-muted-foreground/70">
+            <div className="py-10 text-center text-muted-foreground">
               <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">Chưa có tủ đồ nào trong cửa hàng này</p>
+              <p className="text-sm">Chưa có Kiosk nào tại địa điểm này</p>
               <Button
                 size="sm"
-                className="mt-3 bg-blue-600 hover:bg-blue-700"
+                className="mt-3"
                 onClick={() => setShowAddLocker(true)}
               >
                 <Plus className="h-3.5 w-3.5 mr-1" />
-                Thêm tủ đầu tiên
+                Thêm Kiosk đầu tiên
               </Button>
             </div>
           ) : (

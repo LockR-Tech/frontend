@@ -292,15 +292,21 @@ export function NotificationTable({
       header: t("admin.notifications.columns.createdAt"),
       cell: (info) => {
         const date = new Date(info.getValue());
+        const timeStr = date.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+        const dateStr = date.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
         return (
-          <div className="text-xs text-muted-foreground">
-            <p>{date.toLocaleDateString("vi-VN")}</p>
-            <p>
-              {date.toLocaleTimeString("vi-VN", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
+          <div className="font-mono text-xs">
+            <p className="font-semibold text-foreground tracking-tight">{timeStr}</p>
+            <p className="text-[11px] text-muted-foreground">{dateStr}</p>
           </div>
         );
       },

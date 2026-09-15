@@ -368,7 +368,7 @@ export function PromotionModal({
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded accent-blue-600"
+                className="w-4 h-4 rounded accent-primary"
                 checked={form.stackable}
                 onChange={(e) => set("stackable", e.target.checked)}
               />
