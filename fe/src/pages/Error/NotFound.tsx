@@ -26,6 +26,7 @@ const ROUTE_NAMES: Record<string, string> = {
   "/admin/partners": "Đối tác",
   "/admin/feedback": "Phản hồi",
   "/admin/scheduler": "Lập lịch",
+  "/admin/settings": "Cấu hình nghiệp vụ",
   "/partner/dashboard": "Partner Dashboard",
   "/partner/orders": "Đơn hàng",
   "/partner/staff": "Nhân viên",

@@ -92,7 +92,8 @@
       "promotions": "プロモーション",
       "settings": "設定",
       "maintenance": "メンテナンス",
-      "drones": "ドローン"
+      "drones": "ドローン",
+      "businessSettings": "業務ルール設定"
     },
     "dashboard": {
       "title": "概要",
@@ -280,14 +281,7 @@
       "language": "言語",
       "languageHelp": "表示言語を選択",
       "theme": "テーマ",
-      "themeHelp": "ライト / ダーク / システムを切替",
-      "analytics": "分析",
-      "analyticsHelp": "アプリ改善のため匿名データを送信",
-      "devMode": "開発者モード",
-      "devModeHelp": "デバッグ情報を表示",
-      "reset": "リセット",
-      "save": "変更を保存",
-      "saving": "保存中..."
+      "themeHelp": "ライト / ダーク / システムを切替"
     },
     "notifications": {
       "title": "通知管理",

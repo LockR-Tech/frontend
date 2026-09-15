@@ -51,6 +51,7 @@ const TechnicianDetailPage = lazy(() => import("../pages/Admin/maintenance/techn
 const NotificationsPage = lazy(() => import("../pages/Admin/notifications"));
 const PromotionsPage = lazy(() => import("../pages/Admin/promotions"));
 const DronesPage = lazy(() => import("../pages/Admin/drones"));
+const BusinessSettingsPage = lazy(() => import("../pages/Admin/settings"));
 
 // Lazy load Auth Pages
 const LoginPage = lazy(() => import("~/pages/auth/Login"));
@@ -129,6 +130,9 @@ const routeAliases: RouteObject[] = [
   // Feedback aliases
   { path: "feedback", element: <Navigate to="/admin/feedback" replace /> },
   { path: "phan-hoi", element: <Navigate to="/admin/feedback" replace /> },
+
+  // Business settings aliases
+  { path: "cau-hinh", element: <Navigate to="/admin/settings" replace /> },
 
   // Partner portal aliases
   { path: "partner", element: <Navigate to="/partner/dashboard" replace /> },
@@ -353,6 +357,15 @@ const routesConfig: RouteObject[] = [
           </LazyWrapper>
         ),
       },
+      {
+        path: "settings",
+        element: (
+          <LazyWrapper>
+            <BusinessSettingsPage />
+          </LazyWrapper>
+        ),
+      },
+      { path: "business-settings", element: <Navigate to="/admin/settings" replace /> },
       // Admin catch-all
       { path: "*", element: <NotFoundPage /> },
     ],
