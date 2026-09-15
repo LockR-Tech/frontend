@@ -1,4 +1,4 @@
-﻿import type { LockerReportResponse } from "~/stores/apis/admin/lockerOps";
+import type { LockerReportResponse } from "~/stores/apis/admin/lockerOps";
 
 export interface InspectionPhoto {
   url: string;
@@ -22,9 +22,17 @@ export const extractPhotoList = (text?: string): string[] => {
   if (!text) return [];
   const urlMatches =
     text.match(
-      /(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg)|data:image\/[a-zA-Z]+;base64,[^\s]+)/gi
+      /(https?:\/\/[^\s]+(?:\.(?:png|jpg|jpeg|gif|webp|svg)(?:\?[^\s]*)?|\/photo-[^\s]+|\?[^\s]*format=[^\s]*|data:image\/[a-zA-Z]+;base64,[^\s]+))/gi
     ) || [];
-  return Array.from(new Set(urlMatches));
+  return Array.from(new Set(urlMatches.map((u) => u.replace(/[),.;]+$/, ""))));
+};
+
+export const cleanDescription = (text?: string): string => {
+  if (!text) return "";
+  return text
+    .replace(/(?:Ảnh minh chứng hiện trường:?\s*)?(https?:\/\/[^\s]+|data:image\/[^\s]+)/gi, "")
+    .replace(/\n\s*\n/g, "\n")
+    .trim();
 };
 
 export const SAMPLE_PHOTOS_BY_REPORT: Record<number, InspectionPhoto[]> = {
@@ -203,37 +211,54 @@ export const KTV_NOTES_BY_REPORT: Record<number, {
   },
 };
 
-export const getReportPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
+// Ảnh từ người dùng khi gửi báo cáo sự cố (User / Customer photos)
+export const getUserPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
   const extracted = extractPhotoList(report.description);
   if (extracted.length > 0) {
     return extracted.map((url, i) => ({
       url,
-      label: `Ảnh minh chứng #${i + 1}`,
-      tag: "Ảnh chụp hiện trường",
+      label: `Ảnh từ User #${i + 1}`,
+      tag: `Ảnh sự cố do khách hàng tải lên`,
       timestamp: report.createdAt || "Vừa cập nhật",
     }));
   }
-  if (SAMPLE_PHOTOS_BY_REPORT[report.id]) {
-    return SAMPLE_PHOTOS_BY_REPORT[report.id];
+  return [];
+};
+
+// Ảnh hiện trường do KTV chụp khi đến kiểm tra tủ
+export const getInspectionPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
+  const samples = SAMPLE_PHOTOS_BY_REPORT[report.id];
+  if (samples) {
+    return samples.filter(
+      (p) =>
+        p.label.includes("hiện trường") ||
+        p.label.includes("trước sửa") ||
+        p.tag.toLowerCase().includes("hiện trường")
+    );
   }
-  const isDrone = (report.title || "").toLowerCase().includes("drone");
-  return isDrone
-    ? [
-        {
-          url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=700&auto=format&fit=crop&q=80",
-          label: "Ảnh hiện trường",
-          tag: "Hiện trường: Drone kiểm tra kỹ thuật",
-          timestamp: report.createdAt || "08:00:00",
-        },
-      ]
-    : [
-        {
-          url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=700&auto=format&fit=crop&q=80",
-          label: "Ảnh hiện trường",
-          tag: "Hiện trường ô tủ ghi nhận sự cố",
-          timestamp: report.createdAt || "08:00:00",
-        },
-      ];
+  return [];
+};
+
+// Ảnh nghiệm thu sau khi KTV hoàn tất sửa chữa (CHỈ hiển thị khi đã RESOLVED)
+export const getResolutionPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
+  if (report.status !== "RESOLVED") {
+    return [];
+  }
+  const samples = SAMPLE_PHOTOS_BY_REPORT[report.id];
+  if (samples) {
+    const res = samples.filter(
+      (p) =>
+        p.label.includes("nghiệm thu") ||
+        p.label.includes("sau sửa") ||
+        p.tag.toLowerCase().includes("nghiệm thu")
+    );
+    if (res.length > 0) return res;
+  }
+  return [];
+};
+
+export const getReportPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
+  return getResolutionPhotos(report);
 };
 
 // Quản lý gia hạn SLA linh hoạt (Lưu trữ cục bộ để duy trì trạng thái gia hạn)

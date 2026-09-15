@@ -37,33 +37,30 @@ export function OverviewCard({
               {value}
             </div>
 
-            {deltaAmount && (
+            {deltaAmount ? (
               <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
                 <span>{deltaAmount}</span>
               </div>
-            )}
-
-            {(sublabel || trend) && (
-              <div className="flex items-center gap-2 mt-2">
-                {trend && (
-                  <span
-                    className={cn(
-                      "inline-flex items-center text-[11px] font-semibold px-1.5 py-0.5 rounded",
-                      trend.isPositive
-                        ? "text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/40"
-                        : "text-muted-foreground bg-secondary",
-                    )}
-                  >
-                    {trend.value}
-                  </span>
-                )}
-                {sublabel && (
-                  <span className="text-xs text-muted-foreground truncate">
-                    {sublabel}
-                  </span>
-                )}
+            ) : trend ? (
+              <div className="flex items-center gap-1 mt-1">
+                <span
+                  className={cn(
+                    "inline-flex items-center text-[11px] font-semibold px-1.5 py-0.5 rounded border",
+                    trend.isPositive !== false
+                      ? "text-emerald-700 bg-emerald-500/10 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/15"
+                      : "text-rose-700 bg-rose-500/10 border-rose-500/20 dark:text-rose-400 dark:bg-rose-500/15",
+                  )}
+                >
+                  {trend.value}
+                </span>
               </div>
+            ) : null}
+
+            {sublabel && (
+              <p className="text-xs text-muted-foreground mt-1.5 truncate">
+                {sublabel}
+              </p>
             )}
           </div>
 

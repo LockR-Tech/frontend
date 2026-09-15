@@ -122,6 +122,15 @@ export function AssignReportDialog({
                     <span className="text-muted-foreground text-[11px]">
                       (#{t.id} {t.phoneNumber ? `· ${t.phoneNumber}` : ""})
                     </span>
+                    {t.specialty === "KIOSK" ? (
+                      <span className="text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-sky-200">
+                        KTV Kiosk
+                      </span>
+                    ) : (
+                      <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-purple-200">
+                        KTV Drone
+                      </span>
+                    )}
                     {!t.enabled && (
                       <span className="text-rose-500 text-[10px] font-semibold">
                         [Đã đình chỉ]

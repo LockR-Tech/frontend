@@ -16,6 +16,7 @@ import {
   AlertOctagon,
   Eye,
   Send,
+  Plane,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -44,8 +45,9 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [penaltyFilter, setPenaltyFilter] = useState("ALL");
+  const [specialtyFilter, setSpecialtyFilter] = useState<"ALL" | "KIOSK" | "DRONE">("ALL");
 
-  // Fetch all users with role TECHNICIAN
+  // Fetch all users with role TECHNICIAN or MAINTENANCE
   const { data: usersData, isLoading: isLoadingUsers, refetch: refetchUsers } = useGetAllUsersQuery({
     page: 0,
     size: 1000,
@@ -58,7 +60,9 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
   const reports: LockerReportResponse[] = reportsData?.data ?? [];
 
-  // Extract technicians from users list
+  // Extract technicians from users list and classify their specialty
+  // TECHNICIAN: KTV sửa tủ Kiosk
+  // MAINTENANCE: KTV sửa Drone
   const technicians: TechnicianSummary[] = useMemo(() => {
     const raw = usersData?.data as unknown;
     const list: any[] = Array.isArray(raw)
@@ -67,22 +71,32 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
     return list
       .filter((u) => {
-        const roles = u.roles ?? [];
+        const roles: string[] = u.roles ?? [];
         return (
           roles.includes("TECHNICIAN") ||
           roles.includes("ROLE_TECHNICIAN") ||
           roles.includes("MAINTENANCE")
         );
       })
-      .map((u) => ({
-        id: u.id,
-        fullName: u.fullName || u.name || `KTV #${u.id}`,
-        email: u.email || "",
-        phoneNumber: u.phoneNumber || "",
-        status: (u.status || "ACTIVE").toUpperCase(),
-        imageUrl: u.imageUrl || "",
-        enabled: (u.status || "ACTIVE").toUpperCase() === "ACTIVE",
-      }));
+      .map((u) => {
+        const roles: string[] = u.roles ?? [];
+        const isKiosk = roles.includes("TECHNICIAN") || roles.includes("ROLE_TECHNICIAN");
+        const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
+        const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay & Pin)";
+
+        return {
+          id: u.id,
+          fullName: u.fullName || u.name || `KTV #${u.id}`,
+          email: u.email || "",
+          phoneNumber: u.phoneNumber || "",
+          status: (u.status || "ACTIVE").toUpperCase(),
+          imageUrl: u.imageUrl || "",
+          enabled: (u.status || "ACTIVE").toUpperCase() === "ACTIVE",
+          roles,
+          specialty,
+          specialtyLabel,
+        };
+      });
   }, [usersData]);
 
   // Compute workload and SLA penalty metrics per technician
@@ -127,6 +141,8 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
   // KPI calculations
   const totalTechs = technicians.length;
+  const kioskTechs = technicians.filter((t) => t.specialty === "KIOSK").length;
+  const droneTechs = technicians.filter((t) => t.specialty === "DRONE").length;
   const activeTechs = technicians.filter((t) => t.enabled).length;
   const workingTechs = technicians.filter((t) => (techMetrics[t.id]?.inProgress ?? 0) > 0).length;
   const warningTechs = technicians.filter((t) => {
@@ -144,6 +160,10 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
       if (!matchSearch) return false;
 
+      if (specialtyFilter !== "ALL" && t.specialty !== specialtyFilter) {
+        return false;
+      }
+
       const pLevel = techMetrics[t.id]?.penaltyLevel ?? "NORMAL";
       if (penaltyFilter === "ALL") return true;
       if (penaltyFilter === "ACTIVE") return t.enabled;
@@ -153,7 +173,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
       return true;
     });
-  }, [technicians, searchQuery, penaltyFilter, techMetrics]);
+  }, [technicians, searchQuery, specialtyFilter, penaltyFilter, techMetrics]);
 
   const handleToggleStatus = async (tech: TechnicianSummary) => {
     const newEnabled = !tech.enabled;
@@ -189,9 +209,10 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               </div>
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1">{totalTechs}</p>
-            <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-emerald-600">
-              <CheckCircle2 className="w-3 h-3" />
-              <span>{activeTechs} đang sẵn sàng nhận việc</span>
+            <div className="text-[11px] font-medium flex items-center gap-1.5 mt-1 text-slate-600">
+              <span className="text-sky-700 font-semibold">{kioskTechs} KTV Kiosk</span>
+              <span>·</span>
+              <span className="text-purple-700 font-semibold">{droneTechs} KTV Drone</span>
             </div>
           </CardContent>
         </Card>
@@ -297,6 +318,17 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                 />
               </div>
 
+              <Select value={specialtyFilter} onValueChange={(val: any) => setSpecialtyFilter(val)}>
+                <SelectTrigger className="w-48 h-8 text-xs bg-background">
+                  <SelectValue placeholder="Lọc chuyên môn" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tất cả chuyên môn ({totalTechs})</SelectItem>
+                  <SelectItem value="KIOSK">🔧 KTV Kiosk - Sửa tủ ({kioskTechs})</SelectItem>
+                  <SelectItem value="DRONE">✈️ KTV Drone - Đội bay ({droneTechs})</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Select value={penaltyFilter} onValueChange={setPenaltyFilter}>
                 <SelectTrigger className="w-44 h-8 text-xs bg-background">
                   <SelectValue placeholder="Lọc theo chế tài" />
@@ -381,6 +413,26 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                                 <Phone className="w-3 h-3 text-muted-foreground" />
                                 {tech.phoneNumber || "Chưa có SĐT"}
                               </p>
+                              {/* Specialty Badge */}
+                              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                                {tech.specialty === "KIOSK" ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-sky-50 text-sky-800 border-sky-300 text-[10px] font-semibold flex items-center gap-1 px-1.5 py-0.5"
+                                  >
+                                    <Wrench className="w-2.5 h-2.5 text-sky-600" />
+                                    KTV Kiosk (Tủ Kiosk)
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-purple-50 text-purple-800 border-purple-300 text-[10px] font-semibold flex items-center gap-1 px-1.5 py-0.5"
+                                  >
+                                    <Plane className="w-2.5 h-2.5 text-purple-600" />
+                                    KTV Drone (Đội bay)
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
 

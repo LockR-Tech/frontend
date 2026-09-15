@@ -66,7 +66,7 @@ import { MaintenanceSchedules } from "./MaintenanceSchedules";
 import { TechniciansTab } from "./TechniciansTab";
 import type { TechnicianSummary } from "./technician-detail";
 import { AssignReportDialog } from "./AssignReportDialog";
-import { getReportPhotos } from "./maintenancePhotos";
+import { getUserPhotos, getInspectionPhotos, getResolutionPhotos, cleanDescription } from "./maintenancePhotos";
 import {
   useGetFaultCellsQuery,
   useGetMaintenanceReportsQuery,
@@ -199,15 +199,25 @@ export default function MaintenanceAdminPage() {
           roles.includes("MAINTENANCE")
         );
       })
-      .map((u) => ({
-        id: u.id,
-        fullName: u.fullName || u.name || `KTV #${u.id}`,
-        email: u.email || "",
-        phoneNumber: u.phoneNumber || "",
-        status: (u.status || "ACTIVE").toUpperCase(),
-        imageUrl: u.imageUrl || "",
-        enabled: (u.status || "ACTIVE").toUpperCase() === "ACTIVE",
-      }));
+      .map((u) => {
+        const roles: string[] = u.roles ?? [];
+        const isKiosk = roles.includes("TECHNICIAN") || roles.includes("ROLE_TECHNICIAN");
+        const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
+        const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay & Pin)";
+
+        return {
+          id: u.id,
+          fullName: u.fullName || u.name || `KTV #${u.id}`,
+          email: u.email || "",
+          phoneNumber: u.phoneNumber || "",
+          status: (u.status || "ACTIVE").toUpperCase(),
+          imageUrl: u.imageUrl || "",
+          enabled: (u.status || "ACTIVE").toUpperCase() === "ACTIVE",
+          roles,
+          specialty,
+          specialtyLabel,
+        };
+      });
   }, [usersQuery.data]);
 
   const techniciansMap = useMemo(() => {
@@ -619,7 +629,7 @@ export default function MaintenanceAdminPage() {
                       <SelectItem value="UNASSIGNED">Chưa phân công (Mới)</SelectItem>
                       {technicians.map((t) => (
                         <SelectItem key={t.id} value={String(t.id)}>
-                          {t.fullName} (#{t.id})
+                          {t.fullName} (#{t.id}) · {t.specialty === "KIOSK" ? "KTV Kiosk" : "KTV Drone"}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -688,7 +698,7 @@ export default function MaintenanceAdminPage() {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {r.description} · <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
+                          <span className="text-foreground">{cleanDescription(r.description) || r.description}</span> · <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
                           {r.boxNumber ? ` · Ô #${r.boxNumber}` : r.boxId ? ` · Ô #${r.boxId}` : ""}{" "}
                           {r.cellType ? `· Loại ${r.cellType} ` : ""}
                           · Tạo lúc: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>
@@ -706,18 +716,61 @@ export default function MaintenanceAdminPage() {
                           </p>
                         )}
 
-                        {/* Inspection Photos Gallery */}
+                        {/* 1. Ảnh từ User (Khách hàng báo sự cố) */}
                         {(() => {
-                          const photos = getReportPhotos(r);
-                          if (!photos || photos.length === 0) return null;
+                          const userPhotos = getUserPhotos(r);
+                          if (!userPhotos || userPhotos.length === 0) return null;
                           return (
                             <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-                              <span className="text-[11px] font-semibold text-foreground flex items-center gap-1 shrink-0">
-                                <Camera className="w-3.5 h-3.5 text-indigo-600" />
-                                Nghiệm thu ({photos.length} ảnh):
+                              <span className="text-[11px] font-semibold text-rose-700 dark:text-rose-300 flex items-center gap-1 shrink-0 bg-rose-50 dark:bg-rose-950/50 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-900/60 shadow-2xs">
+                                <Camera className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                                Ảnh từ User ({userPhotos.length} ảnh):
                               </span>
                               <div className="flex items-center gap-2">
-                                {photos.map((photo, pIdx) => (
+                                {userPhotos.map((photo, pIdx) => (
+                                  <button
+                                    key={pIdx}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setLightboxImage({
+                                        url: photo.url,
+                                        title: `${photo.label} - Phiếu #${r.id} · ${r.title}`,
+                                      });
+                                    }}
+                                    className="relative w-12 h-12 rounded-md overflow-hidden border border-rose-300 dark:border-rose-800 hover:border-rose-500 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted ring-1 ring-rose-200/50"
+                                    title={photo.tag}
+                                  >
+                                    <img
+                                      src={photo.url}
+                                      alt={photo.label}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                    />
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Camera className="w-3.5 h-3.5 text-white" />
+                                    </div>
+                                    <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[8px] text-white text-center truncate px-0.5 font-medium">
+                                      Ảnh User
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 2. Ảnh hiện trường do KTV chụp */}
+                        {(() => {
+                          const inspectionPhotos = getInspectionPhotos(r);
+                          if (!inspectionPhotos || inspectionPhotos.length === 0) return null;
+                          return (
+                            <div className="mt-2 flex items-center gap-2 flex-wrap">
+                              <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1 shrink-0 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-900/60 shadow-2xs">
+                                <Camera className="w-3.5 h-3.5 text-amber-600" />
+                                Hiện trường KTV ({inspectionPhotos.length} ảnh):
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {inspectionPhotos.map((photo, pIdx) => (
                                   <button
                                     key={pIdx}
                                     type="button"
@@ -729,6 +782,49 @@ export default function MaintenanceAdminPage() {
                                       });
                                     }}
                                     className="relative w-12 h-12 rounded-md overflow-hidden border border-border/80 hover:border-foreground/50 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted"
+                                    title={photo.tag}
+                                  >
+                                    <img
+                                      src={photo.url}
+                                      alt={photo.label}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                    />
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Camera className="w-3.5 h-3.5 text-white" />
+                                    </div>
+                                    <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[8px] text-white text-center truncate px-0.5 font-medium">
+                                      {photo.label}
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 3. Ảnh nghiệm thu hoàn tất của KTV (Chỉ khi RESOLVED) */}
+                        {(() => {
+                          const resolutionPhotos = getResolutionPhotos(r);
+                          if (!resolutionPhotos || resolutionPhotos.length === 0) return null;
+                          return (
+                            <div className="mt-2 flex items-center gap-2 flex-wrap">
+                              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1 shrink-0 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900/60 shadow-2xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                Nghiệm thu ({resolutionPhotos.length} ảnh):
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {resolutionPhotos.map((photo, pIdx) => (
+                                  <button
+                                    key={pIdx}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setLightboxImage({
+                                        url: photo.url,
+                                        title: `${photo.label} - Phiếu #${r.id} · ${r.title}`,
+                                      });
+                                    }}
+                                    className="relative w-12 h-12 rounded-md overflow-hidden border border-emerald-300 dark:border-emerald-700 hover:border-emerald-500 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted ring-1 ring-emerald-200/50"
                                     title={photo.tag}
                                   >
                                     <img
