@@ -7,6 +7,7 @@ import type {
   PromotionResponse,
   PromotionRequest,
 } from "../../../types";
+import type { MediaUpload } from "../media";
 
 const TAGS = {
   PROMOTIONS: "Promotions",
@@ -95,6 +96,33 @@ export const promotionManagementApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [TAGS.PROMOTIONS],
     }),
+
+    // Ảnh khuyến mãi: body là MediaUpload (purpose PROMOTION_IMAGE), trả về Promotion
+    updatePromotionImage: builder.mutation<
+      ApiResponse<PromotionResponse>,
+      { id: number; media: MediaUpload }
+    >({
+      query: ({ id, media }) => ({
+        url: ADMIN_ENDPOINTS.PROMOTION_IMAGE(id),
+        method: "PUT",
+        body: media,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: TAGS.PROMOTIONS, id },
+        TAGS.PROMOTIONS,
+      ],
+    }),
+
+    deletePromotionImage: builder.mutation<ApiResponse<PromotionResponse>, number>({
+      query: (id) => ({
+        url: ADMIN_ENDPOINTS.PROMOTION_IMAGE(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, id) => [
+        { type: TAGS.PROMOTIONS, id },
+        TAGS.PROMOTIONS,
+      ],
+    }),
   }),
 });
 
@@ -108,4 +136,6 @@ export const {
   useCreatePromotionMutation,
   useUpdatePromotionMutation,
   useDeletePromotionMutation,
+  useUpdatePromotionImageMutation,
+  useDeletePromotionImageMutation,
 } = promotionManagementApi;

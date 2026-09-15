@@ -12,6 +12,7 @@ import {
   Tag,
   Percent,
   DollarSign,
+  Image as ImageIcon,
 } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { Badge } from "~/components/ui/badge";
@@ -157,15 +158,29 @@ export function PromotionTable({
       cell: (info) => {
         const row = info.row.original;
         return (
-          <div className="max-w-48">
-            <p className="font-medium text-sm text-foreground truncate">
-              {info.getValue()}
-            </p>
-            {row.description && (
-              <p className="text-xs text-muted-foreground/70 truncate">
-                {row.description}
+          <div className="flex items-center gap-2.5 max-w-60">
+            <div className="h-9 w-9 shrink-0 rounded-md border border-border/60 bg-muted/50 overflow-hidden flex items-center justify-center">
+              {row.imageUrl ? (
+                <img
+                  src={row.imageUrl}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <ImageIcon size={14} className="text-muted-foreground/50" aria-hidden />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-sm text-foreground truncate">
+                {info.getValue()}
               </p>
-            )}
+              {row.description && (
+                <p className="text-xs text-muted-foreground/70 truncate">
+                  {row.description}
+                </p>
+              )}
+            </div>
           </div>
         );
       },
