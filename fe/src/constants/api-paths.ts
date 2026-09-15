@@ -169,6 +169,13 @@ export const ADMIN_ENDPOINTS = {
   REPORT_ATTACHMENT_BY_ID: (id: number, attachmentId: number) =>
     `${ROOT_URI.ADMIN}/lockers/reports/${id}/attachments/${attachmentId}`,
 
+  // Business settings (quy tắc nghiệp vụ theo từng service — ADR-0005)
+  SETTINGS: `${ROOT_URI.ADMIN}/settings`,
+  SETTINGS_BY_SCOPE: (scope: string) => `${ROOT_URI.ADMIN}/settings/${scope}`,
+  SETTING_BY_KEY: (scope: string, key: string) =>
+    `${ROOT_URI.ADMIN}/settings/${scope}/${encodeURIComponent(key)}`,
+  SETTING_AUDITS: (scope: string) => `${ROOT_URI.ADMIN}/settings/${scope}/audits`,
+
   // Analytics
   ANALYTICS_FEEDBACK: `${ROOT_URI.ADMIN}/analytics/feedback`,
   ANALYTICS_SATISFACTION: `${ROOT_URI.ADMIN}/analytics/satisfaction`,
@@ -177,7 +184,11 @@ export const ADMIN_ENDPOINTS = {
   ANALYTICS: `${ROOT_URI.ADMIN}/analytics`,
   SCHEDULE: `${ROOT_URI.ADMIN}/schedule`,
   INTEGRATIONS: `${ROOT_URI.ADMIN}/integrations`,
-  SETTINGS: `${ROOT_URI.ADMIN}/settings`,
+} as const;
+
+// Public business settings (không cần đăng nhập)
+export const PUBLIC_SETTINGS_ENDPOINTS = {
+  BY_SCOPE: (scope: string) => `/api/settings/${scope}/public`,
 } as const;
 
 // Media Endpoints (chữ ký upload Cloudinary — xem docs/01-overview/media-storage.md)
