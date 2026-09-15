@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Save,
   X,
+  Trash2,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -29,8 +30,16 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { useUserDetail } from "./hooks/useUserDetail";
-import { useUpdateUserMutation } from "~/stores/apis/admin";
+import {
+  useDeleteUserAvatarMutation,
+  useUpdateUserAvatarMutation,
+  useUpdateUserMutation,
+} from "~/stores/apis/admin";
 import { UserLoyaltySection } from "./components/UserLoyaltySection";
+import { ImageUploadButton } from "~/components/shared/media";
+import { getMediaErrorMessage, pickImageUrl } from "~/lib/media";
+import { apiGet } from "~/utils/api";
+import type { MediaUpload } from "~/stores/apis/media";
 
 const getRoleBadge = (role: string) => {
   return (
@@ -74,6 +83,38 @@ export default function UserDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [updateUser] = useUpdateUserMutation();
+  // Ảnh đại diện cập nhật tại chỗ sau PUT/DELETE …/avatar (không reload để giữ dữ liệu form)
+  const [avatarOverride, setAvatarOverride] = useState<string | null | undefined>(undefined);
+  const [showRemoveAvatar, setShowRemoveAvatar] = useState(false);
+  const [updateUserAvatar] = useUpdateUserAvatarMutation();
+  const [deleteUserAvatar, { isLoading: isRemovingAvatar }] = useDeleteUserAvatarMutation();
+
+  const avatarUrl =
+    avatarOverride !== undefined ? avatarOverride || undefined : pickImageUrl(user);
+
+  const handleAvatarUploaded = async (media: MediaUpload) => {
+    const res = await updateUserAvatar({ id: numUserId, media }).unwrap();
+    let url = pickImageUrl(res?.data);
+    if (!url) {
+      // UserSummary có thể không kèm URL ảnh ⇒ đọc lại chi tiết người dùng
+      const fresh = await apiGet<{ data: unknown }>(`/api/admin/users/${numUserId}`);
+      url = pickImageUrl(fresh?.data);
+    }
+    setAvatarOverride(url ?? null);
+    toast.success("Đã cập nhật ảnh đại diện");
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      await deleteUserAvatar(numUserId).unwrap();
+      setAvatarOverride(null);
+      toast.success("Đã xoá ảnh đại diện");
+    } catch (err) {
+      toast.error("Không xoá được ảnh đại diện", { description: getMediaErrorMessage(err) });
+    } finally {
+      setShowRemoveAvatar(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -217,12 +258,39 @@ export default function UserDetailPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-start gap-6">
-                <Avatar className="h-24 w-24 border-2 border-border shadow-xs flex-shrink-0">
-                  <AvatarImage src={user.imageUrl} alt={formData.name} />
-                  <AvatarFallback className="bg-secondary text-foreground text-lg font-bold border border-border">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                  <Avatar className="h-24 w-24 border-2 border-border shadow-xs">
+                    {avatarUrl && <AvatarImage src={avatarUrl} alt={`Ảnh đại diện ${formData.name}`} />}
+                    <AvatarFallback className="bg-secondary text-foreground text-lg font-bold border border-border">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-stretch gap-1 w-28">
+                    <ImageUploadButton
+                      purpose="AVATAR"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs gap-1"
+                      errorTitle="Không đổi được ảnh đại diện"
+                      onUploaded={handleAvatarUploaded}
+                    >
+                      Đổi ảnh
+                    </ImageUploadButton>
+                    {avatarUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs gap-1 text-rose-700 hover:text-rose-800 hover:bg-rose-50"
+                        onClick={() => setShowRemoveAvatar(true)}
+                        disabled={isRemovingAvatar}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Xoá ảnh
+                      </Button>
+                    )}
+                  </div>
+                </div>
                 <div className="flex-1 space-y-3">
                   <div>
                     <label className="text-sm text-muted-foreground mb-1 block">
@@ -418,6 +486,31 @@ export default function UserDetailPage() {
               className="bg-primary text-primary-foreground hover:opacity-90"
             >
               {isSaving ? "Đang lưu..." : "Xác nhận lưu"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm Remove Avatar Dialog */}
+      <AlertDialog open={showRemoveAvatar} onOpenChange={setShowRemoveAvatar}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xoá ảnh đại diện?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ảnh đại diện hiện tại của người dùng sẽ bị gỡ và xoá khỏi kho lưu trữ ảnh.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel disabled={isRemovingAvatar}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void handleRemoveAvatar();
+              }}
+              disabled={isRemovingAvatar}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              {isRemovingAvatar ? "Đang xoá..." : "Xoá ảnh"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

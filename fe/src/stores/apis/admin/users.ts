@@ -17,6 +17,7 @@ import {
   UpdateUserRolesRequestSchema,
   createValidator,
 } from '../../../schemas';
+import type { MediaUpload } from '../media';
 
 const TAGS = {
   USERS: 'Users',
@@ -111,6 +112,27 @@ export const userManagementApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [TAGS.USERS],
     }),
+
+    // Ảnh đại diện (admin đổi hộ): body là MediaUpload (purpose AVATAR), trả về UserSummary
+    updateUserAvatar: builder.mutation<
+      ApiResponse<Partial<AdminUserResponse>>,
+      { id: number; media: MediaUpload }
+    >({
+      query: ({ id, media }) => ({
+        url: ADMIN_ENDPOINTS.USER_AVATAR(id),
+        method: 'PUT',
+        body: media,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: TAGS.USERS, id }, TAGS.USERS],
+    }),
+
+    deleteUserAvatar: builder.mutation<ApiResponse<Partial<AdminUserResponse>>, number>({
+      query: (id) => ({
+        url: ADMIN_ENDPOINTS.USER_AVATAR(id),
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, id) => [{ type: TAGS.USERS, id }, TAGS.USERS],
+    }),
   }),
 });
 
@@ -122,4 +144,6 @@ export const {
   useUpdateUserStatusMutation,
   useUpdateUserRolesMutation,
   useDeleteUserMutation,
+  useUpdateUserAvatarMutation,
+  useDeleteUserAvatarMutation,
 } = userManagementApi;
