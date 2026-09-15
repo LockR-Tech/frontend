@@ -1,5 +1,11 @@
 import { baseApi } from '../../baseAPi';
+import { ADMIN_ENDPOINTS, MAINTENANCE_ENDPOINTS } from '../../../constants';
 import type { ApiResponse } from '../../../types';
+import type {
+  AttachmentStage,
+  ReportAttachmentRequest,
+  ReportAttachmentResponse,
+} from '../media';
 
 // ---- Types mirroring locker-service Phase 1/2 DTOs ----
 
@@ -83,6 +89,8 @@ export interface LockerReportResponse {
   overdue: boolean | null;
   reporterName: string | null;
   reporterPhone: string | null;
+  /** Ảnh theo stage (REPORT/INSPECTION/PROGRESS/RESOLUTION) — backend cũ có thể chưa trả. */
+  attachments?: ReportAttachmentResponse[];
 }
 
 export interface RepairLogResponse {
@@ -91,7 +99,32 @@ export interface RepairLogResponse {
   actorUserId: number | null;
   note: string;
   createdAt: string;
+  /** Ảnh stage PROGRESS gắn với dòng nhật ký này. */
+  attachments?: ReportAttachmentResponse[];
 }
+
+/** Body tuỳ chọn khi hoàn tất phiếu: ảnh sẽ lưu stage RESOLUTION trước khi đóng phiếu. */
+export interface ResolveReportBody {
+  note?: string;
+  attachments?: ReportAttachmentRequest[];
+}
+
+export interface AddReportAttachmentsRequest {
+  reportId: number;
+  stage: AttachmentStage;
+  /** Có note ⇒ backend tạo 1 dòng nhật ký và gắn ảnh vào đó. */
+  note?: string;
+  attachments: ReportAttachmentRequest[];
+}
+
+const resolveBody = ({ note, attachments }: ResolveReportBody) => {
+  const trimmed = note?.trim();
+  if (!trimmed && !attachments?.length) return undefined;
+  return {
+    ...(trimmed ? { note: trimmed } : {}),
+    ...(attachments?.length ? { attachments } : {}),
+  };
+};
 
 export interface MaintenanceScheduleResponse {
   id: number;
@@ -167,10 +200,74 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
-    resolveReport: builder.mutation<ApiResponse<LockerReportResponse>, number>({
-      query: (reportId) => ({
-        url: `/api/maintenance/reports/${reportId}/resolve`,
+    resolveReport: builder.mutation<
+      ApiResponse<LockerReportResponse>,
+      { reportId: number } & ResolveReportBody
+    >({
+      query: ({ reportId, ...body }) => ({
+        url: MAINTENANCE_ENDPOINTS.REPORT_RESOLVE(reportId),
         method: 'PUT',
+        body: resolveBody(body),
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Admin đóng phiếu ở mọi trạng thái, tuỳ chọn kèm ghi chú + ảnh nghiệm thu
+    resolveAdminReport: builder.mutation<
+      ApiResponse<LockerReportResponse>,
+      { reportId: number } & ResolveReportBody
+    >({
+      query: ({ reportId, ...body }) => ({
+        url: ADMIN_ENDPOINTS.REPORT_RESOLVE(reportId),
+        method: 'PUT',
+        body: resolveBody(body),
+      }),
+      invalidatesTags: [TAG, 'NotificationStats'],
+    }),
+
+    // ---- Ảnh phiếu sự cố (docs/01-overview/media-storage.md §4.2) ----
+    getMaintenanceReport: builder.query<ApiResponse<LockerReportResponse>, number>({
+      query: (reportId) => MAINTENANCE_ENDPOINTS.REPORT_DETAIL(reportId),
+      providesTags: (_r, _e, id) => [{ type: TAG, id: `report-${id}` }],
+    }),
+
+    getMaintenanceReportAttachments: builder.query<
+      ApiResponse<ReportAttachmentResponse[]>,
+      { reportId: number; stage?: AttachmentStage }
+    >({
+      query: ({ reportId, stage }) => ({
+        url: MAINTENANCE_ENDPOINTS.REPORT_ATTACHMENTS(reportId),
+        params: stage ? { stage } : undefined,
+      }),
+      providesTags: (_r, _e, { reportId }) => [{ type: TAG, id: `attachments-${reportId}` }],
+    }),
+
+    getAdminReportAttachments: builder.query<ApiResponse<ReportAttachmentResponse[]>, number>({
+      query: (reportId) => ADMIN_ENDPOINTS.REPORT_ATTACHMENTS(reportId),
+      providesTags: (_r, _e, id) => [{ type: TAG, id: `attachments-${id}` }],
+    }),
+
+    // Admin gắn ảnh mọi stage, mọi trạng thái phiếu
+    addAdminReportAttachments: builder.mutation<
+      ApiResponse<ReportAttachmentResponse[]>,
+      AddReportAttachmentsRequest
+    >({
+      query: ({ reportId, stage, note, attachments }) => ({
+        url: ADMIN_ENDPOINTS.REPORT_ATTACHMENTS(reportId),
+        method: 'POST',
+        body: { stage, ...(note?.trim() ? { note: note.trim() } : {}), attachments },
+      }),
+      // Danh sách phiếu (attachments[]) + nhật ký (khi có note) đều phải làm mới
+      invalidatesTags: [TAG],
+    }),
+
+    deleteAdminReportAttachment: builder.mutation<
+      ApiResponse<void>,
+      { reportId: number; attachmentId: number }
+    >({
+      query: ({ reportId, attachmentId }) => ({
+        url: ADMIN_ENDPOINTS.REPORT_ATTACHMENT_BY_ID(reportId, attachmentId),
+        method: 'DELETE',
       }),
       invalidatesTags: [TAG],
     }),
@@ -254,20 +351,22 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     // L5 — nhật ký xử lý phiếu bảo trì (work-log)
     getReportLogs: builder.query<ApiResponse<RepairLogResponse[]>, number>({
-      query: (reportId) => `/api/maintenance/reports/${reportId}/logs`,
+      query: (reportId) => MAINTENANCE_ENDPOINTS.REPORT_LOGS(reportId),
       providesTags: (_r, _e, id) => [{ type: TAG, id: `logs-${id}` }],
     }),
 
     addReportLog: builder.mutation<
       ApiResponse<RepairLogResponse>,
-      { reportId: number; note: string }
+      { reportId: number; note: string; attachments?: ReportAttachmentRequest[] }
     >({
-      query: ({ reportId, note }) => ({
-        url: `/api/maintenance/reports/${reportId}/logs`,
+      query: ({ reportId, note, attachments }) => ({
+        url: MAINTENANCE_ENDPOINTS.REPORT_LOGS(reportId),
         method: 'POST',
-        body: { note },
+        body: attachments?.length ? { note, attachments } : { note },
       }),
-      invalidatesTags: (_r, _e, { reportId }) => [{ type: TAG, id: `logs-${reportId}` }],
+      // Có ảnh (stage PROGRESS) ⇒ attachments[] của phiếu trong danh sách cũng đổi
+      invalidatesTags: (_r, _e, { reportId, attachments }) =>
+        attachments?.length ? [TAG] : [{ type: TAG, id: `logs-${reportId}` }],
     }),
 
     // L5 — bảo trì phòng ngừa (lịch kiểm tra định kỳ), dùng bởi MaintenanceSchedules.tsx
@@ -368,6 +467,12 @@ export const {
   useGetMaintenanceReportsQuery,
   useClaimReportMutation,
   useResolveReportMutation,
+  useResolveAdminReportMutation,
+  useGetMaintenanceReportQuery,
+  useGetMaintenanceReportAttachmentsQuery,
+  useGetAdminReportAttachmentsQuery,
+  useAddAdminReportAttachmentsMutation,
+  useDeleteAdminReportAttachmentMutation,
   useReportBoxFaultMutation,
   useClearBoxFaultMutation,
   useSetBoxOutOfServiceMutation,

@@ -24,6 +24,7 @@ import type {
   PromotionResponse,
   PromotionRequest,
 } from "~/types/admin/promotion";
+import { PromotionImageField } from "./PromotionImageField";
 
 interface PromotionModalProps {
   isOpen: boolean;
@@ -183,6 +184,11 @@ export function PromotionModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Image (chỉ khi sửa — cần id khuyến mãi) */}
+          {mode === "edit" && promotion && (
+            <PromotionImageField promotion={promotion} />
+          )}
+
           {/* Code + Title */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

@@ -1,12 +1,30 @@
 import type { LockerReportResponse } from "~/stores/apis/admin/lockerOps";
+import type { AttachmentStage, ReportAttachmentResponse } from "~/stores/apis/media";
 
-export interface InspectionPhoto {
+/// View model ảnh phiếu sự cố: ảnh thật từ `report.attachments` hoặc URL legacy trong mô tả.
+export interface ReportPhoto {
+  key: string;
+  /** Không có ⇒ ảnh legacy (URL dán trong mô tả), không xoá được qua API. */
+  attachmentId?: number;
+  stage: AttachmentStage;
   url: string;
-  label: string;
-  tag: string;
-  timestamp: string; // Thời gian cụ thể khi KTV chụp & gửi ảnh
-  actorName?: string;
+  thumbnailUrl: string;
+  caption?: string | null;
+  uploadedByUserId?: number | null;
+  createdAt?: string | null;
+  capturedAt?: string | null;
+  repairLogId?: number | null;
 }
+
+// Thứ tự nghiệp vụ: người báo → KTV tới xác nhận → trong khi sửa → nghiệm thu
+export const ATTACHMENT_STAGES: AttachmentStage[] = ["REPORT", "INSPECTION", "PROGRESS", "RESOLUTION"];
+
+export const STAGE_LABELS: Record<AttachmentStage, string> = {
+  REPORT: "Ảnh hiện trường (người báo)",
+  INSPECTION: "Ảnh xác nhận của KTV",
+  PROGRESS: "Ảnh trong quá trình sửa",
+  RESOLUTION: "Ảnh nghiệm thu",
+};
 
 export interface SlaExtensionRecord {
   reportId: number;
@@ -35,136 +53,51 @@ export const cleanDescription = (text?: string): string => {
     .trim();
 };
 
-export const SAMPLE_PHOTOS_BY_REPORT: Record<number, InspectionPhoto[]> = {
-  1: [
-    {
-      url: "https://images.unsplash.com/photo-1558002038-1055907df827?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh hiện trường",
-      tag: "Hiện trường: Bản lề ô 8 bị lệch",
-      timestamp: "07:35:12 28/08/2026",
-      actorName: "Bảo Huy Nguyễn (KTV)",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh nghiệm thu",
-      tag: "Nghiệm thu: Đã siết khóa & tra dầu",
-      timestamp: "09:42:08 28/08/2026",
-      actorName: "Bảo Huy Nguyễn (KTV)",
-    },
-  ],
-  2: [
-    {
-      url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh hiện trường",
-      tag: "Hiện trường: Cảm biến lỏng giắc",
-      timestamp: "08:10:45 22/08/2026",
-      actorName: "Trần Minh KTV",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh nghiệm thu",
-      tag: "Nghiệm thu: Đã cố định jack cắm",
-      timestamp: "09:20:15 22/08/2026",
-      actorName: "Trần Minh KTV",
-    },
-  ],
-  3: [
-    {
-      url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh trước sửa",
-      tag: "Hiện trường: Bộ nguồn tủ mất pha",
-      timestamp: "14:15:30 19/08/2026",
-      actorName: "Bảo Huy Huỳnh (KTV)",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh nghiệm thu",
-      tag: "Nghiệm thu: Đã thay Aptomat nguồn 24V",
-      timestamp: "16:05:22 19/08/2026",
-      actorName: "Bảo Huy Huỳnh (KTV)",
-    },
-  ],
-  4: [
-    {
-      url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh trước sửa",
-      tag: "Hiện trường: Ô bẩn, có mùi ẩm mốc",
-      timestamp: "07:22:18 18/08/2026",
-      actorName: "Bảo Huy Nguyễn (KTV)",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh sau sửa",
-      tag: "Nghiệm thu: Đã khử khuẩn sạch sẽ",
-      timestamp: "08:15:00 18/08/2026",
-      actorName: "Bảo Huy Nguyễn (KTV)",
-    },
-  ],
-  5: [
-    {
-      url: "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh hiện trường",
-      tag: "Hiện trường: Anten GPS Drone rung lỏng",
-      timestamp: "08:05:10 28/08/2026",
-      actorName: "Bảo Huy Nguyễn (KTV)",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh nghiệm thu",
-      tag: "Nghiệm thu: Đã cân chỉnh lock 18 vệ tinh",
-      timestamp: "10:30:45 28/08/2026",
-      actorName: "Bảo Huy Nguyễn (KTV)",
-    },
-  ],
-  6: [
-    {
-      url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh hiện trường",
-      tag: "Hiện trường: Nứt gãy càng đáp Drone",
-      timestamp: "08:12:00 12/08/2026",
-      actorName: "Bảo Huy Huỳnh (KTV)",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1506947411487-a56738267384?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh nghiệm thu",
-      tag: "Nghiệm thu: Đã thay càng carbon mới",
-      timestamp: "10:45:18 12/08/2026",
-      actorName: "Bảo Huy Huỳnh (KTV)",
-    },
-  ],
-  7: [
-    {
-      url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh hiện trường",
-      tag: "Hiện trường: Cáp HDMI màn hình đơ",
-      timestamp: "09:10:00 10/08/2026",
-      actorName: "Kỹ thuật viên Kiosk",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh nghiệm thu",
-      tag: "Nghiệm thu: Đã hiệu chuẩn cảm ứng OK",
-      timestamp: "11:20:00 10/08/2026",
-      actorName: "Kỹ thuật viên Kiosk",
-    },
-  ],
-  8: [
-    {
-      url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh hiện trường",
-      tag: "Hiện trường: Quạt tản nhiệt đóng bụi",
-      timestamp: "13:40:15 05/08/2026",
-      actorName: "Kỹ thuật viên Kiosk",
-    },
-    {
-      url: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=700&auto=format&fit=crop&q=80",
-      label: "Ảnh nghiệm thu",
-      tag: "Nghiệm thu: Vệ sinh quạt, nhiệt độ ổn định",
-      timestamp: "15:10:30 05/08/2026",
-      actorName: "Kỹ thuật viên Kiosk",
-    },
-  ],
+export const toReportPhoto = (a: ReportAttachmentResponse): ReportPhoto => ({
+  key: `att-${a.id}`,
+  attachmentId: a.id,
+  stage: a.stage,
+  url: a.url,
+  thumbnailUrl: a.thumbnailUrl || a.url,
+  caption: a.caption,
+  uploadedByUserId: a.uploadedByUserId,
+  createdAt: a.createdAt,
+  capturedAt: a.capturedAt,
+  repairLogId: a.repairLogId,
+});
+
+const byCreatedAt = (a: ReportPhoto, b: ReportPhoto) =>
+  (a.createdAt ?? "").localeCompare(b.createdAt ?? "");
+
+// Gom ảnh phiếu theo stage. Nhóm REPORT fallback sang URL legacy trong mô tả khi phiếu cũ chưa có attachments.
+export const groupReportPhotos = (report: LockerReportResponse): Record<AttachmentStage, ReportPhoto[]> => {
+  const groups: Record<AttachmentStage, ReportPhoto[]> = {
+    REPORT: [],
+    INSPECTION: [],
+    PROGRESS: [],
+    RESOLUTION: [],
+  };
+  for (const attachment of report.attachments ?? []) {
+    groups[attachment.stage]?.push(toReportPhoto(attachment));
+  }
+  ATTACHMENT_STAGES.forEach((stage) => groups[stage].sort(byCreatedAt));
+
+  if (groups.REPORT.length === 0) {
+    groups.REPORT = extractPhotoList(report.description).map((url, i) => ({
+      key: `legacy-${report.id}-${i}`,
+      stage: "REPORT" as const,
+      url,
+      thumbnailUrl: url,
+      uploadedByUserId: report.userId,
+      createdAt: report.createdAt,
+    }));
+  }
+  return groups;
 };
+
+export const getUserPhotos = (report: LockerReportResponse): ReportPhoto[] =>
+  groupReportPhotos(report).REPORT;
+
 
 // Chi tiết biên bản kỹ thuật & phương án xử lý của KTV
 export const KTV_NOTES_BY_REPORT: Record<number, {
@@ -209,56 +142,6 @@ export const KTV_NOTES_BY_REPORT: Record<number, {
     claimedAt: "07:45:00 12/08/2026",
     resolvedAt: "10:50:00 12/08/2026",
   },
-};
-
-// Ảnh từ người dùng khi gửi báo cáo sự cố (User / Customer photos)
-export const getUserPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
-  const extracted = extractPhotoList(report.description);
-  if (extracted.length > 0) {
-    return extracted.map((url, i) => ({
-      url,
-      label: `Ảnh từ User #${i + 1}`,
-      tag: `Ảnh sự cố do khách hàng tải lên`,
-      timestamp: report.createdAt || "Vừa cập nhật",
-    }));
-  }
-  return [];
-};
-
-// Ảnh hiện trường do KTV chụp khi đến kiểm tra tủ
-export const getInspectionPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
-  const samples = SAMPLE_PHOTOS_BY_REPORT[report.id];
-  if (samples) {
-    return samples.filter(
-      (p) =>
-        p.label.includes("hiện trường") ||
-        p.label.includes("trước sửa") ||
-        p.tag.toLowerCase().includes("hiện trường")
-    );
-  }
-  return [];
-};
-
-// Ảnh nghiệm thu sau khi KTV hoàn tất sửa chữa (CHỈ hiển thị khi đã RESOLVED)
-export const getResolutionPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
-  if (report.status !== "RESOLVED") {
-    return [];
-  }
-  const samples = SAMPLE_PHOTOS_BY_REPORT[report.id];
-  if (samples) {
-    const res = samples.filter(
-      (p) =>
-        p.label.includes("nghiệm thu") ||
-        p.label.includes("sau sửa") ||
-        p.tag.toLowerCase().includes("nghiệm thu")
-    );
-    if (res.length > 0) return res;
-  }
-  return [];
-};
-
-export const getReportPhotos = (report: LockerReportResponse): InspectionPhoto[] => {
-  return getResolutionPhotos(report);
 };
 
 // Quản lý gia hạn SLA linh hoạt (Lưu trữ cục bộ để duy trì trạng thái gia hạn)

@@ -110,7 +110,8 @@ export const feedbackManagementApi = baseApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["NotificationStats"],
+      // Cùng phiếu LockerReport với trang Bảo trì (tag Lockers) — làm mới cả hai
+      invalidatesTags: ["NotificationStats", "Lockers"],
     }),
 
     // ── ANALYTICS ──────────────────────────────────────────────────────────

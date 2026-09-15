@@ -12,6 +12,8 @@ export const ROOT_URI = {
   ADMIN: "/api/admin",
   PARTNER: "/api/partner",
   LOYALTY: "/api/loyalty",
+  MEDIA: "/api/media",
+  MAINTENANCE: "/api/maintenance",
 } as const;
 
 // Authentication Endpoints
@@ -57,11 +59,13 @@ export const ADMIN_ENDPOINTS = {
   USER_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/users/${id}`,
   USER_STATUS: (id: number) => `${ROOT_URI.ADMIN}/users/${id}/status`,
   USER_ROLES: (id: number) => `${ROOT_URI.ADMIN}/users/${id}/roles`,
+  USER_AVATAR: (id: number) => `${ROOT_URI.ADMIN}/users/${id}/avatar`,
 
   // Stores Management
   STORES: `${ROOT_URI.ADMIN}/stores`,
   STORE_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/stores/${id}`,
   STORE_STATUS: (id: number) => `${ROOT_URI.ADMIN}/stores/${id}/status`,
+  STORE_IMAGE: (id: number) => `${ROOT_URI.ADMIN}/stores/${id}/image`,
 
   // Services Management
   SERVICES: `${ROOT_URI.ADMIN}/services`,
@@ -129,6 +133,7 @@ export const ADMIN_ENDPOINTS = {
   // Promotion Management
   PROMOTIONS: `${ROOT_URI.ADMIN}/promotions`,
   PROMOTION_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/promotions/${id}`,
+  PROMOTION_IMAGE: (id: number) => `${ROOT_URI.ADMIN}/promotions/${id}/image`,
   PROMOTIONS_ACTIVE: `${ROOT_URI.ADMIN}/promotions/active`,
   PROMOTIONS_BY_STATUS: (status: string) =>
     `${ROOT_URI.ADMIN}/promotions/status/${status}`,
@@ -159,6 +164,10 @@ export const ADMIN_ENDPOINTS = {
   REPORT_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/lockers/reports/${id}`,
   REPORT_RESOLVE: (id: number) =>
     `${ROOT_URI.ADMIN}/lockers/reports/${id}/resolve`,
+  REPORT_ATTACHMENTS: (id: number) =>
+    `${ROOT_URI.ADMIN}/lockers/reports/${id}/attachments`,
+  REPORT_ATTACHMENT_BY_ID: (id: number, attachmentId: number) =>
+    `${ROOT_URI.ADMIN}/lockers/reports/${id}/attachments/${attachmentId}`,
 
   // Analytics
   ANALYTICS_FEEDBACK: `${ROOT_URI.ADMIN}/analytics/feedback`,
@@ -169,6 +178,22 @@ export const ADMIN_ENDPOINTS = {
   SCHEDULE: `${ROOT_URI.ADMIN}/schedule`,
   INTEGRATIONS: `${ROOT_URI.ADMIN}/integrations`,
   SETTINGS: `${ROOT_URI.ADMIN}/settings`,
+} as const;
+
+// Media Endpoints (chữ ký upload Cloudinary — xem docs/01-overview/media-storage.md)
+export const MEDIA_ENDPOINTS = {
+  UPLOAD_SIGNATURES: `${ROOT_URI.MEDIA}/upload-signatures`,
+} as const;
+
+// Maintenance (TECH/MAINT/ADMIN) Endpoints
+export const MAINTENANCE_ENDPOINTS = {
+  REPORTS: `${ROOT_URI.MAINTENANCE}/reports`,
+  REPORT_DETAIL: (id: number) => `${ROOT_URI.MAINTENANCE}/reports/${id}`,
+  REPORT_ATTACHMENTS: (id: number) =>
+    `${ROOT_URI.MAINTENANCE}/reports/${id}/attachments`,
+  REPORT_RESOLVE: (id: number) =>
+    `${ROOT_URI.MAINTENANCE}/reports/${id}/resolve`,
+  REPORT_LOGS: (id: number) => `${ROOT_URI.MAINTENANCE}/reports/${id}/logs`,
 } as const;
 
 // Loyalty (User-facing) Endpoints

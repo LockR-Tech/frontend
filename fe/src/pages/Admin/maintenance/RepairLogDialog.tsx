@@ -26,14 +26,20 @@ import {
 } from "~/components/ui/dialog";
 import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
+import { PhotoGallery, PhotoPicker, type GalleryPhoto } from "~/components/shared/media";
+import { isHandledUploadError, useImageUpload } from "~/hooks/useImageUpload";
+import { getMediaErrorMessage } from "~/lib/media";
 import {
   useGetReportLogsQuery,
   useAddReportLogMutation,
   useGetMaintenanceReportsQuery,
   type LockerReportResponse,
+  type RepairLogResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { KTV_NOTES_BY_REPORT, getUserPhotos } from "./maintenancePhotos";
+
+const LOG_PHOTO_MAX = 10;
 
 const formatDT = (s?: string | null) => {
   if (!s) return "—";
@@ -55,7 +61,8 @@ const calcDuration = (a?: string | null, b?: string | null): string => {
 /// Nút "Nhật ký" + hộp thoại đầy đủ thông tin phiếu:
 /// - Chi tiết phiếu: Kiosk, ô tủ, nội dung khách báo, KTV phụ trách, các mốc thời gian SLA
 /// - Ghi chú kỹ thuật của KTV (biên bản, linh kiện thay, thời gian nhận/xong)
-/// - Nhật ký xử lý từng bước (work-log) với ảnh nghiệm thu
+/// - Nhật ký xử lý từng bước (work-log) với ảnh trong quá trình sửa (stage PROGRESS)
+/// - Đính kèm tối đa 10 ảnh (upload Cloudinary) trong 1 lần ghi nhật ký
 export function RepairLogDialog({
   reportId,
   title,
@@ -69,16 +76,15 @@ export function RepairLogDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [urlInput, setUrlInput] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"info" | "logs">("info");
-  const urlInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading } = useGetReportLogsQuery(reportId, { skip: !open });
   const { data: allReportsData } = useGetMaintenanceReportsQuery(undefined, { skip: !open });
   const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 }, { skip: !open });
   const [addLog, { isLoading: adding }] = useAddReportLogMutation();
+  const { upload, items: uploadItems, isUploading, reset: resetUpload } = useImageUpload("REPORT_EVIDENCE");
 
   const logs = data?.data ?? [];
   const eff = report ?? allReportsData?.data?.find((r) => r.id === reportId);
@@ -115,40 +121,31 @@ export function RepairLogDialog({
       ? (reporterUser?.fullName || reporterUser?.name || eff?.reporterName)
       : (eff?.assignedToUserId ? `KTV #${eff.assignedToUserId}` : undefined));
 
-  const addImageUrl = () => {
-    const u = urlInput.trim();
-    if (!u) return;
-    if (!imageUrls.includes(u)) {
-      setImageUrls((prev) => [...prev, u]);
-    }
-    setUrlInput("");
-    urlInputRef.current?.focus();
-  };
-
-  const removeImageUrl = (idx: number) => {
-    setImageUrls((prev) => prev.filter((_, i) => i !== idx));
-  };
+  const busy = adding || isUploading;
 
   const submit = async () => {
     const text = note.trim();
     if (!text) return;
-    const fullNote = imageUrls.length > 0
-      ? `${text}\n\n[Ảnh đính kèm]\n${imageUrls.join("\n")}`
-      : text;
     try {
-      await addLog({ reportId, note: fullNote }).unwrap();
+      // Ảnh upload thẳng lên Cloudinary trước, rồi gửi MediaUpload kèm nhật ký (stage PROGRESS)
+      const attachments = files.length > 0 ? await upload(files) : undefined;
+      await addLog({ reportId, note: text, attachments }).unwrap();
       toast.success("Ghi nhận nhật ký thành công", {
-        description: `Bước xử lý kỹ thuật${imageUrls.length > 0 ? ` kèm ${imageUrls.length} ảnh` : ""} đã được lưu vào hồ sơ.`,
+        description: `Bước xử lý kỹ thuật${files.length > 0 ? ` kèm ${files.length} ảnh` : ""} đã được lưu vào hồ sơ.`,
       });
       setNote("");
-      setImageUrls([]);
-    } catch (err: any) {
-      toast.error("Không thêm được ghi chú", {
-        description: err?.data?.message || err?.message || "Vui lòng thử lại sau.",
-      });
+      setFiles([]);
+      resetUpload();
+    } catch (err) {
+      if (!isHandledUploadError(err)) {
+        toast.error("Không thêm được ghi chú", {
+          description: getMediaErrorMessage(err, "Vui lòng thử lại sau."),
+        });
+      }
     }
   };
 
+  // Nhật ký cũ (trước khi có Cloudinary) dán link ảnh vào cuối ghi chú
   const extractImages = (content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg)|data:image\/[a-zA-Z]+;base64,[^\s]+)/gi;
     return content.match(urlRegex) || [];
@@ -156,6 +153,27 @@ export function RepairLogDialog({
 
   const stripImages = (content: string) =>
     content.replace(/\[Ảnh đính kèm\]\n(https?:\/\/[^\n]+\n?)*/g, "").trim();
+
+  const logPhotos = (log: RepairLogResponse): GalleryPhoto[] => {
+    if (log.attachments?.length) {
+      return log.attachments.map((a, idx) => ({
+        key: `att-${a.id}`,
+        url: a.url,
+        thumbnailUrl: a.thumbnailUrl,
+        alt: `Ảnh ${idx + 1} của nhật ký #${log.id}`,
+        caption: a.caption,
+        meta: `Tải lên ${formatDT(a.createdAt)}`,
+        badge: `Ảnh ${idx + 1}`,
+      }));
+    }
+    return extractImages(log.note).map((url, idx) => ({
+      key: `legacy-${log.id}-${idx}`,
+      url,
+      alt: `Ảnh ${idx + 1} của nhật ký #${log.id}`,
+      meta: "Ảnh cũ đính kèm dạng link trong ghi chú",
+      badge: `Ảnh ${idx + 1}`,
+    }));
+  };
 
   return (
     <>
@@ -274,14 +292,14 @@ export function RepairLogDialog({
                         <div className="flex flex-wrap gap-2">
                           {userPhotos.map((p, idx) => (
                             <button
-                              key={idx}
+                              key={p.key || idx}
                               type="button"
                               onClick={() => setPreviewImage(p.url)}
                               className="relative group w-16 h-16 rounded-lg overflow-hidden border border-border bg-slate-100 hover:opacity-90 transition-opacity"
                             >
-                              <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
+                              <img src={p.url} alt={p.caption || `Ảnh ${idx + 1}`} className="w-full h-full object-cover" />
                               <span className="absolute bottom-0 inset-x-0 bg-black/70 text-white text-[8px] text-center px-0.5 truncate">
-                                {p.label}
+                                {p.caption || `Ảnh ${idx + 1}`}
                               </span>
                             </button>
                           ))}
@@ -401,42 +419,25 @@ export function RepairLogDialog({
                     </p>
                   ) : (
                     logs.map((l) => {
-                      const images = extractImages(l.note);
-                      const displayNote = stripImages(l.note);
+                      const images = logPhotos(l);
+                      const displayNote = l.attachments?.length ? l.note : stripImages(l.note);
                       return (
                         <div key={l.id} className="rounded-xl border border-border/70 bg-muted/30 p-3.5 space-y-2">
                           {/* Note text */}
                           <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{displayNote}</p>
 
-                          {/* Image gallery — multi-photo */}
+                          {/* Ảnh trong quá trình sửa gắn với dòng nhật ký */}
                           {images.length > 0 && (
                             <div className="pt-2 border-t border-border/50">
                               <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mb-2">
                                 <Camera className="w-3.5 h-3.5 text-indigo-500" />
-                                Ảnh chụp hiện trường / Bằng chứng sửa chữa ({images.length} ảnh):
+                                Ảnh trong quá trình sửa ({images.length} ảnh):
                               </span>
-                              <div className="flex flex-wrap gap-2">
-                                {images.map((imgUrl, idx) => (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => setPreviewImage(imgUrl)}
-                                    className="relative group w-20 h-20 rounded-lg overflow-hidden border border-border bg-slate-100 hover:opacity-90 transition-opacity"
-                                  >
-                                    <img
-                                      src={imgUrl}
-                                      alt={`Ảnh ${idx + 1}`}
-                                      className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
-                                      <ExternalLink className="w-4 h-4" />
-                                    </div>
-                                    <span className="absolute bottom-0 inset-x-0 bg-black/70 text-white text-[8px] text-center px-1 py-0.5">
-                                      Ảnh {idx + 1}
-                                    </span>
-                                  </button>
-                                ))}
-                              </div>
+                              <PhotoGallery
+                                photos={images}
+                                title={`Ảnh nhật ký · ${title}`}
+                                thumbClassName="w-20 h-20 rounded-lg border-border bg-slate-100"
+                              />
                             </div>
                           )}
 
@@ -464,68 +465,29 @@ export function RepairLogDialog({
                     placeholder="Ghi chú bước xử lý kỹ thuật (ví dụ: 'Đã kiểm tra bo mạch chủ, phát hiện tụ điện phồng...')"
                     rows={3}
                     className="text-xs resize-none"
+                    disabled={busy}
                   />
 
-                  {/* Multi-image URL input */}
-                  <div className="space-y-1.5">
-                    <div className="flex gap-2">
-                      <input
-                        ref={urlInputRef}
-                        type="url"
-                        value={urlInput}
-                        onChange={(e) => setUrlInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addImageUrl())}
-                        placeholder="Dán link ảnh (https://...jpg) rồi nhấn + để thêm nhiều ảnh"
-                        className="flex-1 h-8 px-3 text-xs rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={addImageUrl}
-                        disabled={!urlInput.trim()}
-                        className="h-8 px-2 text-xs"
-                      >
-                        <Paperclip className="w-3.5 h-3.5 mr-1" /> + Thêm ảnh
-                      </Button>
-                    </div>
-
-                    {/* Preview of added images */}
-                    {imageUrls.length > 0 && (
-                      <div className="flex flex-wrap gap-2 p-2 bg-muted/30 rounded-md border border-border/50">
-                        {imageUrls.map((url, idx) => (
-                          <div key={idx} className="relative group w-16 h-16">
-                            <img
-                              src={url}
-                              alt={`Ảnh ${idx + 1}`}
-                              className="w-full h-full object-cover rounded-md border border-border"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='18' font-size='18'>🖼️</text></svg>";
-                              }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImageUrl(idx)}
-                              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="w-2.5 h-2.5" />
-                            </button>
-                          </div>
-                        ))}
-                        <p className="w-full text-[10px] text-muted-foreground pt-1">
-                          {imageUrls.length} ảnh sẽ được đính kèm vào ghi chú này
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  {/* Ảnh trong quá trình sửa (upload Cloudinary, stage PROGRESS) */}
+                  <PhotoPicker
+                    value={files}
+                    onChange={setFiles}
+                    maxFiles={LOG_PHOTO_MAX}
+                    disabled={busy}
+                    uploadItems={uploadItems}
+                  />
 
                   <Button
                     onClick={submit}
-                    disabled={adding || !note.trim()}
+                    disabled={busy || !note.trim()}
                     className="w-full h-9 text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    {adding ? "Đang lưu..." : `Ghi nhận bước xử lý${imageUrls.length > 0 ? ` + ${imageUrls.length} ảnh` : ""}`}
+                    {isUploading
+                      ? "Đang tải ảnh..."
+                      : adding
+                        ? "Đang lưu..."
+                        : `Ghi nhận bước xử lý${files.length > 0 ? ` + ${files.length} ảnh` : ""}`}
                   </Button>
                 </div>
               </>
@@ -534,19 +496,23 @@ export function RepairLogDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Lightbox Image Preview */}
+      {/* Lightbox Preview */}
       {previewImage && (
-        <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-          <DialogContent className="max-w-3xl p-2 bg-black/90 border-0 rounded-2xl overflow-hidden">
-            <div className="relative flex items-center justify-center p-2">
-              <img
-                src={previewImage}
-                alt="Ảnh phóng to"
-                className="max-h-[80vh] w-auto max-w-full rounded-lg object-contain"
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-w-3xl max-h-[90vh]">
+            <img src={previewImage} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+            <button
+              type="button"
+              className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 hover:bg-black/80"
+              onClick={() => setPreviewImage(null)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       )}
     </>
   );

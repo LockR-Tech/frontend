@@ -16,6 +16,8 @@ export interface PromotionResponse {
   code: string;
   title: string;
   description?: string;
+  /** Ảnh khuyến mãi (Cloudinary) — đổi qua PUT/DELETE /api/admin/promotions/{id}/image. */
+  imageUrl?: string | null;
   discountType: DiscountType;
   discountValue: number;
   maxDiscountAmount?: number;
