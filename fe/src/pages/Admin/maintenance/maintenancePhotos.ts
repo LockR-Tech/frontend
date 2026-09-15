@@ -95,6 +95,9 @@ export const groupReportPhotos = (report: LockerReportResponse): Record<Attachme
   return groups;
 };
 
+export const getUserPhotos = (report: LockerReportResponse): ReportPhoto[] =>
+  groupReportPhotos(report).REPORT;
+
 
 // Chi tiết biên bản kỹ thuật & phương án xử lý của KTV
 export const KTV_NOTES_BY_REPORT: Record<number, {

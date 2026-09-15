@@ -227,15 +227,30 @@ export default function TechnicianDetailPage() {
   const perf = perfData?.data;
   const allReports: LockerReportResponse[] = reportsData?.data ?? [];
 
-  // Filter reports assigned to this technician
+  // Filter reports assigned to this technician (including self-reported reports)
   const techReports = useMemo(() => {
-    return allReports.filter((r) => r.assignedToUserId === techId);
+    return allReports.filter((r) => {
+      if (r.assignedToUserId === techId) return true;
+      if (!r.assignedToUserId && r.userId === techId) return true;
+      return false;
+    });
   }, [allReports, techId]);
 
   // Unassigned or open reports available for assignment
   const unassignedReports = useMemo(() => {
-    return allReports.filter((r) => r.status === "OPEN" && r.assignedToUserId !== techId);
-  }, [allReports, techId]);
+    return allReports.filter((r) => {
+      if (r.status !== "OPEN") return false;
+      if (r.assignedToUserId) return false;
+      // If filed by a technician, they are handling it themselves
+      const isTechReporter = Boolean(
+        r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+        r.reporterName?.toLowerCase().includes("ktv") ||
+        r.reporterName?.toLowerCase().includes("technician")
+      );
+      if (r.userId && isTechReporter) return false;
+      return true;
+    });
+  }, [allReports]);
 
   // Metrics
   const inProgressCount = techReports.filter((r) => r.status === "IN_PROGRESS").length;

@@ -230,8 +230,27 @@ export default function MaintenanceAdminPage() {
   }, [technicians]);
 
   // Kiosk Stats
-  const openReports = reportList.filter((r) => r.status === "OPEN").length;
-  const inProgressReports = reportList.filter((r) => r.status === "IN_PROGRESS").length;
+  const openReports = reportList.filter((r) => {
+    const isTech = Boolean(
+      !r.assignedToUserId &&
+      ((r.userId && techniciansMap[r.userId]) ||
+      r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+      r.reporterName?.toLowerCase().includes("ktv") ||
+      r.reporterName?.toLowerCase().includes("technician"))
+    );
+    return r.status === "OPEN" && !isTech;
+  }).length;
+
+  const inProgressReports = reportList.filter((r) => {
+    const isTech = Boolean(
+      !r.assignedToUserId &&
+      ((r.userId && techniciansMap[r.userId]) ||
+      r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+      r.reporterName?.toLowerCase().includes("ktv") ||
+      r.reporterName?.toLowerCase().includes("technician"))
+    );
+    return r.status === "IN_PROGRESS" || (r.status === "OPEN" && isTech);
+  }).length;
   const resolvedReports = reportList.filter((r) => r.status === "RESOLVED").length;
   const overdueReports = reportList.filter((r) => r.overdue).length;
 
@@ -357,12 +376,22 @@ export default function MaintenanceAdminPage() {
 
   const filteredReports = useMemo(() => {
     return reportList.filter((r) => {
-      if (reportFilter !== "ALL" && r.status !== reportFilter) return false;
-      if (selectedTechFilter === "UNASSIGNED") return !r.assignedToUserId;
-      if (selectedTechFilter !== "ALL") return String(r.assignedToUserId) === selectedTechFilter;
+      const isTech = Boolean(
+        !r.assignedToUserId &&
+        ((r.userId && techniciansMap[r.userId]) ||
+        r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+        r.reporterName?.toLowerCase().includes("ktv") ||
+        r.reporterName?.toLowerCase().includes("technician"))
+      );
+      const effectiveStatus = r.status === "OPEN" && isTech ? "IN_PROGRESS" : r.status;
+      const effectiveTechId = r.assignedToUserId ?? (isTech ? r.userId : undefined);
+
+      if (reportFilter !== "ALL" && effectiveStatus !== reportFilter) return false;
+      if (selectedTechFilter === "UNASSIGNED") return !effectiveTechId;
+      if (selectedTechFilter !== "ALL") return String(effectiveTechId) === selectedTechFilter;
       return true;
     });
-  }, [reportList, reportFilter, selectedTechFilter]);
+  }, [reportList, reportFilter, selectedTechFilter, techniciansMap]);
 
   const refetchAll = () => {
     faults.refetch();
@@ -399,7 +428,7 @@ export default function MaintenanceAdminPage() {
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <Boxes className="w-4 h-4 text-orange-600" />
-            Bảo trì Kiosk ({faultList.length + openReports})
+            Bảo trì Kiosk ({openReports + inProgressReports})
           </TabsTrigger>
           <TabsTrigger
             value="technicians"
@@ -431,17 +460,17 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Ô Kiosk hỏng</p>
+                  <p className="text-xs text-muted-foreground font-medium">Sự cố đang mở</p>
                   <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-200/60 flex items-center justify-center text-rose-600">
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                 </div>
                 <p className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {faultList.length}
+                  {openReports + inProgressReports}
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-rose-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>{faultList.length > 0 ? "Cần kiểm tra phần cứng" : "0 ô có sự cố"}</span>
+                  <span>{openReports + inProgressReports > 0 ? "Cần xử lý kỹ thuật" : "Không có sự cố"}</span>
                 </div>
               </CardContent>
             </Card>
@@ -530,93 +559,6 @@ export default function MaintenanceAdminPage() {
             </Card>
           )}
 
-          {/* Ô Đang Hỏng */}
-          <Card className="border border-border/80 shadow-xs">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div>
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-500" />
-                  Danh sách ô Kiosk đang hỏng ({faultList.length})
-                </CardTitle>
-                <CardDescription className="text-xs mt-0.5">
-                  Các ô tủ gặp sự cố kẹt khóa, hỏng cảm biến hoặc không phản hồi từ bộ điều khiển
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {faultList.length === 0 ? (
-                <div className="py-8 text-center">
-                  <ShieldCheck className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-                  <p className="text-sm font-medium text-foreground">Tất cả các ô tủ Kiosk đều hoạt động hoàn hảo</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Không phát hiện ô lỗi nào cần xử lý</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-border/60">
-                  {faultList.map((f) => (
-                    <div key={f.boxId} className="py-3 flex items-center justify-between gap-4 flex-wrap hover:bg-muted/20 px-2 rounded-lg transition-colors">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-sm text-foreground">
-                            {f.lockerName ?? `Kiosk #${f.lockerId}`}{" "}
-                            <span className="text-muted-foreground font-normal">({f.lockerCode})</span> — Ô #{f.boxNumber}
-                          </p>
-                          <Badge variant="outline" className="text-[11px] bg-slate-50 text-slate-700 border-slate-200">
-                            {f.cellType}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-rose-600 font-medium mt-1">
-                          Nguyên nhân: {f.faultReason ?? "Không rõ lý do kẹt/hỏng"}
-                          {f.rowIndex != null && ` · Hàng ${f.rowIndex}, Cột ${f.colIndex}`}
-                        </p>
-                        {f.lockerAddress && (
-                          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3 shrink-0" />
-                            {f.lockerAddress}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => openDirections(f)}>
-                          <Navigation className="w-3.5 h-3.5" /> Chỉ đường
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 text-xs gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                          disabled={pending === f.boxId}
-                          onClick={() =>
-                            setConfirmDialog({
-                              open: true,
-                              title: `Xác nhận đã khắc phục ô #${f.boxNumber}?`,
-                              description: `Xác nhận sự cố phần cứng tại ô #${f.boxNumber} (${f.lockerName ?? `Kiosk #${f.lockerId}`}) đã được sửa chữa xong? Ô tủ sẽ được đưa vào hoạt động trở lại.`,
-                              actionLabel: "Xác nhận đã sửa xong",
-                              variant: "default",
-                              onConfirm: () =>
-                                act(
-                                  f.boxId,
-                                  () => clearFault(f.boxId).unwrap(),
-                                  {
-                                    title: `Ô #${f.boxNumber} đã sửa xong`,
-                                    description: "Trạng thái lỗi phần cứng đã được xóa bỏ, ô tủ sẵn sàng phục vụ.",
-                                  },
-                                  {
-                                    title: "Không thể xóa trạng thái hỏng",
-                                    description: "Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau.",
-                                  },
-                                ),
-                            })
-                          }
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Đã sửa xong
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Phiếu Sự Cố Kiosk */}
           <Card className="border border-border/80 shadow-xs">
             <CardHeader className="pb-3">
@@ -681,37 +623,74 @@ export default function MaintenanceAdminPage() {
                           <p className="font-semibold text-sm text-foreground">
                             #{r.id} · {r.title}
                           </p>
-                          <Badge variant="outline" className={`text-xs ${REPORT_BADGE[r.status] ?? ""}`}>
-                            {r.status === "OPEN" ? "Mới mở" : r.status === "IN_PROGRESS" ? "Đang xử lý" : "Đã hoàn tất"}
-                          </Badge>
+                          {/* Status Badge */}
+                          {(() => {
+                            const isTech = Boolean(
+                              !r.assignedToUserId &&
+                              ((r.userId && techniciansMap[r.userId]) ||
+                              r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+                              r.reporterName?.toLowerCase().includes("ktv") ||
+                              r.reporterName?.toLowerCase().includes("technician"))
+                            );
+                            const effStatus = r.status === "OPEN" && isTech ? "IN_PROGRESS" : r.status;
+                            return (
+                              <Badge variant="outline" className={`text-xs ${REPORT_BADGE[effStatus] ?? ""}`}>
+                                {effStatus === "OPEN" ? "Mới mở" : effStatus === "IN_PROGRESS" ? "Đang xử lý" : "Đã hoàn tất"}
+                                {isTech && !r.assignedToUserId ? " (KTV tự báo)" : ""}
+                              </Badge>
+                            );
+                          })()}
                           {r.overdue && (
                             <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
                               Quá hạn SLA
                             </Badge>
                           )}
                           {/* Technician badge */}
-                          {r.assignedToUserId ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                navigate(`/admin/maintenance/technicians/${r.assignedToUserId}`);
-                              }}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200 transition-colors cursor-pointer"
-                              title="Xem chi tiết hồ sơ & hoạt động của KTV này"
-                            >
-                              <UserCheck className="w-3 h-3 text-indigo-700" />
-                              <span>KTV: {techniciansMap[r.assignedToUserId]?.fullName || `#${r.assignedToUserId}`}</span>
-                              {techniciansMap[r.assignedToUserId]?.phoneNumber && (
-                                <span className="text-[10px] text-indigo-600 font-mono">
-                                  ({techniciansMap[r.assignedToUserId]?.phoneNumber})
-                                </span>
-                              )}
-                            </button>
-                          ) : (
-                            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs font-semibold">
-                              Chưa phân công
-                            </Badge>
-                          )}
+                          {(() => {
+                            const isTech = Boolean(
+                              !r.assignedToUserId &&
+                              ((r.userId && techniciansMap[r.userId]) ||
+                              r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+                              r.reporterName?.toLowerCase().includes("ktv") ||
+                              r.reporterName?.toLowerCase().includes("technician"))
+                            );
+                            const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
+                            const reporterTech = r.userId ? techniciansMap[r.userId] : undefined;
+                            const effectiveTech = assignedTech || (isTech ? (reporterTech || { id: r.userId, fullName: r.reporterName, phoneNumber: r.reporterPhone }) : undefined);
+
+                            if (effectiveTech) {
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (effectiveTech.id) {
+                                      navigate(`/admin/maintenance/technicians/${effectiveTech.id}`);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200 transition-colors cursor-pointer"
+                                  title="Xem chi tiết hồ sơ & hoạt động của KTV này"
+                                >
+                                  <UserCheck className="w-3 h-3 text-indigo-700" />
+                                  <span>KTV: {effectiveTech.fullName || `#${effectiveTech.id}`}</span>
+                                  {isTech && !r.assignedToUserId && (
+                                    <span className="text-[10px] text-indigo-600 font-normal">
+                                      (Người báo)
+                                    </span>
+                                  )}
+                                  {effectiveTech.phoneNumber && (
+                                    <span className="text-[10px] text-indigo-600 font-mono">
+                                      ({effectiveTech.phoneNumber})
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            }
+                            return (
+                              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs font-semibold">
+                                Chưa phân công
+                              </Badge>
+                            );
+                          })()}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
                           <span className="text-foreground">{cleanDescription(r.description) || r.description}</span> · <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
@@ -735,69 +714,58 @@ export default function MaintenanceAdminPage() {
                         <ReportPhotoGroups report={r} variant="compact" userNames={userNames} />
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
-                        <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => openDirections(r)}>
-                          <Navigation className="w-3.5 h-3.5" /> Chỉ đường
-                        </Button>
-                        <RepairLogDialog
-                          reportId={r.id}
-                          title={`#${r.id} · ${r.title}`}
-                          technicianName={r.assignedToUserId ? techniciansMap[r.assignedToUserId]?.fullName : undefined}
-                        />
+                        {(() => {
+                          const isTech = Boolean(
+                            !r.assignedToUserId &&
+                            ((r.userId && techniciansMap[r.userId]) ||
+                            r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+                            r.reporterName?.toLowerCase().includes("ktv") ||
+                            r.reporterName?.toLowerCase().includes("technician"))
+                          );
+                          const techName = r.assignedToUserId
+                            ? techniciansMap[r.assignedToUserId]?.fullName
+                            : isTech
+                            ? (techniciansMap[r.userId]?.fullName || r.reporterName)
+                            : undefined;
 
-                        {r.status === "OPEN" && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-8 text-xs gap-1 border-indigo-300 text-indigo-700 hover:bg-indigo-50 shadow-xs"
-                              onClick={() => setAssigningReport(r)}
-                            >
-                              <Boxes className="w-3.5 h-3.5" /> Phân công KTV
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-8 text-xs gap-1 border-blue-300 text-blue-700 hover:bg-blue-50"
-                              disabled={pending === r.id}
-                              onClick={() =>
-                                act(
-                                  r.id,
-                                  () => claim(r.id).unwrap(),
-                                  {
-                                    title: `Đã tiếp nhận phiếu #${r.id}`,
-                                    description: "Phiếu sự cố đã được giao cho bạn phụ trách xử lý.",
-                                  },
-                                  {
-                                    title: "Không thể tiếp nhận phiếu",
-                                    description: "Vui lòng kiểm tra lại quyền truy cập hoặc thử lại sau.",
-                                  },
-                                )
-                              }
-                            >
-                              <UserCheck className="w-3.5 h-3.5" /> Nhận việc
-                            </Button>
-                          </>
-                        )}
+                          return (
+                            <>
+                              <RepairLogDialog
+                                reportId={r.id}
+                                title={`#${r.id} · ${r.title}`}
+                                technicianName={techName}
+                                report={r}
+                              />
 
-                        {r.status === "IN_PROGRESS" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 text-xs gap-1 border-slate-300 text-slate-700 hover:bg-slate-50"
-                            onClick={() => setAssigningReport(r)}
-                          >
-                            <UserCheck className="w-3.5 h-3.5" /> Đổi KTV
-                          </Button>
-                        )}
-                        {r.status !== "RESOLVED" && (
-                          <Button
-                            size="sm"
-                            className="h-8 text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                            disabled={pending === r.id}
-                            onClick={() => setResolvingReport(r)}
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn tất
-                          </Button>
+                              {r.status === "OPEN" && !isTech && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 text-xs gap-1 border-indigo-300 text-indigo-700 hover:bg-indigo-50 shadow-xs"
+                                  onClick={() => setAssigningReport(r)}
+                                >
+                                  <Boxes className="w-3.5 h-3.5" /> Phân công KTV
+                                </Button>
+                              )}
+
+                              {(r.status === "IN_PROGRESS" || (r.status === "OPEN" && isTech)) && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 text-xs gap-1 border-slate-300 text-slate-700 hover:bg-slate-50"
+                                  onClick={() => setAssigningReport(r)}
+                                >
+                                  <UserCheck className="w-3.5 h-3.5" /> Đổi KTV
+                                </Button>
+                              )}
+                            </>
+                          );
+                        })()}
+
+                        {r.status === "RESOLVED" && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-800">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> KTV đã xử lý xong
+                          </span>
                         )}
                       </div>
                     </div>
@@ -1202,7 +1170,7 @@ export default function MaintenanceAdminPage() {
                             {r.assignedToUserId ? ` · Kỹ thuật viên: #${r.assignedToUserId}` : ""}
                           </p>
                         </div>
-                        <RepairLogDialog reportId={r.id} title={`#${r.id} · ${r.title}`} />
+                        <RepairLogDialog reportId={r.id} title={`#${r.id} · ${r.title}`} report={r} />
                       </div>
                     ))}
                 </div>
