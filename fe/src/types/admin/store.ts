@@ -8,6 +8,8 @@ export interface AdminStoreResponse {
   address: string;
   phone: string;
   imageUrl: string;
+  /** store-service cũ trả ảnh ở trường `image` — đọc `imageUrl ?? image`. */
+  image?: string | null;
   latitude: number;
   longitude: number;
   description: string;

@@ -11,12 +11,14 @@ import {
   Save,
   X,
   Package,
-  Camera,
+  Image as ImageIcon,
   MapPin,
   TrendingUp,
   Plus,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -32,7 +34,14 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { useStoreDetail } from "./hooks/useStoreDetail";
-import { apiPut } from "~/utils/api";
+import { apiGet, apiPut } from "~/utils/api";
+import { ImageUploadButton } from "~/components/shared/media";
+import { getMediaErrorMessage, pickImageUrl } from "~/lib/media";
+import {
+  useDeleteStoreImageMutation,
+  useUpdateStoreImageMutation,
+} from "~/stores/apis/admin/stores";
+import type { MediaUpload } from "~/stores/apis/media";
 import { BoxStatus } from "~/types/admin/enums";
 import { LockerCard } from "./components/LockerCard";
 import { AddLockerModal } from "./components/AddLockerModal";
@@ -65,6 +74,44 @@ export default function StoreDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAddLocker, setShowAddLocker] = useState(false);
+  // Ảnh cập nhật tại chỗ sau PUT/DELETE …/image (không refetch để khỏi mất dữ liệu form đang sửa)
+  const [imageOverride, setImageOverride] = useState<string | null | undefined>(undefined);
+  const [imageBroken, setImageBroken] = useState(false);
+  const [showRemoveImage, setShowRemoveImage] = useState(false);
+  const [updateStoreImage] = useUpdateStoreImageMutation();
+  const [deleteStoreImage, { isLoading: isRemovingImage }] = useDeleteStoreImageMutation();
+
+  const storeImage =
+    imageOverride !== undefined ? imageOverride || undefined : pickImageUrl(store);
+
+  const handleStoreImageUploaded = async (media: MediaUpload) => {
+    if (!storeId) return;
+    const res = await updateStoreImage({ id: Number(storeId), media }).unwrap();
+    const url = pickImageUrl(res?.data);
+    if (url) {
+      setImageOverride(url);
+    } else {
+      // Phản hồi thiếu URL ⇒ đọc lại riêng thông tin cửa hàng
+      const fresh = await apiGet<{ data: unknown }>(`/api/admin/stores/${storeId}`);
+      setImageOverride(pickImageUrl(fresh?.data) ?? null);
+    }
+    setImageBroken(false);
+    toast.success("Đã cập nhật ảnh địa điểm");
+  };
+
+  const handleRemoveStoreImage = async () => {
+    if (!storeId) return;
+    try {
+      await deleteStoreImage(Number(storeId)).unwrap();
+      setImageOverride(null);
+      setImageBroken(false);
+      toast.success("Đã xoá ảnh địa điểm");
+    } catch (err) {
+      toast.error("Không xoá được ảnh", { description: getMediaErrorMessage(err) });
+    } finally {
+      setShowRemoveImage(false);
+    }
+  };
 
   useEffect(() => {
     if (store) {
@@ -79,6 +126,8 @@ export default function StoreDetailPage() {
         managerPhone: store.managerPhone || "",
       });
       setIsDirty(false);
+      setImageOverride(undefined);
+      setImageBroken(false);
     }
   }, [store]);
 
@@ -185,6 +234,31 @@ export default function StoreDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Confirm Remove Image Dialog */}
+      <AlertDialog open={showRemoveImage} onOpenChange={setShowRemoveImage}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xoá ảnh địa điểm?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ảnh hiện tại sẽ bị gỡ khỏi địa điểm và xoá khỏi kho lưu trữ ảnh.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel disabled={isRemovingImage}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void handleRemoveStoreImage();
+              }}
+              disabled={isRemovingImage}
+              className="bg-rose-600 text-white hover:bg-rose-700"
+            >
+              {isRemovingImage ? "Đang xoá..." : "Xoá ảnh"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border/60 pb-5">
         <div className="flex items-center gap-3">
@@ -237,20 +311,46 @@ export default function StoreDetailPage() {
         <div className="flex flex-col md:flex-row gap-0">
           {/* Image Panel */}
           <div className="relative md:w-72 shrink-0 bg-muted/50 min-h-56 md:min-h-0">
-            <img
-              src={store.imageUrl}
-              alt={store.name}
-              className="w-full h-full object-cover absolute inset-0"
-              onError={(e) => {
-                e.currentTarget.src =
-                  "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600";
-              }}
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
-            <button className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-background/90 hover:bg-background text-foreground text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border/40 shadow-xs backdrop-blur-xs transition-all">
-              <Camera className="h-3.5 w-3.5" />
-              Đổi ảnh
-            </button>
+            {storeImage && !imageBroken ? (
+              <img
+                src={storeImage}
+                alt={`Ảnh địa điểm ${store.name}`}
+                className="w-full h-full object-cover absolute inset-0"
+                onError={() => setImageBroken(true)}
+              />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/70">
+                <ImageIcon className="h-10 w-10" aria-hidden />
+                <span className="text-xs">
+                  {storeImage ? "Không tải được ảnh" : "Chưa có ảnh địa điểm"}
+                </span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
+              {storeImage && (
+                <button
+                  type="button"
+                  onClick={() => setShowRemoveImage(true)}
+                  disabled={isRemovingImage}
+                  aria-label="Xoá ảnh địa điểm"
+                  className="flex items-center gap-1.5 bg-background/90 hover:bg-background text-rose-700 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border/40 shadow-xs backdrop-blur-xs transition-all disabled:opacity-60"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Xoá ảnh
+                </button>
+              )}
+              <ImageUploadButton
+                purpose="STORE_IMAGE"
+                variant="outline"
+                size="sm"
+                className="h-auto gap-1.5 bg-background/90 hover:bg-background text-foreground text-xs font-medium px-2.5 py-1.5 rounded-lg border-border/40 shadow-xs backdrop-blur-xs"
+                errorTitle="Không đổi được ảnh địa điểm"
+                onUploaded={handleStoreImageUploaded}
+              >
+                Đổi ảnh
+              </ImageUploadButton>
+            </div>
             <div className="absolute top-3 left-3">
               <span
                 className={`text-[11px] font-medium px-2.5 py-1 rounded-full border backdrop-blur-xs ${
