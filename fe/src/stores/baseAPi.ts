@@ -119,6 +119,8 @@ export const baseApi = createApi({
     "Promotions", // Quản lý khuyến mãi
     "Wallet", // Ví nội bộ / điều chỉnh số dư
     "Drones", // Đội drone giao/nhận gắn bãi đáp tủ
+    "BusinessSettings", // Quy tắc nghiệp vụ theo scope (ADR-0005)
+    "BusinessSettingAudits", // Lịch sử thay đổi quy tắc nghiệp vụ
   ],
 
   endpoints: () => ({}),
