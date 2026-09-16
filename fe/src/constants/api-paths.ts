@@ -91,12 +91,37 @@ export const ADMIN_ENDPOINTS = {
   ORDER_STATISTICS: `${ROOT_URI.ADMIN}/orders/statistics`,
   ORDER_REVENUE: `${ROOT_URI.ADMIN}/orders/revenue`,
 
+  // Báo cáo đơn hàng — tìm kiếm phân trang + chi tiết đầy đủ
+  // (docs/01-overview/admin-reporting-api.md § 1)
+  ORDERS_SEARCH: `${ROOT_URI.ADMIN}/orders/search`,
+  ORDER_DETAIL: (id: number) => `${ROOT_URI.ADMIN}/orders/${id}/detail`,
+
   // Payments Management
   PAYMENTS: `${ROOT_URI.ADMIN}/payments`,
   PAYMENT_BY_ID: (paymentId: number) =>
     `${ROOT_URI.ADMIN}/payments/${paymentId}`,
   PAYMENT_STATUS: (paymentId: number) =>
     `${ROOT_URI.ADMIN}/payments/${paymentId}/status`,
+
+  // Báo cáo thanh toán (docs/01-overview/admin-reporting-api.md § 2)
+  PAYMENTS_SEARCH: `${ROOT_URI.ADMIN}/payments/search`,
+  PAYMENT_DETAIL: (paymentId: number) =>
+    `${ROOT_URI.ADMIN}/payments/${paymentId}/detail`,
+  PAYMENT_REFUNDS: `${ROOT_URI.ADMIN}/payments/refunds`,
+  PAYMENT_WALLET_TRANSACTIONS: `${ROOT_URI.ADMIN}/payments/wallet-transactions`,
+  PAYMENT_STATS: `${ROOT_URI.ADMIN}/payments/stats`,
+
+  // Báo cáo doanh thu theo tiền thực thu
+  // (docs/01-overview/admin-reporting-api.md § 3 — KHÁC quy tắc cũ của ORDER_REVENUE)
+  REVENUE_SUMMARY: `${ROOT_URI.ADMIN}/revenue/summary`,
+  REVENUE_DAILY: `${ROOT_URI.ADMIN}/revenue/daily`,
+  REVENUE_BY_SERVICE: `${ROOT_URI.ADMIN}/revenue/by-service`,
+  REVENUE_BY_METHOD: `${ROOT_URI.ADMIN}/revenue/by-method`,
+  REVENUE_BY_LOCKER: `${ROOT_URI.ADMIN}/revenue/by-locker`,
+  REVENUE_BY_STORE: `${ROOT_URI.ADMIN}/revenue/by-store`,
+  REVENUE_BY_CUSTOMER: `${ROOT_URI.ADMIN}/revenue/by-customer`,
+  REVENUE_CUSTOMER_DETAIL: (userId: number) =>
+    `${ROOT_URI.ADMIN}/revenue/customers/${userId}`,
 
   // Wallet Management
   WALLET_BY_USER: (userId: number) => `${ROOT_URI.ADMIN}/wallet/${userId}`,

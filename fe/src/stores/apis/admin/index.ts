@@ -6,6 +6,7 @@ export * from "./services";
 export * from "./lockers";
 export * from "./orders";
 export * from "./payments";
+export * from "./revenue";
 export * from "./wallet";
 export * from "./scheduler";
 export * from "./loyalty";
