@@ -82,7 +82,7 @@ export function PaymentDetailModal({
     try {
       await updateStatus({ paymentId, status: selectedStatus }).unwrap();
       toast.success(
-        `Đã chuyển giao dịch #${paymentId} sang “${paymentStatusMeta(selectedStatus).label}”`,
+        `Đã chuyển giao dịch ${payment?.referenceId ?? paymentId} sang “${paymentStatusMeta(selectedStatus).label}”`,
       );
       onUpdated?.();
     } catch (mutationError) {
@@ -131,7 +131,7 @@ export function PaymentDetailModal({
                 <div className="rounded-xl border border-border p-3 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-sm font-semibold">
-                      {payment.order.orderCode ?? `#${payment.order.id}`}
+                      {payment.order.orderCode ?? "Đơn chưa có mã"}
                     </span>
                     <MetaBadge meta={orderStatusMeta(payment.order.status)} hideIcon />
                     <MetaBadge
@@ -152,9 +152,6 @@ export function PaymentDetailModal({
                     <LabelValue label="Loại đơn">{payment.order.type}</LabelValue>
                     <LabelValue label="Tổng tiền đơn">
                       {formatCurrency(payment.order.totalPrice)}
-                    </LabelValue>
-                    <LabelValue label="Mã tủ" mono>
-                      {payment.order.lockerId ? `#${payment.order.lockerId}` : null}
                     </LabelValue>
                     <LabelValue label="Đơn tạo lúc">
                       {payment.order.createdAt
@@ -243,7 +240,7 @@ function PaymentSummary({ payment }: { payment: AdminPayment }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <LabelValue label="Khách hàng">
           {payment.customer?.fullName ??
-            (payment.userId ? `Khách #${payment.userId}` : null)}
+            "Chưa tra được tên khách"}
         </LabelValue>
         <LabelValue label="Điện thoại" mono>
           {payment.customer?.phoneNumber}
@@ -310,9 +307,7 @@ function RefundSection({ refunds }: { refunds: AdminRefund[] }) {
                 </LabelValue>
                 <LabelValue label="Người xử lý">
                   {refund.processedBy?.fullName ??
-                    (refund.processedByUserId
-                      ? `#${refund.processedByUserId}`
-                      : null)}
+                    (refund.processedByUserId ? "Chưa tra được tên" : null)}
                 </LabelValue>
               </div>
             </div>

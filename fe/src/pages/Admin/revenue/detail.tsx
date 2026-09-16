@@ -67,7 +67,7 @@ export default function RevenueDetailPage() {
           className="text-left min-w-0 hover:underline"
         >
           <p className="font-mono text-sm truncate">
-            {row.original.orderCode ?? `#${row.original.orderId}`}
+            {row.original.orderCode ?? "Đơn chưa có mã"}
           </p>
           <p className="text-[11px] text-muted-foreground">
             ID #{row.original.orderId}
@@ -97,7 +97,7 @@ export default function RevenueDetailPage() {
         <div className="min-w-0">
           <p className="text-xs font-mono truncate">
             {row.original.lockerCode ??
-              (row.original.lockerId ? `#${row.original.lockerId}` : EMPTY_VALUE)}
+              "Chưa tra được tên tủ"}
           </p>
           <p className="text-[11px] text-muted-foreground truncate max-w-[160px]">
             {row.original.lockerName ?? ""}
@@ -206,7 +206,7 @@ export default function RevenueDetailPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground truncate">
             {isLoading
               ? "Đang tải…"
-              : customer?.fullName || `Khách hàng #${validId}`}
+              : customer?.fullName || "Chưa tra được tên khách"}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Doanh thu {formatDayLabel(range.from)} – {formatDayLabel(range.to)}
@@ -232,8 +232,8 @@ export default function RevenueDetailPage() {
                 ))
               ) : (
                 <>
-                  <LabelValue label="Mã khách" mono>
-                    {`#${customer?.userId ?? validId}`}
+                  <LabelValue label="Họ tên">
+                    {customer?.fullName ?? "Chưa tra được tên khách"}
                   </LabelValue>
                   <LabelValue label="Điện thoại" mono>
                     {customer?.phoneNumber ? (

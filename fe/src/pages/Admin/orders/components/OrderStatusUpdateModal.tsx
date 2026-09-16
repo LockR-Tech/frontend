@@ -81,7 +81,7 @@ export function OrderStatusUpdateModal({
         ...(parsedBoxId !== undefined ? { receiveBoxId: parsedBoxId } : {}),
       }).unwrap();
       toast.success(
-        `Đã chuyển đơn ${order.orderCode ?? `#${order.id}`} sang “${orderStatusMeta(selected).label}”`,
+        `Đã chuyển đơn ${order.orderCode ?? "chưa có mã"} sang “${orderStatusMeta(selected).label}”`,
       );
       onUpdated?.();
       onClose();
@@ -101,7 +101,7 @@ export function OrderStatusUpdateModal({
         <DialogHeader>
           <DialogTitle>Cập nhật trạng thái đơn</DialogTitle>
           <DialogDescription>
-            {order.orderCode ?? `Đơn #${order.id}`} — thay đổi được ghi vào lịch sử
+            {order.orderCode ?? "Đơn chưa có mã"} — thay đổi được ghi vào lịch sử
             trạng thái kèm tên người thao tác.
           </DialogDescription>
         </DialogHeader>

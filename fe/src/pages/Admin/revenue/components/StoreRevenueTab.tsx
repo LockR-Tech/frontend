@@ -41,7 +41,7 @@ export function StoreRevenueTab({ range, skip }: StoreRevenueTabProps) {
         return (
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">
-              {store.name ?? `#${store.storeId}`}
+              {store.name ?? "Chưa tra được tên cửa hàng"}
             </p>
             <p className="text-[11px] text-muted-foreground truncate max-w-[240px]">
               {store.address ?? EMPTY_VALUE}

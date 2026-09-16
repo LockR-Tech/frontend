@@ -59,13 +59,16 @@ export function OrderTable({
         const order = row.original;
         return (
           <div className="min-w-0">
+            {/* Mã đơn là thứ khách và nhân viên đọc cho nhau; id nội bộ bỏ đi vì
+                nhìn vào không biết là đơn nào. */}
             <p className="font-mono font-semibold text-sm text-foreground truncate">
-              {order.orderCode ?? `#${order.id}`}
+              {order.orderCode ?? "Đơn chưa có mã"}
             </p>
-            <p className="text-[11px] text-muted-foreground">
-              ID #{order.id}
-              {order.fulfillmentMode ? ` · ${order.fulfillmentMode}` : ""}
-            </p>
+            {order.fulfillmentMode && (
+              <p className="text-[11px] text-muted-foreground">
+                {order.fulfillmentMode}
+              </p>
+            )}
           </div>
         );
       },
@@ -74,11 +77,11 @@ export function OrderTable({
     columnHelper.accessor("customer", {
       header: "Khách gửi",
       cell: ({ row }) => {
-        const { customer, userId } = row.original;
+        const { customer } = row.original;
         return (
           <div className="min-w-0">
             <p className="font-medium text-sm text-foreground truncate">
-              {customer?.fullName || (userId ? `Khách #${userId}` : EMPTY_VALUE)}
+              {customer?.fullName || "Chưa tra được tên khách"}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer?.phoneNumber || EMPTY_VALUE}
@@ -148,7 +151,7 @@ export function OrderTable({
           <div className="min-w-0">
             <p className="text-sm text-foreground truncate flex items-center gap-1">
               <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-              {locker?.code || locker?.name || EMPTY_VALUE}
+              {locker?.name || locker?.code || "Chưa tra được tên tủ"}
             </p>
             <p className="text-[11px] text-muted-foreground">
               {boxNumber !== null && boxNumber !== undefined

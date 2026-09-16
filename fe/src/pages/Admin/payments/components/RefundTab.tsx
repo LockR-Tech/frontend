@@ -63,7 +63,7 @@ export function RefundTab() {
         return (
           <div className="min-w-0">
             <p className="text-sm truncate">
-              {customer?.fullName || (userId ? `Khách #${userId}` : EMPTY_VALUE)}
+              {customer?.fullName || "Chưa tra được tên khách"}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer?.phoneNumber || EMPTY_VALUE}
@@ -83,7 +83,7 @@ export function RefundTab() {
             onClick={() => navigate(`/admin/orders/${orderId}`)}
             className="font-mono text-xs hover:underline"
           >
-            {order?.orderCode ?? `#${orderId}`}
+            {order?.orderCode ?? "Chưa tra được đơn"}
           </button>
         );
       },
@@ -141,9 +141,7 @@ export function RefundTab() {
           </p>
           <p className="text-[11px] text-muted-foreground">
             {row.original.processedBy?.fullName ??
-              (row.original.processedByUserId
-                ? `#${row.original.processedByUserId}`
-                : "")}
+              (row.original.processedByUserId ? "Chưa tra được tên" : "")}
           </p>
         </div>
       ),

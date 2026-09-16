@@ -39,6 +39,17 @@ import { OrderStatusUpdateModal } from "./components/OrderStatusUpdateModal";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
 
 /**
+ * Nhãn tủ cho người đọc: ưu tiên TÊN, mã tủ chỉ là phần phụ trong ngoặc.
+ * Không bao giờ rơi về `#id` — mã số nội bộ không cho người xem biết tủ nào.
+ * Tra cứu hỏng (không có cả tên lẫn mã) thì nói thẳng là chưa tra được.
+ */
+function lockerLabel(locker: AdminOrder["locker"]): string | null {
+  if (!locker) return null;
+  if (locker.name && locker.code) return `${locker.name} (${locker.code})`;
+  return locker.name ?? locker.code ?? "Chưa tra được tên tủ";
+}
+
+/**
  * Thứ tự dòng phí giống lúc tính tiền: các khoản cộng trước, giảm giá sau, tổng cuối.
  * `overtimeFee` chính là `extraFee` nên chỉ hiện một lần, dưới tên dễ hiểu.
  */
@@ -90,14 +101,9 @@ function CustomerCard({ order }: { order: AdminOrder }) {
             Người gửi
           </p>
           <LabelValue label="Họ tên">{customer?.fullName}</LabelValue>
-          <div className="grid grid-cols-2 gap-3">
-            <LabelValue label="Điện thoại" mono>
-              {customer?.phoneNumber}
-            </LabelValue>
-            <LabelValue label="Mã khách" mono>
-              {order.userId ? `#${order.userId}` : null}
-            </LabelValue>
-          </div>
+          <LabelValue label="Điện thoại" mono>
+            {customer?.phoneNumber}
+          </LabelValue>
           <LabelValue label="Email">{customer?.email}</LabelValue>
           <LabelValue label="Trạng thái tài khoản">{customer?.status}</LabelValue>
         </div>
@@ -117,7 +123,7 @@ function CustomerCard({ order }: { order: AdminOrder }) {
           <LabelValue label="Tài khoản người nhận">
             {receiver?.userId ? (
               <span>
-                {receiver.accountFullName ?? `Người dùng #${receiver.userId}`}
+                {receiver.accountFullName ?? "Đã có tài khoản, chưa tra được tên"}
                 {receiver.accountPhoneNumber
                   ? ` · ${receiver.accountPhoneNumber}`
                   : ""}
@@ -142,15 +148,13 @@ function LockerCard({ order }: { order: AdminOrder }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <LabelValue label="Tủ gửi">
-          {locker ? `${locker.code ?? `#${locker.id}`} — ${locker.name ?? ""}` : null}
-        </LabelValue>
+        <LabelValue label="Tủ gửi">{lockerLabel(locker)}</LabelValue>
         <LabelValue label="Địa chỉ tủ gửi">{locker?.address}</LabelValue>
 
         {destinationLocker && (
           <>
             <LabelValue label="Tủ đích">
-              {`${destinationLocker.code ?? `#${destinationLocker.id}`} — ${destinationLocker.name ?? ""}`}
+              {lockerLabel(destinationLocker)}
             </LabelValue>
             <LabelValue label="Địa chỉ tủ đích">
               {destinationLocker.address}
@@ -298,7 +302,6 @@ function PaymentCard({ order }: { order: AdminOrder }) {
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground font-mono">
-                {payment.latestPaymentId ? `#${payment.latestPaymentId} · ` : ""}
                 {payment.latestCreatedAt
                   ? formatDateTime(payment.latestCreatedAt)
                   : EMPTY_VALUE}
@@ -342,19 +345,19 @@ function DroneCard({ order }: { order: AdminOrder }) {
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            <LabelValue label="Mã nhiệm vụ" mono>
-              {`#${drone.missionId}`}
+            <LabelValue label="Drone">
+              {/* Mã drone là tên gọi ngoài đời của thiết bị (DR-01), luôn ưu tiên. */}
+              {drone.droneCode ?? "Chưa tra được mã drone"}
             </LabelValue>
-            <LabelValue label="Drone" mono>
-              {drone.droneCode ??
-                (drone.droneUnitId ? `#${drone.droneUnitId}` : null)}
+            <LabelValue label="Người điều phối">
+              {drone.assignedByUserId ? "Đã có người gán" : "Hệ thống tự gán"}
             </LabelValue>
             <LabelValue label="Tủ xuất phát">
-              {drone.sourceLocker?.code ??
-                (drone.sourceLockerId ? `#${drone.sourceLockerId}` : null)}
+              {lockerLabel(drone.sourceLocker) ?? "Chưa tra được tên tủ"}
             </LabelValue>
-            <LabelValue label="Tủ đích" mono>
-              {drone.destinationLockerId ? `#${drone.destinationLockerId}` : null}
+            <LabelValue label="Tủ đích">
+              {/* Tủ đích của đơn và của chuyến bay là một; khối Tủ ở trên đã có tên. */}
+              {lockerLabel(order.destinationLocker) ?? "Chưa tra được tên tủ"}
             </LabelValue>
             <LabelValue label="Sẵn sàng cất cánh">
               {drone.readyToLaunchAt ? formatDateTime(drone.readyToLaunchAt) : null}
@@ -426,7 +429,7 @@ export default function OrderDetailPage() {
           </Button>
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight text-foreground truncate">
-              {order.orderCode ?? `Đơn #${order.id}`}
+              {order.orderCode ?? "Đơn chưa có mã"}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5 font-mono">
               ID #{order.id} · tạo {formatDateTime(order.createdAt)}
@@ -582,7 +585,7 @@ export default function OrderDetailPage() {
                     >
                       <div className="min-w-0">
                         <p className="font-medium truncate">
-                          {line.serviceName ?? `Dịch vụ #${line.serviceId}`}
+                          {line.serviceName ?? "Dịch vụ chưa tra được tên"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {formatNumber(line.quantity)} {line.unit ?? ""}
@@ -635,31 +638,36 @@ export default function OrderDetailPage() {
           <PaymentCard order={order} />
           <DroneCard order={order} />
 
+          {/* Khối này trước đây liệt kê 6 dòng mã số thô (`#701`, `#7`, `#3`) — nhìn vào
+              không biết là tủ nào, cửa hàng nào. Nay hiện tên và số ô mà API chi tiết
+              vốn đã trả về sẵn; chỉ giữ lại mã số ở nơi thật sự không có tên. */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <KeyRound className="h-4 w-4" />
-                Tham chiếu khác
+                Tóm tắt liên kết
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-3">
-              <LabelValue label="Nhân viên xử lý" mono>
-                {order.staffId ? `#${order.staffId}` : null}
+              <LabelValue label="Tủ">
+                {order.locker?.name ?? order.locker?.code}
               </LabelValue>
-              <LabelValue label="Mã ô gửi" mono>
-                {order.sendBoxId ? `#${order.sendBoxId}` : null}
+              <LabelValue label="Cửa hàng">{order.store?.name}</LabelValue>
+              <LabelValue label="Ô gửi">
+                {order.sendBoxNumber !== null ? `Ô số ${order.sendBoxNumber}` : null}
               </LabelValue>
-              <LabelValue label="Mã ô nhận" mono>
-                {order.receiveBoxId ? `#${order.receiveBoxId}` : null}
+              <LabelValue label="Ô nhận">
+                {order.receiveBoxNumber !== null
+                  ? `Ô số ${order.receiveBoxNumber}`
+                  : null}
               </LabelValue>
-              <LabelValue label="Mã ô giữ chỗ" mono>
-                {order.reservedBoxId ? `#${order.reservedBoxId}` : null}
+              <LabelValue label="Ô giữ chỗ">
+                {order.reservedBoxNumber !== null
+                  ? `Ô số ${order.reservedBoxNumber}`
+                  : null}
               </LabelValue>
-              <LabelValue label="Mã tủ" mono>
-                {order.lockerId ? `#${order.lockerId}` : null}
-              </LabelValue>
-              <LabelValue label="Mã cửa hàng" mono>
-                {order.storeId ? `#${order.storeId}` : null}
+              <LabelValue label="Loại hình">
+                {orderTypeMeta(order.type).label}
               </LabelValue>
             </CardContent>
           </Card>
