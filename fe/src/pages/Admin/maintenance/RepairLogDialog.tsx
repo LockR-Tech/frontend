@@ -1,12 +1,8 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   History,
-  Send,
-  Image as ImageIcon,
-  ExternalLink,
   Camera,
   X,
-  Paperclip,
   User,
   Clock,
   FileText,
@@ -15,8 +11,8 @@ import {
   Wrench,
   CheckCircle2,
   AlertTriangle,
+  Shield,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -24,14 +20,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
-import { PhotoGallery, PhotoPicker, type GalleryPhoto } from "~/components/shared/media";
-import { isHandledUploadError, useImageUpload } from "~/hooks/useImageUpload";
-import { getMediaErrorMessage } from "~/lib/media";
+import { PhotoGallery, type GalleryPhoto } from "~/components/shared/media";
 import {
   useGetReportLogsQuery,
-  useAddReportLogMutation,
   useGetMaintenanceReportsQuery,
   type LockerReportResponse,
   type RepairLogResponse,
@@ -39,14 +31,12 @@ import {
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { KTV_NOTES_BY_REPORT, getUserPhotos } from "./maintenancePhotos";
 
-const LOG_PHOTO_MAX = 10;
-
-const formatDT = (s?: string | null) => {
-  if (!s) return "—";
-  const d = new Date(s);
-  if (isNaN(d.getTime())) return s;
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())} ${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+const formatDT = (dateStr?: string | null) => {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
 };
 
 const calcDuration = (a?: string | null, b?: string | null): string => {
@@ -58,11 +48,10 @@ const calcDuration = (a?: string | null, b?: string | null): string => {
   return `${h} giờ ${m > 0 ? `${m} phút` : ""}`;
 };
 
-/// Nút "Nhật ký" + hộp thoại đầy đủ thông tin phiếu:
+/// Nút "Nhật ký" + hộp thoại đầy đủ thông tin phiếu (Chế độ xem Quản trị viên - Read-only):
 /// - Chi tiết phiếu: Kiosk, ô tủ, nội dung khách báo, KTV phụ trách, các mốc thời gian SLA
 /// - Ghi chú kỹ thuật của KTV (biên bản, linh kiện thay, thời gian nhận/xong)
-/// - Nhật ký xử lý từng bước (work-log) với ảnh trong quá trình sửa (stage PROGRESS)
-/// - Đính kèm tối đa 10 ảnh (upload Cloudinary) trong 1 lần ghi nhật ký
+/// - Nhật ký xử lý từng bước (work-log) với ảnh trong quá trình sửa do KTV cập nhật trên Mobile
 export function RepairLogDialog({
   reportId,
   title,
@@ -75,16 +64,12 @@ export function RepairLogDialog({
   report?: LockerReportResponse;
 }) {
   const [open, setOpen] = useState(false);
-  const [note, setNote] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"info" | "logs">("info");
 
   const { data, isLoading } = useGetReportLogsQuery(reportId, { skip: !open });
   const { data: allReportsData } = useGetMaintenanceReportsQuery(undefined, { skip: !open });
   const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 }, { skip: !open });
-  const [addLog, { isLoading: adding }] = useAddReportLogMutation();
-  const { upload, items: uploadItems, isUploading, reset: resetUpload } = useImageUpload("REPORT_EVIDENCE");
 
   const logs = data?.data ?? [];
   const eff = report ?? allReportsData?.data?.find((r) => r.id === reportId);
@@ -100,17 +85,16 @@ export function RepairLogDialog({
   const assignedUser = eff?.assignedToUserId ? userList.find((u) => u.id === eff.assignedToUserId) : undefined;
 
   const isReporterTech = Boolean(
-    reporterUser?.roles?.some((role: string) =>
-      role.includes("TECHNICIAN") || role.includes("MAINTENANCE")
-    ) ||
-    eff?.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-    eff?.reporterName?.toLowerCase().includes("ktv") ||
-    eff?.reporterName?.toLowerCase().includes("technician") ||
-    eff?.reporterName?.toLowerCase().includes("maintenance")
+    reporterUser?.roles?.some((role: any) => {
+      const r = typeof role === "string" ? role : role?.name || role?.roleName || "";
+      return r.includes("TECHNICIAN") || r.includes("MAINTENANCE");
+    }) ||
+    eff?.reporterName?.toLowerCase()?.includes("kỹ thuật viên") ||
+    eff?.reporterName?.toLowerCase()?.includes("ktv") ||
+    eff?.reporterName?.toLowerCase()?.includes("technician") ||
+    eff?.reporterName?.toLowerCase()?.includes("maintenance")
   );
 
-  // If a technician reported the issue, they are also the technician in charge!
-  const effectiveAssignedToUserId = eff?.assignedToUserId ?? (isReporterTech ? eff?.userId : undefined);
   const effectiveAssignedAt = eff?.assignedAt ?? (isReporterTech ? eff?.createdAt : undefined);
   const effectiveStatus = eff?.status === "OPEN" && isReporterTech ? "IN_PROGRESS" : eff?.status;
 
@@ -121,38 +105,17 @@ export function RepairLogDialog({
       ? (reporterUser?.fullName || reporterUser?.name || eff?.reporterName)
       : (eff?.assignedToUserId ? `KTV #${eff.assignedToUserId}` : undefined));
 
-  const busy = adding || isUploading;
-
-  const submit = async () => {
-    const text = note.trim();
-    if (!text) return;
-    try {
-      // Ảnh upload thẳng lên Cloudinary trước, rồi gửi MediaUpload kèm nhật ký (stage PROGRESS)
-      const attachments = files.length > 0 ? await upload(files) : undefined;
-      await addLog({ reportId, note: text, attachments }).unwrap();
-      toast.success("Ghi nhận nhật ký thành công", {
-        description: `Bước xử lý kỹ thuật${files.length > 0 ? ` kèm ${files.length} ảnh` : ""} đã được lưu vào hồ sơ.`,
-      });
-      setNote("");
-      setFiles([]);
-      resetUpload();
-    } catch (err) {
-      if (!isHandledUploadError(err)) {
-        toast.error("Không thêm được ghi chú", {
-          description: getMediaErrorMessage(err, "Vui lòng thử lại sau."),
-        });
-      }
-    }
-  };
-
   // Nhật ký cũ (trước khi có Cloudinary) dán link ảnh vào cuối ghi chú
-  const extractImages = (content: string) => {
+  const extractImages = (content?: string | null) => {
+    if (!content) return [];
     const urlRegex = /(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg)|data:image\/[a-zA-Z]+;base64,[^\s]+)/gi;
     return content.match(urlRegex) || [];
   };
 
-  const stripImages = (content: string) =>
-    content.replace(/\[Ảnh đính kèm\]\n(https?:\/\/[^\n]+\n?)*/g, "").trim();
+  const stripImages = (content?: string | null) => {
+    if (!content) return "";
+    return content.replace(/\[Ảnh đính kèm\]\n(https?:\/\/[^\n]+\n?)*/g, "").trim();
+  };
 
   const logPhotos = (log: RepairLogResponse): GalleryPhoto[] => {
     if (log.attachments?.length) {
@@ -162,16 +125,20 @@ export function RepairLogDialog({
         thumbnailUrl: a.thumbnailUrl,
         alt: `Ảnh ${idx + 1} của nhật ký #${log.id}`,
         caption: a.caption,
-        meta: `Tải lên ${formatDT(a.createdAt)}`,
+        time: formatDT(a.capturedAt || a.createdAt),
+        meta: `Thời gian: ${formatDT(a.capturedAt || a.createdAt)}`,
         badge: `Ảnh ${idx + 1}`,
+        deletable: false,
       }));
     }
     return extractImages(log.note).map((url, idx) => ({
       key: `legacy-${log.id}-${idx}`,
       url,
       alt: `Ảnh ${idx + 1} của nhật ký #${log.id}`,
-      meta: "Ảnh cũ đính kèm dạng link trong ghi chú",
+      time: formatDT(log.createdAt),
+      meta: `Ảnh đính kèm trong ghi chú · ${formatDT(log.createdAt)}`,
       badge: `Ảnh ${idx + 1}`,
+      deletable: false,
     }));
   };
 
@@ -266,7 +233,7 @@ export function RepairLogDialog({
                         </span>
                         {eff?.boxNumber != null && (
                           <span className="text-foreground font-semibold">
-                            · Ô #{eff.boxNumber} {eff.cellType ? `(${eff.cellType})` : ""}
+                            · Ô #{eff.boxNumber} {eff?.cellType ? `(${eff.cellType})` : ""}
                           </span>
                         )}
                       </p>
@@ -363,7 +330,7 @@ export function RepairLogDialog({
                     <div className="pt-2 border-t border-border/50 flex items-center gap-2 text-[11px] flex-wrap">
                       <span className="text-muted-foreground">Người báo cáo:</span>
                       <span className="font-medium text-foreground">
-                        {[eff.reporterName, eff.reporterPhone].filter(Boolean).join(" · ")}
+                        {[eff?.reporterName, eff?.reporterPhone].filter(Boolean).join(" · ")}
                       </span>
                       {isReporterTech && (
                         <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] py-0 px-1.5 font-semibold">
@@ -414,9 +381,13 @@ export function RepairLogDialog({
                   {isLoading ? (
                     <p className="text-sm text-muted-foreground py-6 text-center">Đang tải nhật ký...</p>
                   ) : logs.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-6 text-center">
-                      Chưa có nhật ký nào. Thêm bước xử lý đầu tiên bên dưới.
-                    </p>
+                    <div className="py-10 text-center space-y-2">
+                      <History className="w-8 h-8 text-muted-foreground/40 mx-auto" />
+                      <p className="text-sm font-semibold text-foreground">Chưa có nhật ký nào từ Kỹ thuật viên</p>
+                      <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                        Kỹ thuật viên sẽ ghi nhận từng bước xử lý, thay thế linh kiện và chụp ảnh minh chứng hiện trường trực tiếp trên ứng dụng Mobile.
+                      </p>
+                    </div>
                   ) : (
                     logs.map((l) => {
                       const images = logPhotos(l);
@@ -457,38 +428,17 @@ export function RepairLogDialog({
                   )}
                 </div>
 
-                {/* Add log form */}
-                <div className="pt-2 border-t space-y-2">
-                  <Textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="Ghi chú bước xử lý kỹ thuật (ví dụ: 'Đã kiểm tra bo mạch chủ, phát hiện tụ điện phồng...')"
-                    rows={3}
-                    className="text-xs resize-none"
-                    disabled={busy}
-                  />
-
-                  {/* Ảnh trong quá trình sửa (upload Cloudinary, stage PROGRESS) */}
-                  <PhotoPicker
-                    value={files}
-                    onChange={setFiles}
-                    maxFiles={LOG_PHOTO_MAX}
-                    disabled={busy}
-                    uploadItems={uploadItems}
-                  />
-
-                  <Button
-                    onClick={submit}
-                    disabled={busy || !note.trim()}
-                    className="w-full h-9 text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    {isUploading
-                      ? "Đang tải ảnh..."
-                      : adding
-                        ? "Đang lưu..."
-                        : `Ghi nhận bước xử lý${files.length > 0 ? ` + ${files.length} ảnh` : ""}`}
-                  </Button>
+                {/* Read-only notification banner */}
+                <div className="pt-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
+                  <span className="flex items-center gap-1.5 italic">
+                    <Shield className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                    Chế độ xem quản trị · KTV cập nhật nhật ký & minh chứng qua Mobile App
+                  </span>
+                  {logs.length > 0 && (
+                    <Badge variant="outline" className="text-[10px] font-mono">
+                      {logs.length} bước xử lý
+                    </Badge>
+                  )}
                 </div>
               </>
             )}

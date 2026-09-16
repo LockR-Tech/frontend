@@ -32,6 +32,10 @@ export interface GalleryPhoto {
   meta?: string | null;
   /** Nhãn nhỏ in trên thumbnail. */
   badge?: string;
+  /** Thời gian chụp/tải lên cụ thể, hiển thị trực tiếp trên thumbnail. */
+  time?: string | null;
+  /** Người tải ảnh lên. */
+  uploader?: string | null;
   /** `false` ⇒ ẩn nút xoá cho ảnh này (ví dụ ảnh legacy lấy từ mô tả). */
   deletable?: boolean;
 }
@@ -95,35 +99,41 @@ export function PhotoGallery({
     <>
       <div className={cn("flex items-center gap-2 flex-wrap", className)}>
         {photos.map((photo, idx) => (
-          <button
-            key={photo.key}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpenIndex(idx);
-            }}
-            className={cn(
-              "relative w-16 h-16 rounded-md overflow-hidden border border-border/80 hover:border-foreground/50 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              thumbClassName,
-            )}
-            title={photo.caption ?? photo.alt ?? undefined}
-            aria-label={`Xem ảnh ${photo.alt ?? idx + 1}`}
-          >
-            <img
-              src={photo.thumbnailUrl || photo.url}
-              alt={photo.alt ?? `Ảnh ${idx + 1}`}
-              loading="lazy"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Camera className="w-3.5 h-3.5 text-white" aria-hidden />
-            </div>
-            {photo.badge && (
-              <span className="absolute bottom-0 inset-x-0 bg-black/75 text-[8px] text-white text-center truncate px-0.5 font-medium">
-                {photo.badge}
-              </span>
-            )}
-          </button>
+          <div key={photo.key} className="flex flex-col items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenIndex(idx);
+              }}
+              className={cn(
+                "relative w-16 h-16 rounded-md overflow-hidden border border-border/80 hover:border-foreground/50 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                thumbClassName,
+              )}
+              title={photo.caption ?? photo.alt ?? (photo.time ? `Thời gian: ${photo.time}` : undefined)}
+              aria-label={`Xem ảnh ${photo.alt ?? idx + 1}`}
+            >
+              <img
+                src={photo.thumbnailUrl || photo.url}
+                alt={photo.alt ?? `Ảnh ${idx + 1}`}
+                loading="lazy"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              />
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="w-3.5 h-3.5 text-white" aria-hidden />
+              </div>
+              {photo.badge && (
+                <span className="absolute top-0.5 left-0.5 bg-black/75 backdrop-blur-xs text-[8px] text-white rounded px-1 font-medium z-10">
+                  {photo.badge}
+                </span>
+              )}
+              {photo.time && (
+                <span className="absolute bottom-0 inset-x-0 bg-black/80 backdrop-blur-xs text-[8px] text-white text-center font-mono truncate px-0.5 py-0.5 font-medium z-10">
+                  {photo.time}
+                </span>
+              )}
+            </button>
+          </div>
         ))}
       </div>
 

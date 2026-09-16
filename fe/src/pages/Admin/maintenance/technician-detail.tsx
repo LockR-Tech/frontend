@@ -824,14 +824,17 @@ export default function TechnicianDetailPage() {
                   {filteredReports.map((report) => {
                     const isDone = report.status === "RESOLVED";
                     const isWorking = report.status === "IN_PROGRESS";
-                    const isOverdue = isWorking && report.overdue;
+                    const isNew = !isDone && !isWorking;
+                    const isOverdue = report.overdue;
                     const slaExt = slaExtensions[report.id];
 
                     return (
                       <Card
                         key={report.id}
-                        className={`border shadow-xs transition-colors ${
-                          isOverdue
+                        className={`border shadow-xs transition-all ${
+                          isNew
+                            ? "border-l-4 border-l-amber-500 border-amber-300 bg-amber-50/30 dark:bg-amber-950/20 shadow-xs ring-1 ring-amber-300/60 dark:ring-amber-900/40"
+                            : isOverdue
                             ? "border-rose-300 bg-rose-50/10 dark:border-rose-900/50"
                             : "border-border/80 hover:border-border"
                         }`}
@@ -843,18 +846,29 @@ export default function TechnicianDetailPage() {
                                 <span className="font-semibold text-sm text-foreground">
                                   #{report.id} · {report.title}
                                 </span>
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    isDone
-                                      ? "bg-emerald-100 text-emerald-800 border-emerald-300 font-medium text-xs dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700"
-                                      : isWorking
-                                      ? "bg-blue-100 text-blue-800 border-blue-300 font-medium text-xs dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700"
-                                      : "bg-amber-100 text-amber-800 border-amber-300 font-medium text-xs dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700"
-                                  }
-                                >
-                                  {isDone ? "Đã hoàn tất" : isWorking ? "Đang xử lý" : "Mới tiếp nhận"}
-                                </Badge>
+                                {isNew ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-amber-500 text-white border-amber-600 font-bold text-xs shadow-xs flex items-center gap-1.5 px-2.5 py-0.5 animate-pulse"
+                                  >
+                                    <span className="relative flex h-2 w-2">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                    </span>
+                                    MỚI TIẾP NHẬN
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      isDone
+                                        ? "bg-emerald-100 text-emerald-800 border-emerald-300 font-medium text-xs dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700"
+                                        : "bg-blue-100 text-blue-800 border-blue-300 font-medium text-xs dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700"
+                                    }
+                                  >
+                                    {isDone ? "Đã hoàn tất" : "Đang xử lý"}
+                                  </Badge>
+                                )}
                                 {isOverdue && !slaExt && (
                                   <Badge
                                     variant="outline"
