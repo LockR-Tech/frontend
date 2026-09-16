@@ -54,11 +54,13 @@ export function PaymentTable({
         const payment = row.original;
         return (
           <div className="min-w-0">
-            <p className="font-mono font-semibold text-sm text-foreground">
-              #{payment.id}
+            {/* Giao dịch không có tên; mã tham chiếu là thứ đối soát được với cổng
+                thanh toán nên đưa lên làm nhãn chính thay cho số thứ tự nội bộ. */}
+            <p className="font-mono font-semibold text-sm text-foreground truncate max-w-[200px]">
+              {payment.referenceId ?? `Giao dịch ${payment.id}`}
             </p>
-            <p className="text-[11px] text-muted-foreground font-mono truncate max-w-[180px]">
-              {payment.referenceId ?? EMPTY_VALUE}
+            <p className="text-[11px] text-muted-foreground">
+              {paymentKindMeta(payment.kind).label}
             </p>
           </div>
         );
@@ -68,11 +70,11 @@ export function PaymentTable({
     columnHelper.accessor("customer", {
       header: "Khách hàng",
       cell: ({ row }) => {
-        const { customer, userId } = row.original;
+        const { customer } = row.original;
         return (
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {customer?.fullName || (userId ? `Khách #${userId}` : EMPTY_VALUE)}
+              {customer?.fullName || "Chưa tra được tên khách"}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer?.phoneNumber || EMPTY_VALUE}
@@ -94,9 +96,11 @@ export function PaymentTable({
         }
         const order = payment.order;
         if (!order) {
+          // `order` rỗng nghĩa là order-service không trả lời — nói thẳng thay vì
+          // hiện một con số mà người xem không tra được thành đơn nào.
           return (
-            <span className="text-xs text-muted-foreground font-mono">
-              {payment.orderId ? `#${payment.orderId}` : EMPTY_VALUE}
+            <span className="text-xs text-muted-foreground">
+              {payment.orderId ? "Chưa tra được đơn" : EMPTY_VALUE}
             </span>
           );
         }
@@ -108,7 +112,7 @@ export function PaymentTable({
           >
             <p className="text-sm font-mono text-foreground truncate flex items-center gap-1">
               <Package className="h-3 w-3 text-muted-foreground shrink-0" />
-              {order.orderCode ?? `#${order.id}`}
+              {order.orderCode ?? "Đơn chưa có mã"}
             </p>
             <div className="mt-0.5">
               <MetaBadge meta={orderStatusMeta(order.status)} hideIcon />

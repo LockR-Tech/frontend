@@ -44,7 +44,7 @@ export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
         return (
           <div className="min-w-0">
             <p className="text-sm font-medium font-mono truncate">
-              {locker.code ?? `#${locker.lockerId}`}
+              {locker.name ?? locker.code ?? "Chưa tra được tên tủ"}
             </p>
             <p className="text-[11px] text-muted-foreground truncate max-w-[220px]">
               {locker.name ?? locker.address ?? EMPTY_VALUE}
@@ -58,7 +58,7 @@ export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
           {row.original.storeName ??
-            (row.original.storeId ? `#${row.original.storeId}` : EMPTY_VALUE)}
+            "Chưa tra được tên cửa hàng"}
         </span>
       ),
     }),

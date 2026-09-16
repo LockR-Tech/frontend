@@ -50,7 +50,7 @@ export function OrderTimeline({ timeline }: OrderTimelineProps) {
             {(entry.changedByName || entry.changedByUserId !== null) && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <User className="h-3 w-3 shrink-0" />
-                {entry.changedByName ?? `Người dùng #${entry.changedByUserId}`}
+                {entry.changedByName ?? "Không rõ người thao tác"}
               </p>
             )}
             {entry.note && (

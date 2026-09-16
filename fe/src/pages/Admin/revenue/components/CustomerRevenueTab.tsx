@@ -95,10 +95,10 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
             className="text-left min-w-0 hover:underline"
           >
             <p className="text-sm font-medium truncate">
-              {customer.fullName || `Khách #${customer.userId}`}
+              {customer.fullName || "Chưa tra được tên khách"}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
-              {customer.phoneNumber || customer.email || `#${customer.userId}`}
+              {customer.phoneNumber || customer.email || EMPTY_VALUE}
             </p>
           </button>
         );
