@@ -1,32 +1,7 @@
-import { useMemo, useState } from "react";
-import { Camera, CheckCircle2, ImagePlus, Loader2, ShieldCheck, Wrench } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { PhotoGallery, PhotoPicker, type GalleryPhoto } from "~/components/shared/media";
-import { isHandledUploadError, useImageUpload } from "~/hooks/useImageUpload";
-import { getMediaErrorMessage } from "~/lib/media";
-import {
-  useAddAdminReportAttachmentsMutation,
-  useDeleteAdminReportAttachmentMutation,
-  type LockerReportResponse,
-} from "~/stores/apis/admin/lockerOps";
+import { useMemo } from "react";
+import { Camera, CheckCircle2, Clock, ShieldCheck, Wrench } from "lucide-react";
+import { PhotoGallery, type GalleryPhoto } from "~/components/shared/media";
+import type { LockerReportResponse } from "~/stores/apis/admin/lockerOps";
 import type { AttachmentStage } from "~/stores/apis/media";
 import {
   ATTACHMENT_STAGES,
@@ -40,7 +15,15 @@ const formatPhotoTime = (dateStr?: string | null) => {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+};
+
+const formatPhotoShortTime = (dateStr?: string | null) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
 };
 
 // Màu giữ theo quy ước cũ của trang: người báo = rose, KTV = amber, đang sửa = blue, nghiệm thu = emerald
@@ -84,19 +67,16 @@ interface ReportPhotoGroupsProps {
   variant?: "compact" | "stacked";
   /** Map userId → tên hiển thị cho dòng "Người tải". */
   userNames?: Record<number, string | undefined>;
-  /** Admin: thêm ảnh (chọn stage) và xoá ảnh qua /api/admin/lockers/reports/{id}/attachments. */
+  /** Admin chỉ xem (Read-only) theo nghiệp vụ hệ thống. */
   canManage?: boolean;
 }
 
-/// 4 nhóm ảnh phiếu sự cố (người báo · KTV xác nhận · trong khi sửa · nghiệm thu) + lightbox + quản lý ảnh.
+/// 4 nhóm ảnh phiếu sự cố (người báo · KTV xác nhận · trong khi sửa · nghiệm thu) + lightbox + hiển thị thời gian chi tiết.
 export function ReportPhotoGroups({
   report,
   variant = "compact",
   userNames,
-  canManage = true,
 }: ReportPhotoGroupsProps) {
-  const [addOpen, setAddOpen] = useState(false);
-  const [deleteAttachment] = useDeleteAdminReportAttachmentMutation();
   const groups = useMemo(() => groupReportPhotos(report), [report]);
   const total = ATTACHMENT_STAGES.reduce((sum, stage) => sum + groups[stage].length, 0);
 
@@ -109,56 +89,29 @@ export function ReportPhotoGroups({
   };
 
   const toGalleryPhotos = (stage: AttachmentStage, photos: ReportPhoto[]): GalleryPhoto[] =>
-    photos.map((photo, idx) => ({
-      key: photo.key,
-      url: photo.url,
-      thumbnailUrl: photo.thumbnailUrl,
-      alt: `${STAGE_LABELS[stage]} ${idx + 1} — phiếu #${report.id}`,
-      caption: photo.caption,
-      meta: [
-        uploaderName(photo) && `Người tải: ${uploaderName(photo)}`,
-        photo.capturedAt && `Chụp lúc ${formatPhotoTime(photo.capturedAt)}`,
-        photo.createdAt && `Tải lên ${formatPhotoTime(photo.createdAt)}`,
-        photo.attachmentId == null && "Ảnh cũ đính kèm trong mô tả",
-      ]
-        .filter(Boolean)
-        .join(" · "),
-      badge: variant === "compact" ? STAGE_STYLE[stage].badge : undefined,
-      deletable: photo.attachmentId != null,
-    }));
-
-  const handleDelete = async (photo: GalleryPhoto) => {
-    const attachmentId = ATTACHMENT_STAGES.flatMap((stage) => groups[stage]).find(
-      (p) => p.key === photo.key,
-    )?.attachmentId;
-    if (attachmentId == null) return;
-    try {
-      await deleteAttachment({ reportId: report.id, attachmentId }).unwrap();
-      toast.success("Đã xoá ảnh", { description: `Ảnh đã được gỡ khỏi phiếu #${report.id}.` });
-    } catch (err) {
-      toast.error("Không xoá được ảnh", { description: getMediaErrorMessage(err) });
-      throw err;
-    }
-  };
-
-  const addButton = canManage && (
-    <Button
-      type="button"
-      size="sm"
-      variant="ghost"
-      className="h-7 px-2 text-[11px] gap-1 text-indigo-700 hover:text-indigo-800 hover:bg-indigo-50 dark:text-indigo-300"
-      onClick={(e) => {
-        e.stopPropagation();
-        setAddOpen(true);
-      }}
-    >
-      <ImagePlus className="w-3.5 h-3.5" /> Thêm ảnh
-    </Button>
-  );
-
-  const addDialog = canManage && (
-    <AddReportPhotosDialog report={report} open={addOpen} onOpenChange={setAddOpen} />
-  );
+    photos.map((photo, idx) => {
+      const timeExact = formatPhotoTime(photo.capturedAt || photo.createdAt);
+      const timeShort = formatPhotoShortTime(photo.capturedAt || photo.createdAt);
+      const uploader = uploaderName(photo);
+      return {
+        key: photo.key,
+        url: photo.url,
+        thumbnailUrl: photo.thumbnailUrl,
+        alt: `${STAGE_LABELS[stage]} ${idx + 1} — phiếu #${report.id}`,
+        caption: photo.caption,
+        time: timeShort,
+        uploader,
+        meta: [
+          uploader && `Người tải: ${uploader}`,
+          timeExact && (photo.capturedAt ? `Chụp lúc ${timeExact}` : `Tải lên ${timeExact}`),
+          photo.attachmentId == null && "Ảnh đính kèm trong mô tả",
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        badge: variant === "compact" ? STAGE_STYLE[stage].badge : undefined,
+        deletable: false,
+      };
+    });
 
   if (variant === "compact") {
     return (
@@ -177,171 +130,88 @@ export function ReportPhotoGroups({
               <PhotoGallery
                 photos={toGalleryPhotos(stage, groups[stage])}
                 title={`${STAGE_LABELS[stage]} · Phiếu #${report.id} · ${report.title}`}
-                onDelete={canManage ? handleDelete : undefined}
-                thumbClassName={`w-12 h-12 ${style.thumb}`}
+                thumbClassName={`w-14 h-14 ${style.thumb}`}
               />
             </div>
           );
         })}
-        <div className="mt-1.5 flex items-center gap-2">
-          {total === 0 && <span className="text-[11px] text-muted-foreground italic">Chưa có ảnh đính kèm</span>}
-          {addButton}
-        </div>
-        {addDialog}
+        {total === 0 && (
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground italic">Chưa có ảnh đính kèm</span>
+          </div>
+        )}
       </>
     );
   }
 
   return (
-    <div className="pt-2 border-t border-border/60 space-y-2">
+    <div className="pt-2 border-t border-border/60 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
           <Camera className="w-3.5 h-3.5 text-muted-foreground" aria-hidden />
           Hình ảnh phiếu ({total} ảnh)
         </p>
-        {addButton}
       </div>
       {ATTACHMENT_STAGES.map((stage) => {
         const style = STAGE_STYLE[stage];
         const Icon = style.icon;
+        const stagePhotos = groups[stage];
+        const galleryItems = toGalleryPhotos(stage, stagePhotos);
+
         return (
-          <div key={stage}>
-            <p className={`text-xs font-semibold flex items-center gap-1.5 mb-1.5 ${style.heading}`}>
+          <div key={stage} className="space-y-1.5">
+            <p className={`text-xs font-semibold flex items-center gap-1.5 ${style.heading}`}>
               <Icon className="w-3.5 h-3.5" aria-hidden />
-              {STAGE_LABELS[stage]} ({groups[stage].length} ảnh):
+              {STAGE_LABELS[stage]} ({stagePhotos.length} ảnh):
             </p>
-            <PhotoGallery
-              photos={toGalleryPhotos(stage, groups[stage])}
-              title={`${STAGE_LABELS[stage]} · Phiếu sự cố #${report.id}`}
-              onDelete={canManage ? handleDelete : undefined}
-              emptyText="Chưa có ảnh"
-              className="overflow-x-auto pb-1 flex-nowrap"
-              thumbClassName={`w-20 h-20 rounded-lg shadow-xs ${style.thumb}`}
-            />
+            {stagePhotos.length === 0 ? (
+              <p className="text-[11px] text-muted-foreground italic pl-5">Chưa có ảnh</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {galleryItems.map((photo, pIdx) => {
+                  const rawPhoto = stagePhotos[pIdx];
+                  const timeExact = formatPhotoTime(rawPhoto?.capturedAt || rawPhoto?.createdAt);
+                  return (
+                    <div
+                      key={photo.key}
+                      className="flex items-start gap-2.5 p-2 rounded-lg border border-border/70 bg-card hover:bg-muted/20 transition-colors shadow-2xs"
+                    >
+                      <PhotoGallery
+                        photos={[photo]}
+                        title={`${STAGE_LABELS[stage]} · Phiếu sự cố #${report.id}`}
+                        thumbClassName={`w-16 h-16 rounded-md shrink-0 shadow-xs ${style.thumb}`}
+                      />
+                      <div className="flex-1 min-w-0 text-xs space-y-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[11px] font-semibold text-foreground">
+                            Ảnh #{pIdx + 1}
+                          </span>
+                          <span className={`text-[9px] px-1.5 py-0.2 rounded border font-medium ${style.chip}`}>
+                            {style.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-foreground font-mono font-medium flex items-center gap-1 text-slate-700 dark:text-slate-200">
+                          <Clock className="w-3 h-3 shrink-0 text-indigo-500" />
+                          <span>{timeExact || "—"}</span>
+                        </p>
+                        {photo.uploader && (
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            Người gửi: <span className="font-medium text-foreground">{photo.uploader}</span>
+                          </p>
+                        )}
+                        {photo.caption && (
+                          <p className="text-[10px] text-foreground/80 italic line-clamp-1">{photo.caption}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
-      {addDialog}
     </div>
   );
 }
 
-const ADD_PHOTO_MAX = 10;
-
-/// Admin gắn ảnh vào phiếu ở stage bất kỳ (POST /api/admin/lockers/reports/{id}/attachments).
-function AddReportPhotosDialog({
-  report,
-  open,
-  onOpenChange,
-}: {
-  report: LockerReportResponse;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const defaultStage: AttachmentStage =
-    report.status === "RESOLVED" ? "RESOLUTION" : report.status === "IN_PROGRESS" ? "INSPECTION" : "REPORT";
-  const [stage, setStage] = useState<AttachmentStage>(defaultStage);
-  const [note, setNote] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
-  const { upload, items, isUploading, reset } = useImageUpload("REPORT_EVIDENCE");
-  const [addAttachments, { isLoading: saving }] = useAddAdminReportAttachmentsMutation();
-  const busy = isUploading || saving;
-
-  const close = (next: boolean) => {
-    if (busy) return;
-    if (!next) {
-      setFiles([]);
-      setNote("");
-      setStage(defaultStage);
-      reset();
-    }
-    onOpenChange(next);
-  };
-
-  const submit = async () => {
-    if (files.length === 0) {
-      toast.error("Vui lòng chọn ít nhất 1 ảnh");
-      return;
-    }
-    try {
-      const attachments = await upload(files);
-      await addAttachments({ reportId: report.id, stage, note, attachments }).unwrap();
-      toast.success(`Đã thêm ${attachments.length} ảnh vào phiếu #${report.id}`, {
-        description: `${STAGE_LABELS[stage]}${note.trim() ? " · kèm 1 dòng nhật ký" : ""}`,
-      });
-      setFiles([]);
-      setNote("");
-      reset();
-      onOpenChange(false);
-    } catch (err) {
-      if (!isHandledUploadError(err)) {
-        toast.error("Không thêm được ảnh", { description: getMediaErrorMessage(err) });
-      }
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={close}>
-      <DialogContent className="sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <ImagePlus className="w-4 h-4 text-indigo-600" aria-hidden />
-            Thêm ảnh · Phiếu #{report.id}
-          </DialogTitle>
-          <DialogDescription className="text-xs">{report.title}</DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Giai đoạn ảnh</Label>
-            <Select value={stage} onValueChange={(v) => setStage(v as AttachmentStage)} disabled={busy}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ATTACHMENT_STAGES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {STAGE_LABELS[s]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium" htmlFor={`report-photo-note-${report.id}`}>
-              Ghi chú (tuỳ chọn)
-            </Label>
-            <Textarea
-              id={`report-photo-note-${report.id}`}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Có ghi chú ⇒ hệ thống tạo 1 dòng nhật ký và gắn các ảnh này vào đó"
-              rows={2}
-              className="text-xs resize-none"
-              disabled={busy}
-            />
-          </div>
-
-          <PhotoPicker
-            value={files}
-            onChange={setFiles}
-            maxFiles={ADD_PHOTO_MAX}
-            disabled={busy}
-            uploadItems={items}
-          />
-        </div>
-
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => close(false)} disabled={busy}>
-            Hủy
-          </Button>
-          <Button onClick={submit} disabled={busy || files.length === 0} className="gap-1.5">
-            {busy && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isUploading ? "Đang tải ảnh..." : saving ? "Đang lưu..." : `Lưu ${files.length || ""} ảnh`}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
