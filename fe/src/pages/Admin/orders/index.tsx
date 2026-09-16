@@ -1,79 +1,67 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
 import { TableToolbar } from "~/components/shared/data-table";
+import { ReportErrorState } from "~/components/shared/reporting";
 import { OrderTable } from "./components/OrderTable";
 import { OrderFilters } from "./components/OrderFilters";
-import { CreateOrderModal } from "./components/CreateOrderModal";
+import { OrderStatusUpdateModal } from "./components/OrderStatusUpdateModal";
 import { useOrders } from "./hooks/useOrders";
-import { toast } from "sonner";
+import { formatNumber } from "~/lib/report-format";
+import type { AdminOrder } from "~/types/admin/reporting";
 
 export default function OrdersPage() {
-  const { t } = useTranslation();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const {
     orders,
     isLoading,
-    status,
-    setStatus,
-    searchQuery,
-    setSearchQuery,
-    statusCounts,
+    isFetching,
+    error,
     refetch,
-    clearFilters,
-    hasActiveFilters,
+    filters,
+    setFilter,
+    setDateRange,
     page,
     setPage,
     pageSize,
     setPageSize,
     totalPages,
     totalElements,
+    hasActiveFilters,
+    clearFilters,
   } = useOrders();
 
-  const handleCreateOrder = (orderData: {
-    customerName: string;
-    customerPhone: string;
-    type: string;
-    items: { id: string; name: string; qty: number; price: number }[];
-    notes: string;
-  }) => {
-    console.log("Create order:", orderData);
-    toast.success(t("admin.orders.createSuccess"));
-    setIsCreateModalOpen(false);
-  };
+  const [editingOrder, setEditingOrder] = useState<AdminOrder | null>(null);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("admin.orders.title")}
-        description={t("admin.orders.description")}
+        title="Quản lý đơn hàng"
+        description="Toàn bộ đơn gửi hàng, thuê ô và giao bằng drone — dữ liệu đồng bộ với app khách"
       />
 
+      {error && <ReportErrorState error={error} onRetry={refetch} />}
+
       <Card className="border-0 shadow-sm">
-        <CardContent className="p-6">
-          {/* Toolbar - 1 hàng */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <CardContent className="p-6 space-y-4">
+          <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
             <OrderFilters
-              status={status}
-              onStatusChange={setStatus}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              statusCounts={statusCounts}
+              filters={filters}
+              onFilterChange={setFilter}
+              onDateRangeChange={setDateRange}
             />
-            
+
             <TableToolbar
-              createButton={{
-                label: t("admin.orders.createOrder"),
-                onClick: () => setIsCreateModalOpen(true),
-                icon: Plus,
-              }}
               onRefresh={refetch}
               onClearFilters={clearFilters}
               canClearFilters={hasActiveFilters}
             />
           </div>
+
+          <p className="text-xs text-muted-foreground">
+            {isFetching
+              ? "Đang tải…"
+              : `${formatNumber(totalElements)} đơn khớp bộ lọc`}
+          </p>
 
           <OrderTable
             orders={orders}
@@ -84,14 +72,15 @@ export default function OrdersPage() {
             totalElements={totalElements}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
+            onUpdateStatus={setEditingOrder}
           />
         </CardContent>
       </Card>
 
-      <CreateOrderModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreate={handleCreateOrder}
+      <OrderStatusUpdateModal
+        order={editingOrder}
+        onClose={() => setEditingOrder(null)}
+        onUpdated={refetch}
       />
     </div>
   );

@@ -10,24 +10,19 @@ import {
   startOfWeek,
   vietnamToday,
 } from "~/lib/report-format";
-
-export interface DateRangeValue {
-  from: string;
-  to: string;
-}
+import type { DateRangeValue } from "./date-range";
 
 interface DateRangeFilterProps {
   value: DateRangeValue;
   onChange: (value: DateRangeValue) => void;
   /** Ẩn hàng nút chọn nhanh khi chỗ hẹp. */
   hidePresets?: boolean;
+  /**
+   * Cho phép để trống cả hai ô (màn hình đơn hàng: trống = mọi thời điểm).
+   * Màn hình doanh thu KHÔNG bật, vì mọi endpoint doanh thu đều cần một khoảng.
+   */
+  allowEmpty?: boolean;
   className?: string;
-}
-
-/** Khoảng mặc định của mọi báo cáo: mùng 1 tháng này → hôm nay (giờ Việt Nam). */
-export function defaultReportRange(): DateRangeValue {
-  const today = vietnamToday();
-  return { from: startOfMonth(today), to: today };
 }
 
 function presets(): { label: string; range: DateRangeValue }[] {
@@ -59,21 +54,31 @@ export function DateRangeFilter({
   value,
   onChange,
   hidePresets = false,
+  allowEmpty = false,
   className,
 }: DateRangeFilterProps) {
   const today = vietnamToday();
-  const length = dayCount(value.from, value.to);
-  const tooLong = length > MAX_REPORT_DAYS;
-  const reversed = length <= 0;
+  const partial = !value.from || !value.to;
+  const length = partial ? 0 : dayCount(value.from, value.to);
+  // Khoảng để trống chỉ hợp lệ khi màn hình cho phép; khi đó không cảnh báo gì.
+  const tooLong = !partial && length > MAX_REPORT_DAYS;
+  const reversed = !partial && length <= 0;
+  const incomplete = partial && !allowEmpty;
 
   const handleFrom = (from: string) => {
-    if (!from) return;
-    onChange({ from, to: value.to < from ? from : value.to });
+    if (!from) {
+      if (allowEmpty) onChange({ from: "", to: value.to });
+      return;
+    }
+    onChange({ from, to: value.to && value.to < from ? from : value.to });
   };
 
   const handleTo = (to: string) => {
-    if (!to) return;
-    onChange({ from: value.from > to ? to : value.from, to });
+    if (!to) {
+      if (allowEmpty) onChange({ from: value.from, to: "" });
+      return;
+    }
+    onChange({ from: value.from && value.from > to ? to : value.from, to });
   };
 
   return (
@@ -114,21 +119,28 @@ export function DateRangeFilter({
               {preset.label}
             </Button>
           ))}
+        {allowEmpty && (value.from || value.to) && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-9 text-xs text-muted-foreground"
+            onClick={() => onChange({ from: "", to: "" })}
+          >
+            Mọi thời điểm
+          </Button>
+        )}
       </div>
 
-      {(tooLong || reversed) && (
+      {(tooLong || reversed || incomplete) && (
         <p className="text-xs text-destructive">
-          {reversed
-            ? "Ngày kết thúc phải từ ngày bắt đầu trở đi."
-            : `Khoảng báo cáo tối đa ${MAX_REPORT_DAYS} ngày (đang chọn ${length} ngày).`}
+          {incomplete
+            ? "Chọn đủ cả ngày bắt đầu và ngày kết thúc."
+            : reversed
+              ? "Ngày kết thúc phải từ ngày bắt đầu trở đi."
+              : `Khoảng báo cáo tối đa ${MAX_REPORT_DAYS} ngày (đang chọn ${length} ngày).`}
         </p>
       )}
     </div>
   );
-}
-
-/** `true` khi khoảng hợp lệ để gọi API (không đảo ngược, không quá 366 ngày). */
-export function isValidReportRange(range: DateRangeValue): boolean {
-  const length = dayCount(range.from, range.to);
-  return length > 0 && length <= MAX_REPORT_DAYS;
 }

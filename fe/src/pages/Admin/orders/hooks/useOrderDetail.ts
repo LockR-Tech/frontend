@@ -1,41 +1,19 @@
-import { useCallback } from "react";
-import { OrderStatus } from "~/types/admin/enums";
-import {
-  useGetOrderByIdQuery,
-  useUpdateOrderStatusMutation,
-} from "@/stores/apis/admin/orders";
-import type { OrderResponse } from "~/types/admin/order";
+import { useGetAdminOrderDetailQuery } from "@/stores/apis/admin/orders";
+import type { AdminOrder } from "~/types/admin/reporting";
 
+/**
+ * Chi tiết đơn cho `/admin/orders/:orderId`, lấy từ `GET /api/admin/orders/{id}/detail`
+ * — khác endpoint cũ ở chỗ có `timeline`, thông tin khách/tủ/cửa hàng/thanh toán/drone.
+ * Việc đổi trạng thái nằm ở `OrderStatusUpdateModal` để một nơi gọi mutation duy nhất.
+ */
 export function useOrderDetail(orderId: string | undefined) {
-  const numericId = orderId ? parseInt(orderId, 10) : undefined;
-  const validId = numericId && !isNaN(numericId) ? numericId : undefined;
+  const numericId = Number(orderId);
+  const validId = Number.isInteger(numericId) && numericId > 0 ? numericId : undefined;
 
-  const { data, isLoading, refetch } = useGetOrderByIdQuery(validId!, {
-    skip: !validId,
-  });
-  const [updateOrderStatus] = useUpdateOrderStatusMutation();
+  const { data, isLoading, isFetching, error, refetch } =
+    useGetAdminOrderDetailQuery(validId!, { skip: !validId });
 
-  const order: OrderResponse | null = data?.data ?? null;
+  const order: AdminOrder | null = data?.data ?? null;
 
-  const cancelOrder = useCallback(async () => {
-    if (!validId) return;
-    await updateOrderStatus({ id: validId, status: OrderStatus.CANCELED });
-    refetch();
-  }, [validId, updateOrderStatus, refetch]);
-
-  const updateStatus = useCallback(
-    async (newStatus: OrderStatus) => {
-      if (!validId) return;
-      await updateOrderStatus({ id: validId, status: newStatus });
-      refetch();
-    },
-    [validId, updateOrderStatus, refetch],
-  );
-
-  return {
-    order,
-    isLoading,
-    cancelOrder,
-    updateStatus,
-  };
+  return { order, isLoading, isFetching, error, refetch, isValidId: !!validId };
 }
