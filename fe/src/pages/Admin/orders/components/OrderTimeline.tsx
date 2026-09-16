@@ -1,185 +1,64 @@
-import {
-  CheckCircle2,
-  Clock,
-  Package,
-  Truck,
-  RotateCcw,
-  Box,
-  XCircle,
-  CircleDashed,
-} from "lucide-react";
-import { OrderStatus } from "~/types/admin/enums";
-
-interface OrderTimelineEvent {
-  status: OrderStatus;
-  timestamp: string;
-  note?: string;
-}
-
-interface Order {
-  status: OrderStatus;
-  createdAt?: string;
-  timeline?: OrderTimelineEvent[];
-}
+import { ArrowRight, CircleDashed, User } from "lucide-react";
+import { MetaBadge, orderStatusMeta } from "~/components/shared/reporting";
+import { formatDateTime } from "~/lib/datetime";
+import type { AdminOrderTimelineEntry } from "~/types/admin/reporting";
 
 interface OrderTimelineProps {
-  order: Order;
+  /** `null` khi đang tải hoặc khi lấy từ danh sách (danh sách không trả timeline). */
+  timeline: AdminOrderTimelineEntry[] | null | undefined;
 }
 
-const STATUS_FLOW: OrderStatus[] = [
-  OrderStatus.INITIALIZED,
-  OrderStatus.RESERVED,
-  OrderStatus.WAITING,
-  OrderStatus.COLLECTED,
-  OrderStatus.PROCESSING,
-  OrderStatus.READY,
-  OrderStatus.RETURNED,
-  OrderStatus.COMPLETED,
-];
-
-const STATUS_META: Record<
-  OrderStatus,
-  { label: string; icon: React.ElementType }
-> = {
-  [OrderStatus.INITIALIZED]: { label: "Khởi tạo", icon: Clock },
-  [OrderStatus.RESERVED]:    { label: "Đã đặt",    icon: Package },
-  [OrderStatus.WAITING]:     { label: "Chờ thu",   icon: Truck },
-  [OrderStatus.COLLECTED]:   { label: "Đã thu",    icon: CheckCircle2 },
-  [OrderStatus.PROCESSING]:  { label: "Xử lý",     icon: RotateCcw },
-  [OrderStatus.READY]:       { label: "Sẵn sàng",  icon: CheckCircle2 },
-  [OrderStatus.RETURNED]:    { label: "Đã trả",    icon: Box },
-  [OrderStatus.COMPLETED]:   { label: "Hoàn thành",icon: CheckCircle2 },
-  [OrderStatus.CANCELED]:    { label: "Đã hủy",    icon: XCircle },
-};
-
-const formatDate = (dateString: string) => {
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return dateString;
-  return d.toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-};
-
-export function OrderTimeline({ order }: OrderTimelineProps) {
-  const isCanceled = order.status === OrderStatus.CANCELED;
-  const currentIdx = STATUS_FLOW.indexOf(order.status);
-
-  const events: OrderTimelineEvent[] =
-    order.timeline && order.timeline.length > 0
-      ? order.timeline
-      : [{ status: OrderStatus.INITIALIZED, timestamp: order.createdAt ?? "" }];
+/**
+ * Lịch sử chuyển trạng thái do backend ghi, cũ trước mới sau. Không dựng "các bước
+ * lẽ ra phải có": mỗi loại đơn đi một đường khác nhau, nên chỉ hiển thị đúng những
+ * gì đã xảy ra.
+ */
+export function OrderTimeline({ timeline }: OrderTimelineProps) {
+  if (!timeline || timeline.length === 0) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center">
+        <CircleDashed className="h-4 w-4" />
+        Chưa có bản ghi chuyển trạng thái nào.
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {/* Horizontal stepper */}
-      {isCanceled ? (
-        <div className="flex items-center gap-2 px-1">
-          <div className="flex items-center gap-1.5 text-destructive">
-            <XCircle className="h-5 w-5 shrink-0" />
-            <span className="text-sm font-medium">Đơn hàng đã bị hủy</span>
-          </div>
-        </div>
-      ) : (
-        <div className="overflow-x-auto pb-1">
-          <div className="flex items-center min-w-max px-1 gap-0">
-            {STATUS_FLOW.map((status, idx) => {
-              const meta = STATUS_META[status];
-              const Icon = meta.icon;
-              const done = idx < currentIdx;
-              const active = idx === currentIdx;
-              const future = idx > currentIdx;
+    <ol className="relative space-y-4 border-l border-border/60 pl-5">
+      {timeline.map((entry, index) => (
+        <li key={`${entry.createdAt}-${index}`} className="relative">
+          <span className="absolute -left-[26px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary/70 ring-4 ring-background" />
 
-              return (
-                <div key={status} className="flex items-center">
-                  {/* Step node */}
-                  <div className="flex flex-col items-center gap-1 w-16">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                        active
-                          ? "bg-primary text-primary-foreground"
-                          : done
-                            ? "bg-primary/20 text-primary"
-                            : "bg-muted/50 text-muted-foreground/40"
-                      }`}
-                    >
-                      {future ? (
-                        <CircleDashed className="h-4 w-4" />
-                      ) : (
-                        <Icon className="h-4 w-4" />
-                      )}
-                    </div>
-                    <span
-                      className={`text-[10px] text-center leading-tight ${
-                        active
-                          ? "text-primary font-semibold"
-                          : done
-                            ? "text-muted-foreground"
-                            : "text-muted-foreground/40"
-                      }`}
-                    >
-                      {meta.label}
-                    </span>
-                  </div>
-
-                  {/* Connector line */}
-                  {idx < STATUS_FLOW.length - 1 && (
-                    <div
-                      className={`h-0.5 w-4 mb-4 ${
-                        idx < currentIdx ? "bg-primary/30" : "bg-muted/50"
-                      }`}
-                    />
-                  )}
-                </div>
-              );
-            })}
+          <div className="flex flex-wrap items-center gap-2">
+            {entry.oldStatus && (
+              <>
+                <MetaBadge
+                  meta={orderStatusMeta(entry.oldStatus)}
+                  hideIcon
+                  className="opacity-70"
+                />
+                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              </>
+            )}
+            <MetaBadge meta={orderStatusMeta(entry.newStatus)} />
+            <span className="font-mono text-xs text-muted-foreground ml-auto whitespace-nowrap">
+              {formatDateTime(entry.createdAt)}
+            </span>
           </div>
-        </div>
-      )}
 
-      {/* Compact event log — only if real timeline data exists */}
-      {order.timeline && order.timeline.length > 0 && (
-        <div className="border-t border-border/30 pt-3">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {events.map((event, idx) => {
-              const meta = STATUS_META[event.status] ?? STATUS_META[STATUS_FLOW[0]];
-              const Icon = meta.icon;
-              const isActive = idx === events.length - 1;
-              return (
-                <div key={idx} className="flex items-start gap-2">
-                  <Icon
-                    className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${
-                      isActive ? "text-primary" : "text-muted-foreground/50"
-                    }`}
-                  />
-                  <div>
-                    <p
-                      className={`text-xs font-medium ${
-                        isActive ? "text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {meta.label}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground/60">
-                      {formatDate(event.timestamp)}
-                    </p>
-                    {event.note && (
-                      <p className="text-[10px] text-muted-foreground/60 italic">
-                        {event.note}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-1 space-y-0.5">
+            {(entry.changedByName || entry.changedByUserId !== null) && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <User className="h-3 w-3 shrink-0" />
+                {entry.changedByName ?? `Người dùng #${entry.changedByUserId}`}
+              </p>
+            )}
+            {entry.note && (
+              <p className="text-xs text-foreground/80">{entry.note}</p>
+            )}
           </div>
-        </div>
-      )}
-    </div>
+        </li>
+      ))}
+    </ol>
   );
 }
