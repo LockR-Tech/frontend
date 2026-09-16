@@ -121,6 +121,10 @@ export const baseApi = createApi({
     "Drones", // Đội drone giao/nhận gắn bãi đáp tủ
     "BusinessSettings", // Quy tắc nghiệp vụ theo scope (ADR-0005)
     "BusinessSettingAudits", // Lịch sử thay đổi quy tắc nghiệp vụ
+    "PaymentRefunds", // Hoàn tiền (báo cáo admin)
+    "WalletTransactions", // Biến động ví của mọi khách (báo cáo admin)
+    "PaymentStats", // Thống kê giao dịch có so sánh kỳ trước
+    "Revenue", // Doanh thu theo tiền thực thu
   ],
 
   endpoints: () => ({}),

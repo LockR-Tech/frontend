@@ -11,6 +11,7 @@ export * from "./store";
 export * from "./service";
 export * from "./locker";
 export * from "./order";
+export * from "./reporting";
 export * from "./payment";
 export * from "./scheduler";
 export * from "./dashboard";
