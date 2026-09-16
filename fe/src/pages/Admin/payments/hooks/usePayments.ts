@@ -1,165 +1,199 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PaymentStatus } from "~/types/admin/enums";
-import { useGetAllPaymentsQuery } from "@/stores/apis/admin/payments";
-import { useGetAllUsersQuery } from "@/stores/apis/admin/users";
-import type { PaymentResponse } from "~/types/admin/payment";
-import { extractList } from "~/lib/extract-list";
+import {
+  useGetAdminPaymentStatsQuery,
+  useSearchAdminPaymentsQuery,
+} from "@/stores/apis/admin/payments";
+import { defaultReportRange } from "~/components/shared/reporting";
+import type {
+  AdminPayment,
+  AdminPaymentKind,
+  AdminPaymentSearchParams,
+} from "~/types/admin/reporting";
 
-export type PaymentStatusFilter = "ALL" | PaymentStatus;
+// Bộ lọc nằm trên URL; lọc, phân trang và thống kê đều do backend làm.
+//
+// Hai khoảng ngày khác nhau và cố ý:
+// - bảng giao dịch lọc theo `createdAt`, để trống = mọi thời điểm;
+// - thẻ thống kê `/stats` luôn cần một khoảng `yyyy-MM-dd`, mặc định từ mùng 1 tới hôm nay.
+
+const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_SORT = "createdAt,desc";
+
+export type PaymentKindFilter = "ALL" | AdminPaymentKind;
+
+export interface PaymentFilterState {
+  status: string[];
+  method: string[];
+  kind: PaymentKindFilter;
+  from: string;
+  to: string;
+  q: string;
+  sort: string;
+}
+
+function readList(params: URLSearchParams, key: string): string[] {
+  const raw = params.get(key);
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
 
 export function usePayments() {
-  const [status, setStatus] = useState<PaymentStatusFilter>("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
-  const page = Number(urlParams.get("page") ?? "0");
-  const pageSize = Number(urlParams.get("size") ?? "10");
-  const setPage = (newPage: number) =>
-    setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(newPage)); return next; });
-  const setPageSize = (newSize: number) =>
-    setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("size", String(newSize)); next.set("page", "0"); return next; });
 
-  const { data, isLoading, refetch } = useGetAllPaymentsQuery({
-    page,
-    size: pageSize,
-    ...(status !== "ALL" ? { status } : {}),
-  });
+  const page = Math.max(0, Number(urlParams.get("page") ?? "0") || 0);
+  const pageSize =
+    Number(urlParams.get("size") ?? DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE;
 
-  // Join customer names from the users list (backend payments only carry userId).
-  const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
-  const userNameById = useMemo(() => {
-    const m = new Map<number, string>();
-    for (const u of extractList<{ id: number; fullName?: string; email?: string }>(
-      usersData?.data,
-    )) {
-      m.set(u.id, u.fullName || u.email || `#${u.id}`);
-    }
-    return m;
-  }, [usersData]);
-
-  // Predefined realistic timestamps with HH:mm:ss for consistent transaction records
-  const defaultTimestamps = [
-    "2026-09-13T18:42:15",
-    "2026-09-13T17:30:22",
-    "2026-09-13T16:15:08",
-    "2026-09-13T15:04:45",
-    "2026-09-13T14:15:22",
-    "2026-09-13T13:20:10",
-    "2026-09-13T12:40:19",
-    "2026-09-13T11:25:33",
-    "2026-09-13T10:12:05",
-    "2026-09-13T09:05:40",
-    "2026-09-13T08:30:12",
-    "2026-09-12T19:22:15",
-    "2026-09-12T18:10:04",
-    "2026-09-12T16:45:30",
-    "2026-09-12T15:20:18",
-    "2026-09-12T14:05:55",
-    "2026-09-12T11:30:42",
-    "2026-09-12T09:15:20",
-    "2026-09-11T20:00:15",
-    "2026-09-11T17:45:09",
-    "2026-09-11T15:30:22",
-    "2026-09-11T13:12:44",
-    "2026-09-11T10:20:11",
-    "2026-09-10T19:05:32",
-    "2026-09-10T16:40:15",
-    "2026-09-10T14:25:08",
-    "2026-09-10T11:15:40",
-    "2026-09-09T18:20:05",
-    "2026-09-09T14:10:30",
-  ];
-
-  const allPayments: PaymentResponse[] = useMemo(
-    () =>
-      extractList<PaymentResponse>(data?.data).map((p, idx) => ({
-        ...p,
-        createdAt: p.createdAt || defaultTimestamps[idx % defaultTimestamps.length],
-        customerName:
-          p.customerName || userNameById.get((p.userId ?? p.customerId) as number),
-      })),
-    [data, userNameById],
-  );
-
-  const filteredPayments = useMemo(() => {
-    if (!searchQuery) return allPayments;
-    const query = searchQuery.toLowerCase();
-    return allPayments.filter(
-      (p) =>
-        String(p.id).includes(query) ||
-        String(p.orderId).includes(query) ||
-        p.customerName?.toLowerCase().includes(query),
-    );
-  }, [allPayments, searchQuery]);
-
-  const statusCounts = useMemo(
+  const filters: PaymentFilterState = useMemo(
     () => ({
-      ALL: allPayments.length,
-      [PaymentStatus.COMPLETED]: allPayments.filter(
-        (p) => p.status === PaymentStatus.COMPLETED,
-      ).length,
-      [PaymentStatus.PENDING]: allPayments.filter(
-        (p) => p.status === PaymentStatus.PENDING,
-      ).length,
-      [PaymentStatus.PROCESSING]: allPayments.filter(
-        (p) => p.status === PaymentStatus.PROCESSING,
-      ).length,
-      [PaymentStatus.FAILED]: allPayments.filter(
-        (p) => p.status === PaymentStatus.FAILED,
-      ).length,
-      [PaymentStatus.REFUNDED]: allPayments.filter(
-        (p) => p.status === PaymentStatus.REFUNDED,
-      ).length,
+      status: readList(urlParams, "status"),
+      method: readList(urlParams, "method"),
+      kind: (urlParams.get("kind") as PaymentKindFilter) || "ALL",
+      from: urlParams.get("from") ?? "",
+      to: urlParams.get("to") ?? "",
+      q: urlParams.get("q") ?? "",
+      sort: urlParams.get("sort") ?? DEFAULT_SORT,
     }),
-    [allPayments, data],
+    [urlParams],
   );
 
-  const statistics = useMemo(
+  // Khoảng thống kê độc lập với bộ lọc bảng, để thẻ tổng quan luôn có số liệu.
+  const statsRange = useMemo(() => {
+    const fallback = defaultReportRange();
+    return {
+      from: urlParams.get("statsFrom") || fallback.from,
+      to: urlParams.get("statsTo") || fallback.to,
+    };
+  }, [urlParams]);
+
+  const patchParams = useCallback(
+    (
+      patch: Record<string, string | string[] | number | undefined>,
+      resetPage = true,
+    ) => {
+      setUrlParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          for (const [key, value] of Object.entries(patch)) {
+            const text = Array.isArray(value)
+              ? value.join(",")
+              : value?.toString() ?? "";
+            if (text === "") next.delete(key);
+            else next.set(key, text);
+          }
+          if (resetPage) next.set("page", "0");
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setUrlParams],
+  );
+
+  const setFilter = useCallback(
+    <K extends keyof PaymentFilterState>(key: K, value: PaymentFilterState[K]) =>
+      patchParams({ [key]: value === "ALL" ? "" : value }),
+    [patchParams],
+  );
+
+  const setDateRange = useCallback(
+    (range: { from: string; to: string }) =>
+      patchParams({ from: range.from, to: range.to }),
+    [patchParams],
+  );
+
+  const setStatsRange = useCallback(
+    (range: { from: string; to: string }) =>
+      patchParams({ statsFrom: range.from, statsTo: range.to }, false),
+    [patchParams],
+  );
+
+  const setPage = useCallback(
+    (newPage: number) => patchParams({ page: newPage }, false),
+    [patchParams],
+  );
+
+  const setPageSize = useCallback(
+    (newSize: number) => patchParams({ size: newSize }),
+    [patchParams],
+  );
+
+  const queryArgs: AdminPaymentSearchParams = useMemo(
     () => ({
-      total: allPayments.length,
-      completed: allPayments.filter((p) => p.status === PaymentStatus.COMPLETED)
-        .length,
-      pending: allPayments.filter((p) => p.status === PaymentStatus.PENDING)
-        .length,
-      processing: allPayments.filter(
-        (p) => p.status === PaymentStatus.PROCESSING,
-      ).length,
-      failed: allPayments.filter((p) => p.status === PaymentStatus.FAILED)
-        .length,
-      refunded: allPayments.filter((p) => p.status === PaymentStatus.REFUNDED)
-        .length,
-      totalAmount: allPayments
-        .filter((p) => p.status === PaymentStatus.COMPLETED)
-        .reduce((sum, p) => sum + (p.amount ?? 0), 0),
+      page,
+      size: pageSize,
+      sort: filters.sort,
+      ...(filters.status.length ? { status: filters.status } : {}),
+      ...(filters.method.length ? { method: filters.method } : {}),
+      ...(filters.kind !== "ALL" ? { kind: filters.kind } : {}),
+      ...(filters.from ? { from: filters.from } : {}),
+      ...(filters.to ? { to: filters.to } : {}),
+      ...(filters.q.trim() ? { q: filters.q.trim() } : {}),
     }),
-    [allPayments, data],
+    [page, pageSize, filters],
   );
 
-  const clearFilters = () => {
-    setStatus("ALL");
-    setSearchQuery("");
-    setPage(0);
-  };
+  const {
+    data: searchData,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useSearchAdminPaymentsQuery(queryArgs);
 
-  const hasActiveFilters = status !== "ALL" || searchQuery !== "";
+  const {
+    data: statsData,
+    isFetching: isStatsFetching,
+    error: statsError,
+    refetch: refetchStats,
+  } = useGetAdminPaymentStatsQuery(statsRange);
+
+  const pageData = searchData?.data;
+  const payments: AdminPayment[] = pageData?.content ?? [];
+
+  const hasActiveFilters =
+    filters.status.length > 0 ||
+    filters.method.length > 0 ||
+    filters.kind !== "ALL" ||
+    filters.from !== "" ||
+    filters.to !== "" ||
+    filters.q !== "" ||
+    filters.sort !== DEFAULT_SORT;
+
+  const clearFilters = useCallback(() => {
+    setUrlParams(new URLSearchParams(), { replace: true });
+  }, [setUrlParams]);
+
+  const refetchAll = useCallback(() => {
+    refetch();
+    refetchStats();
+  }, [refetch, refetchStats]);
 
   return {
-    payments: filteredPayments,
-    totalElements: filteredPayments.length,
-    totalPages: 1,
-    statistics,
+    payments,
     isLoading,
-    status,
-    setStatus,
-    searchQuery,
-    setSearchQuery,
+    isFetching,
+    error,
+    refetch: refetchAll,
+    stats: statsData?.data,
+    isStatsFetching,
+    statsError,
+    statsRange,
+    setStatsRange,
+    filters,
+    setFilter,
+    setDateRange,
     page,
     setPage,
     pageSize,
     setPageSize,
-    statusCounts,
-    refetch,
-    clearFilters,
+    totalPages: pageData?.totalPages ?? 0,
+    totalElements: pageData?.totalElements ?? 0,
     hasActiveFilters,
+    clearFilters,
   };
 }
