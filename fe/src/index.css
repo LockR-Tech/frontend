@@ -76,6 +76,22 @@
 }
 
 /* ============================================
+   MÀU CHUỖI DỮ LIỆU CHO BIỂU ĐỒ BÁO CÁO
+   Hai chuỗi cùng đơn vị (tiền) trên cùng một trục. Bộ màu tối là bước riêng
+   cho nền tối, không phải bản đảo của bộ sáng; cả hai bộ đã kiểm: tách được
+   khi mù màu, đủ tương phản với nền, đủ đậm.
+   ============================================ */
+:root {
+  --report-series-1: #2a78d6;
+  --report-series-2: #eb6834;
+}
+
+.dark {
+  --report-series-1: #3987e5;
+  --report-series-2: #d95926;
+}
+
+/* ============================================
    TAILWIND V4 THEME CONFIGURATION
    ============================================ */
 
