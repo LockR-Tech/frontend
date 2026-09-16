@@ -612,39 +612,85 @@ export default function MaintenanceAdminPage() {
               </div>
             </CardHeader>
             <CardContent>
+              {(() => {
+                const openCount = filteredReports.filter((r) => r.status === "OPEN").length;
+                return openCount > 0 ? (
+                  <div className="mb-3 p-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/40 dark:border-amber-900 flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                      </span>
+                      <p className="text-xs font-medium text-amber-900 dark:text-amber-200">
+                        <span className="font-bold">{openCount} phiếu sự cố mới</span> đang chờ quản trị viên điều phối kỹ thuật viên tiếp nhận xử lý!
+                      </p>
+                    </div>
+                    {reportFilter !== "OPEN" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setReportFilter("OPEN")}
+                        className="h-7 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300"
+                      >
+                        Chỉ xem phiếu mới
+                      </Button>
+                    )}
+                  </div>
+                ) : null;
+              })()}
+
               {filteredReports.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-8 text-center">Không có phiếu sự cố nào phù hợp.</p>
               ) : (
                 <div className="divide-y divide-border/60">
-                  {filteredReports.map((r) => (
-                    <div key={r.id} className="py-3 flex items-center justify-between gap-4 flex-wrap hover:bg-muted/20 px-2 rounded-lg transition-colors">
-                      <div className="max-w-xl">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-sm text-foreground">
-                            #{r.id} · {r.title}
-                          </p>
-                          {/* Status Badge */}
-                          {(() => {
-                            const isTech = Boolean(
-                              !r.assignedToUserId &&
-                              ((r.userId && techniciansMap[r.userId]) ||
-                              r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-                              r.reporterName?.toLowerCase().includes("ktv") ||
-                              r.reporterName?.toLowerCase().includes("technician"))
-                            );
-                            const effStatus = r.status === "OPEN" && isTech ? "IN_PROGRESS" : r.status;
-                            return (
+                  {filteredReports.map((r) => {
+                    const isTech = Boolean(
+                      !r.assignedToUserId &&
+                      ((r.userId && techniciansMap[r.userId]) ||
+                      r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
+                      r.reporterName?.toLowerCase().includes("ktv") ||
+                      r.reporterName?.toLowerCase().includes("technician"))
+                    );
+                    const effStatus = r.status === "OPEN" && isTech ? "IN_PROGRESS" : r.status;
+                    const isNew = effStatus === "OPEN";
+
+                    return (
+                      <div
+                        key={r.id}
+                        className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all ${
+                          isNew
+                            ? "border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20 shadow-xs ring-1 ring-amber-200/70 dark:ring-amber-900/40 my-1"
+                            : "hover:bg-muted/20 my-0.5 border border-transparent"
+                        }`}
+                      >
+                        <div className="max-w-xl">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-sm text-foreground">
+                              #{r.id} · {r.title}
+                            </p>
+                            {/* Status Badge */}
+                            {isNew ? (
+                              <Badge
+                                variant="outline"
+                                className="bg-amber-500 text-white border-amber-600 font-bold text-xs shadow-xs flex items-center gap-1.5 px-2.5 py-0.5 animate-pulse"
+                              >
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                </span>
+                                MỚI MỞ · CẦN PHÂN CÔNG
+                              </Badge>
+                            ) : (
                               <Badge variant="outline" className={`text-xs ${REPORT_BADGE[effStatus] ?? ""}`}>
-                                {effStatus === "OPEN" ? "Mới mở" : effStatus === "IN_PROGRESS" ? "Đang xử lý" : "Đã hoàn tất"}
+                                {effStatus === "IN_PROGRESS" ? "Đang xử lý" : "Đã hoàn tất"}
                                 {isTech && !r.assignedToUserId ? " (KTV tự báo)" : ""}
                               </Badge>
-                            );
-                          })()}
-                          {r.overdue && (
-                            <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
-                              Quá hạn SLA
-                            </Badge>
-                          )}
+                            )}
+                            {r.overdue && (
+                              <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
+                                Quá hạn SLA
+                              </Badge>
+                            )}
                           {/* Technician badge */}
                           {(() => {
                             const isTech = Boolean(
@@ -740,8 +786,7 @@ export default function MaintenanceAdminPage() {
                               {r.status === "OPEN" && !isTech && (
                                 <Button
                                   size="sm"
-                                  variant="outline"
-                                  className="h-8 text-xs gap-1 border-indigo-300 text-indigo-700 hover:bg-indigo-50 shadow-xs"
+                                  className="h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-semibold hover:shadow-indigo-200"
                                   onClick={() => setAssigningReport(r)}
                                 >
                                   <Boxes className="w-3.5 h-3.5" /> Phân công KTV
@@ -769,9 +814,10 @@ export default function MaintenanceAdminPage() {
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  );
+                })}
+              </div>
+            )}
             </CardContent>
           </Card>
 
