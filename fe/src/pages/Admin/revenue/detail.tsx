@@ -304,7 +304,7 @@ export default function RevenueDetailPage() {
                   : undefined
               }
               isLoading={isLoading}
-              className="[&_p.text-xl]:text-sm"
+              valueClassName="text-sm"
             />
           </div>
 

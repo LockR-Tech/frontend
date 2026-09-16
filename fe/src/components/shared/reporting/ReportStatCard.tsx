@@ -18,6 +18,8 @@ interface ReportStatCardProps {
   invertChangeColor?: boolean;
   isLoading?: boolean;
   className?: string;
+  /** Thu nhỏ chữ khi giá trị dài, ví dụ một mốc thời gian đầy đủ. */
+  valueClassName?: string;
 }
 
 /**
@@ -34,6 +36,7 @@ export function ReportStatCard({
   invertChangeColor = false,
   isLoading = false,
   className,
+  valueClassName,
 }: ReportStatCardProps) {
   const direction = changeDirection(changePct);
   const showChange = changePct !== undefined || changeLabel !== undefined;
@@ -59,7 +62,12 @@ export function ReportStatCard({
         {isLoading ? (
           <Skeleton className="h-7 w-24 mt-2" />
         ) : (
-          <p className="text-xl font-bold text-foreground leading-tight mt-1.5 break-words">
+          <p
+            className={cn(
+              "text-xl font-bold text-foreground leading-tight mt-1.5 break-words",
+              valueClassName,
+            )}
+          >
             {value}
           </p>
         )}
