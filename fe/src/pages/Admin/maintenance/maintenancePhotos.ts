@@ -178,3 +178,22 @@ export const calculateDurationText = (startStr?: string | null, endStr?: string 
   if (hours === 0) return `${mins} phút`;
   return `${hours} giờ ${mins > 0 ? `${mins} phút` : ""}`;
 };
+
+/** Phát hiện phiếu sự cố liên quan đến Drone để loại khỏi tab Bảo trì Kiosk / KTV Kiosk.
+ *  Đồng bộ với logic _isDroneReport() trên Mobile (technician_home_page.dart). */
+export function isDroneReport(r: LockerReportResponse): boolean {
+  if ((r as any).droneUnitId != null) return true;
+  const t = (r.title ?? "").toLowerCase();
+  const d = (r.description ?? "").toLowerCase();
+  const ct = (r.cellType ?? "").toUpperCase();
+  const ln = (r.lockerName ?? "").toLowerCase();
+  const lc = ((r as any).lockerCode ?? "").toLowerCase();
+  if (ct === "DRONE") return true;
+  if (ln.includes("drone") || lc.includes("drone")) return true;
+  const droneKeywords = [
+    "drone", "đội bay", "pin drone", "gãy càng", "mất thăng bằng",
+    "hạ cánh", "bãi đáp", "cánh quay", "hiệu chuẩn bay",
+  ];
+  return droneKeywords.some((kw) => t.includes(kw) || d.includes(kw));
+}
+

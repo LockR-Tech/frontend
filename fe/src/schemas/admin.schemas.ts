@@ -117,6 +117,7 @@ export const UpdateUserRequestSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   email: z.string().email('Invalid email format').optional(),
   imageUrl: z.string().url().optional(),
+  phoneNumber: z.string().optional(),
 });
 
 export const UpdateUserStatusRequestSchema = z.object({

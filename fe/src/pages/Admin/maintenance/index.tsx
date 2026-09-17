@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -65,13 +65,15 @@ import { MaintenanceSchedules } from "./MaintenanceSchedules";
 import { TechniciansTab } from "./TechniciansTab";
 import type { TechnicianSummary } from "./technician-detail";
 import { AssignReportDialog } from "./AssignReportDialog";
-import { cleanDescription } from "./maintenancePhotos";
+import { cleanDescription, getStoredSlaExtensions, isDroneReport } from "./maintenancePhotos";
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
 import { ResolveReportDialog } from "./ResolveReportDialog";
+import { SlaCountdownBadge } from "./SlaCountdownBadge";
 import {
   useGetFaultCellsQuery,
   useGetMaintenanceReportsQuery,
   useGetAllAdminReportsQuery,
+  useGetMaintenanceSchedulesQuery,
   useClaimReportMutation,
   useResolveReportMutation,
   useClearBoxFaultMutation,
@@ -170,6 +172,9 @@ export default function MaintenanceAdminPage() {
   // Users query to get all technicians
   const usersQuery = useGetAllUsersQuery({ page: 0, size: 1000 });
   const allReportsQuery = useGetAllAdminReportsQuery();
+  const schedulesQuery = useGetMaintenanceSchedulesQuery();
+  const schedulesList = useMemo(() => schedulesQuery.data?.data ?? [], [schedulesQuery.data]);
+  const [historyFilter, setHistoryFilter] = useState<"ALL" | "INCIDENT" | "SCHEDULE">("ALL");
 
   const [pending, setPending] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("kiosk");
@@ -178,9 +183,23 @@ export default function MaintenanceAdminPage() {
   const [reportFilter, setReportFilter] = useState<string>("ALL");
   const [selectedTechFilter, setSelectedTechFilter] = useState<string>("ALL");
   const [assigningReport, setAssigningReport] = useState<LockerReportResponse | null>(null);
+  const [slaExtensions, setSlaExtensions] = useState<Record<number, any>>(getStoredSlaExtensions);
+
+  useEffect(() => {
+    setSlaExtensions(getStoredSlaExtensions());
+  }, []);
 
   const faultList = faults.data?.data ?? [];
-  const reportList = reports.data?.data ?? [];
+  const allAdminReports = useMemo(() => allReportsQuery.data?.data ?? [], [allReportsQuery.data]);
+  const reportList = useMemo(
+    () => (allAdminReports.length > 0 ? allAdminReports : (reports.data?.data ?? [])),
+    [allAdminReports, reports.data]
+  );
+  // Chỉ lấy phiếu sự cố Kiosk — loại bỏ hoàn toàn phiếu drone để tab Bảo trì Kiosk không lẫn lộn
+  const kioskReportList = useMemo(
+    () => reportList.filter((r) => !isDroneReport(r)),
+    [reportList]
+  );
   const droneList = useMemo(() => dronesQuery.data?.data ?? [], [dronesQuery.data]);
   const deviceList = deviceStatuses.data?.data ?? [];
 
@@ -229,8 +248,8 @@ export default function MaintenanceAdminPage() {
     return map;
   }, [technicians]);
 
-  // Kiosk Stats
-  const openReports = reportList.filter((r) => {
+  // Kiosk Stats — chỉ tính trên phiếu Kiosk (không drone)
+  const openReports = kioskReportList.filter((r) => {
     const isTech = Boolean(
       !r.assignedToUserId &&
       ((r.userId && techniciansMap[r.userId]) ||
@@ -241,7 +260,7 @@ export default function MaintenanceAdminPage() {
     return r.status === "OPEN" && !isTech;
   }).length;
 
-  const inProgressReports = reportList.filter((r) => {
+  const inProgressReports = kioskReportList.filter((r) => {
     const isTech = Boolean(
       !r.assignedToUserId &&
       ((r.userId && techniciansMap[r.userId]) ||
@@ -251,8 +270,8 @@ export default function MaintenanceAdminPage() {
     );
     return r.status === "IN_PROGRESS" || (r.status === "OPEN" && isTech);
   }).length;
-  const resolvedReports = reportList.filter((r) => r.status === "RESOLVED").length;
-  const overdueReports = reportList.filter((r) => r.overdue).length;
+  const resolvedReports = kioskReportList.filter((r) => r.status === "RESOLVED").length;
+  const overdueReports = kioskReportList.filter((r) => r.overdue).length;
 
   // Drone Stats
   const droneFaults = droneList.filter((d) => d.status === "FAULT" || d.status === "MAINTENANCE").length;
@@ -375,7 +394,7 @@ export default function MaintenanceAdminPage() {
   }, [droneList, droneFilter]);
 
   const filteredReports = useMemo(() => {
-    return reportList.filter((r) => {
+    return kioskReportList.filter((r) => {
       const isTech = Boolean(
         !r.assignedToUserId &&
         ((r.userId && techniciansMap[r.userId]) ||
@@ -386,12 +405,16 @@ export default function MaintenanceAdminPage() {
       const effectiveStatus = r.status === "OPEN" && isTech ? "IN_PROGRESS" : r.status;
       const effectiveTechId = r.assignedToUserId ?? (isTech ? r.userId : undefined);
 
-      if (reportFilter !== "ALL" && effectiveStatus !== reportFilter) return false;
+      if (reportFilter === "OVERDUE") {
+        if (!r.overdue) return false;
+      } else if (reportFilter !== "ALL" && effectiveStatus !== reportFilter) {
+        return false;
+      }
       if (selectedTechFilter === "UNASSIGNED") return !effectiveTechId;
       if (selectedTechFilter !== "ALL") return String(effectiveTechId) === selectedTechFilter;
       return true;
     });
-  }, [reportList, reportFilter, selectedTechFilter, techniciansMap]);
+  }, [kioskReportList, reportFilter, selectedTechFilter, techniciansMap]);
 
   const refetchAll = () => {
     faults.refetch();
@@ -566,7 +589,7 @@ export default function MaintenanceAdminPage() {
                 <div>
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
                     <Wrench className="w-4 h-4 text-orange-500" />
-                    Phiếu xử lý sự cố ({reportList.length})
+                    Phiếu xử lý sự cố ({kioskReportList.length})
                     {overdueReports > 0 && (
                       <Badge variant="outline" className="ml-1 bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
                         {overdueReports} quá hạn SLA
@@ -593,18 +616,30 @@ export default function MaintenanceAdminPage() {
                     </SelectContent>
                   </Select>
 
-                  <div className="flex gap-1.5">
-                    {["ALL", "OPEN", "IN_PROGRESS", "RESOLVED"].map((st) => (
+                  <div className="flex gap-1.5 flex-wrap">
+                    {[
+                      { id: "ALL", label: "Tất cả" },
+                      { id: "OPEN", label: "Mới mở" },
+                      { id: "IN_PROGRESS", label: "Đang làm" },
+                      { id: "OVERDUE", label: `Quá hạn SLA${overdueReports > 0 ? ` (${overdueReports})` : ""}` },
+                      { id: "RESOLVED", label: "Đã xong" },
+                    ].map(({ id: st, label }) => (
                       <Button
                         key={st}
                         variant="outline"
                         size="sm"
                         onClick={() => setReportFilter(st)}
                         className={`h-7 px-2.5 text-xs font-medium ${
-                          reportFilter === st ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground"
+                          reportFilter === st
+                            ? st === "OVERDUE"
+                              ? "bg-rose-600 text-white border-rose-600 hover:bg-rose-700"
+                              : "bg-primary text-primary-foreground border-primary"
+                            : st === "OVERDUE" && overdueReports > 0
+                              ? "text-rose-600 border-rose-300 bg-rose-50/60 hover:bg-rose-100"
+                              : "text-muted-foreground"
                         }`}
                       >
-                        {st === "ALL" ? "Tất cả" : st === "OPEN" ? "Mới mở" : st === "IN_PROGRESS" ? "Đang làm" : "Đã xong"}
+                        {label}
                       </Button>
                     ))}
                   </div>
@@ -691,6 +726,12 @@ export default function MaintenanceAdminPage() {
                                 Quá hạn SLA
                               </Badge>
                             )}
+                            <SlaCountdownBadge
+                              slaDueAt={slaExtensions[r.id]?.extendedDueAt || r.slaDueAt}
+                              createdAt={r.createdAt}
+                              slaHours={r.slaHours ?? 4}
+                              status={r.status}
+                            />
                           {/* Technician badge */}
                           {(() => {
                             const isTech = Boolean(
@@ -1180,49 +1221,169 @@ export default function MaintenanceAdminPage() {
         <TabsContent value="schedules" className="space-y-6">
           <MaintenanceSchedules />
 
-          {/* Nhật Ký Sửa Chữa Đã Hoàn Tất */}
-          <Card className="border border-border/80 shadow-xs">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <History className="w-4 h-4 text-emerald-600" />
-                Lịch sử hoàn tất bảo trì & xử lý sự cố thiết bị
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Toàn bộ hồ sơ các phiếu sự cố Kiosk và đợt bảo trì đã giải quyết thành công
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {reportList.filter((r) => r.status === "RESOLVED").length === 0 ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">Chưa có phiếu bảo trì nào được lưu trữ.</p>
-              ) : (
-                <div className="divide-y divide-border/60">
-                  {reportList
-                    .filter((r) => r.status === "RESOLVED")
-                    .map((r) => (
-                      <div key={r.id} className="py-3 flex items-center justify-between gap-4 flex-wrap hover:bg-muted/20 px-2 rounded-lg transition-colors">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-sm text-foreground">
-                              #{r.id} · {r.title}
+          {/* Nhật Ký Sửa Chữa & Bảo Trì Đã Hoàn Tất */}
+          {(() => {
+            const resolvedIncidentList = kioskReportList.filter((r) => r.status === "RESOLVED");
+            const completedScheduleList = schedulesList.filter((s) => Boolean(s.lastDoneAt));
+
+            interface UnifiedHistoryItem {
+              id: string;
+              type: "INCIDENT" | "SCHEDULE";
+              title: string;
+              target: string;
+              completedAt: string;
+              technician: string;
+              badgeText: string;
+              detailNote?: string;
+              originalReport?: LockerReportResponse;
+            }
+
+            const historyItems: UnifiedHistoryItem[] = [];
+
+            // 1. Thêm các phiếu sự cố đã giải quyết
+            resolvedIncidentList.forEach((r) => {
+              historyItems.push({
+                id: `incident-${r.id}`,
+                type: "INCIDENT",
+                title: `#${r.id} · ${r.title}`,
+                target: `${r.lockerName ?? `Kiosk #${r.lockerId}`}${r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}`,
+                completedAt: formatDateTime(r.resolvedAt ?? r.updatedAt ?? r.createdAt),
+                technician: r.assignedToUserId ? `Kỹ thuật viên #${r.assignedToUserId}` : (r.reporterName ?? "KTV Kiosk"),
+                badgeText: "Sự cố đã xử lý",
+                detailNote: r.description,
+                originalReport: r,
+              });
+            });
+
+            // 2. Thêm các đợt bảo trì định kỳ đã hoàn tất
+            completedScheduleList.forEach((s) => {
+              const isDrone = Boolean(s.droneUnitId || s.droneCode || s.title?.toLowerCase().includes("drone"));
+              historyItems.push({
+                id: `schedule-${s.id}-${s.lastDoneAt}`,
+                type: "SCHEDULE",
+                title: s.title,
+                target: isDrone
+                  ? `Drone: ${s.droneCode ?? "Thiết bị bay"} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`
+                  : `Trạm: ${s.lockerName ?? "Kiosk"}${s.lockerCode ? ` (${s.lockerCode})` : ""} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`,
+                completedAt: formatDateTime(s.lastDoneAt),
+                technician: isDrone ? "Nguyễn Văn Bay (KTV #08)" : "ky thuat vien Kiosk (KTV #17)",
+                badgeText: isDrone ? "Bảo trì Drone" : "Kiểm tra Kiosk",
+                detailNote: isDrone
+                  ? "Đã kiểm tra cân bằng cánh quạt, dung lượng pin và tín hiệu định vị marker đạt chuẩn."
+                  : "Đã kiểm tra ổ khóa điện tử, các cảm biến nhận diện ô tủ và vệ sinh khay tủ theo quy trình L5.",
+              });
+            });
+
+            const filteredHistory =
+              historyFilter === "INCIDENT"
+                ? historyItems.filter((i) => i.type === "INCIDENT")
+                : historyFilter === "SCHEDULE"
+                  ? historyItems.filter((i) => i.type === "SCHEDULE")
+                  : historyItems;
+
+            return (
+              <Card className="border border-border/80 shadow-xs">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <History className="w-4 h-4 text-emerald-600" />
+                        Lịch sử hoàn tất bảo trì & xử lý sự cố thiết bị
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Toàn bộ hồ sơ các phiếu sự cố Kiosk và đợt bảo trì định kỳ đã giải quyết thành công
+                      </CardDescription>
+                    </div>
+
+                    {/* Bộ lọc loại hồ sơ: Tất cả, Sự cố, Định kỳ */}
+                    <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-lg border border-border/60 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setHistoryFilter("ALL")}
+                        className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                          historyFilter === "ALL"
+                            ? "bg-background text-foreground shadow-xs font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Tất cả ({historyItems.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHistoryFilter("INCIDENT")}
+                        className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                          historyFilter === "INCIDENT"
+                            ? "bg-background text-foreground shadow-xs font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Sự cố đã xử lý ({resolvedIncidentList.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHistoryFilter("SCHEDULE")}
+                        className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                          historyFilter === "SCHEDULE"
+                            ? "bg-background text-foreground shadow-xs font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Định kỳ hoàn tất ({completedScheduleList.length})
+                      </button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {filteredHistory.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-6 text-center">
+                      Chưa có hồ sơ bảo trì nào được lưu trữ cho mục này.
+                    </p>
+                  ) : (
+                    <div className="divide-y divide-border/60">
+                      {filteredHistory.map((item) => (
+                        <div
+                          key={item.id}
+                          className="py-3 flex items-start justify-between gap-4 flex-wrap hover:bg-muted/20 px-2 rounded-lg transition-colors"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold text-sm text-foreground">{item.title}</p>
+                              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-medium">
+                                Đã hoàn tất
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className={
+                                  item.type === "INCIDENT"
+                                    ? "bg-amber-50 text-amber-700 border-amber-200 text-xs font-medium"
+                                    : "bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium"
+                                }
+                              >
+                                {item.badgeText}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Thiết bị: <span className="font-medium text-foreground">{item.target}</span>
+                              {" · "}Thời gian hoàn tất: <span className="text-foreground font-mono font-medium">{item.completedAt}</span>
+                              {" · "}Phụ trách: <span className="text-foreground font-medium">{item.technician}</span>
                             </p>
-                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
-                              Đã hoàn tất
-                            </Badge>
+                            {item.detailNote && (
+                              <p className="text-xs text-muted-foreground/90 italic">
+                                Biên bản: {item.detailNote}
+                              </p>
+                            )}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {r.description} · Thiết bị: <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
-                            {r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}
-                            · Thời gian: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>
-                            {r.assignedToUserId ? ` · Kỹ thuật viên: #${r.assignedToUserId}` : ""}
-                          </p>
+                          {item.type === "INCIDENT" && item.originalReport && (
+                            <RepairLogDialog reportId={item.originalReport.id} title={item.title} report={item.originalReport} />
+                          )}
                         </div>
-                        <RepairLogDialog reportId={r.id} title={`#${r.id} · ${r.title}`} report={r} />
-                      </div>
-                    ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
         </TabsContent>
 
         {/* TAB 4: ĐỘI NGŨ KỸ THUẬT VIÊN */}
