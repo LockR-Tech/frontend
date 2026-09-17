@@ -137,13 +137,15 @@ export function WalletTransactionTab() {
         // Backend chỉ gán đơn cho biến động nguồn ORDER_PAYMENT.
         const orderId = row.original.relatedOrderId;
         if (!orderId) return <span className="text-xs">{EMPTY_VALUE}</span>;
+        // Hiện orderCode (ORD-...) — cùng mã app khách thấy, không phải id nội bộ. Điều
+        // hướng vẫn dùng orderId vì route /admin/orders/:id nhận id, không nhận orderCode.
         return (
           <button
             type="button"
             onClick={() => navigate(`/admin/orders/${orderId}`)}
             className="font-mono text-xs hover:underline"
           >
-            #{orderId}
+            {row.original.orderCode ?? `#${orderId}`}
           </button>
         );
       },
