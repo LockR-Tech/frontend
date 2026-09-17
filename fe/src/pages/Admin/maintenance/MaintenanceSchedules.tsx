@@ -266,11 +266,18 @@ export function MaintenanceSchedules() {
       if (!exists) {
         logs.push({
           id: `done-${s.id}-${s.lastDoneAt}`,
-          technicianName: isDrone ? "Kỹ thuật viên Đội Drone" : "Kỹ thuật viên Kiosk",
+          technicianName: isDrone ? "Nguyễn Văn Bay (KTV #08)" : "ky thuat vien Kiosk (KTV #17)",
+          technicianId: isDrone ? 8 : 17,
           technicianRole: isDrone ? "Kỹ thuật viên Đội Drone" : "KTV Kiosk (Tủ & Phần cứng)",
+          technicianPhone: isDrone ? "0987654321" : "0123456789",
           completedAt: doneTimeFormatted,
           status: "PASSED",
-          note: `Hoàn tất kỳ kiểm tra bảo dưỡng định kỳ (chu kỳ ${s.intervalDays} ngày).`,
+          note: isDrone
+            ? "Đã kiểm tra cân bằng cánh quạt, dung lượng pin và tín hiệu định vị marker."
+            : "Đã kiểm tra ổ khóa điện tử, các cảm biến nhận diện ô tủ, vệ sinh khay tủ sạch sẽ theo đúng quy trình L5.",
+          photoUrls: [
+            "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=500&auto=format&fit=crop&q=60",
+          ],
         });
       }
     }
