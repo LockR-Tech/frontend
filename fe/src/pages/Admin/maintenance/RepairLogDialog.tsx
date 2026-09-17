@@ -392,8 +392,24 @@ export function RepairLogDialog({
                     logs.map((l) => {
                       const images = logPhotos(l);
                       const displayNote = l.attachments?.length ? l.note : stripImages(l.note);
+                      const isSlaExtension = displayNote?.includes("[GIA HẠN SLA]");
                       return (
-                        <div key={l.id} className="rounded-xl border border-border/70 bg-muted/30 p-3.5 space-y-2">
+                        <div
+                          key={l.id}
+                          className={`rounded-xl border p-3.5 space-y-2 ${
+                            isSlaExtension
+                              ? "border-amber-300/80 bg-amber-50/25 dark:bg-amber-950/20 dark:border-amber-800"
+                              : "border-border/70 bg-muted/30"
+                          }`}
+                        >
+                          {isSlaExtension && (
+                            <div className="flex items-center gap-1.5 pb-1 border-b border-amber-200/50">
+                              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 font-semibold text-[10px] gap-1 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700">
+                                <Clock className="w-3 h-3" />
+                                Phê duyệt gia hạn SLA
+                              </Badge>
+                            </div>
+                          )}
                           {/* Note text */}
                           <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{displayNote}</p>
 

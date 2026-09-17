@@ -36,6 +36,7 @@ import {
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from "~/stores/apis/admin/users";
 import type { TechnicianSummary } from "./technician-detail";
+import { getStoredSlaExtensions, isDroneReport } from "./maintenancePhotos";
 
 interface TechniciansTabProps {
   onAssignToTech?: (techId: number) => void;
@@ -84,11 +85,19 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
         const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay & Pin)";
 
+        const storedPhone = (() => {
+          try {
+            return localStorage.getItem(`tech_phone_${u.id}`);
+          } catch {
+            return null;
+          }
+        })();
+
         return {
           id: u.id,
           fullName: u.fullName || u.name || `KTV #${u.id}`,
           email: u.email || "",
-          phoneNumber: u.phoneNumber || "",
+          phoneNumber: storedPhone || u.phoneNumber || "",
           status: (u.status || "ACTIVE").toUpperCase(),
           imageUrl: u.imageUrl || "",
           enabled: (u.status || "ACTIVE").toUpperCase() === "ACTIVE",
@@ -101,6 +110,22 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
   // Compute workload and SLA penalty metrics per technician
   const techMetrics = useMemo(() => {
+    const slaExtensions = getStoredSlaExtensions();
+    const isReportOverdue = (r: LockerReportResponse) => {
+      if (r.status === "RESOLVED") return false;
+      const ext = slaExtensions[r.id];
+      const now = new Date();
+      if (ext?.extendedDueAt) {
+        const extTime = new Date(ext.extendedDueAt).getTime();
+        if (!isNaN(extTime)) return now.getTime() > extTime;
+      }
+      if (r.slaDueAt) {
+        const dueTime = new Date(r.slaDueAt).getTime();
+        if (!isNaN(dueTime)) return now.getTime() > dueTime;
+      }
+      return Boolean(r.overdue);
+    };
+
     const metrics: Record<
       number,
       {
@@ -113,10 +138,16 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
     > = {};
 
     for (const tech of technicians) {
-      const techReports = reports.filter((r) => r.assignedToUserId === tech.id);
+      const techReports = reports.filter((r) => {
+        if (tech.specialty === "KIOSK" && isDroneReport(r)) return false;
+        if (tech.specialty === "DRONE" && !isDroneReport(r)) return false;
+        if (r.assignedToUserId === tech.id) return true;
+        if (!r.assignedToUserId && r.userId === tech.id) return true;
+        return false;
+      });
       const inProgress = techReports.filter((r) => r.status === "IN_PROGRESS").length;
       const resolved = techReports.filter((r) => r.status === "RESOLVED").length;
-      const overdue = techReports.filter((r) => r.status === "IN_PROGRESS" && r.overdue).length;
+      const overdue = techReports.filter((r) => r.status === "IN_PROGRESS" && isReportOverdue(r)).length;
 
       let penaltyLevel: "NORMAL" | "WARNING" | "RESTRICTED" | "SUSPENDED" = "NORMAL";
       if (!tech.enabled || overdue >= 5) {

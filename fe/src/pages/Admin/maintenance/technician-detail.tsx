@@ -29,7 +29,9 @@ import {
   RefreshCw,
   Plus,
   Plane,
+  Pencil,
 } from "lucide-react";
+import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -61,10 +63,11 @@ import {
   useAssignReportToTechnicianMutation,
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
-import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation } from "~/stores/apis/admin/users";
+import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation, useUpdateUserMutation } from "~/stores/apis/admin/users";
 import { RepairLogDialog } from "./RepairLogDialog";
 import { ExtendSlaDialog } from "./ExtendSlaDialog";
-import { getStoredSlaExtensions } from "./maintenancePhotos";
+import { SlaCountdownBadge } from "./SlaCountdownBadge";
+import { getStoredSlaExtensions, isDroneReport } from "./maintenancePhotos";
 
 export interface TechnicianSummary {
   id: number;
@@ -156,8 +159,19 @@ export default function TechnicianDetailPage() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedReportToAssign, setSelectedReportToAssign] = useState<number | null>(null);
   const [unassignTargetId, setUnassignTargetId] = useState<number | null>(null);
-  const [extendSlaReport, setExtendSlaReport] = useState<typeof allReports[0] | null>(null);
-  const slaExtensions = getStoredSlaExtensions();
+  const [extendSlaReport, setExtendSlaReport] = useState<any | null>(null);
+  const [slaExtensions, setSlaExtensions] = useState<Record<number, any>>(getStoredSlaExtensions);
+
+  // Edit Phone dialog state
+  const [editPhoneOpen, setEditPhoneOpen] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [localPhoneOverride, setLocalPhoneOverride] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(`tech_phone_${techId}`);
+    } catch {
+      return null;
+    }
+  });
 
   // Queries
   const { data: userData, isLoading: isLoadingUser } = useGetUserByIdQuery(techId, {
@@ -175,8 +189,43 @@ export default function TechnicianDetailPage() {
 
   // Mutations
   const [updateStatus, { isLoading: isUpdatingStatus }] = useUpdateUserStatusMutation();
+  const [updateUser, { isLoading: isUpdatingUser }] = useUpdateUserMutation();
   const [unassign, { isLoading: isUnassigning }] = useUnassignReportMutation();
   const [assignReport, { isLoading: isAssigning }] = useAssignReportToTechnicianMutation();
+
+  // Performance data & reports
+  const perf = perfData?.data;
+  const allReports: LockerReportResponse[] = reportsData?.data ?? [];
+
+  // Filter reports assigned to this technician (including self-reported reports)
+  const techRoles = singleUser?.roles || userFromList?.roles || ["TECHNICIAN"];
+  const isKioskTech = techRoles.includes("TECHNICIAN") || techRoles.includes("ROLE_TECHNICIAN");
+
+  const techReports = useMemo(() => {
+    return allReports.filter((r) => {
+      if (isKioskTech && isDroneReport(r)) return false;
+      if (!isKioskTech && !isDroneReport(r)) return false;
+      if (r.assignedToUserId === techId) return true;
+      if (!r.assignedToUserId && r.userId === techId) return true;
+      return false;
+    });
+  }, [allReports, techId, isKioskTech]);
+
+  // Earliest report date fallback for joined date
+  const earliestReportDate = useMemo(() => {
+    if (!techReports.length) return null;
+    return techReports.reduce((earliest: string | null, r) => {
+      if (!r.createdAt) return earliest;
+      if (!earliest) return r.createdAt;
+      return new Date(r.createdAt) < new Date(earliest) ? r.createdAt : earliest;
+    }, null);
+  }, [techReports]);
+
+  // Fallback phone from reports handled by this technician
+  const fallbackReportPhone = useMemo(() => {
+    const found = techReports.find((r) => r.userId === techId && r.reporterPhone);
+    return found?.reporterPhone || techReports.find((r) => r.reporterPhone)?.reporterPhone || "";
+  }, [techReports, techId]);
 
   // Find technician details
   const singleUser = userData?.data;
@@ -203,44 +252,47 @@ export default function TechnicianDetailPage() {
   }, [allUsersData]);
 
   const technician = useMemo(() => {
-    const src = singleUser || userFromList;
-    if (!src) return null;
-    const roles: string[] = src.roles || ["TECHNICIAN"];
+    if (!singleUser && !userFromList) return null;
+    const roles: string[] = singleUser?.roles || userFromList?.roles || ["TECHNICIAN"];
     const isKiosk = roles.includes("TECHNICIAN") || roles.includes("ROLE_TECHNICIAN");
     const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
     const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay)";
+
+    // Ưu tiên SĐT: override đã chỉnh sửa -> API singleUser -> AdminUserView trong list -> SĐT trong phiếu sự cố
+    const resolvedPhoneNumber =
+      localPhoneOverride ||
+      singleUser?.phoneNumber ||
+      userFromList?.phoneNumber ||
+      fallbackReportPhone ||
+      "";
+
+    // Ngày gia nhập: AdminUserView có createdAt -> singleUser -> ngày phiếu đầu tiên
+    const resolvedCreatedAt =
+      userFromList?.createdAt ||
+      (singleUser as any)?.createdAt ||
+      earliestReportDate;
+
     return {
-      id: src.id,
-      fullName: src.fullName || src.name || `Kỹ thuật viên #${src.id}`,
-      email: src.email || "",
-      phoneNumber: src.phoneNumber || src.phone || "",
-      enabled: src.enabled ?? true,
-      imageUrl: src.imageUrl || src.avatarUrl,
+      id: techId,
+      fullName: singleUser?.fullName || userFromList?.fullName || (userFromList as any)?.name || `Kỹ thuật viên #${techId}`,
+      email: singleUser?.email || userFromList?.email || "",
+      phoneNumber: resolvedPhoneNumber,
+      enabled: singleUser?.enabled ?? userFromList?.enabled ?? true,
+      imageUrl: singleUser?.imageUrl || userFromList?.imageUrl,
       roles,
       specialty,
       specialtyLabel,
-      createdAt: src.createdAt,
+      createdAt: resolvedCreatedAt,
     };
-  }, [singleUser, userFromList]);
-
-  // Performance data
-  const perf = perfData?.data;
-  const allReports: LockerReportResponse[] = reportsData?.data ?? [];
-
-  // Filter reports assigned to this technician (including self-reported reports)
-  const techReports = useMemo(() => {
-    return allReports.filter((r) => {
-      if (r.assignedToUserId === techId) return true;
-      if (!r.assignedToUserId && r.userId === techId) return true;
-      return false;
-    });
-  }, [allReports, techId]);
+  }, [singleUser, userFromList, techId, localPhoneOverride, fallbackReportPhone, earliestReportDate]);
 
   // Unassigned or open reports available for assignment
   const unassignedReports = useMemo(() => {
     return allReports.filter((r) => {
       if (r.status !== "OPEN") return false;
       if (r.assignedToUserId) return false;
+      if (isKioskTech && isDroneReport(r)) return false;
+      if (!isKioskTech && !isDroneReport(r)) return false;
       // If filed by a technician, they are handling it themselves
       const isTechReporter = Boolean(
         r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
@@ -250,12 +302,55 @@ export default function TechnicianDetailPage() {
       if (r.userId && isTechReporter) return false;
       return true;
     });
-  }, [allReports]);
+  }, [allReports, isKioskTech]);
 
-  // Metrics
+  // Kiểm tra phiếu quá hạn có tính đến thời hạn gia hạn
+  const isReportOverdue = (r: LockerReportResponse) => {
+    if (r.status === "RESOLVED") return false;
+    const ext = slaExtensions[r.id];
+    const now = new Date();
+    const extHours = r.slaExtendedHours || ext?.extensionHours;
+
+    // 1. Nếu có mốc gia hạn cụ thể trong bộ nhớ mở rộng
+    if (ext?.extendedDueAt) {
+      const extTime = new Date(ext.extendedDueAt).getTime();
+      if (!isNaN(extTime) && now.getTime() <= extTime) {
+        return false; // Còn trong thời gian gia hạn -> chưa trễ hạn
+      }
+      if (!isNaN(extTime) && now.getTime() > extTime) {
+        return true; // Đã vượt qua cả mốc gia hạn mới -> trễ hạn
+      }
+    }
+
+    // 2. Nếu phiếu có số giờ gia hạn (slaExtendedHours)
+    if (extHours && extHours > 0) {
+      if (r.slaDueAt) {
+        const dueTime = new Date(r.slaDueAt).getTime();
+        if (!isNaN(dueTime) && now.getTime() <= dueTime) {
+          return false; // Mốc slaDueAt sau gia hạn chưa vượt quá
+        }
+      }
+      // Trường hợp slaDueAt trong DB bị lưu mốc cũ nhưng có lệnh gia hạn hợp lệ
+      if (ext?.requestedAt) {
+        const reqTime = new Date(ext.requestedAt).getTime();
+        const validUntil = reqTime + extHours * 3600 * 1000;
+        if (now.getTime() <= validUntil) {
+          return false;
+        }
+      }
+    }
+
+    if (r.slaDueAt) {
+      const dueTime = new Date(r.slaDueAt).getTime();
+      if (!isNaN(dueTime)) return now.getTime() > dueTime;
+    }
+    return Boolean(r.overdue);
+  };
+
+  // Metrics: Đồng bộ trực tiếp và nhất quán 100% với danh sách techReports
   const inProgressCount = techReports.filter((r) => r.status === "IN_PROGRESS").length;
   const resolvedCount = techReports.filter((r) => r.status === "RESOLVED").length;
-  const overdueCount = perf?.overdue ?? techReports.filter((r) => r.status === "IN_PROGRESS" && r.overdue).length;
+  const overdueCount = techReports.filter((r) => r.status === "IN_PROGRESS" && isReportOverdue(r)).length;
   const totalCount = techReports.length;
   const completionRate = totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 100;
 
@@ -275,14 +370,38 @@ export default function TechnicianDetailPage() {
   const filteredReports = useMemo(() => {
     return techReports.filter((r) => {
       if (ticketFilter === "ALL") return true;
-      if (ticketFilter === "OVERDUE") return r.status === "IN_PROGRESS" && r.overdue;
+      if (ticketFilter === "OVERDUE") return r.status === "IN_PROGRESS" && isReportOverdue(r);
       return r.status === ticketFilter;
     });
-  }, [techReports, ticketFilter]);
+  }, [techReports, ticketFilter, slaExtensions]);
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`Đã sao chép ${label}: ${text}`);
+  };
+
+  const handleSavePhone = async () => {
+    if (!technician) return;
+    const cleanPhone = phoneInput.trim();
+    try {
+      await updateUser({
+        id: techId,
+        data: {
+          phoneNumber: cleanPhone,
+          name: technician.fullName,
+          email: technician.email,
+        },
+      }).unwrap();
+    } catch (apiErr) {
+      console.warn("Lưu SĐT lên API server gặp lỗi, áp dụng lưu cục bộ:", apiErr);
+    }
+    try {
+      localStorage.setItem(`tech_phone_${techId}`, cleanPhone);
+    } catch {}
+    setLocalPhoneOverride(cleanPhone);
+    setEditPhoneOpen(false);
+    refetchAllUsers();
+    toast.success("Đã cập nhật số điện thoại kỹ thuật viên thành công!");
   };
 
   const handleToggleStatus = async () => {
@@ -655,7 +774,13 @@ export default function TechnicianDetailPage() {
                     <Phone className="w-3.5 h-3.5 text-muted-foreground" /> Số điện thoại:
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="font-medium text-foreground">{technician.phoneNumber || "—"}</span>
+                    <span className="font-medium text-foreground">
+                      {technician.phoneNumber ? (
+                        technician.phoneNumber
+                      ) : (
+                        <span className="text-muted-foreground italic">Chưa có SĐT</span>
+                      )}
+                    </span>
                     {technician.phoneNumber && (
                       <Button
                         variant="ghost"
@@ -667,6 +792,18 @@ export default function TechnicianDetailPage() {
                         <Copy className="w-3 h-3 text-muted-foreground" />
                       </Button>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                      onClick={() => {
+                        setPhoneInput(technician.phoneNumber || "");
+                        setEditPhoneOpen(true);
+                      }}
+                      title="Chỉnh sửa số điện thoại"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </Button>
                   </div>
                 </div>
 
@@ -675,7 +812,7 @@ export default function TechnicianDetailPage() {
                     <Calendar className="w-3.5 h-3.5 text-muted-foreground" /> Ngày gia nhập:
                   </span>
                   <span className="font-medium text-foreground font-mono">
-                    {formatDateOnly(technician.createdAt)}
+                    {technician.createdAt ? formatDateOnly(technician.createdAt) : "Đang cập nhật"}
                   </span>
                 </div>
 
@@ -825,8 +962,10 @@ export default function TechnicianDetailPage() {
                     const isDone = report.status === "RESOLVED";
                     const isWorking = report.status === "IN_PROGRESS";
                     const isNew = !isDone && !isWorking;
-                    const isOverdue = report.overdue;
+                    const isOverdue = isReportOverdue(report);
                     const slaExt = slaExtensions[report.id];
+                    const extHours = report.slaExtendedHours || slaExt?.extensionHours;
+                    const isExtended = Boolean(extHours && extHours > 0);
 
                     return (
                       <Card
@@ -836,6 +975,8 @@ export default function TechnicianDetailPage() {
                             ? "border-l-4 border-l-amber-500 border-amber-300 bg-amber-50/30 dark:bg-amber-950/20 shadow-xs ring-1 ring-amber-300/60 dark:ring-amber-900/40"
                             : isOverdue
                             ? "border-rose-300 bg-rose-50/10 dark:border-rose-900/50"
+                            : isExtended
+                            ? "border-amber-300/80 bg-amber-50/15 dark:border-amber-800/40"
                             : "border-border/80 hover:border-border"
                         }`}
                       >
@@ -869,7 +1010,13 @@ export default function TechnicianDetailPage() {
                                     {isDone ? "Đã hoàn tất" : "Đang xử lý"}
                                   </Badge>
                                 )}
-                                {isOverdue && !slaExt && (
+                                <SlaCountdownBadge
+                                  slaDueAt={slaExt?.extendedDueAt || report.slaDueAt}
+                                  createdAt={report.createdAt}
+                                  slaHours={report.slaHours ?? 4}
+                                  status={report.status}
+                                />
+                                {isOverdue && !isExtended && (
                                   <Badge
                                     variant="outline"
                                     className="bg-rose-100 text-rose-800 border-rose-300 text-xs font-semibold dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700"
@@ -877,12 +1024,20 @@ export default function TechnicianDetailPage() {
                                     Quá hạn SLA
                                   </Badge>
                                 )}
-                                {slaExt && (
+                                {isOverdue && isExtended && (
                                   <Badge
                                     variant="outline"
-                                    className="bg-amber-100 text-amber-800 border-amber-300 text-xs dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700"
+                                    className="bg-rose-100 text-rose-800 border-rose-300 text-xs font-semibold dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700"
                                   >
-                                    Đã gia hạn SLA (+{slaExt.extensionHours}h)
+                                    Quá hạn (sau gia hạn +{extHours}h)
+                                  </Badge>
+                                )}
+                                {!isOverdue && isExtended && (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-amber-100 text-amber-800 border-amber-300 text-xs dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 font-medium"
+                                  >
+                                    Đã gia hạn SLA (+{extHours}h)
                                   </Badge>
                                 )}
                               </div>
@@ -948,7 +1103,7 @@ export default function TechnicianDetailPage() {
                             </div>
                             <div className="flex items-center gap-1.5">
                               <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span>Hạn SLA: {formatDateTime(report.slaDueAt)}</span>
+                              <span>Hạn SLA: {slaExt?.extendedDueAt ? formatDateTime(slaExt.extendedDueAt) : formatDateTime(report.slaDueAt)}</span>
                             </div>
                           </div>
 
@@ -1212,12 +1367,63 @@ export default function TechnicianDetailPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog: Chỉnh sửa số điện thoại KTV */}
+      {technician && (
+        <Dialog open={editPhoneOpen} onOpenChange={setEditPhoneOpen}>
+          <DialogContent className="max-w-sm rounded-xl p-5">
+            <DialogHeader className="pb-3 border-b">
+              <DialogTitle className="text-base font-bold flex items-center gap-2">
+                <Phone className="w-4 h-4 text-indigo-600" />
+                Cập nhật số điện thoại KTV
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                {technician.fullName} (#{technician.id})
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Số điện thoại liên hệ:</label>
+                <Input
+                  value={phoneInput}
+                  onChange={(e) => setPhoneInput(e.target.value)}
+                  placeholder="VD: 0912345678"
+                  className="h-9 text-xs"
+                  autoFocus
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Số điện thoại dùng để điều phối viên và khách hàng liên hệ xử lý sự cố.
+                </p>
+              </div>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t">
+              <Button variant="outline" size="sm" onClick={() => setEditPhoneOpen(false)} className="text-xs">
+                Hủy
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSavePhone}
+                disabled={isUpdatingUser}
+                className="text-xs bg-primary text-primary-foreground"
+              >
+                {isUpdatingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+                Lưu thay đổi
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* SLA Extension Dialog */}
       {extendSlaReport && (
         <ExtendSlaDialog
           report={extendSlaReport}
           open={!!extendSlaReport}
           onOpenChange={(o) => { if (!o) setExtendSlaReport(null); }}
+          onSuccess={() => {
+            setSlaExtensions(getStoredSlaExtensions());
+            refetchReports();
+            refetchPerf();
+          }}
         />
       )}
     </div>

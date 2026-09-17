@@ -32,6 +32,7 @@ export interface UpdateUserRequest {
   name?: string;
   email?: string;
   imageUrl?: string;
+  phoneNumber?: string;
 }
 
 export interface UpdateUserStatusRequest {

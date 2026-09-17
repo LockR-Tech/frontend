@@ -87,10 +87,17 @@ export interface LockerReportResponse {
   slaHours: number | null;
   slaDueAt: string | null;
   overdue: boolean | null;
+  slaExtendedHours?: number;
+  slaExtensionReason?: string | null;
   reporterName: string | null;
   reporterPhone: string | null;
   /** Ảnh theo stage (REPORT/INSPECTION/PROGRESS/RESOLUTION) — backend cũ có thể chưa trả. */
   attachments?: ReportAttachmentResponse[];
+}
+
+export interface ExtendSlaRequest {
+  extensionHours: number;
+  reason?: string;
 }
 
 export interface RepairLogResponse {
@@ -449,6 +456,19 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    // Admin extend SLA deadline for an ongoing report
+    extendReportSla: builder.mutation<
+      ApiResponse<LockerReportResponse>,
+      { reportId: number; data: ExtendSlaRequest }
+    >({
+      query: ({ reportId, data }) => ({
+        url: `/api/admin/lockers/reports/${reportId}/extend-sla`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: [TAG],
+    }),
+
     // Get individual technician performance, SLA breaches, and customer ratings
     getTechnicianPerformance: builder.query<
       ApiResponse<TechnicianPerformanceResponse>,
@@ -490,5 +510,6 @@ export const {
   useGetAllAdminReportsQuery,
   useAssignReportToTechnicianMutation,
   useUnassignReportMutation,
+  useExtendReportSlaMutation,
   useGetTechnicianPerformanceQuery,
 } = lockerOpsApi;
