@@ -274,7 +274,7 @@ export default function TechnicianDetailPage() {
 
     return {
       id: techId,
-      fullName: singleUser?.fullName || userFromList?.fullName || (userFromList as any)?.name || `Kỹ thuật viên #${techId}`,
+      fullName: (singleUser as any)?.fullName || singleUser?.name || userFromList?.name || (userFromList as any)?.fullName || `Kỹ thuật viên #${techId}`,
       email: singleUser?.email || userFromList?.email || "",
       phoneNumber: resolvedPhoneNumber,
       enabled: singleUser?.enabled ?? userFromList?.enabled ?? true,
