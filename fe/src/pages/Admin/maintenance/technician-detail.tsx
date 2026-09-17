@@ -193,6 +193,16 @@ export default function TechnicianDetailPage() {
   const [unassign, { isLoading: isUnassigning }] = useUnassignReportMutation();
   const [assignReport, { isLoading: isAssigning }] = useAssignReportToTechnicianMutation();
 
+  // Find technician details
+  const singleUser = userData?.data;
+  const userFromList = useMemo(() => {
+    const raw = allUsersData?.data as unknown;
+    const list: any[] = Array.isArray(raw)
+      ? raw
+      : (raw as { content?: any[] })?.content ?? [];
+    return list.find((u) => u.id === techId);
+  }, [allUsersData, techId]);
+
   // Performance data & reports
   const perf = perfData?.data;
   const allReports: LockerReportResponse[] = reportsData?.data ?? [];
@@ -226,16 +236,6 @@ export default function TechnicianDetailPage() {
     const found = techReports.find((r) => r.userId === techId && r.reporterPhone);
     return found?.reporterPhone || techReports.find((r) => r.reporterPhone)?.reporterPhone || "";
   }, [techReports, techId]);
-
-  // Find technician details
-  const singleUser = userData?.data;
-  const userFromList = useMemo(() => {
-    const raw = allUsersData?.data as unknown;
-    const list: any[] = Array.isArray(raw)
-      ? raw
-      : (raw as { content?: any[] })?.content ?? [];
-    return list.find((u) => u.id === techId);
-  }, [allUsersData, techId]);
 
   // Tên hiển thị "Người tải" cho ảnh phiếu
   const photoUserNames = useMemo(() => {
