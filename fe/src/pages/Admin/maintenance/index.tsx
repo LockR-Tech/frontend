@@ -1266,11 +1266,9 @@ export default function MaintenanceAdminPage() {
                   ? `Drone: ${s.droneCode ?? "Thiết bị bay"} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`
                   : `Trạm: ${s.lockerName ?? "Kiosk"}${s.lockerCode ? ` (${s.lockerCode})` : ""} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`,
                 completedAt: formatDateTime(s.lastDoneAt),
-                technician: isDrone ? "Nguyễn Văn Bay (KTV #08)" : "ky thuat vien Kiosk (KTV #17)",
+                technician: isDrone ? "Kỹ thuật viên Đội Drone" : "Kỹ thuật viên Kiosk",
                 badgeText: isDrone ? "Bảo trì Drone" : "Kiểm tra Kiosk",
-                detailNote: isDrone
-                  ? "Đã kiểm tra cân bằng cánh quạt, dung lượng pin và tín hiệu định vị marker đạt chuẩn."
-                  : "Đã kiểm tra ổ khóa điện tử, các cảm biến nhận diện ô tủ và vệ sinh khay tủ theo quy trình L5.",
+                detailNote: `Hoàn tất kỳ bảo dưỡng định kỳ (chu kỳ ${s.intervalDays} ngày).`,
               });
             });
 
