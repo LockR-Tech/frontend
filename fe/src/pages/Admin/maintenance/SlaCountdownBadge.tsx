@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Clock, AlertTriangle } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
+import { parseBackendDateTime } from "~/lib/datetime";
 
 interface SlaCountdownBadgeProps {
-  slaDueAt?: string | null;
-  createdAt?: string | null;
+  slaDueAt?: string | Date | null;
+  createdAt?: string | Date | null;
   slaHours?: number;
   status?: string;
   className?: string;
@@ -29,12 +30,12 @@ export function SlaCountdownBadge({
 
   let targetTime: number | null = null;
   if (slaDueAt) {
-    const t = new Date(slaDueAt).getTime();
-    if (!isNaN(t)) targetTime = t;
+    const d = parseBackendDateTime(slaDueAt);
+    if (d) targetTime = d.getTime();
   }
   if (!targetTime && createdAt) {
-    const c = new Date(createdAt).getTime();
-    if (!isNaN(c)) targetTime = c + slaHours * 3600 * 1000;
+    const c = parseBackendDateTime(createdAt);
+    if (c) targetTime = c.getTime() + slaHours * 3600 * 1000;
   }
   if (!targetTime) return null;
 

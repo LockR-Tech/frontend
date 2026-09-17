@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -67,7 +67,16 @@ import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation, 
 import { RepairLogDialog } from "./RepairLogDialog";
 import { ExtendSlaDialog } from "./ExtendSlaDialog";
 import { SlaCountdownBadge } from "./SlaCountdownBadge";
-import { getStoredSlaExtensions, isDroneReport } from "./maintenancePhotos";
+import {
+  getStoredSlaExtensions,
+  isDroneReport,
+  cleanDescription,
+  getEffectiveSlaDueAt,
+  isReportOverdue,
+  removeSlaExtension,
+} from "./maintenancePhotos";
+import { formatDateTime, formatDate as formatDateOnly, parseBackendDateTime } from "~/lib/datetime";
+import { ReportPhotoGroups } from "./ReportPhotoGroups";
 
 export interface TechnicianSummary {
   id: number;
@@ -81,34 +90,6 @@ export interface TechnicianSummary {
   specialty?: "KIOSK" | "DRONE";
   specialtyLabel?: string;
 }
-
-const formatDateTime = (dateStr?: string | null) => {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const hh = pad(d.getHours());
-  const mm = pad(d.getMinutes());
-  const ss = pad(d.getSeconds());
-  const DD = pad(d.getDate());
-  const MM = pad(d.getMonth() + 1);
-  const YYYY = d.getFullYear();
-  return `${hh}:${mm}:${ss} ${DD}/${MM}/${YYYY}`;
-};
-
-const formatDateOnly = (dateStr?: string | null) => {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const DD = pad(d.getDate());
-  const MM = pad(d.getMonth() + 1);
-  const YYYY = d.getFullYear();
-  return `${DD}/${MM}/${YYYY}`;
-};
-
-import { cleanDescription } from "./maintenancePhotos";
-import { ReportPhotoGroups } from "./ReportPhotoGroups";
 
 const SLA_CONFIG = {
   NORMAL: {
@@ -304,53 +285,37 @@ export default function TechnicianDetailPage() {
     });
   }, [allReports, isKioskTech]);
 
+  // Tự động dọn dẹp các bản ghi SLA extension cục bộ nếu backend đã đồng bộ mốc gia hạn mới hơn hoặc bằng
+  useEffect(() => {
+    if (!techReports.length) return;
+    let hasChanges = false;
+    const currentStored = getStoredSlaExtensions();
+    for (const r of techReports) {
+      const ext = currentStored[r.id];
+      if (ext && r.slaDueAt) {
+        const backendDue = parseBackendDateTime(r.slaDueAt)?.getTime();
+        const localDue = parseBackendDateTime(ext.extendedDueAt)?.getTime();
+        if (backendDue && localDue && backendDue >= localDue) {
+          delete currentStored[r.id];
+          hasChanges = true;
+        }
+      }
+    }
+    if (hasChanges) {
+      try {
+        localStorage.setItem("locker_sla_extensions_v1", JSON.stringify(currentStored));
+        setSlaExtensions(currentStored);
+      } catch {}
+    }
+  }, [techReports]);
+
   // Kiểm tra phiếu quá hạn có tính đến thời hạn gia hạn
-  const isReportOverdue = (r: LockerReportResponse) => {
-    if (r.status === "RESOLVED") return false;
-    const ext = slaExtensions[r.id];
-    const now = new Date();
-    const extHours = r.slaExtendedHours || ext?.extensionHours;
-
-    // 1. Nếu có mốc gia hạn cụ thể trong bộ nhớ mở rộng
-    if (ext?.extendedDueAt) {
-      const extTime = new Date(ext.extendedDueAt).getTime();
-      if (!isNaN(extTime) && now.getTime() <= extTime) {
-        return false; // Còn trong thời gian gia hạn -> chưa trễ hạn
-      }
-      if (!isNaN(extTime) && now.getTime() > extTime) {
-        return true; // Đã vượt qua cả mốc gia hạn mới -> trễ hạn
-      }
-    }
-
-    // 2. Nếu phiếu có số giờ gia hạn (slaExtendedHours)
-    if (extHours && extHours > 0) {
-      if (r.slaDueAt) {
-        const dueTime = new Date(r.slaDueAt).getTime();
-        if (!isNaN(dueTime) && now.getTime() <= dueTime) {
-          return false; // Mốc slaDueAt sau gia hạn chưa vượt quá
-        }
-      }
-      // Trường hợp slaDueAt trong DB bị lưu mốc cũ nhưng có lệnh gia hạn hợp lệ
-      if (ext?.requestedAt) {
-        const reqTime = new Date(ext.requestedAt).getTime();
-        const validUntil = reqTime + extHours * 3600 * 1000;
-        if (now.getTime() <= validUntil) {
-          return false;
-        }
-      }
-    }
-
-    if (r.slaDueAt) {
-      const dueTime = new Date(r.slaDueAt).getTime();
-      if (!isNaN(dueTime)) return now.getTime() > dueTime;
-    }
-    return Boolean(r.overdue);
-  };
+  const checkReportOverdue = (r: LockerReportResponse) => isReportOverdue(r, slaExtensions[r.id]);
 
   // Metrics: Đồng bộ trực tiếp và nhất quán 100% với danh sách techReports
   const inProgressCount = techReports.filter((r) => r.status === "IN_PROGRESS").length;
   const resolvedCount = techReports.filter((r) => r.status === "RESOLVED").length;
-  const overdueCount = techReports.filter((r) => r.status === "IN_PROGRESS" && isReportOverdue(r)).length;
+  const overdueCount = techReports.filter((r) => r.status === "IN_PROGRESS" && checkReportOverdue(r)).length;
   const totalCount = techReports.length;
   const completionRate = totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 100;
 
@@ -370,7 +335,7 @@ export default function TechnicianDetailPage() {
   const filteredReports = useMemo(() => {
     return techReports.filter((r) => {
       if (ticketFilter === "ALL") return true;
-      if (ticketFilter === "OVERDUE") return r.status === "IN_PROGRESS" && isReportOverdue(r);
+      if (ticketFilter === "OVERDUE") return r.status === "IN_PROGRESS" && checkReportOverdue(r);
       return r.status === ticketFilter;
     });
   }, [techReports, ticketFilter, slaExtensions]);
@@ -962,10 +927,11 @@ export default function TechnicianDetailPage() {
                     const isDone = report.status === "RESOLVED";
                     const isWorking = report.status === "IN_PROGRESS";
                     const isNew = !isDone && !isWorking;
-                    const isOverdue = isReportOverdue(report);
                     const slaExt = slaExtensions[report.id];
                     const extHours = report.slaExtendedHours || slaExt?.extensionHours;
                     const isExtended = Boolean(extHours && extHours > 0);
+                    const effectiveDue = getEffectiveSlaDueAt(report, slaExt);
+                    const isOverdue = checkReportOverdue(report);
 
                     return (
                       <Card
@@ -1011,7 +977,7 @@ export default function TechnicianDetailPage() {
                                   </Badge>
                                 )}
                                 <SlaCountdownBadge
-                                  slaDueAt={slaExt?.extendedDueAt || report.slaDueAt}
+                                  slaDueAt={effectiveDue ? effectiveDue.toISOString() : undefined}
                                   createdAt={report.createdAt}
                                   slaHours={report.slaHours ?? 4}
                                   status={report.status}
@@ -1103,7 +1069,7 @@ export default function TechnicianDetailPage() {
                             </div>
                             <div className="flex items-center gap-1.5">
                               <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span>Hạn SLA: {slaExt?.extendedDueAt ? formatDateTime(slaExt.extendedDueAt) : formatDateTime(report.slaDueAt)}</span>
+                              <span>Hạn SLA: {effectiveDue ? formatDateTime(effectiveDue) : formatDateTime(report.slaDueAt)}</span>
                             </div>
                           </div>
 

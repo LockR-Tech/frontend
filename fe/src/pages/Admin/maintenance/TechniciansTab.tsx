@@ -36,7 +36,7 @@ import {
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from "~/stores/apis/admin/users";
 import type { TechnicianSummary } from "./technician-detail";
-import { getStoredSlaExtensions, isDroneReport } from "./maintenancePhotos";
+import { getStoredSlaExtensions, isDroneReport, isReportOverdue } from "./maintenancePhotos";
 
 interface TechniciansTabProps {
   onAssignToTech?: (techId: number) => void;
@@ -111,21 +111,6 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   // Compute workload and SLA penalty metrics per technician
   const techMetrics = useMemo(() => {
     const slaExtensions = getStoredSlaExtensions();
-    const isReportOverdue = (r: LockerReportResponse) => {
-      if (r.status === "RESOLVED") return false;
-      const ext = slaExtensions[r.id];
-      const now = new Date();
-      if (ext?.extendedDueAt) {
-        const extTime = new Date(ext.extendedDueAt).getTime();
-        if (!isNaN(extTime)) return now.getTime() > extTime;
-      }
-      if (r.slaDueAt) {
-        const dueTime = new Date(r.slaDueAt).getTime();
-        if (!isNaN(dueTime)) return now.getTime() > dueTime;
-      }
-      return Boolean(r.overdue);
-    };
-
     const metrics: Record<
       number,
       {
@@ -147,7 +132,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
       });
       const inProgress = techReports.filter((r) => r.status === "IN_PROGRESS").length;
       const resolved = techReports.filter((r) => r.status === "RESOLVED").length;
-      const overdue = techReports.filter((r) => r.status === "IN_PROGRESS" && isReportOverdue(r)).length;
+      const overdue = techReports.filter((r) => r.status === "IN_PROGRESS" && isReportOverdue(r, slaExtensions[r.id])).length;
 
       let penaltyLevel: "NORMAL" | "WARNING" | "RESTRICTED" | "SUSPENDED" = "NORMAL";
       if (!tech.enabled || overdue >= 5) {

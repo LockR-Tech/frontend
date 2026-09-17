@@ -65,7 +65,7 @@ import { MaintenanceSchedules } from "./MaintenanceSchedules";
 import { TechniciansTab } from "./TechniciansTab";
 import type { TechnicianSummary } from "./technician-detail";
 import { AssignReportDialog } from "./AssignReportDialog";
-import { cleanDescription, getStoredSlaExtensions, isDroneReport } from "./maintenancePhotos";
+import { cleanDescription, getStoredSlaExtensions, isDroneReport, getEffectiveSlaDueAt, isReportOverdue } from "./maintenancePhotos";
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
 import { ResolveReportDialog } from "./ResolveReportDialog";
 import { SlaCountdownBadge } from "./SlaCountdownBadge";
@@ -721,13 +721,13 @@ export default function MaintenanceAdminPage() {
                                 {isTech && !r.assignedToUserId ? " (KTV tự báo)" : ""}
                               </Badge>
                             )}
-                            {r.overdue && (
+                            {isReportOverdue(r, slaExtensions[r.id]) && (
                               <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
                                 Quá hạn SLA
                               </Badge>
                             )}
                             <SlaCountdownBadge
-                              slaDueAt={slaExtensions[r.id]?.extendedDueAt || r.slaDueAt}
+                              slaDueAt={getEffectiveSlaDueAt(r, slaExtensions[r.id])?.toISOString() || r.slaDueAt}
                               createdAt={r.createdAt}
                               slaHours={r.slaHours ?? 4}
                               status={r.status}

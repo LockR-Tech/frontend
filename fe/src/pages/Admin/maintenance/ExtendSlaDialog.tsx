@@ -13,7 +13,8 @@ import {
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
-import { saveSlaExtension, type SlaExtensionRecord } from "./maintenancePhotos";
+import { saveSlaExtension, type SlaExtensionRecord, getEffectiveSlaDueAt } from "./maintenancePhotos";
+import { formatDateTime } from "~/lib/datetime";
 import { useExtendReportSlaMutation, useAddReportLogMutation, type LockerReportResponse } from "~/stores/apis/admin/lockerOps";
 
 const COMMON_REASONS = [
@@ -55,15 +56,10 @@ export function ExtendSlaDialog({
   const effectiveHours = customHours ? Number(customHours) || selectedHours : selectedHours;
 
   const now = new Date();
-  const currentDue = report.slaDueAt ? new Date(report.slaDueAt) : now;
+  const currentDue = getEffectiveSlaDueAt(report) || now;
   // Nếu đã quá hạn thì tính mốc gia hạn bắt đầu từ bây giờ
   const baseDue = currentDue.getTime() > now.getTime() ? currentDue : now;
   const newDue = new Date(baseDue.getTime() + effectiveHours * 60 * 60 * 1000);
-
-  const formatDateTime = (d: Date) => {
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-  };
 
   const handleSelectPreset = (hrs: number) => {
     setSelectedHours(hrs);

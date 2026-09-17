@@ -1,5 +1,6 @@
 import type { LockerReportResponse } from "~/stores/apis/admin/lockerOps";
 import type { AttachmentStage, ReportAttachmentResponse } from "~/stores/apis/media";
+import { parseBackendDateTime } from "~/lib/datetime";
 
 /// View model ảnh phiếu sự cố: ảnh thật từ `report.attachments` hoặc URL legacy trong mô tả.
 export interface ReportPhoto {
@@ -163,6 +164,80 @@ export const saveSlaExtension = (record: SlaExtensionRecord) => {
     existing[record.reportId] = record;
     localStorage.setItem(SLA_EXTENSIONS_KEY, JSON.stringify(existing));
   } catch {}
+};
+
+export const removeSlaExtension = (reportId: number) => {
+  try {
+    const existing = getStoredSlaExtensions();
+    if (existing[reportId]) {
+      delete existing[reportId];
+      localStorage.setItem(SLA_EXTENSIONS_KEY, JSON.stringify(existing));
+    }
+  } catch {}
+};
+
+/**
+ * Tính toán mốc hạn xử lý (SLA due date) có hiệu lực của phiếu sự cố.
+ * Kết hợp đồng bộ thông minh giữa backend (DB/Mobile) và localStorage (vừa thao tác trên Admin).
+ * Ưu tiên mốc thời gian muộn nhất hợp lệ để đảm bảo tính thực tế khi vừa được gia hạn.
+ */
+export const getEffectiveSlaDueAt = (
+  r: LockerReportResponse,
+  ext?: SlaExtensionRecord | null
+): Date | null => {
+  const backendDate = parseBackendDateTime(r.slaDueAt);
+  const localDate = ext?.extendedDueAt ? parseBackendDateTime(ext.extendedDueAt) : null;
+
+  // 1. So sánh cả 2 nguồn: backend (đồng bộ từ DB/Mobile) và localStorage (vừa thao tác trên máy này)
+  // Ưu tiên mốc thời gian muộn nhất hợp lệ (ví dụ Mobile vừa gia hạn +24h thì DB sẽ mới hơn local cũ)
+  if (backendDate && localDate) {
+    if (backendDate.getTime() >= localDate.getTime()) {
+      return backendDate;
+    }
+    return localDate;
+  }
+
+  if (backendDate) return backendDate;
+  if (localDate) return localDate;
+
+  // 2. Nếu có số giờ gia hạn nhưng chưa có slaDueAt trong DB
+  const extHours = r.slaExtendedHours || ext?.extensionHours;
+  if (extHours && extHours > 0) {
+    if (ext?.requestedAt) {
+      const reqDate = parseBackendDateTime(ext.requestedAt);
+      if (reqDate) return new Date(reqDate.getTime() + extHours * 3600 * 1000);
+    }
+    const createdDate = parseBackendDateTime(r.createdAt);
+    const slaH = r.slaHours ?? 4;
+    if (createdDate) {
+      return new Date(createdDate.getTime() + (slaH + extHours) * 3600 * 1000);
+    }
+  }
+
+  // 3. Mặc định chưa gia hạn: createdAt + slaHours
+  const createdDate = parseBackendDateTime(r.createdAt);
+  if (createdDate) {
+    const slaH = r.slaHours ?? 4;
+    return new Date(createdDate.getTime() + slaH * 3600 * 1000);
+  }
+
+  return null;
+};
+
+/**
+ * Kiểm tra xem phiếu sự cố có bị quá hạn SLA hay không.
+ * Nếu phiếu đã được gia hạn và thời điểm hiện tại chưa vượt qua hạn mới thì KHÔNG coi là quá hạn.
+ */
+export const isReportOverdue = (
+  r: LockerReportResponse,
+  ext?: SlaExtensionRecord | null
+): boolean => {
+  if (r.status === "RESOLVED") return false;
+  const effectiveDue = getEffectiveSlaDueAt(r, ext);
+  if (effectiveDue) {
+    return Date.now() > effectiveDue.getTime();
+  }
+  return Boolean(r.overdue);
 };
 
 // Tính toán thời gian xử lý thực tế giữa 2 mốc thời gian
