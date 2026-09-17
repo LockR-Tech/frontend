@@ -386,6 +386,8 @@ export interface AdminWalletTransaction {
   createdAt: string | null;
   /** Chỉ có khi `source = ORDER_PAYMENT`. */
   relatedOrderId: number | null;
+  /** Mã đơn hiển thị (`ORD-...`) — cùng nguồn với orderCode ở AdminPayment, luôn khớp app khách. */
+  orderCode: string | null;
   customer: CustomerSummary | null;
 }
 
