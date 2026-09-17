@@ -77,6 +77,7 @@ export interface LockerReportResponse {
   resolvedByUserId: number | null;
   resolvedAt: string | null;
   createdAt: string;
+  updatedAt?: string | null;
   lockerCode: string | null;
   lockerName: string | null;
   lockerAddress: string | null;
@@ -144,6 +145,8 @@ export interface MaintenanceScheduleResponse {
   nextDueAt: string | null;
   active: boolean | null;
   due: boolean | null;
+  droneUnitId?: number | null;
+  droneCode?: string | null;
 }
 
 export interface DeviceStatusResponse {
