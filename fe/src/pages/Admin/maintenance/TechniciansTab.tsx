@@ -17,6 +17,7 @@ import {
   Eye,
   Send,
   Plane,
+  Calendar,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -32,11 +33,12 @@ import {
 import { toast } from "sonner";
 import {
   useGetAllAdminReportsQuery,
+  useGetMaintenanceSchedulesQuery,
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from "~/stores/apis/admin/users";
 import type { TechnicianSummary } from "./technician-detail";
-import { getStoredSlaExtensions, isDroneReport, isReportOverdue } from "./maintenancePhotos";
+import { getStoredSlaExtensions, isDroneReport, isReportOverdue, getStoredScheduleTechAssignments } from "./maintenancePhotos";
 
 interface TechniciansTabProps {
   onAssignToTech?: (techId: number) => void;
@@ -56,6 +58,20 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
   // Fetch all maintenance reports to aggregate workload per technician
   const { data: reportsData, refetch: refetchReports } = useGetAllAdminReportsQuery();
+
+  // Fetch periodic schedules to show assigned periodic kiosks
+  const { data: schedulesData } = useGetMaintenanceSchedulesQuery();
+  const schedules = schedulesData?.data ?? [];
+  const localAssignments = getStoredScheduleTechAssignments();
+
+  const getAssignedCount = (techId: number) => {
+    return schedules.filter((s) => {
+      if (localAssignments[s.id]?.technicianId !== undefined) {
+        return localAssignments[s.id].technicianId === techId;
+      }
+      return s.assignedTechnicianId === techId;
+    }).length;
+  };
 
   const [updateStatus, { isLoading: isUpdatingStatus }] = useUpdateUserStatusMutation();
 
@@ -446,6 +462,15 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                                   >
                                     <Plane className="w-2.5 h-2.5 text-purple-600" />
                                     KTV Drone (Đội bay)
+                                  </Badge>
+                                )}
+                                {tech.specialty === "KIOSK" && getAssignedCount(tech.id) > 0 && (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-blue-50 text-blue-800 border-blue-200 text-[10px] font-medium flex items-center gap-1 px-1.5 py-0.5"
+                                  >
+                                    <Calendar className="w-2.5 h-2.5 text-blue-600" />
+                                    {getAssignedCount(tech.id)} lịch định kỳ
                                   </Badge>
                                 )}
                               </div>

@@ -134,6 +134,20 @@ const resolveBody = ({ note, attachments }: ResolveReportBody) => {
   };
 };
 
+export interface MaintenanceScheduleRequest {
+  lockerId?: number;
+  droneUnitId?: number;
+  title: string;
+  intervalDays: number;
+  assignedTechnicianId?: number | null;
+  priority?: string;
+  description?: string;
+  checklist?: string;
+  firstDueDate?: string;
+  locationNote?: string;
+  scheduledTimeSlot?: string;
+}
+
 export interface MaintenanceScheduleResponse {
   id: number;
   lockerId: number;
@@ -147,6 +161,45 @@ export interface MaintenanceScheduleResponse {
   due: boolean | null;
   droneUnitId?: number | null;
   droneCode?: string | null;
+  assignedTechnicianId?: number | null;
+  assignedTechnicianName?: string | null;
+  priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT" | string | null;
+  description?: string | null;
+  checklist?: string | null;
+  storeId?: number | null;
+  address?: string | null;
+  locationNote?: string | null;
+  scheduledTimeSlot?: string | null;
+}
+
+export interface CompleteScheduleRequest {
+  technicianId?: number;
+  technicianName?: string;
+  status?: "PASSED" | "ATTENTION" | "DEFECT_DETECTED" | "FAILED" | string;
+  note?: string;
+  photoUrls?: string[];
+  checklistResults?: string;
+  autoCreateReport?: boolean;
+  faultBoxId?: number;
+  faultReason?: string;
+}
+
+export interface MaintenanceInspectionLogResponse {
+  id: number;
+  scheduleId: number;
+  lockerId?: number | null;
+  lockerName?: string | null;
+  lockerCode?: string | null;
+  droneUnitId?: number | null;
+  droneCode?: string | null;
+  technicianId?: number | null;
+  technicianName?: string | null;
+  status: "PASSED" | "ATTENTION" | "DEFECT_DETECTED" | "FAILED" | string;
+  note?: string | null;
+  photoUrls?: string[];
+  checklistResults?: string | null;
+  createdReportId?: number | null;
+  createdAt: string;
 }
 
 export interface DeviceStatusResponse {
@@ -390,7 +443,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     createMaintenanceSchedule: builder.mutation<
       ApiResponse<MaintenanceScheduleResponse>,
-      { lockerId: number; title: string; intervalDays: number }
+      MaintenanceScheduleRequest
     >({
       query: (body) => ({
         url: '/api/admin/lockers/schedules',
@@ -402,11 +455,59 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     completeMaintenanceSchedule: builder.mutation<
       ApiResponse<MaintenanceScheduleResponse>,
+      { id: number; data?: CompleteScheduleRequest } | number
+    >({
+      query: (arg) => {
+        const id = typeof arg === 'number' ? arg : arg.id;
+        const body = typeof arg === 'number' ? undefined : arg.data;
+        return {
+          url: `/api/maintenance/schedules/${id}/complete`,
+          method: 'POST',
+          body,
+        };
+      },
+      invalidatesTags: [{ type: TAG, id: 'schedules' }, { type: TAG, id: 'inspection-logs' }],
+    }),
+
+    getScheduleInspectionLogs: builder.query<
+      ApiResponse<MaintenanceInspectionLogResponse[]>,
       number
     >({
-      query: (id) => ({
-        url: `/api/maintenance/schedules/${id}/complete`,
-        method: 'POST',
+      query: (scheduleId) => `/api/maintenance/schedules/${scheduleId}/logs`,
+      providesTags: [{ type: TAG, id: 'inspection-logs' }],
+    }),
+
+    getAllInspectionLogs: builder.query<
+      ApiResponse<MaintenanceInspectionLogResponse[]>,
+      { lockerId?: number; technicianId?: number } | void
+    >({
+      query: (params) => ({
+        url: '/api/maintenance/inspection-logs',
+        params: params || undefined,
+      }),
+      providesTags: [{ type: TAG, id: 'inspection-logs' }],
+    }),
+
+    assignTechnicianToSchedule: builder.mutation<
+      ApiResponse<MaintenanceScheduleResponse>,
+      { id: number; technicianId: number | null }
+    >({
+      query: ({ id, technicianId }) => ({
+        url: `/api/admin/lockers/schedules/${id}/assign`,
+        method: 'PUT',
+        body: { technicianId },
+      }),
+      invalidatesTags: [{ type: TAG, id: 'schedules' }],
+    }),
+
+    updateMaintenanceSchedule: builder.mutation<
+      ApiResponse<MaintenanceScheduleResponse>,
+      { id: number; data: Partial<MaintenanceScheduleRequest> }
+    >({
+      query: ({ id, data }) => ({
+        url: `/api/admin/lockers/schedules/${id}`,
+        method: 'PUT',
+        body: data,
       }),
       invalidatesTags: [{ type: TAG, id: 'schedules' }],
     }),
@@ -507,7 +608,11 @@ export const {
   useAddReportLogMutation,
   useGetMaintenanceSchedulesQuery,
   useCreateMaintenanceScheduleMutation,
+  useUpdateMaintenanceScheduleMutation,
+  useAssignTechnicianToScheduleMutation,
   useCompleteMaintenanceScheduleMutation,
+  useGetScheduleInspectionLogsQuery,
+  useGetAllInspectionLogsQuery,
   useDeleteMaintenanceScheduleMutation,
   useGetDeviceStatusesQuery,
   useGetAllAdminReportsQuery,

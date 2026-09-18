@@ -272,3 +272,69 @@ export function isDroneReport(r: LockerReportResponse): boolean {
   return droneKeywords.some((kw) => t.includes(kw) || d.includes(kw));
 }
 
+// Quản lý gán KTV phụ trách lịch kiểm tra định kỳ (Lưu trữ đồng bộ cục bộ để hỗ trợ phản hồi tức thời)
+const SCHEDULE_TECH_STORAGE_KEY = "kiosk_schedule_tech_assignments_v1";
+
+export interface ScheduleTechAssignment {
+  technicianId: number | null;
+  technicianName: string | null;
+}
+
+export const getStoredScheduleTechAssignments = (): Record<number, ScheduleTechAssignment> => {
+  try {
+    const raw = localStorage.getItem(SCHEDULE_TECH_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const saveScheduleTechAssignment = (
+  scheduleId: number,
+  technicianId: number | null,
+  technicianName: string | null
+) => {
+  try {
+    const stored = getStoredScheduleTechAssignments();
+    if (technicianId === null) {
+      delete stored[scheduleId];
+    } else {
+      stored[scheduleId] = { technicianId, technicianName };
+    }
+    localStorage.setItem(SCHEDULE_TECH_STORAGE_KEY, JSON.stringify(stored));
+  } catch {}
+};
+
+// Quản lý ghi chú vị trí cụ thể và khung giờ ca trực (Lưu trữ đồng bộ cục bộ bổ trợ)
+const SCHEDULE_LOCATION_TIME_KEY = "kiosk_schedule_location_time_v1";
+
+export interface ScheduleLocationTime {
+  locationNote?: string | null;
+  scheduledTimeSlot?: string | null;
+  customDueAt?: string | null;
+}
+
+export const getStoredScheduleLocationTime = (): Record<number, ScheduleLocationTime> => {
+  try {
+    const raw = localStorage.getItem(SCHEDULE_LOCATION_TIME_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const saveScheduleLocationTime = (
+  scheduleId: number,
+  info: ScheduleLocationTime
+) => {
+  try {
+    const stored = getStoredScheduleLocationTime();
+    stored[scheduleId] = {
+      ...(stored[scheduleId] || {}),
+      ...info,
+    };
+    localStorage.setItem(SCHEDULE_LOCATION_TIME_KEY, JSON.stringify(stored));
+  } catch {}
+};
+
+

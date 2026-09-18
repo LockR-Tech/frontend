@@ -30,6 +30,7 @@ import {
   Plus,
   Plane,
   Pencil,
+  CalendarClock,
 } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
@@ -61,6 +62,8 @@ import {
   useGetAllAdminReportsQuery,
   useUnassignReportMutation,
   useAssignReportToTechnicianMutation,
+  useGetMaintenanceSchedulesQuery,
+  useGetAllInspectionLogsQuery,
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation, useUpdateUserMutation } from "~/stores/apis/admin/users";
@@ -74,6 +77,7 @@ import {
   getEffectiveSlaDueAt,
   isReportOverdue,
   removeSlaExtension,
+  getStoredScheduleTechAssignments,
 } from "./maintenancePhotos";
 import { formatDateTime, formatDate as formatDateOnly, parseBackendDateTime } from "~/lib/datetime";
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
@@ -201,6 +205,23 @@ export default function TechnicianDetailPage() {
       return false;
     });
   }, [allReports, techId, isKioskTech]);
+
+  // Preventive Maintenance Schedules & Logs
+  const { data: schedulesData } = useGetMaintenanceSchedulesQuery();
+  const { data: inspectionLogsData } = useGetAllInspectionLogsQuery({ technicianId: techId });
+
+  const assignedSchedules = useMemo(() => {
+    const list = schedulesData?.data ?? [];
+    const local = getStoredScheduleTechAssignments();
+    return list.filter((s) => {
+      if (local[s.id]?.technicianId !== undefined) {
+        return local[s.id].technicianId === techId;
+      }
+      return s.assignedTechnicianId === techId;
+    });
+  }, [schedulesData, techId]);
+
+  const technicianInspectionLogs = inspectionLogsData?.data ?? [];
 
   // Earliest report date fallback for joined date
   const earliestReportDate = useMemo(() => {
@@ -873,6 +894,15 @@ export default function TechnicianDetailPage() {
                   <History className="w-3.5 h-3.5 text-muted-foreground" />
                   Lịch sử hoạt động
                 </TabsTrigger>
+                {technician.specialty !== "DRONE" && (
+                  <TabsTrigger
+                    value="schedules"
+                    className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+                  >
+                    <CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />
+                    Lịch Kiosk định kỳ ({assignedSchedules.length})
+                  </TabsTrigger>
+                )}
                 <TabsTrigger
                   value="reviews"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
@@ -1230,6 +1260,150 @@ export default function TechnicianDetailPage() {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            {/* TAB 4: PREVENTIVE SCHEDULES ASSIGNED TO THIS TECHNICIAN */}
+            <TabsContent value="schedules" className="space-y-4 pt-1">
+              {/* Card 1: Trạm Kiosk Phụ Trách Định Kỳ */}
+              <Card className="border border-border/70 shadow-xs">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <CalendarClock className="w-4 h-4 text-orange-600" />
+                        Trạm Kiosk được giao phụ trách kiểm tra định kỳ ({assignedSchedules.length})
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Kế hoạch bảo trì phòng ngừa do Admin phân công cho KTV này
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {assignedSchedules.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
+                      Kỹ thuật viên này hiện chưa được phân công phụ trách định kỳ trạm Kiosk nào.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-border/60">
+                      {assignedSchedules.map((s) => {
+                        const now = new Date();
+                        const target = s.nextDueAt ? new Date(s.nextDueAt) : null;
+                        const diffDays = target ? Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+                        const isOverdue = diffDays !== null && diffDays < 0;
+                        const isDue = diffDays !== null && (diffDays <= 1 || s.due);
+
+                        return (
+                          <div key={s.id} className="py-3 flex items-center justify-between gap-3 flex-wrap">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-sm text-foreground">{s.title}</span>
+                                {isOverdue ? (
+                                  <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-bold">
+                                    Quá hạn {Math.abs(diffDays!)} ngày
+                                  </Badge>
+                                ) : isDue ? (
+                                  <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
+                                    Đến hạn hôm nay
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-200">
+                                    Còn {diffDays} ngày
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
+                                <span className="font-medium text-foreground">
+                                  {s.lockerName ?? `Kiosk #${s.lockerId}`}{s.lockerCode ? ` (${s.lockerCode})` : ""}
+                                </span>
+                                {s.address && <span>· {s.address}</span>}
+                                <span>·</span>
+                                <span>Chu kỳ: <strong>{s.intervalDays}</strong> ngày</span>
+                                <span>·</span>
+                                <span>Hạn tới: <span className="font-mono text-foreground font-medium">{s.nextDueAt ? formatDateTime(s.nextDueAt) : "—"}</span></span>
+                              </p>
+                              {s.checklist && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {s.checklist.split(";").map((chk, i) => (
+                                    <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-foreground font-medium">
+                                      ✓ {chk.trim()}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Card 2: Lịch Sử Các Đợt Kiểm Tra Đã Hoàn Tất Của KTV */}
+              <Card className="border border-border/70 shadow-xs">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <History className="w-4 h-4 text-emerald-600" />
+                    Lịch sử các đợt kiểm định đã thực hiện ({technicianInspectionLogs.length})
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Nhật ký biên bản và ảnh hiện trường các ca kiểm tra định kỳ do KTV này hoàn thành
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {technicianInspectionLogs.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
+                      Chưa có lượt kiểm tra định kỳ nào được ghi nhận từ kỹ thuật viên này.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {technicianInspectionLogs.map((log) => (
+                        <div key={log.id} className="p-3.5 rounded-xl border border-border/80 bg-background space-y-2">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-xs text-foreground">
+                                {log.lockerName ?? `Kiosk #${log.lockerId}`}
+                              </span>
+                              <Badge variant="outline" className={`text-[10px] font-semibold ${
+                                log.status === "PASSED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                log.status === "DEFECT_DETECTED" ? "bg-rose-50 text-rose-700 border-rose-200" :
+                                "bg-amber-50 text-amber-700 border-amber-200"
+                              }`}>
+                                {log.status === "PASSED" ? "Đạt chuẩn" : log.status === "DEFECT_DETECTED" ? "Phát hiện lỗi" : "Cần theo dõi"}
+                              </Badge>
+                              {log.createdReportId && (
+                                <Badge variant="outline" className="text-[10px] text-rose-600 border-rose-200">
+                                  Phiếu sự cố #{log.createdReportId}
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-[11px] font-mono text-muted-foreground font-medium">
+                              {formatDateTime(log.createdAt)}
+                            </span>
+                          </div>
+
+                          {log.note && (
+                            <p className="text-xs text-foreground bg-muted/30 p-2 rounded-md">
+                              {log.note}
+                            </p>
+                          )}
+
+                          {log.photoUrls && log.photoUrls.length > 0 && (
+                            <div className="flex items-center gap-2 flex-wrap pt-1">
+                              {log.photoUrls.map((url, i) => (
+                                <div key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted cursor-pointer" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>
+                                  <img src={url} alt={`Ảnh ${i + 1}`} className="w-full h-full object-cover" />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
