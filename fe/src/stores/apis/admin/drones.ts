@@ -2,8 +2,8 @@ import { baseApi } from "../../baseAPi";
 import type { ApiResponse } from "../../../types";
 
 // Đội drone giao/nhận gắn với bãi đáp của tủ (locker-service).
-// Đọc/tạo/sửa/ngưng qua route admin; đổi trạng thái + pin qua route maintenance
-// (ADMIN có quyền trên cả hai nhóm route).
+// Toàn bộ thao tác của trang ADMIN đi qua route admin. Route drone-technician
+// giữ riêng quy tắc claim/ownership cho ứng dụng của kỹ thuật viên drone.
 export interface DroneResponse {
   id: number;
   code: string;
@@ -12,6 +12,12 @@ export interface DroneResponse {
   lockerId: number | null;
   lockerName: string | null;
   faultReason: string | null;
+  assignedTechnicianId: number | null;
+  assignedTechnicianName: string | null;
+  lastChargedAt: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const TAG = "Drones" as const;
@@ -60,7 +66,7 @@ export const droneManagementApi = baseApi.injectEndpoints({
       { id: number; status: string; reason?: string }
     >({
       query: ({ id, status, reason }) => ({
-        url: `/api/drone-technician/drones/${id}/status`,
+        url: `/api/admin/drones/${id}/status`,
         method: "POST",
         body: { status, ...(reason ? { reason } : {}) },
       }),
@@ -72,7 +78,7 @@ export const droneManagementApi = baseApi.injectEndpoints({
       { id: number; batteryPercent: number }
     >({
       query: ({ id, batteryPercent }) => ({
-        url: `/api/drone-technician/drones/${id}/battery`,
+        url: `/api/admin/drones/${id}/battery`,
         method: "POST",
         body: { batteryPercent },
       }),
