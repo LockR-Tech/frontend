@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Wrench,
   SlidersHorizontal,
+  BookOpen,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -97,6 +98,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: Tag,
     path: "/admin/promotions",
     label: "admin.sidebar.promotions",
+    permission: "admin_access",
+  },
+  {
+    icon: BookOpen,
+    path: "/admin/knowledge",
+    label: "admin.sidebar.knowledge",
     permission: "admin_access",
   },
   {

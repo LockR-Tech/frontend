@@ -18,6 +18,7 @@ export const SETTING_SCOPES = [
   "auth",
   "loyalty",
   "store",
+  "assistant",
 ] as const;
 
 export type SettingScope = (typeof SETTING_SCOPES)[number];

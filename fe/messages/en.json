@@ -93,7 +93,8 @@
       "settings": "Settings",
       "maintenance": "Device Maintenance",
       "drones": "Drones",
-      "businessSettings": "Business rules"
+      "businessSettings": "Business rules",
+      "knowledge": "Knowledge base"
     },
     "dashboard": {
       "title": "Overview",
