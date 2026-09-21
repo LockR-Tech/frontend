@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Plane,
   Plus,
@@ -40,30 +40,41 @@ import {
 } from "~/stores/apis/admin/drones";
 import { useGetLockerStatsQuery } from "~/stores/apis/admin/lockerOps";
 
-const STATUS_OPTIONS = [
-  "IDLE",
-  "CHARGING",
-  "IN_FLIGHT",
-  "MAINTENANCE",
-  "FAULT",
-] as const;
+const MANUAL_STATUS_OPTIONS = ["IDLE", "CHARGING", "MAINTENANCE", "FAULT"] as const;
+
+const STATUS_LABELS: Record<string, string> = {
+  IDLE: "Sẵn sàng",
+  RESERVED: "Đã giữ cho nhiệm vụ",
+  CHARGING: "Đang sạc",
+  IN_FLIGHT: "Đang bay",
+  MAINTENANCE: "Đang bảo trì",
+  FAULT: "Lỗi",
+};
 
 const STATUS_FILTERS: { value: string | null; label: string }[] = [
   { value: null, label: "Tất cả" },
   { value: "IDLE", label: "Sẵn sàng" },
   { value: "CHARGING", label: "Đang sạc" },
+  { value: "RESERVED", label: "Đã giữ" },
   { value: "IN_FLIGHT", label: "Đang bay" },
+  { value: "MAINTENANCE", label: "Bảo trì" },
   { value: "FAULT", label: "Lỗi" },
 ];
 
 const STATUS_BADGE: Record<string, string> = {
   IDLE: "bg-green-100 text-green-800 border-green-300",
+  RESERVED: "bg-cyan-100 text-cyan-800 border-cyan-300",
   CHARGING: "bg-amber-100 text-amber-800 border-amber-300",
   IN_FLIGHT: "bg-blue-100 text-blue-800 border-blue-300",
   IN_USE: "bg-blue-100 text-blue-800 border-blue-300",
   MAINTENANCE: "bg-slate-100 text-slate-700 border-slate-300",
   FAULT: "bg-red-100 text-red-800 border-red-300",
 };
+
+function apiErrorMessage(error: unknown, fallback: string): string {
+  const candidate = error as { data?: { message?: string }; message?: string } | undefined;
+  return candidate?.data?.message?.trim() || candidate?.message?.trim() || fallback;
+}
 
 function batteryColor(pct: number): string {
   if (pct < 20) return "bg-red-500";
@@ -121,8 +132,10 @@ export default function DronesPage() {
     try {
       await decommission(d.id).unwrap();
       toast.success(`Đã ngừng hoạt động drone ${d.code}`);
-    } catch {
-      toast.error("Không ngừng được drone");
+    } catch (error) {
+      toast.error("Không ngừng được drone", {
+        description: apiErrorMessage(error, "Vui lòng kiểm tra trạng thái nhiệm vụ của drone."),
+      });
     }
   };
 
@@ -200,7 +213,7 @@ export default function DronesPage() {
                       variant="outline"
                       className={STATUS_BADGE[d.status] ?? "bg-muted text-muted-foreground"}
                     >
-                      {d.status}
+                      {STATUS_LABELS[d.status] ?? d.status}
                     </Badge>
                   </div>
 
@@ -225,17 +238,27 @@ export default function DronesPage() {
                     <p className="text-xs text-red-600">{d.faultReason}</p>
                   )}
 
+                  <p className="text-xs text-muted-foreground">
+                    Phụ trách: {d.assignedTechnicianName ?? "Chưa có kỹ thuật viên"}
+                  </p>
+
                   <div className="flex flex-wrap gap-2 pt-1">
                     <Button size="sm" variant="outline" onClick={() => setManaging(d)}>
                       Trạng thái
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => openEdit(d)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={d.status === "RESERVED" || d.status === "IN_FLIGHT"}
+                      onClick={() => openEdit(d)}
+                    >
                       <Pencil className="mr-1 h-3.5 w-3.5" /> Sửa
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       className="text-red-600 hover:text-red-700"
+                      disabled={d.status === "RESERVED" || d.status === "IN_FLIGHT"}
                       onClick={() => handleDecommission(d)}
                     >
                       <Power className="mr-1 h-3.5 w-3.5" /> Ngừng
@@ -264,8 +287,10 @@ export default function DronesPage() {
               toast.success(`Đã thêm drone ${code}`);
             }
             setFormOpen(false);
-          } catch {
-            toast.error(editing ? "Không cập nhật được drone" : "Không tạo được drone");
+          } catch (error) {
+            toast.error(editing ? "Không cập nhật được drone" : "Không tạo được drone", {
+              description: apiErrorMessage(error, "Dữ liệu drone chưa hợp lệ."),
+            });
           }
         }}
       />
@@ -287,8 +312,10 @@ export default function DronesPage() {
             }
             toast.success("Đã cập nhật drone");
             setManaging(null);
-          } catch {
-            toast.error("Không cập nhật được drone");
+          } catch (error) {
+            toast.error("Không cập nhật được drone", {
+              description: apiErrorMessage(error, "Vui lòng kiểm tra trạng thái và mức pin."),
+            });
           }
         }}
       />
@@ -340,15 +367,12 @@ function DroneFormDialog({
   const [lockerId, setLockerId] = useState<string>("");
   const [touched, setTouched] = useState(false);
 
-  // Đồng bộ form mỗi lần mở dialog cho drone khác nhau.
-  const key = `${open}-${editing?.id ?? "new"}`;
-  const [lastKey, setLastKey] = useState("");
-  if (key !== lastKey) {
-    setLastKey(key);
+  useEffect(() => {
+    if (!open) return;
     setCode(editing?.code ?? "");
     setLockerId(editing?.lockerId != null ? String(editing.lockerId) : "");
     setTouched(false);
-  }
+  }, [editing, open]);
 
   const submit = () => {
     setTouched(true);
@@ -428,14 +452,16 @@ function DroneManageDialog({
   const [battery, setBattery] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const [lastId, setLastId] = useState<number | null>(null);
-  if (drone && drone.id !== lastId) {
-    setLastId(drone.id);
+  useEffect(() => {
+    if (!drone) return;
     setStatus(drone.status);
     setReason(drone.faultReason ?? "");
     setBattery(drone.batteryPercent != null ? String(Math.round(drone.batteryPercent)) : "");
     setSaving(false);
-  }
+  }, [drone]);
+
+  const activeMission = drone?.status === "RESERVED" || drone?.status === "IN_FLIGHT";
+  const selectableStatuses = activeMission ? (["FAULT"] as const) : MANUAL_STATUS_OPTIONS;
 
   const submit = async () => {
     if (!drone) return;
@@ -476,9 +502,14 @@ function DroneManageDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {STATUS_OPTIONS.map((s) => (
+                {activeMission && drone ? (
+                  <SelectItem value={drone.status} disabled>
+                    {STATUS_LABELS[drone.status] ?? drone.status} (do quy trình điều phối quản lý)
+                  </SelectItem>
+                ) : null}
+                {selectableStatuses.map((s) => (
                   <SelectItem key={s} value={s}>
-                    {s}
+                    {STATUS_LABELS[s]}
                   </SelectItem>
                 ))}
               </SelectContent>
