@@ -13,17 +13,24 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Switch } from "~/components/ui/switch";
 import { Badge } from "~/components/ui/badge";
+import { getRoleLabel } from "~/constants";
 import { useCreateUserMutation } from "~/stores/apis/admin";
 
 // Role model chuẩn (khớp JwtGatewayFilter.hasRequiredRole): MANAGER/STAFF đã khai tử.
-const ALL_ROLES = ["CUSTOMER", "ADMIN", "MAINTENANCE", "TECHNICIAN"] as const;
+const ALL_ROLES = [
+  "CUSTOMER",
+  "ADMIN",
+  "DRONE_TECHNICIAN",
+  "LOCKER_TECHNICIAN",
+] as const;
 
 const ROLE_STYLES: Record<string, string> = {
   ADMIN: "bg-primary text-primary-foreground border-primary",
   MANAGER: "bg-secondary text-foreground border-border font-semibold",
   CUSTOMER: "bg-secondary text-muted-foreground border-border",
-  MAINTENANCE: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
-  TECHNICIAN: "bg-secondary text-foreground border-border",
+  DRONE_TECHNICIAN:
+    "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  LOCKER_TECHNICIAN: "bg-secondary text-foreground border-border",
 };
 
 interface Props {
@@ -211,7 +218,7 @@ export function CreateUserModal({ open, onClose }: Props) {
                         : "bg-background text-muted-foreground border-border hover:border-foreground/40"
                     }`}
                   >
-                    {role}
+                    {getRoleLabel(role)}
                   </button>
                 );
               })}

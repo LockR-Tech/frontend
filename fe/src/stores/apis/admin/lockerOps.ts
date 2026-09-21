@@ -1,5 +1,8 @@
 import { baseApi } from '../../baseAPi';
-import { ADMIN_ENDPOINTS, MAINTENANCE_ENDPOINTS } from '../../../constants';
+import {
+  ADMIN_ENDPOINTS,
+  LOCKER_TECHNICIAN_ENDPOINTS,
+} from '../../../constants';
 import type { ApiResponse } from '../../../types';
 import type {
   AttachmentStage,
@@ -246,18 +249,18 @@ export const lockerOpsApi = baseApi.injectEndpoints({
     }),
 
     getFaultCells: builder.query<ApiResponse<FaultCellResponse[]>, void>({
-      query: () => '/api/maintenance/faults',
+      query: () => '/api/locker-technician/faults',
       providesTags: [TAG],
     }),
 
     getMaintenanceReports: builder.query<ApiResponse<LockerReportResponse[]>, void>({
-      query: () => '/api/maintenance/reports',
+      query: () => '/api/locker-technician/reports',
       providesTags: [TAG],
     }),
 
     claimReport: builder.mutation<ApiResponse<LockerReportResponse>, number>({
       query: (reportId) => ({
-        url: `/api/maintenance/reports/${reportId}/claim`,
+        url: `/api/locker-technician/reports/${reportId}/claim`,
         method: 'PUT',
       }),
       invalidatesTags: [TAG],
@@ -268,7 +271,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       { reportId: number } & ResolveReportBody
     >({
       query: ({ reportId, ...body }) => ({
-        url: MAINTENANCE_ENDPOINTS.REPORT_RESOLVE(reportId),
+        url: LOCKER_TECHNICIAN_ENDPOINTS.REPORT_RESOLVE(reportId),
         method: 'PUT',
         body: resolveBody(body),
       }),
@@ -290,7 +293,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     // ---- Ảnh phiếu sự cố (docs/01-overview/media-storage.md §4.2) ----
     getMaintenanceReport: builder.query<ApiResponse<LockerReportResponse>, number>({
-      query: (reportId) => MAINTENANCE_ENDPOINTS.REPORT_DETAIL(reportId),
+      query: (reportId) => LOCKER_TECHNICIAN_ENDPOINTS.REPORT_DETAIL(reportId),
       providesTags: (_r, _e, id) => [{ type: TAG, id: `report-${id}` }],
     }),
 
@@ -299,7 +302,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       { reportId: number; stage?: AttachmentStage }
     >({
       query: ({ reportId, stage }) => ({
-        url: MAINTENANCE_ENDPOINTS.REPORT_ATTACHMENTS(reportId),
+        url: LOCKER_TECHNICIAN_ENDPOINTS.REPORT_ATTACHMENTS(reportId),
         params: stage ? { stage } : undefined,
       }),
       providesTags: (_r, _e, { reportId }) => [{ type: TAG, id: `attachments-${reportId}` }],
@@ -346,7 +349,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     clearBoxFault: builder.mutation<ApiResponse<CellResponse>, number>({
       query: (boxId) => ({
-        url: `/api/maintenance/boxes/${boxId}/clear-fault`,
+        url: `/api/locker-technician/boxes/${boxId}/clear-fault`,
         method: 'POST',
       }),
       invalidatesTags: [TAG],
@@ -358,7 +361,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       { boxId: number; reason?: string }
     >({
       query: ({ boxId, reason }) => ({
-        url: `/api/maintenance/boxes/${boxId}/out-of-service`,
+        url: `/api/locker-technician/boxes/${boxId}/out-of-service`,
         method: 'POST',
         body: reason ? { reason } : undefined,
       }),
@@ -367,7 +370,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     setBoxCleaning: builder.mutation<ApiResponse<CellResponse>, number>({
       query: (boxId) => ({
-        url: `/api/maintenance/boxes/${boxId}/cleaning`,
+        url: `/api/locker-technician/boxes/${boxId}/cleaning`,
         method: 'POST',
       }),
       invalidatesTags: [TAG],
@@ -375,7 +378,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     returnBoxToService: builder.mutation<ApiResponse<CellResponse>, number>({
       query: (boxId) => ({
-        url: `/api/maintenance/boxes/${boxId}/return-to-service`,
+        url: `/api/locker-technician/boxes/${boxId}/return-to-service`,
         method: 'POST',
       }),
       invalidatesTags: [TAG],
@@ -385,7 +388,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
     // audited (credential MASTER) by iot-service's box_access_logs.
     forceOpenBox: builder.mutation<ApiResponse<Record<string, unknown>>, number>({
       query: (boxId) => ({
-        url: `/api/maintenance/boxes/${boxId}/force-open`,
+        url: `/api/locker-technician/boxes/${boxId}/force-open`,
         method: 'POST',
       }),
       invalidatesTags: [TAG],
@@ -414,7 +417,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     // L5 — nhật ký xử lý phiếu bảo trì (work-log)
     getReportLogs: builder.query<ApiResponse<RepairLogResponse[]>, number>({
-      query: (reportId) => MAINTENANCE_ENDPOINTS.REPORT_LOGS(reportId),
+      query: (reportId) => LOCKER_TECHNICIAN_ENDPOINTS.REPORT_LOGS(reportId),
       providesTags: (_r, _e, id) => [{ type: TAG, id: `logs-${id}` }],
     }),
 
@@ -423,7 +426,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       { reportId: number; note: string; attachments?: ReportAttachmentRequest[] }
     >({
       query: ({ reportId, note, attachments }) => ({
-        url: MAINTENANCE_ENDPOINTS.REPORT_LOGS(reportId),
+        url: LOCKER_TECHNICIAN_ENDPOINTS.REPORT_LOGS(reportId),
         method: 'POST',
         body: attachments?.length ? { note, attachments } : { note },
       }),

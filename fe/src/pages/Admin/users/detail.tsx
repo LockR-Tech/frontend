@@ -37,6 +37,7 @@ import {
 } from "~/stores/apis/admin";
 import { UserLoyaltySection } from "./components/UserLoyaltySection";
 import { ImageUploadButton } from "~/components/shared/media";
+import { getRoleLabel } from "~/constants";
 import { getMediaErrorMessage, pickImageUrl } from "~/lib/media";
 import { apiGet } from "~/utils/api";
 import type { MediaUpload } from "~/stores/apis/media";
@@ -47,7 +48,7 @@ const getRoleBadge = (role: string) => {
       variant="outline"
       className="bg-secondary text-foreground border-border font-medium text-xs px-2.5 py-0.5 rounded-md"
     >
-      {role}
+      {getRoleLabel(role)}
     </Badge>
   );
 };

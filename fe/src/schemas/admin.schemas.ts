@@ -19,11 +19,15 @@ export const RoleNameSchema = z.enum([
   // Role model chuẩn — khớp JwtGatewayFilter.hasRequiredRole của api-gateway.
   'CUSTOMER',
   'ADMIN',
-  'MAINTENANCE',
-  'TECHNICIAN',
+  'DRONE_TECHNICIAN',
+  'LOCKER_TECHNICIAN',
   // Legacy/back-compat values still present in seed data; kept so request and
   // response validation does not break on existing accounts. MANAGER/STAFF were
-  // retired — do not offer them when creating a user.
+  // retired — do not offer them when creating a user. TECHNICIAN/MAINTENANCE là
+  // tên cũ của LOCKER_TECHNICIAN/DRONE_TECHNICIAN, giữ để không vỡ validation
+  // trong lúc migration user-service V5 chưa chạy xong.
+  'TECHNICIAN',
+  'MAINTENANCE',
   'MANAGER',
   'USER',
   'STAFF',

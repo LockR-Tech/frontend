@@ -50,7 +50,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const [penaltyFilter, setPenaltyFilter] = useState("ALL");
   const [specialtyFilter, setSpecialtyFilter] = useState<"ALL" | "KIOSK" | "DRONE">("ALL");
 
-  // Fetch all users with role TECHNICIAN or MAINTENANCE
+  // Fetch all users with role LOCKER_TECHNICIAN or DRONE_TECHNICIAN
   const { data: usersData, isLoading: isLoadingUsers, refetch: refetchUsers } = useGetAllUsersQuery({
     page: 0,
     size: 1000,
@@ -78,8 +78,8 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const reports: LockerReportResponse[] = reportsData?.data ?? [];
 
   // Extract technicians from users list and classify their specialty
-  // TECHNICIAN: KTV sửa tủ Kiosk
-  // MAINTENANCE: KTV sửa Drone
+  // LOCKER_TECHNICIAN: KTV sửa tủ Kiosk
+  // DRONE_TECHNICIAN: KTV sửa Drone
   const technicians: TechnicianSummary[] = useMemo(() => {
     const raw = usersData?.data as unknown;
     const list: any[] = Array.isArray(raw)
@@ -90,14 +90,16 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
       .filter((u) => {
         const roles: string[] = u.roles ?? [];
         return (
-          roles.includes("TECHNICIAN") ||
-          roles.includes("ROLE_TECHNICIAN") ||
-          roles.includes("MAINTENANCE")
+          roles.includes("LOCKER_TECHNICIAN") ||
+          roles.includes("ROLE_LOCKER_TECHNICIAN") ||
+          roles.includes("DRONE_TECHNICIAN")
         );
       })
       .map((u) => {
         const roles: string[] = u.roles ?? [];
-        const isKiosk = roles.includes("TECHNICIAN") || roles.includes("ROLE_TECHNICIAN");
+        const isKiosk =
+          roles.includes("LOCKER_TECHNICIAN") ||
+          roles.includes("ROLE_LOCKER_TECHNICIAN");
         const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
         const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay & Pin)";
 

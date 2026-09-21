@@ -193,8 +193,11 @@ export default function TechnicianDetailPage() {
   const allReports: LockerReportResponse[] = reportsData?.data ?? [];
 
   // Filter reports assigned to this technician (including self-reported reports)
-  const techRoles = singleUser?.roles || userFromList?.roles || ["TECHNICIAN"];
-  const isKioskTech = techRoles.includes("TECHNICIAN") || techRoles.includes("ROLE_TECHNICIAN");
+  const techRoles = singleUser?.roles ||
+    userFromList?.roles || ["LOCKER_TECHNICIAN"];
+  const isKioskTech =
+    techRoles.includes("LOCKER_TECHNICIAN") ||
+    techRoles.includes("ROLE_LOCKER_TECHNICIAN");
 
   const techReports = useMemo(() => {
     return allReports.filter((r) => {
@@ -255,8 +258,11 @@ export default function TechnicianDetailPage() {
 
   const technician = useMemo(() => {
     if (!singleUser && !userFromList) return null;
-    const roles: string[] = singleUser?.roles || userFromList?.roles || ["TECHNICIAN"];
-    const isKiosk = roles.includes("TECHNICIAN") || roles.includes("ROLE_TECHNICIAN");
+    const roles: string[] = singleUser?.roles ||
+      userFromList?.roles || ["LOCKER_TECHNICIAN"];
+    const isKiosk =
+      roles.includes("LOCKER_TECHNICIAN") ||
+      roles.includes("ROLE_LOCKER_TECHNICIAN");
     const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
     const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay)";
 

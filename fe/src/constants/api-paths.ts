@@ -13,7 +13,8 @@ export const ROOT_URI = {
   PARTNER: "/api/partner",
   LOYALTY: "/api/loyalty",
   MEDIA: "/api/media",
-  MAINTENANCE: "/api/maintenance",
+  LOCKER_TECHNICIAN: "/api/locker-technician",
+  DRONE_TECHNICIAN: "/api/drone-technician",
 } as const;
 
 // Authentication Endpoints
@@ -221,15 +222,16 @@ export const MEDIA_ENDPOINTS = {
   UPLOAD_SIGNATURES: `${ROOT_URI.MEDIA}/upload-signatures`,
 } as const;
 
-// Maintenance (TECH/MAINT/ADMIN) Endpoints
-export const MAINTENANCE_ENDPOINTS = {
-  REPORTS: `${ROOT_URI.MAINTENANCE}/reports`,
-  REPORT_DETAIL: (id: number) => `${ROOT_URI.MAINTENANCE}/reports/${id}`,
+// Việc của KTV tủ (LOCKER_TECHNICIAN/ADMIN) Endpoints
+export const LOCKER_TECHNICIAN_ENDPOINTS = {
+  REPORTS: `${ROOT_URI.LOCKER_TECHNICIAN}/reports`,
+  REPORT_DETAIL: (id: number) => `${ROOT_URI.LOCKER_TECHNICIAN}/reports/${id}`,
   REPORT_ATTACHMENTS: (id: number) =>
-    `${ROOT_URI.MAINTENANCE}/reports/${id}/attachments`,
+    `${ROOT_URI.LOCKER_TECHNICIAN}/reports/${id}/attachments`,
   REPORT_RESOLVE: (id: number) =>
-    `${ROOT_URI.MAINTENANCE}/reports/${id}/resolve`,
-  REPORT_LOGS: (id: number) => `${ROOT_URI.MAINTENANCE}/reports/${id}/logs`,
+    `${ROOT_URI.LOCKER_TECHNICIAN}/reports/${id}/resolve`,
+  REPORT_LOGS: (id: number) =>
+    `${ROOT_URI.LOCKER_TECHNICIAN}/reports/${id}/logs`,
 } as const;
 
 // Loyalty (User-facing) Endpoints

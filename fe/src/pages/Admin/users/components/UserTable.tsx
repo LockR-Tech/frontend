@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
+import { getRoleLabel } from "~/constants";
 import { useUpdateUserStatusMutation } from "~/stores/apis/admin";
 import type { AdminUserResponse } from "~/types";
 import { WalletModal } from "./WalletModal";
@@ -103,7 +104,7 @@ const getRoleBadge = (role: string) => {
       variant="outline"
       className="bg-secondary text-foreground border-border font-medium text-xs px-2.5 py-0.5 rounded-md"
     >
-      {role}
+      {getRoleLabel(role)}
     </Badge>
   );
 };
