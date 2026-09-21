@@ -10,6 +10,7 @@ import {
   WifiOff,
   Eye,
   Power,
+  UserCheck,
 } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { Badge } from "~/components/ui/badge";
@@ -232,6 +233,22 @@ export function LockerTable({
     columnHelper.accessor("status", {
       header: t("admin.lockers.columns.status"),
       cell: ({ row }) => getStatusBadge(row.original.status, t),
+    }),
+
+    // Chưa gán ⇒ phiếu sự cố mới của tủ báo mọi KTV tủ
+    columnHelper.accessor("assignedTechnicianName", {
+      header: "KTV phụ trách",
+      cell: ({ row }) => {
+        const { assignedTechnicianId, assignedTechnicianName } = row.original;
+        return assignedTechnicianId != null ? (
+          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+            <UserCheck size={14} className="text-indigo-600 flex-shrink-0" />
+            {assignedTechnicianName ?? `KTV #${assignedTechnicianId}`}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">Chưa phân công</span>
+        );
+      },
     }),
 
     columnHelper.accessor("totalBoxes", {

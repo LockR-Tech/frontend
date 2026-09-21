@@ -64,6 +64,7 @@ import {
   useAssignReportToTechnicianMutation,
   useGetMaintenanceSchedulesQuery,
   useGetAllInspectionLogsQuery,
+  useSendUserNotificationMutation,
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation, useUpdateUserMutation } from "~/stores/apis/admin/users";
@@ -77,10 +78,11 @@ import {
   getEffectiveSlaDueAt,
   isReportOverdue,
   removeSlaExtension,
-  getStoredScheduleTechAssignments,
+  INSPECTION_STATUS_META,
 } from "./maintenancePhotos";
 import { formatDateTime, formatDate as formatDateOnly, parseBackendDateTime } from "~/lib/datetime";
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
+import { InspectionChecklistResults } from "./InspectionChecklistResults";
 
 export interface TechnicianSummary {
   id: number;
@@ -176,6 +178,7 @@ export default function TechnicianDetailPage() {
   const [updateStatus, { isLoading: isUpdatingStatus }] = useUpdateUserStatusMutation();
   const [updateUser, { isLoading: isUpdatingUser }] = useUpdateUserMutation();
   const [unassign, { isLoading: isUnassigning }] = useUnassignReportMutation();
+  const [sendNotification] = useSendUserNotificationMutation();
   const [assignReport, { isLoading: isAssigning }] = useAssignReportToTechnicianMutation();
 
   // Find technician details
@@ -192,7 +195,7 @@ export default function TechnicianDetailPage() {
   const perf = perfData?.data;
   const allReports: LockerReportResponse[] = reportsData?.data ?? [];
 
-  // Filter reports assigned to this technician (including self-reported reports)
+  // Phiếu được giao cho KTV này (KTV tự báo đã được server giao luôn — không suy từ người báo)
   const techRoles = singleUser?.roles ||
     userFromList?.roles || ["LOCKER_TECHNICIAN"];
   const isKioskTech =
@@ -203,9 +206,7 @@ export default function TechnicianDetailPage() {
     return allReports.filter((r) => {
       if (isKioskTech && isDroneReport(r)) return false;
       if (!isKioskTech && !isDroneReport(r)) return false;
-      if (r.assignedToUserId === techId) return true;
-      if (!r.assignedToUserId && r.userId === techId) return true;
-      return false;
+      return r.assignedToUserId === techId;
     });
   }, [allReports, techId, isKioskTech]);
 
@@ -213,16 +214,10 @@ export default function TechnicianDetailPage() {
   const { data: schedulesData } = useGetMaintenanceSchedulesQuery();
   const { data: inspectionLogsData } = useGetAllInspectionLogsQuery({ technicianId: techId });
 
-  const assignedSchedules = useMemo(() => {
-    const list = schedulesData?.data ?? [];
-    const local = getStoredScheduleTechAssignments();
-    return list.filter((s) => {
-      if (local[s.id]?.technicianId !== undefined) {
-        return local[s.id].technicianId === techId;
-      }
-      return s.assignedTechnicianId === techId;
-    });
-  }, [schedulesData, techId]);
+  const assignedSchedules = useMemo(
+    () => (schedulesData?.data ?? []).filter((s) => s.assignedTechnicianId === techId),
+    [schedulesData, techId],
+  );
 
   const technicianInspectionLogs = inspectionLogsData?.data ?? [];
 
@@ -301,13 +296,6 @@ export default function TechnicianDetailPage() {
       if (r.assignedToUserId) return false;
       if (isKioskTech && isDroneReport(r)) return false;
       if (!isKioskTech && !isDroneReport(r)) return false;
-      // If filed by a technician, they are handling it themselves
-      const isTechReporter = Boolean(
-        r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-        r.reporterName?.toLowerCase().includes("ktv") ||
-        r.reporterName?.toLowerCase().includes("technician")
-      );
-      if (r.userId && isTechReporter) return false;
       return true;
     });
   }, [allReports, isKioskTech]);
@@ -415,11 +403,22 @@ export default function TechnicianDetailPage() {
     }
   };
 
-  const handleSendWarning = () => {
+  const handleSendWarning = async () => {
     if (!technician) return;
-    toast.success(`Đã gửi cảnh cáo SLA tới KTV ${technician.fullName}`, {
-      description: "Nội dung nhắc nhở tiến độ và chế tài đã được chuyển tới ứng dụng Mobile của KTV.",
-    });
+    try {
+      await sendNotification({
+        userId: technician.id,
+        title: "Cảnh cáo SLA",
+        message: `Bạn đang có ${overdueCount} phiếu sự cố trễ hạn SLA. Vui lòng xử lý dứt điểm các phiếu tồn đọng; `
+          + "tiếp tục trễ hạn có thể bị hạn chế nhận việc.",
+        type: "SLA_WARNING",
+      }).unwrap();
+      toast.success(`Đã gửi cảnh cáo SLA tới KTV ${technician.fullName}`, {
+        description: "KTV nhận thông báo trong ứng dụng.",
+      });
+    } catch (err: any) {
+      toast.error("Không gửi được cảnh cáo", { description: err?.data?.message || err?.message });
+    }
   };
 
   const handleConfirmUnassign = async () => {
@@ -431,8 +430,10 @@ export default function TechnicianDetailPage() {
       });
       refetchReports();
       refetchPerf();
-    } catch {
-      toast.error("Không thể thu hồi phân công phiếu sự cố");
+    } catch (err: any) {
+      toast.error("Không thể thu hồi phân công phiếu sự cố", {
+        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      });
     } finally {
       setUnassignTargetId(null);
     }
@@ -456,9 +457,7 @@ export default function TechnicianDetailPage() {
     } catch (err: any) {
       const errMsg = err?.data?.message || err?.message;
       toast.error("Không thể phân công phiếu sự cố", {
-        description:
-          errMsg ||
-          "Máy chủ backend chưa cập nhật endpoint phân công mới. Kỹ thuật viên có thể bấm 'Nhận việc' trực tiếp từ ứng dụng Mobile.",
+        description: errMsg || "Vui lòng thử lại.",
       });
     }
   };
@@ -1317,6 +1316,16 @@ export default function TechnicianDetailPage() {
                                     Còn {diffDays} ngày
                                   </Badge>
                                 )}
+                                {s.lastResult && (
+                                  <Badge variant="outline" className={`text-[10px] ${INSPECTION_STATUS_META[s.lastResult]?.cls ?? ""}`}>
+                                    Lần gần nhất: {INSPECTION_STATUS_META[s.lastResult]?.label ?? s.lastResult}
+                                  </Badge>
+                                )}
+                                {s.pendingReportId != null && (
+                                  <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 font-semibold">
+                                    Chờ phiếu #{s.pendingReportId}
+                                  </Badge>
+                                )}
                               </div>
                               <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
                                 <span className="font-medium text-foreground">
@@ -1328,11 +1337,11 @@ export default function TechnicianDetailPage() {
                                 <span>·</span>
                                 <span>Hạn tới: <span className="font-mono text-foreground font-medium">{s.nextDueAt ? formatDateTime(s.nextDueAt) : "—"}</span></span>
                               </p>
-                              {s.checklist && (
+                              {(s.checklistItems?.length ?? 0) > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-1.5">
-                                  {s.checklist.split(";").map((chk, i) => (
+                                  {s.checklistItems!.map((chk, i) => (
                                     <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-foreground font-medium">
-                                      ✓ {chk.trim()}
+                                      ✓ {chk}
                                     </span>
                                   ))}
                                 </div>
@@ -1371,12 +1380,8 @@ export default function TechnicianDetailPage() {
                               <span className="font-bold text-xs text-foreground">
                                 {log.lockerName ?? `Kiosk #${log.lockerId}`}
                               </span>
-                              <Badge variant="outline" className={`text-[10px] font-semibold ${
-                                log.status === "PASSED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                                log.status === "DEFECT_DETECTED" ? "bg-rose-50 text-rose-700 border-rose-200" :
-                                "bg-amber-50 text-amber-700 border-amber-200"
-                              }`}>
-                                {log.status === "PASSED" ? "Đạt chuẩn" : log.status === "DEFECT_DETECTED" ? "Phát hiện lỗi" : "Cần theo dõi"}
+                              <Badge variant="outline" className={`text-[10px] font-semibold ${INSPECTION_STATUS_META[log.status]?.cls ?? ""}`}>
+                                {INSPECTION_STATUS_META[log.status]?.label ?? log.status}
                               </Badge>
                               {log.createdReportId && (
                                 <Badge variant="outline" className="text-[10px] text-rose-600 border-rose-200">
@@ -1394,6 +1399,8 @@ export default function TechnicianDetailPage() {
                               {log.note}
                             </p>
                           )}
+
+                          <InspectionChecklistResults raw={log.checklistResults} />
 
                           {log.photoUrls && log.photoUrls.length > 0 && (
                             <div className="flex items-center gap-2 flex-wrap pt-1">

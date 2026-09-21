@@ -1,4 +1,8 @@
-import type { LockerReportResponse } from "~/stores/apis/admin/lockerOps";
+import type {
+  InspectionItemResult,
+  InspectionItemVerdict,
+  LockerReportResponse,
+} from "~/stores/apis/admin/lockerOps";
 import type { AttachmentStage, ReportAttachmentResponse } from "~/stores/apis/media";
 import { parseBackendDateTime } from "~/lib/datetime";
 
@@ -255,8 +259,9 @@ export const calculateDurationText = (startStr?: string | null, endStr?: string 
 };
 
 /** Phát hiện phiếu sự cố liên quan đến Drone để loại khỏi tab Bảo trì Kiosk / KTV Kiosk.
- *  Đồng bộ với logic _isDroneReport() trên Mobile (technician_home_page.dart). */
+ *  Ưu tiên `category` của backend; phiếu cũ chưa có thì đoán như _isDroneReport() trên Mobile. */
 export function isDroneReport(r: LockerReportResponse): boolean {
+  if (r.category) return r.category === "DRONE";
   if ((r as any).droneUnitId != null) return true;
   const t = (r.title ?? "").toLowerCase();
   const d = (r.description ?? "").toLowerCase();
@@ -272,69 +277,48 @@ export function isDroneReport(r: LockerReportResponse): boolean {
   return droneKeywords.some((kw) => t.includes(kw) || d.includes(kw));
 }
 
-// Quản lý gán KTV phụ trách lịch kiểm tra định kỳ (Lưu trữ đồng bộ cục bộ để hỗ trợ phản hồi tức thời)
-const SCHEDULE_TECH_STORAGE_KEY = "kiosk_schedule_tech_assignments_v1";
+// ---- Kiểm tra định kỳ: nhãn kết quả + biên bản checklist ----
 
-export interface ScheduleTechAssignment {
-  technicianId: number | null;
-  technicianName: string | null;
-}
-
-export const getStoredScheduleTechAssignments = (): Record<number, ScheduleTechAssignment> => {
-  try {
-    const raw = localStorage.getItem(SCHEDULE_TECH_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+/** Nhãn trạng thái biên bản kiểm tra; ATTENTION/DEFECT_DETECTED chỉ còn ở dữ liệu cũ. */
+export const INSPECTION_STATUS_META: Record<string, { label: string; cls: string; failed: boolean }> = {
+  PASSED: { label: "Đạt", cls: "bg-emerald-50 text-emerald-700 border-emerald-200", failed: false },
+  FAILED: { label: "Không đạt", cls: "bg-rose-50 text-rose-700 border-rose-200", failed: true },
+  ATTENTION: { label: "Cần theo dõi (dữ liệu cũ)", cls: "bg-amber-50 text-amber-700 border-amber-200", failed: false },
+  DEFECT_DETECTED: { label: "Phát hiện lỗi (dữ liệu cũ)", cls: "bg-rose-50 text-rose-700 border-rose-200", failed: true },
 };
 
-export const saveScheduleTechAssignment = (
-  scheduleId: number,
-  technicianId: number | null,
-  technicianName: string | null
-) => {
-  try {
-    const stored = getStoredScheduleTechAssignments();
-    if (technicianId === null) {
-      delete stored[scheduleId];
-    } else {
-      stored[scheduleId] = { technicianId, technicianName };
+export const INSPECTION_ITEM_META: Record<InspectionItemVerdict, { label: string; cls: string }> = {
+  PASS: { label: "Đạt", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  FAIL: { label: "Không đạt", cls: "bg-rose-50 text-rose-700 border-rose-200" },
+  NA: { label: "Không áp dụng", cls: "bg-slate-50 text-slate-600 border-slate-200" },
+};
+
+/** `checklistResults` của biên bản: JSON các mục (bản ghi mới) hoặc văn bản tự do (bản ghi cũ). */
+export type ParsedChecklistResults =
+  | { kind: "items"; items: InspectionItemResult[] }
+  | { kind: "text"; text: string };
+
+export function parseChecklistResults(raw?: string | null): ParsedChecklistResults | null {
+  const text = raw?.trim();
+  if (!text) return null;
+  if (text.startsWith("[")) {
+    try {
+      const parsed: unknown = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        const items = parsed
+          .filter((it): it is Record<string, unknown> => !!it && typeof it === "object")
+          .filter((it) => typeof it.label === "string" && typeof it.result === "string")
+          .map((it) => ({
+            label: String(it.label),
+            result: String(it.result).toUpperCase() as InspectionItemVerdict,
+            note: typeof it.note === "string" && it.note.trim() ? it.note.trim() : null,
+          }));
+        if (items.length > 0) return { kind: "items", items };
+      }
+    } catch {
+      // Không phải JSON hợp lệ ⇒ coi như văn bản cũ
     }
-    localStorage.setItem(SCHEDULE_TECH_STORAGE_KEY, JSON.stringify(stored));
-  } catch {}
-};
-
-// Quản lý ghi chú vị trí cụ thể và khung giờ ca trực (Lưu trữ đồng bộ cục bộ bổ trợ)
-const SCHEDULE_LOCATION_TIME_KEY = "kiosk_schedule_location_time_v1";
-
-export interface ScheduleLocationTime {
-  locationNote?: string | null;
-  scheduledTimeSlot?: string | null;
-  customDueAt?: string | null;
-}
-
-export const getStoredScheduleLocationTime = (): Record<number, ScheduleLocationTime> => {
-  try {
-    const raw = localStorage.getItem(SCHEDULE_LOCATION_TIME_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
   }
-};
-
-export const saveScheduleLocationTime = (
-  scheduleId: number,
-  info: ScheduleLocationTime
-) => {
-  try {
-    const stored = getStoredScheduleLocationTime();
-    stored[scheduleId] = {
-      ...(stored[scheduleId] || {}),
-      ...info,
-    };
-    localStorage.setItem(SCHEDULE_LOCATION_TIME_KEY, JSON.stringify(stored));
-  } catch {}
-};
-
+  return { kind: "text", text };
+}
 

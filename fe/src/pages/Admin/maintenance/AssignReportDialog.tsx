@@ -23,6 +23,7 @@ import {
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import type { TechnicianSummary } from "./technician-detail";
+import { isDroneReport } from "./maintenancePhotos";
 
 interface AssignReportDialogProps {
   report: LockerReportResponse | null;
@@ -43,6 +44,11 @@ export function AssignReportDialog({
   const [assign, { isLoading }] = useAssignReportToTechnicianMutation();
 
   if (!report) return null;
+
+  // Server chỉ nhận đúng vai trò: phiếu drone ⇒ DRONE_TECHNICIAN, còn lại LOCKER_TECHNICIAN
+  const requiredRole = isDroneReport(report) ? "DRONE_TECHNICIAN" : "LOCKER_TECHNICIAN";
+  const hasRequiredRole = (t: TechnicianSummary) =>
+    (t.roles ?? []).some((role) => role.replace(/^ROLE_/, "") === requiredRole);
 
   const handleAssign = async () => {
     if (!selectedTechId) {
@@ -66,9 +72,7 @@ export function AssignReportDialog({
     } catch (err: any) {
       const errMsg = err?.data?.message || err?.message;
       toast.error("Không thể phân công phiếu sự cố", {
-        description:
-          errMsg ||
-          "Máy chủ backend chưa cập nhật endpoint phân công mới. Kỹ thuật viên có thể bấm 'Nhận việc' trực tiếp từ ứng dụng Mobile.",
+        description: errMsg || "Vui lòng thử lại.",
       });
     }
   };
@@ -116,7 +120,7 @@ export function AssignReportDialog({
             </SelectTrigger>
             <SelectContent>
               {technicians.map((t) => (
-                <SelectItem key={t.id} value={String(t.id)} disabled={!t.enabled}>
+                <SelectItem key={t.id} value={String(t.id)} disabled={!t.enabled || !hasRequiredRole(t)}>
                   <div className="flex items-center gap-2 py-0.5">
                     <span className="font-medium">{t.fullName}</span>
                     <span className="text-muted-foreground text-[11px]">

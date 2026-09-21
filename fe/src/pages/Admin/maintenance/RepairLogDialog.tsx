@@ -83,28 +83,32 @@ export function RepairLogDialog({
 
   const reporterUser = eff?.userId ? userList.find((u) => u.id === eff.userId) : undefined;
   const assignedUser = eff?.assignedToUserId ? userList.find((u) => u.id === eff.assignedToUserId) : undefined;
+  const routedUser = eff?.routedToUserId ? userList.find((u) => u.id === eff.routedToUserId) : undefined;
 
+  // Chỉ để gắn nhãn người báo theo vai trò — trạng thái/người phụ trách lấy từ status + assignedToUserId
   const isReporterTech = Boolean(
     reporterUser?.roles?.some((role: any) => {
       const r = typeof role === "string" ? role : role?.name || role?.roleName || "";
       // Khớp cả LOCKER_TECHNICIAN lẫn DRONE_TECHNICIAN.
       return r.includes("TECHNICIAN");
-    }) ||
-    eff?.reporterName?.toLowerCase()?.includes("kỹ thuật viên") ||
-    eff?.reporterName?.toLowerCase()?.includes("ktv") ||
-    eff?.reporterName?.toLowerCase()?.includes("technician") ||
-    eff?.reporterName?.toLowerCase()?.includes("maintenance")
+    })
   );
 
-  const effectiveAssignedAt = eff?.assignedAt ?? (isReporterTech ? eff?.createdAt : undefined);
-  const effectiveStatus = eff?.status === "OPEN" && isReporterTech ? "IN_PROGRESS" : eff?.status;
+  const effectiveAssignedAt = eff?.assignedAt;
+  const effectiveStatus = eff?.status;
 
   const effectiveTechnicianName =
     technicianName ??
     (assignedUser?.fullName || assignedUser?.name) ??
-    (isReporterTech
-      ? (reporterUser?.fullName || reporterUser?.name || eff?.reporterName)
-      : (eff?.assignedToUserId ? `KTV #${eff.assignedToUserId}` : undefined));
+    (eff?.assignedToUserId ? `KTV #${eff.assignedToUserId}` : undefined);
+
+  // Phiếu OPEN chưa ai nhận: chờ KTV phụ trách tủ, hoặc đã báo mọi KTV tủ (routedToUserId = null)
+  const routingText =
+    eff?.status !== "OPEN" || eff?.routedToUserId === undefined
+      ? "Chưa phân công"
+      : eff.routedToUserId === null
+        ? "Chưa phân công · đã báo mọi KTV tủ"
+        : `Đang chờ ${routedUser?.fullName || routedUser?.name || `KTV #${eff.routedToUserId}`} nhận`;
 
   // Nhật ký cũ (trước khi có Cloudinary) dán link ảnh vào cuối ghi chú
   const extractImages = (content?: string | null) => {
@@ -213,11 +217,21 @@ export function RepairLogDialog({
                           </Badge>
                         ) : effectiveStatus === "IN_PROGRESS" ? (
                           <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 text-[10px] font-semibold">
-                            Đang xử lý {isReporterTech && !eff?.assignedToUserId ? "(KTV tự báo & phụ trách)" : ""}
+                            Đang xử lý
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] font-semibold">
-                            Mới mở / Chưa phân công
+                            Mới mở · Chờ KTV nhận
+                          </Badge>
+                        )}
+                        {eff?.blocksLocker && eff.status !== "RESOLVED" && (
+                          <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-[10px]">
+                            Ngưng cả tủ
+                          </Badge>
+                        )}
+                        {eff?.scheduleId != null && (
+                          <Badge variant="outline" className="bg-sky-50 text-sky-800 border-sky-300 font-medium text-[10px]">
+                            Từ kiểm tra định kỳ
                           </Badge>
                         )}
                         {eff?.overdue && (
@@ -288,12 +302,9 @@ export function RepairLogDialog({
                         {effectiveTechnicianName ? (
                           <span className="font-semibold text-indigo-700 dark:text-indigo-300">
                             {effectiveTechnicianName}
-                            {isReporterTech && !eff?.assignedToUserId && (
-                              <span className="ml-1 text-[10px] text-muted-foreground font-normal">(Người báo)</span>
-                            )}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground">Chưa phân công</span>
+                          <span className="text-muted-foreground">{routingText}</span>
                         )}
                       </p>
                     </div>
@@ -335,7 +346,7 @@ export function RepairLogDialog({
                       </span>
                       {isReporterTech && (
                         <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] py-0 px-1.5 font-semibold">
-                          Kỹ thuật viên Kiosk (Phụ trách xử lý)
+                          Người báo là KTV
                         </Badge>
                       )}
                     </div>
