@@ -67,6 +67,7 @@ const pathMap: Record<string, string> = {
   drones: "Drone",
   maintenance: "Bảo trì thiết bị",
   promotions: "Khuyến mãi",
+  knowledge: "Kho tri thức",
 };
 
 const isNumeric = (str: string) => /^\d+$/.test(str);

@@ -202,6 +202,20 @@ export const ADMIN_ENDPOINTS = {
     `${ROOT_URI.ADMIN}/settings/${scope}/${encodeURIComponent(key)}`,
   SETTING_AUDITS: (scope: string) => `${ROOT_URI.ADMIN}/settings/${scope}/audits`,
 
+  // Kho tri thức của trợ lý hỏi đáp RAG (assistant-service, chỉ ADMIN)
+  KNOWLEDGE_DOCUMENTS: `${ROOT_URI.ADMIN}/knowledge/documents`,
+  KNOWLEDGE_DOCUMENT_BY_ID: (id: number) =>
+    `${ROOT_URI.ADMIN}/knowledge/documents/${id}`,
+  KNOWLEDGE_DOCUMENT_REINDEX: (id: number) =>
+    `${ROOT_URI.ADMIN}/knowledge/documents/${id}/reindex`,
+  KNOWLEDGE_CONVERSATIONS: `${ROOT_URI.ADMIN}/knowledge/conversations`,
+  KNOWLEDGE_CONVERSATION_BY_ID: (id: number) =>
+    `${ROOT_URI.ADMIN}/knowledge/conversations/${id}`,
+  KNOWLEDGE_EVAL_CASES: `${ROOT_URI.ADMIN}/knowledge/eval-cases`,
+  KNOWLEDGE_EVAL_CASE_BY_ID: (id: number) =>
+    `${ROOT_URI.ADMIN}/knowledge/eval-cases/${id}`,
+  KNOWLEDGE_EVAL: `${ROOT_URI.ADMIN}/knowledge/eval`,
+
   // Analytics
   ANALYTICS_FEEDBACK: `${ROOT_URI.ADMIN}/analytics/feedback`,
   ANALYTICS_SATISFACTION: `${ROOT_URI.ADMIN}/analytics/satisfaction`,
@@ -215,6 +229,11 @@ export const ADMIN_ENDPOINTS = {
 // Public business settings (không cần đăng nhập)
 export const PUBLIC_SETTINGS_ENDPOINTS = {
   BY_SCOPE: (scope: string) => `/api/settings/${scope}/public`,
+} as const;
+
+// Trợ lý hỏi đáp (mọi người dùng đã đăng nhập, kể cả ADMIN)
+export const ASSISTANT_ENDPOINTS = {
+  STATUS: "/api/assistant/status",
 } as const;
 
 // Media Endpoints (chữ ký upload Cloudinary — xem docs/01-overview/media-storage.md)

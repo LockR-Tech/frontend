@@ -1,5 +1,6 @@
 import {
   Award,
+  Bot,
   Boxes,
   Cpu,
   Package,
@@ -63,6 +64,13 @@ export const SCOPE_TABS: ScopeTab[] = [
     title: "Cửa hàng",
     description: "Bán kính mặc định khi tìm cửa hàng gần.",
     icon: Store,
+  },
+  {
+    scope: "assistant",
+    title: "Trợ lý hỏi đáp",
+    description:
+      "Bật/tắt trợ lý, ngưỡng liên quan tối thiểu, số đoạn tài liệu gửi kèm, giới hạn câu hỏi mỗi giờ và số lượt hội thoại nhớ.",
+    icon: Bot,
   },
 ];
 

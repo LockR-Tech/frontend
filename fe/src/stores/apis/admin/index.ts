@@ -16,3 +16,4 @@ export * from "./promotions";
 export * from "./feedbackApi";
 export * from "./drones";
 export * from "./businessSettings";
+export * from "./knowledge";

@@ -8,12 +8,19 @@ import { API_BASE_URL, CONTENT_TYPES, AUTH_ENDPOINTS } from "../constants";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
-  prepareHeaders: (headers) => {
+  prepareHeaders: (headers, { arg }) => {
     const token = localStorage.getItem("accessToken")?.replace(/\s/g, "");
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
     }
-    headers.set("Content-Type", CONTENT_TYPES.JSON);
+    // Upload multipart (FormData): KHÔNG tự đặt Content-Type — trình duyệt phải tự sinh
+    // `multipart/form-data; boundary=...`. Mọi request khác vẫn gửi JSON như cũ.
+    const body = typeof arg === "string" ? undefined : arg?.body;
+    if (typeof FormData !== "undefined" && body instanceof FormData) {
+      headers.delete("Content-Type");
+    } else {
+      headers.set("Content-Type", CONTENT_TYPES.JSON);
+    }
     return headers;
   },
 });
@@ -125,6 +132,9 @@ export const baseApi = createApi({
     "WalletTransactions", // Biến động ví của mọi khách (báo cáo admin)
     "PaymentStats", // Thống kê giao dịch có so sánh kỳ trước
     "Revenue", // Doanh thu theo tiền thực thu
+    "KnowledgeDocuments", // Kho tri thức của trợ lý hỏi đáp (assistant-service)
+    "AssistantConversations", // Hội thoại của trợ lý (admin xem lại chất lượng)
+    "KnowledgeEvalCases", // Bộ câu hỏi đánh giá truy xuất
   ],
 
   endpoints: () => ({}),

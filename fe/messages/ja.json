@@ -93,7 +93,8 @@
       "settings": "設定",
       "maintenance": "メンテナンス",
       "drones": "ドローン",
-      "businessSettings": "業務ルール設定"
+      "businessSettings": "業務ルール設定",
+      "knowledge": "ナレッジベース"
     },
     "dashboard": {
       "title": "概要",

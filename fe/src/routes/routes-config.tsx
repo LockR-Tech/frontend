@@ -52,6 +52,7 @@ const NotificationsPage = lazy(() => import("../pages/Admin/notifications"));
 const PromotionsPage = lazy(() => import("../pages/Admin/promotions"));
 const DronesPage = lazy(() => import("../pages/Admin/drones"));
 const BusinessSettingsPage = lazy(() => import("../pages/Admin/settings"));
+const KnowledgePage = lazy(() => import("../pages/Admin/knowledge"));
 
 // Lazy load Auth Pages
 const LoginPage = lazy(() => import("~/pages/auth/Login"));
@@ -366,6 +367,14 @@ const routesConfig: RouteObject[] = [
         ),
       },
       { path: "business-settings", element: <Navigate to="/admin/settings" replace /> },
+      {
+        path: "knowledge",
+        element: (
+          <LazyWrapper>
+            <KnowledgePage />
+          </LazyWrapper>
+        ),
+      },
       // Admin catch-all
       { path: "*", element: <NotFoundPage /> },
     ],
