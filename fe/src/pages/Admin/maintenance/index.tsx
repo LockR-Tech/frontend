@@ -214,14 +214,16 @@ export default function MaintenanceAdminPage() {
       .filter((u) => {
         const roles = u.roles ?? [];
         return (
-          roles.includes("TECHNICIAN") ||
-          roles.includes("ROLE_TECHNICIAN") ||
-          roles.includes("MAINTENANCE")
+          roles.includes("LOCKER_TECHNICIAN") ||
+          roles.includes("ROLE_LOCKER_TECHNICIAN") ||
+          roles.includes("DRONE_TECHNICIAN")
         );
       })
       .map((u) => {
         const roles: string[] = u.roles ?? [];
-        const isKiosk = roles.includes("TECHNICIAN") || roles.includes("ROLE_TECHNICIAN");
+        const isKiosk =
+          roles.includes("LOCKER_TECHNICIAN") ||
+          roles.includes("ROLE_LOCKER_TECHNICIAN");
         const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
         const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay & Pin)";
 

@@ -60,7 +60,7 @@ export const droneManagementApi = baseApi.injectEndpoints({
       { id: number; status: string; reason?: string }
     >({
       query: ({ id, status, reason }) => ({
-        url: `/api/maintenance/drones/${id}/status`,
+        url: `/api/drone-technician/drones/${id}/status`,
         method: "POST",
         body: { status, ...(reason ? { reason } : {}) },
       }),
@@ -72,7 +72,7 @@ export const droneManagementApi = baseApi.injectEndpoints({
       { id: number; batteryPercent: number }
     >({
       query: ({ id, batteryPercent }) => ({
-        url: `/api/maintenance/drones/${id}/battery`,
+        url: `/api/drone-technician/drones/${id}/battery`,
         method: "POST",
         body: { batteryPercent },
       }),

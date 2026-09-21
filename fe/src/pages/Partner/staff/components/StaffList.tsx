@@ -2,6 +2,7 @@ import { Card, CardContent, Badge } from "~/components/ui";
 import { Button } from "~/components/ui/button";
 import { User, Trash2, Mail, Phone, Calendar } from "lucide-react";
 import type { StaffContact } from "@/types/partner.type";
+import { getRoleLabel } from "~/constants";
 
 interface StaffListProps {
   staff: StaffContact[];
@@ -83,7 +84,7 @@ export function StaffList({ staff, isDeleting, onDelete }: StaffListProps) {
                 {member.roles && member.roles.length > 0 ? (
                   member.roles.map((role) => (
                     <Badge key={role} variant="secondary" className="text-xs">
-                      {role}
+                      {getRoleLabel(role)}
                     </Badge>
                   ))
                 ) : (

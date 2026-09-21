@@ -127,8 +127,8 @@ export function MaintenanceSchedules() {
     return list.filter((u) => {
       const roles: string[] = u.roles ?? [];
       return (
-        roles.includes("TECHNICIAN") ||
-        roles.includes("ROLE_TECHNICIAN")
+        roles.includes("LOCKER_TECHNICIAN") ||
+        roles.includes("ROLE_LOCKER_TECHNICIAN")
       );
     });
   }, [usersData]);

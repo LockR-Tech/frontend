@@ -87,7 +87,8 @@ export function RepairLogDialog({
   const isReporterTech = Boolean(
     reporterUser?.roles?.some((role: any) => {
       const r = typeof role === "string" ? role : role?.name || role?.roleName || "";
-      return r.includes("TECHNICIAN") || r.includes("MAINTENANCE");
+      // Khớp cả LOCKER_TECHNICIAN lẫn DRONE_TECHNICIAN.
+      return r.includes("TECHNICIAN");
     }) ||
     eff?.reporterName?.toLowerCase()?.includes("kỹ thuật viên") ||
     eff?.reporterName?.toLowerCase()?.includes("ktv") ||
