@@ -38,7 +38,7 @@ import {
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from "~/stores/apis/admin/users";
 import type { TechnicianSummary } from "./technician-detail";
-import { getStoredSlaExtensions, isDroneReport, isReportOverdue, getStoredScheduleTechAssignments } from "./maintenancePhotos";
+import { getStoredSlaExtensions, isDroneReport, isReportOverdue } from "./maintenancePhotos";
 
 interface TechniciansTabProps {
   onAssignToTech?: (techId: number) => void;
@@ -62,16 +62,9 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   // Fetch periodic schedules to show assigned periodic kiosks
   const { data: schedulesData } = useGetMaintenanceSchedulesQuery();
   const schedules = schedulesData?.data ?? [];
-  const localAssignments = getStoredScheduleTechAssignments();
 
-  const getAssignedCount = (techId: number) => {
-    return schedules.filter((s) => {
-      if (localAssignments[s.id]?.technicianId !== undefined) {
-        return localAssignments[s.id].technicianId === techId;
-      }
-      return s.assignedTechnicianId === techId;
-    }).length;
-  };
+  const getAssignedCount = (techId: number) =>
+    schedules.filter((s) => s.assignedTechnicianId === techId).length;
 
   const [updateStatus, { isLoading: isUpdatingStatus }] = useUpdateUserStatusMutation();
 
@@ -141,12 +134,11 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
     > = {};
 
     for (const tech of technicians) {
+      // Chỉ tính phiếu được giao cho KTV (KTV tự báo đã được server giao luôn)
       const techReports = reports.filter((r) => {
         if (tech.specialty === "KIOSK" && isDroneReport(r)) return false;
         if (tech.specialty === "DRONE" && !isDroneReport(r)) return false;
-        if (r.assignedToUserId === tech.id) return true;
-        if (!r.assignedToUserId && r.userId === tech.id) return true;
-        return false;
+        return r.assignedToUserId === tech.id;
       });
       const inProgress = techReports.filter((r) => r.status === "IN_PROGRESS").length;
       const resolved = techReports.filter((r) => r.status === "RESOLVED").length;

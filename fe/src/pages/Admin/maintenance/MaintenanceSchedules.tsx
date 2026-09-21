@@ -50,9 +50,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import { Textarea } from "~/components/ui/textarea";
 import {
   useGetMaintenanceSchedulesQuery,
   useGetLockerStatsQuery,
+  useGetLockerLayoutQuery,
   useCreateMaintenanceScheduleMutation,
   useAssignTechnicianToScheduleMutation,
   useCompleteMaintenanceScheduleMutation,
@@ -61,15 +63,29 @@ import {
   type MaintenanceScheduleResponse,
   type MaintenanceInspectionLogResponse,
   type CompleteScheduleRequest,
+  type InspectionItemVerdict,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useGetAllLockersQuery } from "~/stores/apis/admin/lockers";
-import {
-  getStoredScheduleTechAssignments,
-  saveScheduleTechAssignment,
-  getStoredScheduleLocationTime,
-  saveScheduleLocationTime,
-} from "./maintenancePhotos";
+import { useGetDronesQuery } from "~/stores/apis/admin/drones";
+import { INSPECTION_ITEM_META, INSPECTION_STATUS_META } from "./maintenancePhotos";
+import { InspectionChecklistResults } from "./InspectionChecklistResults";
+
+/** Checklist soạn mỗi dòng một mục; server tách theo dòng hoặc ';' nên không cho dùng ';' trong mục. */
+const parseChecklistLines = (text: string) =>
+  Array.from(new Set(text.split("\n").map((line) => line.trim()).filter(Boolean)));
+
+const INSPECTION_VERDICTS: InspectionItemVerdict[] = ["PASS", "FAIL", "NA"];
+
+// Nhãn trạng thái ô khi chọn ô hỏng trong biên bản KHÔNG ĐẠT
+const CELL_STATUS_LABEL: Record<string, string> = {
+  AVAILABLE: "Trống",
+  RESERVED: "Đã giữ chỗ",
+  OCCUPIED: "Có đồ",
+  FAULT: "Hỏng",
+  OUT_OF_SERVICE: "Ngưng dùng",
+  CLEANING: "Đang vệ sinh",
+};
 
 const DEFAULT_KIOSK_CHECKLIST = [
   "🧹 Vệ sinh tủ & ngoại quan sạch sẽ",
@@ -92,8 +108,6 @@ export function MaintenanceSchedules() {
 
   const [assigningSchedule, setAssigningSchedule] = useState<MaintenanceScheduleResponse | null>(null);
   const [selectedTechToAssign, setSelectedTechToAssign] = useState<number | "">("");
-  const [localAssignments, setLocalAssignments] = useState(getStoredScheduleTechAssignments);
-  const [localLocationTimes, setLocalLocationTimes] = useState(getStoredScheduleLocationTime);
 
   const schedules = data?.data ?? [];
   const lockers = statsData?.data ?? [];
@@ -151,10 +165,13 @@ export function MaintenanceSchedules() {
   const [locationNote, setLocationNote] = useState("");
   const [scheduledTimeSlot, setScheduledTimeSlot] = useState("08:00 - 11:30");
   const [description, setDescription] = useState("");
-  const [selectedChecklist, setSelectedChecklist] = useState<string[]>(DEFAULT_KIOSK_CHECKLIST);
+  const [checklistText, setChecklistText] = useState(DEFAULT_KIOSK_CHECKLIST.join("\n"));
+  const checklistLines = useMemo(() => parseChecklistLines(checklistText), [checklistText]);
 
   // Drone form state
-  const [selectedDrone, setSelectedDrone] = useState("DRONE-01");
+  const [selectedDroneId, setSelectedDroneId] = useState("");
+  const { data: dronesData } = useGetDronesQuery();
+  const drones = useMemo(() => dronesData?.data ?? [], [dronesData]);
   const [droneTitle, setDroneTitle] = useState("");
   const [droneIntervalDays, setDroneIntervalDays] = useState(14);
 
@@ -166,11 +183,13 @@ export function MaintenanceSchedules() {
 
   // Modal Nghiệm thu Form State
   const [inspectTechId, setInspectTechId] = useState<number | "">("");
-  const [inspectStatus, setInspectStatus] = useState<"PASSED" | "ATTENTION" | "DEFECT_DETECTED">("PASSED");
   const [inspectNote, setInspectNote] = useState("");
   const [inspectPhotos, setInspectPhotos] = useState<string>("");
-  const [inspectPassedChecks, setInspectPassedChecks] = useState<string[]>([]);
-  const [autoCreateReport, setAutoCreateReport] = useState(false);
+  // Lịch có checklist: chấm từng mục PASS/FAIL/NA (mặc định chưa chọn)
+  const [inspectItems, setInspectItems] = useState<Record<string, { result: InspectionItemVerdict | null; note: string }>>({});
+  // Lịch không có checklist: chọn thẳng Đạt / Không đạt
+  const [inspectVerdict, setInspectVerdict] = useState<"PASSED" | "FAILED" | null>(null);
+  const [faultBoxId, setFaultBoxId] = useState<number | "">("");
   const [faultReason, setFaultReason] = useState("");
 
   // Query logs cho schedule đang được xem chi tiết
@@ -180,22 +199,13 @@ export function MaintenanceSchedules() {
   );
   const inspectionLogs = inspectionLogsData?.data ?? [];
 
-  const isDroneSchedule = (s: { title?: string; lockerId?: number | null }) => {
-    const t = (s.title || "").toLowerCase();
-    return (
-      s.lockerId == null ||
-      t.includes("drone") ||
-      t.includes("cánh") ||
-      t.includes("bãi đáp") ||
-      t.includes("marker") ||
-      t.includes("hiệu chuẩn")
-    );
-  };
+  // Lịch drone gắn droneUnitId. Lịch drone cũ từng bị lưu kèm lockerId với tiêu đề "[DRONE-xx] …".
+  const isDroneSchedule = (s: { title?: string; lockerId?: number | null; droneUnitId?: number | null }) =>
+    s.droneUnitId != null || s.lockerId == null || /^\[DRONE-/i.test(s.title || "");
 
+  // Hạn, vị trí, ca và KTV lấy thẳng từ server; chỉ bổ sung địa chỉ/cửa hàng từ danh sách tủ
   const effectiveSchedules = useMemo(() => {
     return schedules.map((s) => {
-      const localTech = localAssignments[s.id];
-      const localLocTime = localLocationTimes[s.id];
       const lockerInfo = s.lockerId ? lockerMap.get(s.lockerId) : (s.lockerCode ? lockerMap.get(s.lockerCode) : null);
 
       let resolvedAddress = s.address || lockerInfo?.address || null;
@@ -204,25 +214,34 @@ export function MaintenanceSchedules() {
       }
 
       const resolvedStoreName = lockerInfo?.storeName || (s.storeId ? `Cửa hàng #${s.storeId}` : null);
-      const resolvedLocationNote = s.locationNote || localLocTime?.locationNote || null;
-      const resolvedTimeSlot = s.scheduledTimeSlot || localLocTime?.scheduledTimeSlot || null;
-      const resolvedDueAt = localLocTime?.customDueAt || s.nextDueAt;
-
-      const resolvedTechId = localTech !== undefined ? localTech.technicianId : s.assignedTechnicianId;
-      const resolvedTechName = localTech !== undefined ? localTech.technicianName : s.assignedTechnicianName;
 
       return {
         ...s,
-        nextDueAt: resolvedDueAt,
         address: resolvedAddress,
         storeName: resolvedStoreName,
-        locationNote: resolvedLocationNote,
-        scheduledTimeSlot: resolvedTimeSlot,
-        assignedTechnicianId: resolvedTechId,
-        assignedTechnicianName: resolvedTechName,
       };
     });
-  }, [schedules, localAssignments, localLocationTimes, lockerMap]);
+  }, [schedules, lockerMap]);
+
+  // ---- Biên bản kiểm tra đang mở ----
+  const inspectChecklist = inspectingSchedule?.checklistItems ?? [];
+  const inspectHasChecklist = inspectChecklist.length > 0;
+  const inspectUnanswered = inspectChecklist.filter((label) => !inspectItems[label]?.result).length;
+  // Một mục FAIL ⇒ KHÔNG ĐẠT (server cũng suy như vậy); còn mục chưa chấm ⇒ chưa có kết luận
+  const inspectOutcome: "PASSED" | "FAILED" | null = inspectHasChecklist
+    ? inspectChecklist.some((label) => inspectItems[label]?.result === "FAIL")
+      ? "FAILED"
+      : inspectUnanswered === 0
+        ? "PASSED"
+        : null
+    : inspectVerdict;
+  // Chỉ lịch của tủ mới mở phiếu + báo ô hỏng khi KHÔNG ĐẠT
+  const inspectLockerId =
+    inspectingSchedule && !isDroneSchedule(inspectingSchedule) ? inspectingSchedule.lockerId : null;
+  const { data: inspectLayoutData } = useGetLockerLayoutQuery(inspectLockerId ?? 0, {
+    skip: !inspectLockerId || inspectOutcome !== "FAILED",
+  });
+  const inspectCells = inspectLayoutData?.data?.cells ?? [];
 
   const kioskSchedules = useMemo(
     () => effectiveSchedules.filter((s) => !isDroneSchedule(s)),
@@ -303,11 +322,12 @@ export function MaintenanceSchedules() {
 
   const activeSchedules = subTab === "kiosk" ? filteredKioskSchedules : droneSchedules;
 
-  // Toggle checklist lúc tạo lịch
+  // Bấm mục mẫu ⇒ thêm/bỏ đúng một dòng trong checklist đang soạn
   const toggleChecklist = (item: string) => {
-    setSelectedChecklist((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
-    );
+    setChecklistText((prev) => {
+      const lines = parseChecklistLines(prev);
+      return (lines.includes(item) ? lines.filter((i) => i !== item) : [...lines, item]).join("\n");
+    });
   };
 
   const create = async () => {
@@ -319,11 +339,18 @@ export function MaintenanceSchedules() {
         return;
       }
 
+      if (checklistLines.some((line) => line.includes(";"))) {
+        toast.error("Checklist không hợp lệ", {
+          description: "Mỗi dòng là một mục — không dùng dấu ';' trong một mục.",
+        });
+        return;
+      }
+
       const finalFirstDueDate = firstDueDate
         ? `${firstDueDate}T${firstDueTime ? `${firstDueTime}:00` : "09:00:00"}`
         : undefined;
 
-      const createdResp: any = await act(
+      const createdResp = await act(
         () =>
           createSchedule({
             lockerId: Number(lockerId),
@@ -332,7 +359,7 @@ export function MaintenanceSchedules() {
             assignedTechnicianId: assignedTechnicianId ? Number(assignedTechnicianId) : undefined,
             priority,
             description: description.trim() || undefined,
-            checklist: selectedChecklist.length > 0 ? selectedChecklist.join("; ") : undefined,
+            checklist: checklistLines.length > 0 ? checklistLines.join("\n") : undefined,
             firstDueDate: finalFirstDueDate,
             locationNote: locationNote.trim() || undefined,
             scheduledTimeSlot: scheduledTimeSlot || undefined,
@@ -346,23 +373,8 @@ export function MaintenanceSchedules() {
           desc: "Vui lòng kiểm tra lại thông tin và thử lại.",
         },
       );
-
-      // Lưu trữ bổ trợ cục bộ để hiển thị ngay tức thì
-      const newSchedId = createdResp?.data?.id ?? createdResp?.id;
-      if (newSchedId) {
-        if (assignedTechnicianId) {
-          const techId = Number(assignedTechnicianId);
-          const techName = technicians.find((t) => t.id === techId)?.fullName ?? `KTV #${techId}`;
-          saveScheduleTechAssignment(newSchedId, techId, techName);
-          setLocalAssignments(getStoredScheduleTechAssignments());
-        }
-        saveScheduleLocationTime(newSchedId, {
-          locationNote: locationNote.trim() || undefined,
-          scheduledTimeSlot: scheduledTimeSlot || undefined,
-          customDueAt: finalFirstDueDate,
-        });
-        setLocalLocationTimes(getStoredScheduleLocationTime());
-      }
+      // Lỗi ⇒ giữ nguyên form để sửa và gửi lại
+      if (!createdResp) return;
 
       setTitle("");
       setLockerId("");
@@ -374,25 +386,25 @@ export function MaintenanceSchedules() {
       setScheduledTimeSlot("08:00 - 11:30");
       setFirstDueDate("");
       setFirstDueTime("09:00");
-      setSelectedChecklist(DEFAULT_KIOSK_CHECKLIST);
+      setChecklistText(DEFAULT_KIOSK_CHECKLIST.join("\n"));
     } else {
-      if (!droneTitle.trim()) {
+      const drone = drones.find((d) => String(d.id) === selectedDroneId);
+      if (!drone || !droneTitle.trim()) {
         toast.error("Thiếu thông tin lịch Drone", {
-          description: "Vui lòng nhập hạng mục kiểm tra định kỳ cho Drone.",
+          description: "Vui lòng chọn drone và nhập hạng mục kiểm tra định kỳ.",
         });
         return;
       }
-      const finalTitle = `[${selectedDrone}] ${droneTitle.trim()}`;
       await act(
         () =>
           createSchedule({
-            lockerId: lockers[0]?.lockerId ?? 1,
-            title: finalTitle,
+            droneUnitId: drone.id,
+            title: droneTitle.trim(),
             intervalDays: droneIntervalDays,
           }).unwrap(),
         {
           title: "Tạo lịch bảo dưỡng Drone thành công",
-          desc: `Đã ghi nhận chu kỳ ${droneIntervalDays} ngày cho ${selectedDrone}.`,
+          desc: `Đã ghi nhận chu kỳ ${droneIntervalDays} ngày cho ${drone.code}.`,
         },
         {
           title: "Không tạo được lịch Drone",
@@ -407,54 +419,80 @@ export function MaintenanceSchedules() {
   const openInspectionModal = (s: MaintenanceScheduleResponse) => {
     setInspectingSchedule(s);
     setInspectTechId(s.assignedTechnicianId || "");
-    setInspectStatus("PASSED");
     setInspectNote("");
     setInspectPhotos("");
-    setAutoCreateReport(false);
+    setInspectItems({});
+    setInspectVerdict(null);
+    setFaultBoxId("");
     setFaultReason("");
-    // Mặc định nạp checklist của lịch nếu có
-    const defaultChecks = s.checklist
-      ? s.checklist.split(";").map((c) => c.trim()).filter(Boolean)
-      : DEFAULT_KIOSK_CHECKLIST;
-    setInspectPassedChecks(defaultChecks);
   };
+
+  const setInspectItem = (label: string, patch: Partial<{ result: InspectionItemVerdict | null; note: string }>) =>
+    setInspectItems((prev) => ({
+      ...prev,
+      [label]: { result: prev[label]?.result ?? null, note: prev[label]?.note ?? "", ...patch },
+    }));
 
   const submitInspection = async () => {
     if (!inspectingSchedule) return;
+    if (inspectHasChecklist && inspectUnanswered > 0) {
+      toast.error("Chưa đánh giá đủ checklist", {
+        description: `Còn ${inspectUnanswered} mục chưa chọn Đạt / Không đạt / Không áp dụng.`,
+      });
+      return;
+    }
+    if (!inspectOutcome) {
+      toast.error("Chưa chọn kết quả kiểm tra", { description: "Chọn Đạt hoặc Không đạt." });
+      return;
+    }
     const photoList = inspectPhotos
       .split("\n")
       .map((p) => p.trim())
       .filter((p) => p.startsWith("http"));
+    const failed = inspectOutcome === "FAILED";
 
     const payload: CompleteScheduleRequest = {
       technicianId: inspectTechId ? Number(inspectTechId) : undefined,
       technicianName: inspectTechId
         ? technicians.find((t) => t.id === Number(inspectTechId))?.fullName
         : undefined,
-      status: inspectStatus,
+      // Có checklist ⇒ gửi từng mục, server tự suy kết quả; không có ⇒ gửi status cũ
+      ...(inspectHasChecklist
+        ? {
+            items: inspectChecklist.map((label) => ({
+              label,
+              result: inspectItems[label].result as InspectionItemVerdict,
+              note: inspectItems[label].note.trim() || undefined,
+            })),
+          }
+        : { status: inspectOutcome }),
       note: inspectNote.trim() || undefined,
       photoUrls: photoList.length > 0 ? photoList : undefined,
-      checklistResults: inspectPassedChecks.join("; "),
-      autoCreateReport: inspectStatus === "DEFECT_DETECTED" && autoCreateReport,
-      faultReason: faultReason.trim() || undefined,
+      faultBoxId: failed && faultBoxId !== "" ? Number(faultBoxId) : undefined,
+      faultReason: failed ? faultReason.trim() || undefined : undefined,
     };
 
-    await act(
-      () =>
-        completeSchedule({
-          id: inspectingSchedule.id,
-          data: payload,
-        }).unwrap(),
-      {
-        title: "Nghiệm thu kiểm tra thành công",
-        desc: `Đã ghi nhận kết quả kiểm định cho "${inspectingSchedule.title}". Lịch tới đã được dời chu kỳ.`,
-      },
-      {
-        title: "Không thể lưu kết quả kiểm tra",
-        desc: "Vui lòng kiểm tra lại thông tin.",
-      },
-    );
-    setInspectingSchedule(null);
+    try {
+      const res = await completeSchedule({ id: inspectingSchedule.id, data: payload }).unwrap();
+      const updated = res.data;
+      if (updated?.lastResult === "FAILED" && updated.pendingReportId) {
+        toast.warning(`Đã ghi nhận: KHÔNG ĐẠT — "${inspectingSchedule.title}"`, {
+          // Ô đã có phiếu mở ⇒ server gộp vào phiếu đó thay vì mở phiếu mới
+          description: `Lỗi được ghi vào phiếu sự cố #${updated.pendingReportId}. Hạn kiểm tra giữ nguyên, chỉ dời khi phiếu được hoàn tất.`,
+        });
+      } else {
+        toast.success(
+          `Đã ghi nhận: ${updated?.lastResult === "FAILED" ? "KHÔNG ĐẠT" : "ĐẠT"} — "${inspectingSchedule.title}"`,
+          { description: `Hạn kiểm tra kế tiếp: ${formatDateTime(updated?.nextDueAt)}.` },
+        );
+      }
+      setInspectingSchedule(null);
+    } catch (err: any) {
+      // Giữ hộp thoại để sửa (CHECKLIST_INCOMPLETE, FAULT_BOX_NOT_IN_LOCKER, SCHEDULE_PENDING_REPORT…)
+      toast.error("Không thể lưu kết quả kiểm tra", {
+        description: err?.data?.message || err?.message || "Vui lòng kiểm tra lại thông tin.",
+      });
+    }
   };
 
   const handleOpenAssignModal = (s: MaintenanceScheduleResponse) => {
@@ -467,11 +505,6 @@ export function MaintenanceSchedules() {
     const techId = selectedTechToAssign === "" ? null : Number(selectedTechToAssign);
     const techName = techId ? technicians.find((t) => t.id === techId)?.fullName ?? `KTV #${techId}` : null;
 
-    // 1. Luôn cập nhật và lưu bộ nhớ cục bộ ngay tức thì để UI cập nhật tức thì
-    saveScheduleTechAssignment(assigningSchedule.id, techId, techName);
-    setLocalAssignments(getStoredScheduleTechAssignments());
-
-    // 2. Gửi API lên backend (nếu server Azure đã deploy thì lưu DB, nếu chưa thì UI vẫn hoạt động mượt mà)
     try {
       await assignTechnician({
         id: assigningSchedule.id,
@@ -482,16 +515,13 @@ export function MaintenanceSchedules() {
           ? "Đã hủy phân công KTV cho lịch kiểm tra này"
           : `Đã phân công ${techName} thành công!`
       );
-    } catch {
-      // Khi server Azure hiện tại trả về 500 do đang chờ deploy bản backend mới,
-      // trạng thái phân công vẫn đã được lưu thành công trên trình duyệt của Admin.
-      toast.success(
-        techId === null
-          ? "Đã hủy phân công KTV (lưu bộ nhớ cục bộ)"
-          : `Đã phân công ${techName} thành công!`
-      );
+      setAssigningSchedule(null);
+    } catch (err: any) {
+      // Giữ hộp thoại mở để chọn lại (VD TECHNICIAN_ROLE_REQUIRED: lịch drone cần KTV drone)
+      toast.error("Không lưu được phân công KTV", {
+        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      });
     }
-    setAssigningSchedule(null);
   };
 
   const act = async (
@@ -889,15 +919,23 @@ export function MaintenanceSchedules() {
               </div>
             </div>
 
-            {/* Checklist tiêu chí mẫu */}
+            {/* Checklist: mỗi dòng một mục, KTV chấm Đạt / Không đạt / Không áp dụng từng mục */}
             <div className="space-y-1.5 pt-1">
               <label className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1">
                 <CheckSquare className="w-3.5 h-3.5 text-orange-600" />
-                Bộ tiêu chí kiểm định KTV cần thực hiện ({selectedChecklist.length} mục đã chọn):
+                Bộ tiêu chí kiểm định KTV cần thực hiện ({checklistLines.length} mục · mỗi dòng một mục):
               </label>
+              <Textarea
+                rows={Math.min(8, Math.max(3, checklistLines.length + 1))}
+                value={checklistText}
+                onChange={(e) => setChecklistText(e.target.value)}
+                placeholder={"VD:\nKiểm tra khóa điện tử ô #1–#9\nĐo điện áp nguồn UPS"}
+                className="text-xs bg-background"
+              />
+              <p className="text-[10px] text-muted-foreground">Bấm mục mẫu để thêm/bỏ nhanh:</p>
               <div className="flex flex-wrap gap-1.5">
                 {DEFAULT_KIOSK_CHECKLIST.map((item) => {
-                  const isChecked = selectedChecklist.includes(item);
+                  const isChecked = checklistLines.includes(item);
                   return (
                     <button
                       key={item}
@@ -960,13 +998,15 @@ export function MaintenanceSchedules() {
                 <label className="text-xs text-muted-foreground font-medium">Thiết bị Drone</label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
-                  value={selectedDrone}
-                  onChange={(e) => setSelectedDrone(e.target.value)}
+                  value={selectedDroneId}
+                  onChange={(e) => setSelectedDroneId(e.target.value)}
                 >
-                  <option value="DRONE-01">DRONE-01 (Hoạt động)</option>
-                  <option value="DRONE-02">DRONE-02 (Dự phòng)</option>
-                  <option value="DRONE-03">DRONE-03 (Bảo dưỡng)</option>
-                  <option value="DRONE-04">DRONE-04 (Kiểm tra pin)</option>
+                  <option value="">Chọn drone</option>
+                  {drones.map((d) => (
+                    <option key={d.id} value={String(d.id)}>
+                      {d.code} ({d.status})
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-48">
@@ -1113,6 +1153,20 @@ export function MaintenanceSchedules() {
                           📦 Trạm Kiosk
                         </Badge>
                       )}
+                      {s.lastResult && (
+                        <Badge variant="outline" className={`text-[10px] font-semibold ${INSPECTION_STATUS_META[s.lastResult]?.cls ?? ""}`}>
+                          Lần gần nhất: {INSPECTION_STATUS_META[s.lastResult]?.label ?? s.lastResult}
+                        </Badge>
+                      )}
+                      {s.pendingReportId != null && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] font-semibold bg-rose-50 text-rose-700 border-rose-200"
+                          title="Hạn kiểm tra chỉ dời khi phiếu này được hoàn tất"
+                        >
+                          Chờ phiếu #{s.pendingReportId}
+                        </Badge>
+                      )}
                     </div>
 
                     {/* HÀNG 2: THÔNG TIN THIẾT BỊ, ĐỊA ĐIỂM CƠ SỞ & VỊ TRÍ ĐẶT TRẠM */}
@@ -1239,6 +1293,12 @@ export function MaintenanceSchedules() {
                       variant="outline"
                       className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 h-8 text-xs gap-1 cursor-pointer font-medium"
                       onClick={() => openInspectionModal(s)}
+                      disabled={s.pendingReportId != null}
+                      title={
+                        s.pendingReportId != null
+                          ? `Lần kiểm tra trước chưa đạt — hoàn tất phiếu #${s.pendingReportId} trước`
+                          : undefined
+                      }
                     >
                       <Check className="w-3.5 h-3.5 mr-1" /> Ghi nhận kiểm tra
                     </Button>
@@ -1360,82 +1420,96 @@ export function MaintenanceSchedules() {
                   </select>
                 </div>
 
-                {/* Đánh giá kết quả */}
-                <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-foreground">Đánh giá kết quả tổng thể</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setInspectStatus("PASSED")}
-                      className={`p-2 rounded-lg border text-center font-semibold transition-all cursor-pointer ${
-                        inspectStatus === "PASSED"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-300 ring-1 ring-emerald-300"
-                          : "bg-background text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      ✓ Đạt chuẩn
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setInspectStatus("ATTENTION")}
-                      className={`p-2 rounded-lg border text-center font-semibold transition-all cursor-pointer ${
-                        inspectStatus === "ATTENTION"
-                          ? "bg-amber-50 text-amber-700 border-amber-300 ring-1 ring-amber-300"
-                          : "bg-background text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      ⚠ Cần theo dõi
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setInspectStatus("DEFECT_DETECTED")}
-                      className={`p-2 rounded-lg border text-center font-semibold transition-all cursor-pointer ${
-                        inspectStatus === "DEFECT_DETECTED"
-                          ? "bg-rose-50 text-rose-700 border-rose-300 ring-1 ring-rose-300"
-                          : "bg-background text-muted-foreground hover:border-border"
-                      }`}
-                    >
-                      🚨 Có lỗi phát sinh
-                    </button>
+                {/* Kết quả: chấm từng mục checklist; lịch không có checklist thì chọn Đạt / Không đạt */}
+                {inspectHasChecklist ? (
+                  <div className="space-y-1.5 p-3 rounded-lg bg-muted/30 border border-border/60">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="font-semibold text-foreground">
+                        Checklist ({inspectChecklist.length - inspectUnanswered}/{inspectChecklist.length} mục đã chấm)
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        Một mục Không đạt ⇒ cả lần kiểm tra Không đạt
+                      </span>
+                    </div>
+                    <div className="divide-y divide-border/50">
+                      {inspectChecklist.map((label) => {
+                        const current = inspectItems[label];
+                        return (
+                          <div key={label} className="py-2 space-y-1.5">
+                            <div className="flex items-start justify-between gap-2 flex-wrap">
+                              <span className={current?.result ? "text-foreground font-medium" : "text-muted-foreground"}>
+                                {label}
+                              </span>
+                              <div className="flex gap-1 shrink-0">
+                                {INSPECTION_VERDICTS.map((verdict) => (
+                                  <button
+                                    key={verdict}
+                                    type="button"
+                                    onClick={() => setInspectItem(label, { result: verdict })}
+                                    className={`px-2 py-0.5 rounded-md border text-[11px] font-semibold transition-all cursor-pointer ${
+                                      current?.result === verdict
+                                        ? `${INSPECTION_ITEM_META[verdict].cls} shadow-xs`
+                                        : "bg-background text-muted-foreground border-border/80 hover:border-foreground/30"
+                                    }`}
+                                  >
+                                    {INSPECTION_ITEM_META[verdict].label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <Input
+                              value={current?.note ?? ""}
+                              onChange={(e) => setInspectItem(label, { note: e.target.value })}
+                              placeholder="Ghi chú cho mục này (tuỳ chọn)"
+                              className="h-7 text-[11px] bg-background"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                      <span className="font-semibold text-foreground">Kết luận:</span>
+                      {inspectOutcome ? (
+                        <Badge variant="outline" className={`text-xs font-semibold ${INSPECTION_STATUS_META[inspectOutcome].cls}`}>
+                          {INSPECTION_STATUS_META[inspectOutcome].label}
+                        </Badge>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground">
+                          Còn {inspectUnanswered} mục chưa chấm
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-
-                {/* Tiêu chí checklist thực tế */}
-                <div className="space-y-1.5 p-3 rounded-lg bg-muted/30 border border-border/60">
-                  <span className="font-semibold text-foreground block">
-                    Checklist các tiêu chí kiểm tra:
-                  </span>
-                  <div className="space-y-1">
-                    {(inspectingSchedule.checklist
-                      ? inspectingSchedule.checklist.split(";").map((c) => c.trim()).filter(Boolean)
-                      : DEFAULT_KIOSK_CHECKLIST
-                    ).map((chk) => {
-                      const passed = inspectPassedChecks.includes(chk);
-                      return (
-                        <label
-                          key={chk}
-                          className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={passed}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setInspectPassedChecks((prev) => [...prev, chk]);
-                              } else {
-                                setInspectPassedChecks((prev) => prev.filter((p) => p !== chk));
-                              }
-                            }}
-                            className="rounded text-emerald-600 focus:ring-emerald-500"
-                          />
-                          <span className={passed ? "text-foreground font-medium" : "text-muted-foreground"}>
-                            {chk}
-                          </span>
-                        </label>
-                      );
-                    })}
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    <label className="font-semibold text-foreground">Kết quả kiểm tra</label>
+                    <p className="text-[11px] text-muted-foreground">Lịch này chưa có checklist — chọn kết luận chung.</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setInspectVerdict("PASSED")}
+                        className={`p-2 rounded-lg border text-center font-semibold transition-all cursor-pointer ${
+                          inspectVerdict === "PASSED"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 ring-1 ring-emerald-300"
+                            : "bg-background text-muted-foreground hover:border-border"
+                        }`}
+                      >
+                        ✓ Đạt
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInspectVerdict("FAILED")}
+                        className={`p-2 rounded-lg border text-center font-semibold transition-all cursor-pointer ${
+                          inspectVerdict === "FAILED"
+                            ? "bg-rose-50 text-rose-700 border-rose-300 ring-1 ring-rose-300"
+                            : "bg-background text-muted-foreground hover:border-border"
+                        }`}
+                      >
+                        ✗ Không đạt
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Ghi chú biên bản */}
                 <div className="flex flex-col gap-1">
@@ -1461,23 +1535,47 @@ export function MaintenanceSchedules() {
                   />
                 </div>
 
-                {/* Ngoại lệ nếu phát hiện hỏng hóc */}
-                {inspectStatus === "DEFECT_DETECTED" && (
-                  <div className="p-3 rounded-lg bg-rose-50/70 border border-rose-200 space-y-2">
-                    <label className="flex items-center gap-2 text-rose-900 font-semibold cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={autoCreateReport}
-                        onChange={(e) => setAutoCreateReport(e.target.checked)}
-                        className="rounded text-rose-600 focus:ring-rose-500"
-                      />
-                      <span>Tự động tạo ngay phiếu sự cố (Incident Report) để phân luồng sửa chữa</span>
-                    </label>
-                    {autoCreateReport && (
+                {/* KHÔNG ĐẠT: lịch của tủ ⇒ server luôn mở phiếu, giao cho KTV thực hiện */}
+                {inspectOutcome === "FAILED" && (
+                  <div className="p-3 rounded-lg bg-rose-50/70 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-900 space-y-2">
+                    <p className="text-rose-900 dark:text-rose-200 font-semibold">
+                      {inspectingSchedule.lockerId != null
+                        ? "Không đạt ⇒ hệ thống tự mở phiếu sự cố giao cho KTV thực hiện. Hạn kiểm tra kế tiếp chỉ dời khi phiếu được hoàn tất."
+                        : "Không đạt ⇒ kết quả được ghi vào biên bản."}
+                    </p>
+                    {inspectingSchedule.lockerId != null && !inspectTechId && (
+                      <p className="text-[11px] text-rose-700 dark:text-rose-300">
+                        Chưa chọn KTV thực hiện — phiếu sẽ giao cho chính tài khoản admin đang đăng nhập.
+                      </p>
+                    )}
+                    {inspectLockerId != null && (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[11px] font-semibold text-rose-900 dark:text-rose-200">
+                          Ô bị hỏng (tuỳ chọn)
+                        </label>
+                        <select
+                          className="h-8 rounded-md border px-2 text-xs bg-background border-border/80"
+                          value={faultBoxId}
+                          onChange={(e) => setFaultBoxId(e.target.value ? Number(e.target.value) : "")}
+                        >
+                          <option value="">— Không chọn ô (phiếu cho cả tủ) —</option>
+                          {inspectCells.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              Ô #{c.boxNumber}
+                              {c.cellType === "DRONE" ? " (Drone)" : ""} · {CELL_STATUS_LABEL[c.status] ?? c.status}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-[10px] text-rose-700 dark:text-rose-300">
+                          Chọn ô ⇒ ô chuyển sang Hỏng; ô đã có phiếu đang mở thì kết quả được gộp vào phiếu đó.
+                        </p>
+                      </div>
+                    )}
+                    {inspectingSchedule.lockerId != null && (
                       <Input
                         value={faultReason}
                         onChange={(e) => setFaultReason(e.target.value)}
-                        placeholder="Mô tả sự cố cần khắc phục (VD: Ổ khóa ô #3 bị cháy cuộn hút)"
+                        placeholder="Mô tả lỗi cần khắc phục (tuỳ chọn — mặc định liệt kê các mục không đạt)"
                         className="h-8 text-xs bg-background"
                       />
                     )}
@@ -1492,11 +1590,11 @@ export function MaintenanceSchedules() {
                 <Button
                   size="sm"
                   onClick={submitInspection}
-                  disabled={completing}
+                  disabled={completing || !inspectOutcome || (inspectHasChecklist && inspectUnanswered > 0)}
                   className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  {completing ? "Đang lưu..." : "Xác nhận & Cập nhật kỳ tới"}
+                  {completing ? "Đang lưu..." : "Lưu biên bản kiểm tra"}
                 </Button>
               </DialogFooter>
             </>
@@ -1661,7 +1759,7 @@ export function MaintenanceSchedules() {
                 </div>
 
                 {/* HƯỚNG DẪN & CHECKLIST TIÊU CHUẨN NẾU CÓ */}
-                {(selectedSchedule.description || selectedSchedule.checklist) && (
+                {(selectedSchedule.description || (selectedSchedule.checklistItems?.length ?? 0) > 0) && (
                   <div className="p-3 rounded-xl bg-muted/20 border border-border/60 text-xs space-y-2">
                     {selectedSchedule.description && (
                       <div>
@@ -1671,18 +1769,18 @@ export function MaintenanceSchedules() {
                         <p className="text-foreground mt-0.5">{selectedSchedule.description}</p>
                       </div>
                     )}
-                    {selectedSchedule.checklist && (
+                    {(selectedSchedule.checklistItems?.length ?? 0) > 0 && (
                       <div>
                         <span className="text-muted-foreground font-semibold block text-[11px] mb-1">
                           Các hạng mục tiêu chuẩn cần kiểm tra:
                         </span>
                         <div className="flex flex-wrap gap-1">
-                          {selectedSchedule.checklist.split(",").map((chk, idx) => (
+                          {selectedSchedule.checklistItems!.map((chk, idx) => (
                             <span
                               key={idx}
                               className="px-2 py-0.5 rounded-md bg-background border border-border/70 text-[11px] text-foreground"
                             >
-                              ✓ {chk.trim()}
+                              ✓ {chk}
                             </span>
                           ))}
                         </div>
@@ -1716,8 +1814,7 @@ export function MaintenanceSchedules() {
                   ) : (
                     <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
                       {inspectionLogs.map((log) => {
-                        const isPassed = log.status === "PASSED";
-                        const isDefect = log.status === "DEFECT_FOUND";
+                        const statusMeta = INSPECTION_STATUS_META[log.status];
                         return (
                           <div
                             key={log.id}
@@ -1725,21 +1822,8 @@ export function MaintenanceSchedules() {
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex items-center gap-2">
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    isPassed
-                                      ? "bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold"
-                                      : isDefect
-                                      ? "bg-rose-50 text-rose-700 border-rose-300 font-semibold"
-                                      : "bg-amber-50 text-amber-700 border-amber-300 font-semibold"
-                                  }
-                                >
-                                  {isPassed
-                                    ? "✓ ĐẠT CHUẨN"
-                                    : isDefect
-                                    ? "⚠️ PHÁT HIỆN LỖI"
-                                    : "🔧 CẦN BẢO TRÌ"}
+                                <Badge variant="outline" className={`font-semibold ${statusMeta?.cls ?? ""}`}>
+                                  {statusMeta?.label ?? log.status}
                                 </Badge>
                                 <span className="font-semibold text-foreground">
                                   {log.technicianName ?? (log.technicianId ? `KTV #${log.technicianId}` : "KTV Kiosk")}
@@ -1756,9 +1840,11 @@ export function MaintenanceSchedules() {
                               </p>
                             )}
 
+                            <InspectionChecklistResults raw={log.checklistResults} />
+
                             {log.createdReportId && (
                               <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] flex items-center justify-between">
-                                <span>Đã tự động khởi tạo phiếu sự cố khẩn: <strong>#{log.createdReportId}</strong></span>
+                                <span>Đã tự động mở phiếu sự cố: <strong>#{log.createdReportId}</strong></span>
                               </div>
                             )}
 
@@ -1829,6 +1915,12 @@ export function MaintenanceSchedules() {
                         setSelectedSchedule(null);
                         openInspectionModal(target);
                       }}
+                      disabled={selectedSchedule.pendingReportId != null}
+                      title={
+                        selectedSchedule.pendingReportId != null
+                          ? `Lần kiểm tra trước chưa đạt — hoàn tất phiếu #${selectedSchedule.pendingReportId} trước`
+                          : undefined
+                      }
                     >
                       <Check className="w-3.5 h-3.5 mr-1" /> Nghiệm thu kiểm tra
                     </Button>

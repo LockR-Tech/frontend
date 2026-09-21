@@ -67,6 +67,9 @@ export interface FaultCellResponse {
   openReportId: number | null;
 }
 
+/** Nhóm tài sản của phiếu — backend suy từ nguồn báo (ô, drone, bãi đáp, cả tủ). */
+export type ReportCategory = 'BOX' | 'DRONE' | 'LANDING_PAD' | 'LOCKER';
+
 export interface LockerReportResponse {
   id: number;
   lockerId: number;
@@ -74,6 +77,7 @@ export interface LockerReportResponse {
   userId: number;
   title: string;
   description: string;
+  /** Nguồn sự thật duy nhất cùng `assignedToUserId` — không suy KTV từ tên/người báo nữa. */
   status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | string;
   assignedToUserId: number | null;
   assignedAt: string | null;
@@ -97,6 +101,33 @@ export interface LockerReportResponse {
   reporterPhone: string | null;
   /** Ảnh theo stage (REPORT/INSPECTION/PROGRESS/RESOLUTION) — backend cũ có thể chưa trả. */
   attachments?: ReportAttachmentResponse[];
+  // Các trường luồng KTV tủ — backend cũ chưa trả (undefined), khác với null
+  category?: ReportCategory | string | null;
+  /** Phiếu đưa cả tủ vào MAINTENANCE; đóng phiếu chặn cuối cùng thì tủ tự mở lại. */
+  blocksLocker?: boolean | null;
+  /** Phiếu OPEN đang chờ KTV này nhận (KTV phụ trách tủ); null = đã báo mọi KTV tủ. */
+  routedToUserId?: number | null;
+  /** Phiếu tự sinh từ lần kiểm tra định kỳ KHÔNG ĐẠT của lịch này. */
+  scheduleId?: number | null;
+}
+
+/** Tủ ở góc nhìn nhân sự (`/api/admin/lockers/**`) — kèm KTV phụ trách. */
+export interface StaffLockerResponse {
+  id: number;
+  storeId: number | null;
+  code: string;
+  name: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'DISCONNECTED' | string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  landingPad: boolean | null;
+  landingMarkerId: string | null;
+  totalBoxes: number | null;
+  /** = 0 khi tủ MAINTENANCE/INACTIVE (tủ không nhận đơn). */
+  availableBoxes: number | null;
+  assignedTechnicianId: number | null;
+  assignedTechnicianName: string | null;
 }
 
 export interface ExtendSlaRequest {
@@ -173,16 +204,37 @@ export interface MaintenanceScheduleResponse {
   address?: string | null;
   locationNote?: string | null;
   scheduledTimeSlot?: string | null;
+  /** Server tách `checklist` theo dòng hoặc ';' — dùng mảng này, không tự tách chuỗi. */
+  checklistItems?: string[];
+  lastResult?: "PASSED" | "FAILED" | null;
+  /** Lần kiểm tra KHÔNG ĐẠT đang chờ phiếu này; hạn kế tiếp chỉ dời khi phiếu được hoàn tất. */
+  pendingReportId?: number | null;
+}
+
+export type InspectionItemVerdict = "PASS" | "FAIL" | "NA";
+
+/** Kết quả một mục checklist khi hoàn tất lần kiểm tra. */
+export interface InspectionItemResult {
+  label: string;
+  result: InspectionItemVerdict;
+  note?: string | null;
 }
 
 export interface CompleteScheduleRequest {
+  /** Có `items` ⇒ phải đủ đúng `checklistItems` của lịch; server tự suy ĐẠT/KHÔNG ĐẠT. */
+  items?: InspectionItemResult[];
+  /** Admin ghi biên bản hộ KTV; bỏ trống ⇒ server ghi tài khoản đang đăng nhập. */
   technicianId?: number;
   technicianName?: string;
+  /** Chỉ dùng khi không gửi `items` (lịch không có checklist): PASSED | FAILED. */
   status?: "PASSED" | "ATTENTION" | "DEFECT_DETECTED" | "FAILED" | string;
   note?: string;
   photoUrls?: string[];
+  /** @deprecated server tự ghi kết quả từ `items`. */
   checklistResults?: string;
+  /** @deprecated server bỏ qua — KHÔNG ĐẠT luôn mở phiếu. */
   autoCreateReport?: boolean;
+  /** Ô hỏng (thuộc tủ của lịch) khi KHÔNG ĐẠT — ô chuyển FAULT. */
   faultBoxId?: number;
   faultReason?: string;
 }
@@ -197,9 +249,11 @@ export interface MaintenanceInspectionLogResponse {
   droneCode?: string | null;
   technicianId?: number | null;
   technicianName?: string | null;
+  /** Bản ghi mới: PASSED/FAILED; ATTENTION/DEFECT_DETECTED chỉ còn ở dữ liệu cũ. */
   status: "PASSED" | "ATTENTION" | "DEFECT_DETECTED" | "FAILED" | string;
   note?: string | null;
   photoUrls?: string[];
+  /** Bản ghi mới: JSON `InspectionItemResult[]`; dữ liệu cũ: văn bản tự do. */
   checklistResults?: string | null;
   createdReportId?: number | null;
   createdAt: string;
@@ -246,6 +300,26 @@ export const lockerOpsApi = baseApi.injectEndpoints({
     getLockerLayout: builder.query<ApiResponse<LockerLayoutResponse>, number>({
       query: (lockerId) => `/api/lockers/${lockerId}/layout`,
       providesTags: (_r, _e, id) => [{ type: TAG, id }, TAG],
+    }),
+
+    // Tủ góc nhìn admin — có KTV phụ trách (API công khai /api/lockers/{id} để null)
+    getStaffLocker: builder.query<ApiResponse<StaffLockerResponse>, number>({
+      query: (lockerId) => `/api/admin/lockers/${lockerId}`,
+      providesTags: (_r, _e, id) => [{ type: TAG, id }],
+    }),
+
+    // technicianId = null ⇒ bỏ gán, phiếu mới của tủ báo mọi KTV tủ
+    assignLockerTechnician: builder.mutation<
+      ApiResponse<StaffLockerResponse>,
+      { lockerId: number; technicianId: number | null }
+    >({
+      query: ({ lockerId, technicianId }) => ({
+        url: `/api/admin/lockers/${lockerId}/technician`,
+        method: 'PUT',
+        body: { technicianId },
+      }),
+      // Phiếu OPEN chưa ai nhận của tủ được định tuyến lại ⇒ danh sách phiếu (tag chung) cũng đổi
+      invalidatesTags: [TAG],
     }),
 
     getFaultCells: builder.query<ApiResponse<FaultCellResponse[]>, void>({
@@ -469,7 +543,11 @@ export const lockerOpsApi = baseApi.injectEndpoints({
           body,
         };
       },
-      invalidatesTags: [{ type: TAG, id: 'schedules' }, { type: TAG, id: 'inspection-logs' }],
+      // KHÔNG ĐẠT ⇒ server mở phiếu (và có thể đưa ô sang FAULT) ⇒ làm mới cả phiếu + sơ đồ tủ
+      invalidatesTags: (result) =>
+        result?.data?.lastResult === 'FAILED'
+          ? [TAG]
+          : [{ type: TAG, id: 'schedules' }, { type: TAG, id: 'inspection-logs' }],
     }),
 
     getScheduleInspectionLogs: builder.query<
@@ -576,6 +654,18 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    // Admin gửi thông báo (in-app + push) cho một người dùng — dùng cho cảnh cáo SLA KTV.
+    sendUserNotification: builder.mutation<
+      ApiResponse<unknown>,
+      { userId: number; title: string; message: string; type?: string }
+    >({
+      query: ({ userId, title, message, type }) => ({
+        url: '/api/admin/notifications/send',
+        method: 'POST',
+        body: { userId, title, message, type: type ?? 'SYSTEM', referenceType: 'TECHNICIAN', referenceId: userId },
+      }),
+    }),
+
     // Get individual technician performance, SLA breaches, and customer ratings
     getTechnicianPerformance: builder.query<
       ApiResponse<TechnicianPerformanceResponse>,
@@ -590,6 +680,8 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 export const {
   useGetLockerStatsQuery,
   useGetLockerLayoutQuery,
+  useGetStaffLockerQuery,
+  useAssignLockerTechnicianMutation,
   useGetFaultCellsQuery,
   useGetMaintenanceReportsQuery,
   useClaimReportMutation,
@@ -623,4 +715,5 @@ export const {
   useUnassignReportMutation,
   useExtendReportSlaMutation,
   useGetTechnicianPerformanceQuery,
+  useSendUserNotificationMutation,
 } = lockerOpsApi;

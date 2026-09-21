@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Plus,
   MoreHorizontal,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -53,8 +54,26 @@ import {
   useReturnBoxToServiceMutation,
   useForceOpenBoxMutation,
   useAddBoxMutation,
+  useGetStaffLockerQuery,
+  useAssignLockerTechnicianMutation,
+  useGetAllAdminReportsQuery,
   type CellResponse,
 } from "~/stores/apis/admin/lockerOps";
+import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
+import { extractList } from "~/lib/extract-list";
+
+// Nhãn trạng thái tủ — cùng câu chữ với admin.lockers.status (messages/vi.json)
+const LOCKER_STATUS_STYLE: Record<string, { label: string; cls: string }> = {
+  ACTIVE: { label: "Hoạt động", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
+  INACTIVE: { label: "Vô hiệu", cls: "bg-secondary border-border text-muted-foreground" },
+  MAINTENANCE: { label: "Bảo trì", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
+  DISCONNECTED: { label: "Mất kết nối", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
+};
+
+// Tủ MAINTENANCE/INACTIVE bị server từ chối đặt ô (LOCKER_NOT_ACTIVE)
+const SUSPENDED_LOCKER_STATUSES = ["MAINTENANCE", "INACTIVE"];
+
+const NO_TECHNICIAN = "NONE";
 
 const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
   AVAILABLE: { label: "Trống", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
@@ -349,6 +368,81 @@ export default function LockerLayoutPage() {
   const [addBox, { isLoading: isAddingBox }] = useAddBoxMutation();
   const [pendingBox, setPendingBox] = useState<number | null>(null);
 
+  // KTV phụ trách tủ: phiếu mới của tủ chỉ gửi cho người này; chưa gán ⇒ báo mọi KTV tủ
+  const { data: staffLockerData } = useGetStaffLockerQuery(id, { skip: !Number.isFinite(id) });
+  const staffLocker = staffLockerData?.data;
+  const [assignLockerTechnician, { isLoading: savingTechnician }] = useAssignLockerTechnicianMutation();
+  const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
+  const lockerTechnicians = useMemo(
+    () =>
+      extractList<any>(usersData?.data)
+        .filter((u) => {
+          const roles: string[] = u.roles ?? [];
+          return roles.includes("LOCKER_TECHNICIAN") || roles.includes("ROLE_LOCKER_TECHNICIAN");
+        })
+        .map((u) => ({
+          id: u.id as number,
+          name: (u.fullName || u.name || `KTV #${u.id}`) as string,
+          phone: (u.phoneNumber || "") as string,
+          active: u.enabled !== false,
+        })),
+    [usersData],
+  );
+  const assignedTechId = staffLocker?.assignedTechnicianId ?? null;
+  const assignedTechName =
+    staffLocker?.assignedTechnicianName ??
+    lockerTechnicians.find((t) => t.id === assignedTechId)?.name ??
+    (assignedTechId != null ? `KTV #${assignedTechId}` : null);
+  const currentTechValue = assignedTechId != null ? String(assignedTechId) : NO_TECHNICIAN;
+  // null = chưa chỉnh ⇒ bám theo giá trị server
+  const [techChoice, setTechChoice] = useState<string | null>(null);
+  const selectedTechValue = techChoice ?? currentTechValue;
+
+  const handleSaveTechnician = async () => {
+    const technicianId = selectedTechValue === NO_TECHNICIAN ? null : Number(selectedTechValue);
+    try {
+      const res = await assignLockerTechnician({ lockerId: id, technicianId }).unwrap();
+      setTechChoice(null);
+      if (technicianId == null) {
+        toast.success("Đã bỏ KTV phụ trách tủ", {
+          description: "Phiếu sự cố mới của tủ sẽ báo cho mọi KTV tủ.",
+        });
+      } else {
+        const name =
+          res.data?.assignedTechnicianName ??
+          lockerTechnicians.find((t) => t.id === technicianId)?.name ??
+          `KTV #${technicianId}`;
+        toast.success(`Đã giao tủ cho ${name}`, {
+          description: "KTV đã được thông báo. Phiếu mới và phiếu đang chờ nhận của tủ chuyển cho KTV này.",
+        });
+      }
+    } catch (err: any) {
+      toast.error("Không lưu được KTV phụ trách", {
+        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      });
+    }
+  };
+
+  // Phiếu báo hỏng của admin không có người nhận ⇒ server định tuyến theo KTV phụ trách tủ
+  const faultRoutingText = !staffLocker
+    ? "Phiếu được định tuyến theo KTV phụ trách tủ."
+    : assignedTechId != null
+      ? `Phiếu gửi tới KTV phụ trách tủ: ${assignedTechName}.`
+      : "Tủ chưa có KTV phụ trách — phiếu được báo cho mọi KTV tủ.";
+
+  // Phiếu đang chặn cả tủ (chỉ cần khi tủ đang bảo trì)
+  const lockerStatus = data?.data?.status ?? staffLocker?.status ?? "";
+  const { data: reportsData } = useGetAllAdminReportsQuery(undefined, {
+    skip: lockerStatus !== "MAINTENANCE",
+  });
+  const blockingReports = useMemo(
+    () =>
+      (reportsData?.data ?? []).filter(
+        (r) => r.lockerId === id && r.blocksLocker && r.status !== "RESOLVED",
+      ),
+    [reportsData, id],
+  );
+
   // Modal State for Adding a Box
   const [showAddModal, setShowAddModal] = useState(false);
   const [newBoxNumber, setNewBoxNumber] = useState<number | "">("");
@@ -435,7 +529,7 @@ export default function LockerLayoutPage() {
           cell,
           type,
           title: `Báo hỏng ô #${cell.boxNumber}`,
-          description: `Đổi trạng thái ô sang HỎNG và tự động tạo Phiếu sự cố kỹ thuật để kỹ thuật viên tiếp nhận xử lý.`,
+          description: `Đổi trạng thái ô sang HỎNG và mở phiếu sự cố (ô đã có phiếu đang mở thì gộp vào phiếu đó). ${faultRoutingText}`,
           reason: "Khóa kẹt / không phản hồi",
           requireReason: true,
           confirmLabel: "Xác nhận báo hỏng",
@@ -484,7 +578,7 @@ export default function LockerLayoutPage() {
           cell,
           type,
           title: `Xác nhận ô #${cell.boxNumber} đã hoạt động lại?`,
-          description: `Xóa trạng thái sự cố phần cứng và đưa ô tủ trở lại hoạt động bình thường.`,
+          description: `Đóng phiếu sự cố đang mở của ô (nếu có) và trả ô về trạng thái trước khi hỏng — ô còn hàng sẽ về "Có đồ".`,
           reason: "",
           confirmLabel: "Khôi phục ô tủ",
           variant: "default",
@@ -509,7 +603,7 @@ export default function LockerLayoutPage() {
         }
       } else if (type === "FAULT") {
         await reportFault({ boxId: cell.id, reason: reason.trim() || "Khóa kẹt / không phản hồi" }).unwrap();
-        toast.success(`Đã báo hỏng ô #${cell.boxNumber} và tạo phiếu bảo trì.`);
+        toast.success(`Đã báo hỏng ô #${cell.boxNumber}`, { description: faultRoutingText });
       } else if (type === "OUT_OF_SERVICE") {
         await outOfService({ boxId: cell.id, reason: reason.trim() || undefined }).unwrap();
         toast.success(`Đã chuyển ô #${cell.boxNumber} sang trạng thái Tạm ngưng.`);
@@ -520,8 +614,12 @@ export default function LockerLayoutPage() {
         await returnToService(cell.id).unwrap();
         toast.success(`Ô #${cell.boxNumber} đã hoạt động sẵn sàng trở lại.`);
       } else if (type === "CLEAR_FAULT") {
-        await clearFault(cell.id).unwrap();
-        toast.success(`Ô #${cell.boxNumber} đã được xóa hỏng và hoạt động trở lại.`);
+        // Server đóng phiếu mở của ô (nếu có) và trả ô về trạng thái trước khi hỏng
+        const res = await clearFault(cell.id).unwrap();
+        const nextStatus = res.data?.status;
+        toast.success(`Đã khôi phục ô #${cell.boxNumber}`, {
+          description: `${nextStatus ? `Trạng thái hiện tại: ${STATUS_STYLE[nextStatus]?.label ?? nextStatus}. ` : ""}Phiếu sự cố đang mở của ô (nếu có) đã được đóng.`,
+        });
       }
     } catch (err: any) {
       toast.error(err?.data?.message || err?.message || "Thao tác không thành công");
@@ -557,7 +655,9 @@ export default function LockerLayoutPage() {
               {layout.name} <span className="text-muted-foreground">({layout.code})</span>
             </h1>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline">{layout.status}</Badge>
+              <Badge variant="outline" className={LOCKER_STATUS_STYLE[lockerStatus]?.cls}>
+                {LOCKER_STATUS_STYLE[lockerStatus]?.label ?? (lockerStatus || "—")}
+              </Badge>
               {layout.landingPad && (
                 <Badge className="bg-violet-100 text-violet-800 border-violet-300">
                   <Plane className="w-3 h-3 mr-1" />
@@ -576,6 +676,76 @@ export default function LockerLayoutPage() {
           </Button>
         </div>
       </div>
+
+      {SUSPENDED_LOCKER_STATUSES.includes(lockerStatus) && (
+        <div className="p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 flex items-start gap-3">
+          <Ban className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 text-xs">
+            <p className="font-semibold text-sm text-amber-900 dark:text-amber-200">
+              Tủ đang tạm ngưng nhận đơn ({LOCKER_STATUS_STYLE[lockerStatus]?.label ?? lockerStatus})
+            </p>
+            <p className="text-amber-800 dark:text-amber-300">
+              Khách không đặt được ô mới tại tủ này cho đến khi tủ hoạt động trở lại.
+            </p>
+            {blockingReports.length > 0 && (
+              <p className="text-amber-800 dark:text-amber-300">
+                {`Đang bị chặn bởi phiếu sự cố ${blockingReports.map((r) => `#${r.id}`).join(", ")} — tủ tự hoạt động lại khi phiếu chặn cuối cùng được hoàn tất.`}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      <Card className="border border-border/80 shadow-xs">
+        <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-200/60 flex items-center justify-center text-indigo-600 shrink-0">
+              <UserCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">KTV phụ trách</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {assignedTechId != null ? (
+                  <>
+                    Phiếu sự cố mới của tủ gửi riêng cho{" "}
+                    <span className="font-semibold text-foreground">{assignedTechName}</span>.
+                  </>
+                ) : (
+                  "Chưa phân công — phiếu sự cố mới của tủ được báo cho mọi KTV tủ."
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={selectedTechValue} onValueChange={setTechChoice} disabled={!staffLocker || savingTechnician}>
+              <SelectTrigger className="w-full md:w-72 h-9 text-xs">
+                <SelectValue placeholder="Chọn KTV phụ trách" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_TECHNICIAN}>Chưa phân công (báo tất cả KTV tủ)</SelectItem>
+                {/* KTV đang gán có thể không nằm trong danh sách (VD tài khoản ADMIN) */}
+                {assignedTechId != null && !lockerTechnicians.some((t) => t.id === assignedTechId) && (
+                  <SelectItem value={currentTechValue}>{assignedTechName}</SelectItem>
+                )}
+                {lockerTechnicians.map((t) => (
+                  <SelectItem key={t.id} value={String(t.id)} disabled={!t.active}>
+                    {t.name} (#{t.id}){t.phone ? ` · ${t.phone}` : ""}
+                    {!t.active ? " · Đã khóa" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              className="h-9"
+              onClick={handleSaveTechnician}
+              disabled={!staffLocker || savingTechnician || selectedTechValue === currentTechValue}
+            >
+              {savingTechnician ? "Đang lưu..." : "Lưu"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

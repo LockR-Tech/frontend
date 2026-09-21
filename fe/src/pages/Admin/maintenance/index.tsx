@@ -250,28 +250,10 @@ export default function MaintenanceAdminPage() {
     return map;
   }, [technicians]);
 
-  // Kiosk Stats — chỉ tính trên phiếu Kiosk (không drone)
-  const openReports = kioskReportList.filter((r) => {
-    const isTech = Boolean(
-      !r.assignedToUserId &&
-      ((r.userId && techniciansMap[r.userId]) ||
-      r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-      r.reporterName?.toLowerCase().includes("ktv") ||
-      r.reporterName?.toLowerCase().includes("technician"))
-    );
-    return r.status === "OPEN" && !isTech;
-  }).length;
-
-  const inProgressReports = kioskReportList.filter((r) => {
-    const isTech = Boolean(
-      !r.assignedToUserId &&
-      ((r.userId && techniciansMap[r.userId]) ||
-      r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-      r.reporterName?.toLowerCase().includes("ktv") ||
-      r.reporterName?.toLowerCase().includes("technician"))
-    );
-    return r.status === "IN_PROGRESS" || (r.status === "OPEN" && isTech);
-  }).length;
+  // Kiosk Stats — chỉ tính trên phiếu Kiosk (không drone). `status` là nguồn sự thật:
+  // KTV tự báo đã được server giao luôn (IN_PROGRESS), không đoán theo tên người báo.
+  const openReports = kioskReportList.filter((r) => r.status === "OPEN").length;
+  const inProgressReports = kioskReportList.filter((r) => r.status === "IN_PROGRESS").length;
   const resolvedReports = kioskReportList.filter((r) => r.status === "RESOLVED").length;
   const overdueReports = kioskReportList.filter((r) => r.overdue).length;
 
@@ -397,26 +379,26 @@ export default function MaintenanceAdminPage() {
 
   const filteredReports = useMemo(() => {
     return kioskReportList.filter((r) => {
-      const isTech = Boolean(
-        !r.assignedToUserId &&
-        ((r.userId && techniciansMap[r.userId]) ||
-        r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-        r.reporterName?.toLowerCase().includes("ktv") ||
-        r.reporterName?.toLowerCase().includes("technician"))
-      );
-      const effectiveStatus = r.status === "OPEN" && isTech ? "IN_PROGRESS" : r.status;
-      const effectiveTechId = r.assignedToUserId ?? (isTech ? r.userId : undefined);
-
       if (reportFilter === "OVERDUE") {
         if (!r.overdue) return false;
-      } else if (reportFilter !== "ALL" && effectiveStatus !== reportFilter) {
+      } else if (reportFilter !== "ALL" && r.status !== reportFilter) {
         return false;
       }
-      if (selectedTechFilter === "UNASSIGNED") return !effectiveTechId;
-      if (selectedTechFilter !== "ALL") return String(effectiveTechId) === selectedTechFilter;
+      if (selectedTechFilter === "UNASSIGNED") return !r.assignedToUserId;
+      if (selectedTechFilter !== "ALL") return String(r.assignedToUserId) === selectedTechFilter;
       return true;
     });
-  }, [kioskReportList, reportFilter, selectedTechFilter, techniciansMap]);
+  }, [kioskReportList, reportFilter, selectedTechFilter]);
+
+  // Phiếu OPEN chưa ai nhận: chờ KTV phụ trách tủ (routedToUserId) hoặc đã báo mọi KTV tủ (null).
+  // undefined = backend cũ chưa trả trường định tuyến.
+  const routingLabel = (r: LockerReportResponse): string => {
+    if (r.routedToUserId === undefined) return "Chưa phân công";
+    // Phiếu tạo trước khi có định tuyến cũng không có routedToUserId ⇒ ghi trung tính.
+    if (r.routedToUserId === null) return "Chờ KTV tủ nhận";
+    const name = techniciansMap[r.routedToUserId]?.fullName ?? userNames[r.routedToUserId] ?? `KTV #${r.routedToUserId}`;
+    return `Đang chờ ${name} nhận`;
+  };
 
   const refetchAll = () => {
     faults.refetch();
@@ -513,7 +495,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-amber-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>{openReports > 0 ? `${openReports} phiếu chờ phân công` : "Đã tiếp nhận hết"}</span>
+                  <span>{openReports > 0 ? `${openReports} phiếu chờ KTV nhận` : "Đã tiếp nhận hết"}</span>
                 </div>
               </CardContent>
             </Card>
@@ -659,7 +641,7 @@ export default function MaintenanceAdminPage() {
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
                       </span>
                       <p className="text-xs font-medium text-amber-900 dark:text-amber-200">
-                        <span className="font-bold">{openCount} phiếu sự cố mới</span> đang chờ quản trị viên điều phối kỹ thuật viên tiếp nhận xử lý!
+                        <span className="font-bold">{openCount} phiếu sự cố mới</span> đang chờ KTV nhận — có thể phân công trực tiếp nếu cần gấp.
                       </p>
                     </div>
                     {reportFilter !== "OPEN" && (
@@ -681,15 +663,8 @@ export default function MaintenanceAdminPage() {
               ) : (
                 <div className="divide-y divide-border/60">
                   {filteredReports.map((r) => {
-                    const isTech = Boolean(
-                      !r.assignedToUserId &&
-                      ((r.userId && techniciansMap[r.userId]) ||
-                      r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-                      r.reporterName?.toLowerCase().includes("ktv") ||
-                      r.reporterName?.toLowerCase().includes("technician"))
-                    );
-                    const effStatus = r.status === "OPEN" && isTech ? "IN_PROGRESS" : r.status;
-                    const isNew = effStatus === "OPEN";
+                    const isNew = r.status === "OPEN";
+                    const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
 
                     return (
                       <div
@@ -715,12 +690,29 @@ export default function MaintenanceAdminPage() {
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                                 </span>
-                                MỚI MỞ · CẦN PHÂN CÔNG
+                                MỚI MỞ · CHỜ KTV NHẬN
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className={`text-xs ${REPORT_BADGE[effStatus] ?? ""}`}>
-                                {effStatus === "IN_PROGRESS" ? "Đang xử lý" : "Đã hoàn tất"}
-                                {isTech && !r.assignedToUserId ? " (KTV tự báo)" : ""}
+                              <Badge variant="outline" className={`text-xs ${REPORT_BADGE[r.status] ?? ""}`}>
+                                {r.status === "IN_PROGRESS" ? "Đang xử lý" : r.status === "RESOLVED" ? "Đã hoàn tất" : r.status}
+                              </Badge>
+                            )}
+                            {r.blocksLocker && r.status !== "RESOLVED" && (
+                              <Badge
+                                variant="outline"
+                                className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs"
+                                title="Phiếu đưa cả tủ vào bảo trì; tủ tự mở lại khi phiếu chặn cuối cùng được hoàn tất"
+                              >
+                                Ngưng cả tủ
+                              </Badge>
+                            )}
+                            {r.scheduleId != null && (
+                              <Badge
+                                variant="outline"
+                                className="bg-sky-50 text-sky-800 border-sky-300 font-medium text-xs"
+                                title={`Tự mở từ lần kiểm tra định kỳ KHÔNG ĐẠT (lịch #${r.scheduleId})`}
+                              >
+                                Từ kiểm tra định kỳ
                               </Badge>
                             )}
                             {isReportOverdue(r, slaExtensions[r.id]) && (
@@ -734,52 +726,29 @@ export default function MaintenanceAdminPage() {
                               slaHours={r.slaHours ?? 4}
                               status={r.status}
                             />
-                          {/* Technician badge */}
-                          {(() => {
-                            const isTech = Boolean(
-                              !r.assignedToUserId &&
-                              ((r.userId && techniciansMap[r.userId]) ||
-                              r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-                              r.reporterName?.toLowerCase().includes("ktv") ||
-                              r.reporterName?.toLowerCase().includes("technician"))
-                            );
-                            const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
-                            const reporterTech = r.userId ? techniciansMap[r.userId] : undefined;
-                            const effectiveTech = assignedTech || (isTech ? (reporterTech || { id: r.userId, fullName: r.reporterName, phoneNumber: r.reporterPhone }) : undefined);
-
-                            if (effectiveTech) {
-                              return (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (effectiveTech.id) {
-                                      navigate(`/admin/maintenance/technicians/${effectiveTech.id}`);
-                                    }
-                                  }}
-                                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200 transition-colors cursor-pointer"
-                                  title="Xem chi tiết hồ sơ & hoạt động của KTV này"
-                                >
-                                  <UserCheck className="w-3 h-3 text-indigo-700" />
-                                  <span>KTV: {effectiveTech.fullName || `#${effectiveTech.id}`}</span>
-                                  {isTech && !r.assignedToUserId && (
-                                    <span className="text-[10px] text-indigo-600 font-normal">
-                                      (Người báo)
-                                    </span>
-                                  )}
-                                  {effectiveTech.phoneNumber && (
-                                    <span className="text-[10px] text-indigo-600 font-mono">
-                                      ({effectiveTech.phoneNumber})
-                                    </span>
-                                  )}
-                                </button>
-                              );
-                            }
-                            return (
-                              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs font-semibold">
-                                Chưa phân công
-                              </Badge>
-                            );
-                          })()}
+                          {/* Technician badge — chỉ theo người được giao (assignedToUserId) */}
+                          {r.assignedToUserId ? (
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/admin/maintenance/technicians/${r.assignedToUserId}`)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200 transition-colors cursor-pointer"
+                              title="Xem chi tiết hồ sơ & hoạt động của KTV này"
+                            >
+                              <UserCheck className="w-3 h-3 text-indigo-700" />
+                              <span>
+                                KTV: {assignedTech?.fullName ?? userNames[r.assignedToUserId] ?? `#${r.assignedToUserId}`}
+                              </span>
+                              {assignedTech?.phoneNumber && (
+                                <span className="text-[10px] text-indigo-600 font-mono">
+                                  ({assignedTech.phoneNumber})
+                                </span>
+                              )}
+                            </button>
+                          ) : r.status === "OPEN" ? (
+                            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs font-semibold">
+                              {routingLabel(r)}
+                            </Badge>
+                          ) : null}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
                           <span className="text-foreground">{cleanDescription(r.description) || r.description}</span> · <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
@@ -803,52 +772,37 @@ export default function MaintenanceAdminPage() {
                         <ReportPhotoGroups report={r} variant="compact" userNames={userNames} />
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
-                        {(() => {
-                          const isTech = Boolean(
-                            !r.assignedToUserId &&
-                            ((r.userId && techniciansMap[r.userId]) ||
-                            r.reporterName?.toLowerCase().includes("kỹ thuật viên") ||
-                            r.reporterName?.toLowerCase().includes("ktv") ||
-                            r.reporterName?.toLowerCase().includes("technician"))
-                          );
-                          const techName = r.assignedToUserId
-                            ? techniciansMap[r.assignedToUserId]?.fullName
-                            : isTech
-                            ? (techniciansMap[r.userId]?.fullName || r.reporterName)
-                            : undefined;
+                        <RepairLogDialog
+                          reportId={r.id}
+                          title={`#${r.id} · ${r.title}`}
+                          technicianName={
+                            r.assignedToUserId
+                              ? assignedTech?.fullName ?? userNames[r.assignedToUserId]
+                              : undefined
+                          }
+                          report={r}
+                        />
 
-                          return (
-                            <>
-                              <RepairLogDialog
-                                reportId={r.id}
-                                title={`#${r.id} · ${r.title}`}
-                                technicianName={techName}
-                                report={r}
-                              />
+                        {r.status === "OPEN" && (
+                          <Button
+                            size="sm"
+                            className="h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-semibold hover:shadow-indigo-200"
+                            onClick={() => setAssigningReport(r)}
+                          >
+                            <Boxes className="w-3.5 h-3.5" /> Phân công KTV
+                          </Button>
+                        )}
 
-                              {r.status === "OPEN" && !isTech && (
-                                <Button
-                                  size="sm"
-                                  className="h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-semibold hover:shadow-indigo-200"
-                                  onClick={() => setAssigningReport(r)}
-                                >
-                                  <Boxes className="w-3.5 h-3.5" /> Phân công KTV
-                                </Button>
-                              )}
-
-                              {(r.status === "IN_PROGRESS" || (r.status === "OPEN" && isTech)) && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 text-xs gap-1 border-slate-300 text-slate-700 hover:bg-slate-50"
-                                  onClick={() => setAssigningReport(r)}
-                                >
-                                  <UserCheck className="w-3.5 h-3.5" /> Đổi KTV
-                                </Button>
-                              )}
-                            </>
-                          );
-                        })()}
+                        {r.status === "IN_PROGRESS" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs gap-1 border-slate-300 text-slate-700 hover:bg-slate-50"
+                            onClick={() => setAssigningReport(r)}
+                          >
+                            <UserCheck className="w-3.5 h-3.5" /> Đổi KTV
+                          </Button>
+                        )}
 
                         {r.status === "RESOLVED" && (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-800">
@@ -1250,7 +1204,11 @@ export default function MaintenanceAdminPage() {
                 title: `#${r.id} · ${r.title}`,
                 target: `${r.lockerName ?? `Kiosk #${r.lockerId}`}${r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}`,
                 completedAt: formatDateTime(r.resolvedAt ?? r.updatedAt ?? r.createdAt),
-                technician: r.assignedToUserId ? `Kỹ thuật viên #${r.assignedToUserId}` : (r.reporterName ?? "KTV Kiosk"),
+                // Người được giao phiếu, không có thì người đóng phiếu — không suy từ người báo
+                technician: (() => {
+                  const techId = r.assignedToUserId ?? r.resolvedByUserId;
+                  return techId ? userNames[techId] ?? `Kỹ thuật viên #${techId}` : "—";
+                })(),
                 badgeText: "Sự cố đã xử lý",
                 detailNote: r.description,
                 originalReport: r,
@@ -1268,9 +1226,12 @@ export default function MaintenanceAdminPage() {
                   ? `Drone: ${s.droneCode ?? "Thiết bị bay"} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`
                   : `Trạm: ${s.lockerName ?? "Kiosk"}${s.lockerCode ? ` (${s.lockerCode})` : ""} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`,
                 completedAt: formatDateTime(s.lastDoneAt),
-                technician: isDrone ? "Kỹ thuật viên Đội Drone" : "Kỹ thuật viên Kiosk",
+                technician: s.assignedTechnicianName ?? (isDrone ? "Kỹ thuật viên Đội Drone" : "Kỹ thuật viên Kiosk"),
                 badgeText: isDrone ? "Bảo trì Drone" : "Kiểm tra Kiosk",
-                detailNote: `Hoàn tất kỳ bảo dưỡng định kỳ (chu kỳ ${s.intervalDays} ngày).`,
+                detailNote:
+                  s.lastResult === "FAILED"
+                    ? `Lần kiểm tra gần nhất KHÔNG ĐẠT${s.pendingReportId ? ` — chờ phiếu #${s.pendingReportId} hoàn tất mới dời hạn` : ""}.`
+                    : `Hoàn tất kỳ bảo dưỡng định kỳ (chu kỳ ${s.intervalDays} ngày).`,
               });
             });
 

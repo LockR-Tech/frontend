@@ -24,6 +24,9 @@ export interface AdminLockerResponse {
   boxes: BoxInfo[];
   createdAt: string;
   updatedAt: string;
+  /** KTV tủ phụ trách — chỉ API admin/KTV trả; backend cũ chưa có. */
+  assignedTechnicianId?: number | null;
+  assignedTechnicianName?: string | null;
 }
 
 export interface CreateLockerRequest {
