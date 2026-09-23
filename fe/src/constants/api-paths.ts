@@ -129,6 +129,8 @@ export const ADMIN_ENDPOINTS = {
   WALLET_TRANSACTIONS: (userId: number) =>
     `${ROOT_URI.ADMIN}/wallet/${userId}/transactions`,
   WALLET_ADJUST: (userId: number) => `${ROOT_URI.ADMIN}/wallet/${userId}/adjust`,
+  WITHDRAWALS: `${ROOT_URI.ADMIN}/withdrawals`,
+  WITHDRAWAL_PROCESS: (id: number) => `${ROOT_URI.ADMIN}/withdrawals/${id}/process`,
 
   // Scheduler Management
   SCHEDULER_STATUS: `${ROOT_URI.ADMIN}/scheduler/status`,
