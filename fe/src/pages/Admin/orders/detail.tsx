@@ -119,6 +119,7 @@ function CustomerCard({ order }: { order: AdminOrder }) {
           <LabelValue label="Số điện thoại ghi trên đơn" mono>
             {receiver?.phone}
           </LabelValue>
+          <LabelValue label="Email ghi trên đơn">{receiver?.email}</LabelValue>
           {/* Thông tin tài khoản chỉ có khi người nhận đã có tài khoản Lock.R. */}
           <LabelValue label="Tài khoản người nhận">
             {receiver?.userId ? (
