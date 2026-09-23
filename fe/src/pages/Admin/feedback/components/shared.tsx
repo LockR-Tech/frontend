@@ -1,18 +1,10 @@
 import { Star, RotateCcw, AlertCircle } from "lucide-react";
+import { formatDateTime } from "~/lib/datetime";
 import { Badge } from "~/components/ui/badge";
 
+// Chuỗi backend không kèm múi giờ = UTC, phải qua formatDateTime mới ra giờ VN.
 export function fmtDate(d: string) {
-  const date = new Date(d);
-  if (isNaN(date.getTime())) return d;
-  return date.toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
+  return formatDateTime(d);
 }
 
 export function StarRow({ rating }: { rating: number }) {

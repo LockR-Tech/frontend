@@ -10,7 +10,11 @@ import {
   useDeleteNotificationMutation,
 } from "@/stores/apis/admin/notifications";
 import { useGetAllUsersQuery } from "@/stores/apis/admin/users";
-import type { AdminNotificationResponse } from "~/types/admin/notification";
+import type {
+  AdminNotificationResponse,
+  NotificationStatsResponse,
+} from "~/types/admin/notification";
+import { parseBackendDateTime } from "~/lib/datetime";
 import { extractList } from "~/lib/extract-list";
 
 export type NotificationStatusFilter = "ALL" | NotificationStatus;
@@ -74,18 +78,76 @@ export function useNotifications() {
     [data, userById],
   );
 
+  // `GET /api/admin/notifications` chỉ nhận `userId`, mọi tham số status/type/
+  // channel gửi lên đều bị bỏ qua — nên phải lọc tại client, nếu không ba bộ
+  // lọc trên giao diện không có tác dụng gì.
   const filteredNotifications = useMemo(() => {
-    if (!searchQuery) return allNotifications;
-    const query = searchQuery.toLowerCase();
-    return allNotifications.filter(
-      (n) =>
+    const query = searchQuery.trim().toLowerCase();
+    return allNotifications.filter((n) => {
+      if (statusFilter !== "ALL" && n.status !== statusFilter) return false;
+      if (typeFilter !== "ALL" && n.type !== typeFilter) return false;
+      if (channelFilter !== "ALL" && n.channel !== channelFilter) return false;
+      if (!query) return true;
+      return (
         n.title.toLowerCase().includes(query) ||
         (n.recipientName ?? "").toLowerCase().includes(query) ||
         n.message.toLowerCase().includes(query) ||
-        n.recipientEmail?.toLowerCase().includes(query) ||
-        String(n.id).includes(query),
-    );
-  }, [allNotifications, searchQuery]);
+        (n.recipientEmail ?? "").toLowerCase().includes(query) ||
+        String(n.id).includes(query)
+      );
+    });
+  }, [allNotifications, searchQuery, statusFilter, typeFilter, channelFilter]);
+
+  // `GET /api/admin/notifications` trả cả danh sách (không phân trang), nên
+  // thống kê tính được ngay tại client. Trước đây hook trả `stats: undefined`
+  // khiến toàn bộ thẻ số liệu hiện 0.
+  const stats: NotificationStatsResponse = useMemo(() => {
+    const byStatus = (s: NotificationStatus) =>
+      allNotifications.filter((n) => n.status === s).length;
+
+    const notificationsByType: Record<string, number> = {};
+    const notificationsByChannel: Record<string, number> = {};
+    let readTimeSum = 0;
+    let readTimeCount = 0;
+
+    for (const n of allNotifications) {
+      notificationsByType[n.type] = (notificationsByType[n.type] ?? 0) + 1;
+      if (n.channel) {
+        notificationsByChannel[n.channel] =
+          (notificationsByChannel[n.channel] ?? 0) + 1;
+      }
+      const created = parseBackendDateTime(n.createdAt);
+      const read = parseBackendDateTime(n.readAt ?? null);
+      if (created && read && read >= created) {
+        readTimeSum += (read.getTime() - created.getTime()) / 60000;
+        readTimeCount += 1;
+      }
+    }
+
+    const total = allNotifications.length;
+    const sent = allNotifications.filter((n) => n.sentAt).length;
+
+    return {
+      totalNotifications: total,
+      unreadCount: byStatus(NotificationStatus.UNREAD),
+      readCount: byStatus(NotificationStatus.READ),
+      archivedCount: byStatus(NotificationStatus.ARCHIVED),
+      notificationsByType,
+      notificationsByChannel,
+      deliveryRate: total > 0 ? sent / total : 0,
+      averageReadTime:
+        readTimeCount > 0 ? Math.round(readTimeSum / readTimeCount) : 0,
+    };
+  }, [allNotifications]);
+
+  // Backend không phân trang nên cắt trang ở client; trước đây `totalPages`
+  // cứng bằng 1 làm thanh phân trang vô dụng và số tổng chỉ đếm 1 trang.
+  const totalElements = filteredNotifications.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+  const pagedNotifications = useMemo(
+    () => filteredNotifications.slice(page * pageSize, (page + 1) * pageSize),
+    [filteredNotifications, page, pageSize],
+  );
 
   const clearFilters = () => {
     setStatusFilter("ALL");
@@ -106,12 +168,12 @@ export function useNotifications() {
   };
 
   return {
-    notifications: filteredNotifications,
-    totalElements: filteredNotifications.length,
-    totalPages: 1,
-    stats: undefined,
+    notifications: pagedNotifications,
+    totalElements,
+    totalPages,
+    stats,
     isLoading,
-    isLoadingStats: false,
+    isLoadingStats: isLoading,
     isDeleting,
     isBulkDeleting: false,
     isUpdatingStatus: false,

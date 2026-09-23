@@ -1,3 +1,4 @@
+import { formatDate } from "~/lib/datetime";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useTranslation } from "react-i18next";
 import {
@@ -211,8 +212,10 @@ export function PromotionTable({
       header: t("admin.promotions.columns.period"),
       cell: (info) => {
         const row = info.row.original;
-        const start = new Date(row.startDate).toLocaleDateString("vi-VN");
-        const end = new Date(row.endDate).toLocaleDateString("vi-VN");
+        // Chuỗi backend không kèm múi giờ = UTC; `new Date(...)` coi là giờ máy
+        // nên mốc quanh nửa đêm bị lệch hẳn một ngày.
+        const start = formatDate(row.startDate);
+        const end = formatDate(row.endDate);
         return (
           <div className="text-xs text-muted-foreground space-y-0.5">
             <p>{start}</p>

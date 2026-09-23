@@ -11,6 +11,7 @@ import {
   Search,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { formatDateTime } from "~/lib/datetime";
 import { cn } from "~/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "~/context/theme-context";
@@ -42,46 +43,50 @@ const themes = [
   { code: "system", icon: Monitor },
 ] as const;
 
-// Path mapping for breadcrumbs
-const pathMap: Record<string, string> = {
-  admin: "Admin",
-  partner: "Đối tác",
-  dashboard: "Dashboard",
-  users: "Người dùng",
-  orders: "Đơn hàng",
-  stores: "Địa điểm",
-  lockers: "Kiosk",
-  services: "Dịch vụ",
-  payments: "Thanh toán",
-  loyalty: "Khách hàng thân thiết",
-  partners: "Đối tác",
-  feedback: "Phản hồi",
-  settings: "Cài đặt",
-  scheduler: "Lập lịch",
-  staff: "Nhân viên",
-  revenue: "Doanh thu",
-  notifications: "Thông báo",
-  detail: "Chi tiết",
-  create: "Tạo mới",
-  edit: "Chỉnh sửa",
-  drones: "Drone",
-  maintenance: "Bảo trì thiết bị",
-  promotions: "Khuyến mãi",
-  knowledge: "Kho tri thức",
+// Breadcrumb: mỗi đoạn đường dẫn -> khoá dịch. Bản cũ hardcode tiếng Việt nên
+// đổi ngôn ngữ sang English/日本語 thì breadcrumb vẫn là tiếng Việt.
+const pathLabelKeys: Record<string, string> = {
+  admin: "admin.breadcrumb.admin",
+  partner: "admin.sidebar.partners",
+  dashboard: "admin.sidebar.dashboard",
+  users: "admin.sidebar.users",
+  orders: "admin.sidebar.orders",
+  stores: "admin.sidebar.stores",
+  lockers: "admin.sidebar.lockers",
+  services: "admin.sidebar.services",
+  payments: "admin.sidebar.payments",
+  loyalty: "admin.sidebar.loyalty",
+  partners: "admin.sidebar.partners",
+  feedback: "admin.sidebar.feedback",
+  settings: "admin.sidebar.settings",
+  scheduler: "admin.sidebar.scheduler",
+  staff: "admin.breadcrumb.staff",
+  revenue: "admin.sidebar.revenue",
+  notifications: "admin.sidebar.notifications",
+  detail: "admin.breadcrumb.detail",
+  create: "admin.breadcrumb.create",
+  edit: "admin.breadcrumb.edit",
+  drones: "admin.sidebar.drones",
+  maintenance: "admin.sidebar.maintenance",
+  promotions: "admin.sidebar.promotions",
+  knowledge: "admin.sidebar.knowledge",
 };
 
 const isNumeric = (str: string) => /^\d+$/.test(str);
 
 function Breadcrumb() {
   const location = useLocation();
+  const { t } = useTranslation();
   const paths = location.pathname.split("/").filter(Boolean);
 
   if (paths.length < 2) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-        <span>Admin</span>
+        <span>{t("admin.breadcrumb.admin")}</span>
         <ChevronRight size={13} className="text-muted-foreground/40" />
-        <span className="text-foreground font-semibold">Dashboard</span>
+        <span className="text-foreground font-semibold">
+          {t("admin.sidebar.dashboard")}
+        </span>
       </div>
     );
   }
@@ -90,9 +95,12 @@ function Breadcrumb() {
     const fullPath = "/" + paths.slice(0, index + 1).join("/");
     const isLast = index === paths.length - 1;
 
-    let label = pathMap[path] || path;
+    const labelKey = pathLabelKeys[path];
+    let label = labelKey ? t(labelKey) : path;
     // /admin/settings là trang quy tắc nghiệp vụ; /partner/settings vẫn là "Cài đặt".
-    if (paths[0] === "admin" && path === "settings") label = "Cấu hình nghiệp vụ";
+    if (paths[0] === "admin" && path === "settings") {
+      label = t("admin.sidebar.businessSettings");
+    }
     if (isNumeric(path) && path.length > 3) {
       label = `#${path.slice(0, 6)}${path.length > 6 ? "..." : ""}`;
     }
@@ -195,7 +203,7 @@ export function Header({ className }: HeaderProps) {
           {/* Quick Search trigger (visual hint) */}
           <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-md bg-secondary text-muted-foreground text-xs border border-border/50">
             <Search size={13} />
-            <span>Tìm kiếm...</span>
+            <span>{t("header.search")}</span>
             <kbd className="text-[10px] bg-card px-1.5 py-0.5 rounded border border-border font-mono text-foreground/70">
               ⌘K
             </kbd>
@@ -300,7 +308,7 @@ export function Header({ className }: HeaderProps) {
               <div className="max-h-72 overflow-y-auto divide-y divide-border/50">
                 {notifList.length === 0 ? (
                   <div className="py-6 text-center text-xs text-muted-foreground">
-                    Không có thông báo mới nào
+                    {t("header.noNotifications")}
                   </div>
                 ) : (
                   notifList.slice(0, 5).map((n) => (
@@ -311,12 +319,7 @@ export function Header({ className }: HeaderProps) {
                       <p className="text-xs font-semibold text-foreground truncate">{n.title}</p>
                       <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
                       <p className="text-[10px] text-muted-foreground/70 font-mono mt-1">
-                        {(() => {
-                          const d = new Date(n.createdAt);
-                          if (isNaN(d.getTime())) return n.createdAt;
-                          const pad = (v: number) => String(v).padStart(2, "0");
-                          return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-                        })()}
+                        {formatDateTime(n.createdAt)}
                       </p>
                     </div>
                   ))
@@ -327,7 +330,7 @@ export function Header({ className }: HeaderProps) {
                   to="/admin/notifications"
                   className="text-xs text-muted-foreground hover:text-foreground font-medium block py-1"
                 >
-                  Mở trung tâm thông báo &gt;
+                  {t("header.openNotificationCenter")}
                 </Link>
               </div>
             </DropdownMenuContent>

@@ -38,6 +38,11 @@ interface Props {
   onClose: () => void;
 }
 
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-600">{message}</p>;
+}
+
 const EMPTY_FORM = {
   email: "",
   password: "",
@@ -53,6 +58,7 @@ export function CreateUserModal({ open, onClose }: Props) {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [createUser, { isLoading }] = useCreateUserMutation();
 
   const set = (field: string, value: unknown) =>
@@ -69,8 +75,30 @@ export function CreateUserModal({ open, onClose }: Props) {
 
   const handleSubmit = async () => {
     setError(null);
-    if (!form.email || !form.firstName) {
-      setError("Email và Tên là bắt buộc.");
+    // Backend đã bắt buộc email + họ tên + số điện thoại; kiểm tra tại chỗ để
+    // báo ngay từng ô thay vì đợi lỗi từ server.
+    const nextFieldErrors: Record<string, string> = {};
+    if (!form.firstName.trim()) nextFieldErrors.firstName = "Bắt buộc";
+    if (!form.email.trim()) {
+      nextFieldErrors.email = "Bắt buộc";
+    } else if (!/^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$/.test(form.email.trim())) {
+      nextFieldErrors.email = "Email không hợp lệ";
+    }
+    if (!form.phoneNumber.trim()) {
+      nextFieldErrors.phoneNumber = "Bắt buộc";
+    } else if (!/^0\d{8,10}$/.test(form.phoneNumber.trim())) {
+      nextFieldErrors.phoneNumber = "Số điện thoại không hợp lệ";
+    }
+    // Không có mật khẩu thì auth-service sinh chuỗi ngẫu nhiên và người dùng
+    // không bao giờ đăng nhập được, nên bắt buộc luôn.
+    if (!form.password) {
+      nextFieldErrors.password = "Bắt buộc";
+    } else if (form.password.length < 6) {
+      nextFieldErrors.password = "Tối thiểu 6 ký tự";
+    }
+    setFieldErrors(nextFieldErrors);
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setError("Vui lòng điền đầy đủ các trường bắt buộc.");
       return;
     }
     // Omit empty optional fields so the backend stores NULL instead of "".
@@ -94,10 +122,14 @@ export function CreateUserModal({ open, onClose }: Props) {
     } catch (e: unknown) {
       const err = e as { status?: number; data?: { message?: string } };
       const msg = err?.data?.message ?? "";
-      let errorMsg = msg || t("admin.users.createFailed", "Tạo người dùng thất bại.");
-      if (err?.status === 409 || /unique|integrity|constraint|exist|tồn tại/i.test(msg)) {
-        errorMsg = "Email hoặc số điện thoại đã tồn tại. Vui lòng dùng giá trị khác.";
-      }
+      // Backend nay nói rõ trùng email hay trùng số điện thoại, nên hiển thị
+      // nguyên văn. Bản cũ gộp mọi lỗi ràng buộc thành "email hoặc sđt đã tồn
+      // tại", kể cả khi nguyên nhân là chuyện khác.
+      const errorMsg =
+        msg || t("admin.users.createFailed", "Tạo người dùng thất bại.");
+      if (/email/i.test(msg)) setFieldErrors({ email: errorMsg });
+      else if (/điện thoại|phone/i.test(msg))
+        setFieldErrors({ phoneNumber: errorMsg });
       setError(errorMsg);
       toast.error(errorMsg);
     }
@@ -107,6 +139,7 @@ export function CreateUserModal({ open, onClose }: Props) {
     if (isLoading) return;
     setForm({ ...EMPTY_FORM });
     setError(null);
+    setFieldErrors({});
     onClose();
   };
 
@@ -137,7 +170,9 @@ export function CreateUserModal({ open, onClose }: Props) {
                 placeholder="Tên"
                 value={form.firstName}
                 onChange={(e) => set("firstName", e.target.value)}
+                aria-invalid={!!fieldErrors.firstName}
               />
+              <FieldError message={fieldErrors.firstName} />
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
@@ -161,13 +196,15 @@ export function CreateUserModal({ open, onClose }: Props) {
               placeholder="email@example.com"
               value={form.email}
               onChange={(e) => set("email", e.target.value)}
+              aria-invalid={!!fieldErrors.email}
             />
+            <FieldError message={fieldErrors.email} />
           </div>
 
           {/* Password */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
-              Mật khẩu
+              Mật khẩu <span className="text-red-400">*</span>
             </label>
             <div className="relative">
               <Input
@@ -176,6 +213,7 @@ export function CreateUserModal({ open, onClose }: Props) {
                 value={form.password}
                 onChange={(e) => set("password", e.target.value)}
                 className="pr-10"
+                aria-invalid={!!fieldErrors.password}
               />
               <button
                 type="button"
@@ -185,18 +223,21 @@ export function CreateUserModal({ open, onClose }: Props) {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            <FieldError message={fieldErrors.password} />
           </div>
 
           {/* Phone */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
-              Số điện thoại
+              Số điện thoại <span className="text-red-400">*</span>
             </label>
             <Input
               placeholder="0901234567"
               value={form.phoneNumber}
               onChange={(e) => set("phoneNumber", e.target.value)}
+              aria-invalid={!!fieldErrors.phoneNumber}
             />
+            <FieldError message={fieldErrors.phoneNumber} />
           </div>
 
           {/* Roles */}

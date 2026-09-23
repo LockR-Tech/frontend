@@ -1,3 +1,4 @@
+import { formatDateTime } from "~/lib/datetime";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -27,9 +28,9 @@ function fmtCurrency(n?: number) {
     currency: "VND",
   });
 }
+// Chuỗi backend không kèm múi giờ = UTC, phải qua formatDateTime mới ra giờ VN.
 function fmtDate(d?: string) {
-  if (!d) return "—";
-  return new Date(d).toLocaleString("vi-VN");
+  return formatDateTime(d ?? null);
 }
 
 const TIER_META: Record<LoyaltyTier, { label: string; cls: string }> = {

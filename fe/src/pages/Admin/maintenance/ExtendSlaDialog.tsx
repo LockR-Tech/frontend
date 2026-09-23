@@ -138,7 +138,7 @@ export function ExtendSlaDialog({
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Hạn SLA ban đầu:</span>
               <span className="font-mono text-muted-foreground">
-                {report.slaDueAt ? formatDateTime(new Date(report.slaDueAt)) : "Mặc định (4 giờ)"}
+                {report.slaDueAt ? formatDateTime(report.slaDueAt) : "Mặc định (4 giờ)"}
               </span>
             </div>
             <div className="flex items-center justify-between pt-1 border-t border-border/50">

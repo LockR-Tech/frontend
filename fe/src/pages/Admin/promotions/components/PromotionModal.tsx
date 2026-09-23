@@ -1,3 +1,4 @@
+import { parseBackendDateTime } from "~/lib/datetime";
 import { useState, useEffect } from "react";
 import { Tag } from "lucide-react";
 import { toast } from "sonner";
@@ -35,9 +36,18 @@ interface PromotionModalProps {
   isSaving: boolean;
 }
 
+/// Backend trả chuỗi trần = UTC. Ô `datetime-local` lại hiểu giá trị là giờ
+/// máy, nên cắt thẳng chuỗi UTC vào đó sẽ hiện sớm 7 tiếng — và khi lưu lại,
+/// `new Date(...).toISOString()` đổi VN→UTC thêm lần nữa, làm mã lùi 7 tiếng
+/// sau **mỗi** lần sửa cho tới khi hết hiệu lực.
 const toDatetimeLocal = (iso?: string) => {
-  if (!iso) return "";
-  return iso.slice(0, 16); // "YYYY-MM-DDTHH:mm"
+  const date = parseBackendDateTime(iso ?? null);
+  if (!date) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
 };
 
 interface FormState {

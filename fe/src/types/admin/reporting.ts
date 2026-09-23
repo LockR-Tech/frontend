@@ -112,6 +112,8 @@ export interface AdminOrderReceiver {
   userId: number | null;
   name: string | null;
   phone: string | null;
+  /** Email người gửi ghi trên đơn (khác `accountEmail` của tài khoản Lock.R). */
+  email: string | null;
   accountFullName: string | null;
   accountPhoneNumber: string | null;
   accountEmail: string | null;

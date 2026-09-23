@@ -67,11 +67,14 @@
     "themeLight": "Sáng",
     "themeDark": "Tối",
     "themeSystem": "Hệ thống",
-    "notifications": "Thông báo"
+    "notifications": "Thông báo",
+    "search": "Tìm kiếm...",
+    "noNotifications": "Không có thông báo mới nào",
+    "openNotificationCenter": "Mở trung tâm thông báo >"
   },
   "table": {
     "rowsPerPage": "Số hàng/trang",
-    "of": "củ",
+    "of": "trên",
     "showing": "Hiển thị",
     "results": "kết quả"
   },
@@ -451,6 +454,13 @@
         "requiredDates": "Vui lòng chọn ngày bắt đầu và kết thúc",
         "invalidDates": "Ngày kết thúc phải sau ngày bắt đầu"
       }
+    },
+    "breadcrumb": {
+      "admin": "Quản trị",
+      "staff": "Nhân viên",
+      "detail": "Chi tiết",
+      "create": "Tạo mới",
+      "edit": "Chỉnh sửa"
     }
   },
   "partner": {
