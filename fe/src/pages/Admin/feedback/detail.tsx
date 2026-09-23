@@ -1,3 +1,4 @@
+import { formatDateTime } from "~/lib/datetime";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -27,14 +28,9 @@ import {
 } from "~/stores/apis/admin";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+// Chuỗi backend không kèm múi giờ = UTC, phải qua formatDateTime mới ra giờ VN.
 function fmtDate(d: string) {
-  return new Date(d).toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateTime(d);
 }
 
 function StarRow({ rating, size = 16 }: { rating: number; size?: number }) {

@@ -1,3 +1,4 @@
+import { formatDateTime } from "~/lib/datetime";
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -88,19 +89,8 @@ import {
   type DroneResponse,
 } from "~/stores/apis/admin/drones";
 
-const formatDateTime = (dateStr?: string | null) => {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const hh = pad(d.getHours());
-  const mm = pad(d.getMinutes());
-  const ss = pad(d.getSeconds());
-  const DD = pad(d.getDate());
-  const MM = pad(d.getMonth() + 1);
-  const YYYY = d.getFullYear();
-  return `${hh}:${mm}:${ss} ${DD}/${MM}/${YYYY}`;
-};
+// Bản cũ dựng Date từ chuỗi trần nên hiển thị giờ UTC; dùng formatDateTime
+// dùng chung (src/lib/datetime.ts) để ra đúng giờ VN.
 
 const REPORT_BADGE: Record<string, string> = {
   OPEN: "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 font-semibold",

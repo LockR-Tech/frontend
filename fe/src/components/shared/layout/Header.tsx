@@ -11,6 +11,7 @@ import {
   Search,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { formatDateTime } from "~/lib/datetime";
 import { cn } from "~/lib/utils";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "~/context/theme-context";
@@ -311,12 +312,7 @@ export function Header({ className }: HeaderProps) {
                       <p className="text-xs font-semibold text-foreground truncate">{n.title}</p>
                       <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
                       <p className="text-[10px] text-muted-foreground/70 font-mono mt-1">
-                        {(() => {
-                          const d = new Date(n.createdAt);
-                          if (isNaN(d.getTime())) return n.createdAt;
-                          const pad = (v: number) => String(v).padStart(2, "0");
-                          return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-                        })()}
+                        {formatDateTime(n.createdAt)}
                       </p>
                     </div>
                   ))
