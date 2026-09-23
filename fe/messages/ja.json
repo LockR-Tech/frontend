@@ -67,7 +67,10 @@
     "themeLight": "ライト",
     "themeDark": "ダーク",
     "themeSystem": "システム",
-    "notifications": "通知"
+    "notifications": "通知",
+    "search": "検索...",
+    "noNotifications": "新しい通知はありません",
+    "openNotificationCenter": "通知センターを開く >"
   },
   "table": {
     "rowsPerPage": "ページあたりの行数",
@@ -448,6 +451,13 @@
         "requiredDates": "開始日と終了日を選択してください",
         "invalidDates": "終了日は開始日より後でなければなりません"
       }
+    },
+    "breadcrumb": {
+      "admin": "管理",
+      "staff": "スタッフ",
+      "detail": "詳細",
+      "create": "新規作成",
+      "edit": "編集"
     }
   },
   "partner": {
