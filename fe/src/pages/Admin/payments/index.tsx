@@ -13,6 +13,7 @@ import { PaymentStats } from "./components/PaymentStats";
 import { PaymentDetailModal } from "./components/PaymentDetailModal";
 import { RefundTab } from "./components/RefundTab";
 import { WalletTransactionTab } from "./components/WalletTransactionTab";
+import { WithdrawalTab } from "./components/WithdrawalTab";
 import { usePayments } from "./hooks/usePayments";
 import { formatNumber } from "~/lib/report-format";
 
@@ -81,6 +82,9 @@ export default function PaymentsPage() {
               <TabsTrigger value="wallet" className="text-xs px-4">
                 Biến động ví
               </TabsTrigger>
+              <TabsTrigger value="withdrawals" className="text-xs px-4">
+                Yêu cầu rút tiền
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="payments" className="mt-0 space-y-4">
@@ -124,6 +128,10 @@ export default function PaymentsPage() {
 
             <TabsContent value="wallet" className="mt-0">
               <WalletTransactionTab />
+            </TabsContent>
+
+            <TabsContent value="withdrawals" className="mt-0">
+              <WithdrawalTab />
             </TabsContent>
           </Tabs>
         </CardContent>
