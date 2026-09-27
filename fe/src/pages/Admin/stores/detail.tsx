@@ -69,6 +69,8 @@ export default function StoreDetailPage() {
     closeTime: "",
     manager: "",
     managerPhone: "",
+    latitude: "",
+    longitude: "",
   });
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -124,6 +126,8 @@ export default function StoreDetailPage() {
         closeTime: store.closeTime || "",
         manager: store.manager || "",
         managerPhone: store.managerPhone || "",
+        latitude: store.latitude != null ? String(store.latitude) : "",
+        longitude: store.longitude != null ? String(store.longitude) : "",
       });
       setIsDirty(false);
       setImageOverride(undefined);
@@ -147,6 +151,8 @@ export default function StoreDetailPage() {
         closeTime: store.closeTime || "",
         manager: store.manager || "",
         managerPhone: store.managerPhone || "",
+        latitude: store.latitude != null ? String(store.latitude) : "",
+        longitude: store.longitude != null ? String(store.longitude) : "",
       });
       setIsDirty(false);
     }
@@ -156,9 +162,21 @@ export default function StoreDetailPage() {
     if (!storeId) return;
     setIsSaving(true);
     try {
-      await apiPut(`/api/admin/stores/${storeId}`, formData);
+      const lat = formData.latitude ? parseFloat(formData.latitude) : undefined;
+      const lng = formData.longitude ? parseFloat(formData.longitude) : undefined;
+      const payload = {
+        name: formData.name,
+        address: formData.address,
+        contactPhone: formData.phone,
+        description: store?.description,
+        latitude: !isNaN(lat!) ? lat : undefined,
+        longitude: !isNaN(lng!) ? lng : undefined,
+      };
+      await apiPut(`/api/admin/stores/${storeId}`, payload);
       setIsDirty(false);
       setShowConfirm(false);
+      refetch();
+      toast.success("Đã cập nhật thông tin địa điểm");
     } catch (error) {
       alert(
         "Lỗi khi lưu: " +
@@ -438,15 +456,35 @@ export default function StoreDetailPage() {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-4 pt-1 text-xs text-muted-foreground/70 font-mono border-t">
-              <span className="text-muted-foreground/70">Lat:</span>
-              <span className="text-muted-foreground font-semibold">
-                {store.latitude}
-              </span>
-              <span className="text-muted-foreground/70 ml-3">Lng:</span>
-              <span className="text-muted-foreground font-semibold">
-                {store.longitude}
-              </span>
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
+                  Vĩ độ (Latitude)
+                </label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={formData.latitude}
+                  onChange={(e) =>
+                    handleInputChange("latitude", e.target.value)
+                  }
+                  placeholder="VD: 10.8412"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
+                  Kinh độ (Longitude)
+                </label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={formData.longitude}
+                  onChange={(e) =>
+                    handleInputChange("longitude", e.target.value)
+                  }
+                  placeholder="VD: 106.8098"
+                />
+              </div>
             </div>
           </div>
         </div>

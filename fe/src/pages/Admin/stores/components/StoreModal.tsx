@@ -37,6 +37,8 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
     description: "",
     openTime: "",
     closeTime: "",
+    latitude: "",
+    longitude: "",
   });
 
   useEffect(() => {
@@ -48,6 +50,8 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
         description: store.description || "",
         openTime: store.openTime || "",
         closeTime: store.closeTime || "",
+        latitude: store.latitude != null ? String(store.latitude) : "",
+        longitude: store.longitude != null ? String(store.longitude) : "",
       });
     } else {
       setFormData({
@@ -57,6 +61,8 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
         description: "",
         openTime: "07:00",
         closeTime: "21:00",
+        latitude: "",
+        longitude: "",
       });
     }
   }, [store, mode, isOpen]);
@@ -64,11 +70,23 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const lat = formData.latitude ? parseFloat(formData.latitude) : undefined;
+      const lng = formData.longitude ? parseFloat(formData.longitude) : undefined;
+      const payload = {
+        name: formData.name,
+        address: formData.address || undefined,
+        phone: formData.phone || undefined,
+        description: formData.description || undefined,
+        openTime: formData.openTime || undefined,
+        closeTime: formData.closeTime || undefined,
+        latitude: !isNaN(lat!) ? lat : undefined,
+        longitude: !isNaN(lng!) ? lng : undefined,
+      };
       if (mode === "create") {
-        await createStore(formData).unwrap();
+        await createStore(payload).unwrap();
         toast.success(t("admin.stores.modal.createSuccess"));
       } else if (store) {
-        await updateStore({ id: store.id, data: formData }).unwrap();
+        await updateStore({ id: store.id, data: payload }).unwrap();
         toast.success(t("admin.stores.modal.editSuccess"));
       }
       onClose();
@@ -135,6 +153,35 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
               placeholder={t("admin.stores.modal.phonePlaceholder")}
               required
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="latitude">Vĩ độ (Latitude)</Label>
+              <Input
+                id="latitude"
+                type="number"
+                step="any"
+                value={formData.latitude}
+                onChange={(e) =>
+                  setFormData({ ...formData, latitude: e.target.value })
+                }
+                placeholder="VD: 10.8412"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="longitude">Kinh độ (Longitude)</Label>
+              <Input
+                id="longitude"
+                type="number"
+                step="any"
+                value={formData.longitude}
+                onChange={(e) =>
+                  setFormData({ ...formData, longitude: e.target.value })
+                }
+                placeholder="VD: 106.8098"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

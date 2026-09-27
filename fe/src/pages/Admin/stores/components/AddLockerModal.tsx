@@ -19,14 +19,29 @@ interface Props {
 }
 
 export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
-  const [form, setForm] = useState({ code: "", name: "", address: "" });
+  const [form, setForm] = useState({
+    code: "",
+    name: "",
+    address: "",
+    latitude: "",
+    longitude: "",
+  });
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async () => {
     if (!form.code || !form.name) return;
     setSaving(true);
     try {
-      await apiPost("/api/admin/lockers", { ...form, storeId });
+      const lat = form.latitude ? parseFloat(form.latitude) : undefined;
+      const lng = form.longitude ? parseFloat(form.longitude) : undefined;
+      await apiPost("/api/admin/lockers", {
+        code: form.code,
+        name: form.name,
+        address: form.address || undefined,
+        latitude: !isNaN(lat!) ? lat : undefined,
+        longitude: !isNaN(lng!) ? lng : undefined,
+        storeId,
+      });
       onCreated();
       onClose();
     } catch {
@@ -81,6 +96,36 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
               }
               placeholder="VD: Tầng 1, khu A"
             />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">
+                Vĩ độ (Latitude)
+              </label>
+              <Input
+                type="number"
+                step="any"
+                value={form.latitude}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, latitude: e.target.value }))
+                }
+                placeholder="VD: 10.8412"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">
+                Kinh độ (Longitude)
+              </label>
+              <Input
+                type="number"
+                step="any"
+                value={form.longitude}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, longitude: e.target.value }))
+                }
+                placeholder="VD: 106.8098"
+              />
+            </div>
           </div>
         </div>
         <DialogFooter>

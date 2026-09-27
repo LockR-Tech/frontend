@@ -25,6 +25,8 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
     code: locker.code,
     name: locker.name,
     address: locker.address ?? "",
+    latitude: locker.latitude != null ? String(locker.latitude) : "",
+    longitude: locker.longitude != null ? String(locker.longitude) : "",
   });
   const [maintenance, setMaintenance] = useState(
     locker.status === LockerStatus.MAINTENANCE,
@@ -35,7 +37,9 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
   const isDirty =
     form.code !== locker.code ||
     form.name !== locker.name ||
-    form.address !== (locker.address ?? "");
+    form.address !== (locker.address ?? "") ||
+    form.latitude !== (locker.latitude != null ? String(locker.latitude) : "") ||
+    form.longitude !== (locker.longitude != null ? String(locker.longitude) : "");
 
   const handleSave = async () => {
     if (!isDirty) {
@@ -44,10 +48,14 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
     }
     setSaving(true);
     try {
+      const lat = form.latitude ? parseFloat(form.latitude) : undefined;
+      const lng = form.longitude ? parseFloat(form.longitude) : undefined;
       await apiPut(`/api/admin/lockers/${locker.id}`, {
         code: form.code,
         name: form.name,
         address: form.address || undefined,
+        latitude: !isNaN(lat!) ? lat : undefined,
+        longitude: !isNaN(lng!) ? lng : undefined,
         storeId: locker.storeId,
       });
       onRefresh();
@@ -125,6 +133,36 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
                 }
                 placeholder="VD: Tầng 1, khu A"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  Vĩ độ (Latitude)
+                </label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={form.latitude}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, latitude: e.target.value }))
+                  }
+                  placeholder="VD: 10.8412"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  Kinh độ (Longitude)
+                </label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={form.longitude}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, longitude: e.target.value }))
+                  }
+                  placeholder="VD: 106.8098"
+                />
+              </div>
             </div>
           </div>
 
