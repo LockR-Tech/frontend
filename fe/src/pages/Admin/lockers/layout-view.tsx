@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -61,6 +61,7 @@ import {
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { extractList } from "~/lib/extract-list";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 // Nhãn trạng thái tủ — cùng câu chữ với admin.lockers.status (messages/vi.json)
 const LOCKER_STATUS_STYLE: Record<string, { label: string; cls: string }> = {
@@ -367,6 +368,32 @@ export default function LockerLayoutPage() {
   const [forceOpen, { isLoading: forceOpening }] = useForceOpenBoxMutation();
   const [addBox, { isLoading: isAddingBox }] = useAddBoxMutation();
   const [pendingBox, setPendingBox] = useState<number | null>(null);
+
+  const { subscribe } = useWebSocket({ autoConnect: true });
+
+  useEffect(() => {
+    if (!subscribe) return;
+    const subNotif = subscribe<any>("/topic/notifications", (msg) => {
+      if (
+        (msg?.type === "LOCKER_LAYOUT_UPDATED" || msg?.type === "LOCKER_BOX_FAULT") &&
+        (!msg?.lockerId || Number(msg?.lockerId) === id)
+      ) {
+        refetch();
+        toast.info(msg?.message || "Sơ đồ trạm Kiosk vừa được cập nhật");
+      }
+    });
+
+    const subLockers = subscribe<any>("/topic/lockers", (msg) => {
+      if (!msg?.lockerId || Number(msg?.lockerId) === id) {
+        refetch();
+      }
+    });
+
+    return () => {
+      subNotif?.unsubscribe();
+      subLockers?.unsubscribe();
+    };
+  }, [subscribe, id, refetch]);
 
   // KTV phụ trách tủ: phiếu mới của tủ chỉ gửi cho người này; chưa gán ⇒ báo mọi KTV tủ
   const { data: staffLockerData } = useGetStaffLockerQuery(id, { skip: !Number.isFinite(id) });

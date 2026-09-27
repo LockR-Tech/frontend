@@ -126,7 +126,7 @@ export function Sidebar({
             {(isExpanded || isMobileOpen) && (
               <div className="flex flex-col min-w-0 transition-opacity duration-200">
                 <span className="font-semibold text-sm text-foreground truncate tracking-tight">
-                  Laundry Locker
+                  Lock.R Admin
                 </span>
                 <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1 truncate">
                   <Shield size={10} className="text-muted-foreground" />
