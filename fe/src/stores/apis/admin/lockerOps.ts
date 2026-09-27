@@ -267,6 +267,48 @@ export interface DeviceStatusResponse {
   lastSeenAt: string | null;
 }
 
+/** Kết quả thử một ô khi gán bộ điều khiển (iot/{mac}/setup/result — ADR-0008). */
+export interface GatewaySetupLocker {
+  slotIndex: number;
+  boxId?: number | null;
+  row: number;
+  column: number;
+  testResult: 'OK' | 'FAIL' | string;
+  hwState: string;
+  responseTimeMs?: number | null;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+}
+
+export interface GatewaySetupResult {
+  commandId: string;
+  status: 'COMPLETED' | 'PARTIAL' | 'FAILED' | string;
+  summary?: { total: number; totalOk: number; totalFail: number; duration: number };
+  lockers?: GatewaySetupLocker[];
+  errorMessage?: string | null;
+}
+
+/** Bộ điều khiển tủ (Pi) — iot-service `GatewayDeviceResponse`. */
+export interface GatewayDeviceResponse {
+  id: number;
+  macAddress: string;
+  hardware: string | null;
+  firmwareVersion: string | null;
+  slaveId: number | null;
+  availableSlots: number | null;
+  /** Tủ Pi tự báo đang phục vụ (đã setup hoặc LOCKER_ID trong .env của Pi). */
+  reportedLockerId: number | null;
+  /** Tủ admin gán. */
+  lockerId: number | null;
+  online: boolean;
+  setupStatus: 'NONE' | 'PENDING' | 'RUNNING' | 'COMPLETED' | 'PARTIAL' | 'FAILED' | 'CLEARED' | string;
+  setupProgress: string | null;
+  setupResult: GatewaySetupResult | null;
+  setupRequestedAt: string | null;
+  setupFinishedAt: string | null;
+  lastSeenAt: string | null;
+}
+
 export interface TechnicianRatingItem {
   id: number;
   reportId: number;
@@ -607,6 +649,41 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       providesTags: [{ type: TAG, id: 'device-status' }],
     }),
 
+    // Bộ điều khiển tủ (Pi) tự báo qua MQTT; admin gán vào tủ — ADR-0008.
+    getGateways: builder.query<ApiResponse<GatewayDeviceResponse[]>, void>({
+      query: () => '/api/admin/iot/gateways',
+      providesTags: [{ type: TAG, id: 'gateways' }],
+    }),
+
+    // testDoors = true ⇒ Pi mở lần lượt từng ô để thử; false ⇒ chỉ gửi sơ đồ ô.
+    assignGateway: builder.mutation<
+      ApiResponse<GatewayDeviceResponse>,
+      { gatewayId: number; lockerId: number; testDoors: boolean }
+    >({
+      query: ({ gatewayId, lockerId, testDoors }) => ({
+        url: `/api/admin/iot/gateways/${gatewayId}/assign`,
+        method: 'POST',
+        body: { lockerId, testDoors },
+      }),
+      invalidatesTags: [{ type: TAG, id: 'gateways' }],
+    }),
+
+    unassignGateway: builder.mutation<ApiResponse<GatewayDeviceResponse>, number>({
+      query: (gatewayId) => ({
+        url: `/api/admin/iot/gateways/${gatewayId}/unassign`,
+        method: 'POST',
+      }),
+      invalidatesTags: [{ type: TAG, id: 'gateways' }],
+    }),
+
+    rediscoverGateway: builder.mutation<ApiResponse<void>, number>({
+      query: (gatewayId) => ({
+        url: `/api/admin/iot/gateways/${gatewayId}/discover`,
+        method: 'POST',
+      }),
+      invalidatesTags: [{ type: TAG, id: 'gateways' }],
+    }),
+
     // Admin view of all reports with optional technician filtering
     getAllAdminReports: builder.query<
       ApiResponse<LockerReportResponse[]>,
@@ -710,6 +787,10 @@ export const {
   useGetAllInspectionLogsQuery,
   useDeleteMaintenanceScheduleMutation,
   useGetDeviceStatusesQuery,
+  useGetGatewaysQuery,
+  useAssignGatewayMutation,
+  useUnassignGatewayMutation,
+  useRediscoverGatewayMutation,
   useGetAllAdminReportsQuery,
   useAssignReportToTechnicianMutation,
   useUnassignReportMutation,

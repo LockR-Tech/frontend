@@ -62,6 +62,7 @@ import {
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { extractList } from "~/lib/extract-list";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { GatewayPanel } from "./components/GatewayPanel";
 
 // Nhãn trạng thái tủ — cùng câu chữ với admin.lockers.status (messages/vi.json)
 const LOCKER_STATUS_STYLE: Record<string, { label: string; cls: string }> = {
@@ -773,6 +774,12 @@ export default function LockerLayoutPage() {
           </div>
         </CardContent>
       </Card>
+
+      <GatewayPanel
+        lockerId={id}
+        cellCount={cells.length}
+        highestBoxNumber={cells.reduce((max, c) => Math.max(max, c.boxNumber ?? 0), 0)}
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
