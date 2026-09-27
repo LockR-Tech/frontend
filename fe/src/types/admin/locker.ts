@@ -16,6 +16,8 @@ export interface AdminLockerResponse {
   code: string;
   name: string;
   address: string;
+  latitude?: number | null;
+  longitude?: number | null;
   storeId: number;
   storeName: string;
   status: LockerStatus;
@@ -33,6 +35,8 @@ export interface CreateLockerRequest {
   code: string;
   name: string;
   address?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   storeId: number;
 }
 
