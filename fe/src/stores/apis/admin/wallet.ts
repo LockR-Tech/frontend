@@ -75,7 +75,7 @@ export const walletManagementApi = baseApi.injectEndpoints({
     getWithdrawals: builder.query<ApiResponse<WithdrawalResponse[]>, { status?: string } | void>({
       query: (params) => ({
         url: ADMIN_ENDPOINTS.WITHDRAWALS,
-        params: params?.status ? { status: params.status } : undefined,
+        params: params && params.status ? { status: params.status } : undefined,
       }),
       providesTags: () => [{ type: TAGS.WALLET, id: 'WITHDRAWALS' }],
     }),
