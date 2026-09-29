@@ -1,28 +1,34 @@
 {
-  "brand": {
-    "title": "LockerWash",
-    "subtitle": "Tủ giặt thông minh, theo yêu cầu"
-  },
-  "signin": {
-    "title": "Đăng nhập vào tài khoản của bạn"
-  },
-  "label": {
-    "email": "E-mail",
-    "password": "Mật khẩu"
-  },
-  "placeholder": {
-    "email": "you@domain.com",
-    "password": "••••••••"
-  },
-  "link": {
-    "forgot": "Quên mật khẩu?"
-  },
-  "info": {
-    "devHint": "Cần truy cập? Nhấn Login để sử dụng tài khoản giả lập (dev)."
-  },
-  "right": {
-    "title": "Quần áo sạch, theo lịch của bạn.",
-    "subtitle": "Truy cập tủ 24/7"
+  "login": {
+    "brand": "Lock.R",
+    "portal": "Cổng quản trị",
+    "title": "Đăng nhập quản trị",
+    "subtitle": "Chỉ dành cho quản trị viên hệ thống Lock.R.",
+    "email": "Email",
+    "emailPlaceholder": "admin@locker-drone.tech",
+    "password": "Mật khẩu",
+    "showPassword": "Hiện mật khẩu",
+    "hidePassword": "Ẩn mật khẩu",
+    "submit": "Tiếp tục",
+    "submitting": "Đang đăng nhập...",
+    "twoFaNote": "Mã xác thực một lần sẽ được gửi tới email của bạn để hoàn tất đăng nhập.",
+    "otpTitle": "Xác thực hai bước",
+    "otpSentTo": "Mã 6 chữ số đã được gửi đến",
+    "otpLabel": "Mã xác thực",
+    "verify": "Xác nhận",
+    "verifying": "Đang xác thực...",
+    "back": "Quay lại",
+    "footer": "Khách hàng, kỹ thuật viên và đội drone dùng ứng dụng di động Lock.R.",
+    "heroTitle": "Tủ khoá thông minh & giao hàng bằng drone",
+    "heroSubtitle": "Vận hành mọi tủ, ô và chuyến bay drone tại một nơi.",
+    "featureLockers": "Giám sát tủ và ô theo thời gian thực",
+    "featureDrones": "Điều phối và theo dõi đơn giao bằng drone",
+    "featureMaintenance": "Chuyển ticket, lịch bảo trì tới kỹ thuật viên",
+    "errInvalid": "Email hoặc mật khẩu không đúng.",
+    "errLocked": "Tài khoản đã bị khóa.",
+    "errDisabled": "Tài khoản đã bị vô hiệu hóa.",
+    "errLogin": "Đăng nhập thất bại.",
+    "errOtp": "Xác thực thất bại."
   },
   "button": {
     "login": "Đăng nhập",
