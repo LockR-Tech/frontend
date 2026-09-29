@@ -1,28 +1,34 @@
 {
-  "brand": {
-    "title": "LockerWash",
-    "subtitle": "Smart lockers, on demand"
-  },
-  "signin": {
-    "title": "Sign in to your account"
-  },
-  "label": {
-    "email": "E-mail",
-    "password": "Password"
-  },
-  "placeholder": {
-    "email": "you@domain.com",
-    "password": "••••••••"
-  },
-  "link": {
-    "forgot": "Forgot password?"
-  },
-  "info": {
-    "devHint": "Need access? Click Login to use mock account (dev)."
-  },
-  "right": {
-    "title": "Clean clothes, on your schedule.",
-    "subtitle": "24/7 locker access"
+  "login": {
+    "brand": "Lock.R",
+    "portal": "Admin Portal",
+    "title": "Sign in to the admin portal",
+    "subtitle": "For Lock.R system administrators only.",
+    "email": "Email",
+    "emailPlaceholder": "admin@locker-drone.tech",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "submit": "Continue",
+    "submitting": "Signing in...",
+    "twoFaNote": "A one-time code will be sent to your email to complete sign-in.",
+    "otpTitle": "Two-step verification",
+    "otpSentTo": "We sent a 6-digit code to",
+    "otpLabel": "Verification code",
+    "verify": "Verify",
+    "verifying": "Verifying...",
+    "back": "Back",
+    "footer": "Customers, technicians and drone crew use the Lock.R mobile app.",
+    "heroTitle": "Smart lockers & drone delivery",
+    "heroSubtitle": "Operate every locker, cell and drone mission from one place.",
+    "featureLockers": "Monitor lockers and cells in real time",
+    "featureDrones": "Dispatch and track drone deliveries",
+    "featureMaintenance": "Route tickets and maintenance to technicians",
+    "errInvalid": "Incorrect email or password.",
+    "errLocked": "This account is locked.",
+    "errDisabled": "This account is disabled.",
+    "errLogin": "Sign-in failed.",
+    "errOtp": "Verification failed."
   },
   "button": {
     "login": "Sign In",

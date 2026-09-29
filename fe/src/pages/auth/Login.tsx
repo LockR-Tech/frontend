@@ -1,40 +1,31 @@
 import * as React from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/auth-context";
 import { useTranslation } from "react-i18next";
 
+import { Button, Input } from "~/components/ui";
+import LanguageSwitcher from "~/components/ui/LanguageSwitcher";
+import LockerDroneIllustration from "./components/LockerDroneIllustration";
 import {
-  Button,
-  Card,
-  CardContent,
-  Input,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "~/components/ui";
-import { LOCKER_IMAGE, LOGIN_IMAGE } from "~/constants/login-page.constants";
-import Logo from "~/assets/images/logo/Logo.svg";
-import { Mail, Phone, ArrowLeft, User, Shield } from "lucide-react";
+  ArrowLeft,
+  Drone,
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  LockKeyhole,
+  Mail,
+  PackageCheck,
+  Shield,
+  ShieldCheck,
+  Wrench,
+} from "lucide-react";
 
-type LoginMode = "ADMIN" | "PARTNER";
-type PartnerLoginStep = "INPUT" | "OTP";
-
-// Map backend error codes to user-friendly messages
-const AUTH_ERROR_MESSAGES: Record<string, string> = {
-  E_ADMIN_AUTH_INVALID_CREDENTIALS: "Email hoặc mật khẩu không đúng.",
-  E_ADMIN_AUTH_ACCOUNT_LOCKED: "Tài khoản đã bị khóa.",
-  E_ADMIN_AUTH_ACCOUNT_DISABLED: "Tài khoản đã bị vô hiệu hóa.",
-  E_PARTNER_AUTH_NOT_FOUND: "Tài khoản partner không tồn tại.",
+// Map backend error codes to i18n keys
+const AUTH_ERROR_KEYS: Record<string, string> = {
+  E_ADMIN_AUTH_INVALID_CREDENTIALS: "login.errInvalid",
+  E_ADMIN_AUTH_ACCOUNT_LOCKED: "login.errLocked",
+  E_ADMIN_AUTH_ACCOUNT_DISABLED: "login.errDisabled",
 };
-
-function friendlyAuthError(raw: string): string {
-  // Backend may return "AuthenticationException: E_ADMIN_AUTH_INVALID_CREDENTIALS"
-  // or just the code directly
-  for (const [code, msg] of Object.entries(AUTH_ERROR_MESSAGES)) {
-    if (raw.includes(code)) return msg;
-  }
-  return raw;
-}
 
 export default function LoginPage(): React.JSX.Element {
   const navigate = useNavigate();
@@ -42,77 +33,56 @@ export default function LoginPage(): React.JSX.Element {
   const {
     isWaitingFor2FA,
     maskedEmail,
-    isWaitingForOTP,
-    partnerContactInfo,
     adminLoginStep1,
     adminLoginStep2,
     cancelAdmin2FA,
-    partnerSendOTP,
-    partnerVerifyOTP,
-    cancelPartnerOTP,
   } = useAuth();
   const { t } = useTranslation();
 
-  const [loginMode, setLoginMode] = React.useState<LoginMode>("ADMIN");
-  const [partnerStep, setPartnerStep] =
-    React.useState<PartnerLoginStep>("INPUT");
-
-  // Admin form state
   const [email, setEmail] = React.useState<string>("");
   const [password, setPassword] = React.useState<string>("");
-
-  // Partner form state
-  const [partnerContact, setPartnerContact] = React.useState<string>("");
-  const [partnerContactType, setPartnerContactType] = React.useState<
-    "EMAIL" | "PHONE"
-  >("EMAIL");
+  const [showPassword, setShowPassword] = React.useState(false);
   const [otpCode, setOtpCode] = React.useState<string>("");
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Get redirect path based on role
+  // Backend may return "AuthenticationException: E_ADMIN_AUTH_INVALID_CREDENTIALS"
+  // or just the code directly
+  const friendlyAuthError = (err: unknown, fallbackKey: string): string => {
+    const raw = err instanceof Error ? err.message : "";
+    for (const [code, key] of Object.entries(AUTH_ERROR_KEYS)) {
+      if (raw.includes(code)) return t(key);
+    }
+    return raw || t(fallbackKey);
+  };
+
   const getRedirectPath = (userRoles: string[]) => {
     const from = location.state?.from?.pathname;
     if (from) return from;
 
     // Normalize role: strip optional "ROLE_" prefix before comparing
-    const normalize = (role: string) =>
-      role.toUpperCase().replace(/^ROLE_/, "");
-
     const isAdmin = userRoles.some((role) => {
-      const r = normalize(role);
+      const r = role.toUpperCase().replace(/^ROLE_/, "");
       return r === "SUPER_ADMIN" || r === "ADMIN";
     });
-    const isPartner = userRoles.some((role) => {
-      const r = normalize(role);
-      return r === "PARTNER" || r === "PARTNER_STAFF";
-    });
-
-    if (isAdmin) return "/admin/dashboard";
-    if (isPartner) return "/partner/dashboard";
-    return "/";
+    return isAdmin ? "/admin/dashboard" : "/";
   };
 
-  // ============================================
-  // ADMIN LOGIN HANDLERS
-  // ============================================
-
-  const handleAdminStep1 = async (e: React.FormEvent) => {
+  const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
       await adminLoginStep1(email, password);
     } catch (err) {
-      const raw = err instanceof Error ? err.message : "Đăng nhập thất bại";
-      setError(friendlyAuthError(raw));
+      setError(friendlyAuthError(err, "login.errLogin"));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAdminStep2 = async (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -126,436 +96,235 @@ export default function LoginPage(): React.JSX.Element {
         }
       }, 100);
     } catch (err) {
-      const raw = err instanceof Error ? err.message : "Xác thực OTP thất bại";
-      setError(friendlyAuthError(raw));
+      setError(friendlyAuthError(err, "login.errOtp"));
     } finally {
       setLoading(false);
     }
   };
 
-  // ============================================
-  // PARTNER LOGIN HANDLERS
-  // ============================================
-
-  const handlePartnerSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      await partnerSendOTP(partnerContact, partnerContactType);
-      setPartnerStep("OTP");
-    } catch (err) {
-      const raw = err instanceof Error ? err.message : "Không thể gửi OTP";
-      setError(friendlyAuthError(raw));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePartnerVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      await partnerVerifyOTP(partnerContact, otpCode);
-      setTimeout(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          navigate(getRedirectPath(parsedUser.role || parsedUser.roles || []));
-        }
-      }, 100);
-    } catch (err) {
-      const raw = err instanceof Error ? err.message : "Mã OTP không đúng";
-      setError(friendlyAuthError(raw));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBackToInput = () => {
-    setPartnerStep("INPUT");
+  const handleBack = () => {
     setOtpCode("");
     setError(null);
-    cancelPartnerOTP();
-  };
-
-  const handleModeChange = (mode: LoginMode) => {
-    setLoginMode(mode);
-    setError(null);
-    // Reset forms
-    setEmail("");
-    setPassword("");
-    setPartnerContact("");
-    setOtpCode("");
-    setPartnerStep("INPUT");
     cancelAdmin2FA();
-    cancelPartnerOTP();
   };
 
-  // ============================================
-  // RENDER HELPERS
-  // ============================================
+  const errorBox = error && (
+    <div
+      role="alert"
+      className="text-sm text-destructive bg-destructive/10 border border-destructive/20 px-3 py-2.5 rounded-lg"
+    >
+      {error}
+    </div>
+  );
 
-  const renderAdminLogin = () => {
-    if (isWaitingFor2FA) {
-      return (
-        <>
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-2">Xác thực 2FA</h2>
-            <p className="text-sm text-muted-foreground">
-              Mã OTP đã được gửi đến <strong>{maskedEmail}</strong>
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Vui lòng kiểm tra email và nhập mã OTP 6 chữ số
-            </p>
-          </div>
+  const renderOtpStep = () => (
+    <>
+      <div className="space-y-2">
+        <div className="w-11 h-11 rounded-xl bg-sky-500/10 text-sky-600 flex items-center justify-center">
+          <ShieldCheck size={22} />
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("login.otpTitle")}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {t("login.otpSentTo")}{" "}
+          <span className="font-medium text-foreground">{maskedEmail}</span>
+        </p>
+      </div>
 
-          <form
-            onSubmit={handleAdminStep2}
-            className="grid gap-4 w-full max-w-md"
+      <form onSubmit={handleVerifyOtp} className="grid gap-5">
+        <label className="grid gap-2">
+          <span className="text-sm font-medium">{t("login.otpLabel")}</span>
+          <Input
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="••••••"
+            className="h-14 text-center text-2xl font-semibold tracking-[0.6em] rounded-xl"
+            maxLength={6}
+            required
+            autoFocus
+          />
+        </label>
+
+        {errorBox}
+
+        <div className="grid grid-cols-[auto_1fr] gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            disabled={loading}
+            onClick={handleBack}
+            className="h-11 rounded-xl"
           >
-            <label className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">
-                Mã OTP
-              </span>
-              <Input
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value)}
-                type="text"
-                placeholder="123456"
-                className="mt-2 text-center text-2xl tracking-widest"
-                maxLength={6}
-                required
-                autoFocus
-              />
-            </label>
+            <ArrowLeft size={16} />
+            {t("login.back")}
+          </Button>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={loading || otpCode.length < 6}
+            className="h-11 rounded-xl"
+          >
+            {loading && <LoaderCircle size={16} className="animate-spin" />}
+            {loading ? t("login.verifying") : t("login.verify")}
+          </Button>
+        </div>
+      </form>
+    </>
+  );
 
-            {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-                {error}
-              </div>
-            )}
+  const renderCredentialsStep = () => (
+    <>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("login.title")}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
+      </div>
 
-            <div className="flex items-center gap-3 mt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                disabled={loading}
-                onClick={cancelAdmin2FA}
-                className="flex-1 rounded-2xl"
-              >
-                Quay lại
-              </Button>
-              <Button
-                type="submit"
-                size="lg"
-                disabled={loading || otpCode.length < 6}
-                className="flex-1 rounded-2xl bg-primary hover:opacity-90"
-              >
-                {loading ? "Verifying..." : "Xác nhận"}
-              </Button>
-            </div>
-          </form>
-        </>
-      );
-    }
-
-    return (
-      <>
-        <h2 className="text-2xl font-semibold">{t("signin.title")}</h2>
-
-        <form
-          onSubmit={handleAdminStep1}
-          className="grid gap-4 w-full max-w-md"
-        >
-          <label className="flex flex-col">
-            <span className="text-sm font-medium text-foreground">Email</span>
+      <form onSubmit={handleCredentials} className="grid gap-5">
+        <label className="grid gap-2">
+          <span className="text-sm font-medium">{t("login.email")}</span>
+          <div className="relative">
+            <Mail
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            />
             <Input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
-              placeholder="admin@example.com"
-              className="mt-2"
+              autoComplete="username"
+              placeholder={t("login.emailPlaceholder")}
+              className="h-11 pl-10 rounded-xl"
               required
+              autoFocus
             />
-          </label>
+          </div>
+        </label>
 
-          <label className="flex flex-col">
-            <span className="text-sm font-medium text-foreground">
-              {t("label.password")}
-            </span>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium">{t("login.password")}</span>
+          <div className="relative">
+            <LockKeyhole
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            />
             <Input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              type="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
               placeholder="••••••••"
-              className="mt-2"
+              className="h-11 pl-10 pr-11 rounded-xl"
               required
             />
-          </label>
-
-          {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between mt-2">
-            <Button
-              type="submit"
-              size="lg"
-              disabled={loading}
-              className="rounded-2xl bg-primary hover:opacity-90"
-            >
-              {loading ? "Signing in..." : "Login"}
-            </Button>
-            <Link
-              to="/auth/forgot"
-              className="text-sm text-primary hover:underline"
-            >
-              {t("link.forgot")}
-            </Link>
-          </div>
-        </form>
-      </>
-    );
-  };
-
-  const renderPartnerLogin = () => {
-    if (partnerStep === "OTP") {
-      return (
-        <>
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-2">Nhập mã OTP</h2>
-            <p className="text-sm text-muted-foreground">
-              Mã OTP đã được gửi đến <strong>{partnerContactInfo}</strong>
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Vui lòng nhập mã OTP 6 chữ số để đăng nhập
-            </p>
-          </div>
-
-          <form
-            onSubmit={handlePartnerVerifyOTP}
-            className="grid gap-4 w-full max-w-md"
-          >
-            <label className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">
-                Mã OTP
-              </span>
-              <Input
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value)}
-                type="text"
-                placeholder="123456"
-                className="mt-2 text-center text-2xl tracking-widest"
-                maxLength={6}
-                required
-                autoFocus
-              />
-            </label>
-
-            {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            <div className="flex items-center gap-3 mt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                disabled={loading}
-                onClick={handleBackToInput}
-                className="flex-1 rounded-2xl"
-              >
-                <ArrowLeft size={16} className="mr-2" />
-                Quay lại
-              </Button>
-              <Button
-                type="submit"
-                size="lg"
-                disabled={loading || otpCode.length < 6}
-                className="flex-1 rounded-2xl bg-primary hover:opacity-90"
-              >
-                {loading ? "Verifying..." : "Đăng nhập"}
-              </Button>
-            </div>
-          </form>
-        </>
-      );
-    }
-
-    return (
-      <>
-        <h2 className="text-2xl font-semibold">Đăng nhập Partner</h2>
-        <p className="text-sm text-muted-foreground">
-          Nhập email hoặc số điện thoại để nhận mã OTP
-        </p>
-
-        <form
-          onSubmit={handlePartnerSendOTP}
-          className="grid gap-4 w-full max-w-md"
-        >
-          {/* Contact Type Toggle */}
-          <div className="flex gap-2 p-1 bg-muted rounded-lg">
             <button
               type="button"
-              onClick={() => setPartnerContactType("EMAIL")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-all ${
-                partnerContactType === "EMAIL"
-                  ? "bg-card text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Mail size={16} />
-              Email
-            </button>
-            <button
-              type="button"
-              onClick={() => setPartnerContactType("PHONE")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-all ${
-                partnerContactType === "PHONE"
-                  ? "bg-card text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Phone size={16} />
-              Số điện thoại
-            </button>
-          </div>
-
-          <label className="flex flex-col">
-            <span className="text-sm font-medium text-foreground">
-              {partnerContactType === "EMAIL" ? "Email" : "Số điện thoại"}
-            </span>
-            <Input
-              value={partnerContact}
-              onChange={(e) => setPartnerContact(e.target.value)}
-              type={partnerContactType === "EMAIL" ? "email" : "tel"}
-              placeholder={
-                partnerContactType === "EMAIL"
-                  ? "partner@example.com"
-                  : "0912345678"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={
+                showPassword ? t("login.hidePassword") : t("login.showPassword")
               }
-              className="mt-2"
-              required
-            />
-          </label>
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </label>
 
-          {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-              {error}
-            </div>
-          )}
+        {errorBox}
 
-          <Button
-            type="submit"
-            size="lg"
-            disabled={loading || !partnerContact}
-            className="rounded-2xl bg-primary hover:opacity-90"
-          >
-            {loading ? "Đang gửi..." : "Gửi mã OTP"}
-          </Button>
-        </form>
-      </>
-    );
-  };
+        <Button
+          type="submit"
+          size="lg"
+          disabled={loading}
+          className="h-11 w-full rounded-xl"
+        >
+          {loading && <LoaderCircle size={16} className="animate-spin" />}
+          {loading ? t("login.submitting") : t("login.submit")}
+        </Button>
+
+        <p className="flex items-start gap-2 text-xs text-muted-foreground">
+          <ShieldCheck size={14} className="mt-px shrink-0 text-sky-600" />
+          {t("login.twoFaNote")}
+        </p>
+      </form>
+    </>
+  );
+
+  const features = [
+    { icon: PackageCheck, label: t("login.featureLockers") },
+    { icon: Drone, label: t("login.featureDrones") },
+    { icon: Wrench, label: t("login.featureMaintenance") },
+  ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-brand-600 via-background to-brand-200 relative overflow-hidden w-full">
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        viewBox="0 0 1200 800"
-        preserveAspectRatio="xMidYMid slice"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <linearGradient id="g1" x1="0" x2="1">
-            <stop offset="0%" stopColor="#0f172a" />
-            <stop offset="100%" stopColor="#ea580c" />
-          </linearGradient>
-        </defs>
-        <g fill="url(#g1)" opacity="0.06">
-          <path d="M0 400 C200 300 400 500 600 420 C800 340 1000 480 1200 420 L1200 800 L0 800 Z" />
-          <path d="M0 500 C250 420 450 620 700 540 C950 460 1100 640 1200 580 L1200 800 L0 800 Z" />
-        </g>
-      </svg>
-
-      <div className="relative z-10 w-full max-w-6xl mx-6 rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
-        <Card className="bg-card p-8 md:p-12">
-          <CardContent className="flex flex-col gap-6">
-            <div className="flex items-center gap-4">
-              <img src={Logo} alt="Logo" className="h-16 w-auto" />
-              <div>
-                <div className="text-2xl font-bold">{t("brand.title")}</div>
-                <div className="text-sm text-muted-foreground">
-                  {t("brand.subtitle")}
-                </div>
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-100 dark:bg-background p-4 sm:p-6">
+      <div className="w-full max-w-5xl rounded-3xl shadow-2xl shadow-slate-900/10 overflow-hidden grid grid-cols-1 md:grid-cols-[1fr_1.05fr] bg-card border border-border">
+        {/* Sign-in form */}
+        <div className="flex flex-col p-8 sm:p-10 md:p-12">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold shadow-sm">
+              L
+            </div>
+            <div className="leading-tight">
+              <div className="font-semibold tracking-tight">
+                {t("login.brand")}
+              </div>
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <Shield size={11} />
+                {t("login.portal")}
               </div>
             </div>
+          </div>
 
-            {/* Login Mode Selector */}
-            {!isWaitingFor2FA && partnerStep === "INPUT" && (
-              <Tabs
-                value={loginMode}
-                onValueChange={(v) => handleModeChange(v as LoginMode)}
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger
-                    value="ADMIN"
-                    className="flex items-center gap-2"
-                  >
-                    <Shield size={16} />
-                    Admin
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="PARTNER"
-                    className="flex items-center gap-2"
-                  >
-                    <User size={16} />
-                    Partner
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            )}
+          <div className="flex-1 flex flex-col justify-center gap-7 py-8 w-full md:max-w-sm">
+            {isWaitingFor2FA ? renderOtpStep() : renderCredentialsStep()}
+          </div>
 
-            {/* Login Forms */}
-            {loginMode === "ADMIN" ? renderAdminLogin() : renderPartnerLogin()}
-          </CardContent>
-        </Card>
+          <p className="text-xs text-muted-foreground">{t("login.footer")}</p>
+        </div>
 
-        <div className="relative flex items-center justify-center p-8 md:p-12 bg-linear-to-br from-primary to-brand-400 text-white">
-          <Card className="bg-transparent shadow-none">
-            <CardContent className="max-w-sm text-white text-center">
-              <div className="mb-6">
-                <img
-                  src={Logo}
-                  alt="Logo"
-                  className="h-32 w-auto mx-auto drop-shadow-lg"
-                />
-              </div>
+        {/* Product panel */}
+        <div className="relative hidden md:flex flex-col justify-between gap-6 p-10 bg-slate-950 text-slate-100 overflow-hidden">
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] bg-[size:28px_28px]"
+          />
+          <div
+            aria-hidden
+            className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-sky-500/20 blur-3xl"
+          />
 
-              <h3 className="text-xl font-semibold mb-2">{t("right.title")}</h3>
-              <p className="mb-4 text-sm opacity-90">{t("right.subtitle")}</p>
+          <div className="relative flex justify-end -mb-4 text-slate-300">
+            <LanguageSwitcher />
+          </div>
 
-              <div className="w-full rounded-xl bg-card/10 p-4 backdrop-blur-sm relative">
-                <img
-                  src={LOGIN_IMAGE}
-                  alt="Locker illustration"
-                  className="w-full h-auto rounded-4xl opacity-80"
-                />
-                <img
-                  src={LOCKER_IMAGE}
-                  alt="locker overlay"
-                  className="pointer-events-none absolute -bottom-4 -left-5 w-30 md:w-40 opacity-80 rounded-2xl"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <div className="relative space-y-3">
+            <h2 className="text-2xl lg:text-3xl font-semibold tracking-tight leading-snug">
+              {t("login.heroTitle")}
+            </h2>
+            <p className="text-sm text-slate-400 max-w-sm">
+              {t("login.heroSubtitle")}
+            </p>
+          </div>
+
+          <LockerDroneIllustration className="relative w-full max-w-[300px] mx-auto h-auto" />
+
+          <ul className="relative grid gap-3">
+            {features.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-3 text-sm">
+                <span className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-sky-400 shrink-0">
+                  <Icon size={16} />
+                </span>
+                <span className="text-slate-300">{label}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>

@@ -1,28 +1,34 @@
 {
-  "brand": {
-    "title": "LockerWash",
-    "subtitle": "スマートロッカー、オンデマンドで"
-  },
-  "signin": {
-    "title": "アカウントにサインイン"
-  },
-  "label": {
+  "login": {
+    "brand": "Lock.R",
+    "portal": "管理ポータル",
+    "title": "管理ポータルにサインイン",
+    "subtitle": "Lock.R システム管理者専用です。",
     "email": "メール",
-    "password": "パスワード"
-  },
-  "placeholder": {
-    "email": "you@domain.com",
-    "password": "••••••••"
-  },
-  "link": {
-    "forgot": "パスワードを忘れた？"
-  },
-  "info": {
-    "devHint": "アクセスが必要？ログインをクリックしてモックアカウントを使用（開発用）。"
-  },
-  "right": {
-    "title": "あなたのスケジュールで清潔な衣類。",
-    "subtitle": "24時間365日ロッカーアクセス"
+    "emailPlaceholder": "admin@locker-drone.tech",
+    "password": "パスワード",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを隠す",
+    "submit": "続行",
+    "submitting": "サインイン中...",
+    "twoFaNote": "サインインを完了するため、ワンタイムコードをメールに送信します。",
+    "otpTitle": "2段階認証",
+    "otpSentTo": "6桁のコードを送信しました：",
+    "otpLabel": "認証コード",
+    "verify": "確認",
+    "verifying": "確認中...",
+    "back": "戻る",
+    "footer": "お客様・技術者・ドローンチームは Lock.R モバイルアプリをご利用ください。",
+    "heroTitle": "スマートロッカー＆ドローン配送",
+    "heroSubtitle": "すべてのロッカー、ボックス、ドローン配送を一か所で管理。",
+    "featureLockers": "ロッカーとボックスをリアルタイムで監視",
+    "featureDrones": "ドローン配送の手配と追跡",
+    "featureMaintenance": "チケットと保守を技術者へ割り当て",
+    "errInvalid": "メールアドレスまたはパスワードが正しくありません。",
+    "errLocked": "このアカウントはロックされています。",
+    "errDisabled": "このアカウントは無効化されています。",
+    "errLogin": "サインインに失敗しました。",
+    "errOtp": "認証に失敗しました。"
   },
   "button": {
     "login": "サインイン",
