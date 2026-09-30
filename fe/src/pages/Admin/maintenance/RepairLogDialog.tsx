@@ -403,8 +403,26 @@ export function RepairLogDialog({
                   ) : (
                     logs.map((l) => {
                       const images = logPhotos(l);
-                      const displayNote = l.attachments?.length ? l.note : stripImages(l.note);
+                      let displayNote = l.attachments?.length ? l.note : stripImages(l.note);
+                      if (displayNote) {
+                        displayNote = displayNote.replace(/^\[(?:SỬA TẠI CHỖ THÀNH CÔNG|XỬ LÝ TẠI CHỖ)\]/i, "[GHI CHÚ HIỆN TRƯỜNG]");
+                        if (!displayNote.startsWith("[") && l.attachments?.some((a) => a.stage === "RESOLUTION")) {
+                          displayNote = `[NGHIỆM THU THÀNH CÔNG] ${displayNote}`;
+                        }
+                      }
                       const isSlaExtension = displayNote?.includes("[GIA HẠN SLA]");
+                      const match = displayNote?.match(/^(\[[^\]]+\])\s*([\s\S]*)$/);
+                      const tag = match ? match[1] : null;
+                      const restText = match ? match[2] : displayNote;
+                      const upperTag = tag ? tag.toUpperCase() : "";
+                      let tagBadgeClass = "bg-slate-100 text-slate-800 border-slate-300 dark:bg-slate-900/60 dark:text-slate-300";
+                      if (upperTag.includes("NGHIỆM THU") || upperTag.includes("THÀNH CÔNG")) {
+                        tagBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700";
+                      } else if (upperTag.includes("HIỆN TRƯỜNG") || upperTag.includes("KIỂM TRA")) {
+                        tagBadgeClass = "bg-sky-100 text-sky-800 border-sky-300 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-700";
+                      } else if (upperTag.includes("GIA HẠN")) {
+                        tagBadgeClass = "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700";
+                      }
                       return (
                         <div
                           key={l.id}
@@ -422,8 +440,19 @@ export function RepairLogDialog({
                               </Badge>
                             </div>
                           )}
-                          {/* Note text */}
-                          <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{displayNote}</p>
+                          {/* Note text & tag */}
+                          {tag && !isSlaExtension ? (
+                            <div className="space-y-1">
+                              <Badge variant="outline" className={`font-bold text-[10.5px] px-2 py-0.5 ${tagBadgeClass}`}>
+                                {tag}
+                              </Badge>
+                              {restText && (
+                                <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{restText}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{displayNote}</p>
+                          )}
 
                           {/* Ảnh trong quá trình sửa gắn với dòng nhật ký */}
                           {images.length > 0 && (

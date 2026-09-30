@@ -28,6 +28,10 @@ import {
   Zap,
   Users,
   User,
+  Search,
+  X,
+  RotateCcw,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
@@ -144,11 +148,24 @@ function openDirections(location: LocationPayload) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
+function getRelativeAge(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  if (diffMs < 0) return "Vừa xong";
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "Vừa xong";
+  if (diffMins < 60) return `${diffMins} phút trước`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} ngày trước`;
+}
+
 export default function MaintenanceAdminPage() {
   const navigate = useNavigate();
-  // Kiosk operations queries
+  // Kiosk operations queries — kích hoạt tự động đồng bộ (polling) để phiếu mới luôn lập tức xuất hiện
   const faults = useGetFaultCellsQuery();
-  const reports = useGetMaintenanceReportsQuery();
+  const reports = useGetMaintenanceReportsQuery(undefined, { pollingInterval: 15000 });
   const deviceStatuses = useGetDeviceStatusesQuery();
   const [claim] = useClaimReportMutation();
   const [resolve] = useResolveReportMutation();
@@ -161,7 +178,7 @@ export default function MaintenanceAdminPage() {
 
   // Users query to get all technicians
   const usersQuery = useGetAllUsersQuery({ page: 0, size: 1000 });
-  const allReportsQuery = useGetAllAdminReportsQuery();
+  const allReportsQuery = useGetAllAdminReportsQuery(undefined, { pollingInterval: 15000 });
   const schedulesQuery = useGetMaintenanceSchedulesQuery();
   const schedulesList = useMemo(() => schedulesQuery.data?.data ?? [], [schedulesQuery.data]);
   const [historyFilter, setHistoryFilter] = useState<"ALL" | "INCIDENT" | "SCHEDULE">("ALL");
@@ -170,8 +187,15 @@ export default function MaintenanceAdminPage() {
   const [activeTab, setActiveTab] = useState("kiosk");
   const [managingDrone, setManagingDrone] = useState<DroneResponse | null>(null);
   const [droneFilter, setDroneFilter] = useState<string>("ALL");
+
+  // Bộ lọc phiếu sự cố Kiosk nâng cao
   const [reportFilter, setReportFilter] = useState<string>("ALL");
   const [selectedTechFilter, setSelectedTechFilter] = useState<string>("ALL");
+  const [selectedLockerFilter, setSelectedLockerFilter] = useState<string>("ALL");
+  const [dateFilter, setDateFilter] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"NEWEST_FIRST" | "PRIORITY_NEW" | "SLA_URGENT" | "OLDEST_FIRST">("NEWEST_FIRST");
+
   const [assigningReport, setAssigningReport] = useState<LockerReportResponse | null>(null);
   const [slaExtensions, setSlaExtensions] = useState<Record<number, any>>(getStoredSlaExtensions);
 
@@ -190,6 +214,21 @@ export default function MaintenanceAdminPage() {
     () => reportList.filter((r) => !isDroneReport(r)),
     [reportList]
   );
+
+  // Danh sách các trạm Kiosk duy nhất có phiếu để hiển thị trong bộ lọc
+  const availableLockers = useMemo(() => {
+    const map = new Map<number, { id: number; name: string; code?: string | null }>();
+    kioskReportList.forEach((r) => {
+      if (r.lockerId && !map.has(r.lockerId)) {
+        map.set(r.lockerId, {
+          id: r.lockerId,
+          name: r.lockerName || `Kiosk #${r.lockerId}`,
+          code: r.lockerCode,
+        });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [kioskReportList]);
   const droneList = useMemo(() => dronesQuery.data?.data ?? [], [dronesQuery.data]);
   const deviceList = deviceStatuses.data?.data ?? [];
 
@@ -367,18 +406,118 @@ export default function MaintenanceAdminPage() {
     return droneList.filter((d) => d.status === droneFilter);
   }, [droneList, droneFilter]);
 
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    reportFilter !== "ALL" ||
+    selectedTechFilter !== "ALL" ||
+    selectedLockerFilter !== "ALL" ||
+    dateFilter !== "ALL" ||
+    sortBy !== "NEWEST_FIRST";
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setReportFilter("ALL");
+    setSelectedTechFilter("ALL");
+    setSelectedLockerFilter("ALL");
+    setDateFilter("ALL");
+    setSortBy("NEWEST_FIRST");
+  };
+
   const filteredReports = useMemo(() => {
-    return kioskReportList.filter((r) => {
+    const list = kioskReportList.filter((r) => {
+      // 1. Trạng thái phiếu
       if (reportFilter === "OVERDUE") {
         if (!r.overdue) return false;
       } else if (reportFilter !== "ALL" && r.status !== reportFilter) {
         return false;
       }
-      if (selectedTechFilter === "UNASSIGNED") return !r.assignedToUserId;
-      if (selectedTechFilter !== "ALL") return String(r.assignedToUserId) === selectedTechFilter;
+
+      // 2. Kỹ thuật viên
+      if (selectedTechFilter === "UNASSIGNED") {
+        if (r.assignedToUserId) return false;
+      } else if (selectedTechFilter !== "ALL") {
+        if (String(r.assignedToUserId) !== selectedTechFilter) return false;
+      }
+
+      // 3. Trạm Kiosk
+      if (selectedLockerFilter !== "ALL") {
+        if (String(r.lockerId) !== selectedLockerFilter) return false;
+      }
+
+      // 4. Mốc thời gian
+      if (dateFilter !== "ALL" && r.createdAt) {
+        const created = new Date(r.createdAt);
+        const now = new Date();
+        if (dateFilter === "TODAY") {
+          const isToday =
+            created.getDate() === now.getDate() &&
+            created.getMonth() === now.getMonth() &&
+            created.getFullYear() === now.getFullYear();
+          if (!isToday) return false;
+        } else if (dateFilter === "7_DAYS") {
+          const diffMs = now.getTime() - created.getTime();
+          if (diffMs > 7 * 86400000) return false;
+        } else if (dateFilter === "30_DAYS") {
+          const diffMs = now.getTime() - created.getTime();
+          if (diffMs > 30 * 86400000) return false;
+        }
+      }
+
+      // 5. Tìm kiếm từ khóa (Mã phiếu, Tiêu đề, Mô tả, Tên trạm, Mã trạm, Số ô, Người báo, SĐT)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const idStr = `#${r.id}`;
+        const match =
+          idStr.includes(q) ||
+          String(r.id).includes(q) ||
+          (r.title || "").toLowerCase().includes(q) ||
+          (r.description || "").toLowerCase().includes(q) ||
+          (r.lockerName || "").toLowerCase().includes(q) ||
+          (r.lockerCode || "").toLowerCase().includes(q) ||
+          (r.boxNumber ? `ô ${r.boxNumber}` : r.boxId ? `ô ${r.boxId}` : "").includes(q) ||
+          (r.reporterName || "").toLowerCase().includes(q) ||
+          (r.reporterPhone || "").toLowerCase().includes(q);
+        if (!match) return false;
+      }
+
       return true;
     });
-  }, [kioskReportList, reportFilter, selectedTechFilter]);
+
+    // Sắp xếp: đảm bảo các phiếu khi vừa mới có phải hiển thị lên đầu tiên
+    return list.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
+      if (sortBy === "PRIORITY_NEW") {
+        // Ưu tiên cao nhất: Phiếu OPEN hoặc Quá hạn SLA lên trước
+        const isPriorityA = a.status === "OPEN" || Boolean(a.overdue) ? 1 : 0;
+        const isPriorityB = b.status === "OPEN" || Boolean(b.overdue) ? 1 : 0;
+        if (isPriorityA !== isPriorityB) return isPriorityB - isPriorityA;
+        return timeB - timeA;
+      }
+
+      if (sortBy === "SLA_URGENT") {
+        const slaA = a.slaDueAt ? new Date(a.slaDueAt).getTime() : Infinity;
+        const slaB = b.slaDueAt ? new Date(b.slaDueAt).getTime() : Infinity;
+        return slaA - slaB;
+      }
+
+      if (sortBy === "OLDEST_FIRST") {
+        return timeA - timeB;
+      }
+
+      // Mặc định: NEWEST_FIRST (Mới nhất lên đầu)
+      return timeB - timeA;
+    });
+  }, [
+    kioskReportList,
+    reportFilter,
+    selectedTechFilter,
+    selectedLockerFilter,
+    dateFilter,
+    searchQuery,
+    sortBy,
+  ]);
 
   // Phiếu OPEN chưa ai nhận: chờ KTV phụ trách tủ (routedToUserId) hoặc đã báo mọi KTV tủ (null).
   // undefined = backend cũ chưa trả trường định tuyến.
@@ -558,10 +697,10 @@ export default function MaintenanceAdminPage() {
 
           {/* Phiếu Sự Cố Kiosk */}
           <Card className="border border-border/80 shadow-xs">
-            <CardHeader className="pb-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardHeader className="pb-3 border-b border-border/50">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <Wrench className="w-4 h-4 text-orange-500" />
                     Phiếu xử lý sự cố ({kioskReportList.length})
                     {overdueReports > 0 && (
@@ -571,52 +710,189 @@ export default function MaintenanceAdminPage() {
                     )}
                   </CardTitle>
                   <CardDescription className="text-xs mt-0.5">
-                    Điều phối và theo dõi tiến độ sửa chữa của kỹ thuật viên
+                    Hệ thống tự động ưu tiên các phiếu sự cố mới nhất lên đầu danh sách để xử lý kịp thời
                   </CardDescription>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Select value={selectedTechFilter} onValueChange={setSelectedTechFilter}>
-                    <SelectTrigger className="w-48 h-8 text-xs bg-background">
-                      <SelectValue placeholder="Lọc theo KTV" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">Tất cả Kỹ thuật viên</SelectItem>
-                      <SelectItem value="UNASSIGNED">Chưa phân công (Mới)</SelectItem>
-                      {technicians.map((t) => (
-                        <SelectItem key={t.id} value={String(t.id)}>
-                          {t.fullName} (#{t.id}) · {t.specialty === "KIOSK" ? "KTV Kiosk" : "KTV Drone"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs font-mono font-medium bg-muted">
+                    Hiển thị {filteredReports.length} / {kioskReportList.length} phiếu
+                  </Badge>
+                  {hasActiveFilters && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleResetFilters}
+                      className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Đặt lại bộ lọc
+                    </Button>
+                  )}
+                </div>
+              </div>
 
+              {/* BỘ LỌC ĐA NĂNG (FILTER TOOLBAR) */}
+              <div className="mt-4 pt-3 border-t border-border/40 space-y-3">
+                {/* Hàng 1: Ô tìm kiếm + Các Dropdown lọc */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2.5 items-center">
+                  {/* Ô tìm kiếm */}
+                  <div className="relative md:col-span-4">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Tìm mã phiếu (#1), tiêu đề, kiosk, ô, SĐT..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-8 pr-7 h-8 text-xs bg-background"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Lọc KTV */}
+                  <div className="md:col-span-2">
+                    <Select value={selectedTechFilter} onValueChange={setSelectedTechFilter}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background">
+                        <SelectValue placeholder="Lọc theo KTV" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">Tất cả Kỹ thuật viên</SelectItem>
+                        <SelectItem value="UNASSIGNED">Chưa phân công (Mới)</SelectItem>
+                        {technicians.map((t) => (
+                          <SelectItem key={t.id} value={String(t.id)}>
+                            {t.fullName} (#{t.id})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Lọc Trạm Kiosk */}
+                  <div className="md:col-span-2">
+                    <Select value={selectedLockerFilter} onValueChange={setSelectedLockerFilter}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background">
+                        <SelectValue placeholder="Trạm Kiosk" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">Tất cả trạm Kiosk</SelectItem>
+                        {availableLockers.map((lk) => (
+                          <SelectItem key={lk.id} value={String(lk.id)}>
+                            {lk.name} {lk.code ? `(${lk.code})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Lọc Thời gian */}
+                  <div className="md:col-span-2">
+                    <Select value={dateFilter} onValueChange={setDateFilter}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background">
+                        <SelectValue placeholder="Thời gian" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">Tất cả thời gian</SelectItem>
+                        <SelectItem value="TODAY">Hôm nay</SelectItem>
+                        <SelectItem value="7_DAYS">7 ngày gần nhất</SelectItem>
+                        <SelectItem value="30_DAYS">30 ngày gần nhất</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Sắp xếp */}
+                  <div className="md:col-span-2">
+                    <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background font-medium border-primary/40 text-primary">
+                        <SelectValue placeholder="Sắp xếp" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NEWEST_FIRST">⚡ Mới nhất lên đầu (Mặc định)</SelectItem>
+                        <SelectItem value="PRIORITY_NEW">🔥 Ưu tiên: Mới & Khẩn cấp</SelectItem>
+                        <SelectItem value="SLA_URGENT">⏰ Hạn SLA gấp nhất</SelectItem>
+                        <SelectItem value="OLDEST_FIRST">📅 Cũ nhất trước</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Hàng 2: Nút chọn Trạng thái (Status Tabs) & Filter tags */}
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
                   <div className="flex gap-1.5 flex-wrap">
                     {[
-                      { id: "ALL", label: "Tất cả" },
-                      { id: "OPEN", label: "Mới mở" },
-                      { id: "IN_PROGRESS", label: "Đang làm" },
-                      { id: "OVERDUE", label: `Quá hạn SLA${overdueReports > 0 ? ` (${overdueReports})` : ""}` },
-                      { id: "RESOLVED", label: "Đã xong" },
-                    ].map(({ id: st, label }) => (
+                      { id: "ALL", label: `Tất cả (${kioskReportList.length})` },
+                      { id: "OPEN", label: `Mới mở (${openReports})`, isNewPulse: openReports > 0 },
+                      { id: "IN_PROGRESS", label: `Đang làm (${inProgressReports})` },
+                      { id: "OVERDUE", label: `Quá hạn SLA (${overdueReports})`, isDanger: overdueReports > 0 },
+                      { id: "RESOLVED", label: `Đã xong (${resolvedReports})` },
+                    ].map(({ id: st, label, isNewPulse, isDanger }) => (
                       <Button
                         key={st}
                         variant="outline"
                         size="sm"
                         onClick={() => setReportFilter(st)}
-                        className={`h-7 px-2.5 text-xs font-medium ${
+                        className={`h-7 px-2.5 text-xs font-medium transition-all ${
                           reportFilter === st
                             ? st === "OVERDUE"
-                              ? "bg-rose-600 text-white border-rose-600 hover:bg-rose-700"
-                              : "bg-primary text-primary-foreground border-primary"
-                            : st === "OVERDUE" && overdueReports > 0
+                              ? "bg-rose-600 text-white border-rose-600 hover:bg-rose-700 shadow-xs"
+                              : st === "OPEN"
+                                ? "bg-amber-600 text-white border-amber-600 hover:bg-amber-700 shadow-xs"
+                                : "bg-primary text-primary-foreground border-primary shadow-xs"
+                            : isDanger
                               ? "text-rose-600 border-rose-300 bg-rose-50/60 hover:bg-rose-100"
-                              : "text-muted-foreground"
+                              : isNewPulse
+                                ? "text-amber-700 border-amber-300 bg-amber-50/70 hover:bg-amber-100 font-semibold"
+                                : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
+                        {isNewPulse && (
+                          <span className="relative flex h-2 w-2 mr-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                          </span>
+                        )}
                         {label}
                       </Button>
                     ))}
                   </div>
+
+                  {/* Active Filter summary tags */}
+                  {hasActiveFilters && (
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
+                      <span>Đang lọc:</span>
+                      {searchQuery && (
+                        <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">
+                          Từ khóa: &quot;{searchQuery}&quot;
+                          <X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setSearchQuery("")} />
+                        </Badge>
+                      )}
+                      {selectedTechFilter !== "ALL" && (
+                        <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">
+                          {selectedTechFilter === "UNASSIGNED"
+                            ? "Chưa phân công"
+                            : `KTV: ${techniciansMap[Number(selectedTechFilter)]?.fullName ?? selectedTechFilter}`}
+                          <X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setSelectedTechFilter("ALL")} />
+                        </Badge>
+                      )}
+                      {selectedLockerFilter !== "ALL" && (
+                        <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">
+                          Trạm: {availableLockers.find((l) => String(l.id) === selectedLockerFilter)?.name ?? selectedLockerFilter}
+                          <X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setSelectedLockerFilter("ALL")} />
+                        </Badge>
+                      )}
+                      {dateFilter !== "ALL" && (
+                        <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">
+                          Thời gian: {dateFilter === "TODAY" ? "Hôm nay" : dateFilter === "7_DAYS" ? "7 ngày qua" : "30 ngày qua"}
+                          <X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDateFilter("ALL")} />
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -631,7 +907,7 @@ export default function MaintenanceAdminPage() {
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
                       </span>
                       <p className="text-xs font-medium text-amber-900 dark:text-amber-200">
-                        <span className="font-bold">{openCount} phiếu sự cố mới</span> đang chờ KTV nhận — có thể phân công trực tiếp nếu cần gấp.
+                        <span className="font-bold">{openCount} phiếu sự cố mới</span> đang chờ KTV nhận — các phiếu mới nhất đã được tự động hiển thị lên đầu.
                       </p>
                     </div>
                     {reportFilter !== "OPEN" && (
@@ -649,11 +925,26 @@ export default function MaintenanceAdminPage() {
               })()}
 
               {filteredReports.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-8 text-center">Không có phiếu sự cố nào phù hợp.</p>
+                <div className="py-12 text-center space-y-2">
+                  <p className="text-sm font-medium text-foreground">Không có phiếu sự cố nào phù hợp với bộ lọc hiện tại.</p>
+                  <p className="text-xs text-muted-foreground">Thử tìm kiếm với từ khóa khác hoặc đặt lại bộ lọc để xem toàn bộ danh sách phiếu.</p>
+                  {hasActiveFilters && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetFilters}
+                      className="h-8 text-xs gap-1 mt-2"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Đặt lại tất cả bộ lọc
+                    </Button>
+                  )}
+                </div>
               ) : (
                 <div className="divide-y divide-border/60">
                   {filteredReports.map((r) => {
                     const isNew = r.status === "OPEN";
+                    const isRecent = r.createdAt && (Date.now() - new Date(r.createdAt).getTime()) < 3600000;
                     const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
 
                     return (
@@ -685,6 +976,12 @@ export default function MaintenanceAdminPage() {
                             ) : (
                               <Badge variant="outline" className={`text-xs ${REPORT_BADGE[r.status] ?? ""}`}>
                                 {r.status === "IN_PROGRESS" ? "Đang xử lý" : r.status === "RESOLVED" ? "Đã hoàn tất" : r.status}
+                              </Badge>
+                            )}
+                            {isRecent && !isNew && (
+                              <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold text-[11px] shadow-xs flex items-center gap-1 px-2 py-0.5">
+                                <Sparkles className="w-3 h-3 text-emerald-600" />
+                                VỪA PHÁT SINH
                               </Badge>
                             )}
                             {r.blocksLocker && r.status !== "RESOLVED" && (
@@ -744,7 +1041,12 @@ export default function MaintenanceAdminPage() {
                           <span className="text-foreground">{cleanDescription(r.description) || r.description}</span> · <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
                           {r.boxNumber ? ` · Ô #${r.boxNumber}` : r.boxId ? ` · Ô #${r.boxId}` : ""}{" "}
                           {r.cellType ? `· Loại ${r.cellType} ` : ""}
-                          · Tạo lúc: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>
+                          · Tạo lúc: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>{" "}
+                          {r.createdAt && (
+                            <span className="text-[11px] text-muted-foreground font-medium">
+                              ({getRelativeAge(r.createdAt)})
+                            </span>
+                          )}
                         </p>
                         {(r.reporterName || r.reporterPhone) && (
                           <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
@@ -1178,6 +1480,7 @@ export default function MaintenanceAdminPage() {
               title: string;
               target: string;
               completedAt: string;
+              completedRawDate?: string;
               technician: string;
               badgeText: string;
               detailNote?: string;
@@ -1188,12 +1491,14 @@ export default function MaintenanceAdminPage() {
 
             // 1. Thêm các phiếu sự cố đã giải quyết
             resolvedIncidentList.forEach((r) => {
+              const rawDate = r.resolvedAt ?? r.updatedAt ?? r.createdAt;
               historyItems.push({
                 id: `incident-${r.id}`,
                 type: "INCIDENT",
                 title: `#${r.id} · ${r.title}`,
                 target: `${r.lockerName ?? `Kiosk #${r.lockerId}`}${r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}`,
-                completedAt: formatDateTime(r.resolvedAt ?? r.updatedAt ?? r.createdAt),
+                completedAt: formatDateTime(rawDate),
+                completedRawDate: rawDate,
                 // Người được giao phiếu, không có thì người đóng phiếu — không suy từ người báo
                 technician: (() => {
                   const techId = r.assignedToUserId ?? r.resolvedByUserId;
@@ -1216,6 +1521,7 @@ export default function MaintenanceAdminPage() {
                   ? `Drone: ${s.droneCode ?? "Thiết bị bay"} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`
                   : `Trạm: ${s.lockerName ?? "Kiosk"}${s.lockerCode ? ` (${s.lockerCode})` : ""} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`,
                 completedAt: formatDateTime(s.lastDoneAt),
+                completedRawDate: s.lastDoneAt,
                 technician: s.assignedTechnicianName ?? (isDrone ? "Kỹ thuật viên Đội Drone" : "Kỹ thuật viên Kiosk"),
                 badgeText: isDrone ? "Bảo trì Drone" : "Kiểm tra Kiosk",
                 detailNote:
@@ -1223,6 +1529,13 @@ export default function MaintenanceAdminPage() {
                     ? `Lần kiểm tra gần nhất KHÔNG ĐẠT${s.pendingReportId ? ` — chờ phiếu #${s.pendingReportId} hoàn tất mới dời hạn` : ""}.`
                     : `Hoàn tất kỳ bảo dưỡng định kỳ (chu kỳ ${s.intervalDays} ngày).`,
               });
+            });
+
+            // Sắp xếp lịch sử: Mới hoàn tất nhất lên đầu
+            historyItems.sort((a, b) => {
+              const tA = a.completedRawDate ? new Date(a.completedRawDate).getTime() : 0;
+              const tB = b.completedRawDate ? new Date(b.completedRawDate).getTime() : 0;
+              return tB - tA;
             });
 
             const filteredHistory =
