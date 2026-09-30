@@ -115,32 +115,32 @@ export function ReportPhotoGroups({
 
   if (variant === "compact") {
     return (
-      <>
-        {ATTACHMENT_STAGES.filter((stage) => groups[stage].length > 0).map((stage) => {
+      <div className="mt-2 space-y-1.5">
+        {ATTACHMENT_STAGES.map((stage) => {
           const style = STAGE_STYLE[stage];
           const Icon = style.icon;
+          const stagePhotos = groups[stage];
           return (
-            <div key={stage} className="mt-2 flex items-center gap-2 flex-wrap">
+            <div key={stage} className="flex items-center gap-2 flex-wrap">
               <span
                 className={`text-[11px] font-semibold flex items-center gap-1 shrink-0 px-2 py-0.5 rounded border shadow-2xs ${style.chip}`}
               >
                 <Icon className="w-3.5 h-3.5" aria-hidden />
-                {STAGE_LABELS[stage]} ({groups[stage].length} ảnh):
+                {STAGE_LABELS[stage]} ({stagePhotos.length} ảnh):
               </span>
-              <PhotoGallery
-                photos={toGalleryPhotos(stage, groups[stage])}
-                title={`${STAGE_LABELS[stage]} · Phiếu #${report.id} · ${report.title}`}
-                thumbClassName={`w-14 h-14 ${style.thumb}`}
-              />
+              {stagePhotos.length > 0 ? (
+                <PhotoGallery
+                  photos={toGalleryPhotos(stage, stagePhotos)}
+                  title={`${STAGE_LABELS[stage]} · Phiếu #${report.id} · ${report.title}`}
+                  thumbClassName={`w-14 h-14 ${style.thumb}`}
+                />
+              ) : (
+                <span className="text-[11px] text-muted-foreground italic">Chưa có ảnh</span>
+              )}
             </div>
           );
         })}
-        {total === 0 && (
-          <div className="mt-1.5 flex items-center gap-2">
-            <span className="text-[11px] text-muted-foreground italic">Chưa có ảnh đính kèm</span>
-          </div>
-        )}
-      </>
+      </div>
     );
   }
 
