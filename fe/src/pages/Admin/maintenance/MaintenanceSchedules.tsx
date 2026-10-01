@@ -478,7 +478,7 @@ export function MaintenanceSchedules() {
       if (updated?.lastResult === "FAILED" && updated.pendingReportId) {
         toast.warning(`Đã ghi nhận: KHÔNG ĐẠT — "${inspectingSchedule.title}"`, {
           // Ô đã có phiếu mở ⇒ server gộp vào phiếu đó thay vì mở phiếu mới
-          description: `Lỗi được ghi vào phiếu sự cố #${updated.pendingReportId}. Hạn kiểm tra giữ nguyên, chỉ dời khi phiếu được hoàn tất.`,
+          description: `Lỗi được ghi vào phiếu sự cố RPT-${updated.pendingReportId}. Hạn kiểm tra giữ nguyên, chỉ dời khi phiếu được hoàn tất.`,
         });
       } else {
         toast.success(
@@ -1164,7 +1164,7 @@ export function MaintenanceSchedules() {
                           className="text-[10px] font-semibold bg-rose-50 text-rose-700 border-rose-200"
                           title="Hạn kiểm tra chỉ dời khi phiếu này được hoàn tất"
                         >
-                          Chờ phiếu #{s.pendingReportId}
+                          Chờ phiếu RPT-{s.pendingReportId}
                         </Badge>
                       )}
                     </div>
@@ -1296,7 +1296,7 @@ export function MaintenanceSchedules() {
                       disabled={s.pendingReportId != null}
                       title={
                         s.pendingReportId != null
-                          ? `Lần kiểm tra trước chưa đạt — hoàn tất phiếu #${s.pendingReportId} trước`
+                          ? `Lần kiểm tra trước chưa đạt — hoàn tất phiếu RPT-${s.pendingReportId} trước`
                           : undefined
                       }
                     >
@@ -1844,7 +1844,7 @@ export function MaintenanceSchedules() {
 
                             {log.createdReportId && (
                               <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] flex items-center justify-between">
-                                <span>Đã tự động mở phiếu sự cố: <strong>#{log.createdReportId}</strong></span>
+                                <span>Đã tự động mở phiếu sự cố: <strong>RPT-{log.createdReportId}</strong></span>
                               </div>
                             )}
 
@@ -1918,7 +1918,7 @@ export function MaintenanceSchedules() {
                       disabled={selectedSchedule.pendingReportId != null}
                       title={
                         selectedSchedule.pendingReportId != null
-                          ? `Lần kiểm tra trước chưa đạt — hoàn tất phiếu #${selectedSchedule.pendingReportId} trước`
+                          ? `Lần kiểm tra trước chưa đạt — hoàn tất phiếu RPT-${selectedSchedule.pendingReportId} trước`
                           : undefined
                       }
                     >

@@ -425,7 +425,7 @@ export default function TechnicianDetailPage() {
     if (!unassignTargetId) return;
     try {
       await unassign(unassignTargetId).unwrap();
-      toast.success(`Đã thu hồi phiếu sự cố #${unassignTargetId}`, {
+      toast.success(`Đã thu hồi phiếu sự cố RPT-${unassignTargetId}`, {
         description: "Phiếu đã được chuyển về trạng thái Chưa phân công để giao nhân sự khác.",
       });
       refetchReports();
@@ -449,7 +449,7 @@ export default function TechnicianDetailPage() {
         reportId: selectedReportToAssign,
         technicianId: technician.id,
       }).unwrap();
-      toast.success(`Đã phân công sự cố #${selectedReportToAssign} cho KTV ${technician.fullName}`);
+      toast.success(`Đã phân công sự cố RPT-${selectedReportToAssign} cho KTV ${technician.fullName}`);
       setAssignDialogOpen(false);
       setSelectedReportToAssign(null);
       refetchReports();
@@ -986,7 +986,7 @@ export default function TechnicianDetailPage() {
                             <div className="space-y-1 flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-sm text-foreground">
-                                  #{report.id} · {report.title}
+                                  RPT-{report.id} · {report.title}
                                 </span>
                                 {isNew ? (
                                   <Badge
@@ -1061,7 +1061,7 @@ export default function TechnicianDetailPage() {
                             <div className="flex flex-col items-end gap-1.5 shrink-0">
                               <RepairLogDialog
                                 reportId={report.id}
-                                title={`#${report.id} · ${report.title}`}
+                                title={`RPT-${report.id} · ${report.title}`}
                                 technicianName={technician.fullName}
                                 report={report}
                               />
@@ -1148,7 +1148,7 @@ export default function TechnicianDetailPage() {
                             <div className="space-y-1">
                               <div className="flex items-center justify-between gap-2">
                                 <span className="font-semibold text-xs text-foreground">
-                                  {isDone ? "Đã hoàn tất phiếu sự cố" : "Đang xử lý phiếu sự cố"} #{r.id} · {r.title}
+                                  {isDone ? "Đã hoàn tất phiếu sự cố" : "Đang xử lý phiếu sự cố"} RPT-{r.id} · {r.title}
                                 </span>
                                 <span className="text-[11px] text-muted-foreground font-mono">
                                   {formatDateTime(r.resolvedAt || r.assignedAt || r.createdAt)}
@@ -1323,7 +1323,7 @@ export default function TechnicianDetailPage() {
                                 )}
                                 {s.pendingReportId != null && (
                                   <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 font-semibold">
-                                    Chờ phiếu #{s.pendingReportId}
+                                    Chờ phiếu RPT-{s.pendingReportId}
                                   </Badge>
                                 )}
                               </div>
@@ -1385,7 +1385,7 @@ export default function TechnicianDetailPage() {
                               </Badge>
                               {log.createdReportId && (
                                 <Badge variant="outline" className="text-[10px] text-rose-600 border-rose-200">
-                                  Phiếu sự cố #{log.createdReportId}
+                                  Phiếu sự cố RPT-{log.createdReportId}
                                 </Badge>
                               )}
                             </div>
@@ -1431,7 +1431,7 @@ export default function TechnicianDetailPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-semibold">
-              Thu hồi phiếu sự cố #{unassignTargetId}?
+              Thu hồi phiếu sự cố RPT-{unassignTargetId}?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs">
               Phiếu sự cố sẽ được thu hồi khỏi KTV {technician.fullName} và chuyển về trạng thái Chưa phân công để giao cho nhân viên kỹ thuật khác.

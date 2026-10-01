@@ -106,7 +106,7 @@ export function ExtendSlaDialog({
       saveSlaExtension(extensionRecord);
 
       toast.success(`Đã gia hạn SLA thành công (+${effectiveHours} giờ)`, {
-        description: `Hạn hoàn tất mới cho phiếu #${report.id} là: ${formatDateTime(newDue)}. Hệ thống đã đồng bộ gỡ trạng thái trễ hạn.`,
+        description: `Hạn hoàn tất mới cho phiếu RPT-${report.id} là: ${formatDateTime(newDue)}. Hệ thống đã đồng bộ gỡ trạng thái trễ hạn.`,
       });
 
       onOpenChange(false);
@@ -128,7 +128,7 @@ export function ExtendSlaDialog({
             Gia hạn thời gian xử lý sự cố (SLA)
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-            Phiếu #{report.id} · {report.title}
+            Phiếu RPT-{report.id} · {report.title}
           </DialogDescription>
         </DialogHeader>
 
