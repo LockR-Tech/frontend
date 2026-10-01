@@ -118,6 +118,10 @@ const DELIVERY_STAGE_META: Record<string, BadgeMeta> = {
   APPROACHING: { label: "Sắp tới nơi", style: BLUE, icon: Plane },
   ARRIVED: { label: "Đã tới nơi", style: GREEN, icon: CheckCircle2 },
   READY_FOR_PICKUP: { label: "Sẵn sàng lấy hàng", style: GREEN, icon: PackageCheck },
+  // Chặng kết thúc — backend đặt deliveryStage theo trạng thái đơn khi đơn drone đóng.
+  CANCELED: { label: "Đã huỷ", style: RED, icon: XCircle },
+  COMPLETED: { label: "Đã nhận hàng", style: GREEN, icon: CheckCircle2 },
+  EXPIRED: { label: "Quá hạn nhận", style: AMBER, icon: Timer },
 };
 
 export function deliveryStageMeta(

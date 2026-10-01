@@ -103,6 +103,7 @@
       "settings": "Settings",
       "maintenance": "Device Maintenance",
       "drones": "Drones",
+      "droneOrders": "Drone journeys",
       "businessSettings": "Business rules",
       "knowledge": "Knowledge base"
     },
