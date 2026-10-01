@@ -717,7 +717,7 @@ export default function LockerLayoutPage() {
             </p>
             {blockingReports.length > 0 && (
               <p className="text-amber-800 dark:text-amber-300">
-                {`Đang bị chặn bởi phiếu sự cố ${blockingReports.map((r) => `#${r.id}`).join(", ")} — tủ tự hoạt động lại khi phiếu chặn cuối cùng được hoàn tất.`}
+                {`Đang bị chặn bởi phiếu sự cố ${blockingReports.map((r) => `RPT-${r.id}`).join(", ")} — tủ tự hoạt động lại khi phiếu chặn cuối cùng được hoàn tất.`}
               </p>
             )}
           </div>

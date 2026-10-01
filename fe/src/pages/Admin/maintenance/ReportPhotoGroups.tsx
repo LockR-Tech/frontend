@@ -97,7 +97,7 @@ export function ReportPhotoGroups({
         key: photo.key,
         url: photo.url,
         thumbnailUrl: photo.thumbnailUrl,
-        alt: `${STAGE_LABELS[stage]} ${idx + 1} — phiếu #${report.id}`,
+        alt: `${STAGE_LABELS[stage]} ${idx + 1} — phiếu RPT-${report.id}`,
         caption: photo.caption,
         time: timeShort,
         uploader,
@@ -131,7 +131,7 @@ export function ReportPhotoGroups({
               {stagePhotos.length > 0 ? (
                 <PhotoGallery
                   photos={toGalleryPhotos(stage, stagePhotos)}
-                  title={`${STAGE_LABELS[stage]} · Phiếu #${report.id} · ${report.title}`}
+                  title={`${STAGE_LABELS[stage]} · Phiếu RPT-${report.id} · ${report.title}`}
                   thumbClassName={`w-14 h-14 ${style.thumb}`}
                 />
               ) : (
@@ -178,7 +178,7 @@ export function ReportPhotoGroups({
                     >
                       <PhotoGallery
                         photos={[photo]}
-                        title={`${STAGE_LABELS[stage]} · Phiếu sự cố #${report.id}`}
+                        title={`${STAGE_LABELS[stage]} · Phiếu sự cố RPT-${report.id}`}
                         thumbClassName={`w-16 h-16 rounded-md shrink-0 shadow-xs ${style.thumb}`}
                       />
                       <div className="flex-1 min-w-0 text-xs space-y-1">

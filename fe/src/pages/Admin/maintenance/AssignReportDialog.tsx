@@ -64,7 +64,7 @@ export function AssignReportDialog({
         technicianId: techId,
       }).unwrap();
 
-      toast.success(`Đã phân công phiếu #${report.id} cho KTV ${tech?.fullName || `#${techId}`}`, {
+      toast.success(`Đã phân công phiếu RPT-${report.id} cho KTV ${tech?.fullName || `#${techId}`}`, {
         description: "Thông báo điều phối đã được gửi đến ứng dụng di động của kỹ thuật viên.",
       });
       onOpenChange(false);
@@ -94,7 +94,7 @@ export function AssignReportDialog({
         <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-sm text-foreground">
-              Phiếu #{report.id} · {report.title}
+              Phiếu RPT-{report.id} · {report.title}
             </span>
             <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]">
               {report.status}

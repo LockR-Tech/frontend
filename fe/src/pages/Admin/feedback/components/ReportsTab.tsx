@@ -56,7 +56,7 @@ export function ReportsTab() {
       },
     }).unwrap();
     toast.success("Giải quyết báo cáo thành công", {
-      description: `Báo cáo #${id} đã được đánh dấu là đã giải quyết${
+      description: `Báo cáo RPT-${id} đã được đánh dấu là đã giải quyết${
         payload.attachments?.length ? ` kèm ${payload.attachments.length} ảnh nghiệm thu` : ""
       }.`,
     });
@@ -213,7 +213,7 @@ export function ReportsTab() {
       <ResolveReportDialog
         open={!!resolving}
         onOpenChange={(open) => !open && setResolving(null)}
-        title={resolving ? `Giải quyết báo cáo #${resolving.id}?` : ""}
+        title={resolving ? `Giải quyết báo cáo RPT-${resolving.id}?` : ""}
         description={resolving?.description}
         confirmLabel="Giải quyết"
         errorTitle="Không giải quyết được báo cáo"

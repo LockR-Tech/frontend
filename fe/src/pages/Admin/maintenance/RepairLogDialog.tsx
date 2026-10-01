@@ -166,7 +166,7 @@ export function RepairLogDialog({
             <div className="flex items-center justify-between">
               <DialogTitle className="text-base font-semibold flex items-center gap-2">
                 <History className="w-4 h-4 text-indigo-600" />
-                Hồ sơ xử lý · #{reportId} · {eff?.title ?? title}
+                Hồ sơ xử lý · RPT-{reportId} · {eff?.title ?? title}
               </DialogTitle>
             </div>
             {/* Section switcher */}
@@ -209,7 +209,7 @@ export function RepairLogDialog({
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-sm text-foreground">
-                          #{eff?.id ?? reportId} · {eff?.title ?? title}
+                          RPT-{eff?.id ?? reportId} · {eff?.title ?? title}
                         </span>
                         {effectiveStatus === "RESOLVED" ? (
                           <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-semibold">

@@ -467,8 +467,10 @@ export default function MaintenanceAdminPage() {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const idStr = `#${r.id}`;
+        const rptStr = `rpt-${r.id}`;
         const match =
           idStr.includes(q) ||
+          rptStr.includes(q) ||
           String(r.id).includes(q) ||
           (r.title || "").toLowerCase().includes(q) ||
           (r.description || "").toLowerCase().includes(q) ||
@@ -959,7 +961,7 @@ export default function MaintenanceAdminPage() {
                         <div className="max-w-xl">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-sm text-foreground">
-                              #{r.id} · {r.title}
+                              RPT-{r.id} · {r.title}
                             </p>
                             {/* Status Badge */}
                             {isNew ? (
@@ -1066,7 +1068,7 @@ export default function MaintenanceAdminPage() {
                       <div className="flex flex-wrap gap-2 items-center">
                         <RepairLogDialog
                           reportId={r.id}
-                          title={`#${r.id} · ${r.title}`}
+                          title={`RPT-${r.id} · ${r.title}`}
                           technicianName={
                             r.assignedToUserId
                               ? assignedTech?.fullName ?? userNames[r.assignedToUserId]
@@ -1495,7 +1497,7 @@ export default function MaintenanceAdminPage() {
               historyItems.push({
                 id: `incident-${r.id}`,
                 type: "INCIDENT",
-                title: `#${r.id} · ${r.title}`,
+                title: `RPT-${r.id} · ${r.title}`,
                 target: `${r.lockerName ?? `Kiosk #${r.lockerId}`}${r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}`,
                 completedAt: formatDateTime(rawDate),
                 completedRawDate: rawDate,
@@ -1526,7 +1528,7 @@ export default function MaintenanceAdminPage() {
                 badgeText: isDrone ? "Bảo trì Drone" : "Kiểm tra Kiosk",
                 detailNote:
                   s.lastResult === "FAILED"
-                    ? `Lần kiểm tra gần nhất KHÔNG ĐẠT${s.pendingReportId ? ` — chờ phiếu #${s.pendingReportId} hoàn tất mới dời hạn` : ""}.`
+                    ? `Lần kiểm tra gần nhất KHÔNG ĐẠT${s.pendingReportId ? ` — chờ phiếu RPT-${s.pendingReportId} hoàn tất mới dời hạn` : ""}.`
                     : `Hoàn tất kỳ bảo dưỡng định kỳ (chu kỳ ${s.intervalDays} ngày).`,
               });
             });
@@ -1678,7 +1680,7 @@ export default function MaintenanceAdminPage() {
       <ResolveReportDialog
         open={!!resolvingReport}
         onOpenChange={(open) => !open && setResolvingReport(null)}
-        title={resolvingReport ? `Xác nhận hoàn tất xử lý phiếu #${resolvingReport.id}?` : ""}
+        title={resolvingReport ? `Xác nhận hoàn tất xử lý phiếu RPT-${resolvingReport.id}?` : ""}
         description={
           resolvingReport
             ? `Xác nhận sự cố "${resolvingReport.title}" đã được sửa chữa triệt để? Phiếu sẽ chuyển sang trạng thái Đã hoàn tất và ô tủ liên quan sẽ mở khóa phục vụ khách hàng.`
@@ -1690,7 +1692,7 @@ export default function MaintenanceAdminPage() {
           setPending(id);
           try {
             await resolve({ reportId: id, note, attachments }).unwrap();
-            toast.success(`Phiếu #${id} đã hoàn tất thành công`, {
+            toast.success(`Phiếu RPT-${id} đã hoàn tất thành công`, {
               description: attachments?.length
                 ? `Sự cố đã được đóng hồ sơ kèm ${attachments.length} ảnh nghiệm thu.`
                 : "Sự cố kỹ thuật đã được đóng hồ sơ và lưu nhật ký.",
