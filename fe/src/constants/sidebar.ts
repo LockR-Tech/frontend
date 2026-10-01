@@ -14,6 +14,7 @@ import {
   Briefcase,
   Tag,
   Plane,
+  Route,
   TrendingUp,
   Wrench,
   SlidersHorizontal,
@@ -56,6 +57,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: Plane,
     path: "/admin/drones",
     label: "admin.sidebar.drones",
+    permission: "admin_access",
+  },
+  {
+    icon: Route,
+    path: "/admin/drone-orders",
+    label: "admin.sidebar.droneOrders",
     permission: "admin_access",
   },
   {

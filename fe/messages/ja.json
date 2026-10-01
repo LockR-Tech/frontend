@@ -102,6 +102,7 @@
       "settings": "設定",
       "maintenance": "メンテナンス",
       "drones": "ドローン",
+      "droneOrders": "ドローン配送の追跡",
       "businessSettings": "業務ルール設定",
       "knowledge": "ナレッジベース"
     },

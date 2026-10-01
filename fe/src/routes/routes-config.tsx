@@ -51,6 +51,7 @@ const TechnicianDetailPage = lazy(() => import("../pages/Admin/maintenance/techn
 const NotificationsPage = lazy(() => import("../pages/Admin/notifications"));
 const PromotionsPage = lazy(() => import("../pages/Admin/promotions"));
 const DronesPage = lazy(() => import("../pages/Admin/drones"));
+const DroneOrdersPage = lazy(() => import("../pages/Admin/drone-orders"));
 const BusinessSettingsPage = lazy(() => import("../pages/Admin/settings"));
 const KnowledgePage = lazy(() => import("../pages/Admin/knowledge"));
 
@@ -355,6 +356,14 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <DronesPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "drone-orders",
+        element: (
+          <LazyWrapper>
+            <DroneOrdersPage />
           </LazyWrapper>
         ),
       },
