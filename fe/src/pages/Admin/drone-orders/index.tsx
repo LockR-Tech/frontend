@@ -15,6 +15,7 @@ import {
   deliveryStageMeta,
   orderPaymentStatusMeta,
   orderStatusMeta,
+  paymentMethodMeta,
   type BadgeMeta,
 } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
@@ -26,6 +27,9 @@ import {
   type DroneLockerPoint,
   type DroneOrderTracking,
 } from "~/stores/apis/admin/droneOrders";
+import { DroneJourneyTimeline } from "./DroneJourneyTimeline";
+import { DroneTrackingMap } from "./DroneTrackingMap";
+import { isPickupCodeEvent, pickupCodeEvent, sentAt, stageTimes } from "./journey";
 
 /** Danh sách hỏi lại server sau mỗi khoảng này để chặng mới tự hiện, không cần tải lại trang. */
 const LIST_POLL_MS = 5000;
@@ -96,6 +100,7 @@ function journeyTitle(event: DroneJourneyEvent): string {
   if (event.fromStage === "ACCEPTED" && event.toStage === "ACCEPTED") {
     return "Đã nạp hàng lên drone";
   }
+  if (isPickupCodeEvent(event)) return "Gửi mã nhận hàng cho người nhận";
   if (!event.fromStage && event.toStage === "AWAITING_DISPATCH") {
     return "Đơn drone được tạo";
   }
@@ -335,29 +340,49 @@ function DroneOrderDialog({
               </div>
             )}
 
-            <Section title="Lộ trình">
+            <Section title="Bản đồ theo dõi">
+              <DroneTrackingMap order={order} />
+            </Section>
+
+            <Section title="Lộ trình · gửi và nhận">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <LockerBlock
                   label="Tủ gửi · Locker A"
                   point={order.sourceLocker}
                   fallbackId={order.sourceLockerId}
-                  extra={
+                  extras={[
                     order.sourceBoxNumber !== null && order.sourceBoxNumber !== undefined
                       ? `Kiện đang ở ô drone số ${order.sourceBoxNumber}`
-                      : undefined
-                  }
+                      : null,
+                  ]}
+                  times={[{ label: "Gửi đi lúc", at: sentAt(order), empty: "Chưa gửi" }]}
                 />
                 <LockerBlock
                   label="Tủ nhận · Locker B"
                   point={order.destinationLocker}
                   fallbackId={order.destinationLockerId}
-                  extra={
-                    order.reservedBoxNumber !== null
-                      ? `Ô nhận số ${order.reservedBoxNumber}`
-                      : undefined
-                  }
+                  extras={[
+                    order.reservedBoxNumber !== null ? `Ô nhận số ${order.reservedBoxNumber}` : null,
+                  ]}
+                  times={[
+                    {
+                      label: "Hàng vào tủ lúc",
+                      at: stageTimes(order).get("READY_FOR_PICKUP") ?? null,
+                      empty: "Chưa tới",
+                    },
+                    {
+                      label: "Gửi mã cho người nhận lúc",
+                      at: pickupCodeEvent(order)?.occurredAt ?? null,
+                      empty: "Chưa gửi",
+                    },
+                    { label: "Người nhận lấy hàng lúc", at: order.completedAt, empty: "Chưa nhận" },
+                  ]}
                 />
               </div>
+            </Section>
+
+            <Section title="Tiến trình giao hàng">
+              <DroneJourneyTimeline order={order} />
             </Section>
 
             <Section title="Đơn hàng">
@@ -372,6 +397,14 @@ function DroneOrderDialog({
                 <LabelValue label="Phí giao drone">
                   {order.totalPrice !== null ? formatCurrency(order.totalPrice) : null}
                 </LabelValue>
+                <LabelValue label="Phương thức thanh toán">
+                  {order.paymentMethod ? (
+                    <MetaBadge meta={paymentMethodMeta(order.paymentMethod)} />
+                  ) : null}
+                </LabelValue>
+                <LabelValue label="Mã thanh toán" mono>{order.paymentReference}</LabelValue>
+                <LabelValue label="Mã giao dịch" mono>{order.paymentTransactionId}</LabelValue>
+                <Time label="Thanh toán lúc" value={order.paidAt} />
                 <LabelValue label="Khối lượng khai báo">{grams(order.parcelWeightGrams)}</LabelValue>
                 <LabelValue label="Hình thức bay">
                   {order.fulfillmentMode === "DEMO"
@@ -421,20 +454,6 @@ function DroneOrderDialog({
                   {checklist(order.compartmentLocked)}
                 </LabelValue>
                 <LabelValue label="Ghi chú nạp hàng">{order.loadingNote}</LabelValue>
-              </Grid>
-            </Section>
-
-            <Section title="Mốc thời gian">
-              <Grid>
-                <Time label="Tạo đơn" value={order.createdAt} />
-                <Time label="Thanh toán" value={order.paidAt} />
-                <Time label="Đội bay tiếp nhận" value={order.missionCreatedAt} />
-                <Time label="Nạp hàng lên drone" value={order.loadedAt} />
-                <Time label="Sẵn sàng phóng" value={order.readyToLaunchAt} />
-                <Time label="Khởi phóng" value={order.launchingAt} />
-                <Time label="Hạn nhận hàng" value={order.pickupDeadline} />
-                <Time label="Đã nhận hàng" value={order.completedAt} />
-                <Time label="Cập nhật cuối" value={order.updatedAt} />
               </Grid>
             </Section>
 
@@ -505,12 +524,14 @@ function LockerBlock({
   label,
   point,
   fallbackId,
-  extra,
+  extras = [],
+  times = [],
 }: {
   label: string;
   point: DroneLockerPoint | null;
   fallbackId: number | null;
-  extra?: string;
+  extras?: (string | null)[];
+  times?: { label: string; at: string | Date | null; empty: string }[];
 }) {
   // Có toạ độ thì mở chỉ đường theo toạ độ; không thì tìm theo địa chỉ.
   const mapUrl =
@@ -525,7 +546,21 @@ function LockerBlock({
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="text-sm font-semibold">{lockerName(point, fallbackId)}</p>
       {point?.address && <p className="text-xs text-muted-foreground">{point.address}</p>}
-      {extra && <p className="mt-1 text-xs font-medium text-sky-700">{extra}</p>}
+      {extras
+        .filter((extra): extra is string => Boolean(extra))
+        .map((extra) => (
+          <p key={extra} className="mt-1 text-xs font-medium text-sky-700">
+            {extra}
+          </p>
+        ))}
+      {times.map((time) => (
+        <p key={time.label} className="mt-1 text-xs">
+          <span className="text-muted-foreground">{time.label}: </span>
+          <span className="font-mono font-semibold">
+            {time.at ? formatDateTime(time.at) : time.empty}
+          </span>
+        </p>
+      ))}
       {mapUrl && (
         <a
           href={mapUrl}
