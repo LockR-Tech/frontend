@@ -43,6 +43,10 @@ export interface DroneOrderTracking {
   parcelWeightGrams: number | null;
   description: string | null;
   totalPrice: number | null;
+  /** Phí thu thêm vì đội bay cân kiện nặng hơn khai báo; null khi không lệch hoặc server cũ. */
+  weightSurcharge?: number | null;
+  /** Phần khách còn phải trả. */
+  amountDue?: number | null;
   createdAt: string | null;
   updatedAt: string | null;
   fulfillmentMode: string | null;

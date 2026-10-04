@@ -447,6 +447,12 @@ function DroneOrderDialog({
                     : "Chưa khởi tạo"}
                 </LabelValue>
                 <LabelValue label="Khối lượng thực tế">{grams(order.payloadWeightGrams)}</LabelValue>
+                {order.weightSurcharge ? (
+                  <LabelValue label="Thu thêm do cân lệch">
+                    {formatCurrency(order.weightSurcharge)}
+                    {order.amountDue ? " · khách chưa trả" : " · đã trả"}
+                  </LabelValue>
+                ) : null}
                 <LabelValue label="Mã niêm phong" mono>{order.sealCode}</LabelValue>
                 <LabelValue label="Đúng kiện, đúng đơn">{checklist(order.parcelMatched)}</LabelValue>
                 <LabelValue label="Kiện đã cố định">{checklist(order.payloadSecured)}</LabelValue>
