@@ -199,6 +199,7 @@ export function MaintenanceSchedules() {
   const [dronePriority, setDronePriority] = useState<"NORMAL" | "HIGH" | "URGENT">("NORMAL");
   const [droneFirstDueDate, setDroneFirstDueDate] = useState("");
   const [droneFirstDueTime, setDroneFirstDueTime] = useState("09:00");
+  const [droneLocationNote, setDroneLocationNote] = useState("");
   const [droneScheduledTimeSlot, setDroneScheduledTimeSlot] = useState("08:00 - 11:30");
   const [droneDescription, setDroneDescription] = useState("");
   const [droneChecklistText, setDroneChecklistText] = useState(DEFAULT_DRONE_CHECKLIST.join("\n"));
@@ -492,6 +493,7 @@ export function MaintenanceSchedules() {
             firstDueDate: droneFirstDueDate
               ? `${droneFirstDueDate}T${droneFirstDueTime || "09:00"}:00`
               : undefined,
+            locationNote: droneLocationNote.trim() || undefined,
             scheduledTimeSlot: droneScheduledTimeSlot || undefined,
           }).unwrap(),
         {
@@ -509,6 +511,7 @@ export function MaintenanceSchedules() {
       setDronePriority("NORMAL");
       setDroneFirstDueDate("");
       setDroneFirstDueTime("09:00");
+      setDroneLocationNote("");
       setDroneScheduledTimeSlot("08:00 - 11:30");
       setDroneDescription("");
       setDroneChecklistText(DEFAULT_DRONE_CHECKLIST.join("\n"));
@@ -1132,6 +1135,14 @@ export function MaintenanceSchedules() {
                     </option>
                   ))}
                 </select>
+                {selectedDroneId && (() => {
+                  const selectedDrone = drones.find((d) => String(d.id) === selectedDroneId);
+                  return selectedDrone?.lockerName || selectedDrone?.lockerId ? (
+                    <span className="text-[10px] text-blue-700 truncate" title="Bãi đáp liên kết với drone">
+                      Bãi đáp: {selectedDrone.lockerName ?? `Tủ #${selectedDrone.lockerId}`}
+                    </span>
+                  ) : null;
+                })()}
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-48">
                 <label className="text-xs text-blue-950 font-medium">Tên kế hoạch kiểm tra <span className="text-rose-500">*</span></label>
@@ -1197,6 +1208,17 @@ export function MaintenanceSchedules() {
                   type="time"
                   value={droneFirstDueTime}
                   onChange={(e) => setDroneFirstDueTime(e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-52">
+                <label className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-blue-600" /> Vị trí chi tiết / bãi đáp
+                </label>
+                <Input
+                  value={droneLocationNote}
+                  onChange={(e) => setDroneLocationNote(e.target.value)}
+                  placeholder="VD: Bãi đáp tầng 1, khu kỹ thuật"
                   className="h-9 text-xs"
                 />
               </div>
@@ -1417,13 +1439,12 @@ export function MaintenanceSchedules() {
                           <strong>
                             {s.lockerName ?? `Tủ #${s.lockerId}`}
                             {s.lockerCode ? ` (${s.lockerCode})` : ""}
-                            {s.address ? ` · ${s.address}` : ""}
                           </strong>
                         </span>
                       )}
 
                       {/* FIELD ĐỊA ĐIỂM CƠ SỞ (VÍ DỤ: FPT UNIVERSITY HCMC) */}
-                      {!isDroneSchedule(s) && (
+                      {(!isDroneSchedule(s) || Boolean(s.address)) && (
                         <span
                           className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-900 bg-teal-50 px-2.5 py-1 rounded border border-teal-300 shadow-sm"
                           title={`Địa điểm cơ sở: ${s.address || "FPT University HCMC"}`}
@@ -1496,6 +1517,22 @@ export function MaintenanceSchedules() {
                         )}
                       </span>
 
+                      {isDroneSchedule(s) && !s.lastDoneAt && (
+                        <>
+                          <span>·</span>
+                          <span className="text-[11px]">
+                            Lần trước: <span className="font-medium text-muted-foreground">Chưa kiểm tra</span>
+                          </span>
+                        </>
+                      )}
+                      {isDroneSchedule(s) && s.createdAt && (
+                        <>
+                          <span>·</span>
+                          <span className="text-[11px]">
+                            Tạo lúc: <span className="font-mono">{formatDateTime(s.createdAt)}</span>
+                          </span>
+                        </>
+                      )}
                       {s.lastDoneAt && (
                         <>
                           <span>·</span>
