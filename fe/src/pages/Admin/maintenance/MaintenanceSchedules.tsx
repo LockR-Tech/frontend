@@ -1131,17 +1131,13 @@ export function MaintenanceSchedules() {
                   <option value="">Chọn drone</option>
                   {drones.map((d) => (
                     <option key={d.id} value={String(d.id)}>
-                      {d.code} ({d.status})
+                      {d.code} ({d.status}) - 📍 {d.lockerName ?? `Tủ #${d.lockerId ?? "chưa gán"}`}
                     </option>
                   ))}
                 </select>
                 {selectedDroneId && (() => {
                   const selectedDrone = drones.find((d) => String(d.id) === selectedDroneId);
-                  return selectedDrone?.lockerName || selectedDrone?.lockerId ? (
-                    <span className="text-[10px] text-blue-700 truncate" title="Bãi đáp liên kết với drone">
-                      Bãi đáp: {selectedDrone.lockerName ?? `Tủ #${selectedDrone.lockerId}`}
-                    </span>
-                  ) : null;
+                  
                 })()}
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-48">
