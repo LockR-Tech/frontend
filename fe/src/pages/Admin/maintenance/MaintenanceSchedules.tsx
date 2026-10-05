@@ -60,6 +60,7 @@ import {
   useCompleteMaintenanceScheduleMutation,
   useDeleteMaintenanceScheduleMutation,
   useGetScheduleInspectionLogsQuery,
+  useGetDroneMaintenanceHistoryQuery,
   type MaintenanceScheduleResponse,
   type MaintenanceInspectionLogResponse,
   type CompleteScheduleRequest,
@@ -94,6 +95,14 @@ const DEFAULT_KIOSK_CHECKLIST = [
   "🔋 Kiểm tra nguồn cấp & pin lưu điện UPS",
   "📱 Màn hình cảm ứng & camera / quét QR",
   "📶 Tín hiệu kết nối IoT 4G / WiFi ổn định",
+];
+
+const DEFAULT_DRONE_CHECKLIST = [
+  "Kiểm tra ngoại quan thân vỏ, càng đáp và cánh quạt",
+  "Kiểm tra pin, đầu nối và tình trạng sạc",
+  "Hiệu chuẩn IMU, la bàn và cảm biến định vị",
+  "Kiểm tra GPS, truyền tín hiệu và tính năng Return-to-Home",
+  "Chạy thử động cơ không tải và ghi nhận bất thường",
 ];
 
 export function MaintenanceSchedules() {
@@ -147,6 +156,18 @@ export function MaintenanceSchedules() {
     });
   }, [usersData]);
 
+  // Lịch Drone chỉ được giao cho KTV Drone; không dùng chung danh sách KTV tủ.
+  const droneTechnicians = useMemo(() => {
+    const raw = usersData?.data as unknown;
+    const list: any[] = Array.isArray(raw)
+      ? raw
+      : (raw as { content?: any[] })?.content ?? [];
+    return list.filter((u) => {
+      const roles: string[] = u.roles ?? [];
+      return roles.includes("DRONE_TECHNICIAN") || roles.includes("ROLE_DRONE_TECHNICIAN");
+    });
+  }, [usersData]);
+
   const [subTab, setSubTab] = useState<"kiosk" | "drone">("kiosk");
 
   // Bộ lọc tìm kiếm & trạng thái
@@ -174,6 +195,14 @@ export function MaintenanceSchedules() {
   const drones = useMemo(() => dronesData?.data ?? [], [dronesData]);
   const [droneTitle, setDroneTitle] = useState("");
   const [droneIntervalDays, setDroneIntervalDays] = useState(14);
+  const [droneAssignedTechnicianId, setDroneAssignedTechnicianId] = useState<number | "">("");
+  const [dronePriority, setDronePriority] = useState<"NORMAL" | "HIGH" | "URGENT">("NORMAL");
+  const [droneFirstDueDate, setDroneFirstDueDate] = useState("");
+  const [droneFirstDueTime, setDroneFirstDueTime] = useState("09:00");
+  const [droneScheduledTimeSlot, setDroneScheduledTimeSlot] = useState("08:00 - 11:30");
+  const [droneDescription, setDroneDescription] = useState("");
+  const [droneChecklistText, setDroneChecklistText] = useState(DEFAULT_DRONE_CHECKLIST.join("\n"));
+  const droneChecklistLines = useMemo(() => parseChecklistLines(droneChecklistText), [droneChecklistText]);
 
   // Modal states
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; title: string } | null>(null);
@@ -198,6 +227,11 @@ export function MaintenanceSchedules() {
     { skip: !selectedSchedule }
   );
   const inspectionLogs = inspectionLogsData?.data ?? [];
+  const { data: droneHistoryData, isLoading: isLoadingDroneHistory } = useGetDroneMaintenanceHistoryQuery(
+    selectedSchedule?.droneUnitId ?? 0,
+    { skip: !selectedSchedule?.droneUnitId }
+  );
+  const droneHistory = droneHistoryData?.data;
 
   // Lịch drone gắn droneUnitId. Lịch drone cũ từng bị lưu kèm lockerId với tiêu đề "[DRONE-xx] …".
   const isDroneSchedule = (s: { title?: string; lockerId?: number | null; droneUnitId?: number | null }) =>
@@ -206,7 +240,15 @@ export function MaintenanceSchedules() {
   // Hạn, vị trí, ca và KTV lấy thẳng từ server; chỉ bổ sung địa chỉ/cửa hàng từ danh sách tủ
   const effectiveSchedules = useMemo(() => {
     return schedules.map((s) => {
-      const lockerInfo = s.lockerId ? lockerMap.get(s.lockerId) : (s.lockerCode ? lockerMap.get(s.lockerCode) : null);
+      // Fallback cho backend cũ: danh sách Drone đã có lockerId/lockerName từ drone_units.
+      // Nhờ vậy vị trí bãi đáp vẫn hiển thị trước khi locker-service được reload.
+      const droneInfo = s.droneUnitId != null
+        ? drones.find((d) => d.id === s.droneUnitId || d.code === s.droneCode)
+        : null;
+      const linkedLockerId = s.lockerId ?? droneInfo?.lockerId ?? null;
+      const lockerInfo = linkedLockerId
+        ? lockerMap.get(linkedLockerId)
+        : (s.lockerCode ? lockerMap.get(s.lockerCode) : null);
 
       let resolvedAddress = s.address || lockerInfo?.address || null;
       if (!resolvedAddress && (s.lockerCode === "CAB-DEMO-01" || (s.lockerName || "").toLowerCase().includes("demo"))) {
@@ -217,11 +259,14 @@ export function MaintenanceSchedules() {
 
       return {
         ...s,
+        lockerId: linkedLockerId ?? s.lockerId,
+        lockerName: s.lockerName ?? droneInfo?.lockerName ?? lockerInfo?.name ?? null,
+        lockerCode: s.lockerCode ?? lockerInfo?.code ?? null,
         address: resolvedAddress,
         storeName: resolvedStoreName,
       };
     });
-  }, [schedules, lockerMap]);
+  }, [schedules, lockerMap, drones]);
 
   // ---- Biên bản kiểm tra đang mở ----
   const inspectChecklist = inspectingSchedule?.checklistItems ?? [];
@@ -330,6 +375,13 @@ export function MaintenanceSchedules() {
     });
   };
 
+  const toggleDroneChecklist = (item: string) => {
+    setDroneChecklistText((prev) => {
+      const lines = parseChecklistLines(prev);
+      return (lines.includes(item) ? lines.filter((i) => i !== item) : [...lines, item]).join("\n");
+    });
+  };
+
   const create = async () => {
     if (subTab === "kiosk") {
       if (!lockerId || !title.trim()) {
@@ -401,6 +453,14 @@ export function MaintenanceSchedules() {
             droneUnitId: drone.id,
             title: droneTitle.trim(),
             intervalDays: droneIntervalDays,
+            assignedTechnicianId: droneAssignedTechnicianId === "" ? undefined : Number(droneAssignedTechnicianId),
+            priority: dronePriority,
+            description: droneDescription.trim() || undefined,
+            checklist: droneChecklistLines.length > 0 ? droneChecklistLines.join("\n") : undefined,
+            firstDueDate: droneFirstDueDate
+              ? `${droneFirstDueDate}T${droneFirstDueTime || "09:00"}:00`
+              : undefined,
+            scheduledTimeSlot: droneScheduledTimeSlot || undefined,
           }).unwrap(),
         {
           title: "Tạo lịch bảo dưỡng Drone thành công",
@@ -413,6 +473,13 @@ export function MaintenanceSchedules() {
       );
       setDroneTitle("");
       setDroneIntervalDays(14);
+      setDroneAssignedTechnicianId("");
+      setDronePriority("NORMAL");
+      setDroneFirstDueDate("");
+      setDroneFirstDueTime("09:00");
+      setDroneScheduledTimeSlot("08:00 - 11:30");
+      setDroneDescription("");
+      setDroneChecklistText(DEFAULT_DRONE_CHECKLIST.join("\n"));
     }
   };
 
@@ -1029,6 +1096,108 @@ export function MaintenanceSchedules() {
                   className="h-9 text-xs"
                 />
               </div>
+              <div className="flex flex-col gap-1 min-w-44">
+                <label className="text-xs text-muted-foreground font-medium">KTV Drone phụ trách</label>
+                <select
+                  className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
+                  value={droneAssignedTechnicianId}
+                  onChange={(e) => setDroneAssignedTechnicianId(e.target.value ? Number(e.target.value) : "")}
+                >
+                  <option value="">Chưa phân công</option>
+                  {droneTechnicians.map((t: any) => (
+                    <option key={t.id} value={t.id}>{t.fullName || t.name || `KTV Drone #${t.id}`}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 w-36">
+                <label className="text-xs text-muted-foreground font-medium">Mức độ ưu tiên</label>
+                <select
+                  className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
+                  value={dronePriority}
+                  onChange={(e) => setDronePriority(e.target.value as "NORMAL" | "HIGH" | "URGENT")}
+                >
+                  <option value="NORMAL">Bình thường</option>
+                  <option value="HIGH">Ưu tiên cao</option>
+                  <option value="URGENT">Khẩn cấp</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 w-36">
+                <label className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-blue-600" /> Ngày kiểm tra đầu tiên
+                </label>
+                <Input
+                  type="date"
+                  value={droneFirstDueDate}
+                  onChange={(e) => setDroneFirstDueDate(e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
+              <div className="flex flex-col gap-1 w-28">
+                <label className="text-xs text-muted-foreground font-medium">Giờ bắt đầu</label>
+                <Input
+                  type="time"
+                  value={droneFirstDueTime}
+                  onChange={(e) => setDroneFirstDueTime(e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
+              <div className="flex flex-col gap-1 w-44">
+                <label className="text-xs text-muted-foreground font-medium">Khung giờ kiểm tra</label>
+                <select
+                  className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
+                  value={droneScheduledTimeSlot}
+                  onChange={(e) => setDroneScheduledTimeSlot(e.target.value)}
+                >
+                  <option value="08:00 - 11:30">Ca sáng (08:00 - 11:30)</option>
+                  <option value="13:30 - 17:00">Ca chiều (13:30 - 17:00)</option>
+                  <option value="18:00 - 21:00">Ca tối (18:00 - 21:00)</option>
+                  <option value="08:00 - 17:00">Giờ hành chính (08:00 - 17:00)</option>
+                  <option value="Khung giờ linh hoạt">Khung giờ linh hoạt</option>
+                </select>
+              </div>
+              <div className="w-full flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground font-medium">
+                  Checklist an toàn Drone ({droneChecklistLines.length} mục)
+                </label>
+                <textarea
+                  rows={3}
+                  value={droneChecklistText}
+                  onChange={(e) => setDroneChecklistText(e.target.value)}
+                  className="w-full rounded-md border px-2.5 py-2 text-xs bg-background border-border/80 resize-y"
+                  placeholder="Mỗi dòng là một hạng mục: pin, cánh quạt, GPS, IMU..."
+                />
+                <p className="text-[10px] text-muted-foreground">Bấm mục mẫu để thêm/bỏ nhanh:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {DEFAULT_DRONE_CHECKLIST.map((item) => {
+                    const isChecked = droneChecklistLines.includes(item);
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => toggleDroneChecklist(item)}
+                        className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors cursor-pointer ${
+                          isChecked
+                            ? "bg-blue-100 text-blue-800 border-blue-300"
+                            : "bg-background text-muted-foreground border-border/80 hover:bg-blue-50 hover:text-blue-700"
+                        }`}
+                      >
+                        {isChecked ? "✓ " : "+ "}{item}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="w-full flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground font-medium">
+                  Hướng dẫn nghiệp vụ cho KTV Drone (SOP)
+                </label>
+                <Input
+                  value={droneDescription}
+                  onChange={(e) => setDroneDescription(e.target.value)}
+                  placeholder="VD: Tháo pin trước khi kiểm tra cánh; ghi nhận điện áp từng cell và chỉ cho phép bay khi đạt chuẩn"
+                  className="h-9 text-xs"
+                />
+              </div>
               <Button onClick={create} disabled={creating} className="h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white">
                 <Plus className="w-4 h-4 mr-1" /> Tạo lịch Drone
               </Button>
@@ -1177,6 +1346,21 @@ export function MaintenanceSchedules() {
                           ? (s.droneCode ? `Drone ${s.droneCode}` : "Thiết bị Drone")
                           : `${s.lockerName ?? `Kiosk #${s.lockerId}`}${s.lockerCode ? ` (${s.lockerCode})` : ""}`}
                       </span>
+
+                      {isDroneSchedule(s) && (s.lockerName || s.lockerCode || s.address) && (
+                        <span
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-900 bg-indigo-50 px-2.5 py-1 rounded border border-indigo-300"
+                          title="Bãi đáp được lấy từ tủ liên kết của Drone"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                          <span className="text-indigo-700">Bãi đáp:</span>
+                          <strong>
+                            {s.lockerName ?? `Tủ #${s.lockerId}`}
+                            {s.lockerCode ? ` (${s.lockerCode})` : ""}
+                            {s.address ? ` · ${s.address}` : ""}
+                          </strong>
+                        </span>
+                      )}
 
                       {/* FIELD ĐỊA ĐIỂM CƠ SỞ (VÍ DỤ: FPT UNIVERSITY HCMC) */}
                       {!isDroneSchedule(s) && (
@@ -1330,9 +1514,11 @@ export function MaintenanceSchedules() {
                   <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
                     Biên bản nghiệm thu
                   </Badge>
-                  {inspectingSchedule.lockerName && (
+                  {(inspectingSchedule.lockerName || inspectingSchedule.droneCode) && (
                     <Badge variant="outline" className="text-xs">
-                      {inspectingSchedule.lockerName}
+                      {isDroneSchedule(inspectingSchedule)
+                        ? (inspectingSchedule.droneCode ?? `Drone #${inspectingSchedule.droneUnitId}`)
+                        : inspectingSchedule.lockerName}
                     </Badge>
                   )}
                 </div>
@@ -1349,16 +1535,21 @@ export function MaintenanceSchedules() {
                 <div className="p-3 rounded-lg bg-muted/40 border border-border/70 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground font-medium flex items-center gap-1">
-                      <Boxes className="w-3.5 h-3.5 text-emerald-600" />
-                      Thiết bị Kiosk kiểm tra:
+                      {isDroneSchedule(inspectingSchedule) ? (
+                        <Plane className="w-3.5 h-3.5 text-blue-600" />
+                      ) : (
+                        <Boxes className="w-3.5 h-3.5 text-emerald-600" />
+                      )}
+                      {isDroneSchedule(inspectingSchedule) ? "Thiết bị Drone kiểm tra:" : "Thiết bị Kiosk kiểm tra:"}
                     </span>
                     <span className="font-semibold text-foreground text-right">
-                      {inspectingSchedule.lockerName ?? `Kiosk #${inspectingSchedule.lockerId}`}
-                      {inspectingSchedule.lockerCode ? ` (${inspectingSchedule.lockerCode})` : ""}
+                      {isDroneSchedule(inspectingSchedule)
+                        ? (inspectingSchedule.droneCode ?? `Drone #${inspectingSchedule.droneUnitId}`)
+                        : `${inspectingSchedule.lockerName ?? `Kiosk #${inspectingSchedule.lockerId}`}${inspectingSchedule.lockerCode ? ` (${inspectingSchedule.lockerCode})` : ""}`}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  {!isDroneSchedule(inspectingSchedule) && <div className="flex items-center justify-between">
                     <span className="text-muted-foreground font-medium flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-teal-600" />
                       Địa điểm cơ sở:
@@ -1366,7 +1557,7 @@ export function MaintenanceSchedules() {
                     <span className="font-bold text-teal-900 text-right">
                       {inspectingSchedule.address || "FPT University HCMC"}
                     </span>
-                  </div>
+                  </div>}
 
                   {inspectingSchedule.locationNote && (
                     <div className="flex items-center justify-between">
@@ -1726,7 +1917,7 @@ export function MaintenanceSchedules() {
                     <div className="p-2.5 rounded-lg bg-background border border-border/60 space-y-1">
                       <span className="text-muted-foreground text-[11px] font-medium flex items-center gap-1">
                         <Building2 className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                        Địa chỉ Kiosk / Chi nhánh:
+                        {isDroneSchedule(selectedSchedule) ? "Tủ liên kết / Bãi đáp Drone:" : "Địa chỉ Kiosk / Chi nhánh:"}
                       </span>
                       <span className="font-semibold text-foreground block text-xs">
                         {selectedSchedule.address || lockerMap.get(selectedSchedule.lockerId)?.address || "FPT University HCMC"}
@@ -1741,10 +1932,14 @@ export function MaintenanceSchedules() {
                     <div className="p-2.5 rounded-lg bg-background border border-border/60 space-y-1">
                       <span className="text-muted-foreground text-[11px] font-medium flex items-center gap-1">
                         <Navigation className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                        Vị trí đặt tủ trong toà nhà:
+                        {isDroneSchedule(selectedSchedule) ? "Vị trí bãi đáp lấy từ tủ liên kết:" : "Vị trí đặt tủ trong toà nhà:"}
                       </span>
                       <span className="font-semibold text-foreground block text-xs">
-                        {selectedSchedule.locationNote || "Chưa có ghi chú vị trí (VD: Sảnh chính, tầng hầm)"}
+                        {isDroneSchedule(selectedSchedule)
+                          ? (selectedSchedule.lockerName
+                            ? `${selectedSchedule.lockerName}${selectedSchedule.lockerCode ? ` (${selectedSchedule.lockerCode})` : ""}`
+                            : "Chưa xác định tủ liên kết")
+                          : (selectedSchedule.locationNote || "Chưa có ghi chú vị trí (VD: Sảnh chính, tầng hầm)")}
                       </span>
                       {selectedSchedule.scheduledTimeSlot && (
                         <div className="pt-0.5">
@@ -1875,6 +2070,52 @@ export function MaintenanceSchedules() {
                     </div>
                   )}
                 </div>
+
+                {isDroneSchedule(selectedSchedule) && (
+                  <div className="space-y-2 pt-2 border-t border-border/60">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        <Wrench className="w-3.5 h-3.5 text-blue-600" />
+                        Sự cố Drone đã xử lý ({droneHistory?.resolvedIncidents.length ?? 0})
+                      </h4>
+                    </div>
+                    {isLoadingDroneHistory ? (
+                      <div className="py-5 text-center text-xs text-muted-foreground border border-dashed rounded-xl">
+                        Đang tải lịch sử sự cố Drone...
+                      </div>
+                    ) : !droneHistory?.resolvedIncidents.length ? (
+                      <div className="py-5 text-center text-xs text-muted-foreground border border-dashed rounded-xl bg-muted/10">
+                        Drone này chưa có phiếu sự cố nào đã xử lý.
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                        {droneHistory.resolvedIncidents.map((report) => (
+                          <div key={report.id} className="p-3 rounded-xl border border-amber-200 bg-amber-50/40 space-y-1.5 text-xs">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span className="font-semibold text-foreground">RPT-{report.id} · {report.title}</span>
+                                <Badge variant="outline" className="ml-2 text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
+                                  Đã xử lý
+                                </Badge>
+                              </div>
+                              <span className="text-[11px] font-mono text-muted-foreground">
+                                {formatDateTime(report.resolvedAt ?? report.updatedAt ?? report.createdAt)}
+                              </span>
+                            </div>
+                            {report.description && (
+                              <p className="text-muted-foreground leading-relaxed">{report.description}</p>
+                            )}
+                            <p className="text-[11px] text-muted-foreground">
+                              KTV xử lý: <strong className="text-foreground">
+                                {report.assignedToUserId ? `KTV #${report.assignedToUserId}` : "Chưa xác định"}
+                              </strong>
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <DialogFooter className="pt-2 border-t">
@@ -1938,10 +2179,14 @@ export function MaintenanceSchedules() {
           <DialogHeader>
             <DialogTitle className="text-base font-semibold flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-amber-600" />
-              Phân công Kỹ thuật viên Kiosk
+              {assigningSchedule && isDroneSchedule(assigningSchedule)
+                ? "Phân công Kỹ thuật viên Drone"
+                : "Phân công Kỹ thuật viên Kiosk"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Chỉ định KTV phụ trách kiểm tra định kỳ cho trạm Kiosk để KTV nhận việc trên ứng dụng di động.
+              {assigningSchedule && isDroneSchedule(assigningSchedule)
+                ? "Chỉ định KTV Drone phụ trách kiểm tra an toàn bay và nhận lịch trên ứng dụng di động."
+                : "Chỉ định KTV phụ trách kiểm tra định kỳ cho trạm Kiosk để KTV nhận việc trên ứng dụng di động."}
             </DialogDescription>
           </DialogHeader>
 
@@ -1953,10 +2198,13 @@ export function MaintenanceSchedules() {
                   <span className="font-semibold text-foreground text-right">{assigningSchedule.title}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-medium">Trạm Kiosk:</span>
+                  <span className="text-muted-foreground font-medium">
+                    {isDroneSchedule(assigningSchedule) ? "Thiết bị Drone:" : "Trạm Kiosk:"}
+                  </span>
                   <span className="font-semibold text-foreground">
-                    {assigningSchedule.lockerName ?? `Kiosk #${assigningSchedule.lockerId}`}
-                    {assigningSchedule.lockerCode ? ` (${assigningSchedule.lockerCode})` : ""}
+                    {isDroneSchedule(assigningSchedule)
+                      ? (assigningSchedule.droneCode ?? `Drone #${assigningSchedule.droneUnitId}`)
+                      : `${assigningSchedule.lockerName ?? `Kiosk #${assigningSchedule.lockerId}`}${assigningSchedule.lockerCode ? ` (${assigningSchedule.lockerCode})` : ""}`}
                   </span>
                 </div>
                 {(assigningSchedule.address || lockerMap.get(assigningSchedule.lockerId)?.address) && (
@@ -2001,9 +2249,9 @@ export function MaintenanceSchedules() {
                   onChange={(e) => setSelectedTechToAssign(e.target.value ? Number(e.target.value) : "")}
                 >
                   <option value="">— Chưa phân công (Bỏ gán KTV) —</option>
-                  {technicians.map((t) => (
+                  {(isDroneSchedule(assigningSchedule) ? droneTechnicians : technicians).map((t: any) => (
                     <option key={t.id} value={t.id}>
-                      {t.fullName} (KTV #{t.id}) {t.phoneNumber ? `· ${t.phoneNumber}` : ""}
+                      {t.fullName || t.name || `KTV #${t.id}`} ({isDroneSchedule(assigningSchedule) ? "KTV Drone" : `KTV #${t.id}`}) {t.phoneNumber ? `· ${t.phoneNumber}` : ""}
                     </option>
                   ))}
                 </select>
