@@ -1133,10 +1133,6 @@ export function MaintenanceSchedules() {
                     </option>
                   ))}
                 </select>
-                {selectedDroneId && (() => {
-                  const selectedDrone = drones.find((d) => String(d.id) === selectedDroneId);
-                  
-                })()}
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-48">
                 <label className="text-xs text-blue-950 font-medium">Tên kế hoạch kiểm tra <span className="text-rose-500">*</span></label>
