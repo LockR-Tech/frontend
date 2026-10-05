@@ -325,6 +325,25 @@ export function MaintenanceSchedules() {
     return { total, dueCount, overdueCount, healthyCount, complianceRate };
   }, [kioskSchedules]);
 
+  const droneStats = useMemo(() => {
+    const now = new Date();
+    let dueCount = 0;
+    let overdueCount = 0;
+    let healthyCount = 0;
+
+    droneSchedules.forEach((s) => {
+      if (!s.nextDueAt) return;
+      const diffDays = Math.ceil((new Date(s.nextDueAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) overdueCount++;
+      else if (diffDays <= 1 || s.due) dueCount++;
+      else healthyCount++;
+    });
+
+    const total = droneSchedules.length;
+    const complianceRate = total > 0 ? Math.round(((total - overdueCount) / total) * 100) : 100;
+    return { total, dueCount, overdueCount, healthyCount, complianceRate };
+  }, [droneSchedules]);
+
   // Bộ lọc danh sách kế hoạch Kiosk
   const filteredKioskSchedules = useMemo(() => {
     return kioskSchedules.filter((s) => {
@@ -1060,9 +1079,38 @@ export function MaintenanceSchedules() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-end gap-2 p-3 rounded-lg bg-muted/30 border border-border/60">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-blue-50/40 border border-blue-200/80 text-xs">
+              <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
+                <span className="text-blue-900/70 block font-medium">Tổng Drone có lịch</span>
+                <span className="text-lg font-bold text-blue-950 mt-0.5 block">{droneStats.total}</span>
+                <span className="text-[10px] text-muted-foreground">Kế hoạch bảo trì đội bay</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
+                <span className="text-blue-900/70 block font-medium flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-blue-600" /> Đến hạn hôm nay
+                </span>
+                <span className="text-lg font-bold text-blue-600 mt-0.5 block">{droneStats.dueCount}</span>
+                <span className="text-[10px] text-muted-foreground">Cần KTV Drone kiểm tra</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
+                <span className="text-blue-900/70 block font-medium flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Quá hạn kiểm định
+                </span>
+                <span className="text-lg font-bold text-rose-600 mt-0.5 block">{droneStats.overdueCount}</span>
+                <span className="text-[10px] text-muted-foreground">Cần điều phối xử lý gấp</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
+                <span className="text-blue-900/70 block font-medium flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Tỷ lệ đúng hạn
+                </span>
+                <span className="text-lg font-bold text-emerald-600 mt-0.5 block">{droneStats.complianceRate}%</span>
+                <span className="text-[10px] text-muted-foreground">Chuẩn an toàn bay</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-2 p-3 rounded-lg bg-blue-50/40 border border-blue-200/80">
               <div className="flex flex-col gap-1 w-36">
-                <label className="text-xs text-muted-foreground font-medium">Thiết bị Drone</label>
+                <label className="text-xs text-blue-950 font-medium">Thiết bị Drone <span className="text-rose-500">*</span></label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={selectedDroneId}
@@ -1077,7 +1125,7 @@ export function MaintenanceSchedules() {
                 </select>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-48">
-                <label className="text-xs text-muted-foreground font-medium">Hạng mục kiểm tra Drone</label>
+                <label className="text-xs text-blue-950 font-medium">Tên kế hoạch kiểm tra <span className="text-rose-500">*</span></label>
                 <Input
                   value={droneTitle}
                   onChange={(e) => setDroneTitle(e.target.value)}
@@ -1086,7 +1134,7 @@ export function MaintenanceSchedules() {
                 />
               </div>
               <div className="flex flex-col gap-1 w-28">
-                <label className="text-xs text-muted-foreground font-medium">Chu kỳ (ngày)</label>
+                <label className="text-xs text-blue-950 font-medium">Chu kỳ lặp lại (ngày) <span className="text-rose-500">*</span></label>
                 <Input
                   type="number"
                   min={1}
@@ -1097,7 +1145,7 @@ export function MaintenanceSchedules() {
                 />
               </div>
               <div className="flex flex-col gap-1 min-w-44">
-                <label className="text-xs text-muted-foreground font-medium">KTV Drone phụ trách</label>
+                <label className="text-xs text-blue-950 font-medium">Kỹ thuật viên phụ trách</label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={droneAssignedTechnicianId}
@@ -1198,8 +1246,8 @@ export function MaintenanceSchedules() {
                   className="h-9 text-xs"
                 />
               </div>
-              <Button onClick={create} disabled={creating} className="h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="w-4 h-4 mr-1" /> Tạo lịch Drone
+              <Button onClick={create} disabled={creating} className="h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5">
+                <Plus className="w-4 h-4" /> {creating ? "Đang tạo lịch..." : "Thiết lập Kế hoạch Drone"}
               </Button>
             </div>
           </div>
