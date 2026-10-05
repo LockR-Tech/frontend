@@ -259,6 +259,13 @@ export interface MaintenanceInspectionLogResponse {
   createdAt: string;
 }
 
+export interface DroneMaintenanceHistoryResponse {
+  droneUnitId: number;
+  droneCode: string;
+  completedMaintenance: MaintenanceInspectionLogResponse[];
+  resolvedIncidents: LockerReportResponse[];
+}
+
 export interface DeviceStatusResponse {
   id: number;
   deviceId: string;
@@ -600,6 +607,14 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       providesTags: [{ type: TAG, id: 'inspection-logs' }],
     }),
 
+    getDroneMaintenanceHistory: builder.query<
+      ApiResponse<DroneMaintenanceHistoryResponse>,
+      number
+    >({
+      query: (droneUnitId) => `/api/admin/drones/${droneUnitId}/maintenance-history`,
+      providesTags: [{ type: TAG, id: 'drone-maintenance-history' }],
+    }),
+
     getAllInspectionLogs: builder.query<
       ApiResponse<MaintenanceInspectionLogResponse[]>,
       { lockerId?: number; technicianId?: number } | void
@@ -784,6 +799,7 @@ export const {
   useAssignTechnicianToScheduleMutation,
   useCompleteMaintenanceScheduleMutation,
   useGetScheduleInspectionLogsQuery,
+  useGetDroneMaintenanceHistoryQuery,
   useGetAllInspectionLogsQuery,
   useDeleteMaintenanceScheduleMutation,
   useGetDeviceStatusesQuery,
