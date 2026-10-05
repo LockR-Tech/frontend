@@ -302,10 +302,8 @@ export function MaintenanceSchedules() {
         // sau đó đến thời điểm cập nhật hồ sơ lịch.
         const activityAt = (schedule: MaintenanceScheduleResponse) => {
           const lastDone = schedule.lastDoneAt ? new Date(schedule.lastDoneAt).getTime() : 0;
-          const updated = (schedule as MaintenanceScheduleResponse & { updatedAt?: string | null }).updatedAt
-            ? new Date((schedule as MaintenanceScheduleResponse & { updatedAt?: string | null }).updatedAt!).getTime()
-            : 0;
-          return Math.max(lastDone, updated);
+          const created = schedule.createdAt ? new Date(schedule.createdAt).getTime() : 0;
+          return lastDone || created;
         };
         return activityAt(b) - activityAt(a);
       }),
