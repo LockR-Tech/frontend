@@ -1,6 +1,7 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useSearchAdminOrdersQuery } from "@/stores/apis/admin/orders";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import type { AdminOrder, AdminOrderSearchParams } from "~/types/admin/reporting";
 
 // Mọi bộ lọc nằm trên URL: người dùng chia sẻ được đường dẫn và F5 không mất bộ lọc.
@@ -108,6 +109,32 @@ export function useOrders() {
 
   const { data, isLoading, isFetching, error, refetch } =
     useSearchAdminOrdersQuery(queryArgs);
+
+  const { subscribe } = useWebSocket({ autoConnect: true });
+
+  useEffect(() => {
+    if (!subscribe) return;
+
+    const subOrders = subscribe<unknown>("/topic/orders", (msg) => {
+      console.log("[Admin Orders] Real-time order event:", msg);
+      refetch();
+    });
+
+    const subNotifications = subscribe<any>("/topic/notifications", (msg) => {
+      if (
+        msg?.type?.includes?.("ORDER") ||
+        msg?.type?.includes?.("PAYMENT") ||
+        msg?.type?.includes?.("DELIVERY")
+      ) {
+        refetch();
+      }
+    });
+
+    return () => {
+      subOrders?.unsubscribe();
+      subNotifications?.unsubscribe();
+    };
+  }, [subscribe, refetch]);
 
   const pageData = data?.data;
   const orders: AdminOrder[] = pageData?.content ?? [];

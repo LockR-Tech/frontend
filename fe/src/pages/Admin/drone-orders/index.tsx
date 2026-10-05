@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2, MapPin, Plane, RefreshCw, Route } from "lucide-react";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import {
@@ -113,6 +114,27 @@ export default function DroneOrdersPage() {
     undefined,
     { pollingInterval: LIST_POLL_MS },
   );
+
+  const { subscribe } = useWebSocket({ autoConnect: true });
+
+  useEffect(() => {
+    if (!subscribe) return;
+    const subOrders = subscribe<any>("/topic/orders", () => refetch());
+    const subNotif = subscribe<any>("/topic/notifications", (msg) => {
+      if (
+        msg?.type?.includes?.("DRONE") ||
+        msg?.type?.includes?.("DELIVERY") ||
+        msg?.type?.includes?.("ORDER")
+      ) {
+        refetch();
+      }
+    });
+    return () => {
+      subOrders?.unsubscribe();
+      subNotif?.unsubscribe();
+    };
+  }, [subscribe, refetch]);
+
   const [scope, setScope] = useState<Scope>("active");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 

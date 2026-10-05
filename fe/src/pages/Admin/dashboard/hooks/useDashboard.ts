@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useGetDashboardOverviewQuery } from "~/stores/apis/admin/dashboard";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useGetAllStoresQuery } from "~/stores/apis/admin/stores";
 import { useGetAllLockersQuery } from "~/stores/apis/admin/lockers";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import { extractList } from "~/lib/extract-list";
 import {
   monthlyChartData,
@@ -37,14 +38,35 @@ function normalizeOverview(
 export function useDashboard() {
   const [selectedYear, setSelectedYear] = useState("2025");
 
-  const { data, isLoading } = useGetDashboardOverviewQuery();
+  const { data, isLoading, refetch: refetchOverview } = useGetDashboardOverviewQuery();
+
+  const { subscribe } = useWebSocket({ autoConnect: true });
 
   // The order-service overview only owns order/revenue metrics. Fill the
   // cross-service KPIs (users/stores/lockers/boxes) from the list endpoints so
   // the dashboard shows real numbers instead of zeros.
   const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
   const { data: storesData } = useGetAllStoresQuery({ page: 0, size: 1000 });
-  const { data: lockersData } = useGetAllLockersQuery({ page: 0, size: 1000 });
+  const { data: lockersData, refetch: refetchLockers } = useGetAllLockersQuery({ page: 0, size: 1000 });
+
+  useEffect(() => {
+    if (!subscribe) return;
+
+    const subOrders = subscribe<any>("/topic/orders", () => {
+      refetchOverview();
+      refetchLockers();
+    });
+
+    const subNotifications = subscribe<any>("/topic/notifications", () => {
+      refetchOverview();
+      refetchLockers();
+    });
+
+    return () => {
+      subOrders?.unsubscribe();
+      subNotifications?.unsubscribe();
+    };
+  }, [subscribe, refetchOverview, refetchLockers]);
 
   const lockers = extractList<AdminLockerResponse>(lockersData?.data);
   const computedAvailableBoxes = lockers.reduce(
