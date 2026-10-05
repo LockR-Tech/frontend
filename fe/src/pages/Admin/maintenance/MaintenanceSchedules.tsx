@@ -294,7 +294,20 @@ export function MaintenanceSchedules() {
   );
 
   const droneSchedules = useMemo(
-    () => effectiveSchedules.filter((s) => isDroneSchedule(s)),
+    () => effectiveSchedules
+      .filter((s) => isDroneSchedule(s))
+      .sort((a, b) => {
+        // Hoạt động gần nhất đứng trước: ưu tiên lần hoàn tất gần nhất,
+        // sau đó đến thời điểm cập nhật hồ sơ lịch.
+        const activityAt = (schedule: MaintenanceScheduleResponse) => {
+          const lastDone = schedule.lastDoneAt ? new Date(schedule.lastDoneAt).getTime() : 0;
+          const updated = (schedule as MaintenanceScheduleResponse & { updatedAt?: string | null }).updatedAt
+            ? new Date((schedule as MaintenanceScheduleResponse & { updatedAt?: string | null }).updatedAt!).getTime()
+            : 0;
+          return Math.max(lastDone, updated);
+        };
+        return activityAt(b) - activityAt(a);
+      }),
     [effectiveSchedules]
   );
 
