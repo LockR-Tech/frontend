@@ -1656,6 +1656,21 @@ export function MaintenanceSchedules() {
                     </span>
                   </div>}
 
+                  {isDroneSchedule(inspectingSchedule) &&
+                    (inspectingSchedule.lockerName || inspectingSchedule.lockerCode || inspectingSchedule.address) && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground font-medium flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-indigo-600" />
+                          Vị trí Drone:
+                        </span>
+                        <span className="font-bold text-indigo-900 text-right">
+                          {inspectingSchedule.lockerName ?? `Tủ #${inspectingSchedule.lockerId}`}
+                          {inspectingSchedule.lockerCode ? ` (${inspectingSchedule.lockerCode})` : ""}
+                          {inspectingSchedule.address ? ` · ${inspectingSchedule.address}` : ""}
+                        </span>
+                      </div>
+                    )}
+
                   {inspectingSchedule.locationNote && (
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground font-medium flex items-center gap-1">
@@ -1700,7 +1715,7 @@ export function MaintenanceSchedules() {
                     onChange={(e) => setInspectTechId(e.target.value ? Number(e.target.value) : "")}
                   >
                     <option value="">— Chọn KTV thực hiện ca trực —</option>
-                    {technicians.map((t) => (
+                    {(isDroneSchedule(inspectingSchedule) ? droneTechnicians : technicians).map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.fullName} (KTV #{t.id})
                       </option>
@@ -1724,11 +1739,17 @@ export function MaintenanceSchedules() {
                         const current = inspectItems[label];
                         return (
                           <div key={label} className="py-2 space-y-1.5">
-                            <div className="flex items-start justify-between gap-2 flex-wrap">
+                            <div
+                              className={`flex items-start gap-2 ${
+                                inspectingSchedule && isDroneSchedule(inspectingSchedule)
+                                  ? "flex-col"
+                                  : "justify-between flex-wrap"
+                              }`}
+                            >
                               <span className={current?.result ? "text-foreground font-medium" : "text-muted-foreground"}>
                                 {label}
                               </span>
-                              <div className="flex gap-1 shrink-0">
+                              <div className="flex gap-1 shrink-0 justify-start">
                                 {INSPECTION_VERDICTS.map((verdict) => (
                                   <button
                                     key={verdict}
