@@ -1069,16 +1069,6 @@ export function MaintenanceSchedules() {
         {/* SUBTAB 2: PHẦN DRONE */}
         {subTab === "drone" && (
           <div className="space-y-3">
-            <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 dark:bg-blue-950/30 dark:border-blue-900 text-xs space-y-1.5">
-              <div className="flex items-center gap-2 text-blue-900 dark:text-blue-200 font-semibold">
-                <Plane className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>Phân hệ Bảo dưỡng Đội bay & Bãi đáp Drone</span>
-              </div>
-              <p className="text-blue-800 dark:text-blue-300 leading-relaxed">
-                Theo dõi chu kỳ hiệu chuẩn động cơ, cân bằng cánh quạt, dung lượng pin thông minh và bãi đáp trên nóc Kiosk.
-              </p>
-            </div>
-
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-blue-50/40 border border-blue-200/80 text-xs">
               <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
                 <span className="text-blue-900/70 block font-medium">Tổng Drone có lịch</span>
@@ -1109,6 +1099,12 @@ export function MaintenanceSchedules() {
             </div>
 
             <div className="flex flex-wrap items-end gap-2 p-3 rounded-lg bg-blue-50/40 border border-blue-200/80">
+              <div className="w-full flex items-center justify-between gap-3 pb-1 border-b border-blue-200/80">
+                <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                  <Plane className="w-4 h-4 text-blue-600" /> Thiết lập Kế hoạch Kiểm tra định kỳ Drone mới
+                </span>
+                <span className="text-[11px] text-blue-800">Chu kỳ khuyến nghị: 15 – 30 ngày/lần</span>
+              </div>
               <div className="flex flex-col gap-1 w-36">
                 <label className="text-xs text-blue-950 font-medium">Thiết bị Drone <span className="text-rose-500">*</span></label>
                 <select
@@ -1133,7 +1129,7 @@ export function MaintenanceSchedules() {
                   className="h-9 text-xs"
                 />
               </div>
-              <div className="flex flex-col gap-1 w-28">
+              <div className="flex flex-col gap-1 w-36">
                 <label className="text-xs text-blue-950 font-medium">Chu kỳ lặp lại (ngày) <span className="text-rose-500">*</span></label>
                 <Input
                   type="number"
@@ -1180,8 +1176,10 @@ export function MaintenanceSchedules() {
                   className="h-9 text-xs"
                 />
               </div>
-              <div className="flex flex-col gap-1 w-28">
-                <label className="text-xs text-muted-foreground font-medium">Giờ bắt đầu</label>
+              <div className="flex flex-col gap-1 w-32">
+                <label className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-blue-600" /> Giờ bắt đầu
+                </label>
                 <Input
                   type="time"
                   value={droneFirstDueTime}
@@ -1204,11 +1202,12 @@ export function MaintenanceSchedules() {
                 </select>
               </div>
               <div className="w-full flex flex-col gap-1">
-                <label className="text-xs text-muted-foreground font-medium">
-                  Checklist an toàn Drone ({droneChecklistLines.length} mục)
+                <label className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                  <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
+                  Bộ tiêu chí an toàn Drone ({droneChecklistLines.length} mục)
                 </label>
                 <textarea
-                  rows={3}
+                  rows={5}
                   value={droneChecklistText}
                   onChange={(e) => setDroneChecklistText(e.target.value)}
                   className="w-full rounded-md border px-2.5 py-2 text-xs bg-background border-border/80 resize-y"
@@ -1246,7 +1245,7 @@ export function MaintenanceSchedules() {
                   className="h-9 text-xs"
                 />
               </div>
-              <Button onClick={create} disabled={creating} className="h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5">
+              <Button onClick={create} disabled={creating} className="ml-auto h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5">
                 <Plus className="w-4 h-4" /> {creating ? "Đang tạo lịch..." : "Thiết lập Kế hoạch Drone"}
               </Button>
             </div>
