@@ -209,6 +209,8 @@ export interface MaintenanceScheduleResponse {
   lastResult?: "PASSED" | "FAILED" | null;
   /** Lần kiểm tra KHÔNG ĐẠT đang chờ phiếu này; hạn kế tiếp chỉ dời khi phiếu được hoàn tất. */
   pendingReportId?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 export type InspectionItemVerdict = "PASS" | "FAIL" | "NA";
