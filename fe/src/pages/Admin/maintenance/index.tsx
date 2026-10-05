@@ -182,6 +182,7 @@ export default function MaintenanceAdminPage() {
   const schedulesQuery = useGetMaintenanceSchedulesQuery();
   const schedulesList = useMemo(() => schedulesQuery.data?.data ?? [], [schedulesQuery.data]);
   const [historyFilter, setHistoryFilter] = useState<"ALL" | "INCIDENT" | "SCHEDULE">("ALL");
+  const [historyAsset, setHistoryAsset] = useState<"KIOSK" | "DRONE">("KIOSK");
 
   const [pending, setPending] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("kiosk");
@@ -1473,8 +1474,15 @@ export default function MaintenanceAdminPage() {
 
           {/* Nhật Ký Sửa Chữa & Bảo Trì Đã Hoàn Tất */}
           {(() => {
-            const resolvedIncidentList = kioskReportList.filter((r) => r.status === "RESOLVED");
-            const completedScheduleList = schedulesList.filter((s) => Boolean(s.lastDoneAt));
+            const showDroneHistory = historyAsset === "DRONE";
+            const scheduleIsDrone = (s: { droneUnitId?: number | null; droneCode?: string | null; title?: string | null }) =>
+              Boolean(s.droneUnitId || s.droneCode || s.title?.toLowerCase().includes("drone"));
+            const resolvedIncidentList = reportList.filter(
+              (r) => r.status === "RESOLVED" && (showDroneHistory ? isDroneReport(r) : !isDroneReport(r)),
+            );
+            const completedScheduleList = schedulesList.filter(
+              (s) => Boolean(s.lastDoneAt) && (showDroneHistory ? scheduleIsDrone(s) : !scheduleIsDrone(s)),
+            );
 
             interface UnifiedHistoryItem {
               id: string;
@@ -1498,7 +1506,9 @@ export default function MaintenanceAdminPage() {
                 id: `incident-${r.id}`,
                 type: "INCIDENT",
                 title: `RPT-${r.id} · ${r.title}`,
-                target: `${r.lockerName ?? `Kiosk #${r.lockerId}`}${r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}`,
+                target: showDroneHistory
+                  ? `Drone: ${(r as any).droneCode ?? r.title ?? "Thiết bị bay"}`
+                  : `${r.lockerName ?? `Kiosk #${r.lockerId}`}${r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}`,
                 completedAt: formatDateTime(rawDate),
                 completedRawDate: rawDate,
                 // Người được giao phiếu, không có thì người đóng phiếu — không suy từ người báo
@@ -1557,12 +1567,33 @@ export default function MaintenanceAdminPage() {
                         Lịch sử hoàn tất bảo trì & xử lý sự cố thiết bị
                       </CardTitle>
                       <CardDescription className="text-xs">
-                        Toàn bộ hồ sơ các phiếu sự cố Kiosk và đợt bảo trì định kỳ đã giải quyết thành công
+                        {showDroneHistory
+                          ? "Hồ sơ sự cố Drone đã xử lý và các đợt bảo trì Drone hoàn tất"
+                          : "Hồ sơ sự cố Kiosk đã xử lý và các đợt bảo trì Kiosk hoàn tất"}
                       </CardDescription>
                     </div>
 
-                    {/* Bộ lọc loại hồ sơ: Tất cả, Sự cố, Định kỳ */}
-                    <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-lg border border-border/60 text-xs">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      {/* Bộ lọc tài sản: Kiosk hoặc Drone */}
+                      <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-lg border border-border/60 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => { setHistoryAsset("KIOSK"); setHistoryFilter("ALL"); }}
+                          className={`px-2.5 py-1 rounded-md font-medium transition-all ${historyAsset === "KIOSK" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                          📦 Kiosk
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setHistoryAsset("DRONE"); setHistoryFilter("ALL"); }}
+                          className={`px-2.5 py-1 rounded-md font-medium transition-all ${historyAsset === "DRONE" ? "bg-background text-blue-700 shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                          ✈ Drone
+                        </button>
+                      </div>
+
+                      {/* Bộ lọc loại hồ sơ: Tất cả, Sự cố, Định kỳ */}
+                      <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-lg border border-border/60 text-xs">
                       <button
                         type="button"
                         onClick={() => setHistoryFilter("ALL")}
@@ -1596,6 +1627,7 @@ export default function MaintenanceAdminPage() {
                       >
                         Định kỳ hoàn tất ({completedScheduleList.length})
                       </button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
