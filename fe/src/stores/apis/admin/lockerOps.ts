@@ -23,6 +23,18 @@ export interface CellResponse {
   faultReason: string | null;
 }
 
+export interface BoxAccessLogResponse {
+  id: number;
+  boxId: number;
+  lockerId?: number | null;
+  orderId?: number | null;
+  actorUserId?: number | null;
+  credentialType: string;
+  result: string;
+  message?: string | null;
+  createdAt: string;
+}
+
 export interface LockerLayoutResponse {
   lockerId: number;
   code: string;
@@ -540,6 +552,43 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    // Admin update box (chỉnh sửa công năng, loại ô STANDARD / DRONE / XL, kích cỡ, vị trí)
+    updateBox: builder.mutation<
+      ApiResponse<CellResponse>,
+      {
+        boxId: number;
+        boxNumber?: number;
+        size?: string;
+        cellType?: string;
+        rowIndex?: number;
+        colIndex?: number;
+        description?: string;
+        status?: string;
+      }
+    >({
+      query: ({ boxId, ...body }) => ({
+        url: `/api/admin/lockers/boxes/${boxId}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Admin delete box
+    deleteBox: builder.mutation<ApiResponse<void>, number>({
+      query: (boxId) => ({
+        url: `/api/admin/lockers/boxes/${boxId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Access & audit logs for a locker
+    getLockerAccessLogs: builder.query<ApiResponse<BoxAccessLogResponse[]>, number>({
+      query: (lockerId) => `/api/admin/iot/lockers/${lockerId}/logs`,
+      providesTags: (_r, _e, id) => [{ type: TAG, id: `logs-${id}` }],
+    }),
+
     // L5 — nhật ký xử lý phiếu bảo trì (work-log)
     getReportLogs: builder.query<ApiResponse<RepairLogResponse[]>, number>({
       query: (reportId) => LOCKER_TECHNICIAN_ENDPOINTS.REPORT_LOGS(reportId),
@@ -793,6 +842,9 @@ export const {
   useReturnBoxToServiceMutation,
   useForceOpenBoxMutation,
   useAddBoxMutation,
+  useUpdateBoxMutation,
+  useDeleteBoxMutation,
+  useGetLockerAccessLogsQuery,
   useGetReportLogsQuery,
   useAddReportLogMutation,
   useGetMaintenanceSchedulesQuery,

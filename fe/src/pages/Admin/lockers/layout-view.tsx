@@ -16,6 +16,10 @@ import {
   Plus,
   MoreHorizontal,
   UserCheck,
+  QrCode,
+  Sliders,
+  Printer,
+  Monitor,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -57,12 +61,17 @@ import {
   useGetStaffLockerQuery,
   useAssignLockerTechnicianMutation,
   useGetAllAdminReportsQuery,
+  useGetGatewaysQuery,
   type CellResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { extractList } from "~/lib/extract-list";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { GatewayPanel } from "./components/GatewayPanel";
+import { LockerLogsPanel } from "./components/LockerLogsPanel";
+import { EditBoxModal } from "./components/EditBoxModal";
+import { BoxQrModal } from "./components/BoxQrModal";
+import { KioskScreenModal } from "./components/KioskScreenModal";
 
 // Nhãn trạng thái tủ — cùng câu chữ với admin.lockers.status (messages/vi.json)
 const LOCKER_STATUS_STYLE: Record<string, { label: string; cls: string }> = {
@@ -127,13 +136,19 @@ interface BoxActionDialogState {
 function CellTile({
   cell,
   onAction,
+  onEdit,
+  onShowQr,
   busy,
 }: {
   cell: CellResponse;
   onAction: (cell: CellResponse, type: BoxActionType) => void;
+  onEdit: (cell: CellResponse) => void;
+  onShowQr: (cell: CellResponse) => void;
   busy: boolean;
 }) {
-  const isDrone = cell.cellType === "DRONE" || cell.boxNumber === 1 || cell.boxNumber === 2;
+  const isDrone =
+    cell.cellType === "DRONE" ||
+    (!cell.cellType && cell.cellType !== "XL" && cell.boxNumber !== 1 && (cell.boxNumber === 2 || cell.boxNumber === 3));
   let bgClass = "bg-card";
   let borderClass = "border-border";
   let textClass = "text-foreground";
@@ -228,10 +243,29 @@ function CellTile({
               Drone
             </Badge>
           )}
+          {cell.cellType === "XL" && (
+            <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
+              XL
+            </Badge>
+          )}
         </div>
-        {isDrone && <Plane className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-95 drop-shadow-xs" />}
-        {cell.cellType === "XL" && <Luggage className="w-5 h-5 text-emerald-800 dark:text-emerald-300 opacity-80" />}
-        {!isDrone && cell.cellType === "STANDARD" && <BoxIcon className="w-5 h-5 text-emerald-800 dark:text-emerald-300 opacity-80" />}
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0 hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 rounded"
+            title="Xem và in mã QR ô tủ"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowQr(cell);
+            }}
+          >
+            <QrCode className="w-3.5 h-3.5" />
+          </Button>
+          {isDrone && <Plane className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-95 drop-shadow-xs" />}
+          {cell.cellType === "XL" && <Luggage className="w-5 h-5 text-indigo-700 dark:text-indigo-300 opacity-80" />}
+          {!isDrone && cell.cellType !== "XL" && <BoxIcon className="w-5 h-5 text-emerald-800 dark:text-emerald-300 opacity-80" />}
+        </div>
       </div>
       {statusBadge}
       {cell.faultReason && (
@@ -287,7 +321,14 @@ function CellTile({
               <MoreHorizontal className="w-3.5 h-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44 text-xs">
+          <DropdownMenuContent align="end" className="w-48 text-xs">
+            <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium">
+              <QrCode className="w-3.5 h-3.5 mr-2 text-primary" /> Mã QR & In tem nhãn
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(cell)} className="cursor-pointer font-medium">
+              <Sliders className="w-3.5 h-3.5 mr-2 text-indigo-600" /> Chỉnh sửa công năng
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {cell.status === "AVAILABLE" && (
               <>
                 <DropdownMenuItem onClick={() => onAction(cell, "OUT_OF_SERVICE")} className="cursor-pointer">
@@ -334,11 +375,11 @@ function CellTile({
 }
 
 function getBoxGridStyle(cell: CellResponse, maxRows: number) {
-  // If XL cell (tall compartment spanning vertically)
+  // If XL cell (tall compartment spanning vertically below the 7-inch screen at row 1)
   if (cell.cellType === "XL" || cell.colIndex === 0 || cell.boxNumber === 10) {
     return {
       gridColumn: "1",
-      gridRow: `1 / span ${maxRows}`,
+      gridRow: `2 / span ${Math.max(1, maxRows - 1)}`,
     };
   }
 
@@ -478,6 +519,37 @@ export default function LockerLayoutPage() {
   const [newSize, setNewSize] = useState<string>("M");
   const [newRowIndex, setNewRowIndex] = useState<number>(2);
   const [newColIndex, setNewColIndex] = useState<number>(3);
+
+  // Modal State for Editing Box Functionality
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCell, setEditingCell] = useState<CellResponse | null>(null);
+
+  // Modal State for Box QR Code & Printing
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [selectedQrCell, setSelectedQrCell] = useState<CellResponse | null>(null);
+
+  // Modal State for 7-inch Touch Screen
+  const [showScreenModal, setShowScreenModal] = useState(false);
+
+  // Lấy trạng thái kết nối phần cứng thực tế của bộ điều khiển Kiosk (Gateway/Raspberry Pi)
+  const { data: gatewaysData } = useGetGatewaysQuery(undefined, { pollingInterval: 5000 });
+  const currentGateway = useMemo(
+    () => gatewaysData?.data?.find((g) => g.lockerId === id) ?? null,
+    [gatewaysData, id]
+  );
+  // Màn hình cảm ứng 7 inch gắn trực tiếp vào Raspberry Pi qua Micro-HDMI và USB Touch.
+  // Khi Pi chưa cắm nguồn (Gateway mất kết nối / offline), màn hình cũng sẽ ngoại tuyến.
+  const isKioskScreenOnline = Boolean(currentGateway?.online);
+
+  const handleOpenEdit = (c: CellResponse) => {
+    setEditingCell(c);
+    setShowEditModal(true);
+  };
+
+  const handleOpenQr = (c: CellResponse) => {
+    setSelectedQrCell(c);
+    setShowQrModal(true);
+  };
 
   const layout = data?.data;
 
@@ -696,6 +768,16 @@ export default function LockerLayoutPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setSelectedQrCell(cells[0] || null);
+              setShowQrModal(true);
+            }}
+            className="shadow-xs"
+          >
+            <QrCode className="w-4 h-4 mr-1.5 text-primary" /> Mã QR & In tem
+          </Button>
           <Button onClick={() => setShowAddModal(true)} className="bg-primary text-primary-foreground shadow-xs">
             <Plus className="w-4 h-4 mr-1.5" /> Thêm ô tủ
           </Button>
@@ -830,6 +912,88 @@ export default function LockerLayoutPage() {
               gridTemplateRows: `repeat(${maxRows}, minmax(135px, auto))`,
             }}
           >
+            {/* Màn hình cảm ứng 7 inch (Waveshare 1024x600 HDMI/Touch) đặt ở hàng 1 cột 1, ngay phía trên Ô #1 (Vali) */}
+            <div
+              style={{ gridColumn: "1", gridRow: "1" }}
+              className="flex flex-col h-full shadow-xs transition-all hover:shadow-md"
+            >
+              <div
+                onClick={() => setShowScreenModal(true)}
+                className={`relative h-full rounded-xl border-2 p-3.5 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md cursor-pointer transition-all group ${
+                  isKioskScreenOnline
+                    ? "border-slate-700/80 hover:border-sky-500 bg-slate-950"
+                    : "border-slate-800 hover:border-rose-500/60 bg-slate-950/90"
+                }`}
+                title={
+                  isKioskScreenOnline
+                    ? "Nhấn để xem data & thông số màn hình cảm ứng 7 inch"
+                    : "Màn hình 7 inch mất kết nối (Chưa cấp nguồn Pi hoặc chưa cắm điện trạm Kiosk)"
+                }
+              >
+                {/* Gloss reflection overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none" />
+
+                {/* Screen Header */}
+                <div className="flex items-center justify-between z-10">
+                  <div className="flex items-center gap-1.5">
+                    <Monitor
+                      className={`w-4 h-4 transition-transform group-hover:scale-110 ${
+                        isKioskScreenOnline ? "text-sky-400" : "text-slate-400"
+                      }`}
+                    />
+                    <span className="font-bold text-sm text-white tracking-tight">Màn hình 7"</span>
+                    <Badge className="bg-sky-950/80 border border-sky-500/50 text-sky-300 text-[10px] px-1.5 py-0 h-4 font-mono">
+                      1024×600
+                    </Badge>
+                  </div>
+                  {isKioskScreenOnline ? (
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-500/50" />
+                      <span className="text-[11px] font-semibold text-emerald-400">Online</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+                      <span className="text-[11px] font-semibold text-rose-400">Mất kết nối</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Screen Mockup Body */}
+                {isKioskScreenOnline ? (
+                  <div className="z-10 bg-slate-900/90 rounded-lg p-2 border border-slate-800 text-center space-y-0.5 my-1">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-100">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Lock.R Kiosk Touch UI
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-mono">Waveshare HDMI LCD (C) · :3002</p>
+                  </div>
+                ) : (
+                  <div className="z-10 bg-slate-900/60 rounded-lg p-2 border border-rose-950/50 text-center space-y-0.5 my-1">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Màn hình chưa có nguồn
+                    </div>
+                    <p className="text-[10px] text-rose-400/80 font-mono">Chờ cắm điện trạm Kiosk...</p>
+                  </div>
+                )}
+
+                {/* Screen Footer Action */}
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 z-10 text-[11px]">
+                  <span className={isKioskScreenOnline ? "text-slate-400" : "text-slate-500"}>
+                    {isKioskScreenOnline ? "Cảm ứng 5 điểm" : "Chưa cấp nguồn"}
+                  </span>
+                  <span
+                    className={`font-medium inline-flex items-center gap-0.5 ${
+                      isKioskScreenOnline
+                        ? "text-sky-400 group-hover:text-sky-300"
+                        : "text-rose-400 group-hover:text-rose-300"
+                    }`}
+                  >
+                    {isKioskScreenOnline ? "Data màn hình →" : "Xem thông số →"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {cells.map((cell) => {
               const gridStyle = getBoxGridStyle(cell, maxRows);
               return (
@@ -841,6 +1005,8 @@ export default function LockerLayoutPage() {
                   <CellTile
                     cell={cell}
                     onAction={handleOpenAction}
+                    onEdit={handleOpenEdit}
+                    onShowQr={handleOpenQr}
                     busy={
                       (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) &&
                       pendingBox === cell.id
@@ -851,8 +1017,18 @@ export default function LockerLayoutPage() {
             })}
           </div>
           <div className="flex flex-wrap items-center gap-4 pt-1 text-xs">
+            <span
+              onClick={() => setShowScreenModal(true)}
+              className={`inline-flex items-center gap-1.5 font-semibold px-2.5 py-1 rounded-md border cursor-pointer transition-colors ${
+                isKioskScreenOnline
+                  ? "text-indigo-800 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-100"
+                  : "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <Monitor className="w-3.5 h-3.5" /> Màn hình 7" ({isKioskScreenOnline ? "Kiosk Online" : "Mất kết nối"})
+            </span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-sky-800 dark:text-sky-300 bg-sky-100/90 dark:bg-sky-950/70 px-2.5 py-1 rounded-md border border-sky-300 dark:border-sky-700">
-              <Plane className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" /> Ô tiếp nhận Drone ({cells.filter((c) => c.cellType === 'DRONE' || c.boxNumber === 1 || c.boxNumber === 2).map((c) => `#${c.boxNumber}`).join(', ')})
+              <Plane className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" /> Ô tiếp nhận Drone ({cells.filter((c) => c.cellType === 'DRONE' || (!c.cellType && c.cellType !== 'XL' && c.boxNumber !== 1 && (c.boxNumber === 2 || c.boxNumber === 3))).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
             </span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-md border border-emerald-300 dark:border-emerald-700">
               <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống khả dụng ({cells.filter((c) => c.status === 'AVAILABLE').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
@@ -863,6 +1039,9 @@ export default function LockerLayoutPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 1) Xem nhật ký của tủ */}
+      <LockerLogsPanel lockerId={id} cells={cells} gateway={currentGateway} />
 
       {/* Action Dialog (Replaces browser prompt/confirm) */}
       <Dialog
@@ -1044,6 +1223,37 @@ export default function LockerLayoutPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* 2) Chỉnh sửa công năng tủ (ô thường, ô drone, ô vali XL...) */}
+      <EditBoxModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        cell={editingCell}
+        lockerName={layout.name}
+        onSuccess={() => refetch()}
+      />
+
+      {/* 3) Hiển thị mã QR và in ấn tem nhãn dán cho từng ô tủ */}
+      <BoxQrModal
+        open={showQrModal}
+        onOpenChange={setShowQrModal}
+        cell={selectedQrCell}
+        cells={cells}
+        lockerId={id}
+        lockerName={layout.name}
+        lockerCode={layout.code}
+      />
+
+      {/* 4) Modal thông số & data Màn hình cảm ứng 7 inch */}
+      <KioskScreenModal
+        open={showScreenModal}
+        onOpenChange={setShowScreenModal}
+        lockerId={id}
+        lockerCode={layout.code}
+        isOnline={isKioskScreenOnline}
+        gatewayMac={currentGateway?.macAddress}
+        lastSeenAt={currentGateway?.lastSeenAt}
+      />
     </div>
   );
 }
