@@ -5,6 +5,8 @@ import { ADMIN_ENDPOINTS, ASSISTANT_ENDPOINTS } from "../../../constants";
 // /api/admin/knowledge chỉ ADMIN; phản hồi dạng ApiResponse{success, code, message, data, errors}.
 //   POST   /documents (multipart: file, title?, allowedRoles*) -> KnowledgeDocument (PENDING)
 //   GET    /documents | /documents/{id}
+//   GET    /documents/{id}/chunks                             -> đoạn đã đánh chỉ mục (trợ lý đọc)
+//   GET    /documents/{id}/file                               -> file gốc (attachment, nhị phân)
 //   PUT    /documents/{id} {title?, allowedRoles?}
 //   POST   /documents/{id}/reindex                            -> về PENDING
 //   DELETE /documents/{id}
@@ -63,6 +65,16 @@ export interface KnowledgeDocument {
   createdAt: string | null;
   updatedAt: string | null;
   indexedAt: string | null;
+}
+
+/** Một đoạn đã đánh chỉ mục — đúng phần trợ lý đọc khi trả lời. */
+export interface KnowledgeChunk {
+  id: number;
+  /** Thứ tự trong tài liệu, từ 0. */
+  ordinal: number;
+  /** Đường mục (vd "Thuê ô › Kết thúc lượt thuê"); null khi đoạn nằm trước tiêu đề đầu tiên. */
+  heading: string | null;
+  content: string;
 }
 
 export interface UploadKnowledgeDocumentArgs {
@@ -211,6 +223,33 @@ export const knowledgeApi = baseApi.injectEndpoints({
     >({
       query: (id) => ADMIN_ENDPOINTS.KNOWLEDGE_DOCUMENT_BY_ID(id),
       providesTags: (_result, _error, id) => [{ type: DOC_TAG, id }],
+    }),
+
+    /**
+     * `indexedAt` chỉ để làm khoá cache: danh sách (đang polling) báo đánh chỉ mục lại xong thì
+     * khoá đổi và các đoạn mới được tải về; đoạn cũ vẫn là thứ trợ lý dùng cho tới lúc đó.
+     */
+    getKnowledgeDocumentChunks: builder.query<
+      KnowledgeApiResponse<KnowledgeChunk[]>,
+      { id: number; indexedAt: string | null }
+    >({
+      query: ({ id }) => ADMIN_ENDPOINTS.KNOWLEDGE_DOCUMENT_CHUNKS(id),
+      providesTags: (_result, _error, { id }) => [{ type: DOC_TAG, id }],
+    }),
+
+    /**
+     * File gốc dạng object URL (chuỗi, không lưu Blob vào store). Nơi gọi tự
+     * `URL.revokeObjectURL` sau khi tải xong. Lỗi thì đọc body JSON như mọi endpoint khác.
+     */
+    downloadKnowledgeDocumentFile: builder.mutation<string, number>({
+      query: (id) => ({
+        url: ADMIN_ENDPOINTS.KNOWLEDGE_DOCUMENT_FILE(id),
+        method: "GET",
+        responseHandler: async (response) =>
+          response.ok
+            ? URL.createObjectURL(await response.blob())
+            : response.json().catch(() => null),
+      }),
     }),
 
     uploadKnowledgeDocument: builder.mutation<
@@ -364,6 +403,8 @@ export const knowledgeApi = baseApi.injectEndpoints({
 export const {
   useGetKnowledgeDocumentsQuery,
   useGetKnowledgeDocumentQuery,
+  useGetKnowledgeDocumentChunksQuery,
+  useDownloadKnowledgeDocumentFileMutation,
   useUploadKnowledgeDocumentMutation,
   useUpdateKnowledgeDocumentMutation,
   useReindexKnowledgeDocumentMutation,

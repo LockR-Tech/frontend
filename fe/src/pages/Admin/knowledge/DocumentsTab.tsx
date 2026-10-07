@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import {
+  Eye,
   FileText,
   FileUp,
   Info,
@@ -41,6 +42,7 @@ import {
   type KnowledgeDocument,
 } from "~/stores/apis/admin/knowledge";
 import { ConfirmActionDialog } from "./ConfirmActionDialog";
+import { DocumentDetailSheet } from "./DocumentDetailSheet";
 import { EditDocumentDialog } from "./EditDocumentDialog";
 import { UploadDocumentDialog } from "./UploadDocumentDialog";
 import {
@@ -71,6 +73,10 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
   const [search, setSearch] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editing, setEditing] = useState<KnowledgeDocument | null>(null);
+  // Giữ id sau khi đóng để sheet không nháy trống lúc trượt ra; tài liệu lấy từ danh sách (đang
+  // polling) nên trạng thái trong sheet luôn mới.
+  const [viewingId, setViewingId] = useState<number | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
   // Giữ `pending` sau khi đóng để hộp xác nhận không nháy nội dung rỗng lúc đang tắt dần.
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -83,6 +89,12 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
     () => (Array.isArray(data?.data) ? data.data : []),
     [data],
   );
+
+  const viewing = documents.find((d) => d.id === viewingId) ?? null;
+  const openViewer = (doc: KnowledgeDocument) => {
+    setViewingId(doc.id);
+    setViewOpen(true);
+  };
 
   const counts = useMemo(
     () => ({
@@ -204,7 +216,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
                 <TableHead className="text-right font-semibold text-foreground">Số đoạn</TableHead>
                 <TableHead className="text-right font-semibold text-foreground">Dung lượng</TableHead>
                 <TableHead className="font-semibold text-foreground">Đánh chỉ mục lúc</TableHead>
-                <TableHead className="w-[120px] text-right font-semibold text-foreground">Thao tác</TableHead>
+                <TableHead className="w-[156px] text-right font-semibold text-foreground">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -230,6 +242,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
                   <DocumentRow
                     key={doc.id}
                     doc={doc}
+                    onView={() => openViewer(doc)}
                     onEdit={() => setEditing(doc)}
                     onReindex={() => askConfirm({ kind: "reindex", doc })}
                     onDelete={() => askConfirm({ kind: "delete", doc })}
@@ -243,13 +256,18 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
 
       {documents.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          Tổng {counts.chunks.toLocaleString("vi-VN")} đoạn đã đánh chỉ mục. Trợ lý chỉ dùng tài liệu
-          “Sẵn sàng”; tài liệu đang đánh chỉ mục lại tạm thời không được dùng.
+          Tổng {counts.chunks.toLocaleString("vi-VN")} đoạn đã đánh chỉ mục. Tài liệu đang đánh chỉ
+          mục lại vẫn được trả lời bằng các đoạn cũ cho tới khi xong. Bấm tên tài liệu để xem nội dung.
         </p>
       )}
 
       <UploadDocumentDialog open={uploadOpen} onOpenChange={setUploadOpen} />
       <EditDocumentDialog document={editing} onClose={() => setEditing(null)} />
+      <DocumentDetailSheet
+        open={viewOpen}
+        document={viewing}
+        onClose={() => setViewOpen(false)}
+      />
 
       <ConfirmActionDialog
         open={confirmOpen && pending?.kind === "delete"}
@@ -281,8 +299,8 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
               trạng thái “Chờ đánh chỉ mục” và được chia đoạn, nhúng lại từ đầu (tốn phí nhúng).
             </p>
             <p>
-              Trong lúc đó trợ lý tạm không dùng tài liệu này để trả lời. Dùng khi tài liệu bị lỗi
-              tạm thời hoặc sau khi đổi mô hình nhúng.
+              Trong lúc đó trợ lý vẫn trả lời bằng các đoạn cũ của tài liệu này. Dùng khi tài liệu bị
+              lỗi tạm thời hoặc sau khi đổi mô hình nhúng.
             </p>
           </>
         }
@@ -343,11 +361,13 @@ function StatusBadge({ doc }: { doc: KnowledgeDocument }) {
 
 function DocumentRow({
   doc,
+  onView,
   onEdit,
   onReindex,
   onDelete,
 }: {
   doc: KnowledgeDocument;
+  onView: () => void;
   onEdit: () => void;
   onReindex: () => void;
   onDelete: () => void;
@@ -358,7 +378,13 @@ function DocumentRow({
   return (
     <TableRow>
       <TableCell>
-        <p className="font-medium text-foreground">{doc.title}</p>
+        <button
+          type="button"
+          onClick={onView}
+          className="text-left font-medium text-foreground hover:text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {doc.title}
+        </button>
         <p className="truncate text-xs text-muted-foreground" title={doc.fileName}>
           {doc.fileName}
         </p>
@@ -398,6 +424,9 @@ function DocumentRow({
       </TableCell>
       <TableCell>
         <div className="flex justify-end gap-1">
+          <IconAction label="Xem nội dung" onClick={onView}>
+            <Eye className="h-4 w-4" />
+          </IconAction>
           <IconAction label="Sửa tiêu đề / vai trò" onClick={onEdit}>
             <Pencil className="h-4 w-4" />
           </IconAction>
