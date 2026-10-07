@@ -174,6 +174,7 @@ export function paymentKindMeta(
 const REFUND_STATUS_META: Record<string, BadgeMeta> = {
   COMPLETED: { label: "Đã hoàn", style: GREEN, icon: Undo2 },
   PENDING: { label: "Chờ hoàn", style: AMBER, icon: Clock },
+  REJECTED: { label: "Từ chối", style: RED, icon: XCircle },
   FAILED: { label: "Hoàn thất bại", style: RED, icon: XCircle },
 };
 

@@ -109,6 +109,10 @@ export const ADMIN_ENDPOINTS = {
   PAYMENT_DETAIL: (paymentId: number) =>
     `${ROOT_URI.ADMIN}/payments/${paymentId}/detail`,
   PAYMENT_REFUNDS: `${ROOT_URI.ADMIN}/payments/refunds`,
+  REFUND_APPROVE: (refundId: number) =>
+    `${ROOT_URI.ADMIN}/payments/refunds/${refundId}/approve`,
+  REFUND_REJECT: (refundId: number) =>
+    `${ROOT_URI.ADMIN}/payments/refunds/${refundId}/reject`,
   PAYMENT_WALLET_TRANSACTIONS: `${ROOT_URI.ADMIN}/payments/wallet-transactions`,
   PAYMENT_STATS: `${ROOT_URI.ADMIN}/payments/stats`,
 
