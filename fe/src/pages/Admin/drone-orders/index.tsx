@@ -354,11 +354,13 @@ function DroneOrderDialog({
                   ? ` · ${CANCEL_REASON_LABELS[order.cancelReason] ?? `Lý do #${order.cancelReason}`}`
                   : ""}
                 {order.cancelNote ? ` · ${order.cancelNote}` : ""}
-                {order.paymentStatus === "REFUNDED"
-                  ? " · Đã hoàn tiền về ví người đặt"
-                  : order.paymentStatus === "PAID"
-                    ? " · CHƯA hoàn tiền — cần hoàn tay ở trang Thanh toán"
-                    : ""}
+                {order.paymentStatus === "REFUND_PENDING"
+                  ? " · Chờ hoàn tiền — duyệt và chuyển khoản ở trang Thanh toán › Hoàn tiền"
+                  : order.paymentStatus === "REFUNDED"
+                    ? " · Đã chuyển khoản hoàn tiền cho người đặt"
+                    : order.paymentStatus === "PAID"
+                      ? " · CHƯA có yêu cầu hoàn tiền — cần xử lý tay ở trang Thanh toán"
+                      : ""}
               </div>
             )}
 
