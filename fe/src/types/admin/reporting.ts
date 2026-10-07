@@ -345,7 +345,7 @@ export interface AdminPayment {
   customer: CustomerSummary | null;
 }
 
-export type AdminRefundStatus = "COMPLETED" | "PENDING" | "FAILED";
+export type AdminRefundStatus = "COMPLETED" | "PENDING" | "REJECTED" | "FAILED";
 
 export interface AdminRefund {
   id: number;
@@ -362,6 +362,12 @@ export interface AdminRefund {
   paymentMethod: AdminPaymentMethod | null;
   paymentAmount: number | null;
   paymentReferenceId: string | null;
+  bankName?: string | null;
+  bankCode?: string | null;
+  accountNumber?: string | null;
+  accountHolderName?: string | null;
+  rejectionReason?: string | null;
+  bankTransferRef?: string | null;
   order: AdminPaymentOrderBrief | null;
   customer: CustomerSummary | null;
   processedBy: CustomerSummary | null;

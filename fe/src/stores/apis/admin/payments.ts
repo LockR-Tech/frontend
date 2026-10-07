@@ -150,6 +150,32 @@ export const paymentManagementApi = baseApi.injectEndpoints({
       }),
       providesTags: [TAGS.STATS],
     }),
+
+    /** Duyệt hoàn tiền sau khi Admin đã chuyển khoản ngân hàng thủ công. */
+    approveRefund: builder.mutation<
+      ApiResponse<void>,
+      { refundId: number; bankTransferRef?: string }
+    >({
+      query: ({ refundId, bankTransferRef }) => ({
+        url: ADMIN_ENDPOINTS.REFUND_APPROVE(refundId),
+        method: 'POST',
+        body: { bankTransferRef },
+      }),
+      invalidatesTags: [TAGS.REFUNDS, TAGS.PAYMENTS, TAGS.STATS],
+    }),
+
+    /** Từ chối yêu cầu hoàn tiền kèm lý do. */
+    rejectRefund: builder.mutation<
+      ApiResponse<void>,
+      { refundId: number; rejectionReason: string }
+    >({
+      query: ({ refundId, rejectionReason }) => ({
+        url: ADMIN_ENDPOINTS.REFUND_REJECT(refundId),
+        method: 'POST',
+        body: { rejectionReason },
+      }),
+      invalidatesTags: [TAGS.REFUNDS, TAGS.PAYMENTS, TAGS.STATS],
+    }),
   }),
 });
 
@@ -163,4 +189,6 @@ export const {
   useGetAdminRefundsQuery,
   useGetAdminWalletTransactionsQuery,
   useGetAdminPaymentStatsQuery,
+  useApproveRefundMutation,
+  useRejectRefundMutation,
 } = paymentManagementApi;
