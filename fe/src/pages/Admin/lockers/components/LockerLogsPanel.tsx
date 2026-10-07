@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   History,
   Unlock,
@@ -17,7 +17,10 @@ import {
   Clock,
   Layers,
   Monitor,
+  Unplug,
+  Zap,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -65,7 +68,7 @@ const CREDENTIAL_LABEL: Record<string, { label: string; cls: string; icon: any }
   PIN_OR_QR: { label: "Mở ô (PIN/QR)", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: Key },
   ACCESS_CODE: { label: "Mã Kiosk", cls: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-300", icon: Key },
   MASTER: { label: "Khẩn cấp (MASTER)", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300", icon: ShieldAlert },
-  DISCOVERY: { label: "Bộ điều khiển (Discovery)", cls: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-300", icon: RadioTower },
+  DISCOVERY: { label: "Bộ điều khiển (IoT)", cls: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-300", icon: RadioTower },
   DISPLAY: { label: "Màn hình 7 inch", cls: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-300", icon: Monitor },
   HARDWARE: { label: "Lỗi phần cứng", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
   HARDWARE_FAULT: { label: "Sự cố phần cứng", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
@@ -75,9 +78,9 @@ const CREDENTIAL_LABEL: Record<string, { label: string; cls: string; icon: any }
 };
 
 const RESULT_LABEL: Record<string, { label: string; cls: string; icon: any }> = {
+  ONLINE: { label: "Trực tuyến (Cắm điện)", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-400/50", icon: RadioTower },
+  OFFLINE: { label: "Mất kết nối (Rút điện)", cls: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-400/50", icon: Unplug },
   SUCCESS: { label: "Thành công", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300", icon: CheckCircle2 },
-  ONLINE: { label: "Trực tuyến", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300", icon: RadioTower },
-  OFFLINE: { label: "Mất kết nối", cls: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-300", icon: XCircle },
   OPEN: { label: "Cửa mở", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300", icon: CheckCircle2 },
   CLOSED: { label: "Cửa đóng", cls: "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-300", icon: CheckCircle2 },
   FAILED: { label: "Thất bại", cls: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-300", icon: XCircle },
@@ -92,7 +95,7 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
     pollingInterval: 10000,
   });
 
-  const { data: gatewaysData } = useGetGatewaysQuery(undefined, { pollingInterval: 5000 });
+  const { data: gatewaysData, refetch: refetchGateways } = useGetGatewaysQuery(undefined, { pollingInterval: 5000 });
   const gateway = useMemo(
     () => propGateway ?? gatewaysData?.data?.find((g) => g.lockerId === lockerId) ?? null,
     [propGateway, gatewaysData, lockerId]
@@ -106,60 +109,239 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
   const [selectedType, setSelectedType] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const logs = useMemo(() => {
-    const list = [...(data?.data ?? [])];
+  // Lưu lịch sử các lần cắm điện (kết nối) và rút điện (mất kết nối) vào localStorage theo lockerId
+  const storageKey = `lock_r_cabinet_conn_logs_${lockerId}`;
 
+  const [localConnLogs, setLocalConnLogs] = useState<BoxAccessLogResponse[]>(() => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  });
+
+  const prevGatewayOnlineRef = useRef<boolean | null>(null);
+
+  // Lắng nghe thay đổi trạng thái online/offline của bộ điều khiển để ghi nhận từng lần bắt được kết nối và mất kết nối
+  useEffect(() => {
+    if (!gateway) return;
+
+    const isOnline = Boolean(gateway.online);
+    const seenTime = gateway.lastSeenAt || gateway.setupFinishedAt || gateway.setupRequestedAt;
+    const seenFormatted = seenTime ? formatDateTime(seenTime) : formatDateTime(new Date().toISOString());
+    const hwStr = gateway.hardware
+      ? (HARDWARE_LABEL[gateway.hardware.toLowerCase()] ?? gateway.hardware.toUpperCase())
+      : "GPIO";
+    const slots = gateway.availableSlots ?? 7;
+    const fwStr = gateway.firmwareVersion ?? "v1.0.0";
+
+    // Khởi tạo lần đầu tiên khi component mount
+    if (prevGatewayOnlineRef.current === null) {
+      prevGatewayOnlineRef.current = isOnline;
+
+      setLocalConnLogs((prev) => {
+        if (prev.length > 0) return prev;
+
+        const initialLogs: BoxAccessLogResponse[] = [];
+        const nowIso = seenTime || new Date().toISOString();
+
+        if (isOnline) {
+          initialLogs.push({
+            id: -1001,
+            boxId: 0,
+            lockerId: lockerId,
+            orderId: null,
+            actorUserId: null,
+            credentialType: "DISCOVERY",
+            result: "ONLINE",
+            message: `Bộ điều khiển kết nối thành công (Cấp nguồn điện / Trực tuyến) · ${hwStr} · ${slots} ô phần cứng · firmware ${fwStr} · Bắt được kết nối lúc ${seenFormatted}`,
+            createdAt: nowIso,
+          });
+          initialLogs.push({
+            id: -1002,
+            boxId: 0,
+            lockerId: lockerId,
+            orderId: null,
+            actorUserId: null,
+            credentialType: "DISPLAY",
+            result: "ONLINE",
+            message: `Màn hình cảm ứng 7" Waveshare HDMI LCD (C) [1024×600 IPS] · Tín hiệu HDMI-1 & USB Touch OK · Kiosk UI :3002 (lúc ${seenFormatted})`,
+            createdAt: nowIso,
+          });
+        } else {
+          initialLogs.push({
+            id: -1001,
+            boxId: 0,
+            lockerId: lockerId,
+            orderId: null,
+            actorUserId: null,
+            credentialType: "DISCOVERY",
+            result: "OFFLINE",
+            message: `Bộ điều khiển mất kết nối (Rút nguồn điện hoặc ngoại tuyến) · Tủ chưa được cấp điện hoặc đang tắt (thấy lần cuối: ${seenFormatted})`,
+            createdAt: nowIso,
+          });
+          initialLogs.push({
+            id: -1002,
+            boxId: 0,
+            lockerId: lockerId,
+            orderId: null,
+            actorUserId: null,
+            credentialType: "DISPLAY",
+            result: "OFFLINE",
+            message: `Màn hình cảm ứng 7" Waveshare: Mất kết nối (Offline) · Tủ chưa được cấp nguồn điện hoặc bộ điều khiển đang tắt (thấy lần cuối: ${seenFormatted})`,
+            createdAt: nowIso,
+          });
+        }
+
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(initialLogs));
+        } catch {}
+        return initialLogs;
+      });
+      return;
+    }
+
+    // Khi trạng thái online/offline THAY ĐỔI: tủ được cắm điện hoặc rút điện
+    if (prevGatewayOnlineRef.current !== isOnline) {
+      prevGatewayOnlineRef.current = isOnline;
+
+      const nowIso = new Date().toISOString();
+      const timeStr = formatDateTime(nowIso);
+      const newEntries: BoxAccessLogResponse[] = [];
+
+      if (isOnline) {
+        // CẮM ĐIỆN VÀO: BẮT ĐƯỢC LẦN KẾT NỐI THÀNH CÔNG
+        newEntries.push({
+          id: -Date.now(),
+          boxId: 0,
+          lockerId: lockerId,
+          orderId: null,
+          actorUserId: null,
+          credentialType: "DISCOVERY",
+          result: "ONLINE",
+          message: `Bộ điều khiển kết nối thành công (Cấp nguồn điện / Bắt được tín hiệu) · ${hwStr} · ${slots} ô phần cứng · firmware ${fwStr} · Bắt được lúc ${timeStr}`,
+          createdAt: nowIso,
+        });
+        newEntries.push({
+          id: -(Date.now() + 1),
+          boxId: 0,
+          lockerId: lockerId,
+          orderId: null,
+          actorUserId: null,
+          credentialType: "DISPLAY",
+          result: "ONLINE",
+          message: `Màn hình cảm ứng 7" Waveshare HDMI LCD (C) [1024×600 IPS] · Tín hiệu HDMI-1 & USB Touch OK · Kiosk UI :3002 (lúc ${timeStr})`,
+          createdAt: nowIso,
+        });
+        toast.success(`Tủ #${lockerId}: Bắt được kết nối thành công!`, {
+          description: `Bộ điều khiển đã nhận nguồn điện và trực tuyến lúc ${timeStr}.`,
+        });
+      } else {
+        // RÚT ĐIỆN RA: MẤT KẾT NỐI
+        newEntries.push({
+          id: -Date.now(),
+          boxId: 0,
+          lockerId: lockerId,
+          orderId: null,
+          actorUserId: null,
+          credentialType: "DISCOVERY",
+          result: "OFFLINE",
+          message: `Bộ điều khiển mất kết nối (Rút nguồn điện hoặc ngắt kết nối mạng) · Mất tín hiệu lúc ${timeStr}`,
+          createdAt: nowIso,
+        });
+        newEntries.push({
+          id: -(Date.now() + 1),
+          boxId: 0,
+          lockerId: lockerId,
+          orderId: null,
+          actorUserId: null,
+          credentialType: "DISPLAY",
+          result: "OFFLINE",
+          message: `Màn hình cảm ứng 7" Waveshare: Mất kết nối (Offline) · Tủ đã bị rút nguồn điện hoặc bộ điều khiển đang tắt (lúc ${timeStr})`,
+          createdAt: nowIso,
+        });
+        toast.warning(`Tủ #${lockerId}: Mất kết nối!`, {
+          description: `Tủ đã bị rút nguồn điện hoặc bộ điều khiển ngoại tuyến lúc ${timeStr}.`,
+        });
+      }
+
+      setLocalConnLogs((prev) => {
+        const next = [...newEntries, ...prev].slice(0, 50); // Giữ tối đa 50 sự kiện gần nhất
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    }
+  }, [gateway, lockerId, storageKey]);
+
+  // Hợp nhất logs từ server và các lần bắt được / mất kết nối
+  const logs = useMemo(() => {
+    const serverLogs = data?.data ?? [];
+    const combined: BoxAccessLogResponse[] = [...serverLogs];
+
+    // Thêm các bản ghi kết nối cục bộ nếu server chưa có
+    for (const cl of localConnLogs) {
+      const isDuplicate = combined.some(
+        (s) =>
+          s.credentialType === cl.credentialType &&
+          s.result === cl.result &&
+          s.createdAt &&
+          Math.abs(new Date(s.createdAt).getTime() - new Date(cl.createdAt).getTime()) < 3000
+      );
+      if (!isDuplicate) {
+        combined.push(cl);
+      }
+    }
+
+    // Đảm bảo luôn có trạng thái phản ánh hiện tại nếu gateway tồn tại
     if (gateway) {
+      const isOnline = Boolean(gateway.online);
       const hwStr = gateway.hardware
         ? (HARDWARE_LABEL[gateway.hardware.toLowerCase()] ?? gateway.hardware.toUpperCase())
         : "GPIO";
       const slots = gateway.availableSlots ?? 7;
       const fwStr = gateway.firmwareVersion ?? "v1.0.0";
       const seenTime = gateway.lastSeenAt || gateway.setupFinishedAt || gateway.setupRequestedAt;
-      const seenFormatted = seenTime ? formatDateTime(seenTime) : "16:52:28 07/10/2026";
-      const discoveryMsg = `${hwStr} · ${slots} ô phần cứng · firmware ${fwStr} · thấy lần cuối ${seenFormatted}`;
+      const seenFormatted = seenTime ? formatDateTime(seenTime) : formatDateTime(new Date().toISOString());
 
-      const hasDiscovery = list.some(
-        (l) => (l.credentialType === "DISCOVERY" || l.credentialType === "GATEWAY") && l.message?.includes(hwStr)
+      const hasRecentState = combined.some(
+        (l) =>
+          (l.credentialType === "DISCOVERY" || l.credentialType === "GATEWAY") &&
+          l.result === (isOnline ? "ONLINE" : "OFFLINE") &&
+          l.createdAt &&
+          Math.abs(new Date(l.createdAt).getTime() - new Date(seenTime || Date.now()).getTime()) < 60000
       );
 
-      if (!hasDiscovery) {
-        list.unshift({
-          id: -1,
+      if (!hasRecentState) {
+        const nowIso = seenTime || new Date().toISOString();
+        combined.push({
+          id: -9999,
           boxId: 0,
           lockerId: lockerId,
           orderId: null,
           actorUserId: null,
           credentialType: "DISCOVERY",
-          result: gateway.online ? "ONLINE" : "SUCCESS",
-          message: discoveryMsg,
-          createdAt: seenTime || new Date().toISOString(),
-        } as BoxAccessLogResponse);
-      }
-
-      // Log kết nối màn hình cảm ứng 7" Waveshare
-      const screenMsg = gateway.online
-        ? `Màn hình cảm ứng 7" Waveshare HDMI LCD (C) [1024×600 IPS] · Tín hiệu HDMI-1 & USB Touch OK · Kiosk UI :3002 (thấy lần cuối ${seenFormatted})`
-        : `Màn hình cảm ứng 7" Waveshare: Mất kết nối (Offline) · Tủ chưa được cấp nguồn điện hoặc bộ điều khiển đang tắt (thấy lần cuối ${seenFormatted})`;
-
-      const hasDisplay = list.some((l) => l.credentialType === "DISPLAY");
-      if (!hasDisplay) {
-        list.splice(1, 0, {
-          id: -2,
-          boxId: 0,
-          lockerId: lockerId,
-          orderId: null,
-          actorUserId: null,
-          credentialType: "DISPLAY",
-          result: gateway.online ? "ONLINE" : "OFFLINE",
-          message: screenMsg,
-          createdAt: seenTime || new Date().toISOString(),
-        } as BoxAccessLogResponse);
+          result: isOnline ? "ONLINE" : "OFFLINE",
+          message: isOnline
+            ? `Bộ điều khiển kết nối thành công (Cấp nguồn điện / Trực tuyến) · ${hwStr} · ${slots} ô phần cứng · firmware ${fwStr} · thấy lúc ${seenFormatted}`
+            : `Bộ điều khiển mất kết nối (Rút nguồn điện / Ngoại tuyến) · ${hwStr} · thấy lần cuối lúc ${seenFormatted}`,
+          createdAt: nowIso,
+        });
       }
     }
 
-    return list;
-  }, [data, gateway, lockerId]);
+    // Sắp xếp giảm dần theo thời gian (mới nhất lên đầu)
+    return combined.sort((a, b) => {
+      const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tB - tA;
+    });
+  }, [data, localConnLogs, gateway, lockerId]);
 
   // Tạo map tra cứu từ boxId sang boxNumber
   const boxIdToNumber = useMemo(() => {
@@ -237,7 +419,8 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
   // Thống kê nhanh
   const stats = useMemo(() => {
     const total = logs.length;
-    const success = logs.filter((l) => l.result === "SUCCESS" || l.result === "OPEN" || l.result === "ONLINE").length;
+    const onlineCount = logs.filter((l) => l.result === "ONLINE").length;
+    const offlineCount = logs.filter((l) => l.result === "OFFLINE").length;
     const hardwareIssues = logs.filter(
       (l) =>
         l.result === "FAILED" ||
@@ -247,8 +430,13 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
         l.credentialType === "HARDWARE_FAULT"
     ).length;
     const discoveryCount = logs.filter((l) => l.credentialType === "DISCOVERY" || l.credentialType === "GATEWAY").length;
-    return { total, success, hardwareIssues, discoveryCount };
+    return { total, onlineCount, offlineCount, hardwareIssues, discoveryCount };
   }, [logs]);
+
+  const handleRefresh = () => {
+    refetch();
+    refetchGateways();
+  };
 
   return (
     <Card className="border border-border/80 shadow-xs overflow-hidden">
@@ -260,7 +448,7 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
               Nhật ký vận hành & IoT của tủ #{lockerId}
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
-              Theo dõi toàn bộ lịch sử mở khóa, quét mã QR, cảm biến cửa và can thiệp phần cứng.
+              Theo dõi chi tiết từng lần kết nối (cắm điện), mất kết nối (rút điện), mở khóa và can thiệp phần cứng.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -274,7 +462,7 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
                 }`}
                 onClick={() => setActiveTab("access")}
               >
-                Nhật ký mở tủ ({logs.length})
+                Nhật ký mở tủ & IoT ({logs.length})
               </button>
               <button
                 type="button"
@@ -292,7 +480,7 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
               variant="outline"
               size="sm"
               className="h-8 text-xs"
-              onClick={() => refetch()}
+              onClick={handleRefresh}
               disabled={isFetching}
             >
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isFetching ? "animate-spin" : ""}`} />
@@ -307,44 +495,117 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div
             className={`p-3 rounded-lg border bg-card flex flex-col justify-between cursor-pointer transition-colors ${
-              selectedType === "ALL" ? "ring-2 ring-primary/40" : "hover:border-primary/40"
+              selectedType === "ALL" && selectedResult === "ALL" ? "ring-2 ring-primary/40 shadow-xs" : "hover:border-primary/40"
             }`}
-            onClick={() => setSelectedType("ALL")}
+            onClick={() => {
+              setSelectedType("ALL");
+              setSelectedResult("ALL");
+            }}
           >
-            <span className="text-[11px] text-muted-foreground">Tổng số lượt tương tác</span>
+            <span className="text-[11px] text-muted-foreground">Tổng bản ghi nhật ký</span>
             <span className="text-xl font-bold mt-1">{stats.total}</span>
           </div>
+
           <div
-            className="p-3 rounded-lg border bg-emerald-500/5 border-emerald-500/20 flex flex-col justify-between"
+            className={`p-3 rounded-lg border bg-emerald-500/5 border-emerald-500/20 flex flex-col justify-between cursor-pointer transition-colors ${
+              selectedResult === "ONLINE" ? "ring-2 ring-emerald-500/60 shadow-xs" : "hover:border-emerald-400"
+            }`}
+            onClick={() => setSelectedResult(selectedResult === "ONLINE" ? "ALL" : "ONLINE")}
           >
-            <span className="text-[11px] text-emerald-700 dark:text-emerald-400">Thành công / Online</span>
-            <span className="text-xl font-bold text-emerald-600 mt-1">{stats.success}</span>
+            <span className="text-[11px] text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
+              Trực tuyến (Cắm điện)
+              <RadioTower className="w-3.5 h-3.5 text-emerald-500" />
+            </span>
+            <span className="text-xl font-bold text-emerald-600 mt-1">{stats.onlineCount}</span>
           </div>
+
           <div
             className={`p-3 rounded-lg border bg-rose-500/5 border-rose-500/20 flex flex-col justify-between cursor-pointer transition-colors ${
-              selectedType === "HARDWARE_ISSUES" ? "ring-2 ring-rose-500/60" : "hover:border-rose-400"
+              selectedResult === "OFFLINE" ? "ring-2 ring-rose-500/60 shadow-xs" : "hover:border-rose-400"
+            }`}
+            onClick={() => setSelectedResult(selectedResult === "OFFLINE" ? "ALL" : "OFFLINE")}
+          >
+            <span className="text-[11px] text-rose-700 dark:text-rose-400 flex items-center justify-between">
+              Mất kết nối (Rút điện)
+              <Unplug className="w-3.5 h-3.5 text-rose-500" />
+            </span>
+            <span className="text-xl font-bold text-rose-600 mt-1">{stats.offlineCount}</span>
+          </div>
+
+          <div
+            className={`p-3 rounded-lg border bg-amber-500/5 border-amber-500/20 flex flex-col justify-between cursor-pointer transition-colors ${
+              selectedType === "HARDWARE_ISSUES" ? "ring-2 ring-amber-500/60 shadow-xs" : "hover:border-amber-400"
             }`}
             onClick={() => setSelectedType(selectedType === "HARDWARE_ISSUES" ? "ALL" : "HARDWARE_ISSUES")}
           >
-            <span className="text-[11px] text-rose-700 dark:text-rose-400 flex items-center justify-between">
-              Lỗi / Cảnh báo phần cứng
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+            <span className="text-[11px] text-amber-700 dark:text-amber-400 flex items-center justify-between">
+              Lỗi & Cảnh báo phần cứng
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
             </span>
-            <span className="text-xl font-bold text-rose-600 mt-1">{stats.hardwareIssues}</span>
-          </div>
-          <div
-            className={`p-3 rounded-lg border bg-purple-500/5 border-purple-500/20 flex flex-col justify-between cursor-pointer transition-colors ${
-              selectedType === "DISCOVERY" ? "ring-2 ring-purple-500/60" : "hover:border-purple-400"
-            }`}
-            onClick={() => setSelectedType(selectedType === "DISCOVERY" ? "ALL" : "DISCOVERY")}
-          >
-            <span className="text-[11px] text-purple-700 dark:text-purple-400 flex items-center justify-between">
-              Bộ điều khiển (Discovery)
-              <RadioTower className="w-3.5 h-3.5 text-purple-500" />
-            </span>
-            <span className="text-xl font-bold text-purple-600 mt-1">{stats.discoveryCount}</span>
+            <span className="text-xl font-bold text-amber-600 mt-1">{stats.hardwareIssues}</span>
           </div>
         </div>
+
+        {/* Banner trạng thái kết nối nguồn điện & IoT trực tiếp */}
+        {gateway && (
+          <div
+            className={`p-3 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs transition-colors ${
+              gateway.online
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200"
+                : "border-rose-500/30 bg-rose-500/10 text-rose-900 dark:text-rose-200"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              {gateway.online ? (
+                <span className="relative flex h-3 w-3 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+              ) : (
+                <span className="relative flex h-3 w-3 shrink-0">
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                </span>
+              )}
+              <div>
+                <span className="font-bold mr-1.5">
+                  {gateway.online ? "🟢 Tủ #7 đang cấp nguồn & kết nối (Online):" : "🔴 Tủ #7 mất kết nối / rút điện (Offline):"}
+                </span>
+                <span className="text-muted-foreground dark:text-muted-foreground/80">
+                  {gateway.online
+                    ? `Phần cứng ${gateway.hardware?.toUpperCase() || "GPIO"} · ${gateway.availableSlots ?? 7} ô · firmware ${gateway.firmwareVersion || "v1.0.0"} · Tín hiệu gần nhất: ${formatDateTime(gateway.lastSeenAt || new Date().toISOString())}`
+                    : `Tủ hiện chưa có nguồn điện hoặc bộ điều khiển đã tắt · Tín hiệu cuối lúc: ${formatDateTime(gateway.lastSeenAt || new Date().toISOString())}`}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge
+                variant="outline"
+                className={`text-[10px] font-semibold ${
+                  gateway.online
+                    ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-400"
+                    : "bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-400"
+                }`}
+              >
+                {gateway.online ? "Trực tuyến (Cắm điện)" : "Mất kết nối (Rút điện)"}
+              </Badge>
+              {localConnLogs.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                  title="Xóa lịch sử kết nối lưu tạm trên trình duyệt"
+                  onClick={() => {
+                    localStorage.removeItem(storageKey);
+                    setLocalConnLogs([]);
+                    toast.info("Đã làm mới bộ nhớ nhật ký kết nối");
+                  }}
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" /> Đặt lại bộ nhớ
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
 
         {activeTab === "access" ? (
           <>
@@ -361,14 +622,14 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
               </div>
 
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-[170px] h-8 text-xs">
+                <SelectTrigger className="w-[180px] h-8 text-xs">
                   <SelectValue placeholder="Loại sự kiện" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Tất cả loại sự kiện</SelectItem>
+                  <SelectItem value="DISCOVERY">Bộ điều khiển & Cấp nguồn (IoT)</SelectItem>
+                  <SelectItem value="DISPLAY">Màn hình 7" (Waveshare Kiosk)</SelectItem>
                   <SelectItem value="USER_OPEN">Mở ô (Khách / Kiosk)</SelectItem>
-                  <SelectItem value="DISCOVERY">Bộ điều khiển (Discovery)</SelectItem>
-                  <SelectItem value="DISPLAY">Màn hình 7" (Display & Kiosk)</SelectItem>
                   <SelectItem value="HARDWARE_ISSUES">Lỗi & Cảnh báo phần cứng</SelectItem>
                   <SelectItem value="MASTER">Khẩn cấp (MASTER)</SelectItem>
                 </SelectContent>
@@ -390,16 +651,17 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
               </Select>
 
               <Select value={selectedResult} onValueChange={setSelectedResult}>
-                <SelectTrigger className="w-[140px] h-8 text-xs">
+                <SelectTrigger className="w-[160px] h-8 text-xs">
                   <SelectValue placeholder="Kết quả" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Tất cả kết quả</SelectItem>
+                  <SelectItem value="ONLINE">Trực tuyến (Cắm điện)</SelectItem>
+                  <SelectItem value="OFFLINE">Mất kết nối (Rút điện)</SelectItem>
                   <SelectItem value="SUCCESS">Thành công</SelectItem>
-                  <SelectItem value="ONLINE">Trực tuyến (Online)</SelectItem>
                   <SelectItem value="FAILED">Thất bại</SelectItem>
                   <SelectItem value="JAMMED">Kẹt khóa / Lỗi</SelectItem>
-                  <SelectItem value="TIMEOUT">Quá hạn / Mất kết nối</SelectItem>
+                  <SelectItem value="TIMEOUT">Quá hạn</SelectItem>
                   <SelectItem value="DENIED">Từ chối</SelectItem>
                 </SelectContent>
               </Select>
@@ -425,13 +687,13 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
                         <TableHead className="w-[150px] font-semibold">Thời gian</TableHead>
                         <TableHead className="w-[110px] font-semibold">Vị trí / Ô</TableHead>
                         <TableHead className="w-[170px] font-semibold">Phân loại sự kiện</TableHead>
-                        <TableHead className="w-[130px] font-semibold">Trạng thái</TableHead>
+                        <TableHead className="w-[150px] font-semibold">Trạng thái</TableHead>
                         <TableHead className="w-[110px] font-semibold">Đối tượng</TableHead>
                         <TableHead className="font-semibold">Chi tiết sự kiện & Phần cứng</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredLogs.map((log) => {
+                      {filteredLogs.map((log, index) => {
                         const boxNum = log.boxId === 0 ? null : boxIdToNumber.get(log.boxId);
                         const cred = CREDENTIAL_LABEL[log.credentialType?.toUpperCase()] ?? {
                           label: log.credentialType,
@@ -453,22 +715,35 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
                           log.credentialType === "HARDWARE" ||
                           log.credentialType === "HARDWARE_FAULT";
 
+                        const isOffline = log.result?.toUpperCase() === "OFFLINE";
+                        const isOnline = log.result?.toUpperCase() === "ONLINE";
                         const isDiscovery = log.credentialType === "DISCOVERY" || log.credentialType === "GATEWAY";
+                        const isDisplay = log.credentialType === "DISPLAY";
 
                         return (
-                          <TableRow key={log.id} className="hover:bg-muted/30">
+                          <TableRow key={`${log.id}-${index}`} className="hover:bg-muted/30">
                             <TableCell className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                               {formatDateTime(log.createdAt)}
                             </TableCell>
                             <TableCell className="font-semibold">
                               {log.boxId === 0 ? (
-                                <Badge
-                                  variant="outline"
-                                  className="text-[10px] bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-300 whitespace-nowrap"
-                                >
-                                  <RadioTower className="w-2.5 h-2.5 mr-1" />
-                                  Bộ điều khiển
-                                </Badge>
+                                isDisplay ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-300 whitespace-nowrap"
+                                  >
+                                    <Monitor className="w-2.5 h-2.5 mr-1" />
+                                    Màn hình Kiosk
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-300 whitespace-nowrap"
+                                  >
+                                    <RadioTower className="w-2.5 h-2.5 mr-1" />
+                                    Bộ điều khiển
+                                  </Badge>
+                                )
                               ) : boxNum != null ? (
                                 <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
                                   Ô #{boxNum}
@@ -498,15 +773,21 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
                                 <span className="font-mono text-[11px]">Đơn #{log.orderId}</span>
                               ) : log.actorUserId ? (
                                 <span className="text-[11px]">KTV #{log.actorUserId}</span>
+                              ) : isDisplay ? (
+                                <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400">Waveshare 7"</span>
                               ) : isDiscovery ? (
-                                <span className="text-[11px] font-mono">Pi Controller</span>
+                                <span className="text-[11px] font-mono text-purple-600 dark:text-purple-400">Pi Controller</span>
                               ) : (
                                 "Hệ thống"
                               )}
                             </TableCell>
                             <TableCell
-                              className={`max-w-[340px] truncate ${
-                                isHardwareWarn
+                              className={`max-w-[380px] truncate ${
+                                isOffline
+                                  ? "text-rose-700 dark:text-rose-400 font-semibold"
+                                  : isOnline
+                                  ? "text-emerald-800 dark:text-emerald-300 font-medium"
+                                  : isHardwareWarn
                                   ? "text-rose-700 dark:text-rose-400 font-medium"
                                   : isDiscovery
                                   ? "text-foreground font-medium"
