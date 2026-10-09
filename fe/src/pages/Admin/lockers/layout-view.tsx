@@ -20,7 +20,16 @@ import {
   Sliders,
   Printer,
   Monitor,
+  DoorOpen,
+  DoorClosed,
 } from "lucide-react";
+import {
+  isXlCell,
+  isDroneCell,
+  isDoorOpen,
+  getCellTypeLabel,
+  getCellStatusLabel,
+} from "~/lib/lockerLayoutHelper";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -87,12 +96,12 @@ const SUSPENDED_LOCKER_STATUSES = ["MAINTENANCE", "INACTIVE"];
 const NO_TECHNICIAN = "NONE";
 
 const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
-  AVAILABLE: { label: "Trống", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
-  RESERVED: { label: "Đã giữ chỗ", cls: "bg-secondary border-border text-foreground" },
-  OCCUPIED: { label: "Có đồ", cls: "bg-secondary border-border text-foreground" },
+  AVAILABLE: { label: "Sẵn sàng", cls: "bg-cyan-500/10 border-cyan-500/20 text-cyan-700 dark:text-cyan-400" },
+  RESERVED: { label: "Đã đặt", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
+  OCCUPIED: { label: "Đang dùng", cls: "bg-secondary border-border text-foreground" },
   FAULT: { label: "Hỏng", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
   OUT_OF_SERVICE: { label: "Ngưng dùng", cls: "bg-secondary/40 border-border text-muted-foreground" },
-  CLEANING: { label: "Đang vệ sinh", cls: "bg-secondary border-border text-muted-foreground" },
+  CLEANING: { label: "Bảo trì", cls: "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400" },
 };
 
 function ActBtn({
@@ -146,9 +155,10 @@ function CellTile({
   onShowQr: (cell: CellResponse) => void;
   busy: boolean;
 }) {
-  const isDrone =
-    cell.cellType === "DRONE" ||
-    (!cell.cellType && cell.cellType !== "XL" && cell.boxNumber !== 1 && (cell.boxNumber === 2 || cell.boxNumber === 3));
+  const isXl = isXlCell(cell);
+  const isDrone = isDroneCell(cell);
+  const doorOpen = isDoorOpen(cell);
+
   let bgClass = "bg-card";
   let borderClass = "border-border";
   let textClass = "text-foreground";
@@ -169,36 +179,65 @@ function CellTile({
         </span>
       );
     } else {
-      bgClass = "bg-sky-100/90 dark:bg-sky-950/70";
-      borderClass = "border-sky-400 dark:border-sky-600 ring-2 ring-sky-400/30 shadow-xs";
-      textClass = "text-sky-950 dark:text-sky-100";
+      bgClass = "bg-indigo-50/90 dark:bg-indigo-950/60";
+      borderClass = "border-indigo-300 dark:border-indigo-600 ring-2 ring-indigo-400/30 shadow-xs";
+      textClass = "text-indigo-950 dark:text-indigo-100";
       statusBadge = (
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-800 dark:text-sky-300 z-10">
-          <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" /> Sẵn sàng nhận Drone
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-800 dark:text-indigo-300 z-10">
+          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> Sẵn sàng nhận Drone
+        </span>
+      );
+    }
+  } else if (isXl) {
+    if (cell.status === "FAULT") {
+      bgClass = "bg-rose-50/95 dark:bg-rose-950/50";
+      borderClass = "border-rose-400 dark:border-rose-700 ring-1 ring-rose-400/30 shadow-xs";
+      textClass = "text-rose-950 dark:text-rose-100";
+      statusBadge = (
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 z-10">
+          <AlertTriangle className="w-3.5 h-3.5" /> Báo hỏng (Vali XL)
+        </span>
+      );
+    } else {
+      bgClass = "bg-cyan-50/90 dark:bg-cyan-950/60";
+      borderClass = "border-cyan-300 dark:border-cyan-600 shadow-xs";
+      textClass = "text-cyan-950 dark:text-cyan-100";
+      statusBadge = (
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-800 dark:text-cyan-300 z-10">
+          <span className="w-2 h-2 rounded-full bg-cyan-500" /> Ô trống (Vali XL)
         </span>
       );
     }
   } else {
     switch (cell.status) {
       case "AVAILABLE":
-        bgClass = "bg-emerald-50/95 dark:bg-emerald-950/50";
-        borderClass = "border-emerald-300 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500 shadow-xs";
-        textClass = "text-emerald-950 dark:text-emerald-100";
+        bgClass = "bg-sky-50/90 dark:bg-sky-950/60";
+        borderClass = "border-sky-300 dark:border-sky-700 hover:border-sky-400 shadow-xs";
+        textClass = "text-sky-950 dark:text-sky-100";
         statusBadge = (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 z-10">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống (Sẵn sàng)
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-800 dark:text-sky-300 z-10">
+            <span className="w-2 h-2 rounded-full bg-sky-500" /> Ô trống (Sẵn sàng)
           </span>
         );
         break;
       case "OCCUPIED":
       case "IN_USE":
+        bgClass = "bg-slate-100/90 dark:bg-slate-800/80";
+        borderClass = "border-slate-300 dark:border-slate-600 shadow-xs";
+        textClass = "text-slate-800 dark:text-slate-200";
+        statusBadge = (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 z-10">
+            <span className="w-2 h-2 rounded-full bg-slate-500" /> Đang chứa hàng
+          </span>
+        );
+        break;
       case "RESERVED":
-        bgClass = "bg-amber-50/95 dark:bg-amber-950/50";
+        bgClass = "bg-amber-50/90 dark:bg-amber-950/50";
         borderClass = "border-amber-300 dark:border-amber-700 shadow-xs";
         textClass = "text-amber-950 dark:text-amber-100";
         statusBadge = (
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 z-10">
-            <span className="w-2 h-2 rounded-full bg-amber-500" /> Đang chứa hàng
+            <span className="w-2 h-2 rounded-full bg-amber-500" /> Đã giữ chỗ
           </span>
         );
         break;
@@ -227,26 +266,41 @@ function CellTile({
     }
   }
 
+  // Viền cảnh báo khi cửa mở
+  const doorRingClass = doorOpen
+    ? "ring-2 ring-amber-400 border-amber-400 dark:border-amber-500 shadow-md shadow-amber-400/20"
+    : "";
+
   return (
     <div
-      className={`relative h-full rounded-xl border p-3.5 flex flex-col gap-1 overflow-hidden shadow-xs hover:shadow-md transition-all ${bgClass} ${borderClass} ${textClass}`}
+      className={`relative h-full rounded-xl border p-3.5 flex flex-col gap-1 overflow-hidden shadow-xs hover:shadow-md transition-all ${bgClass} ${borderClass} ${doorRingClass} ${textClass}`}
       title={cell.faultReason ?? undefined}
     >
       {/* Decorative handle */}
-      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-1 h-10 bg-border/80 rounded-full" />
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-border/80 rounded-full" />
       
       <div className="flex items-center justify-between z-10">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <span className="font-bold text-sm tracking-tight">Ô #{cell.boxNumber}</span>
           {isDrone && (
-            <Badge className="bg-sky-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
+            <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
               Drone
             </Badge>
           )}
-          {cell.cellType === "XL" && (
-            <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
-              XL
+          {isXl && (
+            <Badge className="bg-cyan-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
+              Vali XL
             </Badge>
+          )}
+          {/* Badge trạng thái cửa mở/đóng đồng bộ Mobile */}
+          {doorOpen ? (
+            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-400 font-bold text-[10px] px-1.5 py-0 h-4.5 flex items-center gap-1 animate-pulse">
+              <DoorOpen className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Cửa mở
+            </Badge>
+          ) : (
+            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 px-1 py-0.5 bg-background/50 rounded border border-border/40">
+              <DoorClosed className="w-2.5 h-2.5 text-slate-400" /> Đóng
+            </span>
           )}
         </div>
         <div className="flex items-center gap-1">
@@ -262,9 +316,9 @@ function CellTile({
           >
             <QrCode className="w-3.5 h-3.5" />
           </Button>
-          {isDrone && <Plane className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-95 drop-shadow-xs" />}
-          {cell.cellType === "XL" && <Luggage className="w-5 h-5 text-indigo-700 dark:text-indigo-300 opacity-80" />}
-          {!isDrone && cell.cellType !== "XL" && <BoxIcon className="w-5 h-5 text-emerald-800 dark:text-emerald-300 opacity-80" />}
+          {isDrone && <Plane className="w-5 h-5 text-indigo-600 dark:text-indigo-400 opacity-95 drop-shadow-xs" />}
+          {isXl && <Luggage className="w-5 h-5 text-cyan-600 dark:text-cyan-400 opacity-90" />}
+          {!isDrone && !isXl && <BoxIcon className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-80" />}
         </div>
       </div>
       {statusBadge}
@@ -375,16 +429,16 @@ function CellTile({
 }
 
 function getBoxGridStyle(cell: CellResponse, maxRows: number) {
-  // If XL cell (tall compartment spanning vertically below the 7-inch screen at row 1)
-  if (cell.cellType === "XL" || cell.colIndex === 0 || cell.boxNumber === 10) {
+  // Ô vali XL (ô #1, cột 0, hoặc loại XL): khoang dọc lớn kéo dài trọn chiều cao dưới màn hình 7 inch
+  if (isXlCell(cell)) {
     return {
       gridColumn: "1",
       gridRow: `2 / span ${Math.max(1, maxRows - 1)}`,
     };
   }
 
-  // Standard or Drone cells with rowIndex and colIndex:
-  // Col 1 is reserved for the XL column. Standard columns start from 2 onwards:
+  // Các ô Tiêu chuẩn hoặc Drone có rowIndex và colIndex:
+  // Cột 1 CSS dành riêng cho cột Kiosk / Vali XL. Các cột ô khác bắt đầu từ cột 2:
   const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex + 1 : 2;
   const row = cell.rowIndex ?? 1;
 
@@ -417,7 +471,13 @@ export default function LockerLayoutPage() {
     if (!subscribe) return;
     const subNotif = subscribe<any>("/topic/notifications", (msg) => {
       if (
-        (msg?.type === "LOCKER_LAYOUT_UPDATED" || msg?.type === "LOCKER_BOX_FAULT") &&
+        (msg?.type === "LOCKER_LAYOUT_UPDATED" ||
+          msg?.type === "LOCKER_BOX_FAULT" ||
+          msg?.type === "DOOR_STATUS_CHANGED" ||
+          msg?.type === "DOOR_OPENED" ||
+          msg?.type === "DOOR_CLOSED" ||
+          msg?.type === "BOX_STATUS_CHANGED" ||
+          msg?.type === "HARDWARE_EVENT") &&
         (!msg?.lockerId || Number(msg?.lockerId) === id)
       ) {
         refetch();
@@ -431,9 +491,14 @@ export default function LockerLayoutPage() {
       }
     });
 
+    const subSpecific = subscribe<any>(`/topic/lockers/${id}`, () => {
+      refetch();
+    });
+
     return () => {
       subNotif?.unsubscribe();
       subLockers?.unsubscribe();
+      subSpecific?.unsubscribe();
     };
   }, [subscribe, id, refetch]);
 
@@ -567,7 +632,7 @@ export default function LockerLayoutPage() {
     return Math.max(
       3,
       ...cells.map((c) =>
-        c.cellType === "XL" || c.colIndex === 0 || c.boxNumber === 10
+        isXlCell(c)
           ? 1
           : (c.colIndex != null && c.colIndex > 0 ? c.colIndex + 1 : 2)
       )
@@ -897,6 +962,26 @@ export default function LockerLayoutPage() {
         </Card>
       </div>
 
+      {/* Cảnh báo cửa đang mở (đồng bộ Mobile) */}
+      {cells.some((c) => isDoorOpen(c)) && (
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2.5">
+            <DoorOpen className="w-5 h-5 text-amber-600 animate-pulse shrink-0" />
+            <div>
+              <p className="text-xs font-bold">
+                Cảnh báo an toàn: Có {cells.filter((c) => isDoorOpen(c)).length} ô đang mở cửa ({cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(", ")})
+              </p>
+              <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
+                Cửa tủ chưa được đóng kín sau khi thao tác. Vui lòng kiểm tra hiện trường hoặc đóng cửa để tránh rủi ro mất mát hàng hóa.
+              </p>
+            </div>
+          </div>
+          <Badge className="bg-amber-500 text-white font-bold text-xs px-2.5 py-0.5 animate-pulse border-0">
+            CỬA MỞ
+          </Badge>
+        </div>
+      )}
+
       <Card className="border border-border/80 shadow-xs overflow-hidden">
         <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -1016,25 +1101,37 @@ export default function LockerLayoutPage() {
               );
             })}
           </div>
-          <div className="flex flex-wrap items-center gap-4 pt-1 text-xs">
+          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
             <span
               onClick={() => setShowScreenModal(true)}
               className={`inline-flex items-center gap-1.5 font-semibold px-2.5 py-1 rounded-md border cursor-pointer transition-colors ${
                 isKioskScreenOnline
-                  ? "text-indigo-800 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-100"
+                  ? "text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 border-sky-300 dark:border-sky-700 hover:bg-sky-100"
                   : "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:bg-slate-200"
               }`}
             >
-              <Monitor className="w-3.5 h-3.5" /> Màn hình 7" ({isKioskScreenOnline ? "Kiosk Online" : "Mất kết nối"})
+              <Monitor className="w-3.5 h-3.5" /> Màn hình 7" ({isKioskScreenOnline ? "Online" : "Mất kết nối"})
             </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-sky-800 dark:text-sky-300 bg-sky-100/90 dark:bg-sky-950/70 px-2.5 py-1 rounded-md border border-sky-300 dark:border-sky-700">
-              <Plane className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" /> Ô tiếp nhận Drone ({cells.filter((c) => c.cellType === 'DRONE' || (!c.cellType && c.cellType !== 'XL' && c.boxNumber !== 1 && (c.boxNumber === 2 || c.boxNumber === 3))).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            <span className="inline-flex items-center gap-1.5 font-semibold text-indigo-800 dark:text-indigo-300 bg-indigo-100/90 dark:bg-indigo-950/70 px-2.5 py-1 rounded-md border border-indigo-300 dark:border-indigo-700">
+              <Plane className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> Ô tiếp nhận Drone ({cells.filter((c) => isDroneCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
             </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-md border border-emerald-300 dark:border-emerald-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống khả dụng ({cells.filter((c) => c.status === 'AVAILABLE').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            <span className="inline-flex items-center gap-1.5 font-semibold text-cyan-800 dark:text-cyan-300 bg-cyan-100/90 dark:bg-cyan-950/70 px-2.5 py-1 rounded-md border border-cyan-300 dark:border-cyan-700">
+              <Luggage className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" /> Khoang Vali XL ({cells.filter((c) => isXlCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 px-2.5 py-1 rounded-md border border-sky-300 dark:border-sky-700">
+              <span className="w-2 h-2 rounded-full bg-sky-500" /> Ô trống khả dụng ({cells.filter((c) => c.status === 'AVAILABLE' && !isDroneCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-300 dark:border-amber-700">
+              <span className="w-2 h-2 rounded-full bg-amber-500" /> Đang dùng / Đã đặt ({cells.filter((c) => c.status === 'OCCUPIED' || c.status === 'IN_USE' || c.status === 'RESERVED').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
             </span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-1 rounded-md border border-rose-300 dark:border-rose-700">
               <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Ô hỏng / bảo trì ({cells.filter((c) => c.status === 'FAULT').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-2.5 py-1 rounded-md border border-amber-400">
+              <DoorOpen className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> Cửa đang mở ({cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(', ') || '0'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700">
+              <DoorClosed className="w-3.5 h-3.5 text-slate-500" /> Cửa đã đóng ({cells.filter((c) => !isDoorOpen(c)).length})
             </span>
           </div>
         </CardContent>
@@ -1203,13 +1300,16 @@ export default function LockerLayoutPage() {
                 <Input
                   id="colIndex"
                   type="number"
-                  min={1}
+                  min={0}
                   max={10}
                   value={newColIndex}
                   onChange={(e) => setNewColIndex(Number(e.target.value))}
                   className="col-span-3"
                   required
                 />
+                <p className="text-[10px] text-muted-foreground col-span-3 col-start-2">
+                  Cột 0 dành cho khoang XL (dưới màn hình 7 inch); Cột 1, 2, ... cho các ô bên cạnh
+                </p>
               </div>
             </div>
             <DialogFooter>

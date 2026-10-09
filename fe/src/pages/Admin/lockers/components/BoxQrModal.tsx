@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { type CellResponse } from "~/stores/apis/admin/lockerOps";
+import { isXlCell, isDroneCell } from "~/lib/lockerLayoutHelper";
 
 interface BoxQrModalProps {
   open: boolean;
@@ -53,12 +54,8 @@ export function BoxQrModal({
   const currentCell = cell ?? cells[0];
   if (!currentCell) return null;
 
-  const isDrone =
-    currentCell.cellType === "DRONE" ||
-    (!currentCell.cellType &&
-      currentCell.cellType !== "XL" &&
-      currentCell.boxNumber !== 1 &&
-      (currentCell.boxNumber === 2 || currentCell.boxNumber === 3));
+  const isDrone = isDroneCell(currentCell);
+  const isXl = isXlCell(currentCell);
 
   // Định dạng dữ liệu mã QR chuẩn JSON
   const getQrValue = (c: CellResponse) => {
@@ -71,9 +68,9 @@ export function BoxQrModal({
       boxNumber: c.boxNumber,
       cellType:
         c.cellType ||
-        (c.boxNumber === 1 || c.colIndex === 0
+        (isXlCell(c)
           ? "XL"
-          : c.boxNumber === 2 || c.boxNumber === 3
+          : isDroneCell(c)
           ? "DRONE"
           : "STANDARD"),
       size: c.size || "M",

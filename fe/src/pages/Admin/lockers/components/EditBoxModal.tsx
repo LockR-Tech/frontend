@@ -32,6 +32,7 @@ import {
   useDeleteBoxMutation,
   type CellResponse,
 } from "~/stores/apis/admin/lockerOps";
+import { isXlCell, isDroneCell } from "~/lib/lockerLayoutHelper";
 
 interface EditBoxModalProps {
   open: boolean;
@@ -65,7 +66,7 @@ export function EditBoxModal({
       setBoxNumber(cell.boxNumber ?? "");
       setCellType(
         cell.cellType ||
-          (cell.boxNumber === 1 || cell.colIndex === 0 ? "XL" : cell.boxNumber === 2 || cell.boxNumber === 3 ? "DRONE" : "STANDARD")
+          (isXlCell(cell) ? "XL" : isDroneCell(cell) ? "DRONE" : "STANDARD")
       );
       setSize(cell.size || "M");
       setRowIndex(cell.rowIndex ?? 1);

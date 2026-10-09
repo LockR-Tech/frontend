@@ -16,11 +16,14 @@ export interface CellResponse {
   id: number;
   boxNumber: number;
   size: string | null;
-  cellType: 'DRONE' | 'STANDARD' | 'XL';
+  cellType: 'DRONE' | 'STANDARD' | 'XL' | string;
   rowIndex: number | null;
   colIndex: number | null;
   status: 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'FAULT' | string;
   faultReason: string | null;
+  doorOpen?: boolean;
+  hwState?: string | null;
+  isDrone?: boolean;
 }
 
 export interface BoxAccessLogResponse {
