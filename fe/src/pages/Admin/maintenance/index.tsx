@@ -25,7 +25,6 @@ import {
   SlidersHorizontal,
   Loader2,
   History,
-  Zap,
   Users,
   User,
   Search,
@@ -54,16 +53,6 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { PageHeader } from "~/components/shared/page-header";
 import { RepairLogDialog } from "./RepairLogDialog";
@@ -88,14 +77,13 @@ import {
   useResolveReportMutation,
   useClearBoxFaultMutation,
   useGetDeviceStatusesQuery,
+  useGetDroneMaintenanceHistoryQuery,
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import {
   useGetDronesQuery,
-  useUpdateDroneStatusMutation,
   useCreateDroneIncidentReportMutation,
-  useUpdateDroneBatteryMutation,
   type DroneResponse,
 } from "~/stores/apis/admin/drones";
 
@@ -185,9 +173,7 @@ export default function MaintenanceAdminPage() {
 
   // Drone fleet queries & mutations
   const dronesQuery = useGetDronesQuery(undefined, { pollingInterval: 15000 });
-  const [updateDroneStatus] = useUpdateDroneStatusMutation();
   const [createDroneIncidentReport] = useCreateDroneIncidentReportMutation();
-  const [updateDroneBattery] = useUpdateDroneBatteryMutation();
 
   // Users query to get all technicians
   const usersQuery = useGetAllUsersQuery({ page: 0, size: 1000 });
@@ -199,7 +185,7 @@ export default function MaintenanceAdminPage() {
 
   const [pending, setPending] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("kiosk");
-  const [managingDrone, setManagingDrone] = useState<DroneResponse | null>(null);
+  const [viewingDrone, setViewingDrone] = useState<DroneResponse | null>(null);
   const [creatingDroneReport, setCreatingDroneReport] = useState(false);
   const [droneFilter, setDroneFilter] = useState<string>("ALL");
   const [droneReportFilter, setDroneReportFilter] = useState<string>("ALL");
@@ -326,22 +312,6 @@ export default function MaintenanceAdminPage() {
   const droneResolvedReports = droneReportList.filter((r) => r.status === "RESOLVED").length;
   const droneOverdueReports = droneReportList.filter((r) => isReportOverdue(r, slaExtensions[r.id])).length;
 
-  const [confirmDialog, setConfirmDialog] = useState<{
-    open: boolean;
-    title: string;
-    description: string;
-    actionLabel: string;
-    variant?: "default" | "destructive";
-    onConfirm: () => Promise<void> | void;
-  }>({
-    open: false,
-    title: "",
-    description: "",
-    actionLabel: "Xác nhận",
-    variant: "default",
-    onConfirm: () => {},
-  });
-
   const [resolvingReport, setResolvingReport] = useState<LockerReportResponse | null>(null);
 
   // Tên hiển thị "Người tải" cho ảnh phiếu (mọi user, KTV có hậu tố)
@@ -381,50 +351,6 @@ export default function MaintenanceAdminPage() {
       } else {
         toast.error(fail.title, { description: errorMsg });
       }
-    } finally {
-      setPending(null);
-    }
-  };
-
-  const handleQuickMaintenance = async (drone: DroneResponse, targetStatus: "MAINTENANCE" | "IDLE") => {
-    setPending(drone.id);
-    try {
-      await updateDroneStatus({
-        id: drone.id,
-        status: targetStatus,
-        reason: targetStatus === "MAINTENANCE" ? "Bắt đầu bảo dưỡng định kỳ" : undefined,
-      }).unwrap();
-      toast.success(
-        targetStatus === "MAINTENANCE"
-          ? `Đã chuyển Drone ${drone.code} sang chế độ bảo dưỡng`
-          : `Drone ${drone.code} đã hoàn tất bảo dưỡng`,
-        {
-          description:
-            targetStatus === "MAINTENANCE"
-              ? "Thiết bị tạm dừng nhận nhiệm vụ bay để kỹ thuật viên kiểm tra."
-              : "Đã kiểm tra an toàn kỹ thuật, drone sẵn sàng nhận chuyến bay mới.",
-        },
-      );
-    } catch (err: any) {
-      toast.error("Không cập nhật được trạng thái bảo dưỡng", {
-        description: err?.data?.message || err?.message || "Vui lòng kiểm tra lại kết nối thiết bị.",
-      });
-    } finally {
-      setPending(null);
-    }
-  };
-
-  const handleChargeDrone = async (drone: DroneResponse) => {
-    setPending(drone.id);
-    try {
-      await updateDroneBattery({ id: drone.id, batteryPercent: 100 }).unwrap();
-      toast.success(`Nạp pin 100% thành công cho Drone ${drone.code}`, {
-        description: "Mức pin đã được cập nhật đạt chuẩn năng lượng cất cánh.",
-      });
-    } catch (err: any) {
-      toast.error("Không cập nhật được pin drone", {
-        description: err?.data?.message || err?.message || "Không thể đồng bộ với bộ điều khiển sạc.",
-      });
     } finally {
       setPending(null);
     }
@@ -1764,75 +1690,14 @@ export default function MaintenanceAdminPage() {
                             </div>
                           )}
 
-                          {/* Action Buttons for Maintenance */}
-                          <div className="pt-2 border-t border-border/60 flex flex-wrap gap-1.5">
-                            {isUnderMaintenance ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50 gap-1 flex-1"
-                                disabled={pending === d.id}
-                                onClick={() =>
-                                  setConfirmDialog({
-                                    open: true,
-                                    title: `Xác nhận hoàn tất bảo dưỡng Drone ${d.code}?`,
-                                    description: `Xác nhận thiết bị đã được kiểm tra kỹ thuật đạt chuẩn an toàn bay và sẵn sàng đưa trở lại đội bay hoạt động.`,
-                                    actionLabel: "Đưa vào hoạt động (Sẵn sàng)",
-                                    variant: "default",
-                                    onConfirm: () => handleQuickMaintenance(d, "IDLE"),
-                                  })
-                                }
-                              >
-                                <CheckCircle2 className="w-3 h-3" /> Hoàn tất bảo dưỡng
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs border-purple-300 text-purple-700 hover:bg-purple-50 gap-1 flex-1"
-                                disabled={pending === d.id}
-                                onClick={() =>
-                                  setConfirmDialog({
-                                    open: true,
-                                    title: `Chuyển Drone ${d.code} sang chế độ bảo dưỡng?`,
-                                    description: `Thiết bị sẽ tạm dừng nhận các chuyến bay vận chuyển cho đến khi kỹ thuật viên hoàn tất kiểm tra bảo dưỡng.`,
-                                    actionLabel: "Bắt đầu bảo dưỡng",
-                                    variant: "default",
-                                    onConfirm: () => handleQuickMaintenance(d, "MAINTENANCE"),
-                                  })
-                                }
-                              >
-                                <Wrench className="w-3 h-3" /> Bảo dưỡng
-                              </Button>
-                            )}
-
+                          <div className="pt-2 border-t border-border/60">
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-50 gap-1"
-                              disabled={pending === d.id || battery >= 98}
-                              onClick={() =>
-                                setConfirmDialog({
-                                  open: true,
-                                  title: `Nạp đầy pin 100% cho Drone ${d.code}?`,
-                                  description: `Hệ thống sẽ gửi lệnh cập nhật mức năng lượng pin của drone lên 100% để đảm bảo sẵn sàng cất cánh.`,
-                                  actionLabel: "Nạp đầy pin 100%",
-                                  variant: "default",
-                                  onConfirm: () => handleChargeDrone(d),
-                                })
-                              }
-                              title="Nạp đầy pin 100%"
+                              className="h-7 w-full text-xs gap-1"
+                              onClick={() => setViewingDrone(d)}
                             >
-                              <Zap className="w-3 h-3" /> Sạc 100%
-                            </Button>
-
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs"
-                              onClick={() => setManagingDrone(d)}
-                            >
-                              Chi tiết
+                              <History className="w-3 h-3" /> Xem chi tiết
                             </Button>
                           </div>
                         </CardContent>
@@ -2142,59 +2007,7 @@ export default function MaintenanceAdminPage() {
         />
       )}
 
-      {/* Drone Technical Manage Dialog */}
-      {managingDrone && (
-        <DroneMaintenanceDialog
-          drone={managingDrone}
-          onClose={() => setManagingDrone(null)}
-          onSave={async ({ id, status, reason, battery }) => {
-            try {
-              await updateDroneStatus({
-                id,
-                status,
-                reason: status === "FAULT" || status === "MAINTENANCE" ? reason : undefined,
-              }).unwrap();
-
-              if (battery != null) {
-                await updateDroneBattery({ id, batteryPercent: battery }).unwrap();
-              }
-              toast.success(`Cập nhật thông số Drone ${managingDrone.code} thành công`, {
-                description: "Trạng thái kỹ thuật và mức pin đã được đồng bộ hóa với hệ thống.",
-              });
-              setManagingDrone(null);
-            } catch (err: any) {
-              toast.error("Không cập nhật được thông số drone", {
-                description: err?.data?.message || err?.message || "Đã xảy ra lỗi khi lưu thông số.",
-              });
-            }
-          }}
-        />
-      )}
-
-      {/* Confirmation Alert Dialog */}
-      <AlertDialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => !open && setConfirmDialog((prev) => ({ ...prev, open: false }))}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{confirmDialog.title}</AlertDialogTitle>
-            <AlertDialogDescription>{confirmDialog.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
-            <AlertDialogAction
-              className={confirmDialog.variant === "destructive" ? "bg-rose-600 hover:bg-rose-700 text-white" : ""}
-              onClick={async () => {
-                await confirmDialog.onConfirm();
-                setConfirmDialog((prev) => ({ ...prev, open: false }));
-              }}
-            >
-              {confirmDialog.actionLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {viewingDrone && <DroneDetailsDialog drone={viewingDrone} onClose={() => setViewingDrone(null)} />}
     </div>
   );
 }
@@ -2307,108 +2120,104 @@ function CreateDroneIncidentDialog({
   );
 }
 
-// Dialog hỗ trợ chỉnh sửa thông số bảo trì & pin của Drone
-function DroneMaintenanceDialog({
-  drone,
-  onClose,
-  onSave,
-}: {
-  drone: DroneResponse;
-  onClose: () => void;
-  onSave: (data: { id: number; status: string; reason?: string; battery: number | null }) => Promise<void>;
-}) {
-  const [status, setStatus] = useState(drone.status);
-  const [reason, setReason] = useState(drone.faultReason ?? "");
-  const [battery, setBattery] = useState(drone.batteryPercent != null ? String(drone.batteryPercent) : "100");
-  const [saving, setSaving] = useState(false);
-
-  const submit = async () => {
-    if (status === "FAULT" && !reason.trim()) {
-      toast.error("Vui lòng nhập lý do phát sinh sự cố");
-      return;
-    }
-    setSaving(true);
-    const parsedBattery = battery.trim() === "" ? null : Number(battery);
-    await onSave({
-      id: drone.id,
-      status,
-      reason: reason.trim(),
-      battery: parsedBattery != null && !isNaN(parsedBattery) ? parsedBattery : null,
-    });
-    setSaving(false);
-  };
+// Chi tiết sức khỏe Drone chỉ đọc; mọi cập nhật được thực hiện ở quy trình kỹ thuật riêng.
+function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose: () => void }) {
+  const historyQuery = useGetDroneMaintenanceHistoryQuery(drone.id);
+  const history = historyQuery.data?.data;
+  const battery = drone.batteryPercent ?? 0;
+  const details = [
+    ["Trạm/Kiosk", drone.lockerName ?? (drone.lockerId ? `Kiosk #${drone.lockerId}` : "Chưa gắn trạm")],
+    ["KTV phụ trách", drone.assignedTechnicianName ?? "Chưa phân công"],
+    ["Lần sạc gần nhất", drone.lastChargedAt ? formatDateTime(drone.lastChargedAt) : "Chưa có dữ liệu"],
+    ["Thêm vào đội bay", drone.createdAt ? formatDateTime(drone.createdAt) : "Chưa có dữ liệu"],
+    ["Cập nhật gần nhất", drone.updatedAt ? formatDateTime(drone.updatedAt) : "Chưa có dữ liệu"],
+  ];
 
   return (
     <Dialog open={true} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plane className="w-5 h-5 text-blue-600" />
-            Cập nhật bảo trì · Drone {drone.code}
+            Chi tiết sức khỏe · Drone {drone.code}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div>
-            <Label className="mb-1.5 block text-xs font-medium">Trạng thái kỹ thuật</Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="IDLE">Sẵn sàng hoạt động (IDLE)</SelectItem>
-                <SelectItem value="CHARGING">Đang nạp sạc (CHARGING)</SelectItem>
-                <SelectItem value="MAINTENANCE">Đang bảo dưỡng kỹ thuật (MAINTENANCE)</SelectItem>
-                <SelectItem value="FAULT">Báo cáo sự cố / Hỏng hóc (FAULT)</SelectItem>
-                <SelectItem value="IN_FLIGHT">Đang bay làm nhiệm vụ (IN_FLIGHT)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {(status === "FAULT" || status === "MAINTENANCE") && (
-            <div>
-              <Label className="mb-1.5 block text-xs font-medium">
-                {status === "FAULT" ? "Nguyên nhân sự cố (bắt buộc)" : "Hạng mục bảo dưỡng"}
-              </Label>
-              <Input
-                placeholder="VD: Kiểm tra cánh quạt, căn chỉnh GPS, bảo dưỡng motor..."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
+        <div className="space-y-5 py-2">
+          <section className="rounded-lg border bg-muted/20 p-4 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold">Thông tin vận hành</p>
+                <p className="text-xs text-muted-foreground">Dữ liệu đồng bộ từ đội bay, chỉ dùng để theo dõi.</p>
+              </div>
+              <Badge variant="outline" className={DRONE_STATUS_BADGE[drone.status] ?? "bg-slate-50 text-slate-700"}>
+                {DRONE_STATUS_LABELS[drone.status] ?? drone.status}
+              </Badge>
             </div>
-          )}
-
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <Label className="block text-xs font-medium">Mức pin ghi nhận (%)</Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-6 text-[11px] text-blue-600 hover:text-blue-700 px-1.5"
-                onClick={() => setBattery("100")}
-              >
-                Đặt đầy 100%
-              </Button>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 text-muted-foreground"><BatteryCharging className="w-3.5 h-3.5" /> Mức pin ghi nhận</span>
+                <span className="font-mono font-semibold">{battery}%</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+                <div className={`h-full rounded-full ${batteryColor(battery)}`} style={{ width: `${Math.max(4, Math.min(100, battery))}%` }} />
+              </div>
             </div>
-            <Input
-              type="number"
-              min={0}
-              max={100}
-              value={battery}
-              onChange={(e) => setBattery(e.target.value)}
-            />
-          </div>
+
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+              {details.map(([label, value]) => (
+                <div key={label}>
+                  <p className="text-[11px] text-muted-foreground">{label}</p>
+                  <p className="text-sm font-medium break-words">{value}</p>
+                </div>
+              ))}
+            </div>
+            {drone.faultReason && (
+              <div className="rounded-md border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800">
+                <span className="font-semibold">Ghi nhận sự cố: </span>{drone.faultReason}
+              </div>
+            )}
+          </section>
+
+          <section className="space-y-2">
+            <div className="flex items-center gap-2"><Wrench className="w-4 h-4 text-blue-600" /><h3 className="text-sm font-semibold">Lịch sử bảo trì hoàn tất</h3></div>
+            {historyQuery.isLoading ? (
+              <div className="py-5 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto mb-2 h-4 w-4 animate-spin" />Đang tải lịch sử bảo trì...</div>
+            ) : !history?.completedMaintenance.length ? (
+              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Chưa có lần bảo trì hoàn tất được ghi nhận cho drone này.</p>
+            ) : (
+              <div className="space-y-2">
+                {history.completedMaintenance.map((log) => (
+                  <div key={log.id} className="rounded-md border p-3 text-xs">
+                    <div className="flex items-start justify-between gap-3"><span className="font-semibold">{log.status === "PASSED" ? "Kiểm tra đạt" : log.status}</span><span className="shrink-0 text-muted-foreground">{formatDateTime(log.createdAt)}</span></div>
+                    <p className="mt-1 text-muted-foreground">KTV: {log.technicianName ?? "Chưa xác định"}</p>
+                    {log.note && <p className="mt-1.5 whitespace-pre-wrap">{log.note}</p>}
+                    {!!log.photoUrls?.length && <p className="mt-1 text-muted-foreground">Có {log.photoUrls.length} ảnh nghiệm thu</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="space-y-2">
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600" /><h3 className="text-sm font-semibold">Sự cố đã hoàn tất</h3></div>
+            {historyQuery.isLoading ? null : !history?.resolvedIncidents.length ? (
+              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Chưa có phiếu sự cố nào đã hoàn tất cho drone này.</p>
+            ) : (
+              <div className="space-y-2">
+                {history.resolvedIncidents.map((report) => (
+                  <div key={report.id} className="rounded-md border p-3 text-xs">
+                    <div className="flex items-start justify-between gap-3"><span className="font-semibold">#{report.id} · {report.title}</span><span className="shrink-0 text-muted-foreground">{report.resolvedAt ? formatDateTime(report.resolvedAt) : "Đã hoàn tất"}</span></div>
+                    {report.description && <p className="mt-1.5 text-muted-foreground whitespace-pre-wrap">{cleanDescription(report.description)}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Hủy
-          </Button>
-          <Button onClick={submit} disabled={saving} className="bg-primary text-primary-foreground">
-            {saving && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
-            Lưu thông số
-          </Button>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Đóng</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
