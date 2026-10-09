@@ -121,6 +121,9 @@ export interface LockerReportResponse {
   routedToUserId?: number | null;
   /** Phiếu tự sinh từ lần kiểm tra định kỳ KHÔNG ĐẠT của lịch này. */
   scheduleId?: number | null;
+  /** Drone gắn với phiếu; null với sự cố Kiosk/ô tủ. */
+  droneUnitId?: number | null;
+  droneCode?: string | null;
 }
 
 /** Tủ ở góc nhìn nhân sự (`/api/admin/lockers/**`) — kèm KTV phụ trách. */
