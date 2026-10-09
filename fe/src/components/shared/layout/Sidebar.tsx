@@ -52,8 +52,17 @@ export function Sidebar({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const location = useLocation();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useTranslation();
+
+  const displayName = userName !== "Admin" ? userName : (user?.fullName || userName);
+  const displayEmail = user?.email || "admin@laundrylocker.vn";
+  const displayRole = Array.isArray(user?.role) ? user.role.join(", ") : (user?.role || "Quản trị viên");
+
+  // Tự động đóng sidebar mobile khi chuyển trang
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
 
   // Detect tablet / mobile screens
   useEffect(() => {
@@ -85,6 +94,17 @@ export function Sidebar({
     window.location.href = "/auth/login";
   }, [logout]);
 
+  const isItemActive = useCallback(
+    (itemPath: string) => {
+      if (location.pathname === itemPath) return true;
+      if (itemPath === "/" || itemPath === "/admin" || itemPath === "/partner") {
+        return false;
+      }
+      return location.pathname.startsWith(`${itemPath}/`);
+    },
+    [location.pathname],
+  );
+
   return (
     <TooltipProvider delayDuration={150}>
       {/* Mobile Backdrop */}
@@ -95,17 +115,19 @@ export function Sidebar({
         />
       )}
 
-      {/* Mobile Toggle Button */}
-      <button
-        onClick={toggleSidebar}
-        className={cn(
-          "fixed top-3.5 left-4 z-50 p-2 rounded-lg bg-card text-foreground border border-border shadow-xs lg:hidden",
-          "hover:bg-accent transition-colors",
-        )}
-        aria-label="Toggle menu"
-      >
-        {isMobileOpen ? <X size={18} /> : <Menu size={18} />}
-      </button>
+      {/* Mobile Toggle Button (chỉ hiển thị khi menu đang đóng để không đè lên logo) */}
+      {!isMobileOpen && (
+        <button
+          onClick={toggleSidebar}
+          className={cn(
+            "fixed top-3.5 left-4 z-50 p-2 rounded-lg bg-card text-foreground border border-border shadow-xs lg:hidden",
+            "hover:bg-accent transition-colors",
+          )}
+          aria-label="Toggle menu"
+        >
+          <Menu size={18} />
+        </button>
+      )}
 
       {/* Sidebar Container */}
       <aside
@@ -169,7 +191,7 @@ export function Sidebar({
         <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">
           {items.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname.includes(item.path);
+            const isActive = isItemActive(item.path);
             const label = t(item.label);
 
             const linkContent = (
@@ -235,10 +257,10 @@ export function Sidebar({
                 {(isExpanded || isMobileOpen) && (
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-foreground truncate">
-                      {userName}
+                      {displayName}
                     </p>
                     <p className="text-[11px] text-muted-foreground truncate">
-                      Quản trị viên
+                      {displayRole}
                     </p>
                   </div>
                 )}
@@ -261,10 +283,10 @@ export function Sidebar({
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium text-foreground leading-none">
-                    {userName}
+                    {displayName}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    admin@laundrylocker.vn
+                    {displayEmail}
                   </p>
                 </div>
               </DropdownMenuLabel>

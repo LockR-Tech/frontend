@@ -42,7 +42,7 @@ const STATUS_HINTS: Record<string, string> = {
 };
 
 /** Trạng thái backend giải phóng ô khi chuyển sang — cần nhắc trước khi bấm. */
-const RELEASES_BOX: AdminOrderStatus[] = ["COMPLETED", "CANCELED"];
+const RELEASES_BOX: AdminOrderStatus[] = ["COMPLETED", "CANCELED", "EXPIRED"];
 
 export function OrderStatusUpdateModal({
   order,

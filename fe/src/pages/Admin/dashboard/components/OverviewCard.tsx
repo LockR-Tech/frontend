@@ -1,6 +1,6 @@
 import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 interface OverviewCardProps {
   label: string;
@@ -25,6 +25,8 @@ export function OverviewCard({
   trend,
   className,
 }: OverviewCardProps) {
+  const isNegativeDelta = deltaAmount?.trim().startsWith("-");
+
   return (
     <Card className={cn("card-hover border border-border bg-card", className)}>
       <CardContent className="p-5">
@@ -38,8 +40,19 @@ export function OverviewCard({
             </div>
 
             {deltaAmount ? (
-              <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+              <div
+                className={cn(
+                  "flex items-center gap-1 mt-1 text-xs font-semibold",
+                  isNegativeDelta
+                    ? "text-rose-600 dark:text-rose-400"
+                    : "text-emerald-600 dark:text-emerald-400"
+                )}
+              >
+                {isNegativeDelta ? (
+                  <ArrowDownRight className="w-3.5 h-3.5 shrink-0" />
+                ) : (
+                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+                )}
                 <span>{deltaAmount}</span>
               </div>
             ) : trend ? (

@@ -142,12 +142,22 @@ export function PromotionModal({
       return;
     }
 
+    const discountVal = parseFloat(form.discountValue);
+    if (isNaN(discountVal) || discountVal <= 0) {
+      toast.error("Giá trị giảm giá không hợp lệ (phải lớn hơn 0)");
+      return;
+    }
+    if (form.discountType === DiscountType.PERCENTAGE && discountVal > 100) {
+      toast.error("Phần trăm giảm giá không được vượt quá 100%");
+      return;
+    }
+
     const payload: PromotionRequest = {
       code: form.code.toUpperCase().trim(),
       title: form.title.trim(),
       description: form.description.trim() || undefined,
       discountType: form.discountType,
-      discountValue: parseFloat(form.discountValue),
+      discountValue: discountVal,
       maxDiscountAmount: form.maxDiscountAmount
         ? parseFloat(form.maxDiscountAmount)
         : undefined,
@@ -278,6 +288,7 @@ export function PromotionModal({
               <Input
                 type="number"
                 min="0.01"
+                max={form.discountType === DiscountType.PERCENTAGE ? "100" : undefined}
                 step="0.01"
                 value={form.discountValue}
                 onChange={(e) => set("discountValue", e.target.value)}
