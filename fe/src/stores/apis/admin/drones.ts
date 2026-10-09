@@ -1,5 +1,6 @@
 import { baseApi } from "../../baseAPi";
 import type { ApiResponse } from "../../../types";
+import type { ReportAttachmentRequest } from "../media";
 
 // Đội drone giao/nhận gắn với bãi đáp của tủ (locker-service).
 // Toàn bộ thao tác của trang ADMIN đi qua route admin. Route drone-technician
@@ -18,6 +19,15 @@ export interface DroneResponse {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DroneIncidentReportResponse {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  droneUnitId: number | null;
+  droneCode: string | null;
 }
 
 const TAG = "Drones" as const;
@@ -73,6 +83,18 @@ export const droneManagementApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    createDroneIncidentReport: builder.mutation<
+      ApiResponse<DroneIncidentReportResponse>,
+      { id: number; title: string; description: string; attachments?: ReportAttachmentRequest[] }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/api/admin/drones/${id}/reports`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [TAG],
+    }),
+
     updateDroneBattery: builder.mutation<
       ApiResponse<DroneResponse>,
       { id: number; batteryPercent: number }
@@ -93,5 +115,6 @@ export const {
   useUpdateDroneMutation,
   useDecommissionDroneMutation,
   useUpdateDroneStatusMutation,
+  useCreateDroneIncidentReportMutation,
   useUpdateDroneBatteryMutation,
 } = droneManagementApi;
