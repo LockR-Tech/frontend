@@ -32,6 +32,7 @@ import {
   X,
   RotateCcw,
   Sparkles,
+  Plus,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
@@ -74,6 +75,10 @@ import { cleanDescription, getStoredSlaExtensions, isDroneReport, getEffectiveSl
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
 import { ResolveReportDialog } from "./ResolveReportDialog";
 import { SlaCountdownBadge } from "./SlaCountdownBadge";
+import { PhotoPicker } from "~/components/shared/media";
+import { isHandledUploadError, useImageUpload } from "~/hooks/useImageUpload";
+import { getMediaErrorMessage } from "~/lib/media";
+import type { ReportAttachmentRequest } from "~/stores/apis/media";
 import {
   useGetFaultCellsQuery,
   useGetMaintenanceReportsQuery,
@@ -89,6 +94,7 @@ import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import {
   useGetDronesQuery,
   useUpdateDroneStatusMutation,
+  useCreateDroneIncidentReportMutation,
   useUpdateDroneBatteryMutation,
   type DroneResponse,
 } from "~/stores/apis/admin/drones";
@@ -172,8 +178,9 @@ export default function MaintenanceAdminPage() {
   const [clearFault] = useClearBoxFaultMutation();
 
   // Drone fleet queries & mutations
-  const dronesQuery = useGetDronesQuery();
+  const dronesQuery = useGetDronesQuery(undefined, { pollingInterval: 15000 });
   const [updateDroneStatus] = useUpdateDroneStatusMutation();
+  const [createDroneIncidentReport] = useCreateDroneIncidentReportMutation();
   const [updateDroneBattery] = useUpdateDroneBatteryMutation();
 
   // Users query to get all technicians
@@ -187,7 +194,16 @@ export default function MaintenanceAdminPage() {
   const [pending, setPending] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("kiosk");
   const [managingDrone, setManagingDrone] = useState<DroneResponse | null>(null);
+  const [creatingDroneReport, setCreatingDroneReport] = useState(false);
   const [droneFilter, setDroneFilter] = useState<string>("ALL");
+  const [droneReportFilter, setDroneReportFilter] = useState<string>("ALL");
+  const [droneSearchQuery, setDroneSearchQuery] = useState("");
+  const [droneTechFilter, setDroneTechFilter] = useState<string>("ALL");
+  const [droneUnitFilter, setDroneUnitFilter] = useState<string>("ALL");
+  const [droneDateFilter, setDroneDateFilter] = useState<string>("ALL");
+  const [droneReportSort, setDroneReportSort] = useState<"NEWEST_FIRST" | "PRIORITY_NEW" | "SLA_URGENT" | "OLDEST_FIRST">("NEWEST_FIRST");
+  const [droneFleetSearch, setDroneFleetSearch] = useState("");
+  const [droneBatteryFilter, setDroneBatteryFilter] = useState<"ALL" | "LOW" | "MEDIUM" | "READY">("ALL");
 
   // Bộ lọc phiếu sự cố Kiosk nâng cao
   const [reportFilter, setReportFilter] = useState<string>("ALL");
@@ -215,7 +231,10 @@ export default function MaintenanceAdminPage() {
     () => reportList.filter((r) => !isDroneReport(r)),
     [reportList]
   );
-
+  const droneReportList = useMemo(
+    () => reportList.filter(isDroneReport),
+    [reportList]
+  );
   // Danh sách các trạm Kiosk duy nhất có phiếu để hiển thị trong bộ lọc
   const availableLockers = useMemo(() => {
     const map = new Map<number, { id: number; name: string; code?: string | null }>();
@@ -231,6 +250,10 @@ export default function MaintenanceAdminPage() {
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [kioskReportList]);
   const droneList = useMemo(() => dronesQuery.data?.data ?? [], [dronesQuery.data]);
+  const availableDrones = useMemo(
+    () => [...droneList].sort((a, b) => (a.code || "").localeCompare(b.code || "")),
+    [droneList],
+  );
   const deviceList = deviceStatuses.data?.data ?? [];
 
   // Extract technicians
@@ -292,6 +315,10 @@ export default function MaintenanceAdminPage() {
   const droneLowBattery = droneList.filter((d) => d.batteryPercent != null && d.batteryPercent < 20).length;
   const droneActive = droneList.filter((d) => d.status === "IN_FLIGHT" || d.status === "IN_USE").length;
   const droneReady = droneList.filter((d) => d.status === "IDLE" || d.status === "CHARGING").length;
+  const droneOpenReports = droneReportList.filter((r) => r.status === "OPEN").length;
+  const droneInProgressReports = droneReportList.filter((r) => r.status === "IN_PROGRESS").length;
+  const droneResolvedReports = droneReportList.filter((r) => r.status === "RESOLVED").length;
+  const droneOverdueReports = droneReportList.filter((r) => isReportOverdue(r, slaExtensions[r.id])).length;
 
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -398,14 +425,95 @@ export default function MaintenanceAdminPage() {
   };
 
   const filteredDrones = useMemo(() => {
-    if (droneFilter === "ALL") return droneList;
-    if (droneFilter === "ATTENTION") {
-      return droneList.filter(
+    const filteredByStatus = droneFilter === "ALL"
+      ? droneList
+      : droneFilter === "ATTENTION"
+        ? droneList.filter(
         (d) => d.status === "FAULT" || d.status === "MAINTENANCE" || (d.batteryPercent != null && d.batteryPercent < 20),
-      );
-    }
-    return droneList.filter((d) => d.status === droneFilter);
-  }, [droneList, droneFilter]);
+      )
+        : droneList.filter((d) => d.status === droneFilter);
+
+    const query = droneFleetSearch.trim().toLowerCase();
+    return filteredByStatus
+      .filter((d) => {
+        const battery = d.batteryPercent ?? 0;
+        if (droneBatteryFilter === "LOW" && battery >= 20) return false;
+        if (droneBatteryFilter === "MEDIUM" && (battery < 20 || battery >= 50)) return false;
+        if (droneBatteryFilter === "READY" && battery < 50) return false;
+        if (!query) return true;
+        return [d.code, d.lockerName, d.assignedTechnicianName, d.faultReason]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(query));
+      })
+      .sort((a, b) => {
+        const attentionA = a.status === "FAULT" || a.status === "MAINTENANCE" || (a.batteryPercent ?? 0) < 20 ? 1 : 0;
+        const attentionB = b.status === "FAULT" || b.status === "MAINTENANCE" || (b.batteryPercent ?? 0) < 20 ? 1 : 0;
+        if (attentionA !== attentionB) return attentionB - attentionA;
+        return (a.code || "").localeCompare(b.code || "");
+      });
+  }, [droneList, droneFilter, droneFleetSearch, droneBatteryFilter]);
+
+  const filteredDroneReports = useMemo(() => {
+    const query = droneSearchQuery.trim().toLowerCase();
+    return droneReportList
+      .filter((r) => {
+        if (droneReportFilter === "OVERDUE") {
+          if (!isReportOverdue(r, slaExtensions[r.id])) return false;
+        } else if (droneReportFilter !== "ALL" && r.status !== droneReportFilter) {
+          return false;
+        }
+        if (droneTechFilter === "UNASSIGNED" && r.assignedToUserId) return false;
+        if (droneTechFilter !== "ALL" && droneTechFilter !== "UNASSIGNED" && String(r.assignedToUserId) !== droneTechFilter) return false;
+        const droneCode = r.droneCode;
+        if (
+          droneUnitFilter !== "ALL"
+          && droneCode !== droneUnitFilter
+          && !r.title.toLowerCase().includes(droneUnitFilter.toLowerCase())
+        ) return false;
+        if (droneDateFilter !== "ALL" && r.createdAt) {
+          const age = Date.now() - new Date(r.createdAt).getTime();
+          if (droneDateFilter === "TODAY" && age > 86400000) return false;
+          if (droneDateFilter === "7_DAYS" && age > 7 * 86400000) return false;
+          if (droneDateFilter === "30_DAYS" && age > 30 * 86400000) return false;
+        }
+        if (!query) return true;
+        return [
+          `rpt-${r.id}`,
+          r.title,
+          cleanDescription(r.description),
+          (r as LockerReportResponse & { droneCode?: string }).droneCode,
+          r.lockerName,
+          r.reporterName,
+          r.reporterPhone,
+        ].filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
+      })
+      .sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        if (droneReportSort === "OLDEST_FIRST") return timeA - timeB;
+        if (droneReportSort === "PRIORITY_NEW") {
+          const priorityA = a.status === "OPEN" ? 1 : 0;
+          const priorityB = b.status === "OPEN" ? 1 : 0;
+          return priorityB - priorityA || timeB - timeA;
+        }
+        if (droneReportSort === "SLA_URGENT") {
+          const slaA = getEffectiveSlaDueAt(a, slaExtensions[a.id])?.getTime() ?? Infinity;
+          const slaB = getEffectiveSlaDueAt(b, slaExtensions[b.id])?.getTime() ?? Infinity;
+          return slaA - slaB;
+        }
+        return timeB - timeA;
+      });
+  }, [droneReportList, droneReportFilter, droneSearchQuery, droneTechFilter, droneUnitFilter, droneDateFilter, droneReportSort, slaExtensions]);
+
+  const hasDroneReportFilters = droneSearchQuery.trim() !== "" || droneReportFilter !== "ALL" || droneTechFilter !== "ALL" || droneUnitFilter !== "ALL" || droneDateFilter !== "ALL" || droneReportSort !== "NEWEST_FIRST";
+  const resetDroneReportFilters = () => {
+    setDroneSearchQuery("");
+    setDroneReportFilter("ALL");
+    setDroneTechFilter("ALL");
+    setDroneUnitFilter("ALL");
+    setDroneDateFilter("ALL");
+    setDroneReportSort("NEWEST_FIRST");
+  };
 
   const hasActiveFilters =
     searchQuery.trim() !== "" ||
@@ -581,7 +689,7 @@ export default function MaintenanceAdminPage() {
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <Plane className="w-4 h-4 text-blue-600" />
-            Bảo trì & Pin Drone ({droneFaults + droneLowBattery})
+            Bảo trì & Pin Drone ({droneOpenReports + droneInProgressReports})
           </TabsTrigger>
           <TabsTrigger
             value="schedules"
@@ -1177,58 +1285,58 @@ export default function MaintenanceAdminPage() {
 
         {/* TAB 2: BẢO TRÌ & PIN DRONE */}
         <TabsContent value="drone" className="space-y-6">
-          {/* Drone KPI Cards */}
+          {/* Drone KPI Cards — cùng layout với Bảo trì Kiosk */}
           <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Cần bảo trì / Lỗi</p>
+                  <p className="text-xs text-muted-foreground font-medium">Sự cố đang mở</p>
                   <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-200/60 flex items-center justify-center text-rose-600">
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-foreground mt-1">
+                  {droneOpenReports + droneInProgressReports}
+                </p>
+                <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-rose-600">
+                  <ArrowUpRight className="w-3 h-3" />
+                  <span>{droneOpenReports + droneInProgressReports > 0 ? "Cần xử lý kỹ thuật" : "Không có sự cố"}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground font-medium">Phiếu mới mở</p>
+                  <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-foreground mt-1">
+                  {droneOpenReports}
+                </p>
+                <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-amber-600">
+                  <ArrowUpRight className="w-3 h-3" />
+                  <span>{droneOpenReports > 0 ? `${droneOpenReports} phiếu chờ KTV nhận` : "Đã tiếp nhận hết"}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground font-medium">Đang xử lý</p>
+                  <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-600">
                     <Wrench className="w-4 h-4" />
                   </div>
                 </div>
                 <p className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {droneFaults}
-                </p>
-                <div className={`text-[11px] font-medium flex items-center gap-1 mt-1 ${droneFaults > 0 ? "text-rose-600" : "text-emerald-600"}`}>
-                  {droneFaults > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  <span>{droneFaults > 0 ? "Cần kiểm tra kỹ thuật" : "Đội bay an toàn"}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Pin yếu (&lt; 20%)</p>
-                  <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600">
-                    <BatteryWarning className="w-4 h-4" />
-                  </div>
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {droneLowBattery}
-                </p>
-                <div className={`text-[11px] font-medium flex items-center gap-1 mt-1 ${droneLowBattery > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                  {droneLowBattery > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  <span>{droneLowBattery > 0 ? "Cần sạc hoặc thay pin" : "Tất cả pin ổn định"}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Đang bay / Sử dụng</p>
-                  <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-600">
-                    <Plane className="w-4 h-4" />
-                  </div>
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {droneActive}
+                  {droneInProgressReports}
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-blue-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>Nhiệm vụ vận chuyển</span>
+                  <span>Kỹ thuật viên đang xử lý</span>
                 </div>
               </CardContent>
             </Card>
@@ -1236,72 +1344,334 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Sẵn sàng / Đang sạc</p>
+                  <p className="text-xs text-muted-foreground font-medium">Đã hoàn tất</p>
                   <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600">
-                    <ShieldCheck className="w-4 h-4" />
+                    <CheckCircle className="w-4 h-4" />
                   </div>
                 </div>
                 <p className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {droneReady}
+                  {droneResolvedReports}
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-emerald-600">
                   <ArrowDownRight className="w-3 h-3" />
-                  <span>Sẵn sàng cất cánh</span>
+                  <span>Tỷ lệ hoàn thành cao</span>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Attention Banner if any Drone has issues */}
-          {(droneFaults > 0 || droneLowBattery > 0) && (
-            <Card className="border-rose-200/80 bg-rose-50/40 shadow-xs">
+          {/* Cảnh báo SLA — cùng layout với Bảo trì Kiosk */}
+          {droneOverdueReports > 0 && (
+            <Card className="border-amber-200/80 bg-amber-50/40 shadow-xs">
               <CardContent className="p-4 flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
                     <AlertTriangle className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm text-rose-900">
-                      Cần can thiệp kỹ thuật ngay cho {droneFaults + droneLowBattery} thiết bị Drone
+                    <h4 className="font-semibold text-sm text-amber-900">
+                      Cảnh báo: Có {droneOverdueReports} phiếu sự cố Drone đang quá hạn xử lý (SLA)
                     </h4>
-                    <p className="text-xs text-rose-700 mt-0.5">
-                      Phát hiện drone gặp sự cố kỹ thuật hoặc mức pin dưới 20%. Hãy tiến hành bảo dưỡng hoặc sạc pin để tránh gián đoạn các chuyến bay giao nhận.
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      Cần ưu tiên điều phối kỹ thuật viên tiếp nhận và xử lý ngay để đảm bảo an toàn vận hành đội bay Drone.
                     </p>
                   </div>
                 </div>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 text-xs border-rose-300 text-rose-700 hover:bg-rose-100 bg-white"
-                  onClick={() => setDroneFilter("ATTENTION")}
+                  className="h-8 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 bg-white"
+                  onClick={() => setDroneReportFilter("OVERDUE")}
                 >
-                  <SlidersHorizontal className="w-3.5 h-3.5 mr-1" /> Xem danh sách cần bảo trì
+                  Xem phiếu quá hạn SLA
                 </Button>
               </CardContent>
             </Card>
           )}
 
-          {/* Danh sách Drone & Thao Tác Kỹ Thuật */}
+          {/* Phiếu sự cố Drone — cùng cấu trúc vận hành với phiếu Kiosk */}
           <Card className="border border-border/80 shadow-xs">
-            <CardHeader className="pb-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardHeader className="pb-3 border-b border-border/50">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Plane className="w-4 h-4 text-blue-600" />
-                    Giám sát kỹ thuật & bảo dưỡng đội bay Drone ({filteredDrones.length})
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-blue-600" />
+                    Phiếu xử lý sự cố Drone ({droneReportList.length})
+                    {droneOverdueReports > 0 && (
+                      <Badge variant="outline" className="ml-1 bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
+                        {droneOverdueReports} quá hạn SLA
+                      </Badge>
+                    )}
                   </CardTitle>
                   <CardDescription className="text-xs mt-0.5">
-                    Quản lý chu kỳ bảo trì, theo dõi phần trăm pin và cập nhật tình trạng bay
+                    Điều phối KTV Drone, theo dõi SLA và lưu đầy đủ hồ sơ xử lý kỹ thuật từ API bảo trì
                   </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-semibold"
+                    onClick={() => setCreatingDroneReport(true)}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Tạo báo cáo sự cố Drone
+                  </Button>
+                  <Badge variant="secondary" className="text-xs font-mono font-medium bg-muted">
+                    Hiển thị {filteredDroneReports.length} / {droneReportList.length} phiếu
+                  </Badge>
+                  {hasDroneReportFilters && (
+                    <Button variant="ghost" size="sm" onClick={resetDroneReportFilters} className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1">
+                      <RotateCcw className="w-3.5 h-3.5" /> Đặt lại bộ lọc
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-border/40 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2.5 items-center">
+                  <div className="relative md:col-span-4">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Tìm mã phiếu, drone, lỗi, KTV, SĐT..."
+                      value={droneSearchQuery}
+                      onChange={(e) => setDroneSearchQuery(e.target.value)}
+                      className="pl-8 pr-7 h-8 text-xs bg-background"
+                    />
+                    {droneSearchQuery && (
+                      <button type="button" onClick={() => setDroneSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="md:col-span-2">
+                    <Select value={droneTechFilter} onValueChange={setDroneTechFilter}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder="KTV Drone" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">Tất cả KTV Drone</SelectItem>
+                        <SelectItem value="UNASSIGNED">Chưa phân công</SelectItem>
+                        {technicians.filter((t) => t.specialty === "DRONE").map((t) => (
+                          <SelectItem key={t.id} value={String(t.id)}>{t.fullName} (#{t.id})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Select value={droneUnitFilter} onValueChange={setDroneUnitFilter}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder="Thiết bị Drone" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">Tất cả thiết bị Drone</SelectItem>
+                        {availableDrones.map((drone) => (
+                          <SelectItem key={drone.id} value={drone.code}>{drone.code}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Select value={droneDateFilter} onValueChange={setDroneDateFilter}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder="Thời gian" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">Tất cả thời gian</SelectItem>
+                        <SelectItem value="TODAY">Hôm nay</SelectItem>
+                        <SelectItem value="7_DAYS">7 ngày gần nhất</SelectItem>
+                        <SelectItem value="30_DAYS">30 ngày gần nhất</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Select value={droneReportSort} onValueChange={(value: "NEWEST_FIRST" | "PRIORITY_NEW" | "SLA_URGENT" | "OLDEST_FIRST") => setDroneReportSort(value)}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background font-medium border-primary/40 text-primary"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NEWEST_FIRST">⚡ Mới nhất lên đầu (Mặc định)</SelectItem>
+                        <SelectItem value="PRIORITY_NEW">🔥 Ưu tiên: Mới & Khẩn cấp</SelectItem>
+                        <SelectItem value="SLA_URGENT">⏰ Hạn SLA gấp nhất</SelectItem>
+                        <SelectItem value="OLDEST_FIRST">📅 Cũ nhất trước</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                <div className="flex gap-1.5 flex-wrap">
+                  {[
+                    { id: "ALL", label: `Tất cả (${droneReportList.length})` },
+                    { id: "OPEN", label: `Mới mở (${droneOpenReports})`, isNewPulse: droneOpenReports > 0 },
+                    { id: "IN_PROGRESS", label: `Đang làm (${droneInProgressReports})` },
+                    { id: "OVERDUE", label: `Quá hạn SLA (${droneOverdueReports})`, isDanger: droneOverdueReports > 0 },
+                    { id: "RESOLVED", label: `Đã xong (${droneResolvedReports})` },
+                  ].map(({ id: status, label, isNewPulse, isDanger }) => (
+                    <Button
+                      key={status}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDroneReportFilter(status)}
+                      className={`h-7 px-2.5 text-xs font-medium transition-all ${
+                        droneReportFilter === status
+                          ? status === "OVERDUE"
+                            ? "bg-rose-600 text-white border-rose-600 hover:bg-rose-700 shadow-xs"
+                            : status === "OPEN"
+                              ? "bg-amber-600 text-white border-amber-600 hover:bg-amber-700 shadow-xs"
+                              : "bg-primary text-primary-foreground border-primary shadow-xs"
+                          : isDanger
+                            ? "text-rose-600 border-rose-300 bg-rose-50/60 hover:bg-rose-100"
+                            : isNewPulse
+                              ? "text-amber-700 border-amber-300 bg-amber-50/70 hover:bg-amber-100 font-semibold"
+                              : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {isNewPulse && (
+                        <span className="relative flex h-2 w-2 mr-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                        </span>
+                      )}
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+                {hasDroneReportFilters && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
+                    <span>Đang lọc:</span>
+                    {droneSearchQuery && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">Từ khóa: &quot;{droneSearchQuery}&quot;<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneSearchQuery("")} /></Badge>}
+                    {droneTechFilter !== "ALL" && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">{droneTechFilter === "UNASSIGNED" ? "Chưa phân công" : `KTV: ${techniciansMap[Number(droneTechFilter)]?.fullName ?? droneTechFilter}`}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneTechFilter("ALL")} /></Badge>}
+                    {droneUnitFilter !== "ALL" && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">Drone: {droneUnitFilter}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneUnitFilter("ALL")} /></Badge>}
+                    {droneDateFilter !== "ALL" && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">Thời gian: {droneDateFilter === "TODAY" ? "Hôm nay" : droneDateFilter === "7_DAYS" ? "7 ngày qua" : "30 ngày qua"}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneDateFilter("ALL")} /></Badge>}
+                  </div>
+                )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const openCount = filteredDroneReports.filter((report) => report.status === "OPEN").length;
+                return openCount > 0 ? (
+                  <div className="mb-3 p-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/40 dark:border-amber-900 flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                      </span>
+                      <p className="text-xs font-medium text-amber-900 dark:text-amber-200">
+                        <span className="font-bold">{openCount} phiếu sự cố mới</span> đang chờ KTV Drone nhận — các phiếu mới nhất đã được tự động hiển thị lên đầu.
+                      </p>
+                    </div>
+                    {droneReportFilter !== "OPEN" && (
+                      <Button size="sm" variant="outline" onClick={() => setDroneReportFilter("OPEN")} className="h-7 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300">
+                        Chỉ xem phiếu mới
+                      </Button>
+                    )}
+                  </div>
+                ) : null;
+              })()}
+              {filteredDroneReports.length === 0 ? (
+                <div className="py-12 text-center space-y-2">
+                  <p className="text-sm font-medium text-foreground">Không có phiếu sự cố Drone nào phù hợp với bộ lọc hiện tại.</p>
+                  <p className="text-xs text-muted-foreground">Thử tìm kiếm với từ khóa khác hoặc đặt lại bộ lọc để xem toàn bộ danh sách phiếu.</p>
+                  {hasDroneReportFilters && (
+                    <Button variant="outline" size="sm" onClick={resetDroneReportFilters} className="h-8 text-xs gap-1 mt-2">
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Đặt lại tất cả bộ lọc
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="divide-y divide-border/60">
+                  {filteredDroneReports.map((report) => {
+                    const assignedTech = report.assignedToUserId ? techniciansMap[report.assignedToUserId] : undefined;
+                    const droneCode = (report as LockerReportResponse & { droneCode?: string }).droneCode;
+                    const isNew = report.status === "OPEN";
+                    return (
+                      <div key={report.id} className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all ${isNew ? "border-l-4 border-l-amber-500 bg-amber-50/50 ring-1 ring-amber-200/70 my-1" : "hover:bg-muted/20 my-0.5 border border-transparent"}`}>
+                        <div className="max-w-2xl">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-sm text-foreground">RPT-{report.id} · {report.title}</p>
+                            <Badge variant="outline" className={`text-xs ${REPORT_BADGE[report.status] ?? ""}`}>
+                              {report.status === "OPEN" ? "Mới mở · Chờ KTV Drone" : report.status === "IN_PROGRESS" ? "Đang xử lý" : report.status === "RESOLVED" ? "Đã hoàn tất" : report.status}
+                            </Badge>
+                            {isReportOverdue(report, slaExtensions[report.id]) && <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">Quá hạn SLA</Badge>}
+                            <SlaCountdownBadge slaDueAt={getEffectiveSlaDueAt(report, slaExtensions[report.id])?.toISOString() || report.slaDueAt} createdAt={report.createdAt} slaHours={report.slaHours ?? 4} status={report.status} />
+                            {report.assignedToUserId ? (
+                              <button type="button" onClick={() => navigate(`/admin/maintenance/technicians/${report.assignedToUserId}`)} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200">
+                                <UserCheck className="w-3 h-3" /> KTV: {assignedTech?.fullName ?? userNames[report.assignedToUserId] ?? `#${report.assignedToUserId}`}
+                              </button>
+                            ) : null}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            <span className="text-foreground">{cleanDescription(report.description) || report.description}</span>
+                            {" · "}<span className="font-medium text-foreground">{droneCode ? `Drone ${droneCode}` : report.lockerName ?? "Thiết bị bay"}</span>
+                            {" · "}Tạo lúc: <span className="text-foreground font-mono">{formatDateTime(report.createdAt)}</span> ({getRelativeAge(report.createdAt)})
+                          </p>
+                          {(report.reporterName || report.reporterPhone) && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{[report.reporterName, report.reporterPhone].filter(Boolean).join(" · ")}</p>}
+                          <ReportPhotoGroups report={report} variant="compact" userNames={userNames} />
+                        </div>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <RepairLogDialog reportId={report.id} title={`RPT-${report.id} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
+                          {(report.status === "OPEN" || report.status === "IN_PROGRESS") && (
+                            <Button size="sm" variant={report.status === "OPEN" ? "default" : "outline"} className="h-8 text-xs gap-1.5" onClick={() => setAssigningReport(report)}>
+                              <UserCheck className="w-3.5 h-3.5" /> {report.status === "OPEN" ? "Phân công KTV Drone" : "Đổi KTV"}
+                            </Button>
+                          )}
+                          {report.status === "RESOLVED" && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5" /> KTV đã xử lý xong</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Danh sách Drone & Thao Tác Kỹ Thuật */}
+          <Card className="border border-border/80 shadow-xs">
+            <CardHeader className="pb-3 border-b border-border/50">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Plane className="w-4 h-4 text-blue-600" />
+                    Sức khỏe thiết bị Drone ({droneList.length})
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-0.5">
+                    Tình trạng kỹ thuật, pin, trạm hoạt động và KTV phụ trách được đồng bộ từ API đội bay
+                  </CardDescription>
+                </div>
+                <Badge variant="secondary" className="text-xs font-mono font-medium bg-muted">
+                  Hiển thị {filteredDrones.length} / {droneList.length} drone
+                </Badge>
+              </div>
+              <div className="mt-4 pt-3 border-t border-border/40 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                  <div className="relative md:col-span-8">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Tìm mã drone, trạm, KTV hoặc nguyên nhân lỗi..."
+                      value={droneFleetSearch}
+                      onChange={(e) => setDroneFleetSearch(e.target.value)}
+                      className="pl-8 pr-7 h-8 text-xs bg-background"
+                    />
+                    {droneFleetSearch && (
+                      <button type="button" onClick={() => setDroneFleetSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="md:col-span-4">
+                    <Select value={droneBatteryFilter} onValueChange={(value: "ALL" | "LOW" | "MEDIUM" | "READY") => setDroneBatteryFilter(value)}>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder="Mức pin" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">Tất cả mức pin</SelectItem>
+                        <SelectItem value="LOW">Pin yếu dưới 20%</SelectItem>
+                        <SelectItem value="MEDIUM">Pin 20–49%</SelectItem>
+                        <SelectItem value="READY">Pin sẵn sàng từ 50%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { id: "ALL", label: "Tất cả" },
-                    { id: "ATTENTION", label: "Cần bảo trì / Pin yếu" },
-                    { id: "IDLE", label: "Sẵn sàng" },
-                    { id: "CHARGING", label: "Đang sạc" },
-                    { id: "MAINTENANCE", label: "Đang bảo dưỡng" },
-                    { id: "FAULT", label: "Sự cố" },
+                    { id: "ALL", label: `Tất cả (${droneList.length})` },
+                    { id: "ATTENTION", label: `Cần can thiệp (${droneFaults + droneLowBattery})` },
+                    { id: "IDLE", label: `Sẵn sàng (${droneList.filter((d) => d.status === "IDLE").length})` },
+                    { id: "CHARGING", label: `Đang sạc (${droneList.filter((d) => d.status === "CHARGING").length})` },
+                    { id: "MAINTENANCE", label: `Đang bảo dưỡng (${droneList.filter((d) => d.status === "MAINTENANCE").length})` },
+                    { id: "FAULT", label: `Sự cố (${droneList.filter((d) => d.status === "FAULT").length})` },
                   ].map((f) => (
                     <Button
                       key={f.id}
@@ -1735,6 +2105,35 @@ export default function MaintenanceAdminPage() {
         }}
       />
 
+      {creatingDroneReport && (
+        <CreateDroneIncidentDialog
+          drones={availableDrones}
+          onClose={() => setCreatingDroneReport(false)}
+          onSubmit={async ({ drone, title, description, attachments }) => {
+            try {
+              await createDroneIncidentReport({
+                id: drone.id,
+                title: title.trim(),
+                description: description.trim(),
+                attachments,
+              }).unwrap();
+              await Promise.all([dronesQuery.refetch(), reports.refetch(), allReportsQuery.refetch()]);
+              setDroneReportFilter("OPEN");
+              setDroneSearchQuery("");
+              setDroneTechFilter("ALL");
+              setDroneUnitFilter("ALL");
+              setDroneDateFilter("ALL");
+              setDroneReportSort("NEWEST_FIRST");
+              toast.success(`Đã tạo báo cáo sự cố cho Drone ${drone.code}`, {
+                description: "Phiếu mới đã được chuyển đến hàng đợi KTV Drone để điều phối.",
+              });
+              setCreatingDroneReport(false);
+            } catch (err: any) {
+              throw err;
+            }
+          }}
+        />
+      )}
 
       {/* Drone Technical Manage Dialog */}
       {managingDrone && (
@@ -1790,6 +2189,114 @@ export default function MaintenanceAdminPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+function CreateDroneIncidentDialog({
+  drones,
+  onClose,
+  onSubmit,
+}: {
+  drones: DroneResponse[];
+  onClose: () => void;
+  onSubmit: (data: { drone: DroneResponse; title: string; description: string; attachments?: ReportAttachmentRequest[] }) => Promise<void>;
+}) {
+  const [droneId, setDroneId] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const { upload, items, isUploading } = useImageUpload("REPORT_EVIDENCE");
+  const busy = submitting || isUploading;
+
+  const submit = async () => {
+    const drone = drones.find((item) => String(item.id) === droneId);
+    if (!drone) {
+      toast.error("Vui lòng chọn Drone gặp sự cố");
+      return;
+    }
+    if (!title.trim() || !description.trim()) {
+      toast.error("Vui lòng nhập tiêu đề và mô tả sự cố");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const attachments = files.length > 0 ? await upload(files) : undefined;
+      await onSubmit({ drone, title, description, attachments });
+    } catch (error) {
+      if (!isHandledUploadError(error)) {
+        toast.error("Không thể tạo báo cáo sự cố Drone", {
+          description: getMediaErrorMessage(error, "Có lỗi khi lưu phiếu sự cố trên hệ thống."),
+        });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-rose-600" />
+            Tạo báo cáo sự cố Drone
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <p className="text-xs text-muted-foreground">
+            Báo cáo sẽ mở phiếu mới ở trạng thái chờ xử lý và đưa Drone vào trạng thái sự cố để KTV Drone tiếp nhận.
+          </p>
+          <div>
+            <Label className="mb-1.5 block text-xs font-medium">Drone gặp sự cố</Label>
+            <Select value={droneId} onValueChange={setDroneId}>
+              <SelectTrigger><SelectValue placeholder="Chọn thiết bị Drone" /></SelectTrigger>
+              <SelectContent>
+                {drones.map((drone) => (
+                  <SelectItem key={drone.id} value={String(drone.id)}>
+                    {drone.code}{drone.lockerName ? ` · ${drone.lockerName}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="mb-1.5 block text-xs font-medium">Tiêu đề sự cố</Label>
+            <Input placeholder="VD: Drone mất kết nối GPS" value={title} onChange={(event) => setTitle(event.target.value)} />
+          </div>
+          <div>
+            <Label className="mb-1.5 block text-xs font-medium">Mô tả và nguyên nhân ghi nhận</Label>
+            <textarea
+              className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              placeholder="Mô tả tình trạng thực tế, thời điểm phát hiện và hạng mục cần KTV kiểm tra..."
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">Ảnh hiện trường (tuỳ chọn)</Label>
+            <PhotoPicker
+              value={files}
+              onChange={setFiles}
+              maxFiles={10}
+              disabled={busy}
+              uploadItems={items}
+              hint="Ảnh lỗi Drone, pin, cánh quạt hoặc vị trí phát hiện · tối đa 10 ảnh"
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} disabled={busy}>Hủy</Button>
+          <Button onClick={submit} disabled={busy || drones.length === 0} className="bg-rose-600 hover:bg-rose-700 text-white">
+            {busy && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
+            {isUploading ? "Đang tải ảnh..." : submitting ? "Đang tạo..." : "Tạo báo cáo sự cố"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
