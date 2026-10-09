@@ -24,6 +24,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { useGetAllNotificationsQuery } from "~/stores/apis/admin/notifications";
+import { useGetDronesQuery } from "~/stores/apis/admin/drones";
 
 interface HeaderProps {
   className?: string;
@@ -78,6 +79,17 @@ function Breadcrumb() {
   const location = useLocation();
   const { t } = useTranslation();
   const paths = location.pathname.split("/").filter(Boolean);
+  const droneId = paths[0] === "admin" && paths[1] === "drones" && isNumeric(paths[2] ?? "")
+    ? Number(paths[2])
+    : null;
+  // Dùng danh sách Drone đang có làm fallback để breadcrumb luôn hiện mã Drone,
+  // kể cả khi người dùng mở trực tiếp URL chi tiết.
+  const dronesQuery = useGetDronesQuery(undefined, { skip: droneId == null });
+  const droneCode = droneId == null
+    ? null
+    : dronesQuery.data?.data?.find((drone) => drone.id === droneId)?.code
+      ?? (location.state as { droneCode?: string } | null)?.droneCode
+      ?? null;
 
   if (paths.length < 2) {
     return (
@@ -103,6 +115,9 @@ function Breadcrumb() {
     }
     if (isNumeric(path) && path.length > 3) {
       label = `#${path.slice(0, 6)}${path.length > 6 ? "..." : ""}`;
+    }
+    if (isLast && droneId != null && path === String(droneId)) {
+      label = droneCode ?? "Đang tải Drone...";
     }
 
     return {
