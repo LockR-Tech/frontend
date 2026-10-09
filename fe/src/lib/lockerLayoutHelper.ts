@@ -14,17 +14,18 @@ export interface EnrichedCell extends CellResponse {
 }
 
 /**
- * Kiểm tra ô vali lớn XL (Ô #1, Cột 0, hoặc loại XL)
+ * Kiểm tra ô vali lớn XL (Cột 0 trạm Kiosk, hoặc loại XL / size XL)
  */
 export function isXlCell(cell: {
   cellType?: string | null;
   boxNumber?: number | null;
   colIndex?: number | null;
+  size?: string | null;
 }): boolean {
   const cellType = cell.cellType?.toUpperCase();
-  const boxNum = cell.boxNumber;
   const col = cell.colIndex;
-  return cellType === "XL" || boxNum === 1 || col === 0;
+  const size = (cell as any).size?.toUpperCase();
+  return cellType === "XL" || size === "XL" || col === 0;
 }
 
 /**

@@ -450,8 +450,8 @@ function CellTile({
 }
 
 function getBoxGridStyle(cell: CellResponse, maxRows: number) {
-  // Ô vali XL (ô #1, cột 0, hoặc loại XL): khoang dọc lớn kéo dài trọn chiều cao dưới màn hình 7 inch
-  if (isXlCell(cell)) {
+  // Ô vali XL ở cột 0 trạm Kiosk: khoang dọc lớn kéo dài trọn chiều cao dưới màn hình 7 inch (hàng 2 trở xuống)
+  if (cell.colIndex === 0 || (isXlCell(cell) && (cell.colIndex == null || cell.colIndex === 0))) {
     return {
       gridColumn: "1",
       gridRow: `2 / span ${Math.max(1, maxRows - 1)}`,
@@ -462,6 +462,13 @@ function getBoxGridStyle(cell: CellResponse, maxRows: number) {
   // Cột 1 CSS dành riêng cho cột Kiosk / Vali XL. Các cột ô khác bắt đầu từ cột 2:
   const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex + 1 : 2;
   const row = cell.rowIndex ?? 1;
+
+  if (isXlCell(cell)) {
+    return {
+      gridColumn: `${col}`,
+      gridRow: `${row} / span 2`,
+    };
+  }
 
   return {
     gridColumn: `${col}`,
@@ -664,7 +671,7 @@ export default function LockerLayoutPage() {
     return Math.max(
       3,
       ...cells.map((c) =>
-        isXlCell(c)
+        c.colIndex === 0 || (isXlCell(c) && (c.colIndex == null || c.colIndex === 0))
           ? 1
           : (c.colIndex != null && c.colIndex > 0 ? c.colIndex + 1 : 2)
       )
