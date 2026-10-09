@@ -120,6 +120,8 @@ const DELIVERY_STAGE_META: Record<string, BadgeMeta> = {
   READY_FOR_PICKUP: { label: "Sẵn sàng lấy hàng", style: GREEN, icon: PackageCheck },
   // Chặng kết thúc — backend đặt deliveryStage theo trạng thái đơn khi đơn drone đóng.
   CANCELED: { label: "Đã huỷ", style: RED, icon: XCircle },
+  // Chuyến bay không giao được hàng sau khi đã phóng; đơn đóng là CANCELED để hoàn tiền.
+  FAILED: { label: "Chuyến bay thất bại", style: RED, icon: XCircle },
   COMPLETED: { label: "Đã nhận hàng", style: GREEN, icon: CheckCircle2 },
   EXPIRED: { label: "Quá hạn nhận", style: AMBER, icon: Timer },
 };
