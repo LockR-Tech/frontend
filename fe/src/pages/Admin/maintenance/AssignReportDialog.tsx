@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserCheck, Boxes, AlertTriangle, CheckCircle2, User, Phone } from "lucide-react";
 import {
   Dialog,
@@ -43,12 +43,18 @@ export function AssignReportDialog({
   const [selectedTechId, setSelectedTechId] = useState<string>("");
   const [assign, { isLoading }] = useAssignReportToTechnicianMutation();
 
+  useEffect(() => {
+    setSelectedTechId("");
+  }, [report?.id]);
+
   if (!report) return null;
 
   // Server chỉ nhận đúng vai trò: phiếu drone ⇒ DRONE_TECHNICIAN, còn lại LOCKER_TECHNICIAN
-  const requiredRole = isDroneReport(report) ? "DRONE_TECHNICIAN" : "LOCKER_TECHNICIAN";
+  const isDroneIncident = isDroneReport(report);
+  const requiredRole = isDroneIncident ? "DRONE_TECHNICIAN" : "LOCKER_TECHNICIAN";
   const hasRequiredRole = (t: TechnicianSummary) =>
     (t.roles ?? []).some((role) => role.replace(/^ROLE_/, "") === requiredRole);
+  const eligibleTechnicians = technicians.filter(hasRequiredRole);
 
   const handleAssign = async () => {
     if (!selectedTechId) {
@@ -86,7 +92,9 @@ export function AssignReportDialog({
             Phân công Kỹ thuật viên xử lý sự cố
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Giao phiếu sự cố Kiosk cho nhân sự kỹ thuật tiếp nhận và khắc phục tại hiện trường
+            {isDroneIncident
+              ? "Giao phiếu sự cố Drone cho KTV Drone tiếp nhận và khắc phục thiết bị bay"
+              : "Giao phiếu sự cố Kiosk cho nhân sự kỹ thuật tiếp nhận và khắc phục tại hiện trường"}
           </DialogDescription>
         </DialogHeader>
 
@@ -119,20 +127,20 @@ export function AssignReportDialog({
               <SelectValue placeholder="-- Chọn kỹ thuật viên sẵn sàng --" />
             </SelectTrigger>
             <SelectContent>
-              {technicians.map((t) => (
-                <SelectItem key={t.id} value={String(t.id)} disabled={!t.enabled || !hasRequiredRole(t)}>
+              {eligibleTechnicians.map((t) => (
+                <SelectItem key={t.id} value={String(t.id)} disabled={!t.enabled}>
                   <div className="flex items-center gap-2 py-0.5">
                     <span className="font-medium">{t.fullName}</span>
                     <span className="text-muted-foreground text-[11px]">
-                      (#{t.id} {t.phoneNumber ? `· ${t.phoneNumber}` : ""})
+                      ({t.phoneNumber ? `${t.phoneNumber}` : ""})
                     </span>
-                    {t.specialty === "KIOSK" ? (
-                      <span className="text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-sky-200">
-                        KTV Kiosk
-                      </span>
-                    ) : (
+                    {isDroneIncident ? (
                       <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-purple-200">
                         KTV Drone
+                      </span>
+                    ) : (
+                      <span className="text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-sky-200">
+                        KTV Kiosk
                       </span>
                     )}
                     {!t.enabled && (
@@ -143,6 +151,11 @@ export function AssignReportDialog({
                   </div>
                 </SelectItem>
               ))}
+              {eligibleTechnicians.length === 0 && (
+                <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                  Chưa có KTV {isDroneIncident ? "Drone" : "Kiosk"} phù hợp.
+                </div>
+              )}
             </SelectContent>
           </Select>
         </div>
