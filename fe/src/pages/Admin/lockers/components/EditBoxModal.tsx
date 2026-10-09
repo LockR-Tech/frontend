@@ -86,6 +86,7 @@ export function EditBoxModal({
       return;
     }
 
+    try {
       const normalizeBoxSize = (s: string) => {
         switch (s?.toUpperCase()) {
           case "S": return "SMALL";
