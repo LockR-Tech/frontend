@@ -22,6 +22,8 @@ import {
   Monitor,
   DoorOpen,
   DoorClosed,
+  Trash2,
+  Layers,
 } from "lucide-react";
 import {
   isXlCell,
@@ -34,6 +36,12 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "~/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -67,6 +75,10 @@ import {
   useReturnBoxToServiceMutation,
   useForceOpenBoxMutation,
   useAddBoxMutation,
+  useAddBoxesBatchMutation,
+  useDeleteBoxMutation,
+  useDeleteBoxByNumberMutation,
+  useDeleteBoxesBatchMutation,
   useGetStaffLockerQuery,
   useAssignLockerTechnicianMutation,
   useGetAllAdminReportsQuery,
@@ -128,7 +140,7 @@ function ActBtn({
   );
 }
 
-type BoxActionType = "FORCE_OPEN" | "FAULT" | "OUT_OF_SERVICE" | "CLEANING" | "RETURN" | "CLEAR_FAULT";
+type BoxActionType = "FORCE_OPEN" | "FAULT" | "OUT_OF_SERVICE" | "CLEANING" | "RETURN" | "CLEAR_FAULT" | "DELETE_BOX";
 
 interface BoxActionDialogState {
   open: boolean;
@@ -421,6 +433,15 @@ function CellTile({
                 </DropdownMenuItem>
               </>
             )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => onAction(cell, "DELETE_BOX")}
+              disabled={cell.status === "OCCUPIED" || cell.status === "RESERVED" || busy}
+              className="cursor-pointer text-rose-600 dark:text-rose-400 focus:text-rose-600 font-medium"
+              title={cell.status === "OCCUPIED" || cell.status === "RESERVED" ? "Không thể xóa ô đang chứa hàng hoặc đã giữ chỗ" : undefined}
+            >
+              <Trash2 className="w-3.5 h-3.5 mr-2" /> Xóa ô tủ này
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -463,6 +484,8 @@ export default function LockerLayoutPage() {
   const [returnToService, { isLoading: returning }] = useReturnBoxToServiceMutation();
   const [forceOpen, { isLoading: forceOpening }] = useForceOpenBoxMutation();
   const [addBox, { isLoading: isAddingBox }] = useAddBoxMutation();
+  const [addBoxesBatch, { isLoading: isAddingBoxesBatch }] = useAddBoxesBatchMutation();
+  const [deleteBox, { isLoading: isDeletingBox }] = useDeleteBoxMutation();
   const [pendingBox, setPendingBox] = useState<number | null>(null);
 
   const { subscribe } = useWebSocket({ autoConnect: true });
@@ -577,13 +600,22 @@ export default function LockerLayoutPage() {
     [reportsData, id],
   );
 
-  // Modal State for Adding a Box
+  // Modal State for Adding Box(es)
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addMode, setAddMode] = useState<"single" | "batch">("single");
   const [newBoxNumber, setNewBoxNumber] = useState<number | "">("");
   const [newCellType, setNewCellType] = useState<string>("STANDARD");
   const [newSize, setNewSize] = useState<string>("M");
   const [newRowIndex, setNewRowIndex] = useState<number>(2);
-  const [newColIndex, setNewColIndex] = useState<number>(3);
+  const [newColIndex, setNewColIndex] = useState<number>(1);
+  // Batch box creation state
+  const [batchMethod, setBatchMethod] = useState<"list" | "range">("list");
+  const [batchNumbersText, setBatchNumbersText] = useState<string>("");
+  const [batchStartNumber, setBatchStartNumber] = useState<number>(1);
+  const [batchCount, setBatchCount] = useState<number>(6);
+  const [batchStartRow, setBatchStartRow] = useState<number>(2);
+  const [batchStartCol, setBatchStartCol] = useState<number>(1);
+  const [batchColsPerRow, setBatchColsPerRow] = useState<number>(4);
 
   // Modal State for Editing Box Functionality
   const [showEditModal, setShowEditModal] = useState(false);
@@ -639,28 +671,94 @@ export default function LockerLayoutPage() {
     );
   }, [cells]);
 
+  const parsedBatchNumbers = useMemo(() => {
+    if (batchMethod === "range") {
+      const start = Number(batchStartNumber) || 1;
+      const count = Number(batchCount) || 0;
+      if (count <= 0) return [];
+      return Array.from({ length: Math.min(count, 50) }, (_, i) => start + i);
+    }
+    const parts = batchNumbersText.split(/[,;\s]+/).map((s) => s.trim()).filter(Boolean);
+    const result: number[] = [];
+    for (const part of parts) {
+      if (part.includes("-")) {
+        const [a, b] = part.split("-").map(Number);
+        if (!isNaN(a) && !isNaN(b) && a <= b && b - a < 50) {
+          for (let i = a; i <= b; i++) result.push(i);
+        }
+      } else {
+        const n = Number(part);
+        if (!isNaN(n) && n > 0) result.push(n);
+      }
+    }
+    return Array.from(new Set(result));
+  }, [batchMethod, batchStartNumber, batchCount, batchNumbersText]);
+
   const handleAddBox = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBoxNumber || !id) {
-      toast.error("Vui lòng nhập số ô tủ!");
-      return;
-    }
-    try {
-      await addBox({
-        lockerId: id,
-        boxNumber: Number(newBoxNumber),
-        cellType: newCellType,
-        size: newSize,
-        rowIndex: Number(newRowIndex),
-        colIndex: Number(newColIndex),
-        status: "AVAILABLE",
-      }).unwrap();
-      toast.success(`Đã thêm ô #${newBoxNumber} thành công!`);
-      setShowAddModal(false);
-      setNewBoxNumber("");
-      refetch();
-    } catch (err: any) {
-      toast.error(err?.data?.message ?? "Không thể thêm ô tủ mới");
+    if (!id) return;
+
+    if (addMode === "single") {
+      if (!newBoxNumber) {
+        toast.error("Vui lòng nhập số ô tủ!");
+        return;
+      }
+      try {
+        await addBox({
+          lockerId: id,
+          boxNumber: Number(newBoxNumber),
+          cellType: newCellType,
+          size: newSize,
+          rowIndex: Number(newRowIndex),
+          colIndex: Number(newColIndex),
+          status: "AVAILABLE",
+        }).unwrap();
+        toast.success(`Đã thêm ô #${newBoxNumber} thành công!`);
+        setShowAddModal(false);
+        setNewBoxNumber("");
+        refetch();
+      } catch (err: any) {
+        toast.error(err?.data?.message ?? "Không thể thêm ô tủ mới");
+      }
+    } else {
+      if (parsedBatchNumbers.length === 0) {
+        toast.error("Vui lòng nhập danh sách số ô hợp lệ cần tạo!");
+        return;
+      }
+      try {
+        let curRow = Number(batchStartRow) || 2;
+        let curCol = Number(batchStartCol) || 1;
+        const maxCol = Number(batchColsPerRow) || 4;
+
+        const boxes = parsedBatchNumbers.map((num) => {
+          const item = {
+            boxNumber: num,
+            cellType: newCellType,
+            size: newSize,
+            rowIndex: curRow,
+            colIndex: curCol,
+            status: "AVAILABLE",
+          };
+          curCol++;
+          if (curCol > maxCol) {
+            curCol = 1;
+            curRow++;
+          }
+          return item;
+        });
+
+        await addBoxesBatch({
+          lockerId: id,
+          data: { boxes },
+        }).unwrap();
+
+        toast.success(`Đã thêm thành công ${boxes.length} ô tủ vào trạm!`);
+        setShowAddModal(false);
+        setBatchNumbersText("");
+        refetch();
+      } catch (err: any) {
+        toast.error(err?.data?.message ?? "Không thể tạo danh sách ô tủ mới");
+      }
     }
   };
 
@@ -749,6 +847,18 @@ export default function LockerLayoutPage() {
           variant: "default",
         });
         break;
+      case "DELETE_BOX":
+        setActionDialog({
+          open: true,
+          cell,
+          type,
+          title: `Xác nhận xóa ô #${cell.boxNumber}?`,
+          description: `Ô tủ #${cell.boxNumber} sẽ bị xóa khỏi tủ ${layout?.name || ""}. Sơ đồ sẽ được cập nhật đồng bộ sang ứng dụng KTV và Kiosk ngay lập tức. Thao tác này không thể hoàn tác.`,
+          reason: "",
+          confirmLabel: "Xác nhận xóa ô",
+          variant: "destructive",
+        });
+        break;
     }
   };
 
@@ -785,6 +895,9 @@ export default function LockerLayoutPage() {
         toast.success(`Đã khôi phục ô #${cell.boxNumber}`, {
           description: `${nextStatus ? `Trạng thái hiện tại: ${STATUS_STYLE[nextStatus]?.label ?? nextStatus}. ` : ""}Phiếu sự cố đang mở của ô (nếu có) đã được đóng.`,
         });
+      } else if (type === "DELETE_BOX") {
+        await deleteBox(cell.id).unwrap();
+        toast.success(`Đã xóa ô #${cell.boxNumber} thành công!`);
       }
     } catch (err: any) {
       toast.error(err?.data?.message || err?.message || "Thao tác không thành công");
@@ -1210,7 +1323,7 @@ export default function LockerLayoutPage() {
               className="text-xs h-8"
               onClick={handleExecuteAction}
               disabled={
-                (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) ||
+                (faulting || clearing || oosing || cleaningBusy || returning || forceOpening || isDeletingBox) ||
                 (actionDialog.requireReason && !actionDialog.reason.trim())
               }
             >
@@ -1220,106 +1333,249 @@ export default function LockerLayoutPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Thêm ô tủ */}
+      {/* Dialog: Thêm ô tủ (Hỗ trợ tạo 1 ô hoặc tạo nhiều ô cùng lúc) */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[480px]">
           <form onSubmit={handleAddBox}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <BoxIcon className="w-5 h-5 text-primary" /> Thêm ô tủ mới vào Kiosk
               </DialogTitle>
               <DialogDescription>
-                Thêm một ô tủ vật lý mới vào tủ {layout?.name}. Ô mới sẽ đồng bộ ngay lập tức sang ứng dụng KTV.
+                Thêm một hoặc nhiều ô tủ vật lý vào {layout?.name}. Ô mới sẽ đồng bộ ngay lập tức sang ứng dụng KTV và Kiosk.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="boxNumber" className="text-right font-medium">
-                  Số ô (#)
-                </Label>
-                <Input
-                  id="boxNumber"
-                  type="number"
-                  placeholder="ví dụ: 3, 6, 9"
-                  value={newBoxNumber}
-                  onChange={(e) => setNewBoxNumber(e.target.value ? Number(e.target.value) : "")}
-                  className="col-span-3"
-                  required
-                />
+
+            <Tabs value={addMode} onValueChange={(v) => setAddMode(v as any)} className="w-full mt-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="single" className="flex items-center gap-1.5 text-xs">
+                  <BoxIcon className="w-3.5 h-3.5" /> Thêm 1 ô
+                </TabsTrigger>
+                <TabsTrigger value="batch" className="flex items-center gap-1.5 text-xs">
+                  <Layers className="w-3.5 h-3.5" /> Thêm nhiều ô (Hàng loạt)
+                </TabsTrigger>
+              </TabsList>
+
+              <div className="grid gap-4 py-4">
+                {addMode === "single" ? (
+                  <>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="boxNumber" className="text-right font-medium text-xs">
+                        Số ô (#)
+                      </Label>
+                      <Input
+                        id="boxNumber"
+                        type="number"
+                        placeholder="ví dụ: 12"
+                        value={newBoxNumber}
+                        onChange={(e) => setNewBoxNumber(e.target.value ? Number(e.target.value) : "")}
+                        className="col-span-3"
+                        required={addMode === "single"}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="rowIndex" className="text-right font-medium text-xs">
+                        Hàng (Row)
+                      </Label>
+                      <Input
+                        id="rowIndex"
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={newRowIndex}
+                        onChange={(e) => setNewRowIndex(Number(e.target.value))}
+                        className="col-span-3"
+                        required={addMode === "single"}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="colIndex" className="text-right font-medium text-xs">
+                        Cột (Col)
+                      </Label>
+                      <Input
+                        id="colIndex"
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={newColIndex}
+                        onChange={(e) => setNewColIndex(Number(e.target.value))}
+                        className="col-span-3"
+                        required={addMode === "single"}
+                      />
+                      <p className="text-[10px] text-muted-foreground col-span-3 col-start-2">
+                        Cột 0 dành cho khoang XL (dưới màn hình 7 inch); Cột 1, 2, ... cho các ô bên cạnh
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-center gap-5 p-1 bg-muted/30 rounded-lg border border-border/50 text-xs">
+                      <label className="flex items-center gap-2 cursor-pointer font-medium">
+                        <input
+                          type="radio"
+                          name="batchMethod"
+                          checked={batchMethod === "list"}
+                          onChange={() => setBatchMethod("list")}
+                          className="accent-primary"
+                        />
+                        Nhập danh sách số ô
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer font-medium">
+                        <input
+                          type="radio"
+                          name="batchMethod"
+                          checked={batchMethod === "range"}
+                          onChange={() => setBatchMethod("range")}
+                          className="accent-primary"
+                        />
+                        Tạo dải số liên tiếp
+                      </label>
+                    </div>
+
+                    {batchMethod === "list" ? (
+                      <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="batchList" className="text-right font-medium text-xs pt-2">
+                          Danh sách ô
+                        </Label>
+                        <div className="col-span-3 space-y-1.5">
+                          <Input
+                            id="batchList"
+                            placeholder="ví dụ: 3, 6, 9 hoặc 1-6"
+                            value={batchNumbersText}
+                            onChange={(e) => setBatchNumbersText(e.target.value)}
+                          />
+                          <p className="text-[10px] text-muted-foreground">
+                            Nhập các số cách nhau bởi dấu phẩy (VD: 3, 6, 9) hoặc dải số (VD: 1-6)
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right font-medium text-xs">Dải số</Label>
+                        <div className="col-span-3 grid grid-cols-2 gap-2">
+                          <div>
+                            <span className="text-[10px] text-muted-foreground block mb-1">Số bắt đầu (#)</span>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={batchStartNumber}
+                              onChange={(e) => setBatchStartNumber(Number(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-muted-foreground block mb-1">Số lượng ô</span>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={50}
+                              value={batchCount}
+                              onChange={(e) => setBatchCount(Number(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preview box numbers */}
+                    {parsedBatchNumbers.length > 0 && (
+                      <div className="bg-muted/40 p-2.5 rounded-lg border border-border/60 text-xs">
+                        <div className="flex items-center justify-between mb-1.5 font-medium">
+                          <span>Sẽ tạo {parsedBatchNumbers.length} ô:</span>
+                          <span className="text-[10px] text-muted-foreground">Tự động xếp hàng & cột</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                          {parsedBatchNumbers.map((n) => (
+                            <Badge key={n} variant="secondary" className="text-[10px] px-1.5 py-0 font-semibold">
+                              #{n}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-4 items-center gap-4 pt-1">
+                      <Label className="text-right font-medium text-xs">Bố cục ô</Label>
+                      <div className="col-span-3 grid grid-cols-3 gap-2">
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block mb-1">Hàng đầu</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={batchStartRow}
+                            onChange={(e) => setBatchStartRow(Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block mb-1">Cột đầu</span>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={batchStartCol}
+                            onChange={(e) => setBatchStartCol(Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block mb-1">Cột / Hàng</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={batchColsPerRow}
+                            onChange={(e) => setBatchColsPerRow(Number(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Common fields */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="cellType" className="text-right font-medium text-xs">
+                    Loại ô
+                  </Label>
+                  <Select value={newCellType} onValueChange={setNewCellType}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Chọn loại ô" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="STANDARD">Tiêu chuẩn (STANDARD)</SelectItem>
+                      <SelectItem value="DRONE">Tiếp nhận Drone (DRONE)</SelectItem>
+                      <SelectItem value="XL">Khoang vali lớn (XL)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="size" className="text-right font-medium text-xs">
+                    Kích cỡ
+                  </Label>
+                  <Select value={newSize} onValueChange={setNewSize}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Chọn kích cỡ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="S">Nhỏ (S)</SelectItem>
+                      <SelectItem value="M">Trung bình (M)</SelectItem>
+                      <SelectItem value="L">Lớn (L)</SelectItem>
+                      <SelectItem value="XL">Đặc biệt lớn (XL)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="cellType" className="text-right font-medium">
-                  Loại ô
-                </Label>
-                <Select value={newCellType} onValueChange={setNewCellType}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Chọn loại ô" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="STANDARD">Tiêu chuẩn (STANDARD)</SelectItem>
-                    <SelectItem value="DRONE">Tiếp nhận Drone (DRONE)</SelectItem>
-                    <SelectItem value="XL">Khoang vali lớn (XL)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="size" className="text-right font-medium">
-                  Kích cỡ
-                </Label>
-                <Select value={newSize} onValueChange={setNewSize}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Chọn kích cỡ" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="S">Nhỏ (S)</SelectItem>
-                    <SelectItem value="M">Trung bình (M)</SelectItem>
-                    <SelectItem value="L">Lớn (L)</SelectItem>
-                    <SelectItem value="XL">Đặc biệt lớn (XL)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="rowIndex" className="text-right font-medium">
-                  Hàng (Row)
-                </Label>
-                <Input
-                  id="rowIndex"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={newRowIndex}
-                  onChange={(e) => setNewRowIndex(Number(e.target.value))}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="colIndex" className="text-right font-medium">
-                  Cột (Col)
-                </Label>
-                <Input
-                  id="colIndex"
-                  type="number"
-                  min={0}
-                  max={10}
-                  value={newColIndex}
-                  onChange={(e) => setNewColIndex(Number(e.target.value))}
-                  className="col-span-3"
-                  required
-                />
-                <p className="text-[10px] text-muted-foreground col-span-3 col-start-2">
-                  Cột 0 dành cho khoang XL (dưới màn hình 7 inch); Cột 1, 2, ... cho các ô bên cạnh
-                </p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
-                Hủy
-              </Button>
-              <Button type="submit" disabled={isAddingBox}>
-                {isAddingBox ? "Đang thêm..." : "Thêm ô tủ"}
-              </Button>
-            </DialogFooter>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={isAddingBox || isAddingBoxesBatch}>
+                  {isAddingBox || isAddingBoxesBatch
+                    ? "Đang thêm..."
+                    : addMode === "single"
+                    ? "Thêm 1 ô tủ"
+                    : `Thêm ${parsedBatchNumbers.length > 0 ? parsedBatchNumbers.length : ""} ô tủ`}
+                </Button>
+              </DialogFooter>
+            </Tabs>
           </form>
         </DialogContent>
       </Dialog>
