@@ -16,11 +16,14 @@ export interface CellResponse {
   id: number;
   boxNumber: number;
   size: string | null;
-  cellType: 'DRONE' | 'STANDARD' | 'XL';
+  cellType: 'DRONE' | 'STANDARD' | 'XL' | string;
   rowIndex: number | null;
   colIndex: number | null;
   status: 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'FAULT' | string;
   faultReason: string | null;
+  doorOpen?: boolean;
+  hwState?: string | null;
+  isDrone?: boolean;
 }
 
 export interface BoxAccessLogResponse {
@@ -354,6 +357,29 @@ export interface TechnicianPerformanceResponse {
   ratings: TechnicianRatingItem[];
 }
 
+export interface BatchCreateBoxesRequest {
+  boxes?: Array<{
+    boxNumber: number;
+    size?: string;
+    status?: string;
+    cellType?: string;
+    rowIndex?: number;
+    colIndex?: number;
+  }>;
+  startBoxNumber?: number;
+  count?: number;
+  size?: string;
+  status?: string;
+  cellType?: string;
+  startRowIndex?: number;
+  startColIndex?: number;
+}
+
+export interface BatchDeleteBoxesRequest {
+  boxIds?: number[];
+  boxNumbers?: number[];
+}
+
 const TAG = 'Lockers' as const;
 
 export const lockerOpsApi = baseApi.injectEndpoints({
@@ -550,7 +576,20 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       query: ({ lockerId, ...body }) => ({
         url: `/api/admin/lockers/${lockerId}/boxes`,
         method: 'POST',
-        body,
+        body: { lockerId, ...body },
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Admin batch add boxes to locker (tạo nhiều ô cùng lúc)
+    addBoxesBatch: builder.mutation<
+      ApiResponse<CellResponse[]>,
+      { lockerId: number; data: BatchCreateBoxesRequest }
+    >({
+      query: ({ lockerId, data }) => ({
+        url: `/api/admin/lockers/${lockerId}/boxes/batch`,
+        method: 'POST',
+        body: data,
       }),
       invalidatesTags: [TAG],
     }),
@@ -577,11 +616,36 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
-    // Admin delete box
+    // Admin delete box by ID
     deleteBox: builder.mutation<ApiResponse<void>, number>({
       query: (boxId) => ({
         url: `/api/admin/lockers/boxes/${boxId}`,
         method: 'DELETE',
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Admin delete box by box number in locker
+    deleteBoxByNumber: builder.mutation<
+      ApiResponse<void>,
+      { lockerId: number; boxNumber: number }
+    >({
+      query: ({ lockerId, boxNumber }) => ({
+        url: `/api/admin/lockers/${lockerId}/boxes/by-number/${boxNumber}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Admin batch delete boxes (xóa nhiều ô cùng lúc)
+    deleteBoxesBatch: builder.mutation<
+      ApiResponse<{ deletedCount: number }>,
+      { lockerId: number; data: BatchDeleteBoxesRequest }
+    >({
+      query: ({ lockerId, data }) => ({
+        url: `/api/admin/lockers/${lockerId}/boxes/batch-delete`,
+        method: 'POST',
+        body: data,
       }),
       invalidatesTags: [TAG],
     }),
@@ -845,8 +909,11 @@ export const {
   useReturnBoxToServiceMutation,
   useForceOpenBoxMutation,
   useAddBoxMutation,
+  useAddBoxesBatchMutation,
   useUpdateBoxMutation,
   useDeleteBoxMutation,
+  useDeleteBoxByNumberMutation,
+  useDeleteBoxesBatchMutation,
   useGetLockerAccessLogsQuery,
   useGetReportLogsQuery,
   useAddReportLogMutation,

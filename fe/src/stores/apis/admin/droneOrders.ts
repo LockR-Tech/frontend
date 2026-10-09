@@ -88,6 +88,30 @@ export interface DroneOrderTracking {
   cancelNote: string | null;
   sourceLocker: DroneLockerPoint | null;
   destinationLocker: DroneLockerPoint | null;
+  /** Khai báo kiện lúc đặt đơn; kích thước và giá trị khai báo có thể null. */
+  parcelLengthCm?: number | null;
+  parcelWidthCm?: number | null;
+  parcelHeightCm?: number | null;
+  /** DOCUMENT | FOOD | CLOTHING | ELECTRONICS | COSMETICS | OTHER. */
+  parcelCategory?: string | null;
+  declaredValue?: number | null;
+  fragile?: boolean | null;
+  /** Khoảng cách đường chim bay tủ gửi → tủ nhận, mét. */
+  routeDistanceMeters?: number | null;
+  /** Người gửi xác nhận đã bỏ kiện vào ô gửi; null ⇒ đội bay chưa tiếp nhận được. */
+  parcelDroppedAt?: string | null;
+  /** Đơn đã đóng mà kiện chưa được trả cho người gửi. */
+  parcelReturnPending?: boolean | null;
+  /** SOURCE_BOX (còn trong ô gửi) | FLIGHT_TEAM (đội bay giữ). */
+  parcelHeldAt?: string | null;
+  parcelReturnedAt?: string | null;
+  parcelReturnNote?: string | null;
+  batteryPercentAtLaunch?: number | null;
+  landedAt?: string | null;
+  depositedAt?: string | null;
+  depositedByName?: string | null;
+  missionEndedAt?: string | null;
+  failedStage?: string | null;
   /** Mới nhất trước. */
   journeyEvents: DroneJourneyEvent[];
 }
@@ -106,7 +130,39 @@ export const droneOrderApi = baseApi.injectEndpoints({
       query: (orderId) => `/api/admin/drone-orders/${orderId}`,
       providesTags: (_result, _error, orderId) => [{ type: TAG, id: orderId }],
     }),
+
+    // Chuyến bay không giao được hàng sau khi đã phóng: đóng đơn, nhả ô nhận, drone
+    // chuyển FAULT và tạo yêu cầu hoàn tiền. reasonCode dùng chung bảng lý do huỷ.
+    failDroneOrder: builder.mutation<
+      ApiResponse<unknown>,
+      { orderId: number; reasonCode: number; note?: string }
+    >({
+      query: ({ orderId, reasonCode, note }) => ({
+        url: `/api/admin/drone-orders/${orderId}/fail`,
+        method: "POST",
+        body: { reasonCode, ...(note ? { note } : {}) },
+      }),
+      invalidatesTags: (_result, _error, { orderId }) => [TAG, { type: TAG, id: orderId }],
+    }),
+
+    // Đơn không giao được: xác nhận kiện đã về tay người gửi (nhả ô gửi nếu còn giữ).
+    confirmDroneParcelReturn: builder.mutation<
+      ApiResponse<DroneOrderTracking>,
+      { orderId: number; note?: string }
+    >({
+      query: ({ orderId, note }) => ({
+        url: `/api/admin/drone-orders/${orderId}/parcel-return`,
+        method: "POST",
+        body: note ? { note } : {},
+      }),
+      invalidatesTags: (_result, _error, { orderId }) => [TAG, { type: TAG, id: orderId }],
+    }),
   }),
 });
 
-export const { useGetDroneOrdersQuery, useGetDroneOrderQuery } = droneOrderApi;
+export const {
+  useGetDroneOrdersQuery,
+  useGetDroneOrderQuery,
+  useFailDroneOrderMutation,
+  useConfirmDroneParcelReturnMutation,
+} = droneOrderApi;

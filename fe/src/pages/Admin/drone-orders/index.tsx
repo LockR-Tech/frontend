@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, MapPin, Plane, RefreshCw, Route } from "lucide-react";
+import { Loader2, MapPin, Plane, RefreshCw, Route, TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -22,6 +23,8 @@ import {
 import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency } from "~/lib/report-format";
 import {
+  useConfirmDroneParcelReturnMutation,
+  useFailDroneOrderMutation,
   useGetDroneOrderQuery,
   useGetDroneOrdersQuery,
   type DroneJourneyEvent,
@@ -55,7 +58,12 @@ const MISSION_STATUS_LABELS: Record<string, string> = {
   APPROACHING: "Sắp tới tủ nhận",
   ARRIVED: "Đã tới tủ nhận",
   DEPOSITED: "Đã gửi hàng vào ô",
+  CANCELED: "Đã huỷ trước khi bay",
+  FAILED: "Chuyến bay thất bại",
 };
+
+/** Chặng drone đã phóng — chỉ ở các chặng này mới báo được chuyến bay thất bại. */
+const IN_FLIGHT_STAGES = new Set(["LAUNCHING", "DEPARTED", "EN_ROUTE", "APPROACHING", "ARRIVED"]);
 
 // Khớp DroneOrderMaintenanceService.cancelReasonLabel ở backend.
 const CANCEL_REASON_LABELS: Record<number, string> = {
@@ -74,7 +82,37 @@ function isFinished(order: DroneOrderTracking): boolean {
  * Đơn đã kết thúc thì trạng thái đơn quyết định nhãn: backend giữ
  * `deliveryStage = READY_FOR_PICKUP` sau khi khách lấy hàng.
  */
+/** Đơn đã đóng nhưng kiện còn chờ trả cho người gửi vẫn là việc đang phải làm. */
+function needsAction(order: DroneOrderTracking): boolean {
+  return !isFinished(order) || order.parcelReturnPending === true;
+}
+
+const PARCEL_CATEGORY_LABELS: Record<string, string> = {
+  DOCUMENT: "Tài liệu",
+  FOOD: "Đồ ăn",
+  CLOTHING: "Quần áo",
+  ELECTRONICS: "Điện tử",
+  COSMETICS: "Mỹ phẩm",
+  OTHER: "Khác",
+};
+
+function parcelSize(order: DroneOrderTracking): string | null {
+  const { parcelLengthCm: l, parcelWidthCm: w, parcelHeightCm: h } = order;
+  return l && w && h ? `${l} × ${w} × ${h} cm` : null;
+}
+
+function routeDistance(meters: number | null | undefined): string | null {
+  if (meters === null || meters === undefined) return null;
+  return meters < 1000 ? `${meters} m` : `${(meters / 1000).toFixed(1)} km`;
+}
+
+function isFlightFailure(order: DroneOrderTracking): boolean {
+  return order.status === "CANCELED" && order.deliveryStage === "FAILED";
+}
+
 function stageMeta(order: DroneOrderTracking): BadgeMeta {
+  // Chuyến bay thất bại đóng đơn là CANCELED, nhưng không phải "đã huỷ".
+  if (isFlightFailure(order)) return deliveryStageMeta("FAILED");
   return isFinished(order)
     ? orderStatusMeta(order.status)
     : deliveryStageMeta(order.deliveryStage);
@@ -141,7 +179,7 @@ export default function DroneOrdersPage() {
   const orders = useMemo(() => data?.data ?? [], [data]);
   const counts = useMemo(
     () => ({
-      active: orders.filter((o) => !isFinished(o)).length,
+      active: orders.filter(needsAction).length,
       inFlight: orders.filter(
         (o) =>
           !isFinished(o) &&
@@ -152,14 +190,14 @@ export default function DroneOrdersPage() {
       waiting: orders.filter(
         (o) => !isFinished(o) && o.deliveryStage === "AWAITING_DISPATCH",
       ).length,
-      finished: orders.filter(isFinished).length,
+      finished: orders.filter((o) => !needsAction(o)).length,
     }),
     [orders],
   );
 
   // Backend đã sắp theo lần cập nhật gần nhất: đơn vừa đổi chặng nằm trên cùng.
   const visible = orders.filter((o) =>
-    scope === "all" ? true : scope === "active" ? !isFinished(o) : isFinished(o),
+    scope === "all" ? true : scope === "active" ? needsAction(o) : !needsAction(o),
   );
 
   return (
@@ -349,7 +387,9 @@ function DroneOrderDialog({
 
             {order.status === "CANCELED" && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
-                Đơn đã huỷ
+                {isFlightFailure(order)
+                  ? "Chuyến bay thất bại sau khi phóng — đội bay trả kiện cho người gửi"
+                  : "Đơn đã huỷ"}
                 {order.cancelReason
                   ? ` · ${CANCEL_REASON_LABELS[order.cancelReason] ?? `Lý do #${order.cancelReason}`}`
                   : ""}
@@ -367,6 +407,14 @@ function DroneOrderDialog({
             <Section title="Bản đồ theo dõi">
               <DroneTrackingMap order={order} />
             </Section>
+
+            {(order.parcelReturnPending || order.parcelReturnedAt) && (
+              <ParcelReturnPanel order={order} />
+            )}
+
+            {!isFinished(order) && IN_FLIGHT_STAGES.has(order.deliveryStage ?? "") && (
+              <FlightFailureForm orderId={order.orderId} orderCode={order.orderCode} />
+            )}
 
             <Section title="Lộ trình · gửi và nhận">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -430,6 +478,24 @@ function DroneOrderDialog({
                 <LabelValue label="Mã giao dịch" mono>{order.paymentTransactionId}</LabelValue>
                 <Time label="Thanh toán lúc" value={order.paidAt} />
                 <LabelValue label="Khối lượng khai báo">{grams(order.parcelWeightGrams)}</LabelValue>
+                <LabelValue label="Loại hàng">
+                  {order.parcelCategory
+                    ? (PARCEL_CATEGORY_LABELS[order.parcelCategory] ?? order.parcelCategory)
+                    : null}
+                  {order.fragile ? " · DỄ VỠ" : ""}
+                </LabelValue>
+                <LabelValue label="Kích thước kiện">{parcelSize(order)}</LabelValue>
+                <LabelValue label="Giá trị khai báo">
+                  {order.declaredValue != null ? formatCurrency(order.declaredValue) : null}
+                </LabelValue>
+                <LabelValue label="Bỏ kiện vào ô gửi lúc">
+                  {order.parcelDroppedAt
+                    ? formatDateTime(order.parcelDroppedAt)
+                    : order.status === "AWAITING_DISPATCH" && order.deliveryStage === "AWAITING_DISPATCH"
+                      ? "Người gửi chưa bỏ kiện"
+                      : null}
+                </LabelValue>
+                <LabelValue label="Quãng đường bay">{routeDistance(order.routeDistanceMeters)}</LabelValue>
                 <LabelValue label="Hình thức bay">
                   {order.fulfillmentMode === "DEMO"
                     ? "Mô phỏng (DEMO)"
@@ -484,6 +550,26 @@ function DroneOrderDialog({
                   {checklist(order.compartmentLocked)}
                 </LabelValue>
                 <LabelValue label="Ghi chú nạp hàng">{order.loadingNote}</LabelValue>
+                <LabelValue label="Pin lúc cất cánh">
+                  {order.batteryPercentAtLaunch != null ? `${order.batteryPercentAtLaunch} %` : null}
+                </LabelValue>
+                <LabelValue label="Tới tủ nhận lúc">
+                  {order.landedAt ? formatDateTime(order.landedAt) : null}
+                </LabelValue>
+                <LabelValue label="Hàng vào ô lúc">
+                  {order.depositedAt ? formatDateTime(order.depositedAt) : null}
+                  {order.depositedAt
+                    ? ` · ${order.depositedByName ?? "hệ thống tự xác nhận"}`
+                    : ""}
+                </LabelValue>
+                {order.missionEndedAt ? (
+                  <LabelValue label="Nhiệm vụ kết thúc lúc">
+                    {formatDateTime(order.missionEndedAt)}
+                    {order.failedStage
+                      ? ` · hỏng ở chặng ${deliveryStageMeta(order.failedStage).label}`
+                      : ""}
+                  </LabelValue>
+                ) : null}
               </Grid>
             </Section>
 
@@ -524,6 +610,131 @@ function DroneOrderDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Kiện của đơn không giao được: đang ở đâu, và admin xác nhận đã trả cho người gửi. */
+function ParcelReturnPanel({ order }: { order: DroneOrderTracking }) {
+  const [confirmReturn, { isLoading }] = useConfirmDroneParcelReturnMutation();
+  const [note, setNote] = useState("");
+
+  if (order.parcelReturnedAt) {
+    return (
+      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-700">
+        Đã trả kiện cho người gửi lúc {formatDateTime(order.parcelReturnedAt)}
+        {order.parcelReturnNote ? ` · ${order.parcelReturnNote}` : ""}
+      </div>
+    );
+  }
+
+  const submit = async () => {
+    if (!confirm(`Xác nhận kiện của đơn ${order.orderCode} đã về tay người gửi?`)) return;
+    try {
+      await confirmReturn({ orderId: order.orderId, note: note.trim() || undefined }).unwrap();
+      toast.success(`Đã ghi nhận trả kiện đơn ${order.orderCode}`);
+    } catch (error) {
+      const message = (error as { data?: { message?: string } })?.data?.message;
+      toast.error("Không ghi nhận được việc trả kiện", {
+        description: message ?? "Vui lòng tải lại và thử lại.",
+      });
+    }
+  };
+
+  return (
+    <Section title="Kiện chờ trả cho người gửi">
+      <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+        <p className="text-sm text-amber-800">
+          {order.parcelHeldAt === "SOURCE_BOX"
+            ? `Kiện còn trong ô gửi${order.sourceBoxNumber ? ` số ${order.sourceBoxNumber}` : ""} — ô được giữ tới khi trả kiện.`
+            : "Kiện đang do đội bay giữ."}{" "}
+          Người gửi: {order.customerName ?? "—"}
+          {order.customerPhone ? ` · ${order.customerPhone}` : ""}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            aria-label="Ghi chú trả kiện"
+            className="h-9 min-w-48 flex-1 rounded-md border bg-background px-2 text-sm"
+            maxLength={500}
+            placeholder="Ghi chú (tuỳ chọn)"
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
+          <Button size="sm" disabled={isLoading} onClick={submit}>
+            {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+            Xác nhận đã trả kiện
+          </Button>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+/**
+ * Admin đóng một chuyến bay đã phóng mà không giao được hàng — dùng khi điều phối viên
+ * đã nhận nhiệm vụ không còn thao tác được, để đơn không kẹt mãi ở chặng bay.
+ */
+function FlightFailureForm({ orderId, orderCode }: { orderId: number; orderCode: string }) {
+  const [failOrder, { isLoading }] = useFailDroneOrderMutation();
+  const [reasonCode, setReasonCode] = useState(2);
+  const [note, setNote] = useState("");
+  const noteRequired = reasonCode === 5;
+
+  const submit = async () => {
+    const trimmed = note.trim();
+    if (noteRequired && !trimmed) {
+      toast.error("Cần nhập ghi chú khi chọn Lý do khác");
+      return;
+    }
+    if (
+      !confirm(
+        `Báo chuyến bay của đơn ${orderCode} thất bại? Đơn sẽ đóng lại, khách được tạo yêu cầu hoàn tiền và drone chuyển sang trạng thái lỗi. Không hoàn tác được.`,
+      )
+    )
+      return;
+    try {
+      await failOrder({ orderId, reasonCode, note: trimmed || undefined }).unwrap();
+      toast.success(`Đã báo chuyến bay đơn ${orderCode} thất bại`);
+    } catch (error) {
+      const message = (error as { data?: { message?: string } })?.data?.message;
+      toast.error("Không báo được chuyến bay thất bại", {
+        description: message ?? "Vui lòng tải lại và kiểm tra chặng hiện tại của đơn.",
+      });
+    }
+  };
+
+  return (
+    <Section title="Sự cố chuyến bay">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+        <select
+          aria-label="Lý do chuyến bay thất bại"
+          className="h-9 rounded-md border bg-background px-2 text-sm"
+          value={reasonCode}
+          onChange={(event) => setReasonCode(Number(event.target.value))}
+        >
+          {Object.entries(CANCEL_REASON_LABELS).map(([code, label]) => (
+            <option key={code} value={code}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <input
+          aria-label="Ghi chú sự cố"
+          className="h-9 min-w-48 flex-1 rounded-md border bg-background px-2 text-sm"
+          maxLength={500}
+          placeholder={noteRequired ? "Ghi chú (bắt buộc)" : "Ghi chú (tuỳ chọn)"}
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+        />
+        <Button variant="destructive" size="sm" disabled={isLoading} onClick={submit}>
+          {isLoading ? (
+            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          ) : (
+            <TriangleAlert className="mr-1 h-4 w-4" />
+          )}
+          Báo chuyến bay thất bại
+        </Button>
+      </div>
+    </Section>
   );
 }
 
