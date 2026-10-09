@@ -214,6 +214,10 @@ export const ADMIN_ENDPOINTS = {
     `${ROOT_URI.ADMIN}/knowledge/documents/${id}`,
   KNOWLEDGE_DOCUMENT_REINDEX: (id: number) =>
     `${ROOT_URI.ADMIN}/knowledge/documents/${id}/reindex`,
+  KNOWLEDGE_DOCUMENT_CHUNKS: (id: number) =>
+    `${ROOT_URI.ADMIN}/knowledge/documents/${id}/chunks`,
+  KNOWLEDGE_DOCUMENT_FILE: (id: number) =>
+    `${ROOT_URI.ADMIN}/knowledge/documents/${id}/file`,
   KNOWLEDGE_CONVERSATIONS: `${ROOT_URI.ADMIN}/knowledge/conversations`,
   KNOWLEDGE_CONVERSATION_BY_ID: (id: number) =>
     `${ROOT_URI.ADMIN}/knowledge/conversations/${id}`,
