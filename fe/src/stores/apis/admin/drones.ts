@@ -30,6 +30,14 @@ export interface DroneIncidentReportResponse {
   droneCode: string | null;
 }
 
+export interface DroneOperationLogResponse {
+  id: number;
+  droneUnitId: number;
+  actorUserId: number | null;
+  note: string;
+  createdAt: string;
+}
+
 const TAG = "Drones" as const;
 
 export const droneManagementApi = baseApi.injectEndpoints({
@@ -37,6 +45,28 @@ export const droneManagementApi = baseApi.injectEndpoints({
     getDrones: builder.query<ApiResponse<DroneResponse[]>, void>({
       query: () => "/api/admin/drones",
       providesTags: [TAG],
+    }),
+
+    getDrone: builder.query<ApiResponse<DroneResponse>, number>({
+      query: (id) => `/api/admin/drones/${id}`,
+      providesTags: (_result, _error, id) => [{ type: TAG, id }],
+    }),
+
+    getDroneOperationLogs: builder.query<ApiResponse<DroneOperationLogResponse[]>, number>({
+      query: (id) => `/api/admin/drones/${id}/logs`,
+      providesTags: (_result, _error, id) => [{ type: TAG, id: `logs-${id}` }],
+    }),
+
+    assignDroneTechnician: builder.mutation<
+      ApiResponse<DroneResponse>,
+      { id: number; technicianId: number | null }
+    >({
+      query: ({ id, technicianId }) => ({
+        url: `/api/admin/drones/${id}/assign`,
+        method: "PUT",
+        body: { technicianId },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [TAG, { type: TAG, id }, { type: TAG, id: `logs-${id}` }],
     }),
 
     createDrone: builder.mutation<
@@ -111,6 +141,9 @@ export const droneManagementApi = baseApi.injectEndpoints({
 
 export const {
   useGetDronesQuery,
+  useGetDroneQuery,
+  useGetDroneOperationLogsQuery,
+  useAssignDroneTechnicianMutation,
   useCreateDroneMutation,
   useUpdateDroneMutation,
   useDecommissionDroneMutation,
