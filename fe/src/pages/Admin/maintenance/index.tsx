@@ -1,4 +1,4 @@
-import { formatDateTime } from "~/lib/datetime";
+import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -156,7 +156,9 @@ function openDirections(location: LocationPayload) {
 
 function getRelativeAge(dateStr?: string | null): string {
   if (!dateStr) return "";
-  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const createdAt = parseBackendDateTime(dateStr);
+  if (!createdAt) return "";
+  const diffMs = Date.now() - createdAt.getTime();
   if (diffMs < 0) return "Vừa xong";
   const diffMins = Math.floor(diffMs / 60000);
   if (diffMins < 1) return "Vừa xong";
@@ -165,6 +167,10 @@ function getRelativeAge(dateStr?: string | null): string {
   if (diffHours < 24) return `${diffHours} giờ trước`;
   const diffDays = Math.floor(diffHours / 24);
   return `${diffDays} ngày trước`;
+}
+
+function timestampOf(value?: string | null): number {
+  return parseBackendDateTime(value)?.getTime() ?? 0;
 }
 
 export default function MaintenanceAdminPage() {
@@ -471,7 +477,7 @@ export default function MaintenanceAdminPage() {
           && !r.title.toLowerCase().includes(droneUnitFilter.toLowerCase())
         ) return false;
         if (droneDateFilter !== "ALL" && r.createdAt) {
-          const age = Date.now() - new Date(r.createdAt).getTime();
+          const age = Date.now() - timestampOf(r.createdAt);
           if (droneDateFilter === "TODAY" && age > 86400000) return false;
           if (droneDateFilter === "7_DAYS" && age > 7 * 86400000) return false;
           if (droneDateFilter === "30_DAYS" && age > 30 * 86400000) return false;
@@ -488,8 +494,8 @@ export default function MaintenanceAdminPage() {
         ].filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
       })
       .sort((a, b) => {
-        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        const timeA = timestampOf(a.createdAt);
+        const timeB = timestampOf(b.createdAt);
         if (droneReportSort === "OLDEST_FIRST") return timeA - timeB;
         if (droneReportSort === "PRIORITY_NEW") {
           const priorityA = a.status === "OPEN" ? 1 : 0;
@@ -555,7 +561,8 @@ export default function MaintenanceAdminPage() {
 
       // 4. Mốc thời gian
       if (dateFilter !== "ALL" && r.createdAt) {
-        const created = new Date(r.createdAt);
+        const created = parseBackendDateTime(r.createdAt);
+        if (!created) return false;
         const now = new Date();
         if (dateFilter === "TODAY") {
           const isToday =
@@ -596,8 +603,8 @@ export default function MaintenanceAdminPage() {
 
     // Sắp xếp: đảm bảo các phiếu khi vừa mới có phải hiển thị lên đầu tiên
     return list.sort((a, b) => {
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      const timeA = timestampOf(a.createdAt);
+      const timeB = timestampOf(b.createdAt);
 
       if (sortBy === "PRIORITY_NEW") {
         // Ưu tiên cao nhất: Phiếu OPEN hoặc Quá hạn SLA lên trước
@@ -608,8 +615,8 @@ export default function MaintenanceAdminPage() {
       }
 
       if (sortBy === "SLA_URGENT") {
-        const slaA = a.slaDueAt ? new Date(a.slaDueAt).getTime() : Infinity;
-        const slaB = b.slaDueAt ? new Date(b.slaDueAt).getTime() : Infinity;
+        const slaA = a.slaDueAt ? timestampOf(a.slaDueAt) : Infinity;
+        const slaB = b.slaDueAt ? timestampOf(b.slaDueAt) : Infinity;
         return slaA - slaB;
       }
 
@@ -1055,7 +1062,7 @@ export default function MaintenanceAdminPage() {
                 <div className="divide-y divide-border/60">
                   {filteredReports.map((r) => {
                     const isNew = r.status === "OPEN";
-                    const isRecent = r.createdAt && (Date.now() - new Date(r.createdAt).getTime()) < 3600000;
+                    const isRecent = r.createdAt && (Date.now() - timestampOf(r.createdAt)) < 3600000;
                     const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
 
                     return (
@@ -1915,8 +1922,8 @@ export default function MaintenanceAdminPage() {
 
             // Sắp xếp lịch sử: Mới hoàn tất nhất lên đầu
             historyItems.sort((a, b) => {
-              const tA = a.completedRawDate ? new Date(a.completedRawDate).getTime() : 0;
-              const tB = b.completedRawDate ? new Date(b.completedRawDate).getTime() : 0;
+              const tA = timestampOf(a.completedRawDate);
+              const tB = timestampOf(b.completedRawDate);
               return tB - tA;
             });
 
