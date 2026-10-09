@@ -19,6 +19,7 @@ import {
   Wrench,
   SlidersHorizontal,
   BookOpen,
+  ShieldAlert,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -65,6 +66,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     label: "admin.sidebar.droneOrders",
     permission: "admin_access",
   },
+  { icon: ShieldAlert, path: "/admin/incidents", label: "admin.sidebar.incidents", permission: "admin_access" },
   {
     icon: Package,
     path: "/admin/orders",

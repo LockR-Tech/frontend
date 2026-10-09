@@ -54,6 +54,7 @@ const DronesPage = lazy(() => import("../pages/Admin/drones"));
 const DroneOrdersPage = lazy(() => import("../pages/Admin/drone-orders"));
 const BusinessSettingsPage = lazy(() => import("../pages/Admin/settings"));
 const KnowledgePage = lazy(() => import("../pages/Admin/knowledge"));
+const ParcelDropIncidentsPage = lazy(() => import("../pages/Admin/incidents"));
 
 // Lazy load Auth Pages
 const LoginPage = lazy(() => import("~/pages/auth/Login"));
@@ -367,6 +368,7 @@ const routesConfig: RouteObject[] = [
           </LazyWrapper>
         ),
       },
+      { path: "incidents", element: <LazyWrapper><ParcelDropIncidentsPage /></LazyWrapper> },
       {
         path: "settings",
         element: (

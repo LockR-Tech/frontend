@@ -197,6 +197,12 @@ export const ADMIN_ENDPOINTS = {
   REPORT_ATTACHMENT_BY_ID: (id: number, attachmentId: number) =>
     `${ROOT_URI.ADMIN}/lockers/reports/${id}/attachments/${attachmentId}`,
 
+  PARCEL_DROP_INCIDENTS: "/api/incidents",
+  PARCEL_DROP_INCIDENT: (id: number) => `/api/incidents/${id}`,
+  PARCEL_DROP_ASSIGN: (id: number) => `/api/incidents/${id}/assign`,
+  PARCEL_DROP_CLOSE: (id: number) => `/api/incidents/${id}/close`,
+  PARCEL_DROP_COMPENSATION: (id: number, action: string) => `/api/incidents/${id}/compensation/${action}`,
+
   // Business settings (quy tắc nghiệp vụ theo từng service — ADR-0005)
   SETTINGS: `${ROOT_URI.ADMIN}/settings`,
   SETTINGS_BY_SCOPE: (scope: string) => `${ROOT_URI.ADMIN}/settings/${scope}`,

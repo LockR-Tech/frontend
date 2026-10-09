@@ -1,13 +1,17 @@
 import { useMemo, useState } from "react";
-import { Loader2, MapPin, Plane, RefreshCw, Route } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AlertTriangle, Camera, CheckCircle2, Loader2, MapPin, Plane, RefreshCw, Route, WifiOff } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { Textarea } from "~/components/ui/textarea";
 import { PageHeader } from "~/components/shared/page-header";
 import {
   LabelValue,
@@ -29,6 +33,7 @@ import {
 } from "~/stores/apis/admin/droneOrders";
 import { DroneJourneyTimeline } from "./DroneJourneyTimeline";
 import { DroneTrackingMap } from "./DroneTrackingMap";
+import { useCreateParcelDropIncidentMutation, type ParcelDropIncident } from "~/stores/apis/admin/parcelDropIncidents";
 import { isPickupCodeEvent, pickupCodeEvent, sentAt, stageTimes } from "./journey";
 
 /** Danh sách hỏi lại server sau mỗi khoảng này để chặng mới tự hiện, không cần tải lại trang. */
@@ -325,6 +330,8 @@ function DroneOrderDialog({
               Tự cập nhật mỗi 3 giây · cập nhật cuối {formatDateTime(order.updatedAt)}
             </p>
 
+            <DroneIncidentMonitor order={order} />
+
             {order.status === "CANCELED" && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
                 Đơn đã huỷ
@@ -500,6 +507,164 @@ function DroneOrderDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DroneIncidentMonitor({ order }: { order: DroneOrderTracking }) {
+  const navigate = useNavigate();
+  const [createIncident, state] = useCreateParcelDropIncidentMutation();
+  const [incidentType, setIncidentType] = useState<"PARCEL_DROP" | "CONNECTION_LOST" | null>(null);
+  const [note, setNote] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [createdIncident, setCreatedIncident] = useState<ParcelDropIncident | null>(null);
+  const canReport = Boolean(order.droneUnitId) && ["LAUNCHING", "DEPARTED", "EN_ROUTE", "APPROACHING", "ARRIVED"].includes(order.deliveryStage ?? "");
+
+  const openReportModal = (type: "PARCEL_DROP" | "CONNECTION_LOST") => {
+    setIncidentType(type);
+    setNote("");
+    setErrorMessage(null);
+    setCreatedIncident(null);
+  };
+
+  const closeReportModal = () => {
+    if (state.isLoading) return;
+    setIncidentType(null);
+    setNote("");
+    setErrorMessage(null);
+    setCreatedIncident(null);
+  };
+
+  const report = async () => {
+    if (!order.droneUnitId || !incidentType) return;
+    setErrorMessage(null);
+    try {
+      const response = await createIncident({
+        droneId: order.droneUnitId,
+        orderId: order.orderId,
+        incidentType,
+        note: note.trim() || undefined,
+      }).unwrap();
+      setCreatedIncident(response.data);
+    } catch (error: any) {
+      setErrorMessage(error?.data?.message ?? "Không thể tạo phiếu. Vui lòng kiểm tra trạng thái đơn.");
+    }
+  };
+
+  const incidentLabel = incidentType === "PARCEL_DROP" ? "Rơi kiện hàng" : "Mất kết nối drone";
+
+  return (
+    <>
+      <Section title="Camera & cảnh báo chuyến bay">
+        <div className="grid gap-3 lg:grid-cols-[1.5fr_1fr]">
+          <div className="flex min-h-48 items-center justify-center rounded-lg border bg-slate-950 text-slate-200">
+            <div className="space-y-2 px-6 text-center">
+              <Camera className="mx-auto h-8 w-8 text-sky-400" />
+              <p className="text-sm font-semibold">Camera drone · {order.droneCode ?? `#${order.droneUnitId ?? "—"}`}</p>
+              <p className="text-xs text-slate-400">Khung giám sát đã sẵn sàng. Chưa có camera stream URL từ thiết bị nên không phát video giả.</p>
+            </div>
+          </div>
+          <div className="space-y-2 rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Báo thủ công khi quan sát camera hoặc telemetry bất thường.</p>
+            <Button className="w-full justify-start" variant="destructive" disabled={!canReport || state.isLoading} onClick={() => openReportModal("PARCEL_DROP")}>
+              <AlertTriangle className="mr-2 h-4 w-4" /> Báo rơi kiện hàng
+            </Button>
+            <Button className="w-full justify-start" variant="outline" disabled={!canReport || state.isLoading} onClick={() => openReportModal("CONNECTION_LOST")}>
+              <WifiOff className="mr-2 h-4 w-4" /> Báo mất kết nối
+            </Button>
+            {!canReport && <p className="text-xs text-amber-700">Chỉ báo sự cố khi đơn đã có drone và đang trong chặng bay.</p>}
+          </div>
+        </div>
+      </Section>
+
+      <Dialog open={incidentType !== null} onOpenChange={(open) => !open && closeReportModal()}>
+        <DialogContent className="sm:max-w-lg">
+          {createdIncident ? (
+            <>
+              <DialogHeader>
+                <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <DialogTitle>Đã tạo phiếu báo cáo</DialogTitle>
+                <DialogDescription>
+                  Thông báo đã được gửi đến các bên liên quan. Bạn có thể mở phiếu để theo dõi xử lý.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="rounded-lg border bg-muted/30 p-4 text-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Mã phiếu</span>
+                  <span className="font-mono font-semibold">{createdIncident.incidentNumber}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Loại sự cố</span>
+                  <span className="font-medium">{incidentLabel}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Đơn hàng</span>
+                  <span className="font-medium">{order.orderCode}</span>
+                </div>
+                {createdIncident.metadata?.latitude != null && createdIncident.metadata?.longitude != null && (
+                  <div className="mt-2 flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Vị trí cuối của drone</span>
+                    <a
+                      className="font-mono text-xs font-semibold text-primary hover:underline"
+                      href={`https://www.google.com/maps/search/?api=1&query=${createdIncident.metadata.latitude},${createdIncident.metadata.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {Number(createdIncident.metadata.latitude).toFixed(6)}, {Number(createdIncident.metadata.longitude).toFixed(6)}
+                    </a>
+                  </div>
+                )}
+                {createdIncident.metadata?.technicianStationLockerCode != null && (
+                  <div className="mt-2 flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Đã chuyển xử lý</span>
+                    <span className="text-right font-medium">
+                      KTV drone tại trạm {String(createdIncident.metadata.technicianStationLockerCode)} · {String(createdIncident.metadata.technicianDistanceKm)} km
+                    </span>
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={closeReportModal}>Đóng</Button>
+                <Button onClick={() => navigate(`/admin/incidents?incident=${createdIncident.id}`)}>
+                  Xem phiếu báo cáo
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Báo sự cố: {incidentLabel}</DialogTitle>
+                <DialogDescription>
+                  Phiếu sẽ được tạo cho đơn {order.orderCode} · {order.droneCode ?? `Drone #${order.droneUnitId}`} và gửi thông báo đến các bên liên quan.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2 py-1">
+                <label htmlFor="drone-incident-note" className="text-sm font-medium">Ghi chú quan sát</label>
+                <Textarea
+                  id="drone-incident-note"
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  maxLength={1000}
+                  rows={5}
+                  autoFocus
+                  placeholder={incidentType === "PARCEL_DROP" ? "Ví dụ: Camera ghi nhận kiện rơi khỏi khoang tại đoạn gần tủ đích..." : "Ví dụ: Mất camera và telemetry từ 14:25, lần cuối thấy drone gần tủ đích..."}
+                />
+                <p className="text-right text-xs text-muted-foreground">{note.length}/1000</p>
+                {errorMessage && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{errorMessage}</p>}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={closeReportModal} disabled={state.isLoading}>Hủy</Button>
+                <Button variant={incidentType === "PARCEL_DROP" ? "destructive" : "default"} onClick={report} disabled={state.isLoading}>
+                  {state.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Tạo phiếu và gửi thông báo
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

@@ -136,6 +136,7 @@ export const baseApi = createApi({
     "KnowledgeDocuments", // Kho tri thức của trợ lý hỏi đáp (assistant-service)
     "AssistantConversations", // Hội thoại của trợ lý (admin xem lại chất lượng)
     "KnowledgeEvalCases", // Bộ câu hỏi đánh giá truy xuất
+    "Incidents",
   ],
 
   endpoints: () => ({}),

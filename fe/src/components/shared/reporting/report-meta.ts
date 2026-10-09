@@ -117,6 +117,7 @@ const DELIVERY_STAGE_META: Record<string, BadgeMeta> = {
   EN_ROUTE: { label: "Đang bay", style: BLUE, icon: Plane },
   APPROACHING: { label: "Sắp tới nơi", style: BLUE, icon: Plane },
   ARRIVED: { label: "Đã tới nơi", style: GREEN, icon: CheckCircle2 },
+  INCIDENT_INTERRUPTED: { label: "Bị gián đoạn do sự cố", style: RED, icon: XCircle },
   READY_FOR_PICKUP: { label: "Sẵn sàng lấy hàng", style: GREEN, icon: PackageCheck },
   // Chặng kết thúc — backend đặt deliveryStage theo trạng thái đơn khi đơn drone đóng.
   CANCELED: { label: "Đã huỷ", style: RED, icon: XCircle },
