@@ -573,7 +573,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       query: ({ lockerId, ...body }) => ({
         url: `/api/admin/lockers/${lockerId}/boxes`,
         method: 'POST',
-        body,
+        body: { lockerId, ...body },
       }),
       invalidatesTags: [TAG],
     }),

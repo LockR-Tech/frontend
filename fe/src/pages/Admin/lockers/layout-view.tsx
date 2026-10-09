@@ -701,9 +701,26 @@ export default function LockerLayoutPage() {
     return Array.from(new Set(result));
   }, [batchMethod, batchStartNumber, batchCount, batchNumbersText]);
 
+  const normalizeBoxSize = (s: string) => {
+    switch (s?.toUpperCase()) {
+      case "S":
+        return "SMALL";
+      case "M":
+        return "MEDIUM";
+      case "L":
+        return "LARGE";
+      case "XL":
+        return "XL";
+      default:
+        return s || "MEDIUM";
+    }
+  };
+
   const handleAddBox = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
+
+    const chosenSize = normalizeBoxSize(newSize);
 
     if (addMode === "single") {
       if (!newBoxNumber) {
@@ -715,7 +732,7 @@ export default function LockerLayoutPage() {
           lockerId: id,
           boxNumber: Number(newBoxNumber),
           cellType: newCellType,
-          size: newSize,
+          size: chosenSize,
           rowIndex: Number(newRowIndex),
           colIndex: Number(newColIndex),
           status: "AVAILABLE",
@@ -725,7 +742,7 @@ export default function LockerLayoutPage() {
         setNewBoxNumber("");
         refetch();
       } catch (err: any) {
-        toast.error(err?.data?.message ?? "Không thể thêm ô tủ mới");
+        toast.error(err?.data?.message || err?.message || "Không thể thêm ô tủ mới");
       }
     } else {
       if (parsedBatchNumbers.length === 0) {
@@ -741,7 +758,7 @@ export default function LockerLayoutPage() {
           const item = {
             boxNumber: num,
             cellType: newCellType,
-            size: newSize,
+            size: chosenSize,
             rowIndex: curRow,
             colIndex: curCol,
             status: "AVAILABLE",
@@ -754,17 +771,38 @@ export default function LockerLayoutPage() {
           return item;
         });
 
-        await addBoxesBatch({
-          lockerId: id,
-          data: { boxes },
-        }).unwrap();
+        // Thử gọi endpoint batch trước. Nếu backend remote chưa deploy (404/500), tự động fallback tạo tuần tự từng ô.
+        let batchSucceeded = false;
+        try {
+          await addBoxesBatch({
+            lockerId: id,
+            data: { boxes },
+          }).unwrap();
+          batchSucceeded = true;
+        } catch (batchErr: any) {
+          // Fallback tạo từng ô qua addBox (đã có sẵn trên backend)
+          for (const box of boxes) {
+            await addBox({
+              lockerId: id,
+              boxNumber: box.boxNumber,
+              cellType: box.cellType,
+              size: box.size,
+              rowIndex: box.rowIndex,
+              colIndex: box.colIndex,
+              status: box.status,
+            }).unwrap();
+          }
+          batchSucceeded = true;
+        }
 
-        toast.success(`Đã thêm thành công ${boxes.length} ô tủ vào trạm!`);
-        setShowAddModal(false);
-        setBatchNumbersText("");
-        refetch();
+        if (batchSucceeded) {
+          toast.success(`Đã thêm thành công ${boxes.length} ô tủ vào trạm!`);
+          setShowAddModal(false);
+          setBatchNumbersText("");
+          refetch();
+        }
       } catch (err: any) {
-        toast.error(err?.data?.message ?? "Không thể tạo danh sách ô tủ mới");
+        toast.error(err?.data?.message || err?.message || "Không thể tạo danh sách ô tủ mới");
       }
     }
   };

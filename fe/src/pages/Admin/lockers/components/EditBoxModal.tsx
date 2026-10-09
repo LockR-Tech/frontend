@@ -86,12 +86,21 @@ export function EditBoxModal({
       return;
     }
 
-    try {
+      const normalizeBoxSize = (s: string) => {
+        switch (s?.toUpperCase()) {
+          case "S": return "SMALL";
+          case "M": return "MEDIUM";
+          case "L": return "LARGE";
+          case "XL": return "XL";
+          default: return s || "MEDIUM";
+        }
+      };
+
       await updateBox({
         boxId: cell.id,
         boxNumber: Number(boxNumber),
         cellType,
-        size,
+        size: normalizeBoxSize(size),
         rowIndex: Number(rowIndex),
         colIndex: Number(colIndex),
         status,
