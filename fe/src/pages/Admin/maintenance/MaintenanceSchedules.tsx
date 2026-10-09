@@ -26,7 +26,17 @@ import {
   MapPin,
   Building2,
   Navigation,
+  DoorOpen,
+  Luggage,
 } from "lucide-react";
+import {
+  isXlCell,
+  isDroneCell,
+  isDoorOpen,
+  getCellTypeLabel,
+  getCellStatusLabel,
+  getStatusDotColor,
+} from "~/lib/lockerLayoutHelper";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
@@ -1848,26 +1858,113 @@ export function MaintenanceSchedules() {
                       </p>
                     )}
                     {inspectLockerId != null && (
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[11px] font-semibold text-rose-900 dark:text-rose-200">
-                          Ô bị hỏng (tuỳ chọn)
-                        </label>
-                        <select
-                          className="h-8 rounded-md border px-2 text-xs bg-background border-border/80"
-                          value={faultBoxId}
-                          onChange={(e) => setFaultBoxId(e.target.value ? Number(e.target.value) : "")}
-                        >
-                          <option value="">— Không chọn ô (phiếu cho cả tủ) —</option>
-                          {inspectCells.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              Ô #{c.boxNumber}
-                              {c.cellType === "DRONE" ? " (Drone)" : ""} · {CELL_STATUS_LABEL[c.status] ?? c.status}
-                            </option>
-                          ))}
-                        </select>
-                        <p className="text-[10px] text-rose-700 dark:text-rose-300">
-                          Chọn ô ⇒ ô chuyển sang Hỏng; ô đã có phiếu đang mở thì kết quả được gộp vào phiếu đó.
-                        </p>
+                      <div className="flex flex-col gap-2 pt-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-semibold text-rose-900 dark:text-rose-200">
+                            Chọn ô gặp sự cố tại Kiosk: (Tuỳ chọn)
+                          </label>
+                          {faultBoxId !== "" && (
+                            <button
+                              type="button"
+                              onClick={() => setFaultBoxId("")}
+                              className="text-[10px] text-muted-foreground hover:text-foreground underline cursor-pointer"
+                            >
+                              Bỏ chọn ô (báo cả tủ)
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Lưới chọn ô trực quan đồng bộ Mobile */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-2 rounded-lg bg-background border border-border/80 max-h-48 overflow-y-auto">
+                          <button
+                            type="button"
+                            onClick={() => setFaultBoxId("")}
+                            className={`p-2 rounded-md border text-left text-xs transition-all flex flex-col justify-between cursor-pointer ${
+                              faultBoxId === ""
+                                ? "bg-rose-50 border-rose-400 text-rose-950 font-semibold ring-1 ring-rose-400/50"
+                                : "bg-muted/30 border-border hover:bg-muted/60 text-muted-foreground"
+                            }`}
+                          >
+                            <span className="text-[11px] font-bold">Cả trạm Kiosk</span>
+                            <span className="text-[9px] mt-1 text-muted-foreground">Không gán ô riêng</span>
+                          </button>
+
+                          {inspectCells.map((c) => {
+                            const isSel = faultBoxId === c.id;
+                            const isXl = isXlCell(c);
+                            const isDrone = isDroneCell(c);
+                            const doorOpen = isDoorOpen(c);
+                            const statusLabel = getCellStatusLabel(c);
+                            const dotColor = getStatusDotColor(c.status);
+
+                            return (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => setFaultBoxId(c.id)}
+                                className={`p-2 rounded-md border text-left text-xs transition-all relative flex flex-col justify-between cursor-pointer ${
+                                  isSel
+                                    ? "bg-rose-50 border-rose-500 text-rose-950 font-bold ring-2 ring-rose-400 shadow-xs"
+                                    : doorOpen
+                                    ? "border-amber-400 bg-amber-50/40 hover:bg-amber-50/70 text-foreground"
+                                    : "border-border bg-card hover:bg-muted/40 text-foreground"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span className="font-bold text-xs flex items-center gap-1">
+                                    <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+                                    #{c.boxNumber}
+                                  </span>
+                                  {isDrone && (
+                                    <Badge className="bg-indigo-600 text-white border-0 text-[8px] font-bold px-1 py-0 h-3.5">
+                                      Drone
+                                    </Badge>
+                                  )}
+                                  {isXl && (
+                                    <Badge className="bg-cyan-600 text-white border-0 text-[8px] font-bold px-1 py-0 h-3.5">
+                                      XL
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center justify-between w-full mt-1.5 text-[9px]">
+                                  <span className="truncate text-muted-foreground">{statusLabel}</span>
+                                  {doorOpen ? (
+                                    <span className="text-amber-700 font-bold flex items-center gap-0.5">
+                                      <DoorOpen className="w-2.5 h-2.5 animate-pulse" /> Mở
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400">Đóng</span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Note để KTV / Admin nhìn vô biết ngay ô nào */}
+                        {faultBoxId !== "" ? (
+                          (() => {
+                            const selectedCell = inspectCells.find((c) => c.id === faultBoxId);
+                            if (!selectedCell) return null;
+                            return (
+                              <div className="p-2 rounded-md bg-rose-50/90 border border-rose-200 text-rose-900 dark:bg-rose-950/60 dark:border-rose-800 dark:text-rose-200 text-[11px] space-y-0.5">
+                                <p className="font-semibold flex items-center gap-1">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                                  Đã chọn: Ô #{selectedCell.boxNumber} ({getCellTypeLabel(selectedCell)}) · {getCellStatusLabel(selectedCell)}
+                                  {isDoorOpen(selectedCell) && " · Cửa đang mở"}
+                                </p>
+                                <p className="text-[10px] text-rose-700 dark:text-rose-300">
+                                  Hệ thống sẽ chuyển ô #{selectedCell.boxNumber} sang trạng thái HỎNG và mở phiếu sự cố gán trực tiếp với ô này.
+                                </p>
+                              </div>
+                            );
+                          })()
+                        ) : (
+                          <p className="text-[10px] text-rose-700 dark:text-rose-300">
+                            Chọn ô ⇒ ô chuyển sang Hỏng; ô đã có phiếu đang mở thì kết quả được gộp vào phiếu đó. Không chọn ô ⇒ sự cố cấp toàn bộ tủ.
+                          </p>
+                        )}
                       </div>
                     )}
                     {inspectingSchedule.lockerId != null && (

@@ -20,11 +20,28 @@ import {
   Sliders,
   Printer,
   Monitor,
+  DoorOpen,
+  DoorClosed,
+  Trash2,
+  Layers,
 } from "lucide-react";
+import {
+  isXlCell,
+  isDroneCell,
+  isDoorOpen,
+  getCellTypeLabel,
+  getCellStatusLabel,
+} from "~/lib/lockerLayoutHelper";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "~/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -58,6 +75,10 @@ import {
   useReturnBoxToServiceMutation,
   useForceOpenBoxMutation,
   useAddBoxMutation,
+  useAddBoxesBatchMutation,
+  useDeleteBoxMutation,
+  useDeleteBoxByNumberMutation,
+  useDeleteBoxesBatchMutation,
   useGetStaffLockerQuery,
   useAssignLockerTechnicianMutation,
   useGetAllAdminReportsQuery,
@@ -87,12 +108,12 @@ const SUSPENDED_LOCKER_STATUSES = ["MAINTENANCE", "INACTIVE"];
 const NO_TECHNICIAN = "NONE";
 
 const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
-  AVAILABLE: { label: "Trống", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
-  RESERVED: { label: "Đã giữ chỗ", cls: "bg-secondary border-border text-foreground" },
-  OCCUPIED: { label: "Có đồ", cls: "bg-secondary border-border text-foreground" },
+  AVAILABLE: { label: "Sẵn sàng", cls: "bg-cyan-500/10 border-cyan-500/20 text-cyan-700 dark:text-cyan-400" },
+  RESERVED: { label: "Đã đặt", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
+  OCCUPIED: { label: "Đang dùng", cls: "bg-secondary border-border text-foreground" },
   FAULT: { label: "Hỏng", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
   OUT_OF_SERVICE: { label: "Ngưng dùng", cls: "bg-secondary/40 border-border text-muted-foreground" },
-  CLEANING: { label: "Đang vệ sinh", cls: "bg-secondary border-border text-muted-foreground" },
+  CLEANING: { label: "Bảo trì", cls: "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400" },
 };
 
 function ActBtn({
@@ -119,7 +140,7 @@ function ActBtn({
   );
 }
 
-type BoxActionType = "FORCE_OPEN" | "FAULT" | "OUT_OF_SERVICE" | "CLEANING" | "RETURN" | "CLEAR_FAULT";
+type BoxActionType = "FORCE_OPEN" | "FAULT" | "OUT_OF_SERVICE" | "CLEANING" | "RETURN" | "CLEAR_FAULT" | "DELETE_BOX";
 
 interface BoxActionDialogState {
   open: boolean;
@@ -146,9 +167,10 @@ function CellTile({
   onShowQr: (cell: CellResponse) => void;
   busy: boolean;
 }) {
-  const isDrone =
-    cell.cellType === "DRONE" ||
-    (!cell.cellType && cell.cellType !== "XL" && cell.boxNumber !== 1 && (cell.boxNumber === 2 || cell.boxNumber === 3));
+  const isXl = isXlCell(cell);
+  const isDrone = isDroneCell(cell);
+  const doorOpen = isDoorOpen(cell);
+
   let bgClass = "bg-card";
   let borderClass = "border-border";
   let textClass = "text-foreground";
@@ -169,36 +191,65 @@ function CellTile({
         </span>
       );
     } else {
-      bgClass = "bg-sky-100/90 dark:bg-sky-950/70";
-      borderClass = "border-sky-400 dark:border-sky-600 ring-2 ring-sky-400/30 shadow-xs";
-      textClass = "text-sky-950 dark:text-sky-100";
+      bgClass = "bg-indigo-50/90 dark:bg-indigo-950/60";
+      borderClass = "border-indigo-300 dark:border-indigo-600 ring-2 ring-indigo-400/30 shadow-xs";
+      textClass = "text-indigo-950 dark:text-indigo-100";
       statusBadge = (
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-800 dark:text-sky-300 z-10">
-          <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" /> Sẵn sàng nhận Drone
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-800 dark:text-indigo-300 z-10">
+          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> Sẵn sàng nhận Drone
+        </span>
+      );
+    }
+  } else if (isXl) {
+    if (cell.status === "FAULT") {
+      bgClass = "bg-rose-50/95 dark:bg-rose-950/50";
+      borderClass = "border-rose-400 dark:border-rose-700 ring-1 ring-rose-400/30 shadow-xs";
+      textClass = "text-rose-950 dark:text-rose-100";
+      statusBadge = (
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 z-10">
+          <AlertTriangle className="w-3.5 h-3.5" /> Báo hỏng (Vali XL)
+        </span>
+      );
+    } else {
+      bgClass = "bg-cyan-50/90 dark:bg-cyan-950/60";
+      borderClass = "border-cyan-300 dark:border-cyan-600 shadow-xs";
+      textClass = "text-cyan-950 dark:text-cyan-100";
+      statusBadge = (
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-800 dark:text-cyan-300 z-10">
+          <span className="w-2 h-2 rounded-full bg-cyan-500" /> Ô trống (Vali XL)
         </span>
       );
     }
   } else {
     switch (cell.status) {
       case "AVAILABLE":
-        bgClass = "bg-emerald-50/95 dark:bg-emerald-950/50";
-        borderClass = "border-emerald-300 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500 shadow-xs";
-        textClass = "text-emerald-950 dark:text-emerald-100";
+        bgClass = "bg-sky-50/90 dark:bg-sky-950/60";
+        borderClass = "border-sky-300 dark:border-sky-700 hover:border-sky-400 shadow-xs";
+        textClass = "text-sky-950 dark:text-sky-100";
         statusBadge = (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 z-10">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống (Sẵn sàng)
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-800 dark:text-sky-300 z-10">
+            <span className="w-2 h-2 rounded-full bg-sky-500" /> Ô trống (Sẵn sàng)
           </span>
         );
         break;
       case "OCCUPIED":
       case "IN_USE":
+        bgClass = "bg-slate-100/90 dark:bg-slate-800/80";
+        borderClass = "border-slate-300 dark:border-slate-600 shadow-xs";
+        textClass = "text-slate-800 dark:text-slate-200";
+        statusBadge = (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 z-10">
+            <span className="w-2 h-2 rounded-full bg-slate-500" /> Đang chứa hàng
+          </span>
+        );
+        break;
       case "RESERVED":
-        bgClass = "bg-amber-50/95 dark:bg-amber-950/50";
+        bgClass = "bg-amber-50/90 dark:bg-amber-950/50";
         borderClass = "border-amber-300 dark:border-amber-700 shadow-xs";
         textClass = "text-amber-950 dark:text-amber-100";
         statusBadge = (
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 z-10">
-            <span className="w-2 h-2 rounded-full bg-amber-500" /> Đang chứa hàng
+            <span className="w-2 h-2 rounded-full bg-amber-500" /> Đã giữ chỗ
           </span>
         );
         break;
@@ -227,26 +278,41 @@ function CellTile({
     }
   }
 
+  // Viền cảnh báo khi cửa mở
+  const doorRingClass = doorOpen
+    ? "ring-2 ring-amber-400 border-amber-400 dark:border-amber-500 shadow-md shadow-amber-400/20"
+    : "";
+
   return (
     <div
-      className={`relative h-full rounded-xl border p-3.5 flex flex-col gap-1 overflow-hidden shadow-xs hover:shadow-md transition-all ${bgClass} ${borderClass} ${textClass}`}
+      className={`relative h-full rounded-xl border p-3.5 flex flex-col gap-1 overflow-hidden shadow-xs hover:shadow-md transition-all ${bgClass} ${borderClass} ${doorRingClass} ${textClass}`}
       title={cell.faultReason ?? undefined}
     >
       {/* Decorative handle */}
-      <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-1 h-10 bg-border/80 rounded-full" />
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-border/80 rounded-full" />
       
       <div className="flex items-center justify-between z-10">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <span className="font-bold text-sm tracking-tight">Ô #{cell.boxNumber}</span>
           {isDrone && (
-            <Badge className="bg-sky-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
+            <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
               Drone
             </Badge>
           )}
-          {cell.cellType === "XL" && (
-            <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
-              XL
+          {isXl && (
+            <Badge className="bg-cyan-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
+              Vali XL
             </Badge>
+          )}
+          {/* Badge trạng thái cửa mở/đóng đồng bộ Mobile */}
+          {doorOpen ? (
+            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-400 font-bold text-[10px] px-1.5 py-0 h-4.5 flex items-center gap-1 animate-pulse">
+              <DoorOpen className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Cửa mở
+            </Badge>
+          ) : (
+            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 px-1 py-0.5 bg-background/50 rounded border border-border/40">
+              <DoorClosed className="w-2.5 h-2.5 text-slate-400" /> Đóng
+            </span>
           )}
         </div>
         <div className="flex items-center gap-1">
@@ -262,9 +328,9 @@ function CellTile({
           >
             <QrCode className="w-3.5 h-3.5" />
           </Button>
-          {isDrone && <Plane className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-95 drop-shadow-xs" />}
-          {cell.cellType === "XL" && <Luggage className="w-5 h-5 text-indigo-700 dark:text-indigo-300 opacity-80" />}
-          {!isDrone && cell.cellType !== "XL" && <BoxIcon className="w-5 h-5 text-emerald-800 dark:text-emerald-300 opacity-80" />}
+          {isDrone && <Plane className="w-5 h-5 text-indigo-600 dark:text-indigo-400 opacity-95 drop-shadow-xs" />}
+          {isXl && <Luggage className="w-5 h-5 text-cyan-600 dark:text-cyan-400 opacity-90" />}
+          {!isDrone && !isXl && <BoxIcon className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-80" />}
         </div>
       </div>
       {statusBadge}
@@ -367,6 +433,15 @@ function CellTile({
                 </DropdownMenuItem>
               </>
             )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => onAction(cell, "DELETE_BOX")}
+              disabled={cell.status === "OCCUPIED" || cell.status === "RESERVED" || busy}
+              className="cursor-pointer text-rose-600 dark:text-rose-400 focus:text-rose-600 font-medium"
+              title={cell.status === "OCCUPIED" || cell.status === "RESERVED" ? "Không thể xóa ô đang chứa hàng hoặc đã giữ chỗ" : undefined}
+            >
+              <Trash2 className="w-3.5 h-3.5 mr-2" /> Xóa ô tủ này
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -375,18 +450,25 @@ function CellTile({
 }
 
 function getBoxGridStyle(cell: CellResponse, maxRows: number) {
-  // If XL cell (tall compartment spanning vertically below the 7-inch screen at row 1)
-  if (cell.cellType === "XL" || cell.colIndex === 0 || cell.boxNumber === 10) {
+  // Ô vali XL ở cột 0 trạm Kiosk: khoang dọc lớn kéo dài trọn chiều cao dưới màn hình 7 inch (hàng 2 trở xuống)
+  if (cell.colIndex === 0 || (isXlCell(cell) && (cell.colIndex == null || cell.colIndex === 0))) {
     return {
       gridColumn: "1",
       gridRow: `2 / span ${Math.max(1, maxRows - 1)}`,
     };
   }
 
-  // Standard or Drone cells with rowIndex and colIndex:
-  // Col 1 is reserved for the XL column. Standard columns start from 2 onwards:
+  // Các ô Tiêu chuẩn hoặc Drone có rowIndex và colIndex:
+  // Cột 1 CSS dành riêng cho cột Kiosk / Vali XL. Các cột ô khác bắt đầu từ cột 2:
   const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex + 1 : 2;
   const row = cell.rowIndex ?? 1;
+
+  if (isXlCell(cell)) {
+    return {
+      gridColumn: `${col}`,
+      gridRow: `${row} / span 2`,
+    };
+  }
 
   return {
     gridColumn: `${col}`,
@@ -409,6 +491,8 @@ export default function LockerLayoutPage() {
   const [returnToService, { isLoading: returning }] = useReturnBoxToServiceMutation();
   const [forceOpen, { isLoading: forceOpening }] = useForceOpenBoxMutation();
   const [addBox, { isLoading: isAddingBox }] = useAddBoxMutation();
+  const [addBoxesBatch, { isLoading: isAddingBoxesBatch }] = useAddBoxesBatchMutation();
+  const [deleteBox, { isLoading: isDeletingBox }] = useDeleteBoxMutation();
   const [pendingBox, setPendingBox] = useState<number | null>(null);
 
   const { subscribe } = useWebSocket({ autoConnect: true });
@@ -417,7 +501,13 @@ export default function LockerLayoutPage() {
     if (!subscribe) return;
     const subNotif = subscribe<any>("/topic/notifications", (msg) => {
       if (
-        (msg?.type === "LOCKER_LAYOUT_UPDATED" || msg?.type === "LOCKER_BOX_FAULT") &&
+        (msg?.type === "LOCKER_LAYOUT_UPDATED" ||
+          msg?.type === "LOCKER_BOX_FAULT" ||
+          msg?.type === "DOOR_STATUS_CHANGED" ||
+          msg?.type === "DOOR_OPENED" ||
+          msg?.type === "DOOR_CLOSED" ||
+          msg?.type === "BOX_STATUS_CHANGED" ||
+          msg?.type === "HARDWARE_EVENT") &&
         (!msg?.lockerId || Number(msg?.lockerId) === id)
       ) {
         refetch();
@@ -431,9 +521,14 @@ export default function LockerLayoutPage() {
       }
     });
 
+    const subSpecific = subscribe<any>(`/topic/lockers/${id}`, () => {
+      refetch();
+    });
+
     return () => {
       subNotif?.unsubscribe();
       subLockers?.unsubscribe();
+      subSpecific?.unsubscribe();
     };
   }, [subscribe, id, refetch]);
 
@@ -512,13 +607,22 @@ export default function LockerLayoutPage() {
     [reportsData, id],
   );
 
-  // Modal State for Adding a Box
+  // Modal State for Adding Box(es)
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addMode, setAddMode] = useState<"single" | "batch">("single");
   const [newBoxNumber, setNewBoxNumber] = useState<number | "">("");
   const [newCellType, setNewCellType] = useState<string>("STANDARD");
   const [newSize, setNewSize] = useState<string>("M");
   const [newRowIndex, setNewRowIndex] = useState<number>(2);
-  const [newColIndex, setNewColIndex] = useState<number>(3);
+  const [newColIndex, setNewColIndex] = useState<number>(1);
+  // Batch box creation state
+  const [batchMethod, setBatchMethod] = useState<"list" | "range">("list");
+  const [batchNumbersText, setBatchNumbersText] = useState<string>("");
+  const [batchStartNumber, setBatchStartNumber] = useState<number>(1);
+  const [batchCount, setBatchCount] = useState<number>(6);
+  const [batchStartRow, setBatchStartRow] = useState<number>(2);
+  const [batchStartCol, setBatchStartCol] = useState<number>(1);
+  const [batchColsPerRow, setBatchColsPerRow] = useState<number>(4);
 
   // Modal State for Editing Box Functionality
   const [showEditModal, setShowEditModal] = useState(false);
@@ -567,35 +671,139 @@ export default function LockerLayoutPage() {
     return Math.max(
       3,
       ...cells.map((c) =>
-        c.cellType === "XL" || c.colIndex === 0 || c.boxNumber === 10
+        c.colIndex === 0 || (isXlCell(c) && (c.colIndex == null || c.colIndex === 0))
           ? 1
           : (c.colIndex != null && c.colIndex > 0 ? c.colIndex + 1 : 2)
       )
     );
   }, [cells]);
 
+  const parsedBatchNumbers = useMemo(() => {
+    if (batchMethod === "range") {
+      const start = Number(batchStartNumber) || 1;
+      const count = Number(batchCount) || 0;
+      if (count <= 0) return [];
+      return Array.from({ length: Math.min(count, 50) }, (_, i) => start + i);
+    }
+    const parts = batchNumbersText.split(/[,;\s]+/).map((s) => s.trim()).filter(Boolean);
+    const result: number[] = [];
+    for (const part of parts) {
+      if (part.includes("-")) {
+        const [a, b] = part.split("-").map(Number);
+        if (!isNaN(a) && !isNaN(b) && a <= b && b - a < 50) {
+          for (let i = a; i <= b; i++) result.push(i);
+        }
+      } else {
+        const n = Number(part);
+        if (!isNaN(n) && n > 0) result.push(n);
+      }
+    }
+    return Array.from(new Set(result));
+  }, [batchMethod, batchStartNumber, batchCount, batchNumbersText]);
+
+  const normalizeBoxSize = (s: string) => {
+    switch (s?.toUpperCase()) {
+      case "S":
+        return "SMALL";
+      case "M":
+        return "MEDIUM";
+      case "L":
+        return "LARGE";
+      case "XL":
+        return "XL";
+      default:
+        return s || "MEDIUM";
+    }
+  };
+
   const handleAddBox = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBoxNumber || !id) {
-      toast.error("Vui lòng nhập số ô tủ!");
-      return;
-    }
-    try {
-      await addBox({
-        lockerId: id,
-        boxNumber: Number(newBoxNumber),
-        cellType: newCellType,
-        size: newSize,
-        rowIndex: Number(newRowIndex),
-        colIndex: Number(newColIndex),
-        status: "AVAILABLE",
-      }).unwrap();
-      toast.success(`Đã thêm ô #${newBoxNumber} thành công!`);
-      setShowAddModal(false);
-      setNewBoxNumber("");
-      refetch();
-    } catch (err: any) {
-      toast.error(err?.data?.message ?? "Không thể thêm ô tủ mới");
+    if (!id) return;
+
+    const chosenSize = normalizeBoxSize(newSize);
+
+    if (addMode === "single") {
+      if (!newBoxNumber) {
+        toast.error("Vui lòng nhập số ô tủ!");
+        return;
+      }
+      try {
+        await addBox({
+          lockerId: id,
+          boxNumber: Number(newBoxNumber),
+          cellType: newCellType,
+          size: chosenSize,
+          rowIndex: Number(newRowIndex),
+          colIndex: Number(newColIndex),
+          status: "AVAILABLE",
+        }).unwrap();
+        toast.success(`Đã thêm ô #${newBoxNumber} thành công!`);
+        setShowAddModal(false);
+        setNewBoxNumber("");
+        refetch();
+      } catch (err: any) {
+        toast.error(err?.data?.message || err?.message || "Không thể thêm ô tủ mới");
+      }
+    } else {
+      if (parsedBatchNumbers.length === 0) {
+        toast.error("Vui lòng nhập danh sách số ô hợp lệ cần tạo!");
+        return;
+      }
+      try {
+        let curRow = Number(batchStartRow) || 2;
+        let curCol = Number(batchStartCol) || 1;
+        const maxCol = Number(batchColsPerRow) || 4;
+
+        const boxes = parsedBatchNumbers.map((num) => {
+          const item = {
+            boxNumber: num,
+            cellType: newCellType,
+            size: chosenSize,
+            rowIndex: curRow,
+            colIndex: curCol,
+            status: "AVAILABLE",
+          };
+          curCol++;
+          if (curCol > maxCol) {
+            curCol = 1;
+            curRow++;
+          }
+          return item;
+        });
+
+        // Thử gọi endpoint batch trước. Nếu backend remote chưa deploy (404/500), tự động fallback tạo tuần tự từng ô.
+        let batchSucceeded = false;
+        try {
+          await addBoxesBatch({
+            lockerId: id,
+            data: { boxes },
+          }).unwrap();
+          batchSucceeded = true;
+        } catch (batchErr: any) {
+          // Fallback tạo từng ô qua addBox (đã có sẵn trên backend)
+          for (const box of boxes) {
+            await addBox({
+              lockerId: id,
+              boxNumber: box.boxNumber,
+              cellType: box.cellType,
+              size: box.size,
+              rowIndex: box.rowIndex,
+              colIndex: box.colIndex,
+              status: box.status,
+            }).unwrap();
+          }
+          batchSucceeded = true;
+        }
+
+        if (batchSucceeded) {
+          toast.success(`Đã thêm thành công ${boxes.length} ô tủ vào trạm!`);
+          setShowAddModal(false);
+          setBatchNumbersText("");
+          refetch();
+        }
+      } catch (err: any) {
+        toast.error(err?.data?.message || err?.message || "Không thể tạo danh sách ô tủ mới");
+      }
     }
   };
 
@@ -684,6 +892,18 @@ export default function LockerLayoutPage() {
           variant: "default",
         });
         break;
+      case "DELETE_BOX":
+        setActionDialog({
+          open: true,
+          cell,
+          type,
+          title: `Xác nhận xóa ô #${cell.boxNumber}?`,
+          description: `Ô tủ #${cell.boxNumber} sẽ bị xóa khỏi tủ ${layout?.name || ""}. Sơ đồ sẽ được cập nhật đồng bộ sang ứng dụng KTV và Kiosk ngay lập tức. Thao tác này không thể hoàn tác.`,
+          reason: "",
+          confirmLabel: "Xác nhận xóa ô",
+          variant: "destructive",
+        });
+        break;
     }
   };
 
@@ -720,6 +940,9 @@ export default function LockerLayoutPage() {
         toast.success(`Đã khôi phục ô #${cell.boxNumber}`, {
           description: `${nextStatus ? `Trạng thái hiện tại: ${STATUS_STYLE[nextStatus]?.label ?? nextStatus}. ` : ""}Phiếu sự cố đang mở của ô (nếu có) đã được đóng.`,
         });
+      } else if (type === "DELETE_BOX") {
+        await deleteBox(cell.id).unwrap();
+        toast.success(`Đã xóa ô #${cell.boxNumber} thành công!`);
       }
     } catch (err: any) {
       toast.error(err?.data?.message || err?.message || "Thao tác không thành công");
@@ -897,6 +1120,26 @@ export default function LockerLayoutPage() {
         </Card>
       </div>
 
+      {/* Cảnh báo cửa đang mở (đồng bộ Mobile) */}
+      {cells.some((c) => isDoorOpen(c)) && (
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2.5">
+            <DoorOpen className="w-5 h-5 text-amber-600 animate-pulse shrink-0" />
+            <div>
+              <p className="text-xs font-bold">
+                Cảnh báo an toàn: Có {cells.filter((c) => isDoorOpen(c)).length} ô đang mở cửa ({cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(", ")})
+              </p>
+              <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
+                Cửa tủ chưa được đóng kín sau khi thao tác. Vui lòng kiểm tra hiện trường hoặc đóng cửa để tránh rủi ro mất mát hàng hóa.
+              </p>
+            </div>
+          </div>
+          <Badge className="bg-amber-500 text-white font-bold text-xs px-2.5 py-0.5 animate-pulse border-0">
+            CỬA MỞ
+          </Badge>
+        </div>
+      )}
+
       <Card className="border border-border/80 shadow-xs overflow-hidden">
         <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -1016,25 +1259,37 @@ export default function LockerLayoutPage() {
               );
             })}
           </div>
-          <div className="flex flex-wrap items-center gap-4 pt-1 text-xs">
+          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
             <span
               onClick={() => setShowScreenModal(true)}
               className={`inline-flex items-center gap-1.5 font-semibold px-2.5 py-1 rounded-md border cursor-pointer transition-colors ${
                 isKioskScreenOnline
-                  ? "text-indigo-800 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-100"
+                  ? "text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 border-sky-300 dark:border-sky-700 hover:bg-sky-100"
                   : "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:bg-slate-200"
               }`}
             >
-              <Monitor className="w-3.5 h-3.5" /> Màn hình 7" ({isKioskScreenOnline ? "Kiosk Online" : "Mất kết nối"})
+              <Monitor className="w-3.5 h-3.5" /> Màn hình 7" ({isKioskScreenOnline ? "Online" : "Mất kết nối"})
             </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-sky-800 dark:text-sky-300 bg-sky-100/90 dark:bg-sky-950/70 px-2.5 py-1 rounded-md border border-sky-300 dark:border-sky-700">
-              <Plane className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" /> Ô tiếp nhận Drone ({cells.filter((c) => c.cellType === 'DRONE' || (!c.cellType && c.cellType !== 'XL' && c.boxNumber !== 1 && (c.boxNumber === 2 || c.boxNumber === 3))).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            <span className="inline-flex items-center gap-1.5 font-semibold text-indigo-800 dark:text-indigo-300 bg-indigo-100/90 dark:bg-indigo-950/70 px-2.5 py-1 rounded-md border border-indigo-300 dark:border-indigo-700">
+              <Plane className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> Ô tiếp nhận Drone ({cells.filter((c) => isDroneCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
             </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-md border border-emerald-300 dark:border-emerald-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Ô trống khả dụng ({cells.filter((c) => c.status === 'AVAILABLE').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            <span className="inline-flex items-center gap-1.5 font-semibold text-cyan-800 dark:text-cyan-300 bg-cyan-100/90 dark:bg-cyan-950/70 px-2.5 py-1 rounded-md border border-cyan-300 dark:border-cyan-700">
+              <Luggage className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" /> Khoang Vali XL ({cells.filter((c) => isXlCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 px-2.5 py-1 rounded-md border border-sky-300 dark:border-sky-700">
+              <span className="w-2 h-2 rounded-full bg-sky-500" /> Ô trống khả dụng ({cells.filter((c) => c.status === 'AVAILABLE' && !isDroneCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-300 dark:border-amber-700">
+              <span className="w-2 h-2 rounded-full bg-amber-500" /> Đang dùng / Đã đặt ({cells.filter((c) => c.status === 'OCCUPIED' || c.status === 'IN_USE' || c.status === 'RESERVED').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
             </span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-1 rounded-md border border-rose-300 dark:border-rose-700">
               <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Ô hỏng / bảo trì ({cells.filter((c) => c.status === 'FAULT').map((c) => `#${c.boxNumber}`).join(', ') || 'Không'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-2.5 py-1 rounded-md border border-amber-400">
+              <DoorOpen className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> Cửa đang mở ({cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(', ') || '0'})
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700">
+              <DoorClosed className="w-3.5 h-3.5 text-slate-500" /> Cửa đã đóng ({cells.filter((c) => !isDoorOpen(c)).length})
             </span>
           </div>
         </CardContent>
@@ -1113,7 +1368,7 @@ export default function LockerLayoutPage() {
               className="text-xs h-8"
               onClick={handleExecuteAction}
               disabled={
-                (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) ||
+                (faulting || clearing || oosing || cleaningBusy || returning || forceOpening || isDeletingBox) ||
                 (actionDialog.requireReason && !actionDialog.reason.trim())
               }
             >
@@ -1123,103 +1378,249 @@ export default function LockerLayoutPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Thêm ô tủ */}
+      {/* Dialog: Thêm ô tủ (Hỗ trợ tạo 1 ô hoặc tạo nhiều ô cùng lúc) */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[480px]">
           <form onSubmit={handleAddBox}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <BoxIcon className="w-5 h-5 text-primary" /> Thêm ô tủ mới vào Kiosk
               </DialogTitle>
               <DialogDescription>
-                Thêm một ô tủ vật lý mới vào tủ {layout?.name}. Ô mới sẽ đồng bộ ngay lập tức sang ứng dụng KTV.
+                Thêm một hoặc nhiều ô tủ vật lý vào {layout?.name}. Ô mới sẽ đồng bộ ngay lập tức sang ứng dụng KTV và Kiosk.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="boxNumber" className="text-right font-medium">
-                  Số ô (#)
-                </Label>
-                <Input
-                  id="boxNumber"
-                  type="number"
-                  placeholder="ví dụ: 3, 6, 9"
-                  value={newBoxNumber}
-                  onChange={(e) => setNewBoxNumber(e.target.value ? Number(e.target.value) : "")}
-                  className="col-span-3"
-                  required
-                />
+
+            <Tabs value={addMode} onValueChange={(v) => setAddMode(v as any)} className="w-full mt-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="single" className="flex items-center gap-1.5 text-xs">
+                  <BoxIcon className="w-3.5 h-3.5" /> Thêm 1 ô
+                </TabsTrigger>
+                <TabsTrigger value="batch" className="flex items-center gap-1.5 text-xs">
+                  <Layers className="w-3.5 h-3.5" /> Thêm nhiều ô (Hàng loạt)
+                </TabsTrigger>
+              </TabsList>
+
+              <div className="grid gap-4 py-4">
+                {addMode === "single" ? (
+                  <>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="boxNumber" className="text-right font-medium text-xs">
+                        Số ô (#)
+                      </Label>
+                      <Input
+                        id="boxNumber"
+                        type="number"
+                        placeholder="ví dụ: 12"
+                        value={newBoxNumber}
+                        onChange={(e) => setNewBoxNumber(e.target.value ? Number(e.target.value) : "")}
+                        className="col-span-3"
+                        required={addMode === "single"}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="rowIndex" className="text-right font-medium text-xs">
+                        Hàng (Row)
+                      </Label>
+                      <Input
+                        id="rowIndex"
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={newRowIndex}
+                        onChange={(e) => setNewRowIndex(Number(e.target.value))}
+                        className="col-span-3"
+                        required={addMode === "single"}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="colIndex" className="text-right font-medium text-xs">
+                        Cột (Col)
+                      </Label>
+                      <Input
+                        id="colIndex"
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={newColIndex}
+                        onChange={(e) => setNewColIndex(Number(e.target.value))}
+                        className="col-span-3"
+                        required={addMode === "single"}
+                      />
+                      <p className="text-[10px] text-muted-foreground col-span-3 col-start-2">
+                        Cột 0 dành cho khoang XL (dưới màn hình 7 inch); Cột 1, 2, ... cho các ô bên cạnh
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-center gap-5 p-1 bg-muted/30 rounded-lg border border-border/50 text-xs">
+                      <label className="flex items-center gap-2 cursor-pointer font-medium">
+                        <input
+                          type="radio"
+                          name="batchMethod"
+                          checked={batchMethod === "list"}
+                          onChange={() => setBatchMethod("list")}
+                          className="accent-primary"
+                        />
+                        Nhập danh sách số ô
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer font-medium">
+                        <input
+                          type="radio"
+                          name="batchMethod"
+                          checked={batchMethod === "range"}
+                          onChange={() => setBatchMethod("range")}
+                          className="accent-primary"
+                        />
+                        Tạo dải số liên tiếp
+                      </label>
+                    </div>
+
+                    {batchMethod === "list" ? (
+                      <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="batchList" className="text-right font-medium text-xs pt-2">
+                          Danh sách ô
+                        </Label>
+                        <div className="col-span-3 space-y-1.5">
+                          <Input
+                            id="batchList"
+                            placeholder="ví dụ: 3, 6, 9 hoặc 1-6"
+                            value={batchNumbersText}
+                            onChange={(e) => setBatchNumbersText(e.target.value)}
+                          />
+                          <p className="text-[10px] text-muted-foreground">
+                            Nhập các số cách nhau bởi dấu phẩy (VD: 3, 6, 9) hoặc dải số (VD: 1-6)
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right font-medium text-xs">Dải số</Label>
+                        <div className="col-span-3 grid grid-cols-2 gap-2">
+                          <div>
+                            <span className="text-[10px] text-muted-foreground block mb-1">Số bắt đầu (#)</span>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={batchStartNumber}
+                              onChange={(e) => setBatchStartNumber(Number(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-muted-foreground block mb-1">Số lượng ô</span>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={50}
+                              value={batchCount}
+                              onChange={(e) => setBatchCount(Number(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preview box numbers */}
+                    {parsedBatchNumbers.length > 0 && (
+                      <div className="bg-muted/40 p-2.5 rounded-lg border border-border/60 text-xs">
+                        <div className="flex items-center justify-between mb-1.5 font-medium">
+                          <span>Sẽ tạo {parsedBatchNumbers.length} ô:</span>
+                          <span className="text-[10px] text-muted-foreground">Tự động xếp hàng & cột</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                          {parsedBatchNumbers.map((n) => (
+                            <Badge key={n} variant="secondary" className="text-[10px] px-1.5 py-0 font-semibold">
+                              #{n}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-4 items-center gap-4 pt-1">
+                      <Label className="text-right font-medium text-xs">Bố cục ô</Label>
+                      <div className="col-span-3 grid grid-cols-3 gap-2">
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block mb-1">Hàng đầu</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={batchStartRow}
+                            onChange={(e) => setBatchStartRow(Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block mb-1">Cột đầu</span>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={batchStartCol}
+                            onChange={(e) => setBatchStartCol(Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-muted-foreground block mb-1">Cột / Hàng</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={batchColsPerRow}
+                            onChange={(e) => setBatchColsPerRow(Number(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Common fields */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="cellType" className="text-right font-medium text-xs">
+                    Loại ô
+                  </Label>
+                  <Select value={newCellType} onValueChange={setNewCellType}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Chọn loại ô" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="STANDARD">Tiêu chuẩn (STANDARD)</SelectItem>
+                      <SelectItem value="DRONE">Tiếp nhận Drone (DRONE)</SelectItem>
+                      <SelectItem value="XL">Khoang vali lớn (XL)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="size" className="text-right font-medium text-xs">
+                    Kích cỡ
+                  </Label>
+                  <Select value={newSize} onValueChange={setNewSize}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Chọn kích cỡ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="S">Nhỏ (S)</SelectItem>
+                      <SelectItem value="M">Trung bình (M)</SelectItem>
+                      <SelectItem value="L">Lớn (L)</SelectItem>
+                      <SelectItem value="XL">Đặc biệt lớn (XL)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="cellType" className="text-right font-medium">
-                  Loại ô
-                </Label>
-                <Select value={newCellType} onValueChange={setNewCellType}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Chọn loại ô" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="STANDARD">Tiêu chuẩn (STANDARD)</SelectItem>
-                    <SelectItem value="DRONE">Tiếp nhận Drone (DRONE)</SelectItem>
-                    <SelectItem value="XL">Khoang vali lớn (XL)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="size" className="text-right font-medium">
-                  Kích cỡ
-                </Label>
-                <Select value={newSize} onValueChange={setNewSize}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Chọn kích cỡ" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="S">Nhỏ (S)</SelectItem>
-                    <SelectItem value="M">Trung bình (M)</SelectItem>
-                    <SelectItem value="L">Lớn (L)</SelectItem>
-                    <SelectItem value="XL">Đặc biệt lớn (XL)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="rowIndex" className="text-right font-medium">
-                  Hàng (Row)
-                </Label>
-                <Input
-                  id="rowIndex"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={newRowIndex}
-                  onChange={(e) => setNewRowIndex(Number(e.target.value))}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="colIndex" className="text-right font-medium">
-                  Cột (Col)
-                </Label>
-                <Input
-                  id="colIndex"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={newColIndex}
-                  onChange={(e) => setNewColIndex(Number(e.target.value))}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
-                Hủy
-              </Button>
-              <Button type="submit" disabled={isAddingBox}>
-                {isAddingBox ? "Đang thêm..." : "Thêm ô tủ"}
-              </Button>
-            </DialogFooter>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={isAddingBox || isAddingBoxesBatch}>
+                  {isAddingBox || isAddingBoxesBatch
+                    ? "Đang thêm..."
+                    : addMode === "single"
+                    ? "Thêm 1 ô tủ"
+                    : `Thêm ${parsedBatchNumbers.length > 0 ? parsedBatchNumbers.length : ""} ô tủ`}
+                </Button>
+              </DialogFooter>
+            </Tabs>
           </form>
         </DialogContent>
       </Dialog>
