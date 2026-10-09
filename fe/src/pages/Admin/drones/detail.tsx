@@ -512,99 +512,104 @@ export default function DroneDetailPage() {
         />
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Plane className="h-4 w-4" />
-            Thông tin Drone
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <Info label="Mã Drone" value={drone.code} mono />
-          <Info
-            label="Trạm/Kiosk"
-            value={
-              drone.lockerName ??
-              (drone.lockerId ? `Kiosk #${drone.lockerId}` : "Chưa gắn trạm")
-            }
-          />
-          <Info
-            label="Lần sạc gần nhất"
-            value={
-              drone.lastChargedAt
-                ? formatDateTime(drone.lastChargedAt)
-                : "Chưa có dữ liệu"
-            }
-          />
-          <Info label="Tạo lúc" value={formatDateTime(drone.createdAt)} />
-          <Info label="Cập nhật lúc" value={formatDateTime(drone.updatedAt)} />
-          {drone.faultReason && (
-            <>
-              <Separator />
-              <p className="rounded-md border border-rose-200 bg-rose-50 p-2 text-xs text-rose-800">
-                <strong>Nguyên nhân cần xử lý: </strong>
-                {drone.faultReason}
-              </p>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(260px,0.75fr)_minmax(0,2.25fr)]">
+        <Card className="h-full border border-border/80 shadow-xs">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Plane className="h-4 w-4" />
+              Thông tin Drone
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <Info label="Mã Drone" value={drone.code} mono />
+            <Info
+              label="Trạm/Kiosk"
+              value={
+                drone.lockerName ??
+                (drone.lockerId ? `Kiosk #${drone.lockerId}` : "Chưa gắn trạm")
+              }
+            />
+            <Info
+              label="Lần sạc gần nhất"
+              value={
+                drone.lastChargedAt
+                  ? formatDateTime(drone.lastChargedAt)
+                  : "Chưa có dữ liệu"
+              }
+            />
+            <Info label="Tạo lúc" value={formatDateTime(drone.createdAt)} />
+            <Info
+              label="Cập nhật lúc"
+              value={formatDateTime(drone.updatedAt)}
+            />
+            {drone.faultReason && (
+              <>
+                <Separator />
+                <p className="rounded-md border border-rose-200 bg-rose-50 p-2 text-xs text-rose-800">
+                  <strong>Nguyên nhân cần xử lý: </strong>
+                  {drone.faultReason}
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card className="overflow-hidden border border-border/80 shadow-xs">
-        <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <History className="h-4.5 w-4.5 text-primary" />
-                Nhật ký vận hành của {drone.code}
-              </CardTitle>
-              <CardDescription className="mt-0.5 text-xs">
-                Dữ liệu chuyến bay và phiếu sửa chữa của Drone được ghi nhận từ
-                hệ thống vận hành.
-              </CardDescription>
+        <Card className="min-w-0 overflow-hidden border border-border/80 shadow-xs">
+          <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <History className="h-4.5 w-4.5 text-primary" />
+                  Nhật ký vận hành {drone.code}
+                </CardTitle>
+                <CardDescription className="mt-0.5 text-xs">
+                  Dữ liệu chuyến bay và phiếu sửa chữa của Drone được ghi nhận
+                  từ hệ thống vận hành.
+                </CardDescription>
+              </div>
+              <div className="inline-flex rounded-lg border bg-background p-0.5 text-xs">
+                <button
+                  type="button"
+                  className={`rounded-md px-3 py-1 font-medium transition-all ${activeLogTab === "flights" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
+                  onClick={() => setActiveLogTab("flights")}
+                >
+                  Nhật ký chuyến bay ({flightLogs.length})
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-md px-3 py-1 font-medium transition-all ${activeLogTab === "reports" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
+                  onClick={() => setActiveLogTab("reports")}
+                >
+                  Sự cố & Sửa chữa ({droneReports.length})
+                </button>
+              </div>
             </div>
-            <div className="inline-flex rounded-lg border bg-background p-0.5 text-xs">
-              <button
-                type="button"
-                className={`rounded-md px-3 py-1 font-medium transition-all ${activeLogTab === "flights" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
-                onClick={() => setActiveLogTab("flights")}
-              >
-                Nhật ký chuyến bay ({flightLogs.length})
-              </button>
-              <button
-                type="button"
-                className={`rounded-md px-3 py-1 font-medium transition-all ${activeLogTab === "reports" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
-                onClick={() => setActiveLogTab("reports")}
-              >
-                Sự cố & Sửa chữa ({droneReports.length})
-              </button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4">
-          {activeLogTab === "flights" ? (
-            flightsQuery.isLoading ? (
+          </CardHeader>
+          <CardContent className="p-4">
+            {activeLogTab === "flights" ? (
+              flightsQuery.isLoading ? (
+                <LoadingRows />
+              ) : flightLogs.length === 0 ? (
+                <EmptyState
+                  icon={<Route className="h-8 w-8" />}
+                  text="Drone chưa có chuyến bay nào được ghi nhận."
+                />
+              ) : (
+                <FlightTable flights={flightLogs} />
+              )
+            ) : reportsQuery.isLoading ? (
               <LoadingRows />
-            ) : flightLogs.length === 0 ? (
+            ) : droneReports.length === 0 ? (
               <EmptyState
-                icon={<Route className="h-8 w-8" />}
-                text="Drone chưa có chuyến bay nào được ghi nhận."
+                icon={<CheckCircle2 className="h-8 w-8 text-emerald-500" />}
+                text="Drone chưa từng ghi nhận phiếu sự cố nào."
               />
             ) : (
-              <FlightTable flights={flightLogs} />
-            )
-          ) : reportsQuery.isLoading ? (
-            <LoadingRows />
-          ) : droneReports.length === 0 ? (
-            <EmptyState
-              icon={<CheckCircle2 className="h-8 w-8 text-emerald-500" />}
-              text="Drone chưa từng ghi nhận phiếu sự cố nào."
-            />
-          ) : (
-            <ReportTable reports={droneReports} />
-          )}
-        </CardContent>
-      </Card>
+              <ReportTable reports={droneReports} />
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
