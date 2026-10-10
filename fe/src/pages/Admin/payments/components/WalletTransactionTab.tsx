@@ -25,7 +25,7 @@ const TYPE_OPTIONS = (["CREDIT", "DEBIT"] as const).map((value) => ({
 }));
 
 const SOURCE_OPTIONS = (
-  ["TOPUP", "ORDER_PAYMENT", "REFUND", "ADJUST"] as const
+  ["TOPUP", "ORDER_PAYMENT", "REFUND", "ADJUST", "WITHDRAW"] as const
 ).map((value) => ({ value, label: walletSourceMeta(value).label }));
 
 /** Biến động ví của mọi khách (`GET /api/admin/payments/wallet-transactions`, § 2.5). */

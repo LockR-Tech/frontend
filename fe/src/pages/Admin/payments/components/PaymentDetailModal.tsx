@@ -94,6 +94,7 @@ export function PaymentDetailModal({
   };
 
   const statusChanged = !!payment && selectedStatus !== payment.status;
+  const editLock = payment ? statusEditLock(payment) : null;
 
   return (
     <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
@@ -171,38 +172,59 @@ export function PaymentDetailModal({
 
             <section className="space-y-2">
               <SectionTitle>Cập nhật trạng thái</SectionTitle>
-              <div className="flex items-center gap-3">
-                <Select
-                  value={selectedStatus}
-                  onValueChange={(value) =>
-                    setSelectedStatus(value as AdminPaymentStatus)
-                  }
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Chọn trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ADMIN_PAYMENT_STATUSES.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {paymentStatusMeta(status).label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  size="sm"
-                  disabled={!statusChanged || saving}
-                  onClick={handleSave}
-                >
-                  {saving ? "Đang lưu…" : "Lưu trạng thái"}
-                </Button>
-              </div>
+              {editLock ? (
+                <p className="text-xs text-muted-foreground">{editLock}</p>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Select
+                    value={selectedStatus}
+                    onValueChange={(value) =>
+                      setSelectedStatus(value as AdminPaymentStatus)
+                    }
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Chọn trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ADMIN_PAYMENT_STATUSES.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {paymentStatusMeta(status).label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    disabled={!statusChanged || saving}
+                    onClick={handleSave}
+                  >
+                    {saving ? "Đang lưu…" : "Lưu trạng thái"}
+                  </Button>
+                </div>
+              )}
             </section>
           </div>
         )}
       </DialogContent>
     </Dialog>
   );
+}
+
+/** Trạng thái cuối — backend không hoàn tác tiền khi đổi tay nên không cho sửa. */
+const TERMINAL_STATUSES = ["COMPLETED", "FAILED", "REFUNDED"];
+
+/**
+ * Lý do khoá ô đổi trạng thái, `null` = được sửa. Nạp ví chỉ được ghi nhận qua callback
+ * cổng thanh toán: đổi tay sang "Thành công" không cộng tiền vào ví khách.
+ */
+function statusEditLock(payment: AdminPayment): string | null {
+  if (payment.kind === "TOPUP" || payment.method?.endsWith("_TOPUP")) {
+    return "Giao dịch nạp ví chỉ được xác nhận qua cổng thanh toán. Đổi tay trạng thái không cộng hay trừ tiền ví nên không cho phép sửa ở đây.";
+  }
+  if (TERMINAL_STATUSES.includes(payment.status)) {
+    return `Giao dịch đã ở trạng thái cuối (“${paymentStatusMeta(payment.status).label}”) nên không đổi tay được. Cần trả tiền cho khách thì xử lý qua tab Hoàn tiền.`;
+  }
+  return null;
 }
 
 function SectionTitle({

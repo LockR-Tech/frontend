@@ -42,6 +42,13 @@ import {
 
 type StatusFilter = "ALL" | "PENDING" | "COMPLETED" | "REJECTED";
 
+/** Tên khách, rơi về `#userId` khi chưa tra được tên, cuối cùng là "—". */
+function customerName(item: WithdrawalResponse): string {
+  if (item.userName) return item.userName;
+  if (item.userId != null) return `#${item.userId}`;
+  return "—";
+}
+
 export function WithdrawalTab() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,6 +59,8 @@ export function WithdrawalTab() {
   const { data, isLoading, isFetching, refetch } = useGetWithdrawalsQuery(
     statusFilter === "ALL" ? undefined : { status: statusFilter }
   );
+  // Số chờ duyệt lấy từ truy vấn riêng, không phụ thuộc tab đang lọc (tab PENDING dùng chung cache).
+  const { data: pendingData } = useGetWithdrawalsQuery({ status: "PENDING" });
 
   const [processWithdrawal, { isLoading: isProcessing }] = useProcessWithdrawalMutation();
 
@@ -64,6 +73,8 @@ export function WithdrawalTab() {
     return withdrawals.filter(
       (w) =>
         w.referenceId?.toLowerCase().includes(term) ||
+        w.userName?.toLowerCase().includes(term) ||
+        w.userPhone?.toLowerCase().includes(term) ||
         w.accountNumber?.toLowerCase().includes(term) ||
         w.accountHolderName?.toLowerCase().includes(term) ||
         w.bankName?.toLowerCase().includes(term) ||
@@ -71,10 +82,7 @@ export function WithdrawalTab() {
     );
   }, [withdrawals, searchTerm]);
 
-  // Counts for tabs
-  const pendingCount = useMemo(() => {
-    return withdrawals.filter((w) => w.status === "PENDING").length;
-  }, [withdrawals]);
+  const pendingCount = pendingData?.data?.length ?? 0;
 
   const handleOpenAction = (item: WithdrawalResponse, action: "APPROVE" | "REJECT") => {
     setSelectedItem(item);
@@ -240,6 +248,7 @@ export function WithdrawalTab() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[130px]">Mã yêu cầu</TableHead>
+              <TableHead className="w-[160px]">Khách hàng</TableHead>
               <TableHead className="w-[200px]">Tài khoản thụ hưởng</TableHead>
               <TableHead className="w-[130px] text-right">Số tiền rút</TableHead>
               <TableHead className="w-[120px] text-center">Trạng thái</TableHead>
@@ -251,7 +260,7 @@ export function WithdrawalTab() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center">
+                <TableCell colSpan={8} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     Đang tải danh sách yêu cầu rút tiền...
@@ -260,7 +269,7 @@ export function WithdrawalTab() {
               </TableRow>
             ) : filteredWithdrawals.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center">
+                <TableCell colSpan={8} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center gap-1 text-muted-foreground text-xs">
                     <CreditCard className="h-6 w-6 opacity-40 mb-1" />
                     Không tìm thấy yêu cầu rút tiền nào
@@ -274,6 +283,18 @@ export function WithdrawalTab() {
                     <span className="font-mono font-semibold text-xs text-primary">
                       {item.referenceId}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-0.5 min-w-0">
+                      <p className="text-xs font-medium truncate">
+                        {customerName(item)}
+                      </p>
+                      {item.userPhone && (
+                        <p className="text-[11px] text-muted-foreground font-mono">
+                          {item.userPhone}
+                        </p>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-0.5">

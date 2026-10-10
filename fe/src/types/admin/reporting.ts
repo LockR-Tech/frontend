@@ -93,7 +93,13 @@ export const ADMIN_ORDER_TYPES = ["SEND", "RENTAL", "DRONE_DELIVERY"] as const;
 
 export type AdminOrderType = (typeof ADMIN_ORDER_TYPES)[number] | "STORAGE";
 
-export const ADMIN_ORDER_PAYMENT_STATUSES = ["UNPAID", "PAID", "REFUNDED"] as const;
+/** `REFUND_PENDING` = đã ghi nhận yêu cầu hoàn, chờ admin chuyển khoản. */
+export const ADMIN_ORDER_PAYMENT_STATUSES = [
+  "UNPAID",
+  "PAID",
+  "REFUND_PENDING",
+  "REFUNDED",
+] as const;
 
 export type AdminOrderPaymentStatus =
   (typeof ADMIN_ORDER_PAYMENT_STATUSES)[number];
@@ -173,13 +179,10 @@ export interface AdminOrderTimelineEntry {
   createdAt: string;
 }
 
+/** Một dòng kiện hàng (`OrderDetailResponse`). `price` đã là thành tiền của cả dòng. */
 export interface AdminOrderDetailLine {
-  id: number;
   serviceId: number | null;
-  serviceName: string | null;
-  serviceImage: string | null;
   quantity: number | null;
-  unit: string | null;
   price: number | null;
   description: string | null;
 }
@@ -212,7 +215,8 @@ export interface AdminOrder {
   totalPrice: number | null;
   originalPrice: number | null;
   promotionCode: string | null;
-  appliedPromotionCodes: string[] | null;
+  /** Chuỗi các mã nối bằng dấu phẩy (`"KM1,KM2"`), không phải mảng. */
+  appliedPromotionCodes: string | null;
   nextAction: string | null;
   nextActionMessage: string | null;
   paymentRequired: boolean | null;
@@ -300,12 +304,14 @@ export const ADMIN_PAYMENT_METHODS = [
   "WALLET",
   "VNPAY",
   "MOMO",
+  "SEPAY",
   "VNPAY_TOPUP",
+  "SEPAY_TOPUP",
 ] as const;
 
 export type AdminPaymentMethod = (typeof ADMIN_PAYMENT_METHODS)[number];
 
-/** `TOPUP` = nạp ví (`VNPAY_TOPUP` hoặc `orderId <= 0`). */
+/** `TOPUP` = nạp ví (`VNPAY_TOPUP`, hoặc `orderId <= 0` như `SEPAY_TOPUP`). */
 export type AdminPaymentKind = "ORDER" | "TOPUP";
 
 /** Tóm tắt đơn kèm theo giao dịch; `null` khi là giao dịch nạp ví. */
@@ -379,7 +385,8 @@ export type WalletTransactionSource =
   | "TOPUP"
   | "ORDER_PAYMENT"
   | "REFUND"
-  | "ADJUST";
+  | "ADJUST"
+  | "WITHDRAW";
 
 export interface AdminWalletTransaction {
   id: number;

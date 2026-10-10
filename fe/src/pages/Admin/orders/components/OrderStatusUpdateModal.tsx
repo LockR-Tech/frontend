@@ -35,14 +35,18 @@ interface OrderStatusUpdateModalProps {
 const STATUS_HINTS: Record<string, string> = {
   INITIALIZED: "Đơn vừa tạo, khách chưa bỏ hàng vào tủ.",
   STORING: "Hàng đang nằm trong ô, người nhận chưa lấy.",
-  EXPIRED: "Quá hạn lấy hàng; ô đã được giải phóng nên không còn số ô.",
+  EXPIRED:
+    "Quá hạn lấy hàng. Khác với lúc hệ thống tự chuyển, đổi tay sang trạng thái này KHÔNG giải phóng ô đang giữ.",
   AWAITING_DISPATCH: "Chờ điều phối drone cho chặng giao.",
   COMPLETED: "Đã giao xong. Thao tác này giải phóng ô đang giữ.",
   CANCELED: "Huỷ đơn. Thao tác này giải phóng ô đang giữ.",
 };
 
-/** Trạng thái backend giải phóng ô khi chuyển sang — cần nhắc trước khi bấm. */
-const RELEASES_BOX: AdminOrderStatus[] = ["COMPLETED", "CANCELED", "EXPIRED"];
+/** Trạng thái backend giải phóng ô khi chuyển sang (OrderService.updateStatus) — cần nhắc trước khi bấm. */
+const RELEASES_BOX: AdminOrderStatus[] = ["COMPLETED", "CANCELED"];
+
+/** Chỉ RETURNED (giá trị cũ, không còn trong danh sách chọn) mới chiếm ô nhận theo `receiveBoxId`. */
+const USES_RECEIVE_BOX: AdminOrderStatus[] = ["RETURNED"];
 
 export function OrderStatusUpdateModal({
   order,
@@ -64,9 +68,12 @@ export function OrderStatusUpdateModal({
 
   const staffId = Number(user?.id);
 
+  const usesReceiveBox = selected !== "" && USES_RECEIVE_BOX.includes(selected);
+
   const handleSubmit = async () => {
     if (!selected) return;
-    const parsedBoxId = receiveBoxId.trim() ? Number(receiveBoxId.trim()) : undefined;
+    const parsedBoxId =
+      usesReceiveBox && receiveBoxId.trim() ? Number(receiveBoxId.trim()) : undefined;
     if (parsedBoxId !== undefined && !Number.isInteger(parsedBoxId)) {
       toast.error("Mã ô nhận phải là số nguyên");
       return;
@@ -143,16 +150,18 @@ export function OrderStatusUpdateModal({
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="receive-box">Mã ô nhận (tuỳ chọn)</Label>
-            <Input
-              id="receive-box"
-              inputMode="numeric"
-              placeholder="Để trống nếu không gán ô nhận"
-              value={receiveBoxId}
-              onChange={(e) => setReceiveBoxId(e.target.value)}
-            />
-          </div>
+          {usesReceiveBox && (
+            <div className="space-y-1.5">
+              <Label htmlFor="receive-box">Mã ô nhận (tuỳ chọn)</Label>
+              <Input
+                id="receive-box"
+                inputMode="numeric"
+                placeholder="Để trống nếu không gán ô nhận"
+                value={receiveBoxId}
+                onChange={(e) => setReceiveBoxId(e.target.value)}
+              />
+            </div>
+          )}
 
           {releasesBox && (
             <p className="text-xs text-amber-600 dark:text-amber-400">

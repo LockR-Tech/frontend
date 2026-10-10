@@ -14,6 +14,8 @@ import {
   DateRangeFilter,
   ReportErrorState,
   ReportStatCard,
+  paymentMethodMeta,
+  paymentStatusMeta,
 } from "~/components/shared/reporting";
 import {
   formatCurrency,
@@ -133,11 +135,13 @@ export function PaymentStats({
             title="Theo trạng thái"
             rows={current.byStatus}
             icon={CreditCard}
+            formatKey={(key) => paymentStatusMeta(key).label}
           />
           <StatsBreakdown
             title="Theo phương thức"
             rows={current.byMethod}
             icon={PiggyBank}
+            formatKey={(key) => paymentMethodMeta(key).label}
           />
         </div>
       )}
@@ -149,10 +153,13 @@ function StatsBreakdown({
   title,
   rows,
   icon: Icon,
+  formatKey,
 }: {
   title: string;
   rows: { key: string; count: number; amount: number; completedAmount: number }[];
   icon: React.ElementType;
+  /** Đổi mã enum backend sang nhãn tiếng Việt. */
+  formatKey: (key: string) => string;
 }) {
   if (rows.length === 0) return null;
   const max = Math.max(...rows.map((row) => row.amount), 1);
@@ -167,7 +174,9 @@ function StatsBreakdown({
         {rows.map((row) => (
           <div key={row.key} className="space-y-1">
             <div className="flex items-center justify-between gap-2 text-xs">
-              <span className="font-medium text-foreground truncate">{row.key}</span>
+              <span className="font-medium text-foreground truncate" title={row.key}>
+                {formatKey(row.key)}
+              </span>
               <span className="text-muted-foreground shrink-0">
                 {formatNumber(row.count)} GD · {formatCurrency(row.amount)}
               </span>

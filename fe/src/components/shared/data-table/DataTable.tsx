@@ -72,8 +72,11 @@ export function DataTable<TData, TValue>({
               serverPagination.onPageChange(next.pageIndex);
             }
           },
+          // Dữ liệu chỉ là một trang của server: sắp xếp phía client chỉ đảo thứ tự
+          // trang đang xem, gây hiểu nhầm — tắt hẳn, thứ tự do server quyết định.
+          manualSorting: true,
+          enableSorting: false,
           state: {
-            sorting,
             pagination: {
               pageIndex: serverPagination.pageIndex,
               pageSize: serverPagination.pageSize,
@@ -82,11 +85,11 @@ export function DataTable<TData, TValue>({
         }
       : {
           getPaginationRowModel: getPaginationRowModel(),
+          getSortedRowModel: getSortedRowModel(),
+          onSortingChange: setSorting,
           state: { sorting },
           initialState: { pagination: { pageSize } },
         }),
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
   });
 
   if (isLoading) {
@@ -100,7 +103,7 @@ export function DataTable<TData, TValue>({
   }
 
   if (data.length === 0) {
-    return (
+    const emptyState = (
       <div className="w-full rounded-xl border border-border bg-card p-12">
         <div className="flex flex-col items-center justify-center text-muted-foreground/60">
           <svg
@@ -123,6 +126,25 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
     );
+
+    // Trang server rỗng nhưng không phải trang đầu (vd. `?page=N` cũ sau khi lọc) —
+    // vẫn giữ thanh phân trang để người dùng quay lại được.
+    if (
+      serverPagination &&
+      (serverPagination.pageIndex > 0 || serverPagination.totalRows > 0)
+    ) {
+      return (
+        <div className={cn("space-y-4", className)}>
+          {emptyState}
+          <DataTablePagination
+            table={table}
+            totalRowsOverride={serverPagination.totalRows}
+          />
+        </div>
+      );
+    }
+
+    return emptyState;
   }
 
   return (

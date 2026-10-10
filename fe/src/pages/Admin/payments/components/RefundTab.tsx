@@ -26,6 +26,7 @@ import {
   useApproveRefundMutation,
   useRejectRefundMutation,
 } from "~/stores/apis/admin/payments";
+import { useGetBusinessSettingsQuery } from "~/stores/apis/admin/businessSettings";
 import { formatDateTime } from "~/lib/datetime";
 import { EMPTY_VALUE, formatCurrency, formatNumber } from "~/lib/report-format";
 import type { AdminRefund } from "~/types/admin/reporting";
@@ -42,6 +43,9 @@ import {
 } from "~/components/ui/dialog";
 
 const columnHelper = createColumnHelper<AdminRefund>();
+
+/** Quy tắc payment-service: bật thì backend từ chối duyệt hoàn (TRANSFER_REF_REQUIRED) khi thiếu mã GD. */
+const REQUIRE_TRANSFER_REF_KEY = "app.payment.refund-require-transfer-ref";
 
 const STATUS_TABS = [
   { key: "ALL", label: "Tất cả" },
@@ -81,6 +85,14 @@ export function RefundTab() {
 
   const { data, isLoading, isFetching, error, refetch } = useGetAdminRefundsQuery(queryParams);
 
+  // Đọc lỗi thì coi như không bắt buộc — backend vẫn chặn và trả lỗi rõ ràng.
+  const { data: paymentSettings } = useGetBusinessSettingsQuery("payment");
+  const transferRefRequired = useMemo(() => {
+    const setting = paymentSettings?.data?.find((s) => s.key === REQUIRE_TRANSFER_REF_KEY);
+    return (setting?.value ?? setting?.defaultValue) === "true";
+  }, [paymentSettings]);
+  const transferRefMissing = transferRefRequired && !bankTransferRef.trim();
+
   const handleRangeChange = useCallback((next: { from: string; to: string }) => {
     setRange(next);
     setPage(0);
@@ -107,6 +119,10 @@ export function RefundTab() {
 
   const handleApprove = async () => {
     if (!selectedRefund) return;
+    if (transferRefMissing) {
+      toast.error("Vui lòng nhập mã giao dịch / UNC ngân hàng!");
+      return;
+    }
     try {
       await approveRefund({
         refundId: selectedRefund.id,
@@ -458,7 +474,13 @@ export function RefundTab() {
               {/* Mã tham chiếu chuyển khoản */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">
-                  Mã giao dịch / UNC ngân hàng (tuỳ chọn):
+                  Mã giao dịch / UNC ngân hàng{" "}
+                  {transferRefRequired ? (
+                    <span className="text-rose-500">*</span>
+                  ) : (
+                    "(tuỳ chọn)"
+                  )}
+                  :
                 </label>
                 <Input
                   placeholder="Ví dụ: FT24100712345678 hoặc mã tham chiếu chuyển tiền"
@@ -466,6 +488,11 @@ export function RefundTab() {
                   onChange={(e) => setBankTransferRef(e.target.value)}
                   className="text-xs font-mono"
                 />
+                {transferRefRequired && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Quy định hệ thống bắt buộc nhập mã này trước khi xác nhận đã chuyển tiền.
+                  </p>
+                )}
               </div>
 
               <div className="flex items-start gap-2 p-2.5 rounded-md bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs">
@@ -490,7 +517,7 @@ export function RefundTab() {
               type="button"
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
               onClick={handleApprove}
-              disabled={isApproving}
+              disabled={isApproving || transferRefMissing}
             >
               {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Xác nhận đã chuyển tiền
