@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, AlertTriangle, CheckCircle2, ShieldAlert, Sparkles, Plus, Calendar } from "lucide-react";
+import { Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import {
@@ -10,12 +10,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
-import { Badge } from "~/components/ui/badge";
-import { saveSlaExtension, type SlaExtensionRecord, getEffectiveSlaDueAt } from "./maintenancePhotos";
-import { formatDateTime } from "~/lib/datetime";
-import { useExtendReportSlaMutation, useAddReportLogMutation, type LockerReportResponse } from "~/stores/apis/admin/lockerOps";
+import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
+import { useExtendReportSlaMutation, type LockerReportResponse } from "~/stores/apis/admin/lockerOps";
 
 const COMMON_REASONS = [
   "Chờ linh kiện thay thế từ kho trung tâm",
@@ -42,24 +41,25 @@ export function ExtendSlaDialog({
   report: LockerReportResponse | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (updated?: LockerReportResponse) => void;
 }) {
   const [selectedHours, setSelectedHours] = useState<number>(4);
   const [customHours, setCustomHours] = useState<string>("");
   const [reason, setReason] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [extendSla] = useExtendReportSlaMutation();
-  const [addLog] = useAddReportLogMutation();
+  const [extendSla, { isLoading: isSubmitting }] = useExtendReportSlaMutation();
 
   if (!report) return null;
 
-  const effectiveHours = customHours ? Number(customHours) || selectedHours : selectedHours;
+  const usingCustom = customHours.trim() !== "";
+  const customValue = Number(customHours);
+  const customValid = Number.isInteger(customValue) && customValue >= 1;
+  const effectiveHours = usingCustom ? (customValid ? customValue : 0) : selectedHours;
 
-  const now = new Date();
-  const currentDue = getEffectiveSlaDueAt(report) || now;
-  // Nếu đã quá hạn thì tính mốc gia hạn bắt đầu từ bây giờ
-  const baseDue = currentDue.getTime() > now.getTime() ? currentDue : now;
-  const newDue = new Date(baseDue.getTime() + effectiveHours * 60 * 60 * 1000);
+  // Chỉ là ước tính hiển thị — giống cách server tính: quá hạn thì cộng từ bây giờ. Mốc thật lấy từ phản hồi.
+  const now = Date.now();
+  const currentDue = parseBackendDateTime(report.slaDueAt);
+  const baseMs = currentDue && currentDue.getTime() > now ? currentDue.getTime() : now;
+  const previewDue = effectiveHours > 0 ? new Date(baseMs + effectiveHours * 3600 * 1000) : null;
 
   const handleSelectPreset = (hrs: number) => {
     setSelectedHours(hrs);
@@ -71,51 +71,29 @@ export function ExtendSlaDialog({
       toast.error("Vui lòng cung cấp lý do gia hạn SLA!");
       return;
     }
+    if (effectiveHours < 1) {
+      toast.error("Số giờ gia hạn phải là số nguyên từ 1 trở lên");
+      return;
+    }
 
-    setIsSubmitting(true);
     try {
-      try {
-        await extendSla({
-          reportId: report.id,
-          data: {
-            extensionHours: effectiveHours,
-            reason: reason.trim(),
-          },
-        }).unwrap();
-      } catch (apiErr: any) {
-        // Fallback: nếu server cloud từ xa chưa deploy endpoint extend-sla mới,
-        // tự động ghi log vào nhật ký xử lý của phiếu bằng API addLog sẵn có
-        console.warn("Backend cloud chưa cập nhật API extend-sla, áp dụng fallback ghi nhận audit log:", apiErr);
-        await addLog({
-          reportId: report.id,
-          note: `[GIA HẠN SLA] Hệ thống đã phê duyệt gia hạn thêm +${effectiveHours} giờ cho sự cố này.\n- Hạn xử lý mới: ${formatDateTime(newDue)}\n- Lý do: ${reason.trim()}`,
-        }).unwrap().catch(() => {});
-      }
-
-      const extensionRecord: SlaExtensionRecord = {
+      const res = await extendSla({
         reportId: report.id,
-        originalDueAt: report.slaDueAt || new Date().toISOString(),
-        extendedDueAt: newDue.toISOString(),
-        extensionHours: effectiveHours,
-        reason: reason.trim(),
-        requestedBy: "Admin / Điều phối viên",
-        requestedAt: new Date().toISOString(),
-      };
-
-      // Lưu trữ cấu hình gia hạn cục bộ để hiển thị và tính toán tức thời
-      saveSlaExtension(extensionRecord);
-
-      toast.success(`Đã gia hạn SLA thành công (+${effectiveHours} giờ)`, {
-        description: `Hạn hoàn tất mới cho phiếu RPT-${report.id} là: ${formatDateTime(newDue)}. Hệ thống đã đồng bộ gỡ trạng thái trễ hạn.`,
+        data: { extensionHours: effectiveHours, reason: reason.trim() },
+      }).unwrap();
+      const updated = res?.data;
+      toast.success(`Đã gia hạn SLA (+${effectiveHours} giờ)`, {
+        description: updated?.slaDueAt
+          ? `Hạn hoàn tất mới cho phiếu RPT-${report.id}: ${formatDateTime(updated.slaDueAt)}.`
+          : `Phiếu RPT-${report.id} đã được gia hạn.`,
       });
-
       onOpenChange(false);
-      onSuccess?.();
+      onSuccess?.(updated);
     } catch (err: any) {
-      const errMsg = err?.data?.message || err?.message || "Không thể lưu thông tin gia hạn";
-      toast.error(errMsg);
-    } finally {
-      setIsSubmitting(false);
+      // Giữ hộp thoại để admin thử lại; không ghi nhận gì phía client khi server từ chối
+      toast.error("Không gia hạn được SLA", {
+        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      });
     }
   };
 
@@ -133,25 +111,31 @@ export function ExtendSlaDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2 text-xs">
-          {/* Current vs New Deadline Comparison */}
+          {/* Hạn hiện tại vs hạn dự kiến sau gia hạn */}
           <div className="p-3 rounded-lg border border-border/70 bg-muted/30 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Hạn SLA ban đầu:</span>
+              <span className="text-muted-foreground">Hạn SLA hiện tại:</span>
               <span className="font-mono text-muted-foreground">
-                {report.slaDueAt ? formatDateTime(report.slaDueAt) : "Mặc định (4 giờ)"}
+                {report.slaDueAt ? formatDateTime(report.slaDueAt) : "—"}
               </span>
             </div>
+            {(report.slaExtendedHours ?? 0) > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Đã gia hạn trước đó:</span>
+                <span className="font-mono text-muted-foreground">+{report.slaExtendedHours}h</span>
+              </div>
+            )}
             <div className="flex items-center justify-between pt-1 border-t border-border/50">
               <span className="font-semibold text-foreground flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Hạn hoàn tất mới:
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Hạn mới (dự kiến):
               </span>
               <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                {formatDateTime(newDue)}
+                {previewDue ? formatDateTime(previewDue) : "—"}
               </span>
             </div>
           </div>
 
-          {/* Quick Preset Hours */}
+          {/* Mức gia hạn nhanh + số giờ tuỳ chọn */}
           <div>
             <Label className="block text-xs font-semibold mb-1.5 text-foreground">
               Chọn mức thời gian gia hạn thêm:
@@ -161,11 +145,11 @@ export function ExtendSlaDialog({
                 <Button
                   key={preset.hours}
                   type="button"
-                  variant={selectedHours === preset.hours && !customHours ? "default" : "outline"}
+                  variant={selectedHours === preset.hours && !usingCustom ? "default" : "outline"}
                   size="sm"
                   onClick={() => handleSelectPreset(preset.hours)}
                   className={`h-8 text-xs font-medium ${
-                    selectedHours === preset.hours && !customHours
+                    selectedHours === preset.hours && !usingCustom
                       ? "bg-amber-600 hover:bg-amber-700 text-white"
                       : "border-border/80 text-foreground"
                   }`}
@@ -173,10 +157,24 @@ export function ExtendSlaDialog({
                   {preset.label}
                 </Button>
               ))}
+              <Input
+                type="number"
+                min={1}
+                step={1}
+                inputMode="numeric"
+                value={customHours}
+                onChange={(e) => setCustomHours(e.target.value)}
+                placeholder="Số giờ khác"
+                aria-label="Số giờ gia hạn tuỳ chọn"
+                className={`h-8 text-xs ${usingCustom ? (customValid ? "border-amber-500 ring-1 ring-amber-400" : "border-rose-400") : ""}`}
+              />
             </div>
+            {usingCustom && !customValid && (
+              <p className="text-[11px] text-rose-600 mt-1">Nhập số nguyên từ 1 giờ trở lên.</p>
+            )}
           </div>
 
-          {/* Common Reasons Shortcuts */}
+          {/* Lý do gia hạn */}
           <div>
             <Label className="block text-xs font-semibold mb-1.5 text-foreground">
               Lý do gia hạn SLA phổ biến:
@@ -205,7 +203,7 @@ export function ExtendSlaDialog({
           <div className="p-2.5 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
             <span>
-              Việc gia hạn thời gian sẽ tự động gỡ trạng thái <strong>Quá hạn SLA</strong> trên Mobile App của KTV và đồng bộ ghi nhận vào hồ sơ bảo trì.
+              Hạn mới do máy chủ tính (phiếu đã quá hạn thì cộng từ thời điểm gia hạn) và được ghi vào nhật ký xử lý của phiếu.
             </span>
           </div>
         </div>
@@ -223,9 +221,10 @@ export function ExtendSlaDialog({
           <Button
             size="sm"
             onClick={handleSubmit}
-            disabled={isSubmitting || !reason.trim()}
+            disabled={isSubmitting || !reason.trim() || effectiveHours < 1}
             className="text-xs bg-amber-600 hover:bg-amber-700 text-white"
           >
+            {isSubmitting && <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />}
             Xác nhận gia hạn SLA
           </Button>
         </DialogFooter>

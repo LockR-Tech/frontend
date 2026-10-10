@@ -28,7 +28,9 @@ import {
   Navigation,
   DoorOpen,
   Luggage,
+  Pencil,
 } from "lucide-react";
+import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
 import {
   isXlCell,
   isDroneCell,
@@ -66,6 +68,7 @@ import {
   useGetLockerStatsQuery,
   useGetLockerLayoutQuery,
   useCreateMaintenanceScheduleMutation,
+  useUpdateMaintenanceScheduleMutation,
   useAssignTechnicianToScheduleMutation,
   useCompleteMaintenanceScheduleMutation,
   useDeleteMaintenanceScheduleMutation,
@@ -79,12 +82,35 @@ import {
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useGetAllLockersQuery } from "~/stores/apis/admin/lockers";
 import { useGetDronesQuery } from "~/stores/apis/admin/drones";
-import { INSPECTION_ITEM_META, INSPECTION_STATUS_META } from "./maintenancePhotos";
+import {
+  INSPECTION_ITEM_META,
+  INSPECTION_STATUS_META,
+  backendToVnWallClock,
+  vnWallClockToBackendUtc,
+} from "./maintenancePhotos";
 import { InspectionChecklistResults } from "./InspectionChecklistResults";
 
 /** Checklist soạn mỗi dòng một mục; server tách theo dòng hoặc ';' nên không cho dùng ';' trong mục. */
 const parseChecklistLines = (text: string) =>
   Array.from(new Set(text.split("\n").map((line) => line.trim()).filter(Boolean)));
+
+const DAY_MS = 1000 * 60 * 60 * 24;
+
+/** Số ngày (làm tròn lên) từ bây giờ tới mốc backend (UTC); null khi không có/không hợp lệ. */
+const daysUntil = (value?: string | null): number | null => {
+  const target = parseBackendDateTime(value);
+  return target ? Math.ceil((target.getTime() - Date.now()) / DAY_MS) : null;
+};
+
+const NO_ADDRESS = "Chưa có địa chỉ";
+
+const TIME_SLOT_OPTIONS = [
+  { value: "08:00 - 11:30", label: "Ca sáng (08:00 - 11:30)" },
+  { value: "13:30 - 17:00", label: "Ca chiều (13:30 - 17:00)" },
+  { value: "18:00 - 21:00", label: "Ca tối (18:00 - 21:00)" },
+  { value: "08:00 - 17:00", label: "Giờ hành chính (08:00 - 17:00)" },
+  { value: "Khung giờ linh hoạt", label: "Khung giờ linh hoạt" },
+];
 
 const INSPECTION_VERDICTS: InspectionItemVerdict[] = ["PASS", "FAIL", "NA"];
 
@@ -121,6 +147,7 @@ export function MaintenanceSchedules() {
   const { data: allLockersData } = useGetAllLockersQuery({ page: 0, size: 200 });
   const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
   const [createSchedule, { isLoading: creating }] = useCreateMaintenanceScheduleMutation();
+  const [updateSchedule, { isLoading: updatingSchedule }] = useUpdateMaintenanceScheduleMutation();
   const [completeSchedule, { isLoading: completing }] = useCompleteMaintenanceScheduleMutation();
   const [assignTechnician, { isLoading: isAssigningTech }] = useAssignTechnicianToScheduleMutation();
   const [deleteSchedule] = useDeleteMaintenanceScheduleMutation();
@@ -221,6 +248,21 @@ export function MaintenanceSchedules() {
   const [inspectingSchedule, setInspectingSchedule] = useState<MaintenanceScheduleResponse | null>(null);
   const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null);
 
+  // Sửa lịch (PUT /api/admin/lockers/schedules/{id}); đổi KTV dùng hộp thoại phân công riêng
+  const [editingSchedule, setEditingSchedule] = useState<MaintenanceScheduleResponse | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    intervalDays: 30,
+    priority: "NORMAL",
+    description: "",
+    checklistText: "",
+    locationNote: "",
+    scheduledTimeSlot: "",
+    dueDate: "",
+    dueTime: "",
+  });
+  const [editOriginalDue, setEditOriginalDue] = useState<{ date: string; time: string } | null>(null);
+
   // Modal Nghiệm thu Form State
   const [inspectTechId, setInspectTechId] = useState<number | "">("");
   const [inspectNote, setInspectNote] = useState("");
@@ -261,12 +303,10 @@ export function MaintenanceSchedules() {
         ? lockerMap.get(linkedLockerId)
         : (s.lockerCode ? lockerMap.get(s.lockerCode) : null);
 
-      let resolvedAddress = s.address || lockerInfo?.address || null;
-      if (!resolvedAddress && (s.lockerCode === "CAB-DEMO-01" || (s.lockerName || "").toLowerCase().includes("demo"))) {
-        resolvedAddress = "FPT University HCMC";
-      }
-
-      const resolvedStoreName = lockerInfo?.storeName || (s.storeId ? `Cửa hàng #${s.storeId}` : null);
+      // Không tự điền địa chỉ: tủ chưa có địa chỉ thì hiển thị "Chưa có địa chỉ"
+      const resolvedAddress = s.address || lockerInfo?.address || null;
+      // Chỉ hiện tên cửa hàng khi danh sách tủ thực sự trả về
+      const resolvedStoreName: string | null = lockerInfo?.storeName || null;
 
       return {
         ...s,
@@ -311,8 +351,8 @@ export function MaintenanceSchedules() {
         // Hoạt động gần nhất đứng trước: ưu tiên lần hoàn tất gần nhất,
         // sau đó đến thời điểm cập nhật hồ sơ lịch.
         const activityAt = (schedule: MaintenanceScheduleResponse) => {
-          const lastDone = schedule.lastDoneAt ? new Date(schedule.lastDoneAt).getTime() : 0;
-          const created = schedule.createdAt ? new Date(schedule.createdAt).getTime() : 0;
+          const lastDone = parseBackendDateTime(schedule.lastDoneAt)?.getTime() ?? 0;
+          const created = parseBackendDateTime(schedule.createdAt)?.getTime() ?? 0;
           return lastDone || created;
         };
         return activityAt(b) - activityAt(a);
@@ -322,16 +362,13 @@ export function MaintenanceSchedules() {
 
   // Thống kê KPIs cho Kiosk
   const kioskStats = useMemo(() => {
-    const now = new Date();
     let dueCount = 0;
     let overdueCount = 0;
     let healthyCount = 0;
 
     kioskSchedules.forEach((s) => {
-      if (!s.nextDueAt) return;
-      const d = new Date(s.nextDueAt);
-      const diffMs = d.getTime() - now.getTime();
-      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      const diffDays = daysUntil(s.nextDueAt);
+      if (diffDays === null) return;
       if (diffDays < 0) {
         overdueCount++;
       } else if (diffDays <= 1 || s.due) {
@@ -348,14 +385,13 @@ export function MaintenanceSchedules() {
   }, [kioskSchedules]);
 
   const droneStats = useMemo(() => {
-    const now = new Date();
     let dueCount = 0;
     let overdueCount = 0;
     let healthyCount = 0;
 
     droneSchedules.forEach((s) => {
-      if (!s.nextDueAt) return;
-      const diffDays = Math.ceil((new Date(s.nextDueAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = daysUntil(s.nextDueAt);
+      if (diffDays === null) return;
       if (diffDays < 0) overdueCount++;
       else if (diffDays <= 1 || s.due) dueCount++;
       else healthyCount++;
@@ -377,7 +413,7 @@ export function MaintenanceSchedules() {
         const matchLockerCode = (s.lockerCode || "").toLowerCase().includes(q);
         const matchTech = (s.assignedTechnicianName || "").toLowerCase().includes(q);
         const matchAddress = (s.address || "").toLowerCase().includes(q);
-        const matchStore = ((s as any).storeName || "").toLowerCase().includes(q);
+        const matchStore = (s.storeName || "").toLowerCase().includes(q);
         const matchLocNote = (s.locationNote || "").toLowerCase().includes(q);
         if (!matchTitle && !matchLockerName && !matchLockerCode && !matchTech && !matchAddress && !matchStore && !matchLocNote) return false;
       }
@@ -388,11 +424,8 @@ export function MaintenanceSchedules() {
       }
 
       // 3. Lọc theo trạng thái
-      if (filterStatus !== "ALL" && s.nextDueAt) {
-        const now = new Date();
-        const d = new Date(s.nextDueAt);
-        const diffDays = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
+      const diffDays = filterStatus !== "ALL" ? daysUntil(s.nextDueAt) : null;
+      if (diffDays !== null) {
         if (filterStatus === "OVERDUE") {
           return diffDays < 0;
         } else if (filterStatus === "DUE") {
@@ -439,9 +472,8 @@ export function MaintenanceSchedules() {
         return;
       }
 
-      const finalFirstDueDate = firstDueDate
-        ? `${firstDueDate}T${firstDueTime ? `${firstDueTime}:00` : "09:00:00"}`
-        : undefined;
+      // Admin chọn giờ VN; backend so nextDueAt với now() UTC ⇒ đổi sang UTC trước khi gửi
+      const finalFirstDueDate = firstDueDate ? vnWallClockToBackendUtc(firstDueDate, firstDueTime) : undefined;
 
       const createdResp = await act(
         () =>
@@ -488,7 +520,13 @@ export function MaintenanceSchedules() {
         });
         return;
       }
-      await act(
+      if (droneChecklistLines.some((line) => line.includes(";"))) {
+        toast.error("Checklist không hợp lệ", {
+          description: "Mỗi dòng là một mục — không dùng dấu ';' trong một mục.",
+        });
+        return;
+      }
+      const createdDrone = await act(
         () =>
           createSchedule({
             droneUnitId: drone.id,
@@ -498,21 +536,22 @@ export function MaintenanceSchedules() {
             priority: dronePriority,
             description: droneDescription.trim() || undefined,
             checklist: droneChecklistLines.length > 0 ? droneChecklistLines.join("\n") : undefined,
-            firstDueDate: droneFirstDueDate
-              ? `${droneFirstDueDate}T${droneFirstDueTime || "09:00"}:00`
-              : undefined,
+            firstDueDate: droneFirstDueDate ? vnWallClockToBackendUtc(droneFirstDueDate, droneFirstDueTime) : undefined,
             locationNote: droneLocationNote.trim() || undefined,
             scheduledTimeSlot: droneScheduledTimeSlot || undefined,
           }).unwrap(),
         {
           title: "Tạo lịch bảo dưỡng Drone thành công",
-          desc: `Đã ghi nhận chu kỳ ${droneIntervalDays} ngày cho ${drone.code}.`,
+          desc: `Đã ghi nhận chu kỳ ${droneIntervalDays} ngày cho ${drone.code}. Drone chuyển sang Đang bảo dưỡng cho tới khi lần kiểm tra đầu tiên ĐẠT.`,
         },
         {
           title: "Không tạo được lịch Drone",
           desc: "Vui lòng kiểm tra lại thông tin.",
         },
       );
+      // Lỗi ⇒ giữ nguyên form để sửa và gửi lại
+      if (!createdDrone) return;
+
       setDroneTitle("");
       setDroneIntervalDays(14);
       setDroneAssignedTechnicianId("");
@@ -564,7 +603,7 @@ export function MaintenanceSchedules() {
     const payload: CompleteScheduleRequest = {
       technicianId: inspectTechId ? Number(inspectTechId) : undefined,
       technicianName: inspectTechId
-        ? technicians.find((t) => t.id === Number(inspectTechId))?.fullName
+        ? [...technicians, ...droneTechnicians].find((t) => t.id === Number(inspectTechId))?.fullName
         : undefined,
       // Có checklist ⇒ gửi từng mục, server tự suy kết quả; không có ⇒ gửi status cũ
       ...(inspectHasChecklist
@@ -613,7 +652,9 @@ export function MaintenanceSchedules() {
   const handleSaveTechnicianAssignment = async () => {
     if (!assigningSchedule) return;
     const techId = selectedTechToAssign === "" ? null : Number(selectedTechToAssign);
-    const techName = techId ? technicians.find((t) => t.id === techId)?.fullName ?? `KTV #${techId}` : null;
+    const techName = techId
+      ? [...technicians, ...droneTechnicians].find((t) => t.id === techId)?.fullName ?? `KTV #${techId}`
+      : null;
 
     try {
       await assignTechnician({
@@ -630,6 +671,75 @@ export function MaintenanceSchedules() {
       // Giữ hộp thoại mở để chọn lại (VD TECHNICIAN_ROLE_REQUIRED: lịch drone cần KTV drone)
       toast.error("Không lưu được phân công KTV", {
         description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      });
+    }
+  };
+
+  const openEditModal = (s: MaintenanceScheduleResponse) => {
+    const due = backendToVnWallClock(s.nextDueAt);
+    setEditOriginalDue(due);
+    setEditForm({
+      title: s.title ?? "",
+      intervalDays: s.intervalDays ?? 30,
+      priority: s.priority || "NORMAL",
+      description: s.description ?? "",
+      checklistText: (s.checklistItems ?? []).join("\n"),
+      locationNote: s.locationNote ?? "",
+      scheduledTimeSlot: s.scheduledTimeSlot ?? "",
+      dueDate: due?.date ?? "",
+      dueTime: due?.time ?? "09:00",
+    });
+    setEditingSchedule(s);
+  };
+
+  const submitEdit = async () => {
+    if (!editingSchedule) return;
+    const title = editForm.title.trim();
+    if (!title) {
+      toast.error("Tên kế hoạch không được để trống");
+      return;
+    }
+    if (!Number.isInteger(editForm.intervalDays) || editForm.intervalDays < 1 || editForm.intervalDays > 365) {
+      toast.error("Chu kỳ phải từ 1 đến 365 ngày");
+      return;
+    }
+    const lines = parseChecklistLines(editForm.checklistText);
+    if (lines.some((line) => line.includes(";"))) {
+      toast.error("Checklist không hợp lệ", {
+        description: "Mỗi dòng là một mục — không dùng dấu ';' trong một mục.",
+      });
+      return;
+    }
+    // Chỉ gửi hạn mới khi admin đổi ngày/giờ — gửi lại sẽ reset nhắc hạn phía server
+    const dueChanged =
+      editForm.dueDate !== "" &&
+      (editForm.dueDate !== editOriginalDue?.date || editForm.dueTime !== editOriginalDue?.time);
+    const firstDueDate = dueChanged ? vnWallClockToBackendUtc(editForm.dueDate, editForm.dueTime) : undefined;
+    if (dueChanged && !firstDueDate) {
+      toast.error("Ngày giờ kiểm tra kế tiếp không hợp lệ");
+      return;
+    }
+
+    try {
+      await updateSchedule({
+        id: editingSchedule.id,
+        data: {
+          title,
+          intervalDays: editForm.intervalDays,
+          priority: editForm.priority,
+          description: editForm.description.trim(),
+          checklist: lines.join("\n"),
+          locationNote: editForm.locationNote.trim(),
+          scheduledTimeSlot: editForm.scheduledTimeSlot,
+          ...(firstDueDate ? { firstDueDate } : {}),
+        },
+      }).unwrap();
+      toast.success("Đã cập nhật kế hoạch kiểm tra", { description: `"${title}" đã được lưu.` });
+      setEditingSchedule(null);
+    } catch (err: any) {
+      // Giữ hộp thoại để sửa lại
+      toast.error("Không cập nhật được kế hoạch", {
+        description: err?.data?.message || err?.message || "Vui lòng kiểm tra lại thông tin.",
       });
     }
   };
@@ -651,38 +761,9 @@ export function MaintenanceSchedules() {
     }
   };
 
-  const formatDateTime = (dateStr?: string | null) => {
-    if (!dateStr) return "—";
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const hh = pad(d.getHours());
-    const mm = pad(d.getMinutes());
-    const ss = pad(d.getSeconds());
-    const DD = pad(d.getDate());
-    const MM = pad(d.getMonth() + 1);
-    const YYYY = d.getFullYear();
-    return `${hh}:${mm}:${ss} ${DD}/${MM}/${YYYY}`;
-  };
-
-  const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return "—";
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const DD = pad(d.getDate());
-    const MM = pad(d.getMonth() + 1);
-    const YYYY = d.getFullYear();
-    return `${DD}/${MM}/${YYYY}`;
-  };
-
   const getRemainingDaysInfo = (nextDueAtStr?: string | null) => {
-    if (!nextDueAtStr) return null;
-    const target = new Date(nextDueAtStr);
-    if (isNaN(target.getTime())) return null;
-    const now = new Date();
-    const diffMs = target.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const diffDays = daysUntil(nextDueAtStr);
+    if (diffDays === null) return null;
 
     if (diffDays < 0) {
       return {
@@ -856,7 +937,7 @@ export function MaintenanceSchedules() {
                       <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span className="font-semibold">Địa chỉ trạm đã chọn:</span>
                       <span className="text-emerald-900 font-medium">
-                        {targetLocker?.address || "Đã lưu tọa độ trạm"}
+                        {targetLocker?.address || NO_ADDRESS}
                       </span>
                       {targetLocker?.storeName && (
                         <Badge variant="outline" className="text-[10px] bg-white text-emerald-800 border-emerald-300">
@@ -886,7 +967,7 @@ export function MaintenanceSchedules() {
                   <option value="">— Chọn thiết bị Kiosk —</option>
                   {(allLockers.length > 0 ? allLockers : lockers).map((l: any) => {
                     const id = l.id ?? l.lockerId;
-                    const addr = l.address || (l.code === "CAB-DEMO-01" ? "FPT University HCMC" : "");
+                    const addr = l.address || "";
                     return (
                       <option key={id} value={id}>
                         {l.name} ({l.code}){addr ? ` — 📍 ${addr}` : ""}
@@ -899,7 +980,7 @@ export function MaintenanceSchedules() {
                     <MapPin className="w-3.5 h-3.5 text-teal-600 shrink-0" />
                     <span>
                       <strong>Địa điểm cơ sở:</strong>{" "}
-                      {lockerMap.get(Number(lockerId))?.address || "FPT University HCMC"}
+                      {lockerMap.get(Number(lockerId))?.address || NO_ADDRESS}
                       {lockerMap.get(Number(lockerId))?.storeName ? ` · ${lockerMap.get(Number(lockerId))?.storeName}` : ""}
                     </span>
                   </div>
@@ -1128,6 +1209,13 @@ export function MaintenanceSchedules() {
                   <Plane className="w-4 h-4 text-blue-600" /> Thiết lập Kế hoạch Kiểm tra định kỳ Drone mới
                 </span>
                 <span className="text-[11px] text-blue-800">Chu kỳ khuyến nghị: 15 – 30 ngày/lần</span>
+              </div>
+              <div className="w-full p-2 rounded-md bg-amber-50 border border-amber-300 text-[11px] text-amber-900 flex items-start gap-1.5 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
+                <span>
+                  Tạo lịch sẽ đưa Drone vào trạng thái <strong>Đang bảo dưỡng</strong> (ngừng nhận chuyến bay) cho tới khi
+                  lần kiểm tra đầu tiên được ghi nhận ĐẠT. Drone đang có nhiệm vụ (đã giữ / đang bay) không tạo lịch được.
+                </span>
               </div>
               <div className="flex flex-col gap-1 w-36">
                 <label className="text-xs text-blue-950 font-medium">Thiết bị Drone <span className="text-rose-500">*</span></label>
@@ -1443,22 +1531,22 @@ export function MaintenanceSchedules() {
                         </span>
                       )}
 
-                      {/* FIELD ĐỊA ĐIỂM CƠ SỞ (VÍ DỤ: FPT UNIVERSITY HCMC) */}
+                      {/* Địa điểm cơ sở: lấy từ địa chỉ tủ; chưa có thì ghi rõ */}
                       {(!isDroneSchedule(s) || Boolean(s.address)) && (
                         <span
                           className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-900 bg-teal-50 px-2.5 py-1 rounded border border-teal-300 shadow-sm"
-                          title={`Địa điểm cơ sở: ${s.address || "FPT University HCMC"}`}
+                          title={`Địa điểm cơ sở: ${s.address || NO_ADDRESS}`}
                         >
                           <MapPin className="w-3.5 h-3.5 text-teal-600 shrink-0" />
                           <span className="text-teal-700 font-medium">Địa điểm:</span>
-                          <strong>{s.address || "FPT University HCMC"}</strong>
+                          <strong className={s.address ? "" : "italic font-medium text-muted-foreground"}>{s.address || NO_ADDRESS}</strong>
                         </span>
                       )}
 
-                      {(s as any).storeName && (
+                      {s.storeName && (
                         <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                           <Building2 className="w-3 h-3 text-slate-600 shrink-0" />
-                          {(s as any).storeName}
+                          {s.storeName}
                         </span>
                       )}
 
@@ -1587,6 +1675,16 @@ export function MaintenanceSchedules() {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="h-8 text-xs border-border text-foreground hover:bg-muted/80 cursor-pointer"
+                      onClick={() => openEditModal(s)}
+                      title="Sửa kế hoạch kiểm tra"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
                       className="h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 cursor-pointer"
                       onClick={() => setDeleteConfirm({ id: s.id, title: s.title })}
                       title="Xóa kế hoạch kiểm tra"
@@ -1652,7 +1750,7 @@ export function MaintenanceSchedules() {
                       Địa điểm cơ sở:
                     </span>
                     <span className="font-bold text-teal-900 text-right">
-                      {inspectingSchedule.address || "FPT University HCMC"}
+                      {inspectingSchedule.address || NO_ADDRESS}
                     </span>
                   </div>}
 
@@ -1701,7 +1799,7 @@ export function MaintenanceSchedules() {
                       Mốc thời gian nghiệm thu:
                     </span>
                     <span className="font-mono font-bold text-foreground">
-                      {formatDateTime(new Date().toISOString())}
+                      {formatDateTime(new Date())}
                     </span>
                   </div>
                 </div>
@@ -1844,19 +1942,24 @@ export function MaintenanceSchedules() {
                   />
                 </div>
 
-                {/* KHÔNG ĐẠT: lịch của tủ ⇒ server luôn mở phiếu, giao cho KTV thực hiện */}
+                {/* KHÔNG ĐẠT: lịch tủ ⇒ server mở phiếu tủ; lịch drone ⇒ drone chuyển Lỗi + phiếu Drone.
+                    Lịch drone vẫn có lockerId (tủ/bãi đáp liên kết) nên phải xét theo loại lịch, không theo lockerId. */}
                 {inspectOutcome === "FAILED" && (
                   <div className="p-3 rounded-lg bg-rose-50/70 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-900 space-y-2">
                     <p className="text-rose-900 dark:text-rose-200 font-semibold">
-                      {inspectingSchedule.lockerId != null
-                        ? "Không đạt ⇒ hệ thống tự mở phiếu sự cố giao cho KTV thực hiện. Hạn kiểm tra kế tiếp chỉ dời khi phiếu được hoàn tất."
-                        : "Không đạt ⇒ kết quả được ghi vào biên bản."}
+                      {isDroneSchedule(inspectingSchedule)
+                        ? "Không đạt ⇒ Drone chuyển sang trạng thái Lỗi và hệ thống mở phiếu sự cố Drone (nếu Drone chưa có phiếu đang mở). Hạn kiểm tra kế tiếp vẫn được dời theo chu kỳ."
+                        : "Không đạt ⇒ hệ thống tự mở phiếu sự cố cho tủ. Hạn kiểm tra kế tiếp chỉ dời khi phiếu được hoàn tất."}
                     </p>
-                    {inspectingSchedule.lockerId != null && !inspectTechId && (
-                      <p className="text-[11px] text-rose-700 dark:text-rose-300">
-                        Chưa chọn KTV thực hiện — phiếu sẽ giao cho chính tài khoản admin đang đăng nhập.
-                      </p>
-                    )}
+                    <p className="text-[11px] text-rose-700 dark:text-rose-300">
+                      {isDroneSchedule(inspectingSchedule)
+                        ? "Phiếu Drone được gửi tới KTV đang phụ trách Drone này; Drone chưa có KTV phụ trách thì báo chung cho đội KTV Drone."
+                        : inspectTechId
+                          ? "Phiếu được giao cho KTV thực hiện đã chọn ở trên."
+                          : inspectingSchedule.assignedTechnicianId
+                            ? `Chưa chọn KTV thực hiện — phiếu giao cho KTV phụ trách lịch (${inspectingSchedule.assignedTechnicianName ?? `KTV #${inspectingSchedule.assignedTechnicianId}`}).`
+                            : "Chưa chọn KTV thực hiện và lịch chưa có KTV phụ trách — phiếu được định tuyến như phiếu thường (KTV phụ trách tủ hoặc báo chung cho các KTV tủ)."}
+                    </p>
                     {inspectLockerId != null && (
                       <div className="flex flex-col gap-2 pt-1">
                         <div className="flex items-center justify-between">
@@ -1967,14 +2070,13 @@ export function MaintenanceSchedules() {
                         )}
                       </div>
                     )}
-                    {inspectingSchedule.lockerId != null && (
-                      <Input
-                        value={faultReason}
-                        onChange={(e) => setFaultReason(e.target.value)}
-                        placeholder="Mô tả lỗi cần khắc phục (tuỳ chọn — mặc định liệt kê các mục không đạt)"
-                        className="h-8 text-xs bg-background"
-                      />
-                    )}
+                    {/* Server dùng faultReason cho cả phiếu tủ lẫn lý do lỗi của Drone */}
+                    <Input
+                      value={faultReason}
+                      onChange={(e) => setFaultReason(e.target.value)}
+                      placeholder="Mô tả lỗi cần khắc phục (tuỳ chọn — mặc định liệt kê các mục không đạt)"
+                      className="h-8 text-xs bg-background"
+                    />
                   </div>
                 )}
               </div>
@@ -2125,11 +2227,11 @@ export function MaintenanceSchedules() {
                         {isDroneSchedule(selectedSchedule) ? "Tủ liên kết / Bãi đáp Drone:" : "Địa chỉ Kiosk / Chi nhánh:"}
                       </span>
                       <span className="font-semibold text-foreground block text-xs">
-                        {selectedSchedule.address || lockerMap.get(selectedSchedule.lockerId)?.address || "FPT University HCMC"}
+                        {selectedSchedule.address || lockerMap.get(selectedSchedule.lockerId)?.address || NO_ADDRESS}
                       </span>
-                      {((selectedSchedule as any).storeName || lockerMap.get(selectedSchedule.lockerId)?.storeName) && (
+                      {lockerMap.get(selectedSchedule.lockerId)?.storeName && (
                         <span className="text-[11px] text-muted-foreground block">
-                          Toà nhà / Cửa hàng: <strong>{((selectedSchedule as any).storeName || lockerMap.get(selectedSchedule.lockerId)?.storeName)}</strong>
+                          Toà nhà / Cửa hàng: <strong>{lockerMap.get(selectedSchedule.lockerId)?.storeName}</strong>
                         </span>
                       )}
                     </div>
@@ -2226,7 +2328,7 @@ export function MaintenanceSchedules() {
                                   {statusMeta?.label ?? log.status}
                                 </Badge>
                                 <span className="font-semibold text-foreground">
-                                  {log.technicianName ?? (log.technicianId ? `KTV #${log.technicianId}` : "KTV Kiosk")}
+                                  {log.technicianName ?? (log.technicianId ? `KTV #${log.technicianId}` : "Chưa rõ KTV")}
                                 </span>
                               </div>
                               <span className="text-[11px] font-mono text-muted-foreground">
@@ -2339,6 +2441,18 @@ export function MaintenanceSchedules() {
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="text-xs" onClick={() => setSelectedSchedule(null)}>
                       Đóng
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs gap-1 cursor-pointer"
+                      onClick={() => {
+                        const target = selectedSchedule;
+                        setSelectedSchedule(null);
+                        openEditModal(target);
+                      }}
+                    >
+                      <Pencil className="w-3.5 h-3.5 mr-1" /> Sửa lịch
                     </Button>
                     <Button
                       size="sm"
@@ -2486,6 +2600,168 @@ export function MaintenanceSchedules() {
               disabled={isAssigningTech}
             >
               {isAssigningTech ? "Đang lưu..." : "Lưu phân công"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG SỬA KẾ HOẠCH KIỂM TRA ĐỊNH KỲ */}
+      <Dialog open={!!editingSchedule} onOpenChange={(open) => !open && !updatingSchedule && setEditingSchedule(null)}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-blue-600" />
+              Sửa kế hoạch kiểm tra định kỳ
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {editingSchedule && (isDroneSchedule(editingSchedule)
+                ? `Drone ${editingSchedule.droneCode ?? `#${editingSchedule.droneUnitId}`}`
+                : `${editingSchedule.lockerName ?? `Kiosk #${editingSchedule.lockerId}`}${editingSchedule.lockerCode ? ` (${editingSchedule.lockerCode})` : ""}`)}
+              {" · Đổi KTV phụ trách dùng nút \"Đổi KTV\"."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingSchedule && (
+            <div className="space-y-3 py-1 text-xs">
+              <div className="flex flex-col gap-1">
+                <label className="font-semibold text-foreground">
+                  Tên kế hoạch <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  value={editForm.title}
+                  onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-foreground">
+                    Chu kỳ (ngày) <span className="text-rose-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={editForm.intervalDays}
+                    onChange={(e) => setEditForm((f) => ({ ...f, intervalDays: Number(e.target.value) || 1 }))}
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-foreground">Mức độ ưu tiên</label>
+                  <select
+                    className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
+                    value={editForm.priority}
+                    onChange={(e) => setEditForm((f) => ({ ...f, priority: e.target.value }))}
+                  >
+                    {!["NORMAL", "HIGH", "URGENT"].includes(editForm.priority) && (
+                      <option value={editForm.priority}>{editForm.priority}</option>
+                    )}
+                    <option value="NORMAL">Bình thường</option>
+                    <option value="HIGH">Ưu tiên cao</option>
+                    <option value="URGENT">Khẩn cấp</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-foreground flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-blue-600" /> Hạn kiểm tra kế tiếp
+                  </label>
+                  <Input
+                    type="date"
+                    value={editForm.dueDate}
+                    onChange={(e) => setEditForm((f) => ({ ...f, dueDate: e.target.value }))}
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-blue-600" /> Giờ (giờ Việt Nam)
+                  </label>
+                  <Input
+                    type="time"
+                    value={editForm.dueTime}
+                    onChange={(e) => setEditForm((f) => ({ ...f, dueTime: e.target.value }))}
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-foreground">Khung giờ / Ca kiểm tra</label>
+                  <select
+                    className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
+                    value={editForm.scheduledTimeSlot}
+                    onChange={(e) => setEditForm((f) => ({ ...f, scheduledTimeSlot: e.target.value }))}
+                  >
+                    <option value="">— Không chọn —</option>
+                    {editForm.scheduledTimeSlot &&
+                      !TIME_SLOT_OPTIONS.some((o) => o.value === editForm.scheduledTimeSlot) && (
+                        <option value={editForm.scheduledTimeSlot}>{editForm.scheduledTimeSlot}</option>
+                      )}
+                    {TIME_SLOT_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-semibold text-foreground">
+                    {isDroneSchedule(editingSchedule) ? "Vị trí chi tiết / bãi đáp" : "Vị trí đặt tủ"}
+                  </label>
+                  <Input
+                    value={editForm.locationNote}
+                    onChange={(e) => setEditForm((f) => ({ ...f, locationNote: e.target.value }))}
+                    className="h-9 text-xs"
+                  />
+                </div>
+              </div>
+              {editingSchedule.pendingReportId != null && (
+                <p className="text-[11px] text-amber-700">
+                  Lịch đang chờ phiếu RPT-{editingSchedule.pendingReportId}; hạn kế tiếp sẽ tự dời khi phiếu được hoàn tất.
+                </p>
+              )}
+
+              <div className="flex flex-col gap-1">
+                <label className="font-semibold text-foreground">
+                  Checklist ({parseChecklistLines(editForm.checklistText).length} mục · mỗi dòng một mục)
+                </label>
+                <Textarea
+                  rows={5}
+                  value={editForm.checklistText}
+                  onChange={(e) => setEditForm((f) => ({ ...f, checklistText: e.target.value }))}
+                  className="text-xs bg-background"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="font-semibold text-foreground">Hướng dẫn nghiệp vụ (SOP)</label>
+                <Textarea
+                  rows={2}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                  className="text-xs bg-background"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs"
+              onClick={() => setEditingSchedule(null)}
+              disabled={updatingSchedule}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              onClick={submitEdit}
+              disabled={updatingSchedule || !editForm.title.trim()}
+            >
+              {updatingSchedule ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </DialogFooter>
         </DialogContent>

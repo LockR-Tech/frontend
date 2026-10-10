@@ -3,6 +3,7 @@ import { Camera, CheckCircle2, Clock, ShieldCheck, Wrench } from "lucide-react";
 import { PhotoGallery, type GalleryPhoto } from "~/components/shared/media";
 import type { LockerReportResponse } from "~/stores/apis/admin/lockerOps";
 import type { AttachmentStage } from "~/stores/apis/media";
+import { formatDateTime } from "~/lib/datetime";
 import {
   ATTACHMENT_STAGES,
   STAGE_LABELS,
@@ -10,20 +11,13 @@ import {
   type ReportPhoto,
 } from "./maintenancePhotos";
 
-const formatPhotoTime = (dateStr?: string | null) => {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-};
+// Giờ backend là UTC không offset ⇒ luôn qua ~/lib/datetime để ra giờ VN
+const formatPhotoTime = (dateStr?: string | null) => (dateStr ? formatDateTime(dateStr) : "");
 
 const formatPhotoShortTime = (dateStr?: string | null) => {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+  // "HH:mm:ss dd/MM/yyyy" ⇒ "HH:mm dd/MM"
+  const m = /^(\d{2}:\d{2}):\d{2} (\d{2}\/\d{2})\/\d{4}$/.exec(formatPhotoTime(dateStr));
+  return m ? `${m[1]} ${m[2]}` : "";
 };
 
 // Màu giữ theo quy ước cũ của trang: người báo = rose, KTV = amber, đang sửa = blue, nghiệm thu = emerald
