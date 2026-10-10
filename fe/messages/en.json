@@ -104,6 +104,7 @@
       "maintenance": "Device Maintenance",
       "drones": "Drones",
       "droneOrders": "Drone journeys",
+      "droneIncidents": "Dropped parcel incidents",
       "businessSettings": "Business rules",
       "knowledge": "Knowledge base"
     },

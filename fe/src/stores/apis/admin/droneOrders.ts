@@ -1,5 +1,6 @@
 import { baseApi } from "../../baseAPi";
 import type { ApiResponse } from "../../../types";
+import type { MediaUpload } from "../media";
 
 // Hành trình giao hàng bằng drone (order-service, `DroneDeliveryQueryService`).
 // Cùng một read model với màn theo dõi của khách và của điều phối viên trên app,
@@ -116,6 +117,31 @@ export interface DroneOrderTracking {
   journeyEvents: DroneJourneyEvent[];
 }
 
+export interface DroneCameraMetadata {
+  status: "CONNECTING" | "LIVE" | "RECONNECTING" | "OFFLINE" | "UNAVAILABLE" | "ERROR";
+  integrationAvailable: boolean;
+  streamType?: "HLS" | string;
+  streamUrl?: string;
+  droneCode: string;
+  journeyStatus: string;
+  telemetryLive: boolean;
+  batteryPercent?: number;
+  flightMode?: string;
+  latitude?: number;
+  longitude?: number;
+  observedAt?: string;
+}
+
+export interface ReportDroppedParcelPayload {
+  reason: string;
+  latitude?: number;
+  longitude?: number;
+  gpsAccuracyM?: number;
+  cameraStatus?: string;
+  cameraSnapshot?: MediaUpload;
+  snapshotCapturedAt?: string;
+}
+
 const TAG = "DroneOrders" as const;
 
 export const droneOrderApi = baseApi.injectEndpoints({
@@ -129,6 +155,28 @@ export const droneOrderApi = baseApi.injectEndpoints({
     getDroneOrder: builder.query<ApiResponse<DroneOrderTracking>, number>({
       query: (orderId) => `/api/admin/drone-orders/${orderId}`,
       providesTags: (_result, _error, orderId) => [{ type: TAG, id: orderId }],
+    }),
+
+    getDroneCamera: builder.query<ApiResponse<DroneCameraMetadata>, number>({
+      query: (orderId) => `/api/admin/drone-orders/${orderId}/camera`,
+      providesTags: (_result, _error, orderId) => [{ type: TAG, id: `camera-${orderId}` }],
+    }),
+
+    reportDroppedParcel: builder.mutation<
+      ApiResponse<unknown>,
+      { orderId: number; idempotencyKey: string; payload: ReportDroppedParcelPayload }
+    >({
+      query: ({ orderId, idempotencyKey, payload }) => ({
+        url: `/api/admin/drone-orders/${orderId}/drop-incident`,
+        method: "POST",
+        headers: { "Idempotency-Key": idempotencyKey },
+        body: payload,
+      }),
+      invalidatesTags: (_result, _error, { orderId }) => [
+        TAG,
+        { type: TAG, id: orderId },
+        "DroneIncidents",
+      ],
     }),
 
     // Chuyến bay không giao được hàng sau khi đã phóng: đóng đơn, nhả ô nhận, drone
@@ -163,6 +211,8 @@ export const droneOrderApi = baseApi.injectEndpoints({
 export const {
   useGetDroneOrdersQuery,
   useGetDroneOrderQuery,
+  useGetDroneCameraQuery,
+  useReportDroppedParcelMutation,
   useFailDroneOrderMutation,
   useConfirmDroneParcelReturnMutation,
 } = droneOrderApi;
