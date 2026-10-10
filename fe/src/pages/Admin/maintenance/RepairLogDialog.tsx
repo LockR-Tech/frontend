@@ -29,28 +29,11 @@ import {
   type RepairLogResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
-import { KTV_NOTES_BY_REPORT, getUserPhotos } from "./maintenancePhotos";
-
-const formatDT = (dateStr?: string | null) => {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-};
-
-const calcDuration = (a?: string | null, b?: string | null): string => {
-  if (!a || !b) return "—";
-  const ms = Math.max(0, new Date(b).getTime() - new Date(a).getTime());
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  if (h === 0) return `${m} phút`;
-  return `${h} giờ ${m > 0 ? `${m} phút` : ""}`;
-};
+import { formatDateTime as formatDT } from "~/lib/datetime";
+import { calculateDurationText as calcDuration, getUserPhotos } from "./maintenancePhotos";
 
 /// Nút "Nhật ký" + hộp thoại đầy đủ thông tin phiếu (Chế độ xem Quản trị viên - Read-only):
 /// - Chi tiết phiếu: Kiosk, ô tủ, nội dung khách báo, KTV phụ trách, các mốc thời gian SLA
-/// - Ghi chú kỹ thuật của KTV (biên bản, linh kiện thay, thời gian nhận/xong)
 /// - Nhật ký xử lý từng bước (work-log) với ảnh trong quá trình sửa do KTV cập nhật trên Mobile
 export function RepairLogDialog({
   reportId,
@@ -73,13 +56,19 @@ export function RepairLogDialog({
 
   const logs = data?.data ?? [];
   const eff = report ?? allReportsData?.data?.find((r) => r.id === reportId);
-  const ktvNotes = KTV_NOTES_BY_REPORT[reportId];
   const userPhotos = eff ? getUserPhotos(eff) : [];
 
   const rawUsers = usersData?.data as unknown;
   const userList: any[] = Array.isArray(rawUsers)
     ? rawUsers
     : (rawUsers as { content?: any[] })?.content ?? [];
+
+  // Mỗi dòng nhật ký ghi đúng người thao tác (KTV, admin gia hạn SLA…), không gán hết cho KTV phụ trách
+  const actorName = (actorUserId: number | null) => {
+    if (actorUserId == null) return "Hệ thống";
+    const u = userList.find((x) => x.id === actorUserId);
+    return u?.fullName || u?.name || `Người dùng #${actorUserId}`;
+  };
 
   const reporterUser = eff?.userId ? userList.find((u) => u.id === eff.userId) : undefined;
   const assignedUser = eff?.assignedToUserId ? userList.find((u) => u.id === eff.assignedToUserId) : undefined;
@@ -152,11 +141,6 @@ export function RepairLogDialog({
       <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => setOpen(true)}>
         <FileText className="w-3.5 h-3.5 text-indigo-600" />
         Nhật ký
-        {logs.length > 0 && (
-          <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-100 text-indigo-700 font-bold">
-            {logs.length}
-          </span>
-        )}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -352,37 +336,6 @@ export function RepairLogDialog({
                     </div>
                   )}
                 </div>
-
-                {/* KTV Technical Notes */}
-                {ktvNotes && (
-                  <div className="p-3 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/30 space-y-2 text-xs">
-                    <p className="font-semibold text-foreground flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-indigo-600" />
-                      Biên bản kỹ thuật của KTV
-                    </p>
-                    <p className="text-foreground leading-relaxed">{ktvNotes.technicianNote}</p>
-                    {ktvNotes.partsReplaced && (
-                      <div className="flex gap-1.5 flex-wrap pt-1 border-t border-indigo-200/60">
-                        <span className="text-muted-foreground shrink-0">Linh kiện thay thế:</span>
-                        <span className="font-medium text-foreground">{ktvNotes.partsReplaced}</span>
-                      </div>
-                    )}
-                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-indigo-200/60">
-                      {ktvNotes.claimedAt && (
-                        <div>
-                          <p className="text-muted-foreground">KTV nhận việc lúc:</p>
-                          <p className="font-mono font-medium text-foreground">{ktvNotes.claimedAt}</p>
-                        </div>
-                      )}
-                      {ktvNotes.resolvedAt && (
-                        <div>
-                          <p className="text-muted-foreground">KTV báo xong lúc:</p>
-                          <p className="font-mono font-medium text-emerald-700 dark:text-emerald-400">{ktvNotes.resolvedAt}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -476,7 +429,7 @@ export function RepairLogDialog({
                               {formatDT(l.createdAt)}
                             </span>
                             <span className="font-semibold text-foreground">
-                              {technicianName ?? (l.actorUserId ? `KTV #${l.actorUserId}` : "Hệ thống")}
+                              {actorName(l.actorUserId)}
                             </span>
                           </p>
                         </div>

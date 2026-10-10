@@ -1,11 +1,14 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
   Eye,
   Loader2,
   MapPin,
+  PackageCheck,
   PackageSearch,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "~/components/shared/page-header";
@@ -19,6 +22,15 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -38,12 +50,15 @@ import {
   type DroneParcelIncident,
 } from "~/stores/apis/admin/droneIncidents";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
+import { useConfirmDroneParcelHubHandoverMutation } from "./hubHandoverApi";
 
 const statusLabel: Record<string, string> = {
   REPORTED: "Đã báo sự cố",
+  EVIDENCE_PENDING: "Chờ bằng chứng",
   INVESTIGATING: "Đang điều tra",
   RECOVERY_IN_PROGRESS: "Đang thu hồi",
   AWAITING_ADMIN_REVIEW: "Chờ Admin xác minh",
+  RESOLUTION_PROPOSED: "Đã gửi phương án",
   AWAITING_CUSTOMER_RESPONSE: "Chờ khách phản hồi",
   RESOLUTION_IN_PROGRESS: "Đang xử lý phương án",
   DISPUTED: "Yêu cầu xem xét lại",
@@ -51,6 +66,86 @@ const statusLabel: Record<string, string> = {
   CLOSED: "Đã đóng",
   MANUAL_INTERVENTION_REQUIRED: "Cần can thiệp thủ công",
 };
+
+// Nhóm lọc theo trạng thái sự cố (DroneIncidentStates.INCIDENT ở backend)
+const FILTERS = [
+  "ALL",
+  "REPORTED",
+  "INVESTIGATING",
+  "RECOVERY_IN_PROGRESS",
+  "AWAITING_ADMIN_REVIEW",
+  "AWAITING_CUSTOMER_RESPONSE",
+  "RESOLUTION_IN_PROGRESS",
+  "DISPUTED",
+  "MANUAL_INTERVENTION_REQUIRED",
+  "RESOLVED",
+  "CLOSED",
+] as const;
+
+const RESOLUTION_LABELS: Record<string, string> = {
+  FREE_REDELIVERY: "Giao lại miễn phí",
+  REDELIVERY_PARTIAL_COMPENSATION: "Giao lại + bồi thường một phần",
+  COMPENSATION_ONLY: "Chỉ bồi thường",
+  MANUAL_RESOLUTION: "Xử lý thủ công",
+};
+
+// Mã lỗi DroneParcelIncidentService → thông báo tiếng Việt
+const INCIDENT_ERRORS: Record<string, string> = {
+  RESOLUTION_CONTENT_INVALID:
+    "Loại phương án không khớp với lựa chọn giao lại / mức bồi thường.",
+  RESOLUTION_TYPE_INVALID: "Loại phương án không được hỗ trợ.",
+  PARCEL_NOT_AT_HUB: "Chỉ đề xuất giao lại sau khi kiện đã được xác nhận về hub.",
+  FREE_REDELIVERY_DISABLED: "Chính sách của đơn không cho phép giao lại miễn phí.",
+  INCIDENT_POLICY_DISABLED: "Đơn này không áp dụng chính sách bồi thường sự cố.",
+  COMPENSATION_OVERRIDE_REASON_REQUIRED:
+    "Mức bồi thường vượt mức chính sách — cần nhập lý do override.",
+  RECOVERY_NOT_VERIFIED: "Kết quả thu hồi chưa được xác minh.",
+  PARCEL_NOT_FOUND: "Chỉ kiện đã tìm thấy mới bàn giao về hub được.",
+  RECOVERY_FORBIDDEN: "Bạn không có quyền xác nhận bàn giao này.",
+};
+
+/** Backend (bản mới) trả thêm mức bồi thường đề xuất theo chính sách; bản cũ chưa có. */
+function suggestedCompensationOf(incident: DroneParcelIncident): number | null {
+  const value = (incident as DroneParcelIncident & {
+    suggestedCompensation?: number | null;
+  }).suggestedCompensation;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+const REDELIVERY_TYPES = new Set(["FREE_REDELIVERY", "REDELIVERY_PARTIAL_COMPENSATION"]);
+
+/** Kiểm tra phương án giống DroneParcelIncidentService.propose để báo lỗi trước khi gửi. */
+function validateProposal(
+  incident: DroneParcelIncident,
+  resolutionType: string,
+  amountText: string,
+  overrideReason: string,
+): string | null {
+  if (!["VERIFIED", "CLOSED"].includes(incident.recoveryStatus)) {
+    return "Cần xác minh kết quả thu hồi trước khi tạo phương án.";
+  }
+  const amount = amountText.trim() === "" ? Number.NaN : Number(amountText);
+  if (!Number.isFinite(amount) || amount < 0) {
+    return "Nhập mức bồi thường hợp lệ (số ≥ 0).";
+  }
+  if (REDELIVERY_TYPES.has(resolutionType) && incident.parcelStatus !== "RETURNED_TO_HUB") {
+    return "Chỉ đề xuất giao lại sau khi kiện đã được xác nhận về hub.";
+  }
+  if (resolutionType === "FREE_REDELIVERY" && amount !== 0) {
+    return "Giao lại miễn phí không kèm tiền bồi thường — mức bồi thường phải là 0.";
+  }
+  if (resolutionType === "REDELIVERY_PARTIAL_COMPENSATION" && amount <= 0) {
+    return "Giao lại + bồi thường một phần cần mức bồi thường lớn hơn 0.";
+  }
+  if (resolutionType === "COMPENSATION_ONLY" && amount <= 0) {
+    return "Chỉ bồi thường cần mức bồi thường lớn hơn 0.";
+  }
+  const suggested = suggestedCompensationOf(incident);
+  if (suggested != null && amount > suggested && !overrideReason.trim()) {
+    return `Mức bồi thường vượt mức đề xuất ${formatCurrency(suggested)} — nhập lý do override.`;
+  }
+  return null;
+}
 
 function statusTone(status: string) {
   if (["CLOSED", "RESOLVED", "VERIFIED", "RECOVERED"].includes(status))
@@ -67,12 +162,25 @@ export default function DroneIncidentsPage() {
     { pollingInterval: 10_000 },
   );
   const [selected, setSelected] = useState<number | null>(null);
-  const [filter, setFilter] = useState("ALL");
+  const [filter, setFilter] = useState<string>("ALL");
+  // Liên kết từ trang Hành trình drone: ?order=<mã đơn>
+  const [searchParams, setSearchParams] = useSearchParams();
+  const orderFilter = searchParams.get("order")?.trim() || null;
   const incidents = data?.data ?? [];
+  const byOrder = orderFilter
+    ? incidents.filter(
+        (item) =>
+          item.orderCode === orderFilter || String(item.orderId) === orderFilter,
+      )
+    : incidents;
   const visible =
     filter === "ALL"
-      ? incidents
-      : incidents.filter((item) => item.status === filter);
+      ? byOrder
+      : byOrder.filter((item) => item.status === filter);
+  const filterCounts = byOrder.reduce<Record<string, number>>((acc, item) => {
+    acc[item.status] = (acc[item.status] ?? 0) + 1;
+    return acc;
+  }, {});
   const counts = {
     open: incidents.filter(
       (item) => !["CLOSED", "RESOLVED"].includes(item.status),
@@ -101,15 +209,21 @@ export default function DroneIncidentsPage() {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
-          {[
-            "ALL",
-            "INVESTIGATING",
-            "RECOVERY_IN_PROGRESS",
-            "AWAITING_ADMIN_REVIEW",
-            "AWAITING_CUSTOMER_RESPONSE",
-            "DISPUTED",
-            "CLOSED",
-          ].map((value) => (
+          {orderFilter && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.delete("order");
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              Đơn {orderFilter}
+              <X className="ml-1 h-3.5 w-3.5" />
+            </Button>
+          )}
+          {FILTERS.map((value) => (
             <Button
               key={value}
               size="sm"
@@ -117,6 +231,9 @@ export default function DroneIncidentsPage() {
               onClick={() => setFilter(value)}
             >
               {value === "ALL" ? "Tất cả" : (statusLabel[value] ?? value)}
+              <span className="ml-1 text-xs opacity-70">
+                {value === "ALL" ? byOrder.length : (filterCounts[value] ?? 0)}
+              </span>
             </Button>
           ))}
         </div>
@@ -134,7 +251,9 @@ export default function DroneIncidentsPage() {
           ) : visible.length === 0 ? (
             <div className="py-16 text-center text-sm text-muted-foreground">
               <PackageSearch className="mx-auto mb-3 h-9 w-9 opacity-40" />
-              Không có sự cố trong nhóm này.
+              {orderFilter && byOrder.length === 0
+                ? `Chưa thấy sự cố của đơn ${orderFilter} — sự cố có thể đang được tạo, bấm Làm mới sau ít giây.`
+                : "Không có sự cố trong nhóm này."}
             </div>
           ) : (
             <table className="w-full text-sm">
@@ -354,7 +473,8 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
             <div className="flex justify-between">
               <b>
                 Phiên bản {proposal.proposalVersion} ·{" "}
-                {proposal.resolutionType.replaceAll("_", " ")}
+                {RESOLUTION_LABELS[proposal.resolutionType] ??
+                  proposal.resolutionType.replaceAll("_", " ")}
               </b>
               <Status value={proposal.status} />
             </div>
@@ -407,24 +527,74 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
   const [technicianId, setTechnicianId] = useState(
     incident.recoveryAssignedToUserId?.toString() ?? "",
   );
-  const [resolutionType, setResolutionType] = useState("COMPENSATION_ONLY");
-  const [amount, setAmount] = useState("0");
+  const atHub = incident.parcelStatus === "RETURNED_TO_HUB";
+  const suggested = suggestedCompensationOf(incident);
+  // Mặc định hợp lệ với backend: kiện đã về hub → giao lại miễn phí (0đ); chưa về → chỉ
+  // bồi thường theo mức đề xuất (nếu có).
+  const [resolutionType, setResolutionType] = useState(
+    atHub ? "FREE_REDELIVERY" : "COMPENSATION_ONLY",
+  );
+  const [amount, setAmount] = useState(
+    atHub ? "0" : suggested != null && suggested > 0 ? String(suggested) : "",
+  );
   const [overrideReason, setOverrideReason] = useState("");
+  const [showProposalError, setShowProposalError] = useState(false);
+  const [confirmHandover, setConfirmHandover] = useState(false);
   const [assign, assignState] = useAssignDroneRecoveryMutation();
   const [verify, verifyState] = useVerifyDroneRecoveryMutation();
   const [propose, proposalState] = useCreateDroneIncidentProposalMutation();
   const [approveCompensation, approvalState] =
     useApproveDroneIncidentCompensationMutation();
+  const [handover, handoverState] = useConfirmDroneParcelHubHandoverMutation();
+  const proposalError = validateProposal(
+    incident,
+    resolutionType,
+    amount,
+    overrideReason,
+  );
+  const canHandover =
+    incident.recoveryStatus === "VERIFIED" && incident.recoveryOutcome === "FOUND";
   const handle = async (action: () => Promise<unknown>, success: string) => {
     try {
       await action();
       toast.success(success);
+      return true;
     } catch (error) {
+      const data = (error as { data?: { code?: string; message?: string } })?.data;
       toast.error(
-        (error as { data?: { message?: string } })?.data?.message ??
+        (data?.code && INCIDENT_ERRORS[data.code]) ||
+          data?.message ||
           "Thao tác thất bại",
       );
+      return false;
     }
+  };
+  const changeResolutionType = (next: string) => {
+    setResolutionType(next);
+    setShowProposalError(true);
+    if (next === "FREE_REDELIVERY") {
+      setAmount("0");
+    } else if (amount.trim() === "" || Number(amount) === 0) {
+      // Loại có tiền bồi thường: gợi ý mức chính sách thay cho 0
+      setAmount(suggested != null && suggested > 0 ? String(suggested) : "");
+    }
+  };
+  const submitProposal = async () => {
+    setShowProposalError(true);
+    if (proposalError) return;
+    const ok = await handle(
+      () =>
+        propose({
+          id: incident.id,
+          resolutionType,
+          redeliveryOffered: REDELIVERY_TYPES.has(resolutionType),
+          compensationAmount: Number(amount) || 0,
+          refundShippingFee: false,
+          overrideReason: overrideReason.trim() || undefined,
+        }).unwrap(),
+      "Đã gửi phương án cho khách",
+    );
+    if (ok) setShowProposalError(false);
   };
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -477,54 +647,123 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             Xác minh kết quả
           </Button>
         )}
+        {atHub ? (
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-emerald-700">
+            <PackageCheck className="h-4 w-4" />
+            Kiện đã về hub
+            {incident.returnedToHubAt
+              ? ` lúc ${formatDateTime(incident.returnedToHubAt)}`
+              : ""}
+            .
+          </p>
+        ) : canHandover ? (
+          <div className="mt-3 space-y-1">
+            <Button
+              variant="outline"
+              disabled={handoverState.isLoading}
+              onClick={() => setConfirmHandover(true)}
+            >
+              <PackageCheck className="mr-1 h-4 w-4" />
+              Xác nhận đã về hub
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Cần xác nhận kiện đã về hub trước khi đề xuất giao lại cho khách.
+            </p>
+          </div>
+        ) : null}
       </div>
+      <AlertDialog
+        open={confirmHandover}
+        onOpenChange={(open) => !handoverState.isLoading && setConfirmHandover(open)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận kiện đã về hub?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Kiện của đơn {incident.orderCode ?? `#${incident.orderId}`} được ghi nhận
+              đã bàn giao về hub và đóng bước thu hồi. Sau đó mới tạo được phương án giao
+              lại cho khách.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={handoverState.isLoading}>Huỷ</AlertDialogCancel>
+            <Button
+              disabled={handoverState.isLoading}
+              onClick={async () => {
+                const ok = await handle(
+                  () => handover(incident.id).unwrap(),
+                  "Đã xác nhận kiện về hub",
+                );
+                if (ok) setConfirmHandover(false);
+              }}
+            >
+              {handoverState.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Xác nhận
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div className="rounded-lg border p-4">
         <h3 className="font-semibold">Phương án cho khách hàng</h3>
         <div className="mt-3 space-y-2">
-          <Select value={resolutionType} onValueChange={setResolutionType}>
+          <Select value={resolutionType} onValueChange={changeResolutionType}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="FREE_REDELIVERY">Giao lại miễn phí</SelectItem>
-              <SelectItem value="REDELIVERY_PARTIAL_COMPENSATION">
-                Giao lại + bồi thường một phần
-              </SelectItem>
-              <SelectItem value="COMPENSATION_ONLY">Chỉ bồi thường</SelectItem>
-              <SelectItem value="MANUAL_RESOLUTION">Xử lý thủ công</SelectItem>
+              {Object.entries(RESOLUTION_LABELS).map(([value, label]) => (
+                <SelectItem
+                  key={value}
+                  value={value}
+                  disabled={REDELIVERY_TYPES.has(value) && !atHub}
+                >
+                  {label}
+                  {REDELIVERY_TYPES.has(value) && !atHub ? " (cần kiện về hub)" : ""}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Input
             type="number"
             min="0"
             value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder="Mức bồi thường"
+            disabled={resolutionType === "FREE_REDELIVERY"}
+            onChange={(event) => {
+              setAmount(event.target.value);
+              setShowProposalError(true);
+            }}
+            placeholder="Mức bồi thường (VND)"
           />
+          {suggested != null && (
+            <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              Mức đề xuất theo chính sách:{" "}
+              <b className="text-foreground">{formatCurrency(suggested)}</b>
+              {resolutionType !== "FREE_REDELIVERY" && String(suggested) !== amount && (
+                <button
+                  type="button"
+                  className="font-medium text-primary hover:underline"
+                  onClick={() => setAmount(String(suggested))}
+                >
+                  Dùng mức này
+                </button>
+              )}
+            </p>
+          )}
           <Input
             value={overrideReason}
-                onChange={(event) => setOverrideReason(event.target.value)}
-            placeholder="Lý do override (nếu vượt mức policy)"
+            onChange={(event) => setOverrideReason(event.target.value)}
+            placeholder="Lý do override (nếu vượt mức chính sách)"
           />
+          {showProposalError && proposalError && (
+            <p className="text-xs text-red-600">{proposalError}</p>
+          )}
           <Button
             disabled={
               !["VERIFIED", "CLOSED"].includes(incident.recoveryStatus) ||
-              proposalState.isLoading
+              proposalState.isLoading ||
+              (showProposalError && proposalError != null)
             }
-            onClick={() =>
-              handle(
-                () =>
-                  propose({
-                    id: incident.id,
-                    resolutionType,
-                    redeliveryOffered: resolutionType.includes("REDELIVERY"),
-                    compensationAmount: Number(amount) || 0,
-                    refundShippingFee: false,
-                    overrideReason: overrideReason || undefined,
-                  }).unwrap(),
-                "Đã gửi phương án cho khách",
-              )
-            }
+            onClick={() => void submitProposal()}
           >
             Tạo phương án mới
           </Button>

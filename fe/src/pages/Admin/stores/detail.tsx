@@ -1,12 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   Phone,
-  Mail,
-  Clock,
   AlertCircle,
-  User,
   Calendar,
   Save,
   X,
@@ -17,6 +14,8 @@ import {
   Plus,
   RefreshCw,
   Trash2,
+  Power,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -34,49 +33,55 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { useStoreDetail } from "./hooks/useStoreDetail";
-import { apiGet, apiPut } from "~/utils/api";
+import { storeErrorMessage } from "./hooks/useStores";
+import { apiGet } from "~/utils/api";
 import { ImageUploadButton } from "~/components/shared/media";
 import { getMediaErrorMessage, pickImageUrl } from "~/lib/media";
+import { formatDateTime } from "~/lib/datetime";
 import {
+  isStoreActive,
   useDeleteStoreImageMutation,
   useUpdateStoreImageMutation,
+  useUpdateStoreMutation,
+  useUpdateStoreStatusMutation,
+  type StoreRecord,
 } from "~/stores/apis/admin/stores";
 import type { MediaUpload } from "~/stores/apis/media";
-import { BoxStatus } from "~/types/admin/enums";
 import { LockerCard } from "./components/LockerCard";
 import { AddLockerModal } from "./components/AddLockerModal";
 
-const formatDate = (dateString: string) =>
-  new Date(dateString).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+// Chỉ các trường store-service thật sự lưu (StoreRequest).
+const toForm = (store: StoreRecord) => ({
+  name: store.name || "",
+  address: store.address || "",
+  contactPhone: store.contactPhone || "",
+  description: store.description || "",
+  latitude: store.latitude != null ? String(store.latitude) : "",
+  longitude: store.longitude != null ? String(store.longitude) : "",
+});
 
 export default function StoreDetailPage() {
   const { storeId } = useParams<{ storeId: string }>();
   const navigate = useNavigate();
-  const { store, lockers, isLoading, refetch } = useStoreDetail(storeId);
+  const { store, lockers, isLoading, refetch, revenueStats, revenueError } =
+    useStoreDetail(storeId);
 
   const [formData, setFormData] = useState({
     name: "",
     address: "",
-    phone: "",
-    email: "",
-    openTime: "",
-    closeTime: "",
-    manager: "",
-    managerPhone: "",
+    contactPhone: "",
+    description: "",
     latitude: "",
     longitude: "",
   });
+  const [updateStore] = useUpdateStoreMutation();
+  const [updateStoreStatus, { isLoading: isTogglingStatus }] = useUpdateStoreStatusMutation();
+  const [showStatusConfirm, setShowStatusConfirm] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAddLocker, setShowAddLocker] = useState(false);
-  // Ảnh cập nhật tại chỗ sau PUT/DELETE …/image (không refetch để khỏi mất dữ liệu form đang sửa)
+  // Ảnh cập nhật tại chỗ ngay sau PUT/DELETE …/image, trước khi dữ liệu tải lại
   const [imageOverride, setImageOverride] = useState<string | null | undefined>(undefined);
   const [imageBroken, setImageBroken] = useState(false);
   const [showRemoveImage, setShowRemoveImage] = useState(false);
@@ -115,21 +120,12 @@ export default function StoreDetailPage() {
     }
   };
 
+  // RTK tự tải lại địa điểm sau khi đổi ảnh/trạng thái — đang sửa dở thì không ghi đè form.
+  const dirtyRef = useRef(false);
+  dirtyRef.current = isDirty;
   useEffect(() => {
     if (store) {
-      setFormData({
-        name: store.name || "",
-        address: store.address || "",
-        phone: store.phone || "",
-        email: store.email || "",
-        openTime: store.openTime || "",
-        closeTime: store.closeTime || "",
-        manager: store.manager || "",
-        managerPhone: store.managerPhone || "",
-        latitude: store.latitude != null ? String(store.latitude) : "",
-        longitude: store.longitude != null ? String(store.longitude) : "",
-      });
-      setIsDirty(false);
+      if (!dirtyRef.current) setFormData(toForm(store));
       setImageOverride(undefined);
       setImageBroken(false);
     }
@@ -142,48 +138,59 @@ export default function StoreDetailPage() {
 
   const handleCancel = () => {
     if (store) {
-      setFormData({
-        name: store.name || "",
-        address: store.address || "",
-        phone: store.phone || "",
-        email: store.email || "",
-        openTime: store.openTime || "",
-        closeTime: store.closeTime || "",
-        manager: store.manager || "",
-        managerPhone: store.managerPhone || "",
-        latitude: store.latitude != null ? String(store.latitude) : "",
-        longitude: store.longitude != null ? String(store.longitude) : "",
-      });
+      setFormData(toForm(store));
       setIsDirty(false);
     }
   };
 
   const handleSave = async () => {
-    if (!storeId) return;
+    if (!store) return;
+    if (!formData.name.trim()) {
+      setShowConfirm(false);
+      toast.error("Tên địa điểm không được để trống");
+      return;
+    }
     setIsSaving(true);
     try {
-      const lat = formData.latitude ? parseFloat(formData.latitude) : undefined;
-      const lng = formData.longitude ? parseFloat(formData.longitude) : undefined;
-      const payload = {
-        name: formData.name,
-        address: formData.address,
-        contactPhone: formData.phone,
-        description: store?.description,
-        latitude: !isNaN(lat!) ? lat : undefined,
-        longitude: !isNaN(lng!) ? lng : undefined,
-      };
-      await apiPut(`/api/admin/stores/${storeId}`, payload);
+      const lat = formData.latitude ? parseFloat(formData.latitude) : NaN;
+      const lng = formData.longitude ? parseFloat(formData.longitude) : NaN;
+      // Trường null/bỏ trống được giữ nguyên → xoá chữ thì gửi "". Không gửi
+      // active/status: trạng thái đổi bằng nút riêng (PUT …/status).
+      await updateStore({
+        id: store.id,
+        data: {
+          name: formData.name.trim(),
+          address: formData.address.trim(),
+          contactPhone: formData.contactPhone.trim(),
+          description: formData.description.trim(),
+          latitude: Number.isFinite(lat) ? lat : undefined,
+          longitude: Number.isFinite(lng) ? lng : undefined,
+        },
+      }).unwrap();
       setIsDirty(false);
       setShowConfirm(false);
-      refetch();
       toast.success("Đã cập nhật thông tin địa điểm");
     } catch (error) {
-      alert(
-        "Lỗi khi lưu: " +
-          (error instanceof Error ? error.message : "Unknown error"),
-      );
+      setShowConfirm(false);
+      toast.error("Không lưu được thông tin địa điểm", {
+        description: storeErrorMessage(error, "Vui lòng thử lại."),
+      });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    if (!store) return;
+    const nextStatus = isStoreActive(store) ? "INACTIVE" : "ACTIVE";
+    try {
+      await updateStoreStatus({ id: store.id, data: { status: nextStatus } }).unwrap();
+      toast.success(nextStatus === "ACTIVE" ? "Đã kích hoạt địa điểm" : "Đã ngừng hoạt động địa điểm");
+      setShowStatusConfirm(false);
+    } catch (error) {
+      toast.error("Không đổi được trạng thái", {
+        description: storeErrorMessage(error, "Vui lòng thử lại."),
+      });
     }
   };
 
@@ -215,18 +222,10 @@ export default function StoreDetailPage() {
   }
 
   const lockersList = Array.isArray(lockers) ? lockers : [];
-  const totalBoxes = lockersList.reduce(
-    (sum, l) => sum + (l.totalBoxes ?? l.boxes?.length ?? 0),
-    0,
-  );
-  const availableBoxes = lockersList.reduce(
-    (sum, l) =>
-      sum +
-      (l.availableBoxes ??
-        l.boxes?.filter((b) => b.status === BoxStatus.AVAILABLE).length ??
-        0),
-    0,
-  );
+  // LockerResponse có sẵn totalBoxes/availableBoxes (không gửi danh sách ô).
+  const totalBoxes = lockersList.reduce((sum, l) => sum + (l.totalBoxes ?? 0), 0);
+  const availableBoxes = lockersList.reduce((sum, l) => sum + (l.availableBoxes ?? 0), 0);
+  const active = isStoreActive(store);
 
   return (
     <div className="space-y-6">
@@ -247,6 +246,38 @@ export default function StoreDetailPage() {
               className="bg-primary text-primary-foreground hover:opacity-90"
             >
               {isSaving ? "Đang lưu..." : "Lưu"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm Status Dialog */}
+      <AlertDialog
+        open={showStatusConfirm}
+        onOpenChange={(open) => !isTogglingStatus && setShowStatusConfirm(open)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {active ? "Ngừng hoạt động địa điểm?" : "Kích hoạt lại địa điểm?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {active
+                ? "Địa điểm sẽ chuyển sang trạng thái INACTIVE."
+                : "Địa điểm sẽ chuyển sang trạng thái ACTIVE."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel disabled={isTogglingStatus}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void handleToggleStatus();
+              }}
+              disabled={isTogglingStatus}
+              className={active ? "bg-rose-600 text-white hover:bg-rose-700" : undefined}
+            >
+              {isTogglingStatus ? "Đang cập nhật..." : active ? "Ngừng hoạt động" : "Kích hoạt"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
@@ -314,13 +345,26 @@ export default function StoreDetailPage() {
           <Badge
             variant="outline"
             className={
-              store.active
+              active
                 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
                 : "bg-secondary text-muted-foreground border-border"
             }
           >
-            {store.active ? "Đang hoạt động" : "Đóng cửa"}
+            {active ? "Đang hoạt động" : "Ngừng hoạt động"}
           </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowStatusConfirm(true)}
+            disabled={isTogglingStatus}
+          >
+            {isTogglingStatus ? (
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Power className="mr-1.5 h-3.5 w-3.5" />
+            )}
+            {active ? "Ngừng hoạt động" : "Kích hoạt"}
+          </Button>
         </div>
       </div>
 
@@ -372,12 +416,12 @@ export default function StoreDetailPage() {
             <div className="absolute top-3 left-3">
               <span
                 className={`text-[11px] font-medium px-2.5 py-1 rounded-full border backdrop-blur-xs ${
-                  store.active
+                  active
                     ? "bg-emerald-500/90 text-white border-emerald-400/40"
                     : "bg-background/90 text-foreground border-border/40"
                 }`}
               >
-                {store.active ? "Đang hoạt động" : "Đóng cửa"}
+                {active ? "Đang hoạt động" : "Ngừng hoạt động"}
               </span>
             </div>
           </div>
@@ -413,46 +457,19 @@ export default function StoreDetailPage() {
                   <Phone className="h-3 w-3" /> Điện thoại
                 </label>
                 <Input
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  value={formData.contactPhone}
+                  onChange={(e) => handleInputChange("contactPhone", e.target.value)}
                   placeholder="0909..."
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <Mail className="h-3 w-3" /> Email
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                  Mô tả
                 </label>
                 <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="store@example.com"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> Giờ mở cửa
-                </label>
-                <Input
-                  type="time"
-                  value={formData.openTime}
-                  onChange={(e) =>
-                    handleInputChange("openTime", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <Clock className="h-3 w-3" /> Giờ đóng cửa
-                </label>
-                <Input
-                  type="time"
-                  value={formData.closeTime}
-                  onChange={(e) =>
-                    handleInputChange("closeTime", e.target.value)
-                  }
+                  value={formData.description}
+                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  placeholder="Mô tả ngắn về địa điểm"
                 />
               </div>
             </div>
@@ -491,37 +508,8 @@ export default function StoreDetailPage() {
 
         <Separator />
 
-        {/* Bottom Row: Manager | Stats | History */}
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/60">
-          {/* Manager */}
-          <div className="p-5 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1.5">
-              <User className="h-3.5 w-3.5" /> Quản lý địa điểm
-            </p>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Họ tên</label>
-              <Input
-                value={formData.manager}
-                onChange={(e) => handleInputChange("manager", e.target.value)}
-                placeholder="Tên quản lý"
-                className="h-8 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Điện thoại
-              </label>
-              <Input
-                value={formData.managerPhone}
-                onChange={(e) =>
-                  handleInputChange("managerPhone", e.target.value)
-                }
-                placeholder="Số điện thoại"
-                className="h-8 text-sm"
-              />
-            </div>
-          </div>
-
+        {/* Bottom Row: Stats | History */}
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border/60">
           {/* Stats */}
           <div className="p-5">
             <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1.5 mb-3">
@@ -530,7 +518,7 @@ export default function StoreDetailPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
                 <p className="text-xl font-bold text-foreground">
-                  {store.lockerCount ?? lockersList.length}
+                  {lockersList.length}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">Tổng Kiosk</p>
               </div>
@@ -546,9 +534,14 @@ export default function StoreDetailPage() {
               </div>
               <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
                 <p className="text-xl font-bold text-foreground">
-                  {store.orderCount ?? 0}
+                  {revenueStats ? revenueStats.orderCount.toLocaleString("vi-VN") : "—"}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">Đơn hàng</p>
+                <p
+                  className="text-xs text-muted-foreground mt-0.5"
+                  title={revenueError?.message ?? "Đơn tạo trong 12 tháng gần nhất"}
+                >
+                  Đơn hàng (12 tháng)
+                </p>
               </div>
             </div>
             <div className="mt-3">
@@ -583,13 +576,13 @@ export default function StoreDetailPage() {
               <div>
                 <p className="text-xs text-muted-foreground/70">Ngày tạo</p>
                 <p className="text-sm font-semibold text-foreground/80 mt-0.5">
-                  {formatDate(store.createdAt)}
+                  {formatDateTime(store.createdAt)}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground/70">Cập nhật cuối</p>
                 <p className="text-sm font-semibold text-foreground/80 mt-0.5">
-                  {formatDate(store.updatedAt)}
+                  {formatDateTime(store.updatedAt)}
                 </p>
               </div>
               <div>

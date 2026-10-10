@@ -9,43 +9,19 @@ import {
   CheckCircle,
   XCircle,
   Activity,
-  Timer,
-  Package,
-  Bell,
   Loader2,
   RotateCcw,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useGetSchedulerStatusQuery } from "~/stores/apis/admin/scheduler";
-
-const JOB_KEYS: Record<
-  string,
-  { titleKey: string; icon: React.ElementType; color: string; freqKey: string }
-> = {
-  "auto-cancel-unconfirmed-orders": {
-    titleKey: "admin.scheduler.jobs.autoCancel.title",
-    freqKey: "admin.scheduler.jobs.autoCancel.frequency",
-    icon: Timer,
-    color: "text-orange-600",
-  },
-  "release-boxes-after-completion": {
-    titleKey: "admin.scheduler.jobs.releaseBoxes.title",
-    freqKey: "admin.scheduler.jobs.releaseBoxes.frequency",
-    icon: Package,
-    color: "text-blue-600",
-  },
-  "send-pickup-reminders": {
-    titleKey: "admin.scheduler.jobs.pickupReminders.title",
-    freqKey: "admin.scheduler.jobs.pickupReminders.frequency",
-    icon: Bell,
-    color: "text-purple-600",
-  },
-};
+import { SCHEDULER_JOBS, jobI18nKey } from "../jobs";
 
 export function SchedulerStatus() {
   const { t } = useTranslation();
   const { data, isLoading, isError, refetch } = useGetSchedulerStatusQuery();
-  const status = data?.data;
+  // Backend trả {enabled, owner} (OrderController.schedulerStatus).
+  const status = data?.data as { enabled?: boolean; owner?: string } | undefined;
+  const enabled = status?.enabled === true;
 
   return (
     <Card className="border border-border/50 shadow-sm">
@@ -58,7 +34,15 @@ export function SchedulerStatus() {
       <CardContent className="space-y-4">
         {/* System status row */}
         <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-          <span className="font-medium">{t("admin.scheduler.systemStatus")}</span>
+          <div>
+            <span className="font-medium">{t("admin.scheduler.systemStatus")}</span>
+            {status?.owner && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {t("admin.scheduler.ownerLabel")}{" "}
+                <span className="font-mono">{status.owner}</span>
+              </p>
+            )}
+          </div>
           {isLoading ? (
             <Badge className="bg-muted/50 text-muted-foreground hover:bg-muted">
               <Loader2 size={14} className="mr-1 animate-spin" />
@@ -78,7 +62,7 @@ export function SchedulerStatus() {
                 <RotateCcw size={14} />
               </button>
             </div>
-          ) : status?.schedulerEnabled ? (
+          ) : enabled ? (
             <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
               <CheckCircle size={14} className="mr-1" />
               {t("admin.scheduler.running")}
@@ -91,49 +75,36 @@ export function SchedulerStatus() {
           )}
         </div>
 
-        {status?.message && (
-          <p className="text-xs text-muted-foreground px-1">{status.message}</p>
-        )}
-
-        {/* Job list */}
+        {/* Job list — dựng từ OrderScheduler.java, không lấy từ API */}
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-3">
             {t("admin.scheduler.autoJobs")}
           </h4>
           <div className="space-y-2">
-            {isLoading ? (
-              [...Array(3)].map((_, i) => (
+            {SCHEDULER_JOBS.map((job) => {
+              const Icon = job.icon;
+              const active = !isLoading && !isError && enabled;
+              return (
                 <div
-                  key={i}
-                  className="flex items-center justify-between p-3 bg-card border border-border/50 rounded-lg animate-pulse"
+                  key={job.key}
+                  className={`flex items-center justify-between gap-3 p-3 bg-card border border-border/50 rounded-lg${active ? "" : " opacity-60"}`}
                 >
-                  <div className="h-4 w-40 bg-muted rounded" />
-                  <div className="h-5 w-20 bg-muted rounded" />
-                </div>
-              ))
-            ) : (
-              Object.entries(JOB_KEYS).map(([key, meta]) => {
-                const Icon = meta.icon;
-                const isActive = !isError && status?.jobs?.includes(key);
-                return (
-                  <div
-                    key={key}
-                    className={`flex items-center justify-between p-3 bg-card border border-border/50 rounded-lg${isError || !status?.jobs?.length ? " opacity-60" : ""}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Icon size={16} className={meta.color} />
-                      <span className="text-sm font-medium">{t(meta.titleKey)}</span>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ${isActive ? "text-green-700 border-green-300 bg-green-50" : ""}`}
-                    >
-                      {isActive ? "● " : ""}{t(meta.freqKey)}
-                    </Badge>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Icon size={16} className={`${job.color} shrink-0`} />
+                    <span className="text-sm font-medium truncate">
+                      {t(jobI18nKey(job.key, "title"))}
+                    </span>
                   </div>
-                );
-              })
-            )}
+                  <Badge
+                    variant="outline"
+                    className={`text-xs shrink-0 ${active ? "text-green-700 border-green-300 bg-green-50" : ""}`}
+                  >
+                    {active ? "● " : ""}
+                    {t(jobI18nKey(job.key, "frequency"))}
+                  </Badge>
+                </div>
+              );
+            })}
           </div>
         </div>
       </CardContent>

@@ -9,6 +9,7 @@
 
 import {
   AlertTriangle,
+  ArrowUpFromLine,
   Ban,
   Banknote,
   Box,
@@ -16,6 +17,7 @@ import {
   Clock,
   CreditCard,
   Hourglass,
+  Landmark,
   Package,
   PackageCheck,
   PiggyBank,
@@ -100,6 +102,7 @@ export function orderTypeMeta(
 const ORDER_PAYMENT_STATUS_META: Record<string, BadgeMeta> = {
   UNPAID: { label: "Chưa thanh toán", style: AMBER, icon: Hourglass },
   PAID: { label: "Đã thanh toán", style: GREEN, icon: CheckCircle2 },
+  REFUND_PENDING: { label: "Chờ hoàn tiền", style: AMBER, icon: Clock },
   REFUNDED: { label: "Đã hoàn tiền", style: VIOLET, icon: Undo2 },
 };
 
@@ -124,6 +127,8 @@ const DELIVERY_STAGE_META: Record<string, BadgeMeta> = {
   FAILED: { label: "Chuyến bay thất bại", style: RED, icon: XCircle },
   COMPLETED: { label: "Đã nhận hàng", style: GREEN, icon: CheckCircle2 },
   EXPIRED: { label: "Quá hạn nhận", style: AMBER, icon: Timer },
+  // Kiện bị báo rơi giữa chặng bay — máy trạng thái giao hàng dừng, chờ xử lý sự cố.
+  DROP_REPORTED: { label: "Báo rơi kiện", style: RED, icon: AlertTriangle },
 };
 
 export function deliveryStageMeta(
@@ -153,7 +158,9 @@ const PAYMENT_METHOD_META: Record<string, BadgeMeta> = {
   WALLET: { label: "Ví Lock.R", style: VIOLET, icon: Wallet },
   VNPAY: { label: "VNPay", style: BLUE, icon: CreditCard },
   MOMO: { label: "MoMo", style: VIOLET, icon: Smartphone },
+  SEPAY: { label: "SePay (chuyển khoản)", style: BLUE, icon: Landmark },
   VNPAY_TOPUP: { label: "Nạp ví qua VNPay", style: AMBER, icon: PiggyBank },
+  SEPAY_TOPUP: { label: "Nạp ví qua SePay", style: AMBER, icon: PiggyBank },
 };
 
 export function paymentMethodMeta(
@@ -202,6 +209,7 @@ const WALLET_SOURCE_META: Record<string, BadgeMeta> = {
   ORDER_PAYMENT: { label: "Thanh toán đơn", style: BLUE, icon: Package },
   REFUND: { label: "Hoàn tiền", style: VIOLET, icon: Undo2 },
   ADJUST: { label: "Điều chỉnh tay", style: NEUTRAL, icon: RotateCcw },
+  WITHDRAW: { label: "Rút tiền", style: RED, icon: ArrowUpFromLine },
 };
 
 export function walletSourceMeta(

@@ -10,6 +10,7 @@ import {
   Calendar,
   PackageX,
   PowerOff,
+  Power,
   Tag,
   Percent,
   DollarSign,
@@ -26,13 +27,15 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { DiscountType, PromotionStatus } from "~/types/admin/enums";
-import type { PromotionResponse } from "~/types/admin/promotion";
+import type { AdminPromotion } from "~/stores/apis/admin/promotions";
+import type { PromotionRow } from "../hooks/usePromotions";
 
 interface PromotionTableProps {
-  promotions: PromotionResponse[];
+  promotions: PromotionRow[];
   isLoading: boolean;
-  onEdit?: (promotion: PromotionResponse) => void;
-  onDelete?: (id: number) => void;
+  onEdit?: (promotion: AdminPromotion) => void;
+  onDelete?: (promotion: AdminPromotion) => void;
+  onSetStoredStatus?: (promotion: AdminPromotion, status: "ACTIVE" | "INACTIVE") => void;
   page: number;
   pageSize: number;
   totalPages: number;
@@ -41,7 +44,7 @@ interface PromotionTableProps {
   onPageSizeChange: (size: number) => void;
 }
 
-const columnHelper = createColumnHelper<PromotionResponse>();
+const columnHelper = createColumnHelper<PromotionRow>();
 
 const getStatusBadge = (
   status: PromotionStatus,
@@ -95,35 +98,30 @@ const getStatusBadge = (
   );
 };
 
-const formatDiscount = (
-  promotion: PromotionResponse,
-  t: (key: string) => string,
-) => {
+const formatK = (value: number) =>
+  value >= 1000 ? `${(value / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}K` : `${value}`;
+
+// Backend chỉ phân biệt PERCENTAGE; loại khác (kể cả FREE_SERVICE cũ) là số tiền cố định.
+const formatDiscount = (promotion: AdminPromotion) => {
+  const value = Number(promotion.discountValue ?? 0);
   if (promotion.discountType === DiscountType.PERCENTAGE) {
     return (
       <div className="flex items-center gap-1 text-sm font-semibold text-blue-700">
         <Percent size={13} />
-        {promotion.discountValue}%
-        {promotion.maxDiscountAmount && (
+        {value}%
+        {promotion.maxDiscountAmount != null && (
           <span className="text-xs font-normal text-muted-foreground/70">
-            (max {(promotion.maxDiscountAmount / 1000).toFixed(0)}K)
+            (max {formatK(Number(promotion.maxDiscountAmount))})
           </span>
         )}
       </div>
     );
   }
-  if (promotion.discountType === DiscountType.FIXED_AMOUNT) {
-    return (
-      <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
-        <DollarSign size={13} />
-        {(promotion.discountValue / 1000).toFixed(0)}K
-      </div>
-    );
-  }
   return (
-    <span className="text-xs text-muted-foreground">
-      {t("admin.promotions.discount.freeService")}
-    </span>
+    <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
+      <DollarSign size={13} />
+      {formatK(value)}
+    </div>
   );
 };
 
@@ -132,6 +130,7 @@ export function PromotionTable({
   isLoading,
   onEdit,
   onDelete,
+  onSetStoredStatus,
   page,
   pageSize,
   totalPages,
@@ -154,7 +153,7 @@ export function PromotionTable({
       size: 130,
     }),
 
-    columnHelper.accessor("title", {
+    columnHelper.accessor("name", {
       header: t("admin.promotions.columns.title"),
       cell: (info) => {
         const row = info.row.original;
@@ -174,7 +173,7 @@ export function PromotionTable({
             </div>
             <div className="min-w-0">
               <p className="font-medium text-sm text-foreground truncate">
-                {info.getValue()}
+                {info.getValue() || "—"}
               </p>
               {row.description && (
                 <p className="text-xs text-muted-foreground/70 truncate">
@@ -189,7 +188,7 @@ export function PromotionTable({
 
     columnHelper.accessor("discountValue", {
       header: t("admin.promotions.columns.discount"),
-      cell: (info) => formatDiscount(info.row.original, t),
+      cell: (info) => formatDiscount(info.row.original),
     }),
 
     columnHelper.accessor("minOrderAmount", {
@@ -197,9 +196,7 @@ export function PromotionTable({
       cell: (info) => {
         const val = info.getValue();
         return val ? (
-          <span className="text-sm text-muted-foreground">
-            {(val / 1000).toFixed(0)}K
-          </span>
+          <span className="text-sm text-muted-foreground">{formatK(Number(val))}</span>
         ) : (
           <span className="text-xs text-muted-foreground/70">
             {t("admin.promotions.discount.noLimit")}
@@ -208,28 +205,25 @@ export function PromotionTable({
       },
     }),
 
-    columnHelper.accessor("startDate", {
+    columnHelper.accessor("startAt", {
       header: t("admin.promotions.columns.period"),
       cell: (info) => {
         const row = info.row.original;
-        // Chuỗi backend không kèm múi giờ = UTC; `new Date(...)` coi là giờ máy
-        // nên mốc quanh nửa đêm bị lệch hẳn một ngày.
-        const start = formatDate(row.startDate);
-        const end = formatDate(row.endDate);
+        // Chuỗi backend không kèm múi giờ = UTC → formatDate đổi sang ngày Việt Nam.
         return (
           <div className="text-xs text-muted-foreground space-y-0.5">
-            <p>{start}</p>
-            <p className="text-muted-foreground/70">→ {end}</p>
+            <p>{row.startAt ? formatDate(row.startAt) : "—"}</p>
+            <p className="text-muted-foreground/70">→ {row.endAt ? formatDate(row.endAt) : "—"}</p>
           </div>
         );
       },
     }),
 
-    columnHelper.accessor("currentUsageCount", {
+    columnHelper.accessor("usageCount", {
       header: t("admin.promotions.columns.usage"),
       cell: (info) => {
         const row = info.row.original;
-        const current = info.getValue();
+        const current = info.getValue() ?? 0;
         const total = row.totalUsageLimit;
         const pct = total ? Math.min((current / total) * 100, 100) : null;
         return (
@@ -257,7 +251,7 @@ export function PromotionTable({
       },
     }),
 
-    columnHelper.accessor("status", {
+    columnHelper.accessor("effectiveStatus", {
       header: t("admin.promotions.columns.status"),
       cell: (info) => getStatusBadge(info.getValue(), t),
     }),
@@ -267,6 +261,7 @@ export function PromotionTable({
       header: "",
       cell: (info) => {
         const row = info.row.original;
+        const inactive = (row.status ?? "").toUpperCase() === "INACTIVE";
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -274,7 +269,7 @@ export function PromotionTable({
                 <MoreHorizontal size={14} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuContent align="end" className="w-44">
               {onEdit && (
                 <DropdownMenuItem
                   onClick={() => onEdit(row)}
@@ -284,11 +279,24 @@ export function PromotionTable({
                   {t("dropdown.edit")}
                 </DropdownMenuItem>
               )}
+              {onSetStoredStatus && (
+                <DropdownMenuItem
+                  onClick={() => onSetStoredStatus(row, inactive ? "ACTIVE" : "INACTIVE")}
+                  className="text-xs"
+                >
+                  {inactive ? (
+                    <Power size={13} className="mr-2" />
+                  ) : (
+                    <PowerOff size={13} className="mr-2" />
+                  )}
+                  {inactive ? "Áp dụng lại" : "Ngưng áp dụng"}
+                </DropdownMenuItem>
+              )}
               {onDelete && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => onDelete(row.id)}
+                    onClick={() => onDelete(row)}
                     className="text-xs text-red-600 focus:text-red-600"
                   >
                     <Trash2 size={13} className="mr-2" />

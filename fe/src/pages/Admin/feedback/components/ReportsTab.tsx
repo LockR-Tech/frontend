@@ -19,10 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import {
-  useGetAllReportsQuery,
-  useResolveReportMutation,
-} from "~/stores/apis/admin";
+import { useGetAllReportsQuery } from "~/stores/apis/admin";
+// Endpoint admin (PUT /api/admin/lockers/reports/{id}/resolve), dùng chung với trang Bảo trì.
+import { useResolveAdminReportMutation } from "~/stores/apis/admin/lockerOps";
+import { cleanDescription } from "~/pages/Admin/maintenance/maintenancePhotos";
 import { fmtDate, REPORT_STATUS_META, ErrorBanner } from "./shared";
 import { extractList } from "~/lib/extract-list";
 import type { ReportDTO } from "~/types/admin/feedback";
@@ -32,28 +32,24 @@ import {
   type ResolveReportPayload,
 } from "~/pages/Admin/maintenance/ResolveReportDialog";
 
+const PAGE_SIZE = 20;
+
 export function ReportsTab() {
   const [status, setStatus] = useState<string>("all");
   const [page, setPage] = useState(0);
 
-  const { data, isLoading, isError, refetch } = useGetAllReportsQuery({
-    page,
-    size: 20,
-    ...(status !== "all" && { status }),
-  });
+  // Backend trả cả danh sách (bỏ qua page/size/status) ⇒ lọc và phân trang ở đây.
+  const { data, isLoading, isError, refetch } = useGetAllReportsQuery({});
 
-  const [resolveReport, { isLoading: isResolving }] =
-    useResolveReportMutation();
+  const [resolveReport, { isLoading: isResolving }] = useResolveAdminReportMutation();
   const [resolving, setResolving] = useState<ReportDTO | null>(null);
 
   // Lỗi được ResolveReportDialog hiển thị (kể cả RESOLUTION_PHOTO_REQUIRED)
   const handleResolve = async (id: number, payload: ResolveReportPayload) => {
     await resolveReport({
-      id,
-      data: {
-        ...(payload.note ? { note: payload.note } : {}),
-        ...(payload.attachments?.length ? { attachments: payload.attachments } : {}),
-      },
+      reportId: id,
+      ...(payload.note ? { note: payload.note } : {}),
+      ...(payload.attachments?.length ? { attachments: payload.attachments } : {}),
     }).unwrap();
     toast.success("Giải quyết báo cáo thành công", {
       description: `Báo cáo RPT-${id} đã được đánh dấu là đã giải quyết${
@@ -62,8 +58,12 @@ export function ReportsTab() {
     });
   };
 
-  const list = extractList<ReportDTO>(data?.data);
-  const total = list.length;
+  const all = extractList<ReportDTO>(data?.data);
+  const filtered = status === "all" ? all : all.filter((r) => r.status === status);
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const list = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
 
   return (
     <div className="space-y-4">
@@ -84,9 +84,9 @@ export function ReportsTab() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="PENDING">Chờ xử lý</SelectItem>
+              <SelectItem value="OPEN">Chờ xử lý</SelectItem>
+              <SelectItem value="IN_PROGRESS">Đang xử lý</SelectItem>
               <SelectItem value="RESOLVED">Đã giải quyết</SelectItem>
-              <SelectItem value="REJECTED">Từ chối</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -130,26 +130,29 @@ export function ReportsTab() {
               )}
               {list.map((r) => {
                 const statusMeta =
-                  REPORT_STATUS_META[r.status] ?? REPORT_STATUS_META.PENDING;
+                  REPORT_STATUS_META[r.status] ?? REPORT_STATUS_META.OPEN;
                 return (
                   <TableRow key={r.id} className="hover:bg-secondary/40 transition-colors">
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground text-sm">
-                          {r.userFullName || "Khách hàng"}
+                          {r.reporterName || "Khách hàng"}
                         </p>
-                        <p className="text-xs text-muted-foreground">{r.userEmail || "—"}</p>
+                        <p className="text-xs text-muted-foreground">{r.reporterPhone || "—"}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5 text-xs text-foreground">
                         <Lock size={13} className="text-muted-foreground shrink-0" />
                         {r.lockerName || `Tủ #${r.lockerId ?? ""}`}
+                        {r.boxNumber != null && (
+                          <span className="text-muted-foreground"> · Ô {r.boxNumber}</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="max-w-56">
                       <p className="text-xs text-muted-foreground line-clamp-2">
-                        {r.description}
+                        {cleanDescription(r.description)}
                       </p>
                     </TableCell>
                     <TableCell>
@@ -164,7 +167,7 @@ export function ReportsTab() {
                       {r.resolvedAt ? fmtDate(r.resolvedAt) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {r.status === "PENDING" && (
+                      {r.status !== "RESOLVED" && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -186,24 +189,24 @@ export function ReportsTab() {
       )}
 
       {/* Pagination */}
-      {total > 20 && (
+      {total > PAGE_SIZE && (
         <div className="flex items-center justify-center gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
+            disabled={currentPage === 0}
+            onClick={() => setPage(currentPage - 1)}
           >
             Trước
           </Button>
           <span className="text-xs text-muted-foreground">
-            Trang {page + 1} / {Math.ceil(total / 20)}
+            Trang {currentPage + 1} / {totalPages}
           </span>
           <Button
             variant="outline"
             size="sm"
-            disabled={(page + 1) * 20 >= total}
-            onClick={() => setPage((p) => p + 1)}
+            disabled={currentPage >= totalPages - 1}
+            onClick={() => setPage(currentPage + 1)}
           >
             Tiếp
           </Button>

@@ -35,12 +35,6 @@ export function UserFilters({
       color: "red" as const,
       count: statusCounts.INACTIVE,
     },
-    {
-      value: "PENDING",
-      label: t("admin.users.status.pending"),
-      color: "yellow" as const,
-      count: statusCounts.PENDING,
-    },
   ];
 
   return (

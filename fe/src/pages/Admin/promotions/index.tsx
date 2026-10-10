@@ -13,6 +13,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
 import { TableToolbar } from "~/components/shared/data-table";
+import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { PromotionTable } from "./components/PromotionTable";
 import { PromotionModal } from "./components/PromotionModal";
 import { usePromotions } from "./hooks/usePromotions";
@@ -75,7 +76,15 @@ export default function PromotionsPage() {
     handleCreate,
     handleEdit,
     handleSave,
-    handleDelete,
+    deleteTarget,
+    setDeleteTarget,
+    confirmDelete,
+    isDeleting,
+    deactivateTarget,
+    setDeactivateTarget,
+    confirmDeactivate,
+    isUpdating,
+    setStoredStatus,
     clearFilters,
     hasActiveFilters,
     page,
@@ -157,7 +166,8 @@ export default function PromotionsPage() {
             promotions={promotions}
             isLoading={isLoading}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={setDeleteTarget}
+            onSetStoredStatus={(promotion, status) => void setStoredStatus(promotion, status)}
             page={page}
             pageSize={pageSize}
             totalPages={totalPages}
@@ -176,6 +186,42 @@ export default function PromotionsPage() {
         mode={editingPromotion ? "edit" : "create"}
         onSave={handleSave}
         isSaving={isSaving}
+      />
+
+      <ConfirmActionDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Xoá khuyến mãi?"
+        description={
+          <p>
+            Mã <span className="font-mono font-semibold text-foreground">{deleteTarget?.code}</span>{" "}
+            sẽ bị xoá vĩnh viễn. Mã đã có lượt dùng hoặc đã được khách lưu vào ví không thể xoá —
+            khi đó có thể ngưng áp dụng thay thế.
+          </p>
+        }
+        actionLabel="Xoá"
+        destructive
+        loading={isDeleting}
+        onConfirm={() => void confirmDelete()}
+      />
+
+      <ConfirmActionDialog
+        open={deactivateTarget !== null}
+        onOpenChange={(open) => !open && setDeactivateTarget(null)}
+        title="Không thể xoá mã đã có lịch sử"
+        description={
+          <>
+            <p>
+              Mã <span className="font-mono font-semibold text-foreground">{deactivateTarget?.code}</span>{" "}
+              đã có lượt sử dụng hoặc đã được lưu vào ví khách hàng nên không xoá được (để giữ lịch sử
+              giảm giá của các đơn).
+            </p>
+            <p>Ngưng áp dụng sẽ chuyển mã sang trạng thái INACTIVE — khách không dùng được nữa.</p>
+          </>
+        }
+        actionLabel="Ngưng áp dụng"
+        loading={isUpdating}
+        onConfirm={() => void confirmDeactivate()}
       />
     </div>
   );

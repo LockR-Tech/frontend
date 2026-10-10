@@ -1,148 +1,53 @@
 // ============================================
-// Admin Loyalty Types — based on real backend API
+// Admin Loyalty Types — khớp loyalty-service (LoyaltyController)
 // ============================================
 
 export type LoyaltyTier = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
-export type AdjustmentType = "ADD" | "DEDUCT";
-export type TransactionType =
-  | "EARNED"
-  | "REDEEMED"
-  | "ADD"
-  | "DEDUCT"
-  | "REFUND"
-  | "EXPIRED";
 
-// ─── GET /api/admin/loyalty/users/{userId} ───────────────────────────────────
-export interface LoyaltyUserSummaryDTO {
+// ─── GET /api/admin/loyalty/users/{userId} — LoyaltyAccountResponse ─────────
+// Chưa có tài khoản thì backend trả bản trống (id null, điểm 0).
+export interface LoyaltyAccountDTO {
+  id: number | null;
   userId: number;
-  userName: string;
-  email: string;
-  phoneNumber: string;
-
-  currentPoints: number;
-  currentTier: LoyaltyTier;
-  pointsToNextTier: number | null;
-  tierDiscountPercentage: number;
-
-  totalOrders: number;
-  totalSpent: number;
-  totalPointsEarned: number;
-  totalPointsRedeemed: number;
-  rewardsRedeemed: number;
-
-  enrolledAt: string;
-  lastActivityAt: string | null;
-  lastRedeemedAt: string | null;
-  membershipDays: number;
+  points: number | null;
+  stamps: number | null;
+  tier: LoyaltyTier | string | null;
 }
 
-// ─── POST /api/admin/loyalty/users/{userId}/adjust-points ────────────────────
+// ─── POST /api/admin/loyalty/users/{userId}/points — AdjustPointsRequest ─────
+// `points` có dấu: dương = cộng, âm = trừ. `type` là chuỗi tự do (tối đa 30 ký tự),
+// bỏ trống thì backend ghi "ADJUSTMENT".
 export interface AdjustPointsRequest {
-  pointsAmount: number;
-  adjustmentType: AdjustmentType;
-  reason: string;
-  adminNotes?: string;
-}
-
-export interface AdjustPointsResponseDTO {
-  transactionId: string;
   userId: number;
-  userName: string;
-  email: string;
-
-  pointsAmount: number;
-  adjustmentType: AdjustmentType;
-  reason: string;
-  adminNotes: string | null;
-  adjustedBy: string;
-
-  pointsBeforeAdjustment: number;
-  pointsAfterAdjustment: number;
-  balanceChange: string;
-
-  tierBeforeAdjustment: LoyaltyTier;
-  tierAfterAdjustment: LoyaltyTier;
-
-  transactionDate: string;
+  points: number;
+  type?: string;
+  orderId?: number;
 }
 
-// ─── GET /api/admin/loyalty/users/{userId}/history ───────────────────────────
-export interface OrderRelatedDTO {
-  orderId: number;
-  orderAmount: number;
-}
-
-export interface RewardRelatedDTO {
-  rewardId: number;
-  rewardName: string;
-  redemptionDate: string;
-}
-
-export interface PointsHistoryItemDTO {
-  transactionId: string;
+// ─── GET /api/admin/loyalty/users/{userId}/history — PointTransactionResponse ─
+export interface PointTransactionDTO {
+  id: number;
   userId: number;
-  userName: string;
-  pointsAmount: number;
-  transactionType: TransactionType;
-  reason: string;
-  orderRelated: OrderRelatedDTO | null;
-  rewardRelated: RewardRelatedDTO | null;
-  balanceBefore: number;
-  balanceAfter: number;
-  processedBy: string;
-  transactionDate: string;
+  orderId: number | null;
+  points: number;
+  type: string;
+  createdAt: string;
 }
 
 // ─── GET /api/admin/loyalty/statistics ───────────────────────────────────────
-export interface TierStatsDTO {
-  count: number;
-  percentage: number;
-  averagePoints: number;
-}
-
-export interface PopularRewardDTO {
-  rewardId: number;
-  name: string;
-  timesRedeemed: number;
-}
-
+// Mọi trường là số; để optional vì backend cũ chỉ trả {accounts, transactions}.
 export interface LoyaltyStatisticsDTO {
-  overview: {
-    totalCustomersEnrolled: number;
-    activeCustomersLast30Days: number;
-    inactiveCustomers: number;
-  };
-  pointsMetrics: {
-    totalPointsDistributed: number;
-    totalPointsRedeemed: number;
-    totalPointsOutstanding: number;
-    averagePointsPerCustomer: number;
-    medianPointsPerCustomer: number;
-  };
-  tierDistribution: Record<LoyaltyTier, TierStatsDTO>;
-  rewardsMetrics: {
-    totalRewardsCatalog: number;
-    rewardsRedeemed: number;
-    totalRewardsCost: number;
-    mostPopularReward: PopularRewardDTO | null;
-    leastPopularReward: PopularRewardDTO | null;
-  };
-  engagementMetrics: {
-    programEngagementRate: number;
-    redemptionRate: number;
-    tierUpgradeCount: number;
-    tierDowngradeCount: number;
-  };
-  timeSeriesData: {
-    pointsEarnedThisMonth: number;
-    pointsRedeemedThisMonth: number;
-    newEnrollmentsThisMonth: number;
-    averageTransactionsPerDay: number;
-  };
-  financialImpact: {
-    estimatedRewardCost: number;
-    estimatedDiscountValue: number;
-    roi: number;
-  };
-  lastUpdated: string;
+  accounts?: number;
+  transactions?: number;
+  totalMembers?: number;
+  newMembersThisMonth?: number;
+  activeMembersLast30Days?: number;
+  tierDistribution?: Record<string, number>;
+  totalPointsOutstanding?: number;
+  averagePoints?: number;
+  medianPoints?: number;
+  pointsIssued?: number;
+  pointsRedeemed?: number;
+  pointsIssuedThisMonth?: number;
+  pointsRedeemedThisMonth?: number;
 }

@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   BatteryCharging,
   CheckCircle2,
+  ClipboardList,
   History,
   Loader2,
   MapPin,
@@ -49,10 +50,12 @@ import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useGetDroneOrdersQuery } from "~/stores/apis/admin/droneOrders";
 import {
   useAssignDroneTechnicianMutation,
+  useGetDroneOperationLogsQuery,
   useGetDroneQuery,
   useGetDronesQuery,
   useUpdateDroneMutation,
 } from "~/stores/apis/admin/drones";
+import { DroneAdminActions } from "./DroneAdminActions";
 
 const NO_TECHNICIAN = "NONE";
 const STATUS_LABELS: Record<string, string> = {
@@ -80,6 +83,7 @@ const MISSION_STATUS_LABELS: Record<string, string> = {
   CANCELED: "Đã hủy",
   EXPIRED: "Đã hết hạn",
   FAILED: "Thất bại",
+  DROP_REPORTED: "Báo rơi kiện",
 };
 const STATUS_BADGE: Record<string, string> = {
   IDLE: "bg-emerald-100 text-emerald-800 border-emerald-300",
@@ -104,7 +108,7 @@ function reportStatusLabel(status: string) {
 
 function flightStatusClass(status?: string | null) {
   const value = status?.toUpperCase() ?? "";
-  if (["FAILED", "CANCELED", "CANCELLED", "EXPIRED"].includes(value)) {
+  if (["FAILED", "CANCELED", "CANCELLED", "EXPIRED", "DROP_REPORTED"].includes(value)) {
     return "border-rose-300 bg-rose-100 text-rose-800";
   }
   if (
@@ -150,16 +154,22 @@ export default function DroneDetailPage() {
   const reportsQuery = useGetAllAdminReportsQuery(undefined, {
     pollingInterval: 15000,
   });
+  const logsQuery = useGetDroneOperationLogsQuery(id, {
+    skip: invalidId,
+    pollingInterval: 15000,
+  });
   const lockersQuery = useGetLockerStatsQuery();
+  // Một danh sách người dùng dùng chung: lọc KTV Drone cho ô chọn và tra tên người
+  // xử lý phiếu / người thao tác trong nhật ký (backend chỉ trả userId).
   const usersQuery = useGetAllUsersQuery({ page: 0, size: 1000 });
   const [assignDroneTechnician, assignmentState] =
     useAssignDroneTechnicianMutation();
   const [updateDrone, updateDroneState] = useUpdateDroneMutation();
   const [techChoice, setTechChoice] = useState<string | null>(null);
   const [lockerChoice, setLockerChoice] = useState<string | null>(null);
-  const [activeLogTab, setActiveLogTab] = useState<"flights" | "reports">(
-    "flights",
-  );
+  const [activeLogTab, setActiveLogTab] = useState<
+    "flights" | "reports" | "operations"
+  >("flights");
 
   const drone =
     droneQuery.data?.data ??
@@ -190,6 +200,34 @@ export default function DroneDetailPage() {
         ),
     [drone?.code, flightsQuery.data, id],
   );
+  const userNames = useMemo(() => {
+    const names = new Map<number, string>();
+    extractList<any>(usersQuery.data?.data).forEach((user) => {
+      if (user?.id != null) {
+        names.set(
+          Number(user.id),
+          user.fullName || user.name || user.email || `#${user.id}`,
+        );
+      }
+    });
+    return names;
+  }, [usersQuery.data]);
+  // Nhật ký backend trả cũ → mới; hiển thị mới nhất trước
+  const operationLogs = useMemo(
+    () =>
+      [...(logsQuery.data?.data ?? [])].sort((a, b) =>
+        (b.createdAt ?? "").localeCompare(a.createdAt ?? ""),
+      ),
+    [logsQuery.data],
+  );
+  // Chỉ Kiosk có bãi đáp mới nhận được Drone (giữ Kiosk hiện tại để Select hiển thị đúng)
+  const landingPadLockers = useMemo(
+    () =>
+      (lockersQuery.data?.data ?? []).filter(
+        (locker) => locker.landingPad || locker.lockerId === drone?.lockerId,
+      ),
+    [lockersQuery.data, drone?.lockerId],
+  );
   const droneTechnicians = useMemo(
     () =>
       extractList<any>(usersQuery.data?.data)
@@ -204,8 +242,11 @@ export default function DroneDetailPage() {
           id: user.id as number,
           name: (user.fullName || user.name || `KTV #${user.id}`) as string,
           phone: (user.phoneNumber || "") as string,
+          // users slice suy `enabled` từ status của user-service; tài khoản khoá không chọn được
           active: user.enabled !== false,
-        })),
+        }))
+        // KTV đang hoạt động lên trước
+        .sort((a, b) => Number(b.active) - Number(a.active)),
     [usersQuery.data],
   );
 
@@ -216,6 +257,7 @@ export default function DroneDetailPage() {
       flightsQuery.refetch(),
       historyQuery.refetch(),
       reportsQuery.refetch(),
+      logsQuery.refetch(),
     ]);
 
   if (
@@ -466,7 +508,7 @@ export default function DroneDetailPage() {
                 <SelectValue placeholder="Chọn trạm/Kiosk" />
               </SelectTrigger>
               <SelectContent>
-                {(lockersQuery.data?.data ?? []).map((locker) => (
+                {landingPadLockers.map((locker) => (
                   <SelectItem
                     key={locker.lockerId}
                     value={String(locker.lockerId)}
@@ -492,6 +534,8 @@ export default function DroneDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      <DroneAdminActions drone={drone} activeMission={activeMission} />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <KpiCard label="Tổng chuyến bay" value={flightLogs.length} />
@@ -563,8 +607,8 @@ export default function DroneDetailPage() {
                   Nhật ký vận hành {drone.code}
                 </CardTitle>
                 <CardDescription className="mt-0.5 text-xs">
-                  Dữ liệu chuyến bay và phiếu sửa chữa của Drone được ghi nhận
-                  từ hệ thống vận hành.
+                  Chuyến bay, phiếu sửa chữa và các thao tác (phân công, đổi
+                  trạm, pin, ngừng hoạt động) được ghi nhận cho Drone.
                 </CardDescription>
               </div>
               <div className="inline-flex rounded-lg border bg-background p-0.5 text-xs">
@@ -582,6 +626,13 @@ export default function DroneDetailPage() {
                 >
                   Sự cố & Sửa chữa ({droneReports.length})
                 </button>
+                <button
+                  type="button"
+                  className={`rounded-md px-3 py-1 font-medium transition-all ${activeLogTab === "operations" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
+                  onClick={() => setActiveLogTab("operations")}
+                >
+                  Thao tác ({operationLogs.length})
+                </button>
               </div>
             </div>
           </CardHeader>
@@ -597,6 +648,22 @@ export default function DroneDetailPage() {
               ) : (
                 <FlightTable flights={flightLogs} />
               )
+            ) : activeLogTab === "operations" ? (
+              logsQuery.isLoading ? (
+                <LoadingRows />
+              ) : logsQuery.isError ? (
+                <EmptyState
+                  icon={<ClipboardList className="h-8 w-8" />}
+                  text="Không tải được nhật ký thao tác. Bấm Làm mới để thử lại."
+                />
+              ) : operationLogs.length === 0 ? (
+                <EmptyState
+                  icon={<ClipboardList className="h-8 w-8" />}
+                  text="Chưa có thao tác nào được ghi nhận cho Drone."
+                />
+              ) : (
+                <OperationLogTable logs={operationLogs} userNames={userNames} />
+              )
             ) : reportsQuery.isLoading ? (
               <LoadingRows />
             ) : droneReports.length === 0 ? (
@@ -605,7 +672,7 @@ export default function DroneDetailPage() {
                 text="Drone chưa từng ghi nhận phiếu sự cố nào."
               />
             ) : (
-              <ReportTable reports={droneReports} />
+              <ReportTable reports={droneReports} userNames={userNames} />
             )}
           </CardContent>
         </Card>
@@ -671,6 +738,14 @@ function FlightTable({
                     flight.deliveryStage ??
                     flight.status}
                 </Badge>
+                {(flight.missionStatus ?? flight.status) === "DROP_REPORTED" && (
+                  <Link
+                    to="/admin/drone-incidents"
+                    className="ml-1.5 text-[10px] font-medium text-rose-700 underline-offset-2 hover:underline"
+                  >
+                    Xem sự cố
+                  </Link>
+                )}
               </TableCell>
               <TableCell>
                 {flight.assignedByName ??
@@ -693,12 +768,14 @@ function FlightTable({
 
 function ReportTable({
   reports,
+  userNames,
 }: {
   reports: ReturnType<typeof useGetAllAdminReportsQuery>["data"] extends {
     data: infer T;
   }
     ? T
     : never;
+  userNames: Map<number, string>;
 }) {
   const rows = reports as NonNullable<
     ReturnType<typeof useGetAllAdminReportsQuery>["data"]
@@ -737,7 +814,10 @@ function ReportTable({
                 </Badge>
               </TableCell>
               <TableCell>
-                {report.assignedToUserName ?? "Chưa phân công"}
+                {report.assignedToUserId != null
+                  ? (userNames.get(report.assignedToUserId) ??
+                    `KTV #${report.assignedToUserId}`)
+                  : "Chưa phân công"}
               </TableCell>
               <TableCell
                 className="max-w-[380px] truncate"
@@ -748,6 +828,47 @@ function ReportTable({
               <TableCell className="whitespace-nowrap font-mono text-[11px] text-muted-foreground">
                 {formatDateTime(report.createdAt)}
               </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function OperationLogTable({
+  logs,
+  userNames,
+}: {
+  logs: NonNullable<
+    ReturnType<typeof useGetDroneOperationLogsQuery>["data"]
+  >["data"];
+  userNames: Map<number, string>;
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-border/80">
+      <Table className="text-xs">
+        <TableHeader className="bg-muted/40">
+          <TableRow>
+            <TableHead className="w-[170px] font-semibold">Thời gian</TableHead>
+            <TableHead className="w-[200px] font-semibold">
+              Người thực hiện
+            </TableHead>
+            <TableHead className="font-semibold">Nội dung</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {logs.map((log) => (
+            <TableRow key={log.id} className="hover:bg-muted/30">
+              <TableCell className="whitespace-nowrap font-mono text-[11px] text-muted-foreground">
+                {formatDateTime(log.createdAt)}
+              </TableCell>
+              <TableCell>
+                {log.actorUserId != null
+                  ? (userNames.get(log.actorUserId) ?? `#${log.actorUserId}`)
+                  : "Hệ thống"}
+              </TableCell>
+              <TableCell className="whitespace-pre-wrap">{log.note}</TableCell>
             </TableRow>
           ))}
         </TableBody>

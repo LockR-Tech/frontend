@@ -13,6 +13,7 @@ import {
   Facebook,
   Loader2,
   Wallet,
+  Trash2,
 } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
@@ -33,13 +34,15 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
 import { getRoleLabel } from "~/constants";
-import { useUpdateUserStatusMutation } from "~/stores/apis/admin";
-import type { AdminUserResponse } from "~/types";
+import { useDeleteUserMutation, useUpdateUserStatusMutation } from "~/stores/apis/admin";
+import { formatDate, formatTime } from "~/lib/datetime";
+import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
+import type { AdminUserRow } from "../hooks/useUsers";
 import { WalletModal } from "./WalletModal";
 import { toast } from "sonner";
 
 interface UserTableProps {
-  users: AdminUserResponse[];
+  users: AdminUserRow[];
   isLoading: boolean;
   page: number;
   pageSize: number;
@@ -49,7 +52,7 @@ interface UserTableProps {
   onPageSizeChange: (size: number) => void;
 }
 
-const columnHelper = createColumnHelper<AdminUserResponse>();
+const columnHelper = createColumnHelper<AdminUserRow>();
 
 // Truncated text with tooltip
 const TruncatedText = ({
@@ -81,7 +84,7 @@ const TruncatedText = ({
 };
 
 // Provider icon mapping with subtle neutral icons
-const ProviderIcon = ({ provider }: { provider: string }) => {
+const ProviderIcon = ({ provider }: { provider: string | null }) => {
   const iconMap: Record<string, React.ReactNode> = {
     EMAIL: <Mail size={13} />,
     GOOGLE: <Search size={13} />,
@@ -89,7 +92,7 @@ const ProviderIcon = ({ provider }: { provider: string }) => {
     PHONE: <Smartphone size={13} />,
   };
 
-  const icon = iconMap[provider] || <UserIcon size={13} />;
+  const icon = (provider && iconMap[provider]) || <UserIcon size={13} />;
 
   return (
     <div className="w-6 h-6 rounded bg-secondary text-muted-foreground border border-border/50 flex items-center justify-center shrink-0">
@@ -123,15 +126,32 @@ export function UserTable({
   const navigate = useNavigate();
   const [updateStatus] = useUpdateUserStatusMutation();
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
-  const [walletUser, setWalletUser] = useState<AdminUserResponse | null>(null);
+  const [walletUser, setWalletUser] = useState<AdminUserRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
-  const handleToggleStatus = async (user: AdminUserResponse) => {
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteUser(deleteTarget.id).unwrap();
+      toast.success("Đã xoá người dùng");
+      setDeleteTarget(null);
+    } catch (err) {
+      const e = err as { data?: { message?: unknown } } | undefined;
+      const msg = typeof e?.data?.message === "string" && e.data.message.trim()
+        ? e.data.message
+        : "Không xoá được người dùng";
+      toast.error(msg);
+    }
+  };
+
+  const handleToggleStatus = async (user: AdminUserRow) => {
     if (pendingIds.has(user.id)) return;
     setPendingIds((prev) => new Set(prev).add(user.id));
     try {
       await updateStatus({
         id: user.id,
-        data: { enabled: !user.enabled },
+        data: { status: user.enabled ? "INACTIVE" : "ACTIVE" },
       }).unwrap();
       toast.success(
         !user.enabled
@@ -216,7 +236,7 @@ export function UserTable({
         return (
           <div className="flex items-center gap-2">
             <ProviderIcon provider={provider} />
-            <span className="text-sm text-muted-foreground">{provider}</span>
+            <span className="text-sm text-muted-foreground">{provider ?? "—"}</span>
           </div>
         );
       },
@@ -224,8 +244,11 @@ export function UserTable({
 
     columnHelper.accessor("emailVerified", {
       header: t("admin.users.columns.verified"),
+      // null = không tra được auth-service → không đoán.
       cell: ({ row }) =>
-        row.original.emailVerified ? (
+        row.original.emailVerified == null ? (
+          <span className="text-sm text-muted-foreground">—</span>
+        ) : row.original.emailVerified ? (
           <Badge className="bg-green-50 text-green-700 border-green-200 font-medium">
             <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
             {t("admin.users.verified.yes")}
@@ -244,21 +267,11 @@ export function UserTable({
     columnHelper.accessor("createdAt", {
       header: t("common.createdAt"),
       cell: ({ row }) => {
+        // Chuỗi backend không offset = UTC → hiển thị giờ Việt Nam.
         const raw = row.original.createdAt;
-        const d = raw ? new Date(raw) : null;
-        const valid = d && !Number.isNaN(d.getTime());
-        if (!valid) return <span className="text-sm text-muted-foreground">—</span>;
-        const timeStr = d!.toLocaleTimeString("vi-VN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        });
-        const dateStr = d!.toLocaleDateString("vi-VN", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
+        const dateStr = formatDate(raw);
+        if (dateStr === "—") return <span className="text-sm text-muted-foreground">—</span>;
+        const timeStr = formatTime(raw);
         return (
           <div className="font-mono text-xs">
             <p className="font-semibold text-foreground tracking-tight">{timeStr}</p>
@@ -331,8 +344,11 @@ export function UserTable({
               <Wallet className="mr-2 h-4 w-4" />
               Ví
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600">
-              <span className="mr-2">🗑️</span> {t("button.delete")}
+            <DropdownMenuItem
+              className="cursor-pointer text-red-600 focus:text-red-600"
+              onClick={() => setDeleteTarget(row.original)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> {t("button.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -364,6 +380,27 @@ export function UserTable({
           userName={walletUser.name || walletUser.email}
         />
       )}
+      <ConfirmActionDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Xoá người dùng?"
+        description={
+          <>
+            <p>
+              Hồ sơ của{" "}
+              <span className="font-semibold text-foreground">
+                {deleteTarget?.name || deleteTarget?.email || `#${deleteTarget?.id}`}
+              </span>{" "}
+              sẽ bị xoá khỏi user-service. Thao tác không hoàn tác được.
+            </p>
+            <p>Nếu chỉ muốn chặn đăng nhập, hãy tắt trạng thái hoạt động thay vì xoá.</p>
+          </>
+        }
+        actionLabel="Xoá người dùng"
+        destructive
+        loading={isDeleting}
+        onConfirm={() => void handleDelete()}
+      />
     </>
   );
 }

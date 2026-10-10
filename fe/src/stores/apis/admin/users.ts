@@ -23,6 +23,28 @@ const TAGS = {
   USERS: 'Users',
 } as const;
 
+// user-service trả `status` (ACTIVE/INACTIVE…), không có `enabled` — mọi màn đọc `enabled`
+// (bảng người dùng, KTV, ô chọn KTV ở Drone/Kiosk) nên suy ra ở một chỗ.
+const withEnabled = (user: AdminUserResponse): AdminUserResponse => ({
+  ...user,
+  enabled: user.status ? user.status === 'ACTIVE' : user.enabled ?? true,
+});
+
+// Danh sách có thể là List hoặc Page tuỳ endpoint — giữ nguyên dạng, chỉ chuẩn hoá từng user.
+const normalizeUserList = (
+  res: ApiResponse<Page<AdminUserResponse>>,
+): ApiResponse<Page<AdminUserResponse>> => {
+  const data = res?.data as unknown;
+  if (Array.isArray(data)) {
+    return { ...res, data: data.map(withEnabled) as unknown as Page<AdminUserResponse> };
+  }
+  const page = data as Page<AdminUserResponse> | undefined;
+  if (page && Array.isArray(page.content)) {
+    return { ...res, data: { ...page, content: page.content.map(withEnabled) } };
+  }
+  return res;
+};
+
 // Create validators for each request type
 const createUserValidator = createValidator(CreateUserRequestSchema);
 const updateUserValidator = createValidator(UpdateUserRequestSchema);
@@ -31,16 +53,20 @@ const updateUserRolesValidator = createValidator(UpdateUserRolesRequestSchema);
 
 export const userManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllUsers: builder.query<ApiResponse<Page<AdminUserResponse>>, PageableRequest>({
+    // `role`: user-service lọc theo vai trò (vd LOCKER_TECHNICIAN); page/size bị bỏ qua (trả cả danh sách).
+    getAllUsers: builder.query<ApiResponse<Page<AdminUserResponse>>, PageableRequest & { role?: string }>({
       query: (params) => ({
         url: ADMIN_ENDPOINTS.USERS,
         params,
       }),
+      transformResponse: normalizeUserList,
       providesTags: [TAGS.USERS],
     }),
 
     getUserById: builder.query<ApiResponse<AdminUserResponse>, number>({
       query: (id) => ADMIN_ENDPOINTS.USER_BY_ID(id),
+      transformResponse: (res: ApiResponse<AdminUserResponse>) =>
+        res?.data ? { ...res, data: withEnabled(res.data) } : res,
       providesTags: (result, error, id) => [{ type: TAGS.USERS, id }],
     }),
 

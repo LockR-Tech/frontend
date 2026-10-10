@@ -3,7 +3,7 @@ import {
   Users,
   Store,
   Boxes,
-  Wrench,
+  Power,
   Clock,
   Archive,
 } from "lucide-react";
@@ -11,9 +11,11 @@ import type { DashboardOverviewResponse } from "~/types/admin/dashboard";
 
 interface OverviewSectionProps {
   data: DashboardOverviewResponse;
+  /** Số tủ đang ACTIVE (đếm từ danh sách tủ); null khi chưa tải được. */
+  activeLockers: number | null;
 }
 
-export function OverviewSection({ data }: OverviewSectionProps) {
+export function OverviewSection({ data, activeLockers }: OverviewSectionProps) {
   const totalBoxes = data.availableBoxes + data.occupiedBoxes;
   const utilization =
     totalBoxes > 0 ? Math.round((data.occupiedBoxes / totalBoxes) * 100) : 0;
@@ -35,9 +37,9 @@ export function OverviewSection({ data }: OverviewSectionProps) {
       icon: Boxes,
     },
     {
-      label: "Dịch vụ Kiosk",
-      value: data.activeServices || 4,
-      icon: Wrench,
+      label: "Kiosk đang hoạt động",
+      value: activeLockers ?? "—",
+      icon: Power,
     },
   ];
 

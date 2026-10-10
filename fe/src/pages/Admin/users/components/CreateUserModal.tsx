@@ -108,7 +108,8 @@ export function CreateUserModal({ open, onClose }: Props) {
       password: form.password,
       firstName: form.firstName.trim(),
       roles: form.roles,
-      enabled: form.enabled,
+      // AdminCreateUserRequest đọc `status`, không có `enabled`.
+      status: (form.enabled ? "ACTIVE" : "INACTIVE") as "ACTIVE" | "INACTIVE",
       ...(form.lastName.trim() ? { lastName: form.lastName.trim() } : {}),
       ...(form.phoneNumber.trim()
         ? { phoneNumber: form.phoneNumber.trim() }

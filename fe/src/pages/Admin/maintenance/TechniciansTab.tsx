@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Users,
@@ -34,14 +34,35 @@ import { toast } from "sonner";
 import {
   useGetAllAdminReportsQuery,
   useGetMaintenanceSchedulesQuery,
+  useGetTechnicianPerformanceQuery,
   type LockerReportResponse,
+  type TechnicianPerformanceResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from "~/stores/apis/admin/users";
 import type { TechnicianSummary } from "./technician-detail";
-import { getStoredSlaExtensions, isDroneReport, isReportOverdue } from "./maintenancePhotos";
+import { isDroneReport } from "./maintenancePhotos";
 
 interface TechniciansTabProps {
-  onAssignToTech?: (techId: number) => void;
+  onAssignToTech?: (techId: number, specialty: "KIOSK" | "DRONE") => void;
+}
+
+type PenaltyLevel = TechnicianPerformanceResponse["penaltyLevel"];
+
+/// Không render gì — chỉ đăng ký query hiệu suất của một KTV (hook không gọi trong vòng lặp được)
+/// rồi đẩy kết quả lên danh sách để lọc/đếm theo mức chế tài server tính.
+function TechnicianPerformanceSync({
+  techId,
+  onData,
+}: {
+  techId: number;
+  onData: (techId: number, perf: TechnicianPerformanceResponse) => void;
+}) {
+  const { data } = useGetTechnicianPerformanceQuery(techId);
+  const perf = data?.data;
+  useEffect(() => {
+    if (perf) onData(techId, perf);
+  }, [perf, techId, onData]);
+  return null;
 }
 
 export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
@@ -49,6 +70,10 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [penaltyFilter, setPenaltyFilter] = useState("ALL");
   const [specialtyFilter, setSpecialtyFilter] = useState<"ALL" | "KIOSK" | "DRONE">("ALL");
+  const [perfById, setPerfById] = useState<Record<number, TechnicianPerformanceResponse>>({});
+  const handlePerf = useCallback((techId: number, perf: TechnicianPerformanceResponse) => {
+    setPerfById((prev) => (prev[techId] === perf ? prev : { ...prev, [techId]: perf }));
+  }, []);
 
   // Fetch all users with role LOCKER_TECHNICIAN or DRONE_TECHNICIAN
   const { data: usersData, isLoading: isLoadingUsers, refetch: refetchUsers } = useGetAllUsersQuery({
@@ -96,19 +121,11 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
         const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay & Pin)";
 
-        const storedPhone = (() => {
-          try {
-            return localStorage.getItem(`tech_phone_${u.id}`);
-          } catch {
-            return null;
-          }
-        })();
-
         return {
           id: u.id,
           fullName: u.fullName || u.name || `KTV #${u.id}`,
           email: u.email || "",
-          phoneNumber: storedPhone || u.phoneNumber || "",
+          phoneNumber: u.phoneNumber || "",
           status: (u.status || "ACTIVE").toUpperCase(),
           imageUrl: u.imageUrl || "",
           enabled: (u.status || "ACTIVE").toUpperCase() === "ACTIVE",
@@ -119,9 +136,9 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
       });
   }, [usersData]);
 
-  // Compute workload and SLA penalty metrics per technician
+  // Khối lượng việc + mức chế tài: lấy từ endpoint hiệu suất của server (ngưỡng admin cấu hình).
+  // Khi hiệu suất KTV chưa tải xong thì đếm tạm từ danh sách phiếu (cờ `overdue` do server tính).
   const techMetrics = useMemo(() => {
-    const slaExtensions = getStoredSlaExtensions();
     const metrics: Record<
       number,
       {
@@ -129,41 +146,43 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         resolved: number;
         overdue: number;
         total: number;
-        penaltyLevel: "NORMAL" | "WARNING" | "RESTRICTED" | "SUSPENDED";
+        penaltyLevel: PenaltyLevel;
       }
     > = {};
 
     for (const tech of technicians) {
+      const perf = perfById[tech.id];
       // Chỉ tính phiếu được giao cho KTV (KTV tự báo đã được server giao luôn)
       const techReports = reports.filter((r) => {
         if (tech.specialty === "KIOSK" && isDroneReport(r)) return false;
         if (tech.specialty === "DRONE" && !isDroneReport(r)) return false;
         return r.assignedToUserId === tech.id;
       });
-      const inProgress = techReports.filter((r) => r.status === "IN_PROGRESS").length;
-      const resolved = techReports.filter((r) => r.status === "RESOLVED").length;
-      const overdue = techReports.filter((r) => r.status === "IN_PROGRESS" && isReportOverdue(r, slaExtensions[r.id])).length;
-
-      let penaltyLevel: "NORMAL" | "WARNING" | "RESTRICTED" | "SUSPENDED" = "NORMAL";
-      if (!tech.enabled || overdue >= 5) {
-        penaltyLevel = "SUSPENDED";
-      } else if (overdue >= 3) {
-        penaltyLevel = "RESTRICTED";
-      } else if (overdue >= 1) {
-        penaltyLevel = "WARNING";
-      }
 
       metrics[tech.id] = {
-        inProgress,
-        resolved,
-        overdue,
-        total: techReports.length,
-        penaltyLevel,
+        inProgress: perf?.inProgress ?? techReports.filter((r) => r.status === "IN_PROGRESS").length,
+        resolved: perf?.resolved ?? techReports.filter((r) => r.status === "RESOLVED").length,
+        overdue: perf?.overdue ?? techReports.filter((r) => r.overdue === true).length,
+        total: perf?.totalAssigned ?? techReports.length,
+        penaltyLevel: !tech.enabled ? "SUSPENDED" : perf?.penaltyLevel ?? "NORMAL",
       };
     }
 
     return metrics;
-  }, [technicians, reports]);
+  }, [technicians, reports, perfById]);
+
+  // CSAT toàn đội = trung bình có trọng số theo số lượt đánh giá của từng KTV
+  const csat = useMemo(() => {
+    let count = 0;
+    let sum = 0;
+    for (const tech of technicians) {
+      const perf = perfById[tech.id];
+      if (!perf || !perf.ratingCount) continue;
+      count += perf.ratingCount;
+      sum += perf.averageRating * perf.ratingCount;
+    }
+    return count > 0 ? { average: sum / count, count } : null;
+  }, [technicians, perfById]);
 
   // KPI calculations
   const totalTechs = technicians.length;
@@ -207,7 +226,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
     try {
       await updateStatus({
         id: tech.id,
-        data: { enabled: newEnabled },
+        data: { status: newEnabled ? "ACTIVE" : "INACTIVE" },
       }).unwrap();
       toast.success(`${actionText} tài khoản KTV thành công`, {
         description: `KTV ${tech.fullName} hiện đang ở trạng thái ${newEnabled ? "Hoạt động" : "Đã đình chỉ"}.`,
@@ -224,6 +243,10 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
   return (
     <div className="space-y-6">
+      {technicians.map((t) => (
+        <TechnicianPerformanceSync key={t.id} techId={t.id} onData={handlePerf} />
+      ))}
+
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
         <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
@@ -281,10 +304,12 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                 <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight text-foreground mt-1">4.8 / 5.0</p>
+            <p className="text-2xl font-bold tracking-tight text-foreground mt-1">
+              {csat ? `${csat.average.toFixed(1)} / 5.0` : "—"}
+            </p>
             <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-emerald-600">
               <ShieldCheck className="w-3 h-3" />
-              <span>Đánh giá từ khách hàng hài lòng</span>
+              <span>{csat ? `Từ ${csat.count} lượt đánh giá của khách hàng` : "Chưa có lượt đánh giá"}</span>
             </div>
           </CardContent>
         </Card>
@@ -302,7 +327,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                 Chế tài Quản lý Chất lượng Kỹ thuật viên (3 Cấp độ SLA)
               </h4>
               <p className="text-xs text-indigo-800/80 mt-0.5">
-                KTV trễ hạn 1-2 lần sẽ bị Cảnh báo vàng · 3-4 lần bị Hạn chế nhận việc · từ 5 lần sẽ Đề xuất đình chỉ & Khóa tài khoản.
+                Mức chế tài do máy chủ tính theo số phiếu trễ hạn SLA của từng KTV; ngưỡng mỗi mức do admin cấu hình trong Cài đặt.
               </p>
             </div>
           </div>
@@ -458,7 +483,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                                     KTV Drone (Đội bay)
                                   </Badge>
                                 )}
-                                {tech.specialty === "KIOSK" && getAssignedCount(tech.id) > 0 && (
+                                {getAssignedCount(tech.id) > 0 && (
                                   <Badge
                                     variant="outline"
                                     className="bg-blue-50 text-blue-800 border-blue-200 text-[10px] font-medium flex items-center gap-1 px-1.5 py-0.5"
@@ -485,7 +510,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                             }
                           >
                             {isSuspended
-                              ? "Đã đình chỉ"
+                              ? (tech.enabled ? "Đề xuất đình chỉ" : "Đã đình chỉ")
                               : isRestricted
                               ? "Hạn chế việc"
                               : isWarning
@@ -558,7 +583,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                             size="sm"
                             variant="outline"
                             className="h-8 text-xs gap-1"
-                            onClick={() => onAssignToTech(tech.id)}
+                            onClick={() => onAssignToTech(tech.id, tech.specialty ?? "KIOSK")}
                           >
                             <Boxes className="w-3.5 h-3.5" />
                             Giao việc

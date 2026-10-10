@@ -1,16 +1,4 @@
-import {
-  Monitor,
-  Cpu,
-  Tv,
-  CheckCircle2,
-  XCircle,
-  ExternalLink,
-  RefreshCw,
-  Sparkles,
-  Info,
-  ShieldCheck,
-  Zap,
-} from "lucide-react";
+import { Monitor, Cpu, Tv } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +9,6 @@ import {
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { toast } from "sonner";
 import { formatDateTime } from "~/lib/datetime";
 
 interface KioskScreenModalProps {
@@ -39,26 +26,10 @@ export function KioskScreenModal({
   onOpenChange,
   lockerId,
   lockerCode,
-  isOnline = true,
+  isOnline = false,
   lastSeenAt,
   gatewayMac,
 }: KioskScreenModalProps) {
-  const handleOpenKioskTab = () => {
-    window.open("http://localhost:3002/", "_blank");
-  };
-
-  const handlePingScreen = () => {
-    if (!isOnline) {
-      toast.error("Bộ điều khiển Kiosk chưa được cấp nguồn (Offline)!", {
-        description: "Vui lòng cắm điện thiết bị phần cứng để nhận dữ liệu màn hình và điều khiển ô tủ.",
-      });
-      return;
-    }
-    toast.success("Đã gửi tín hiệu kiểm tra (Ping) tới màn hình Kiosk!", {
-      description: "Màn hình 7 inch phản hồi tín hiệu HDMI & cảm ứng USB bình thường.",
-    });
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
@@ -183,43 +154,25 @@ export function KioskScreenModal({
                 <span className="font-semibold text-foreground">Chromium Kiosk (--kiosk :3002)</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Địa chỉ chạy ứng dụng:</span>
-                <span className="font-semibold text-primary">http://localhost:3002/</span>
+                <span className="text-muted-foreground block text-[11px]">Địa chỉ ứng dụng (trên Pi):</span>
+                <span className="font-mono font-medium text-foreground">localhost:3002</span>
               </div>
               <div>
                 <span className="text-muted-foreground block text-[11px]">Địa chỉ MAC Pi:</span>
-                <span className="font-mono font-medium text-foreground">{gatewayMac || "DC:A6:32:XX:XX:XX"}</span>
+                <span className="font-mono font-medium text-foreground">{gatewayMac || "—"}</span>
               </div>
               <div>
                 <span className="text-muted-foreground block text-[11px]">Thấy lần cuối:</span>
                 <span className="font-semibold text-foreground">
-                  {lastSeenAt ? formatDateTime(lastSeenAt) : "Vừa xong (Live)"}
+                  {lastSeenAt ? formatDateTime(lastSeenAt) : "Chưa có tín hiệu"}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex items-center justify-between sm:justify-between pt-2 border-t">
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handlePingScreen}
-              className="text-xs h-8 text-sky-700 bg-sky-50 hover:bg-sky-100 border-sky-300"
-            >
-              <RefreshCw className="w-3.5 h-3.5 mr-1" /> Ping kiểm tra
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleOpenKioskTab}
-              disabled={!isOnline}
-              className="text-xs h-8 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200"
-            >
-              <ExternalLink className="w-3.5 h-3.5 mr-1" /> Mở Kiosk UI (:3002)
-            </Button>
-          </div>
+        {/* Chưa có API ping màn hình / mở Kiosk UI từ xa — Kiosk UI chỉ chạy trên chính Pi */}
+        <DialogFooter className="flex items-center justify-end sm:justify-end pt-2 border-t">
           <Button size="sm" onClick={() => onOpenChange(false)} className="text-xs h-8">
             Đóng
           </Button>

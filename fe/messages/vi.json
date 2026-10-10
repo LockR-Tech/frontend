@@ -28,7 +28,13 @@
     "errLocked": "Tài khoản đã bị khóa.",
     "errDisabled": "Tài khoản đã bị vô hiệu hóa.",
     "errLogin": "Đăng nhập thất bại.",
-    "errOtp": "Xác thực thất bại."
+    "errOtp": "Xác thực thất bại.",
+    "errNotAdmin": "Tài khoản này không có quyền quản trị.",
+    "errOtpInvalid": "Mã xác thực không đúng hoặc đã hết hạn.",
+    "errOtpRemaining": "Mã xác thực không đúng hoặc đã hết hạn. Còn {{count}} lần thử.",
+    "errOtpTooMany": "Mã xác thực không đúng và phiên xác thực đã kết thúc. Vui lòng đăng nhập lại để nhận mã mới.",
+    "errSessionExpired": "Phiên xác thực đã hết hạn. Vui lòng đăng nhập lại để nhận mã mới.",
+    "errNetwork": "Không kết nối được máy chủ. Kiểm tra mạng và thử lại."
   },
   "button": {
     "login": "Đăng nhập",
@@ -76,7 +82,16 @@
     "notifications": "Thông báo",
     "search": "Tìm kiếm...",
     "noNotifications": "Không có thông báo mới nào",
-    "openNotificationCenter": "Mở trung tâm thông báo >"
+    "openNotificationCenter": "Mở trung tâm thông báo >",
+    "notificationsError": "Không tải được thông báo.",
+    "unreadNotifications": "Thông báo ({{count}} chưa đọc)",
+    "unreadBadge": "{{count}} chưa đọc",
+    "searchTitle": "Chuyển nhanh tới trang",
+    "searchDescription": "Gõ tên trang rồi nhấn Enter để mở.",
+    "searchPlaceholder": "Tìm trang quản trị…",
+    "searchEmpty": "Không tìm thấy trang phù hợp.",
+    "searchGroup": "Trang quản trị",
+    "loadingDrone": "Đang tải Drone…"
   },
   "table": {
     "rowsPerPage": "Số hàng/trang",
@@ -95,6 +110,7 @@
       "payments": "Thanh toán",
       "revenue": "Doanh thu",
       "loyalty": "Khách hàng thân thiết",
+      "loyaltyProgram": "Tích điểm",
       "partners": "Đối tác",
       "feedback": "Phản hồi",
       "scheduler": "Lập lịch",
@@ -232,6 +248,7 @@
       "title": "Quản lý đối tác",
       "description": "Quản lý và phê duyệt đối tác trong hệ thống",
       "searchPlaceholder": "Tìm kiếm đối tác...",
+      "addPartner": "Thêm đối tác",
       "columns": {
         "partner": "Đối tác",
         "representative": "Ngườii đại diện",
@@ -255,6 +272,7 @@
       "description": "Quản lý các tác vụ tự động và trigger thủ công",
       "statusTitle": "Trạng thái Scheduler",
       "systemStatus": "Trạng thái hệ thống",
+      "ownerLabel": "Dịch vụ chạy job:",
       "loading": "Đang tải...",
       "cannotConnect": "Không thể kết nối",
       "running": "Đang hoạt động",
@@ -269,24 +287,47 @@
       "runningNow": "Đang chạy...",
       "auto": "Tự động",
       "infoTitle": "Thông tin",
-      "info1": "Các scheduler job chạy tự động theo tần suất đã cấu hình",
-      "info2": "Admin có thể trigger thủ công để test hoặc xử lý gấp",
-      "info3": "Kết quả chạy job được lưu lại 10 lần gần nhất",
+      "info1": "Các job chạy tự động trong order-service theo lịch mặc định của OrderScheduler; giờ trong lịch là giờ máy chủ (UTC).",
+      "info2": "Admin có thể chạy tay để kiểm tra hoặc xử lý gấp — kết quả giống hệt một lần chạy tự động.",
+      "info3": "Lịch sử bên dưới chỉ giữ 10 lần chạy tay gần nhất trong phiên trình duyệt này.",
+      "confirmTitle": "Chạy ngay «{{job}}»?",
+      "result": {
+        "canceledOrders": "Đã huỷ {{count}} đơn",
+        "reminders": "Đã gửi {{count}} lời nhắc",
+        "expiredOrders": "Đã chuyển kho {{count}} đơn",
+        "reconciled": "Đã nhả {{released}} ô không còn đơn giữ, giữ lại {{reclaimed}} ô cho đơn đang hoạt động",
+        "reconcileSkipped": "Bỏ qua: không kết nối được locker-service",
+        "done": "Đã chạy xong",
+        "failed": "Không chạy được job"
+      },
       "jobs": {
         "autoCancel": {
-          "title": "Auto-Cancel Orders",
-          "description": "Tự động hủy các đơn hàng INITIALIZED quá 30 phút không xác nhận. Giải phóng box và gửi notification cho khách.",
-          "frequency": "Mỗi 5 phút"
+          "title": "Tự huỷ đơn chưa xác nhận",
+          "description": "Huỷ các đơn INITIALIZED quá hạn giữ ô, nhả ô và hoàn lượt khuyến mãi: đơn chưa thanh toán sau số phút ở cấu hình «auto-cancel-unpaid-minutes», đơn đã thanh toán nhưng chưa bỏ đồ sau số giờ ở cấu hình «auto-cancel-hours».",
+          "frequency": "Mỗi 2 phút",
+          "confirm": "Mọi đơn INITIALIZED đã quá hạn giữ ô sẽ bị huỷ ngay và ô được nhả. Không hoàn tác được."
         },
         "releaseBoxes": {
-          "title": "Release Boxes",
-          "description": "Giải phóng các box từ đơn hàng COMPLETED sau 5 phút. Xóa PIN code để đảm bảo bảo mật.",
-          "frequency": "Mỗi 2 phút"
+          "title": "Nhả ô của đơn đã hoàn tất",
+          "description": "Lưới an toàn: quét các đơn COMPLETED và nhả những ô vẫn còn bị giữ (ví dụ đơn được hoàn tất qua API cũ).",
+          "frequency": "Hằng ngày 03:15 (giờ máy chủ UTC, tức 10:15 giờ Việt Nam)"
         },
         "pickupReminders": {
-          "title": "Pickup Reminders",
-          "description": "Gửi notification nhắc nhở khách đến lấy đồ cho các đơn hàng RETURNED quá 24 giờ.",
-          "frequency": "Mỗi 1 giờ"
+          "title": "Nhắc lấy đồ quá hạn",
+          "description": "Gửi thông báo cho người gửi (và người nhận nếu có) của các đơn đang giữ hàng đã quá hạn lấy đồ; mỗi đơn chỉ được nhắc lại sau khoảng chờ ở cấu hình «reminder-cooldown-minutes».",
+          "frequency": "Mỗi 10 phút"
+        },
+        "releaseOverdue": {
+          "title": "Chuyển kho đơn quá hạn lâu",
+          "description": "Đơn đang giữ hàng quá hạn lấy đồ lâu hơn số giờ ở cấu hình «overdue-release-hours»: chốt phí quá hạn, chuyển sang EXPIRED (đồ dời vào kho), nhả ô, thu hồi PIN và báo cho khách.",
+          "frequency": "Mỗi giờ, vào phút 05",
+          "confirm": "Các đơn quá hạn lâu sẽ chuyển sang EXPIRED, bị cộng phí quá hạn, mất PIN và ô được nhả cho đơn khác; khách nhận thông báo. Không hoàn tác được."
+        },
+        "reconcileBoxes": {
+          "title": "Đối soát trạng thái ô",
+          "description": "So trạng thái ô ở locker-service với các đơn đang hoạt động: nhả ô RESERVED/OCCUPIED không còn đơn nào giữ, và giữ lại ô đang AVAILABLE nhưng vẫn thuộc một đơn đang hoạt động.",
+          "frequency": "Mỗi giờ, vào phút 35",
+          "confirm": "Trạng thái ô ở mọi tủ có thể bị sửa cho khớp với các đơn đang hoạt động. Nên chạy khi không có thao tác gửi/nhận đang diễn ra."
         }
       }
     },

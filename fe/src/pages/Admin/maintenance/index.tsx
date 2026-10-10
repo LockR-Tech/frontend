@@ -1,5 +1,5 @@
 import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -60,7 +60,7 @@ import { MaintenanceSchedules } from "./MaintenanceSchedules";
 import { TechniciansTab } from "./TechniciansTab";
 import type { TechnicianSummary } from "./technician-detail";
 import { AssignReportDialog } from "./AssignReportDialog";
-import { cleanDescription, getStoredSlaExtensions, isDroneReport, getEffectiveSlaDueAt, isReportOverdue } from "./maintenancePhotos";
+import { cleanDescription, isDroneReport, INSPECTION_STATUS_META } from "./maintenancePhotos";
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
 import { ResolveReportDialog } from "./ResolveReportDialog";
 import { SlaCountdownBadge } from "./SlaCountdownBadge";
@@ -74,10 +74,11 @@ import {
   useGetAllAdminReportsQuery,
   useGetMaintenanceSchedulesQuery,
   useClaimReportMutation,
-  useResolveReportMutation,
+  useResolveAdminReportMutation,
   useClearBoxFaultMutation,
   useGetDeviceStatusesQuery,
   useGetDroneMaintenanceHistoryQuery,
+  useGetAllInspectionLogsQuery,
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
@@ -96,23 +97,27 @@ const REPORT_BADGE: Record<string, string> = {
   RESOLVED: "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 font-semibold",
 };
 
+// Khớp DroneStatus của backend: IDLE, RESERVED, CHARGING, IN_FLIGHT, MAINTENANCE, FAULT
 const DRONE_STATUS_BADGE: Record<string, string> = {
   IDLE: "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 font-semibold",
+  RESERVED: "bg-cyan-100 text-cyan-800 border-cyan-300 hover:bg-cyan-200 font-semibold",
   CHARGING: "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200 font-semibold",
   IN_FLIGHT: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200 font-semibold",
-  IN_USE: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200 font-semibold",
   MAINTENANCE: "bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200 font-semibold",
   FAULT: "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 font-semibold",
 };
 
 const DRONE_STATUS_LABELS: Record<string, string> = {
   IDLE: "Sẵn sàng",
+  RESERVED: "Đã giữ cho nhiệm vụ",
   CHARGING: "Đang sạc",
   IN_FLIGHT: "Đang bay",
-  IN_USE: "Đang sử dụng",
   MAINTENANCE: "Đang bảo dưỡng",
   FAULT: "Gặp sự cố",
 };
+
+// Cùng cửa sổ backend dùng cho bộ điều khiển tủ: quá 150 s không thấy heartbeat ⇒ mất kết nối
+const HEARTBEAT_ONLINE_WINDOW_MS = 150_000;
 
 function batteryColor(pct: number): string {
   if (pct < 20) return "bg-rose-500";
@@ -168,7 +173,8 @@ export default function MaintenanceAdminPage() {
   const reports = useGetMaintenanceReportsQuery(undefined, { pollingInterval: 15000 });
   const deviceStatuses = useGetDeviceStatusesQuery();
   const [claim] = useClaimReportMutation();
-  const [resolve] = useResolveReportMutation();
+  // Admin đóng phiếu qua endpoint admin (PUT /api/admin/lockers/reports/{id}/resolve)
+  const [resolveAdmin] = useResolveAdminReportMutation();
   const [clearFault] = useClearBoxFaultMutation();
 
   // Drone fleet queries & mutations
@@ -180,6 +186,9 @@ export default function MaintenanceAdminPage() {
   const allReportsQuery = useGetAllAdminReportsQuery(undefined, { pollingInterval: 15000 });
   const schedulesQuery = useGetMaintenanceSchedulesQuery();
   const schedulesList = useMemo(() => schedulesQuery.data?.data ?? [], [schedulesQuery.data]);
+  // Mỗi lần kiểm tra định kỳ là một biên bản — lịch sử thật, không suy từ lastDoneAt của lịch
+  const inspectionLogsQuery = useGetAllInspectionLogsQuery();
+  const inspectionLogs = useMemo(() => inspectionLogsQuery.data?.data ?? [], [inspectionLogsQuery.data]);
   const [historyFilter, setHistoryFilter] = useState<"ALL" | "INCIDENT" | "SCHEDULE">("ALL");
   const [historyAsset, setHistoryAsset] = useState<"KIOSK" | "DRONE">("KIOSK");
 
@@ -206,11 +215,6 @@ export default function MaintenanceAdminPage() {
   const [sortBy, setSortBy] = useState<"NEWEST_FIRST" | "PRIORITY_NEW" | "SLA_URGENT" | "OLDEST_FIRST">("NEWEST_FIRST");
 
   const [assigningReport, setAssigningReport] = useState<LockerReportResponse | null>(null);
-  const [slaExtensions, setSlaExtensions] = useState<Record<number, any>>(getStoredSlaExtensions);
-
-  useEffect(() => {
-    setSlaExtensions(getStoredSlaExtensions());
-  }, []);
 
   const faultList = faults.data?.data ?? [];
   const allAdminReports = useMemo(() => allReportsQuery.data?.data ?? [], [allReportsQuery.data]);
@@ -305,12 +309,12 @@ export default function MaintenanceAdminPage() {
   // Drone Stats
   const droneFaults = droneList.filter((d) => d.status === "FAULT" || d.status === "MAINTENANCE").length;
   const droneLowBattery = droneList.filter((d) => d.batteryPercent != null && d.batteryPercent < 20).length;
-  const droneActive = droneList.filter((d) => d.status === "IN_FLIGHT" || d.status === "IN_USE").length;
+  const droneActive = droneList.filter((d) => d.status === "IN_FLIGHT" || d.status === "RESERVED").length;
   const droneReady = droneList.filter((d) => d.status === "IDLE" || d.status === "CHARGING").length;
   const droneOpenReports = droneReportList.filter((r) => r.status === "OPEN").length;
   const droneInProgressReports = droneReportList.filter((r) => r.status === "IN_PROGRESS").length;
   const droneResolvedReports = droneReportList.filter((r) => r.status === "RESOLVED").length;
-  const droneOverdueReports = droneReportList.filter((r) => isReportOverdue(r, slaExtensions[r.id])).length;
+  const droneOverdueReports = droneReportList.filter((r) => r.overdue).length;
 
   const [resolvingReport, setResolvingReport] = useState<LockerReportResponse | null>(null);
 
@@ -390,7 +394,7 @@ export default function MaintenanceAdminPage() {
     return droneReportList
       .filter((r) => {
         if (droneReportFilter === "OVERDUE") {
-          if (!isReportOverdue(r, slaExtensions[r.id])) return false;
+          if (!r.overdue) return false;
         } else if (droneReportFilter !== "ALL" && r.status !== droneReportFilter) {
           return false;
         }
@@ -429,13 +433,13 @@ export default function MaintenanceAdminPage() {
           return priorityB - priorityA || timeB - timeA;
         }
         if (droneReportSort === "SLA_URGENT") {
-          const slaA = getEffectiveSlaDueAt(a, slaExtensions[a.id])?.getTime() ?? Infinity;
-          const slaB = getEffectiveSlaDueAt(b, slaExtensions[b.id])?.getTime() ?? Infinity;
+          const slaA = a.slaDueAt ? timestampOf(a.slaDueAt) : Infinity;
+          const slaB = b.slaDueAt ? timestampOf(b.slaDueAt) : Infinity;
           return slaA - slaB;
         }
         return timeB - timeA;
       });
-  }, [droneReportList, droneReportFilter, droneSearchQuery, droneTechFilter, droneUnitFilter, droneDateFilter, droneReportSort, slaExtensions]);
+  }, [droneReportList, droneReportFilter, droneSearchQuery, droneTechFilter, droneUnitFilter, droneDateFilter, droneReportSort]);
 
   const hasDroneReportFilters = droneSearchQuery.trim() !== "" || droneReportFilter !== "ALL" || droneTechFilter !== "ALL" || droneUnitFilter !== "ALL" || droneDateFilter !== "ALL" || droneReportSort !== "NEWEST_FIRST";
   const resetDroneReportFilters = () => {
@@ -731,7 +735,7 @@ export default function MaintenanceAdminPage() {
                   size="sm"
                   variant="outline"
                   className="h-8 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 bg-white"
-                  onClick={() => setReportFilter("OPEN")}
+                  onClick={() => setReportFilter("OVERDUE")}
                 >
                   Xem phiếu quá hạn SLA
                 </Button>
@@ -1046,13 +1050,13 @@ export default function MaintenanceAdminPage() {
                                 Từ kiểm tra định kỳ
                               </Badge>
                             )}
-                            {isReportOverdue(r, slaExtensions[r.id]) && (
+                            {r.overdue && (
                               <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
                                 Quá hạn SLA
                               </Badge>
                             )}
                             <SlaCountdownBadge
-                              slaDueAt={getEffectiveSlaDueAt(r, slaExtensions[r.id])?.toISOString() || r.slaDueAt}
+                              slaDueAt={r.slaDueAt}
                               createdAt={r.createdAt}
                               slaHours={r.slaHours ?? 4}
                               status={r.status}
@@ -1140,6 +1144,18 @@ export default function MaintenanceAdminPage() {
                           </Button>
                         )}
 
+                        {(r.status === "OPEN" || r.status === "IN_PROGRESS") && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                            onClick={() => setResolvingReport(r)}
+                            disabled={pending === r.id}
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn tất
+                          </Button>
+                        )}
+
                         {r.status === "RESOLVED" && (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-800">
                             <CheckCircle2 className="w-3.5 h-3.5" /> KTV đã xử lý xong
@@ -1171,7 +1187,12 @@ export default function MaintenanceAdminPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {deviceList.map((d) => {
-                    const online = d.status?.toUpperCase() === "ONLINE";
+                    // Trạng thái lưu có thể cũ (tủ mất điện không kịp báo OFFLINE) ⇒ đòi thêm heartbeat gần đây
+                    const lastSeen = parseBackendDateTime(d.lastSeenAt);
+                    const online =
+                      d.status?.toUpperCase() === "ONLINE" &&
+                      lastSeen != null &&
+                      Date.now() - lastSeen.getTime() <= HEARTBEAT_ONLINE_WINDOW_MS;
                     return (
                       <div
                         key={d.id}
@@ -1519,8 +1540,8 @@ export default function MaintenanceAdminPage() {
                             <Badge variant="outline" className={`text-xs ${REPORT_BADGE[report.status] ?? ""}`}>
                               {report.status === "OPEN" ? "Mới mở · Chờ KTV Drone" : report.status === "IN_PROGRESS" ? "Đang xử lý" : report.status === "RESOLVED" ? "Đã hoàn tất" : report.status}
                             </Badge>
-                            {isReportOverdue(report, slaExtensions[report.id]) && <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">Quá hạn SLA</Badge>}
-                            <SlaCountdownBadge slaDueAt={getEffectiveSlaDueAt(report, slaExtensions[report.id])?.toISOString() || report.slaDueAt} createdAt={report.createdAt} slaHours={report.slaHours ?? 4} status={report.status} />
+                            {report.overdue && <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">Quá hạn SLA</Badge>}
+                            <SlaCountdownBadge slaDueAt={report.slaDueAt} createdAt={report.createdAt} slaHours={report.slaHours ?? 4} status={report.status} />
                             {report.assignedToUserId ? (
                               <button type="button" onClick={() => navigate(`/admin/maintenance/technicians/${report.assignedToUserId}`)} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200">
                                 <UserCheck className="w-3 h-3" /> KTV: {assignedTech?.fullName ?? userNames[report.assignedToUserId] ?? `#${report.assignedToUserId}`}
@@ -1540,6 +1561,17 @@ export default function MaintenanceAdminPage() {
                           {(report.status === "OPEN" || report.status === "IN_PROGRESS") && (
                             <Button size="sm" variant={report.status === "OPEN" ? "default" : "outline"} className="h-8 text-xs gap-1.5" onClick={() => setAssigningReport(report)}>
                               <UserCheck className="w-3.5 h-3.5" /> {report.status === "OPEN" ? "Phân công KTV Drone" : "Đổi KTV"}
+                            </Button>
+                          )}
+                          {(report.status === "OPEN" || report.status === "IN_PROGRESS") && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                              onClick={() => setResolvingReport(report)}
+                              disabled={pending === report.id}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn tất
                             </Button>
                           )}
                           {report.status === "RESOLVED" && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5" /> KTV đã xử lý xong</span>}
@@ -1602,6 +1634,8 @@ export default function MaintenanceAdminPage() {
                     { id: "ALL", label: `Tất cả (${droneList.length})` },
                     { id: "ATTENTION", label: `Cần can thiệp (${droneFaults + droneLowBattery})` },
                     { id: "IDLE", label: `Sẵn sàng (${droneList.filter((d) => d.status === "IDLE").length})` },
+                    { id: "RESERVED", label: `Đã giữ cho nhiệm vụ (${droneList.filter((d) => d.status === "RESERVED").length})` },
+                    { id: "IN_FLIGHT", label: `Đang bay (${droneList.filter((d) => d.status === "IN_FLIGHT").length})` },
                     { id: "CHARGING", label: `Đang sạc (${droneList.filter((d) => d.status === "CHARGING").length})` },
                     { id: "MAINTENANCE", label: `Đang bảo dưỡng (${droneList.filter((d) => d.status === "MAINTENANCE").length})` },
                     { id: "FAULT", label: `Sự cố (${droneList.filter((d) => d.status === "FAULT").length})` },
@@ -1717,13 +1751,13 @@ export default function MaintenanceAdminPage() {
           {/* Nhật Ký Sửa Chữa & Bảo Trì Đã Hoàn Tất */}
           {(() => {
             const showDroneHistory = historyAsset === "DRONE";
-            const scheduleIsDrone = (s: { droneUnitId?: number | null; droneCode?: string | null; title?: string | null }) =>
-              Boolean(s.droneUnitId || s.droneCode || s.title?.toLowerCase().includes("drone"));
             const resolvedIncidentList = reportList.filter(
               (r) => r.status === "RESOLVED" && (showDroneHistory ? isDroneReport(r) : !isDroneReport(r)),
             );
-            const completedScheduleList = schedulesList.filter(
-              (s) => Boolean(s.lastDoneAt) && (showDroneHistory ? scheduleIsDrone(s) : !scheduleIsDrone(s)),
+            // Biên bản kiểm tra định kỳ (mỗi lần một bản ghi, kể cả KHÔNG ĐẠT) — lịch drone gắn droneUnitId
+            const scheduleTitles = new Map(schedulesList.map((s) => [s.id, s.title]));
+            const completedInspectionList = inspectionLogs.filter((log) =>
+              showDroneHistory ? log.droneUnitId != null : log.droneUnitId == null,
             );
 
             interface UnifiedHistoryItem {
@@ -1735,6 +1769,9 @@ export default function MaintenanceAdminPage() {
               completedRawDate?: string;
               technician: string;
               badgeText: string;
+              /** Nhãn + màu kết quả thật (Đã hoàn tất / Đạt / Không đạt). */
+              resultLabel: string;
+              resultClass: string;
               detailNote?: string;
               originalReport?: LockerReportResponse;
             }
@@ -1759,29 +1796,35 @@ export default function MaintenanceAdminPage() {
                   return techId ? userNames[techId] ?? `Kỹ thuật viên #${techId}` : "—";
                 })(),
                 badgeText: "Sự cố đã xử lý",
-                detailNote: r.description,
+                resultLabel: "Đã hoàn tất",
+                resultClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                detailNote: cleanDescription(r.description) || r.description,
                 originalReport: r,
               });
             });
 
-            // 2. Thêm các đợt bảo trì định kỳ đã hoàn tất
-            completedScheduleList.forEach((s) => {
-              const isDrone = Boolean(s.droneUnitId || s.droneCode || s.title?.toLowerCase().includes("drone"));
+            // 2. Thêm từng lần kiểm tra định kỳ đã ghi biên bản (kết quả thật: Đạt / Không đạt)
+            completedInspectionList.forEach((log) => {
+              const isDrone = log.droneUnitId != null;
+              const meta = INSPECTION_STATUS_META[log.status];
+              const noteParts = [
+                log.note?.trim(),
+                log.createdReportId ? `Đã mở phiếu sự cố RPT-${log.createdReportId}.` : null,
+              ].filter(Boolean);
               historyItems.push({
-                id: `schedule-${s.id}-${s.lastDoneAt}`,
+                id: `inspection-${log.id}`,
                 type: "SCHEDULE",
-                title: s.title,
+                title: scheduleTitles.get(log.scheduleId) ?? `Lịch kiểm tra #${log.scheduleId}`,
                 target: isDrone
-                  ? `Drone: ${s.droneCode ?? "Thiết bị bay"} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`
-                  : `Trạm: ${s.lockerName ?? "Kiosk"}${s.lockerCode ? ` (${s.lockerCode})` : ""} (Chu kỳ: Mỗi ${s.intervalDays} ngày)`,
-                completedAt: formatDateTime(s.lastDoneAt),
-                completedRawDate: s.lastDoneAt,
-                technician: s.assignedTechnicianName ?? (isDrone ? "Kỹ thuật viên Đội Drone" : "Kỹ thuật viên Kiosk"),
+                  ? `Drone: ${log.droneCode ?? `#${log.droneUnitId}`}`
+                  : `Trạm: ${log.lockerName ?? (log.lockerId ? `Kiosk #${log.lockerId}` : "Kiosk")}${log.lockerCode ? ` (${log.lockerCode})` : ""}`,
+                completedAt: formatDateTime(log.createdAt),
+                completedRawDate: log.createdAt,
+                technician: log.technicianName ?? (log.technicianId ? userNames[log.technicianId] ?? `Kỹ thuật viên #${log.technicianId}` : "—"),
                 badgeText: isDrone ? "Bảo trì Drone" : "Kiểm tra Kiosk",
-                detailNote:
-                  s.lastResult === "FAILED"
-                    ? `Lần kiểm tra gần nhất KHÔNG ĐẠT${s.pendingReportId ? ` — chờ phiếu RPT-${s.pendingReportId} hoàn tất mới dời hạn` : ""}.`
-                    : `Hoàn tất kỳ bảo dưỡng định kỳ (chu kỳ ${s.intervalDays} ngày).`,
+                resultLabel: meta?.label ?? log.status,
+                resultClass: meta?.cls ?? "bg-slate-50 text-slate-700 border-slate-200",
+                detailNote: noteParts.length > 0 ? noteParts.join(" ") : undefined,
               });
             });
 
@@ -1810,8 +1853,8 @@ export default function MaintenanceAdminPage() {
                       </CardTitle>
                       <CardDescription className="text-xs">
                         {showDroneHistory
-                          ? "Hồ sơ sự cố Drone đã xử lý và các đợt bảo trì Drone hoàn tất"
-                          : "Hồ sơ sự cố Kiosk đã xử lý và các đợt bảo trì Kiosk hoàn tất"}
+                          ? "Hồ sơ sự cố Drone đã xử lý và từng lần kiểm tra định kỳ Drone (kèm kết quả)"
+                          : "Hồ sơ sự cố Kiosk đã xử lý và từng lần kiểm tra định kỳ Kiosk (kèm kết quả)"}
                       </CardDescription>
                     </div>
 
@@ -1867,7 +1910,7 @@ export default function MaintenanceAdminPage() {
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
-                        Định kỳ hoàn tất ({completedScheduleList.length})
+                        Kiểm tra định kỳ ({completedInspectionList.length})
                       </button>
                       </div>
                     </div>
@@ -1888,8 +1931,8 @@ export default function MaintenanceAdminPage() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-semibold text-sm text-foreground">{item.title}</p>
-                              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-medium">
-                                Đã hoàn tất
+                              <Badge variant="outline" className={`text-xs font-medium ${item.resultClass}`}>
+                                {item.resultLabel}
                               </Badge>
                               <Badge
                                 variant="outline"
@@ -1929,10 +1972,17 @@ export default function MaintenanceAdminPage() {
         {/* TAB 4: ĐỘI NGŨ KỸ THUẬT VIÊN */}
         <TabsContent value="technicians" className="space-y-6">
           <TechniciansTab
-            onAssignToTech={(techId) => {
-              setSelectedTechFilter(String(techId));
-              setActiveTab("kiosk");
-              toast.info(`Đang hiển thị các sự cố phân công cho KTV #${techId}`);
+            onAssignToTech={(techId, specialty) => {
+              const name = techniciansMap[techId]?.fullName ?? `KTV #${techId}`;
+              // KTV Drone chỉ nhận phiếu Drone ⇒ mở tab Drone với bộ lọc KTV Drone
+              if (specialty === "DRONE") {
+                setDroneTechFilter(String(techId));
+                setActiveTab("drone");
+              } else {
+                setSelectedTechFilter(String(techId));
+                setActiveTab("kiosk");
+              }
+              toast.info(`Đang hiển thị các sự cố phân công cho ${name}`);
             }}
           />
         </TabsContent>
@@ -1957,7 +2007,7 @@ export default function MaintenanceAdminPage() {
         title={resolvingReport ? `Xác nhận hoàn tất xử lý phiếu RPT-${resolvingReport.id}?` : ""}
         description={
           resolvingReport
-            ? `Xác nhận sự cố "${resolvingReport.title}" đã được sửa chữa triệt để? Phiếu sẽ chuyển sang trạng thái Đã hoàn tất và ô tủ liên quan sẽ mở khóa phục vụ khách hàng.`
+            ? `Đóng phiếu "${resolvingReport.title}" với tư cách quản trị viên? Phiếu chuyển sang Đã hoàn tất; ô tủ / bãi đáp / tủ liên quan được trả về hoạt động như khi KTV hoàn tất.`
             : undefined
         }
         onSubmit={async ({ note, attachments }) => {
@@ -1965,12 +2015,14 @@ export default function MaintenanceAdminPage() {
           const id = resolvingReport.id;
           setPending(id);
           try {
-            await resolve({ reportId: id, note, attachments }).unwrap();
-            toast.success(`Phiếu RPT-${id} đã hoàn tất thành công`, {
+            // Lỗi được ResolveReportDialog hiển thị và giữ hộp thoại mở
+            await resolveAdmin({ reportId: id, note, attachments }).unwrap();
+            toast.success(`Phiếu RPT-${id} đã hoàn tất`, {
               description: attachments?.length
                 ? `Sự cố đã được đóng hồ sơ kèm ${attachments.length} ảnh nghiệm thu.`
                 : "Sự cố kỹ thuật đã được đóng hồ sơ và lưu nhật ký.",
             });
+            faults.refetch();
           } finally {
             setPending(null);
           }

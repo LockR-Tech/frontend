@@ -1,18 +1,18 @@
 import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import type { ChangeDirection } from "~/lib/report-format";
 
 interface OverviewCardProps {
   label: string;
   value: string;
   icon: React.ElementType;
   sublabel?: string;
-  deltaAmount?: string;
-  trend?: {
-    value: string;
-    isPositive?: boolean;
+  /** Mức thay đổi so với kỳ trước (đã định dạng) và hướng để chọn màu/mũi tên. */
+  delta?: {
+    text: string;
+    direction: ChangeDirection;
   };
-  color?: string; // Kept for backward compatibility but styled neutrally
   className?: string;
 }
 
@@ -21,11 +21,15 @@ export function OverviewCard({
   value,
   icon: Icon,
   sublabel,
-  deltaAmount,
-  trend,
+  delta,
   className,
 }: OverviewCardProps) {
-  const isNegativeDelta = deltaAmount?.trim().startsWith("-");
+  const DeltaIcon =
+    delta?.direction === "up"
+      ? ArrowUpRight
+      : delta?.direction === "down"
+        ? ArrowDownRight
+        : Minus;
 
   return (
     <Card className={cn("card-hover border border-border bg-card", className)}>
@@ -39,39 +43,23 @@ export function OverviewCard({
               {value}
             </div>
 
-            {deltaAmount ? (
+            {delta && (
               <div
                 className={cn(
                   "flex items-center gap-1 mt-1 text-xs font-semibold",
-                  isNegativeDelta
-                    ? "text-rose-600 dark:text-rose-400"
-                    : "text-emerald-600 dark:text-emerald-400"
+                  delta.direction === "up" && "text-emerald-600 dark:text-emerald-400",
+                  delta.direction === "down" && "text-rose-600 dark:text-rose-400",
+                  (delta.direction === "flat" || delta.direction === "unknown") &&
+                    "text-muted-foreground",
                 )}
               >
-                {isNegativeDelta ? (
-                  <ArrowDownRight className="w-3.5 h-3.5 shrink-0" />
-                ) : (
-                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
-                )}
-                <span>{deltaAmount}</span>
+                <DeltaIcon className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{delta.text}</span>
               </div>
-            ) : trend ? (
-              <div className="flex items-center gap-1 mt-1">
-                <span
-                  className={cn(
-                    "inline-flex items-center text-[11px] font-semibold px-1.5 py-0.5 rounded border",
-                    trend.isPositive !== false
-                      ? "text-emerald-700 bg-emerald-500/10 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/15"
-                      : "text-rose-700 bg-rose-500/10 border-rose-500/20 dark:text-rose-400 dark:bg-rose-500/15",
-                  )}
-                >
-                  {trend.value}
-                </span>
-              </div>
-            ) : null}
+            )}
 
             {sublabel && (
-              <p className="text-xs text-muted-foreground mt-1.5 truncate">
+              <p className="text-xs text-muted-foreground mt-1.5 truncate" title={sublabel}>
                 {sublabel}
               </p>
             )}

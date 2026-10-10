@@ -105,6 +105,31 @@ export function getCellStatusLabel(cell: {
   }
 }
 
+/** Kích cỡ ô backend lưu (SIZE_ORDER của locker-service). */
+export const BOX_SIZES = ["SMALL", "MEDIUM", "LARGE", "XL"] as const;
+
+/**
+ * Chuẩn hoá kích cỡ về giá trị backend: nhận cả dạng viết tắt cũ S/M/L.
+ * Rỗng hoặc lạ ⇒ MEDIUM (mặc định của LockerBox).
+ */
+export function normalizeBoxSize(size?: string | null): string {
+  switch (size?.trim().toUpperCase()) {
+    case "S":
+    case "SMALL":
+      return "SMALL";
+    case "M":
+    case "MEDIUM":
+      return "MEDIUM";
+    case "L":
+    case "LARGE":
+      return "LARGE";
+    case "XL":
+      return "XL";
+    default:
+      return "MEDIUM";
+  }
+}
+
 /**
  * Màu sắc chấm trạng thái
  */

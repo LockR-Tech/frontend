@@ -56,7 +56,8 @@ export function Sidebar({
   const { t } = useTranslation();
 
   const displayName = userName !== "Admin" ? userName : (user?.fullName || userName);
-  const displayEmail = user?.email || "admin@laundrylocker.vn";
+  // Không bịa email: tài khoản chưa có email thì ẩn dòng này
+  const displayEmail = user?.email?.trim() || null;
   const displayRole = Array.isArray(user?.role) ? user.role.join(", ") : (user?.role || "Quản trị viên");
 
   // Tự động đóng sidebar mobile khi chuyển trang
@@ -89,6 +90,7 @@ export function Sidebar({
     }
   }, [isTablet, toggleDesktopSidebar]);
 
+  // logout() thu hồi refresh token ở backend (best-effort) rồi mới xoá phiên
   const handleLogout = useCallback(async () => {
     await logout();
     window.location.href = "/auth/login";
@@ -285,9 +287,11 @@ export function Sidebar({
                   <p className="text-sm font-medium text-foreground leading-none">
                     {displayName}
                   </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {displayEmail}
-                  </p>
+                  {displayEmail && (
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {displayEmail}
+                    </p>
+                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

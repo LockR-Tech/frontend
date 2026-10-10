@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Loader2, MapPin, Plane, RefreshCw, Route, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -26,12 +27,12 @@ import {
   useConfirmDroneParcelReturnMutation,
   useFailDroneOrderMutation,
   useGetDroneOrderQuery,
-  useGetDroneOrdersQuery,
   type DroneJourneyEvent,
   type DroneLockerPoint,
   type DroneOrderTracking,
 } from "~/stores/apis/admin/droneOrders";
 import { DroneJourneyTimeline } from "./DroneJourneyTimeline";
+import { useGetAdminDroneOrderListQuery } from "./droneOrderListApi";
 import { DroneTrackingMap } from "./DroneTrackingMap";
 import { LiveCameraPanel } from "./LiveCameraPanel";
 import { isPickupCodeEvent, pickupCodeEvent, sentAt, stageTimes } from "./journey";
@@ -61,7 +62,17 @@ const MISSION_STATUS_LABELS: Record<string, string> = {
   DEPOSITED: "Đã gửi hàng vào ô",
   CANCELED: "Đã huỷ trước khi bay",
   FAILED: "Chuyến bay thất bại",
+  DROP_REPORTED: "Báo rơi kiện — chuyển sang xử lý sự cố",
 };
+
+/** Kiện bị báo rơi: máy trạng thái giao hàng dừng, việc tiếp theo nằm ở trang Sự cố rơi kiện. */
+function isDropReported(order: DroneOrderTracking): boolean {
+  return order.deliveryStage === "DROP_REPORTED" || order.missionStatus === "DROP_REPORTED";
+}
+
+function incidentLink(order: DroneOrderTracking): string {
+  return `/admin/drone-incidents?order=${encodeURIComponent(order.orderCode)}`;
+}
 
 /** Chặng drone đã phóng — chỉ ở các chặng này mới báo được chuyến bay thất bại. */
 const IN_FLIGHT_STAGES = new Set(["LAUNCHING", "DEPARTED", "EN_ROUTE", "APPROACHING", "ARRIVED"]);
@@ -149,8 +160,10 @@ function journeyTitle(event: DroneJourneyEvent): string {
 }
 
 export default function DroneOrdersPage() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetDroneOrdersQuery(
-    undefined,
+  const [scope, setScope] = useState<Scope>("active");
+  // "Đang thực hiện" chỉ xin nhiệm vụ đang chạy; hai nhóm còn lại cần cả lịch sử
+  const { data, isLoading, isFetching, isError, refetch } = useGetAdminDroneOrderListQuery(
+    { includeFinished: scope !== "active" },
     { pollingInterval: LIST_POLL_MS },
   );
 
@@ -174,7 +187,6 @@ export default function DroneOrdersPage() {
     };
   }, [subscribe, refetch]);
 
-  const [scope, setScope] = useState<Scope>("active");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const orders = useMemo(() => data?.data ?? [], [data]);
@@ -191,9 +203,10 @@ export default function DroneOrdersPage() {
       waiting: orders.filter(
         (o) => !isFinished(o) && o.deliveryStage === "AWAITING_DISPATCH",
       ).length,
-      finished: orders.filter((o) => !needsAction(o)).length,
+      // Nhóm "đang thực hiện" không tải đơn đã kết thúc nên chưa biết con số này
+      finished: scope === "active" ? null : orders.filter((o) => !needsAction(o)).length,
     }),
-    [orders],
+    [orders, scope],
   );
 
   // Backend đã sắp theo lần cập nhật gần nhất: đơn vừa đổi chặng nằm trên cùng.
@@ -213,7 +226,12 @@ export default function DroneOrdersPage() {
           <StatCard label="Đang thực hiện" value={counts.active} color="text-primary" />
           <StatCard label="Chờ điều phối" value={counts.waiting} color="text-amber-700" />
           <StatCard label="Đang bay" value={counts.inFlight} color="text-sky-700" />
-          <StatCard label="Đã kết thúc" value={counts.finished} color="text-muted-foreground" />
+          <StatCard
+            label="Đã kết thúc"
+            value={counts.finished ?? "—"}
+            color="text-muted-foreground"
+            hint={counts.finished == null ? "Chọn nhóm Đã kết thúc hoặc Tất cả để xem" : undefined}
+          />
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
@@ -301,6 +319,15 @@ export default function DroneOrdersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <MetaBadge meta={stageMeta(order)} />
+                      {isDropReported(order) && (
+                        <Link
+                          to={incidentLink(order)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1 block text-[11px] font-medium text-red-700 hover:underline"
+                        >
+                          Xử lý sự cố rơi kiện →
+                        </Link>
+                      )}
                     </td>
                     <td className="px-4 py-3">{order.droneCode ?? "Chưa phân công"}</td>
                     <td className="px-4 py-3">
@@ -333,13 +360,15 @@ function StatCard({
   label,
   value,
   color,
+  hint,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   color: string;
+  hint?: string;
 }) {
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="border-0 shadow-sm" title={hint}>
       <CardContent className="p-3">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className={`text-xl font-bold ${color}`}>{value}</p>
@@ -385,6 +414,22 @@ function DroneOrderDialog({
             <p className="text-xs text-muted-foreground">
               Tự cập nhật mỗi 3 giây · cập nhật cuối {formatDateTime(order.updatedAt)}
             </p>
+
+            {isDropReported(order) && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
+                <span className="flex items-center gap-2">
+                  <TriangleAlert className="h-4 w-4 shrink-0" />
+                  Kiện bị báo rơi giữa chặng bay — đơn dừng giao, thu hồi và phương án cho khách
+                  xử lý ở trang Sự cố rơi kiện.
+                </span>
+                <Link
+                  to={incidentLink(order)}
+                  className="whitespace-nowrap font-medium underline-offset-2 hover:underline"
+                >
+                  Mở sự cố →
+                </Link>
+              </div>
+            )}
 
             {order.status === "CANCELED" && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">

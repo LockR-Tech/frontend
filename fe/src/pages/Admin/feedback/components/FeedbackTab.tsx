@@ -25,21 +25,25 @@ import { fmtDate, StarRow, ErrorBanner } from "./shared";
 import { extractList } from "~/lib/extract-list";
 import type { FeedbackDTO } from "~/types/admin/feedback";
 
+const PAGE_SIZE = 20;
+
 export function FeedbackTab() {
   const navigate = useNavigate();
   const [minRating, setMinRating] = useState<string>("all");
   const [isResolved, setIsResolved] = useState<string>("all");
   const [page, setPage] = useState(0);
 
+  // Lọc đúng số sao đã chọn; backend phân trang (PageResponse: totalElements/totalPages).
   const { data, isLoading, isError, refetch } = useGetAllFeedbackQuery({
     page,
-    size: 20,
-    ...(minRating !== "all" && { minRating: Number(minRating) }),
+    size: PAGE_SIZE,
+    ...(minRating !== "all" && { minRating: Number(minRating), maxRating: Number(minRating) }),
     ...(isResolved !== "all" && { isResolved: isResolved === "true" }),
   });
 
   const list = extractList<FeedbackDTO>(data?.data);
-  const total = list.length;
+  const total = data?.data?.totalElements ?? list.length;
+  const totalPages = Math.max(1, data?.data?.totalPages ?? 1);
 
   return (
     <div className="space-y-4">
@@ -56,7 +60,7 @@ export function FeedbackTab() {
             }}
           >
             <SelectTrigger className="w-40 h-9 text-xs">
-              <SelectValue placeholder="Sao tối thiểu" />
+              <SelectValue placeholder="Số sao" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả sao</SelectItem>
@@ -149,7 +153,7 @@ export function FeedbackTab() {
                     </p>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {fb.relatedOrderId ? `#${fb.relatedOrderId}` : "—"}
+                    {fb.orderCode || (fb.relatedOrderId ? `#${fb.relatedOrderId}` : "—")}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge
@@ -184,23 +188,23 @@ export function FeedbackTab() {
       )}
 
       {/* Pagination */}
-      {total > 20 && (
+      {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"
             disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
           >
             Trước
           </Button>
           <span className="text-xs text-muted-foreground">
-            Trang {page + 1} / {Math.ceil(total / 20)}
+            Trang {page + 1} / {totalPages}
           </span>
           <Button
             variant="outline"
             size="sm"
-            disabled={(page + 1) * 20 >= total}
+            disabled={page >= totalPages - 1}
             onClick={() => setPage((p) => p + 1)}
           >
             Tiếp

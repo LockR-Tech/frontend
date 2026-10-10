@@ -1,12 +1,11 @@
 import { baseApi } from "../../baseAPi";
 import { ADMIN_ENDPOINTS } from "../../../constants";
-import type { ApiResponse, Page } from "../../../types";
+import type { ApiResponse } from "../../../types";
 import type {
   LoyaltyStatisticsDTO,
-  LoyaltyUserSummaryDTO,
+  LoyaltyAccountDTO,
   AdjustPointsRequest,
-  AdjustPointsResponseDTO,
-  PointsHistoryItemDTO,
+  PointTransactionDTO,
 } from "../../../types/admin/loyalty";
 
 const TAG = "Loyalty" as const;
@@ -24,20 +23,20 @@ export const loyaltyManagementApi = baseApi.injectEndpoints({
 
     // GET /api/admin/loyalty/users/{userId}
     getUserLoyaltySummary: builder.query<
-      ApiResponse<LoyaltyUserSummaryDTO>,
+      ApiResponse<LoyaltyAccountDTO>,
       number
     >({
       query: (userId) => ADMIN_ENDPOINTS.LOYALTY_USER_SUMMARY(userId),
       providesTags: (_, __, userId) => [{ type: TAG, id: userId }],
     }),
 
-    // POST /api/admin/loyalty/users/{userId}/adjust-points
+    // POST /api/admin/loyalty/users/{userId}/points — body {userId, points (có dấu), type}
     adjustUserPoints: builder.mutation<
-      ApiResponse<AdjustPointsResponseDTO>,
-      { userId: number; data: AdjustPointsRequest }
+      ApiResponse<LoyaltyAccountDTO>,
+      AdjustPointsRequest
     >({
-      query: ({ userId, data }) => ({
-        url: ADMIN_ENDPOINTS.LOYALTY_USER_ADJUST_POINTS(userId),
+      query: (data) => ({
+        url: `${ADMIN_ENDPOINTS.LOYALTY_USER_SUMMARY(data.userId)}/points`,
         method: "POST",
         body: data,
       }),
@@ -47,16 +46,13 @@ export const loyaltyManagementApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // GET /api/admin/loyalty/users/{userId}/history
+    // GET /api/admin/loyalty/users/{userId}/history — List, không phân trang
     getUserLoyaltyHistory: builder.query<
-      ApiResponse<Page<PointsHistoryItemDTO>>,
-      { userId: number; page?: number; size?: number }
+      ApiResponse<PointTransactionDTO[]>,
+      number
     >({
-      query: ({ userId, page = 0, size = 10 }) => ({
-        url: ADMIN_ENDPOINTS.LOYALTY_USER_HISTORY(userId),
-        params: { page, size, sort: "transactionDate,desc" },
-      }),
-      providesTags: (_, __, { userId }) => [{ type: TAG, id: userId }],
+      query: (userId) => ADMIN_ENDPOINTS.LOYALTY_USER_HISTORY(userId),
+      providesTags: (_, __, userId) => [{ type: TAG, id: userId }],
     }),
   }),
 });

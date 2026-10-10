@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -68,16 +68,13 @@ import {
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation, useUpdateUserMutation } from "~/stores/apis/admin/users";
+import type { UpdateUserRequest } from "~/types";
 import { RepairLogDialog } from "./RepairLogDialog";
 import { ExtendSlaDialog } from "./ExtendSlaDialog";
 import { SlaCountdownBadge } from "./SlaCountdownBadge";
 import {
-  getStoredSlaExtensions,
   isDroneReport,
   cleanDescription,
-  getEffectiveSlaDueAt,
-  isReportOverdue,
-  removeSlaExtension,
   INSPECTION_STATUS_META,
 } from "./maintenancePhotos";
 import { formatDateTime, formatDate as formatDateOnly, parseBackendDateTime } from "~/lib/datetime";
@@ -113,7 +110,7 @@ const SLA_CONFIG = {
     badgeLabel: "Cảnh báo SLA (Mức 1)",
     badgeClass: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700",
     icon: AlertTriangle,
-    desc: "Đang có 1 - 2 phiếu sự cố bị quá hạn thời gian xử lý quy định (> 4 giờ).",
+    desc: "Số phiếu sự cố quá hạn SLA đã chạm ngưỡng cảnh báo.",
     consequence: "Hệ thống tự động gửi thông báo nhắc việc và cảnh báo trên Mobile App.",
   },
   RESTRICTED: {
@@ -122,7 +119,7 @@ const SLA_CONFIG = {
     badgeLabel: "Hạn chế nhận việc (Mức 2)",
     badgeClass: "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-700",
     icon: AlertOctagon,
-    desc: "Đang có 3 - 4 phiếu sự cố quá hạn SLA. Hệ thống kích hoạt khóa tự động.",
+    desc: "Số phiếu sự cố quá hạn SLA đã chạm ngưỡng hạn chế nhận việc.",
     consequence: "Tạm thời không thể nhận thêm ca bảo trì mới trên Mobile App cho đến khi hoàn thành các việc cũ.",
   },
   SUSPENDED: {
@@ -131,7 +128,7 @@ const SLA_CONFIG = {
     badgeLabel: "Đình chỉ / Khóa (Mức 3)",
     badgeClass: "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700",
     icon: Ban,
-    desc: "Có từ 5 phiếu sự cố quá hạn hoặc tài khoản đang trong trạng thái bị vô hiệu hóa.",
+    desc: "Số phiếu quá hạn SLA đã chạm ngưỡng đình chỉ, hoặc tài khoản đang bị vô hiệu hóa.",
     consequence: "Đình chỉ nhận việc, admin thu hồi toàn bộ phiếu sự cố để phân công nhân sự khác.",
   },
 };
@@ -146,19 +143,11 @@ export default function TechnicianDetailPage() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedReportToAssign, setSelectedReportToAssign] = useState<number | null>(null);
   const [unassignTargetId, setUnassignTargetId] = useState<number | null>(null);
-  const [extendSlaReport, setExtendSlaReport] = useState<any | null>(null);
-  const [slaExtensions, setSlaExtensions] = useState<Record<number, any>>(getStoredSlaExtensions);
+  const [extendSlaReport, setExtendSlaReport] = useState<LockerReportResponse | null>(null);
 
   // Edit Phone dialog state
   const [editPhoneOpen, setEditPhoneOpen] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
-  const [localPhoneOverride, setLocalPhoneOverride] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem(`tech_phone_${techId}`);
-    } catch {
-      return null;
-    }
-  });
 
   // Queries
   const { data: userData, isLoading: isLoadingUser } = useGetUserByIdQuery(techId, {
@@ -224,18 +213,13 @@ export default function TechnicianDetailPage() {
   // Earliest report date fallback for joined date
   const earliestReportDate = useMemo(() => {
     if (!techReports.length) return null;
+    const ts = (v?: string | null) => parseBackendDateTime(v)?.getTime() ?? Infinity;
     return techReports.reduce((earliest: string | null, r) => {
       if (!r.createdAt) return earliest;
       if (!earliest) return r.createdAt;
-      return new Date(r.createdAt) < new Date(earliest) ? r.createdAt : earliest;
+      return ts(r.createdAt) < ts(earliest) ? r.createdAt : earliest;
     }, null);
   }, [techReports]);
-
-  // Fallback phone from reports handled by this technician
-  const fallbackReportPhone = useMemo(() => {
-    const found = techReports.find((r) => r.userId === techId && r.reporterPhone);
-    return found?.reporterPhone || techReports.find((r) => r.reporterPhone)?.reporterPhone || "";
-  }, [techReports, techId]);
 
   // Tên hiển thị "Người tải" cho ảnh phiếu
   const photoUserNames = useMemo(() => {
@@ -261,13 +245,10 @@ export default function TechnicianDetailPage() {
     const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
     const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay)";
 
-    // Ưu tiên SĐT: override đã chỉnh sửa -> API singleUser -> AdminUserView trong list -> SĐT trong phiếu sự cố
-    const resolvedPhoneNumber =
-      localPhoneOverride ||
-      singleUser?.phoneNumber ||
-      userFromList?.phoneNumber ||
-      fallbackReportPhone ||
-      "";
+    // SĐT chỉ lấy từ hồ sơ user-service — không bao giờ lấy SĐT người báo trong phiếu
+    const resolvedPhoneNumber = singleUser?.phoneNumber || userFromList?.phoneNumber || "";
+    // Trạng thái thật (ACTIVE/INACTIVE…) để gửi kèm khi sửa hồ sơ — PUT thiếu status sẽ bị reset về ACTIVE
+    const rawStatus: string | undefined = singleUser?.status || userFromList?.status || undefined;
 
     // Ngày gia nhập: AdminUserView có createdAt -> singleUser -> ngày phiếu đầu tiên
     const resolvedCreatedAt =
@@ -281,13 +262,14 @@ export default function TechnicianDetailPage() {
       email: singleUser?.email || userFromList?.email || "",
       phoneNumber: resolvedPhoneNumber,
       enabled: singleUser?.enabled ?? userFromList?.enabled ?? true,
+      rawStatus,
       imageUrl: singleUser?.imageUrl || userFromList?.imageUrl,
       roles,
       specialty,
       specialtyLabel,
       createdAt: resolvedCreatedAt,
     };
-  }, [singleUser, userFromList, techId, localPhoneOverride, fallbackReportPhone, earliestReportDate]);
+  }, [singleUser, userFromList, techId, earliestReportDate]);
 
   // Unassigned or open reports available for assignment
   const unassignedReports = useMemo(() => {
@@ -300,60 +282,34 @@ export default function TechnicianDetailPage() {
     });
   }, [allReports, isKioskTech]);
 
-  // Tự động dọn dẹp các bản ghi SLA extension cục bộ nếu backend đã đồng bộ mốc gia hạn mới hơn hoặc bằng
-  useEffect(() => {
-    if (!techReports.length) return;
-    let hasChanges = false;
-    const currentStored = getStoredSlaExtensions();
-    for (const r of techReports) {
-      const ext = currentStored[r.id];
-      if (ext && r.slaDueAt) {
-        const backendDue = parseBackendDateTime(r.slaDueAt)?.getTime();
-        const localDue = parseBackendDateTime(ext.extendedDueAt)?.getTime();
-        if (backendDue && localDue && backendDue >= localDue) {
-          delete currentStored[r.id];
-          hasChanges = true;
-        }
-      }
-    }
-    if (hasChanges) {
-      try {
-        localStorage.setItem("locker_sla_extensions_v1", JSON.stringify(currentStored));
-        setSlaExtensions(currentStored);
-      } catch {}
-    }
-  }, [techReports]);
+  // Quá hạn theo cờ `overdue` server tính (đã gồm mốc gia hạn SLA), không tự tính ở client
+  const checkReportOverdue = (r: LockerReportResponse) => r.overdue === true;
 
-  // Kiểm tra phiếu quá hạn có tính đến thời hạn gia hạn
-  const checkReportOverdue = (r: LockerReportResponse) => isReportOverdue(r, slaExtensions[r.id]);
-
-  // Metrics: Đồng bộ trực tiếp và nhất quán 100% với danh sách techReports
-  const inProgressCount = techReports.filter((r) => r.status === "IN_PROGRESS").length;
-  const resolvedCount = techReports.filter((r) => r.status === "RESOLVED").length;
-  const overdueCount = techReports.filter((r) => r.status === "IN_PROGRESS" && checkReportOverdue(r)).length;
-  const totalCount = techReports.length;
+  // Metrics: lấy từ endpoint hiệu suất của server; trong lúc tải thì đếm tạm từ danh sách phiếu
+  const inProgressCount = perf?.inProgress ?? techReports.filter((r) => r.status === "IN_PROGRESS").length;
+  const resolvedCount = perf?.resolved ?? techReports.filter((r) => r.status === "RESOLVED").length;
+  const overdueCount = perf?.overdue ?? techReports.filter(checkReportOverdue).length;
+  const totalCount = perf?.totalAssigned ?? techReports.length;
   const completionRate = totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 100;
 
-  // SLA penalty status calculation
-  let penaltyKey: "NORMAL" | "WARNING" | "RESTRICTED" | "SUSPENDED" = "NORMAL";
-  if (!technician?.enabled || overdueCount >= 5) {
-    penaltyKey = "SUSPENDED";
-  } else if (overdueCount >= 3) {
-    penaltyKey = "RESTRICTED";
-  } else if (overdueCount >= 1) {
-    penaltyKey = "WARNING";
-  }
-  const slaConfig = SLA_CONFIG[penaltyKey];
+  // Mức chế tài do server tính theo ngưỡng admin cấu hình; tài khoản bị tạm dừng luôn coi là đình chỉ
+  const penaltyKey: "NORMAL" | "WARNING" | "RESTRICTED" | "SUSPENDED" = !technician?.enabled
+    ? "SUSPENDED"
+    : perf?.penaltyLevel ?? "NORMAL";
+  const slaConfig = SLA_CONFIG[penaltyKey] ?? SLA_CONFIG.NORMAL;
   const SlaIcon = slaConfig.icon;
+  const penaltyDesc = !technician?.enabled
+    ? "Tài khoản kỹ thuật viên đang bị tạm dừng."
+    : perf?.penaltyReason || slaConfig.desc;
 
   // Filtered tickets
   const filteredReports = useMemo(() => {
     return techReports.filter((r) => {
       if (ticketFilter === "ALL") return true;
-      if (ticketFilter === "OVERDUE") return r.status === "IN_PROGRESS" && checkReportOverdue(r);
+      if (ticketFilter === "OVERDUE") return r.overdue === true;
       return r.status === ticketFilter;
     });
-  }, [techReports, ticketFilter, slaExtensions]);
+  }, [techReports, ticketFilter]);
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -363,25 +319,25 @@ export default function TechnicianDetailPage() {
   const handleSavePhone = async () => {
     if (!technician) return;
     const cleanPhone = phoneInput.trim();
-    try {
-      await updateUser({
-        id: techId,
-        data: {
-          phoneNumber: cleanPhone,
-          name: technician.fullName,
-          email: technician.email,
-        },
-      }).unwrap();
-    } catch (apiErr) {
-      console.warn("Lưu SĐT lên API server gặp lỗi, áp dụng lưu cục bộ:", apiErr);
+    if (!cleanPhone) {
+      toast.error("Vui lòng nhập số điện thoại");
+      return;
     }
+    // user-service ghi đè status (thiếu ⇒ ACTIVE) nên gửi kèm trạng thái hiện tại; chỉ đổi SĐT
+    const payload: UpdateUserRequest = {
+      phoneNumber: cleanPhone,
+      status: technician.enabled ? "ACTIVE" : "INACTIVE",
+    };
     try {
-      localStorage.setItem(`tech_phone_${techId}`, cleanPhone);
-    } catch {}
-    setLocalPhoneOverride(cleanPhone);
-    setEditPhoneOpen(false);
-    refetchAllUsers();
-    toast.success("Đã cập nhật số điện thoại kỹ thuật viên thành công!");
+      await updateUser({ id: techId, data: payload }).unwrap();
+      setEditPhoneOpen(false);
+      refetchAllUsers();
+      toast.success("Đã cập nhật số điện thoại kỹ thuật viên");
+    } catch (err: any) {
+      toast.error("Không cập nhật được số điện thoại", {
+        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      });
+    }
   };
 
   const handleToggleStatus = async () => {
@@ -391,7 +347,7 @@ export default function TechnicianDetailPage() {
     try {
       await updateStatus({
         id: technician.id,
-        data: { enabled: newEnabled },
+        data: { status: newEnabled ? "ACTIVE" : "INACTIVE" },
       }).unwrap();
       toast.success(`${actionText} tài khoản kỹ thuật viên thành công!`, {
         description: `KTV ${technician.fullName} hiện ở trạng thái ${newEnabled ? "Đang hoạt động" : "Đã tạm dừng"}.`,
@@ -700,7 +656,7 @@ export default function TechnicianDetailPage() {
               {overdueCount}
             </p>
             <p className={`text-[11px] mt-1 ${overdueCount > 0 ? "text-rose-700 font-medium" : "text-muted-foreground"}`}>
-              {overdueCount > 0 ? `${overdueCount} phiếu quá 4h SLA` : "Không có phiếu trễ"}
+              {overdueCount > 0 ? `${overdueCount} phiếu quá hạn SLA` : "Không có phiếu trễ"}
             </p>
           </CardContent>
         </Card>
@@ -845,7 +801,7 @@ export default function TechnicianDetailPage() {
                   <SlaIcon className="w-4 h-4 text-muted-foreground" />
                   <span>{slaConfig.title}</span>
                 </div>
-                <p className="text-muted-foreground">{slaConfig.desc}</p>
+                <p className="text-muted-foreground">{penaltyDesc}</p>
                 <p className="text-muted-foreground pt-1 border-t border-border/40 text-[11px]">
                   <strong className="text-foreground">Chế tài áp dụng: </strong>
                   {slaConfig.consequence}
@@ -859,21 +815,24 @@ export default function TechnicianDetailPage() {
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
                     <span className="font-bold text-muted-foreground shrink-0">Mức 1:</span>
                     <span className="text-muted-foreground">
-                      Có <strong>1 - 2 phiếu</strong> trễ hạn &gt; 4h: Cảnh báo tự động trên Mobile App.
+                      Số phiếu trễ hạn chạm <strong>ngưỡng cảnh báo</strong>: Cảnh báo tự động trên Mobile App.
                     </span>
                   </div>
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
                     <span className="font-bold text-muted-foreground shrink-0">Mức 2:</span>
                     <span className="text-muted-foreground">
-                      Có <strong>3 - 4 phiếu</strong> trễ hạn: Khóa quyền nhận việc mới trên Mobile App.
+                      Chạm <strong>ngưỡng hạn chế</strong>: Khóa quyền nhận việc mới trên Mobile App.
                     </span>
                   </div>
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
                     <span className="font-bold text-muted-foreground shrink-0">Mức 3:</span>
                     <span className="text-muted-foreground">
-                      Có <strong>&ge; 5 phiếu</strong> trễ hạn: Đề xuất đình chỉ công tác, thu hồi phiếu về điều phối.
+                      Chạm <strong>ngưỡng đình chỉ</strong>: Đề xuất đình chỉ công tác, thu hồi phiếu về điều phối.
                     </span>
                   </div>
+                  <p className="text-muted-foreground italic">
+                    Ngưỡng số phiếu do admin cấu hình trong Cài đặt; mức hiện tại do máy chủ tính.
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -899,15 +858,13 @@ export default function TechnicianDetailPage() {
                   <History className="w-3.5 h-3.5 text-muted-foreground" />
                   Lịch sử hoạt động
                 </TabsTrigger>
-                {technician.specialty !== "DRONE" && (
-                  <TabsTrigger
-                    value="schedules"
-                    className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
-                  >
-                    <CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />
-                    Lịch Kiosk định kỳ ({assignedSchedules.length})
-                  </TabsTrigger>
-                )}
+                <TabsTrigger
+                  value="schedules"
+                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+                >
+                  <CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />
+                  {technician.specialty === "DRONE" ? "Lịch Drone định kỳ" : "Lịch Kiosk định kỳ"} ({assignedSchedules.length})
+                </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
@@ -962,10 +919,9 @@ export default function TechnicianDetailPage() {
                     const isDone = report.status === "RESOLVED";
                     const isWorking = report.status === "IN_PROGRESS";
                     const isNew = !isDone && !isWorking;
-                    const slaExt = slaExtensions[report.id];
-                    const extHours = report.slaExtendedHours || slaExt?.extensionHours;
-                    const isExtended = Boolean(extHours && extHours > 0);
-                    const effectiveDue = getEffectiveSlaDueAt(report, slaExt);
+                    // Hạn SLA + số giờ gia hạn + cờ quá hạn đều lấy từ server
+                    const extHours = report.slaExtendedHours ?? 0;
+                    const isExtended = extHours > 0;
                     const isOverdue = checkReportOverdue(report);
 
                     return (
@@ -1012,7 +968,7 @@ export default function TechnicianDetailPage() {
                                   </Badge>
                                 )}
                                 <SlaCountdownBadge
-                                  slaDueAt={effectiveDue ? effectiveDue.toISOString() : undefined}
+                                  slaDueAt={report.slaDueAt}
                                   createdAt={report.createdAt}
                                   slaHours={report.slaHours ?? 4}
                                   status={report.status}
@@ -1104,7 +1060,7 @@ export default function TechnicianDetailPage() {
                             </div>
                             <div className="flex items-center gap-1.5">
                               <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span>Hạn SLA: {effectiveDue ? formatDateTime(effectiveDue) : formatDateTime(report.slaDueAt)}</span>
+                              <span>Hạn SLA: {formatDateTime(report.slaDueAt)}</span>
                             </div>
                           </div>
 
@@ -1181,25 +1137,36 @@ export default function TechnicianDetailPage() {
                     <CardTitle className="text-sm font-semibold">Chỉ số hài lòng (CSAT)</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center py-4 space-y-2">
-                    <div className="text-3xl font-bold tracking-tight text-foreground">
-                      {(perf?.averageRating ?? 4.8).toFixed(1)}{" "}
-                      <span className="text-sm font-normal text-muted-foreground">/ 5.0</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1 text-amber-500">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${
-                            star <= Math.round(perf?.averageRating ?? 5)
-                              ? "fill-amber-400 text-amber-400"
-                              : "text-muted-foreground/30"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Dựa trên {perf?.ratingCount ?? 12} lượt đánh giá sau khi hoàn tất sửa chữa
-                    </p>
+                    {perf && perf.ratingCount > 0 ? (
+                      <>
+                        <div className="text-3xl font-bold tracking-tight text-foreground">
+                          {perf.averageRating.toFixed(1)}{" "}
+                          <span className="text-sm font-normal text-muted-foreground">/ 5.0</span>
+                        </div>
+                        <div className="flex items-center justify-center gap-1 text-amber-500">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= Math.round(perf.averageRating)
+                                  ? "fill-amber-400 text-amber-400"
+                                  : "text-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Dựa trên {perf.ratingCount} lượt đánh giá sau khi hoàn tất sửa chữa
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-3xl font-bold tracking-tight text-muted-foreground">—</div>
+                        <p className="text-xs text-muted-foreground">
+                          {isLoadingPerf ? "Đang tải đánh giá..." : "Chưa có lượt đánh giá nào cho KTV này"}
+                        </p>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -1226,40 +1193,12 @@ export default function TechnicianDetailPage() {
                               {formatDateTime(item.createdAt)}
                             </span>
                           </div>
-                          <p className="text-xs text-foreground font-medium">{item.comment || "Bảo dưỡng đúng quy trình, ô tủ đóng mở trơn tru."}</p>
+                          <p className="text-xs text-foreground font-medium">{item.comment || <span className="italic text-muted-foreground font-normal">Không có nhận xét</span>}</p>
                         </div>
                       ))
                     ) : (
-                      <div className="space-y-2 text-xs text-muted-foreground">
-                        <div className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1 text-amber-500">
-                              {[1, 2, 3, 4, 5].map((s) => (
-                                <Star key={s} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                              ))}
-                            </div>
-                            <span className="text-[11px] text-muted-foreground font-mono">14:20 12/09/2026</span>
-                          </div>
-                          <p className="text-foreground font-medium">
-                            Kỹ thuật viên kiểm tra khóa ô tủ nhanh, thay chốt cảm biến và nghiệm thu chu đáo.
-                          </p>
-                        </div>
-                        <div className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1 text-amber-500">
-                              {[1, 2, 3, 4, 5].map((s) => (
-                                <Star
-                                  key={s}
-                                  className={`w-3 h-3 ${s <= 4 ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-[11px] text-muted-foreground font-mono">09:15 10/09/2026</span>
-                          </div>
-                          <p className="text-foreground font-medium">
-                            Đã xử lý xong sự cố kẹt ô. Có chụp ảnh nghiệm thu trước và sau khi bàn giao tủ Kiosk.
-                          </p>
-                        </div>
+                      <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
+                        {isLoadingPerf ? "Đang tải đánh giá..." : "Chưa có đánh giá nào từ khách hàng."}
                       </div>
                     )}
                   </CardContent>
@@ -1269,14 +1208,16 @@ export default function TechnicianDetailPage() {
 
             {/* TAB 4: PREVENTIVE SCHEDULES ASSIGNED TO THIS TECHNICIAN */}
             <TabsContent value="schedules" className="space-y-4 pt-1">
-              {/* Card 1: Trạm Kiosk Phụ Trách Định Kỳ */}
+              {/* Card 1: Thiết bị (Kiosk / Drone) phụ trách định kỳ */}
               <Card className="border border-border/70 shadow-xs">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <CalendarClock className="w-4 h-4 text-orange-600" />
-                        Trạm Kiosk được giao phụ trách kiểm tra định kỳ ({assignedSchedules.length})
+                        {technician.specialty === "DRONE"
+                          ? "Drone được giao phụ trách kiểm tra định kỳ"
+                          : "Trạm Kiosk được giao phụ trách kiểm tra định kỳ"} ({assignedSchedules.length})
                       </CardTitle>
                       <CardDescription className="text-xs">
                         Kế hoạch bảo trì phòng ngừa do Admin phân công cho KTV này
@@ -1287,13 +1228,13 @@ export default function TechnicianDetailPage() {
                 <CardContent className="space-y-3">
                   {assignedSchedules.length === 0 ? (
                     <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
-                      Kỹ thuật viên này hiện chưa được phân công phụ trách định kỳ trạm Kiosk nào.
+                      Kỹ thuật viên này hiện chưa được phân công lịch kiểm tra định kỳ nào.
                     </div>
                   ) : (
                     <div className="divide-y divide-border/60">
                       {assignedSchedules.map((s) => {
                         const now = new Date();
-                        const target = s.nextDueAt ? new Date(s.nextDueAt) : null;
+                        const target = parseBackendDateTime(s.nextDueAt);
                         const diffDays = target ? Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
                         const isOverdue = diffDays !== null && diffDays < 0;
                         const isDue = diffDays !== null && (diffDays <= 1 || s.due);
@@ -1329,7 +1270,9 @@ export default function TechnicianDetailPage() {
                               </div>
                               <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
                                 <span className="font-medium text-foreground">
-                                  {s.lockerName ?? `Kiosk #${s.lockerId}`}{s.lockerCode ? ` (${s.lockerCode})` : ""}
+                                  {s.droneUnitId != null
+                                    ? `Drone ${s.droneCode ?? `#${s.droneUnitId}`}`
+                                    : `${s.lockerName ?? `Kiosk #${s.lockerId}`}${s.lockerCode ? ` (${s.lockerCode})` : ""}`}
                                 </span>
                                 {s.address && <span>· {s.address}</span>}
                                 <span>·</span>
@@ -1378,7 +1321,9 @@ export default function TechnicianDetailPage() {
                           <div className="flex items-center justify-between flex-wrap gap-2">
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-xs text-foreground">
-                                {log.lockerName ?? `Kiosk #${log.lockerId}`}
+                                {log.droneUnitId != null
+                                  ? `Drone ${log.droneCode ?? `#${log.droneUnitId}`}`
+                                  : log.lockerName ?? `Kiosk #${log.lockerId}`}
                               </span>
                               <Badge variant="outline" className={`text-[10px] font-semibold ${INSPECTION_STATUS_META[log.status]?.cls ?? ""}`}>
                                 {INSPECTION_STATUS_META[log.status]?.label ?? log.status}
@@ -1457,7 +1402,7 @@ export default function TechnicianDetailPage() {
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">Phân công sự cố mới</DialogTitle>
             <DialogDescription className="text-xs">
-              Chỉ định phiếu sự cố Kiosk cho KTV <strong>{technician.fullName}</strong> (#
+              Chỉ định phiếu sự cố {technician.specialty === "DRONE" ? "Drone" : "Kiosk"} cho KTV <strong>{technician.fullName}</strong> (#
               {technician.id})
             </DialogDescription>
           </DialogHeader>
@@ -1466,7 +1411,7 @@ export default function TechnicianDetailPage() {
             <p className="text-xs text-muted-foreground">Chọn một phiếu sự cố đang chờ xử lý trong hệ thống:</p>
             {unassignedReports.length === 0 ? (
               <div className="py-6 text-center text-xs text-muted-foreground border rounded-lg bg-muted/20">
-                Hiện không có phiếu sự cố Kiosk mới nào cần phân công.
+                Hiện không có phiếu sự cố {technician.specialty === "DRONE" ? "Drone" : "Kiosk"} mới nào cần phân công.
               </div>
             ) : (
               <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
@@ -1555,7 +1500,7 @@ export default function TechnicianDetailPage() {
               <Button
                 size="sm"
                 onClick={handleSavePhone}
-                disabled={isUpdatingUser}
+                disabled={isUpdatingUser || !phoneInput.trim()}
                 className="text-xs bg-primary text-primary-foreground"
               >
                 {isUpdatingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
@@ -1573,7 +1518,6 @@ export default function TechnicianDetailPage() {
           open={!!extendSlaReport}
           onOpenChange={(o) => { if (!o) setExtendSlaReport(null); }}
           onSuccess={() => {
-            setSlaExtensions(getStoredSlaExtensions());
             refetchReports();
             refetchPerf();
           }}

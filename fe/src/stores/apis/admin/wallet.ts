@@ -4,6 +4,9 @@ import type { ApiResponse } from '../../../types';
 
 const TAGS = {
   WALLET: 'Wallet',
+  // Tag của báo cáo thanh toán (payments.ts) — duyệt/từ chối rút tiền làm đổi số liệu ở đó.
+  WALLET_TX: 'WalletTransactions',
+  PAYMENT_STATS: 'PaymentStats',
 } as const;
 
 export interface WalletResponse {
@@ -37,6 +40,10 @@ export interface WithdrawalResponse {
   rejectionReason: string | null;
   createdAt: string;
   processedAt: string | null;
+  /** Khách tạo yêu cầu; `null`/thiếu khi backend chưa trả hoặc tra cứu user lỗi. */
+  userId?: number | null;
+  userName?: string | null;
+  userPhone?: string | null;
 }
 
 export interface ProcessWithdrawalRequest {
@@ -86,7 +93,8 @@ export const walletManagementApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { action, reason },
       }),
-      invalidatesTags: () => [{ type: TAGS.WALLET, id: 'WITHDRAWALS' }],
+      // Từ chối thì hoàn tiền về ví: làm mới cả danh sách rút tiền, số dư ví, biến động ví và thống kê.
+      invalidatesTags: () => [TAGS.WALLET, TAGS.WALLET_TX, TAGS.PAYMENT_STATS],
     }),
   }),
 });

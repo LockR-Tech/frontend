@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
 import { TableToolbar } from "~/components/shared/data-table";
+import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { StoreTable } from "./components/StoreTable";
 import { StoreFilters } from "./components/StoreFilters";
 import { StoreModal } from "./components/StoreModal";
@@ -25,7 +26,13 @@ export default function StoresPage() {
     selectedStore,
     handleCreate,
     handleEdit,
-    handleDelete,
+    deleteTarget,
+    setDeleteTarget,
+    confirmDelete,
+    isDeleting,
+    handleToggleStatus,
+    statusPendingIds,
+    storeRevenue,
     refetch,
     clearFilters,
     hasActiveFilters,
@@ -36,6 +43,8 @@ export default function StoresPage() {
     totalPages,
     totalElements,
   } = useStores();
+
+  const deleteStats = deleteTarget ? storeRevenue.byStoreId.get(deleteTarget.id) : undefined;
 
   return (
     <div className="space-y-6">
@@ -55,7 +64,7 @@ export default function StoresPage() {
               onSearchChange={setSearchQuery}
               statusCounts={statusCounts}
             />
-            
+
             <TableToolbar
               createButton={{
                 label: t("admin.stores.addStore"),
@@ -68,11 +77,20 @@ export default function StoresPage() {
             />
           </div>
 
+          {storeRevenue.error && (
+            <p className="text-xs text-muted-foreground mb-3">
+              Không tải được số tủ/số đơn theo cửa hàng: {storeRevenue.error.message}
+            </p>
+          )}
+
           <StoreTable
             stores={stores}
             isLoading={isLoading}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={setDeleteTarget}
+            onToggleStatus={handleToggleStatus}
+            statusPendingIds={statusPendingIds}
+            revenueByStoreId={storeRevenue.byStoreId}
             page={page}
             pageSize={pageSize}
             totalPages={totalPages}
@@ -94,6 +112,32 @@ export default function StoresPage() {
         onClose={() => setIsEditModalOpen(false)}
         store={selectedStore}
         mode="edit"
+      />
+
+      <ConfirmActionDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Xoá cửa hàng?"
+        description={
+          <>
+            <p>
+              Cửa hàng{" "}
+              <span className="font-semibold text-foreground">{deleteTarget?.name}</span> sẽ bị
+              xoá vĩnh viễn.
+            </p>
+            <p>
+              Các tủ (Kiosk) đang gắn với cửa hàng này phải được chuyển sang cửa hàng khác
+              trước khi xoá
+              {deleteStats && deleteStats.lockerCount > 0
+                ? ` — hiện còn ${deleteStats.lockerCount} tủ đang gắn.`
+                : "."}
+            </p>
+          </>
+        }
+        actionLabel="Xoá cửa hàng"
+        destructive
+        loading={isDeleting}
+        onConfirm={() => void confirmDelete()}
       />
     </div>
   );

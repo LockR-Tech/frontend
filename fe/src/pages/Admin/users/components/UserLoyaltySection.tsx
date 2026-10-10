@@ -7,6 +7,7 @@ import {
   Plus,
   Minus,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -17,98 +18,94 @@ import {
   useAdjustUserPointsMutation,
   useGetUserLoyaltyHistoryQuery,
 } from "~/stores/apis/admin";
-import type {
-  LoyaltyTier,
-  AdjustmentType,
-  PointsHistoryItemDTO,
-} from "~/types/admin/loyalty";
+import type { PointTransactionDTO } from "~/types/admin/loyalty";
 import { extractList } from "~/lib/extract-list";
+import { formatDateTime } from "~/lib/datetime";
 
 interface Props {
   userId: number;
 }
 
-const TIER_META: Record<LoyaltyTier, { label: string; cls: string }> = {
-  BRONZE: {
-    label: "Đồng",
-    cls: "bg-secondary text-foreground border-border",
-  },
-  SILVER: {
-    label: "Bạc",
-    cls: "bg-secondary text-foreground border-border",
-  },
+const PAGE_SIZE = 10;
+// loyalty-service ghi "ADJUSTMENT" cho mọi lần điều chỉnh không kèm type.
+const ADJUST_TYPE = "ADJUSTMENT";
+
+const TIER_META: Record<string, { label: string; cls: string }> = {
+  BRONZE: { label: "Đồng", cls: "bg-secondary text-foreground border-border" },
+  SILVER: { label: "Bạc", cls: "bg-secondary text-foreground border-border" },
   GOLD: {
     label: "Vàng",
     cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   },
-  PLATINUM: {
-    label: "Bạch kim",
-    cls: "bg-primary text-primary-foreground border-primary",
-  },
+  PLATINUM: { label: "Bạch kim", cls: "bg-primary text-primary-foreground border-primary" },
 };
 
-const TX_META: Record<string, { label: string; sign: string; cls: string }> = {
-  EARNED: { label: "Tích điểm", sign: "+", cls: "text-emerald-600 dark:text-emerald-400" },
-  REDEEMED: { label: "Đổi thưởng", sign: "-", cls: "text-destructive" },
-  ADD: { label: "Cộng điểm", sign: "+", cls: "text-emerald-600 dark:text-emerald-400" },
-  DEDUCT: { label: "Trừ điểm", sign: "-", cls: "text-destructive" },
-  REFUND: { label: "Hoàn điểm", sign: "+", cls: "text-foreground" },
-  EXPIRED: { label: "Hết hạn", sign: "-", cls: "text-muted-foreground" },
+// Loại giao dịch backend thực sự ghi: ADJUSTMENT (admin), REDEEM (đổi điểm).
+const TX_LABEL: Record<string, string> = {
+  ADJUSTMENT: "Điều chỉnh",
+  REDEEM: "Đổi điểm",
 };
+
+function errorMessage(err: unknown, fallback: string) {
+  const e = err as { data?: { message?: unknown } } | undefined;
+  return typeof e?.data?.message === "string" && e.data.message.trim()
+    ? e.data.message
+    : fallback;
+}
 
 export function UserLoyaltySection({ userId }: Props) {
-  const { data: loyaltyData, isLoading: loyaltyLoading } =
-    useGetUserLoyaltySummaryQuery(userId, { skip: !userId });
+  const {
+    data: loyaltyData,
+    isLoading: loyaltyLoading,
+    isError: loyaltyError,
+  } = useGetUserLoyaltySummaryQuery(userId, { skip: !userId });
   const loyalty = loyaltyData?.data;
 
-  const [adjustUserPoints] = useAdjustUserPointsMutation();
+  const [adjustUserPoints, { isLoading: adjusting }] = useAdjustUserPointsMutation();
   const [historyPage, setHistoryPage] = useState(0);
   const { data: historyData, isLoading: historyLoading } =
-    useGetUserLoyaltyHistoryQuery(
-      { userId, page: historyPage, size: 10 },
-      { skip: !userId },
-    );
-  const historyList = extractList<PointsHistoryItemDTO>(historyData?.data);
+    useGetUserLoyaltyHistoryQuery(userId, { skip: !userId });
+  // Backend trả cả danh sách (mới nhất trước) — phân trang tại client.
+  const historyList = extractList<PointTransactionDTO>(historyData?.data);
   const historyTotal = historyList.length;
+  const historyPageItems = historyList.slice(
+    historyPage * PAGE_SIZE,
+    (historyPage + 1) * PAGE_SIZE,
+  );
 
-  const [adjustForm, setAdjustForm] = useState({
-    pointsAmount: "",
-    adjustmentType: "ADD" as AdjustmentType,
-    reason: "",
-    adminNotes: "",
-  });
-  const [adjusting, setAdjusting] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [direction, setDirection] = useState<"ADD" | "DEDUCT">("ADD");
   const [adjustError, setAdjustError] = useState<string | null>(null);
 
   async function handleAdjust() {
-    if (!adjustForm.pointsAmount || !adjustForm.reason) {
-      setAdjustError("Vui lòng nhập số điểm và lý do.");
+    const value = Math.abs(Math.trunc(Number(amount)));
+    if (!value) {
+      setAdjustError("Vui lòng nhập số điểm lớn hơn 0.");
       return;
     }
-    setAdjusting(true);
+    // Backend không chặn số dư âm nên kiểm tra tại đây.
+    if (direction === "DEDUCT" && value > (loyalty?.points ?? 0)) {
+      setAdjustError("Không thể trừ nhiều hơn số điểm hiện có.");
+      return;
+    }
     setAdjustError(null);
     try {
       await adjustUserPoints({
         userId,
-        data: {
-          pointsAmount: Number(adjustForm.pointsAmount),
-          adjustmentType: adjustForm.adjustmentType,
-          reason: adjustForm.reason,
-          adminNotes: adjustForm.adminNotes || undefined,
-        },
+        points: direction === "ADD" ? value : -value,
+        type: ADJUST_TYPE,
       }).unwrap();
-      setAdjustForm({
-        pointsAmount: "",
-        adjustmentType: "ADD",
-        reason: "",
-        adminNotes: "",
-      });
-    } catch {
-      setAdjustError("Không thể điều chỉnh điểm. Vui lòng thử lại.");
-    } finally {
-      setAdjusting(false);
+      toast.success(direction === "ADD" ? `Đã cộng ${value} điểm` : `Đã trừ ${value} điểm`);
+      setAmount("");
+      setHistoryPage(0);
+    } catch (err) {
+      const msg = errorMessage(err, "Không thể điều chỉnh điểm. Vui lòng thử lại.");
+      setAdjustError(msg);
+      toast.error(msg);
     }
   }
+
+  const tier = loyalty?.tier ? TIER_META[loyalty.tier] : undefined;
 
   return (
     <div className="space-y-6">
@@ -123,74 +120,44 @@ export function UserLoyaltySection({ userId }: Props) {
           <CardContent>
             {loyaltyLoading ? (
               <div className="space-y-2">
-                {[...Array(4)].map((_, i) => (
+                {[...Array(3)].map((_, i) => (
                   <Skeleton key={i} className="h-8 rounded" />
                 ))}
               </div>
+            ) : loyaltyError ? (
+              <p className="text-sm text-destructive">Không tải được thông tin tích điểm.</p>
             ) : loyalty ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Hạng thành viên</span>
-                  <Badge
-                    variant="outline"
-                    className={`text-xs ${TIER_META[loyalty.currentTier]?.cls ?? ""}`}
-                  >
-                    {TIER_META[loyalty.currentTier]?.label ??
-                      loyalty.currentTier}
-                  </Badge>
+                  {loyalty.tier ? (
+                    <Badge variant="outline" className={`text-xs ${tier?.cls ?? ""}`}>
+                      {tier?.label ?? loyalty.tier}
+                    </Badge>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Điểm hiện tại</span>
                   <span className="font-semibold text-foreground">
-                    {(loyalty.currentPoints ?? 0).toLocaleString("vi-VN")} điểm
+                    {(loyalty.points ?? 0).toLocaleString("vi-VN")} điểm
                   </span>
                 </div>
-                {loyalty.pointsToNextTier != null && (
-                  <div>
-                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                      <span>Đến hạng tiếp theo</span>
-                      <span className="font-medium text-foreground">
-                        {(loyalty.pointsToNextTier ?? 0).toLocaleString("vi-VN")} điểm nữa
-                      </span>
-                    </div>
-                    <div className="h-1.5 bg-muted/60 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-primary"
-                        style={{
-                          width: `${Math.min(100, 100 - (loyalty.pointsToNextTier / (loyalty.currentPoints + loyalty.pointsToNextTier + 1)) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  {[
-                    { label: "Đơn hàng", value: loyalty.totalOrders },
-                    {
-                      label: "Ngày tham gia",
-                      value: `${loyalty.membershipDays} ngày`,
-                    },
-                    {
-                      label: "Điểm đã kiếm",
-                      value: (loyalty.totalPointsEarned ?? 0).toLocaleString("vi-VN"),
-                    },
-                    {
-                      label: "Điểm đã dùng",
-                      value:
-                        (loyalty.totalPointsRedeemed ?? 0).toLocaleString("vi-VN"),
-                    },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="bg-secondary/40 border border-border/50 rounded-lg p-2.5">
-                      <p className="text-xs text-muted-foreground">{label}</p>
-                      <p className="text-sm font-semibold text-foreground mt-0.5">{value}</p>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Tem tích luỹ</span>
+                  <span className="font-semibold text-foreground">
+                    {(loyalty.stamps ?? 0).toLocaleString("vi-VN")}
+                  </span>
                 </div>
+                {loyalty.id == null && (
+                  <p className="text-xs text-muted-foreground/80">
+                    Người dùng chưa có tài khoản tích điểm — sẽ được tạo ở lần điều chỉnh đầu tiên.
+                  </p>
+                )}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Chưa có thông tin tích điểm.
-              </p>
+              <p className="text-sm text-muted-foreground">Chưa có thông tin tích điểm.</p>
             )}
           </CardContent>
         </Card>
@@ -215,11 +182,10 @@ export function UserLoyaltySection({ userId }: Props) {
               <Input
                 type="number"
                 min="1"
+                step="1"
                 placeholder="Nhập số điểm..."
-                value={adjustForm.pointsAmount}
-                onChange={(e) =>
-                  setAdjustForm((f) => ({ ...f, pointsAmount: e.target.value }))
-                }
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
               />
             </div>
             <div>
@@ -227,54 +193,25 @@ export function UserLoyaltySection({ userId }: Props) {
                 Loại điều chỉnh
               </label>
               <div className="flex gap-2">
-                {(["ADD", "DEDUCT"] as AdjustmentType[]).map((t) => (
+                {(["ADD", "DEDUCT"] as const).map((d) => (
                   <Button
-                    key={t}
+                    key={d}
                     type="button"
-                    variant={adjustForm.adjustmentType === t ? "default" : "outline"}
+                    variant={direction === d ? "default" : "outline"}
                     size="sm"
-                    onClick={() =>
-                      setAdjustForm((f) => ({ ...f, adjustmentType: t }))
-                    }
+                    onClick={() => setDirection(d)}
                     className="flex-1 gap-1.5 h-9"
                   >
-                    {t === "ADD" ? <Plus size={14} /> : <Minus size={14} />}
-                    {t === "ADD" ? "Cộng điểm" : "Trừ điểm"}
+                    {d === "ADD" ? <Plus size={14} /> : <Minus size={14} />}
+                    {d === "ADD" ? "Cộng điểm" : "Trừ điểm"}
                   </Button>
                 ))}
               </div>
             </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block font-medium">
-                Lý do <span className="text-destructive">*</span>
-              </label>
-              <Input
-                type="text"
-                placeholder="Lý do điều chỉnh..."
-                value={adjustForm.reason}
-                onChange={(e) =>
-                  setAdjustForm((f) => ({ ...f, reason: e.target.value }))
-                }
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block font-medium">
-                Ghi chú admin
-              </label>
-              <Input
-                type="text"
-                placeholder="Ghi chú nội bộ (tuỳ chọn)..."
-                value={adjustForm.adminNotes}
-                onChange={(e) =>
-                  setAdjustForm((f) => ({ ...f, adminNotes: e.target.value }))
-                }
-              />
-            </div>
-            <Button
-              onClick={handleAdjust}
-              disabled={adjusting}
-              className="w-full"
-            >
+            <p className="text-xs text-muted-foreground/80">
+              Giao dịch được ghi với loại «Điều chỉnh»; hạng thành viên tự tính lại theo tổng điểm.
+            </p>
+            <Button onClick={handleAdjust} disabled={adjusting} className="w-full">
               {adjusting ? "Đang xử lý..." : "Xác nhận điều chỉnh"}
             </Button>
           </CardContent>
@@ -295,7 +232,7 @@ export function UserLoyaltySection({ userId }: Props) {
                 <Skeleton key={i} className="h-10 rounded" />
               ))}
             </div>
-          ) : historyList.length === 0 ? (
+          ) : historyTotal === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">
               Chưa có giao dịch điểm nào.
             </p>
@@ -305,7 +242,7 @@ export function UserLoyaltySection({ userId }: Props) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border/60">
-                      {["Loại", "Điểm", "Trước/Sau", "Ngày"].map((h) => (
+                      {["Loại", "Điểm", "Đơn hàng", "Thời gian"].map((h) => (
                         <th
                           key={h}
                           className="text-left py-2.5 px-3 text-xs text-muted-foreground font-medium"
@@ -316,34 +253,33 @@ export function UserLoyaltySection({ userId }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {historyList.map((tx) => {
-                      const meta = TX_META[tx.transactionType] ?? {
-                        label: tx.transactionType,
-                        sign: "",
-                        cls: "text-muted-foreground",
-                      };
+                    {historyPageItems.map((tx) => {
+                      const points = tx.points ?? 0;
                       return (
                         <tr
-                          key={tx.transactionId}
+                          key={tx.id}
                           className="border-b border-border/40 hover:bg-secondary/40 transition-colors"
                         >
                           <td className="py-2.5 px-3">
                             <Badge variant="outline" className="text-xs">
-                              {meta.label}
+                              {TX_LABEL[tx.type] ?? tx.type ?? "—"}
                             </Badge>
                           </td>
-                          <td className={`py-2.5 px-3 font-semibold ${meta.cls}`}>
-                            {meta.sign}
-                            {(tx.pointsAmount ?? 0).toLocaleString("vi-VN")}
+                          <td
+                            className={`py-2.5 px-3 font-semibold ${
+                              points >= 0
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-destructive"
+                            }`}
+                          >
+                            {points > 0 ? "+" : ""}
+                            {points.toLocaleString("vi-VN")}
                           </td>
-                          <td className="py-2.5 px-3 text-muted-foreground text-xs">
-                            {(tx.balanceBefore ?? 0).toLocaleString("vi-VN")} →{" "}
-                            {(tx.balanceAfter ?? 0).toLocaleString("vi-VN")}
+                          <td className="py-2.5 px-3 text-muted-foreground text-xs font-mono">
+                            {tx.orderId ? `#${tx.orderId}` : "—"}
                           </td>
                           <td className="py-2.5 px-3 text-muted-foreground text-xs whitespace-nowrap">
-                            {new Date(tx.transactionDate).toLocaleDateString(
-                              "vi-VN",
-                            )}
+                            {formatDateTime(tx.createdAt)}
                           </td>
                         </tr>
                       );
@@ -351,7 +287,7 @@ export function UserLoyaltySection({ userId }: Props) {
                   </tbody>
                 </table>
               </div>
-              {historyTotal > 10 && (
+              {historyTotal > PAGE_SIZE && (
                 <div className="flex items-center justify-between pt-3">
                   <span className="text-xs text-muted-foreground">
                     {historyTotal} giao dịch
@@ -368,7 +304,7 @@ export function UserLoyaltySection({ userId }: Props) {
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={(historyPage + 1) * 10 >= historyTotal}
+                      disabled={(historyPage + 1) * PAGE_SIZE >= historyTotal}
                       onClick={() => setHistoryPage((p) => p + 1)}
                     >
                       Sau

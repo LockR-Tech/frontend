@@ -4,7 +4,7 @@ import type {
   LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import type { AttachmentStage, ReportAttachmentResponse } from "~/stores/apis/media";
-import { parseBackendDateTime } from "~/lib/datetime";
+import { APP_TIME_ZONE, parseBackendDateTime } from "~/lib/datetime";
 
 /// View model ảnh phiếu sự cố: ảnh thật từ `report.attachments` hoặc URL legacy trong mô tả.
 export interface ReportPhoto {
@@ -30,16 +30,6 @@ export const STAGE_LABELS: Record<AttachmentStage, string> = {
   PROGRESS: "Ảnh trong quá trình sửa",
   RESOLUTION: "Ảnh nghiệm thu",
 };
-
-export interface SlaExtensionRecord {
-  reportId: number;
-  originalDueAt: string;
-  extendedDueAt: string;
-  extensionHours: number;
-  reason: string;
-  requestedBy: string;
-  requestedAt: string;
-}
 
 export const extractPhotoList = (text?: string): string[] => {
   if (!text) return [];
@@ -103,153 +93,11 @@ export const groupReportPhotos = (report: LockerReportResponse): Record<Attachme
 export const getUserPhotos = (report: LockerReportResponse): ReportPhoto[] =>
   groupReportPhotos(report).REPORT;
 
-
-// Chi tiết biên bản kỹ thuật & phương án xử lý của KTV
-export const KTV_NOTES_BY_REPORT: Record<number, {
-  technicianNote: string;
-  partsReplaced?: string;
-  claimedAt?: string;
-  resolvedAt?: string;
-}> = {
-  1: {
-    technicianNote: "Đã kiểm tra cơ cấu ngàm khóa cơ khí ô #8. Bản lề góc dưới bị lệch 2mm do va đập, khiến tiếp điểm cảm biến không chạm đáy. Đã nắn lại bản lề, siết chặt ốc lục giác và xịt mỡ bôi trơn chuyên dụng. Đã test đóng/mở 10 lần liên tục tín hiệu phản hồi tốt.",
-    partsReplaced: "Long đen đệm inox, mỡ bôi trơn chịu nhiệt",
-    claimedAt: "07:20:00 28/08/2026",
-    resolvedAt: "09:45:00 28/08/2026",
-  },
-  2: {
-    technicianNote: "Jack cắm cảm biến hồng ngoại nhận diện vật phẩm trong ô #6 bị lỏng do rung lắc. Đã cắm lại giắc, bọc ống co nhiệt chống rung và test cảm biến nhận diện đồ giặt chuẩn xác.",
-    partsReplaced: "Ống co nhiệt 5mm, dây rút cố định cáp",
-    claimedAt: "07:50:00 22/08/2026",
-    resolvedAt: "09:30:00 22/08/2026",
-  },
-  3: {
-    technicianNote: "Aptomat cấp nguồn tổng 24V tủ Kiosk bị nhảy do điện áp lưới chập chờn ban đêm. Đã đo đạc cách điện, thay thế Aptomat Schneider 24V mới, kiểm tra bộ nguồn xung ổn định.",
-    partsReplaced: "Aptomat Schneider 24V 10A, cầu chì chống sét",
-    claimedAt: "13:30:00 19/08/2026",
-    resolvedAt: "16:15:00 19/08/2026",
-  },
-  4: {
-    technicianNote: "Khách hàng trước làm đổ dung dịch nước giặt gây ố đáy ô #5 và có mùi ẩm. Đã tháo tấm lót đáy ô, xịt dung dịch khử khuẩn y tế, sấy khô nhiệt độ 60 độ C và đặt túi hút ẩm.",
-    partsReplaced: "Dung dịch khử khuẩn chuyên dụng, túi khử mùi than hoạt tính",
-    claimedAt: "07:15:00 18/08/2026",
-    resolvedAt: "08:20:00 18/08/2026",
-  },
-  5: {
-    technicianNote: "Module anten định vị GPS trên nắp Drone DRONE-03 bị rung lỏng ốc bắt sau ca bay gió lớn. Đã cân chỉnh anten, siết keo khóa ren Loctite 243, cập nhật lại firmware GPS và test hover ngoài trời thu 18/20 vệ tinh.",
-    partsReplaced: "Ốc titan M2.5, keo khóa ren Loctite",
-    claimedAt: "07:30:00 28/08/2026",
-    resolvedAt: "10:35:00 28/08/2026",
-  },
-  6: {
-    technicianNote: "Càng đáp sợi carbon bên trái bị nứt vi mô do hạ cánh khẩn cấp trên bề mặt gồ ghề. Đã thay mới bộ càng đáp carbon nguyên bản chính hãng, kiểm tra cân bằng động cánh quạt, test bay 15 phút an toàn.",
-    partsReplaced: "Bộ càng đáp Carbon Drone Pro V2",
-    claimedAt: "07:45:00 12/08/2026",
-    resolvedAt: "10:50:00 12/08/2026",
-  },
-};
-
-// Quản lý gia hạn SLA linh hoạt (Lưu trữ cục bộ để duy trì trạng thái gia hạn)
-const SLA_EXTENSIONS_KEY = "locker_sla_extensions_v1";
-
-export const getStoredSlaExtensions = (): Record<number, SlaExtensionRecord> => {
-  try {
-    const raw = localStorage.getItem(SLA_EXTENSIONS_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw);
-  } catch {
-    return {};
-  }
-};
-
-export const saveSlaExtension = (record: SlaExtensionRecord) => {
-  try {
-    const existing = getStoredSlaExtensions();
-    existing[record.reportId] = record;
-    localStorage.setItem(SLA_EXTENSIONS_KEY, JSON.stringify(existing));
-  } catch {}
-};
-
-export const removeSlaExtension = (reportId: number) => {
-  try {
-    const existing = getStoredSlaExtensions();
-    if (existing[reportId]) {
-      delete existing[reportId];
-      localStorage.setItem(SLA_EXTENSIONS_KEY, JSON.stringify(existing));
-    }
-  } catch {}
-};
-
-/**
- * Tính toán mốc hạn xử lý (SLA due date) có hiệu lực của phiếu sự cố.
- * Kết hợp đồng bộ thông minh giữa backend (DB/Mobile) và localStorage (vừa thao tác trên Admin).
- * Ưu tiên mốc thời gian muộn nhất hợp lệ để đảm bảo tính thực tế khi vừa được gia hạn.
- */
-export const getEffectiveSlaDueAt = (
-  r: LockerReportResponse,
-  ext?: SlaExtensionRecord | null
-): Date | null => {
-  const backendDate = parseBackendDateTime(r.slaDueAt);
-  const localDate = ext?.extendedDueAt ? parseBackendDateTime(ext.extendedDueAt) : null;
-
-  // 1. So sánh cả 2 nguồn: backend (đồng bộ từ DB/Mobile) và localStorage (vừa thao tác trên máy này)
-  // Ưu tiên mốc thời gian muộn nhất hợp lệ (ví dụ Mobile vừa gia hạn +24h thì DB sẽ mới hơn local cũ)
-  if (backendDate && localDate) {
-    if (backendDate.getTime() >= localDate.getTime()) {
-      return backendDate;
-    }
-    return localDate;
-  }
-
-  if (backendDate) return backendDate;
-  if (localDate) return localDate;
-
-  // 2. Nếu có số giờ gia hạn nhưng chưa có slaDueAt trong DB
-  const extHours = r.slaExtendedHours || ext?.extensionHours;
-  if (extHours && extHours > 0) {
-    if (ext?.requestedAt) {
-      const reqDate = parseBackendDateTime(ext.requestedAt);
-      if (reqDate) return new Date(reqDate.getTime() + extHours * 3600 * 1000);
-    }
-    const createdDate = parseBackendDateTime(r.createdAt);
-    const slaH = r.slaHours ?? 4;
-    if (createdDate) {
-      return new Date(createdDate.getTime() + (slaH + extHours) * 3600 * 1000);
-    }
-  }
-
-  // 3. Mặc định chưa gia hạn: createdAt + slaHours
-  const createdDate = parseBackendDateTime(r.createdAt);
-  if (createdDate) {
-    const slaH = r.slaHours ?? 4;
-    return new Date(createdDate.getTime() + slaH * 3600 * 1000);
-  }
-
-  return null;
-};
-
-/**
- * Kiểm tra xem phiếu sự cố có bị quá hạn SLA hay không.
- * Nếu phiếu đã được gia hạn và thời điểm hiện tại chưa vượt qua hạn mới thì KHÔNG coi là quá hạn.
- */
-export const isReportOverdue = (
-  r: LockerReportResponse,
-  ext?: SlaExtensionRecord | null
-): boolean => {
-  if (r.status === "RESOLVED") return false;
-  const effectiveDue = getEffectiveSlaDueAt(r, ext);
-  if (effectiveDue) {
-    return Date.now() > effectiveDue.getTime();
-  }
-  return Boolean(r.overdue);
-};
-
-// Tính toán thời gian xử lý thực tế giữa 2 mốc thời gian
+// Tính toán thời gian xử lý thực tế giữa 2 mốc thời gian (chuỗi backend UTC)
 export const calculateDurationText = (startStr?: string | null, endStr?: string | null): string => {
-  if (!startStr || !endStr) return "—";
-  const start = new Date(startStr);
-  const end = new Date(endStr);
-  if (isNaN(start.getTime()) || !isNaN(end.getTime()) === false) return "—";
+  const start = parseBackendDateTime(startStr);
+  const end = parseBackendDateTime(endStr);
+  if (!start || !end) return "—";
   const diffMs = Math.max(0, end.getTime() - start.getTime());
   const totalMinutes = Math.floor(diffMs / (1000 * 60));
   const hours = Math.floor(totalMinutes / 60);
@@ -320,5 +168,49 @@ export function parseChecklistResults(raw?: string | null): ParsedChecklistResul
     }
   }
   return { kind: "text", text };
+}
+
+// ---- Giờ hẹn lịch định kỳ: admin chọn theo giờ VN, backend lưu LocalDateTime UTC ----
+
+let zoneFormatter: Intl.DateTimeFormat | null = null;
+
+/** Độ lệch (ms) của giờ VN so với UTC tại thời điểm `utcMs`. */
+function zoneOffsetMs(utcMs: number): number {
+  if (!zoneFormatter) {
+    zoneFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: APP_TIME_ZONE,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  }
+  const at = Math.floor(utcMs / 1000) * 1000;
+  const parts: Record<string, number> = {};
+  for (const p of zoneFormatter.formatToParts(new Date(at))) {
+    if (p.type !== "literal") parts[p.type] = Number(p.value);
+  }
+  const wall = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour % 24, parts.minute, parts.second);
+  return wall - at;
+}
+
+/** Ngày (`yyyy-MM-dd`) + giờ (`HH:mm`) theo giờ VN ⇒ `yyyy-MM-ddTHH:mm:ss` UTC không offset (backend so với now() UTC). */
+export function vnWallClockToBackendUtc(date: string, time?: string): string | undefined {
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date.trim());
+  const t = /^(\d{2}):(\d{2})/.exec((time || "09:00").trim());
+  if (!d || !t) return undefined;
+  const wall = Date.UTC(Number(d[1]), Number(d[2]) - 1, Number(d[3]), Number(t[1]), Number(t[2]));
+  return new Date(wall - zoneOffsetMs(wall)).toISOString().slice(0, 19);
+}
+
+/** Thời gian backend (UTC) ⇒ `{ date: yyyy-MM-dd, time: HH:mm }` theo giờ VN để điền vào ô nhập. */
+export function backendToVnWallClock(value?: string | null): { date: string; time: string } | null {
+  const parsed = parseBackendDateTime(value);
+  if (!parsed) return null;
+  const iso = new Date(parsed.getTime() + zoneOffsetMs(parsed.getTime())).toISOString();
+  return { date: iso.slice(0, 10), time: iso.slice(11, 16) };
 }
 

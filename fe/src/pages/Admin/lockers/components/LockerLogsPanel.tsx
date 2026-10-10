@@ -1,7 +1,6 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo } from "react";
 import {
   History,
-  Unlock,
   Key,
   QrCode,
   ShieldAlert,
@@ -10,17 +9,13 @@ import {
   XCircle,
   RefreshCw,
   Search,
-  Filter,
   Wrench,
   RadioTower,
   Cpu,
   Clock,
-  Layers,
   Monitor,
   Unplug,
-  Zap,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -45,7 +40,6 @@ import {
   useGetAllAdminReportsQuery,
   useGetGatewaysQuery,
   type CellResponse,
-  type BoxAccessLogResponse,
   type GatewayDeviceResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { formatDateTime } from "~/lib/datetime";
@@ -58,6 +52,7 @@ const HARDWARE_LABEL: Record<string, string> = {
 
 interface LockerLogsPanelProps {
   lockerId: number;
+  lockerCode?: string;
   cells: CellResponse[];
   gateway?: GatewayDeviceResponse | null;
 }
@@ -90,7 +85,8 @@ const RESULT_LABEL: Record<string, { label: string; cls: string; icon: any }> = 
   RESTART_REQUESTED: { label: "Yêu cầu khởi động", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: RefreshCw },
 };
 
-export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: LockerLogsPanelProps) {
+export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGateway }: LockerLogsPanelProps) {
+  const lockerLabel = lockerCode || `#${lockerId}`;
   const { data, isLoading, isFetching, refetch } = useGetLockerAccessLogsQuery(lockerId, {
     pollingInterval: 10000,
   });
@@ -109,239 +105,23 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
   const [selectedType, setSelectedType] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Lưu lịch sử các lần cắm điện (kết nối) và rút điện (mất kết nối) vào localStorage theo lockerId
-  const storageKey = `lock_r_cabinet_conn_logs_${lockerId}`;
-
-  const [localConnLogs, setLocalConnLogs] = useState<BoxAccessLogResponse[]>(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch {
-      // ignore
-    }
-    return [];
-  });
-
-  const prevGatewayOnlineRef = useRef<boolean | null>(null);
-
-  // Lắng nghe thay đổi trạng thái online/offline của bộ điều khiển để ghi nhận từng lần bắt được kết nối và mất kết nối
-  useEffect(() => {
-    if (!gateway) return;
-
-    const isOnline = Boolean(gateway.online);
-    const seenTime = gateway.lastSeenAt || gateway.setupFinishedAt || gateway.setupRequestedAt;
-    const seenFormatted = seenTime ? formatDateTime(seenTime) : formatDateTime(new Date().toISOString());
-    const hwStr = gateway.hardware
-      ? (HARDWARE_LABEL[gateway.hardware.toLowerCase()] ?? gateway.hardware.toUpperCase())
-      : "GPIO";
-    const slots = gateway.availableSlots ?? 7;
-    const fwStr = gateway.firmwareVersion ?? "v1.0.0";
-
-    // Khởi tạo lần đầu tiên khi component mount
-    if (prevGatewayOnlineRef.current === null) {
-      prevGatewayOnlineRef.current = isOnline;
-
-      setLocalConnLogs((prev) => {
-        if (prev.length > 0) return prev;
-
-        const initialLogs: BoxAccessLogResponse[] = [];
-        const nowIso = seenTime || new Date().toISOString();
-
-        if (isOnline) {
-          initialLogs.push({
-            id: -1001,
-            boxId: 0,
-            lockerId: lockerId,
-            orderId: null,
-            actorUserId: null,
-            credentialType: "DISCOVERY",
-            result: "ONLINE",
-            message: `Bộ điều khiển kết nối thành công (Cấp nguồn điện / Trực tuyến) · ${hwStr} · ${slots} ô phần cứng · firmware ${fwStr} · Bắt được kết nối lúc ${seenFormatted}`,
-            createdAt: nowIso,
-          });
-          initialLogs.push({
-            id: -1002,
-            boxId: 0,
-            lockerId: lockerId,
-            orderId: null,
-            actorUserId: null,
-            credentialType: "DISPLAY",
-            result: "ONLINE",
-            message: `Màn hình cảm ứng 7" Waveshare HDMI LCD (C) [1024×600 IPS] · Tín hiệu HDMI-1 & USB Touch OK · Kiosk UI :3002 (lúc ${seenFormatted})`,
-            createdAt: nowIso,
-          });
-        } else {
-          initialLogs.push({
-            id: -1001,
-            boxId: 0,
-            lockerId: lockerId,
-            orderId: null,
-            actorUserId: null,
-            credentialType: "DISCOVERY",
-            result: "OFFLINE",
-            message: `Bộ điều khiển mất kết nối (Rút nguồn điện hoặc ngoại tuyến) · Tủ chưa được cấp điện hoặc đang tắt (thấy lần cuối: ${seenFormatted})`,
-            createdAt: nowIso,
-          });
-          initialLogs.push({
-            id: -1002,
-            boxId: 0,
-            lockerId: lockerId,
-            orderId: null,
-            actorUserId: null,
-            credentialType: "DISPLAY",
-            result: "OFFLINE",
-            message: `Màn hình cảm ứng 7" Waveshare: Mất kết nối (Offline) · Tủ chưa được cấp nguồn điện hoặc bộ điều khiển đang tắt (thấy lần cuối: ${seenFormatted})`,
-            createdAt: nowIso,
-          });
-        }
-
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(initialLogs));
-        } catch {}
-        return initialLogs;
-      });
-      return;
-    }
-
-    // Khi trạng thái online/offline THAY ĐỔI: tủ được cắm điện hoặc rút điện
-    if (prevGatewayOnlineRef.current !== isOnline) {
-      prevGatewayOnlineRef.current = isOnline;
-
-      const nowIso = new Date().toISOString();
-      const timeStr = formatDateTime(nowIso);
-      const newEntries: BoxAccessLogResponse[] = [];
-
-      if (isOnline) {
-        // CẮM ĐIỆN VÀO: BẮT ĐƯỢC LẦN KẾT NỐI THÀNH CÔNG
-        newEntries.push({
-          id: -Date.now(),
-          boxId: 0,
-          lockerId: lockerId,
-          orderId: null,
-          actorUserId: null,
-          credentialType: "DISCOVERY",
-          result: "ONLINE",
-          message: `Bộ điều khiển kết nối thành công (Cấp nguồn điện / Bắt được tín hiệu) · ${hwStr} · ${slots} ô phần cứng · firmware ${fwStr} · Bắt được lúc ${timeStr}`,
-          createdAt: nowIso,
-        });
-        newEntries.push({
-          id: -(Date.now() + 1),
-          boxId: 0,
-          lockerId: lockerId,
-          orderId: null,
-          actorUserId: null,
-          credentialType: "DISPLAY",
-          result: "ONLINE",
-          message: `Màn hình cảm ứng 7" Waveshare HDMI LCD (C) [1024×600 IPS] · Tín hiệu HDMI-1 & USB Touch OK · Kiosk UI :3002 (lúc ${timeStr})`,
-          createdAt: nowIso,
-        });
-        toast.success(`Tủ #${lockerId}: Bắt được kết nối thành công!`, {
-          description: `Bộ điều khiển đã nhận nguồn điện và trực tuyến lúc ${timeStr}.`,
-        });
-      } else {
-        // RÚT ĐIỆN RA: MẤT KẾT NỐI
-        newEntries.push({
-          id: -Date.now(),
-          boxId: 0,
-          lockerId: lockerId,
-          orderId: null,
-          actorUserId: null,
-          credentialType: "DISCOVERY",
-          result: "OFFLINE",
-          message: `Bộ điều khiển mất kết nối (Rút nguồn điện hoặc ngắt kết nối mạng) · Mất tín hiệu lúc ${timeStr}`,
-          createdAt: nowIso,
-        });
-        newEntries.push({
-          id: -(Date.now() + 1),
-          boxId: 0,
-          lockerId: lockerId,
-          orderId: null,
-          actorUserId: null,
-          credentialType: "DISPLAY",
-          result: "OFFLINE",
-          message: `Màn hình cảm ứng 7" Waveshare: Mất kết nối (Offline) · Tủ đã bị rút nguồn điện hoặc bộ điều khiển đang tắt (lúc ${timeStr})`,
-          createdAt: nowIso,
-        });
-        toast.warning(`Tủ #${lockerId}: Mất kết nối!`, {
-          description: `Tủ đã bị rút nguồn điện hoặc bộ điều khiển ngoại tuyến lúc ${timeStr}.`,
-        });
-      }
-
-      setLocalConnLogs((prev) => {
-        const next = [...newEntries, ...prev].slice(0, 50); // Giữ tối đa 50 sự kiện gần nhất
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(next));
-        } catch {}
-        return next;
-      });
-    }
-  }, [gateway, lockerId, storageKey]);
-
-  // Hợp nhất logs từ server và các lần bắt được / mất kết nối
+  // Chỉ hiển thị nhật ký server ghi (iot-service đã tự ghi các lần bộ điều khiển online/offline)
   const logs = useMemo(() => {
-    const serverLogs = data?.data ?? [];
-    const combined: BoxAccessLogResponse[] = [...serverLogs];
-
-    // Thêm các bản ghi kết nối cục bộ nếu server chưa có
-    for (const cl of localConnLogs) {
-      const isDuplicate = combined.some(
-        (s) =>
-          s.credentialType === cl.credentialType &&
-          s.result === cl.result &&
-          s.createdAt &&
-          Math.abs(new Date(s.createdAt).getTime() - new Date(cl.createdAt).getTime()) < 3000
-      );
-      if (!isDuplicate) {
-        combined.push(cl);
-      }
-    }
-
-    // Đảm bảo luôn có trạng thái phản ánh hiện tại nếu gateway tồn tại
-    if (gateway) {
-      const isOnline = Boolean(gateway.online);
-      const hwStr = gateway.hardware
-        ? (HARDWARE_LABEL[gateway.hardware.toLowerCase()] ?? gateway.hardware.toUpperCase())
-        : "GPIO";
-      const slots = gateway.availableSlots ?? 7;
-      const fwStr = gateway.firmwareVersion ?? "v1.0.0";
-      const seenTime = gateway.lastSeenAt || gateway.setupFinishedAt || gateway.setupRequestedAt;
-      const seenFormatted = seenTime ? formatDateTime(seenTime) : formatDateTime(new Date().toISOString());
-
-      const hasRecentState = combined.some(
-        (l) =>
-          (l.credentialType === "DISCOVERY" || l.credentialType === "GATEWAY") &&
-          l.result === (isOnline ? "ONLINE" : "OFFLINE") &&
-          l.createdAt &&
-          Math.abs(new Date(l.createdAt).getTime() - new Date(seenTime || Date.now()).getTime()) < 60000
-      );
-
-      if (!hasRecentState) {
-        const nowIso = seenTime || new Date().toISOString();
-        combined.push({
-          id: -9999,
-          boxId: 0,
-          lockerId: lockerId,
-          orderId: null,
-          actorUserId: null,
-          credentialType: "DISCOVERY",
-          result: isOnline ? "ONLINE" : "OFFLINE",
-          message: isOnline
-            ? `Bộ điều khiển kết nối thành công (Cấp nguồn điện / Trực tuyến) · ${hwStr} · ${slots} ô phần cứng · firmware ${fwStr} · thấy lúc ${seenFormatted}`
-            : `Bộ điều khiển mất kết nối (Rút nguồn điện / Ngoại tuyến) · ${hwStr} · thấy lần cuối lúc ${seenFormatted}`,
-          createdAt: nowIso,
-        });
-      }
-    }
-
+    const serverLogs = [...(data?.data ?? [])];
     // Sắp xếp giảm dần theo thời gian (mới nhất lên đầu)
-    return combined.sort((a, b) => {
+    return serverLogs.sort((a, b) => {
       const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return tB - tA;
     });
-  }, [data, localConnLogs, gateway, lockerId]);
+  }, [data]);
+
+  // Thông tin bộ điều khiển: thiếu thì để "—", không tự điền giá trị mặc định
+  const gatewayHardware = gateway?.hardware
+    ? (HARDWARE_LABEL[gateway.hardware.toLowerCase()] ?? gateway.hardware.toUpperCase())
+    : "—";
+  const gatewaySlots = gateway?.availableSlots != null ? `${gateway.availableSlots} ô` : "— ô";
+  const gatewayFirmware = gateway?.firmwareVersion || "—";
 
   // Tạo map tra cứu từ boxId sang boxNumber
   const boxIdToNumber = useMemo(() => {
@@ -358,9 +138,7 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
       if (selectedBox !== "ALL") {
         const boxNum = boxIdToNumber.get(log.boxId);
         if (selectedBox === "0" && log.boxId !== 0) return false;
-        if (selectedBox !== "0" && boxNum !== Number(selectedBox) && log.boxId !== Number(selectedBox)) {
-          return false;
-        }
+        if (selectedBox !== "0" && boxNum !== Number(selectedBox)) return false;
       }
 
       if (selectedResult !== "ALL") {
@@ -445,7 +223,7 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
           <div>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <History className="w-4.5 h-4.5 text-primary" />
-              Nhật ký vận hành & IoT của tủ #{lockerId}
+              Nhật ký vận hành & IoT của tủ {lockerLabel}
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
               Theo dõi chi tiết từng lần kết nối (cắm điện), mất kết nối (rút điện), mở khóa và can thiệp phần cứng.
@@ -568,12 +346,14 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
               )}
               <div>
                 <span className="font-bold mr-1.5">
-                  {gateway.online ? "🟢 Tủ #7 đang cấp nguồn & kết nối (Online):" : "🔴 Tủ #7 mất kết nối / rút điện (Offline):"}
+                  {gateway.online
+                    ? `🟢 Tủ ${lockerLabel} đang cấp nguồn & kết nối (Online):`
+                    : `🔴 Tủ ${lockerLabel} mất kết nối / rút điện (Offline):`}
                 </span>
                 <span className="text-muted-foreground dark:text-muted-foreground/80">
                   {gateway.online
-                    ? `Phần cứng ${gateway.hardware?.toUpperCase() || "GPIO"} · ${gateway.availableSlots ?? 7} ô · firmware ${gateway.firmwareVersion || "v1.0.0"} · Tín hiệu gần nhất: ${formatDateTime(gateway.lastSeenAt || new Date().toISOString())}`
-                    : `Tủ hiện chưa có nguồn điện hoặc bộ điều khiển đã tắt · Tín hiệu cuối lúc: ${formatDateTime(gateway.lastSeenAt || new Date().toISOString())}`}
+                    ? `Phần cứng ${gatewayHardware} · ${gatewaySlots} · firmware ${gatewayFirmware} · Tín hiệu gần nhất: ${formatDateTime(gateway.lastSeenAt)}`
+                    : `Tủ hiện chưa có nguồn điện hoặc bộ điều khiển đã tắt · Tín hiệu cuối lúc: ${formatDateTime(gateway.lastSeenAt)}`}
                 </span>
               </div>
             </div>
@@ -588,21 +368,6 @@ export function LockerLogsPanel({ lockerId, cells, gateway: propGateway }: Locke
               >
                 {gateway.online ? "Trực tuyến (Cắm điện)" : "Mất kết nối (Rút điện)"}
               </Badge>
-              {localConnLogs.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground"
-                  title="Xóa lịch sử kết nối lưu tạm trên trình duyệt"
-                  onClick={() => {
-                    localStorage.removeItem(storageKey);
-                    setLocalConnLogs([]);
-                    toast.info("Đã làm mới bộ nhớ nhật ký kết nối");
-                  }}
-                >
-                  <RefreshCw className="w-3 h-3 mr-1" /> Đặt lại bộ nhớ
-                </Button>
-              )}
             </div>
           </div>
         )}

@@ -1,114 +1,44 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { isMockEnabled, mockDelay } from "~/hooks/useMockData";
-import { apiGet } from "~/utils/api";
-import type { AdminUserResponse } from "~/types";
+import { useMemo } from "react";
+import { useGetUserByIdQuery } from "~/stores/apis/admin/users";
+import { useGetCustomerRevenueDetailQuery } from "~/stores/apis/admin/revenue";
+import { shiftDay, vietnamToday } from "~/lib/report-format";
+import { mapUser, type AdminUserRow, type BackendUserSummary } from "./useUsers";
 
-interface UserDetail extends AdminUserResponse {
-  phoneNumber?: string;
-  lastLogin?: string;
-  orderCount?: number;
-  totalSpent?: number;
+/** Khoảng tối đa backend báo cáo cho phép (366 ngày, tính cả hai đầu) tới hôm nay. */
+function lastYearRange() {
+  const to = vietnamToday();
+  return { from: shiftDay(to, -365), to };
 }
 
-const mockUserDetails: Record<string, UserDetail> = {
-  "1": {
-    id: 1,
-    email: "user@example.com",
-    name: "Nguyễn Văn A",
-    imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Nguyen",
-    provider: "GOOGLE",
-    emailVerified: true,
-    enabled: true,
-    roles: ["USER"],
-    createdAt: "2024-01-15T10:30:00",
-    updatedAt: "2024-01-20T14:45:00",
-    phoneNumber: "0901234567",
-    lastLogin: "2024-01-20T14:45:00",
-    orderCount: 5,
-    totalSpent: 950000,
-  },
-  "2": {
-    id: 2,
-    email: "staff@example.com",
-    name: "Trần Thị B",
-    imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Tran",
-    provider: "LOCAL",
-    emailVerified: true,
-    enabled: true,
-    roles: ["STAFF", "USER"],
-    createdAt: "2024-01-10T08:00:00",
-    updatedAt: "2024-01-18T16:30:00",
-    phoneNumber: "0912345678",
-    lastLogin: "2024-01-20T09:00:00",
-    orderCount: 12,
-    totalSpent: 2150000,
-  },
-  "3": {
-    id: 3,
-    email: "admin@example.com",
-    name: "Lê Văn C",
-    imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Le",
-    provider: "LOCAL",
-    emailVerified: true,
-    enabled: true,
-    roles: ["ADMIN", "STAFF", "USER"],
-    createdAt: "2024-01-01T10:00:00",
-    updatedAt: "2024-01-20T15:00:00",
-    phoneNumber: "0923456789",
-    lastLogin: "2024-01-20T15:00:00",
-    orderCount: 0,
-    totalSpent: 0,
-  },
-};
-
 export function useUserDetail(userId: string | undefined) {
-  const [user, setUser] = useState<UserDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const id = userId ? Number(userId) : NaN;
+  const valid = Number.isFinite(id) && id > 0;
 
-  useEffect(() => {
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
+  // GET /api/admin/users/{id} trả UserSummary thô (fullName/status…) → map như bảng.
+  const { data, isLoading, isError, refetch } = useGetUserByIdQuery(id, { skip: !valid });
+  const user: AdminUserRow | null = useMemo(() => {
+    const raw = data?.data as unknown as BackendUserSummary | undefined;
+    return raw && raw.id != null ? mapUser(raw) : null;
+  }, [data]);
 
-    setIsLoading(true);
-
-    // Always call real API (bypass cache) - set to true for mock
-    const USE_MOCK = false;
-
-    if (USE_MOCK) {
-      const timer = setTimeout(() => {
-        const detail = mockUserDetails[userId];
-        setUser(detail || null);
-        setIsLoading(false);
-      }, mockDelay);
-
-      return () => clearTimeout(timer);
-    } else {
-      // Real API call with centralized token handling
-      const fetchUserDetail = async () => {
-        try {
-          console.log(`📥 [User Detail] Fetching user ${userId}`);
-          const data = await apiGet<{ data: UserDetail }>(
-            `/api/admin/users/${userId}`,
-          );
-          console.log(`✅ [User Detail] Received:`, data);
-          setUser(data.data);
-        } catch (error) {
-          console.error(error);
-          setUser(null);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchUserDetail();
-    }
-  }, [userId]);
+  // Số đơn / tổng chi lấy từ báo cáo doanh thu theo khách (tiền thực thu).
+  const range = useMemo(lastYearRange, []);
+  const revenue = useGetCustomerRevenueDetailQuery(
+    { userId: id, ...range },
+    { skip: !valid },
+  );
 
   return {
     user,
-    isLoading,
+    isLoading: valid && isLoading,
+    isError,
+    refetch,
+    revenue: {
+      data: revenue.data?.data,
+      error: revenue.error,
+      isLoading: revenue.isLoading,
+      range,
+      refetch: revenue.refetch,
+    },
   };
 }

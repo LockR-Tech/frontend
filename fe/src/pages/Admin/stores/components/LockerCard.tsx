@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Power,
   Wrench,
@@ -7,9 +7,11 @@ import {
   ChevronUp,
   Plus,
   Unlock,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
-import { apiPut } from "~/utils/api";
+import { apiGet, apiPut } from "~/utils/api";
 import type { AdminLockerResponse, BoxInfo } from "~/types/admin/locker";
 import { BoxStatus, LockerStatus } from "~/types/admin/enums";
 import { BOX_CFG, LOCKER_STATUS_CFG } from "./lockerConstants";
@@ -22,12 +24,35 @@ interface Props {
   onRefresh: () => void;
 }
 
+/** LockerBoxSummary của GET /api/lockers/{lockerId}/boxes. */
+interface LockerBoxSummary {
+  lockerId: number;
+  boxId: number;
+  lockerCode?: string | null;
+  boxNumber: number;
+  status: string;
+}
+
+const toBoxInfo = (b: LockerBoxSummary): BoxInfo => ({
+  id: b.boxId,
+  boxNumber: b.boxNumber,
+  status: b.status as BoxInfo["status"],
+  description: "",
+});
+
+const errorText = (err: unknown, fallback: string) =>
+  err instanceof Error && err.message ? err.message : fallback;
+
 export function LockerCard({ locker, onRefresh }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [selectedBox, setSelectedBox] = useState<BoxInfo | null>(null);
   const [showLockerSetting, setShowLockerSetting] = useState(false);
   const [showAddBox, setShowAddBox] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  // LockerResponse không kèm danh sách ô → tải riêng khi mở rộng thẻ.
+  const [boxes, setBoxes] = useState<BoxInfo[] | null>(null);
+  const [boxesLoading, setBoxesLoading] = useState(false);
+  const [boxesError, setBoxesError] = useState<string | null>(null);
 
   const statusCfg =
     LOCKER_STATUS_CFG[locker.status] ??
@@ -35,24 +60,64 @@ export function LockerCard({ locker, onRefresh }: Props) {
   const isActive = locker.status === LockerStatus.ACTIVE;
   const isMaintenance = locker.status === LockerStatus.MAINTENANCE;
 
-  const boxes = locker.boxes ?? [];
-  const available =
-    boxes.filter((b) => b.status === BoxStatus.AVAILABLE).length ||
-    locker.availableBoxes ||
-    0;
-  const total = boxes.length || locker.totalBoxes || 0;
+  const loadBoxes = useCallback(async () => {
+    setBoxesLoading(true);
+    setBoxesError(null);
+    try {
+      const res = await apiGet<{ data: LockerBoxSummary[] }>(
+        `/api/lockers/${locker.id}/boxes`,
+      );
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setBoxes(
+        list.map(toBoxInfo).sort((a, b) => a.boxNumber - b.boxNumber),
+      );
+    } catch (err) {
+      setBoxesError(errorText(err, "Không tải được danh sách ngăn"));
+    } finally {
+      setBoxesLoading(false);
+    }
+  }, [locker.id]);
+
+  useEffect(() => {
+    if (expanded && boxes === null && !boxesLoading && !boxesError) void loadBoxes();
+  }, [expanded, boxes, boxesLoading, boxesError, loadBoxes]);
+
+  const refreshAll = () => {
+    onRefresh();
+    if (boxes !== null) void loadBoxes();
+  };
+
+  const available = boxes
+    ? boxes.filter((b) => b.status === BoxStatus.AVAILABLE).length
+    : (locker.availableBoxes ?? 0);
+  const total = boxes ? boxes.length : (locker.totalBoxes ?? 0);
   const usagePercent =
     total > 0 ? Math.round(((total - available) / total) * 100) : 0;
+  const nextBoxNumber =
+    (boxes && boxes.length > 0
+      ? Math.max(...boxes.map((b) => b.boxNumber))
+      : (locker.totalBoxes ?? 0)) + 1;
 
+  // Không có PUT …/status cho tủ: đổi trạng thái qua PUT /api/admin/lockers/{id}
+  // với đủ LockerRequest (updateLocker ghi đè mọi trường).
   const handleToggleActive = async () => {
     setActionLoading(true);
     try {
-      await apiPut(`/api/admin/lockers/${locker.id}/status`, {
+      await apiPut(`/api/admin/lockers/${locker.id}`, {
+        storeId: locker.storeId,
+        code: locker.code,
+        name: locker.name,
         status: isActive ? LockerStatus.INACTIVE : LockerStatus.ACTIVE,
+        address: locker.address ?? undefined,
+        latitude: locker.latitude ?? undefined,
+        longitude: locker.longitude ?? undefined,
       });
+      toast.success(isActive ? "Đã tắt tủ" : "Đã bật tủ");
       onRefresh();
-    } catch {
-      alert("Không thể thay đổi trạng thái tủ");
+    } catch (err) {
+      toast.error("Không thể thay đổi trạng thái tủ", {
+        description: errorText(err, "Vui lòng thử lại."),
+      });
     } finally {
       setActionLoading(false);
     }
@@ -64,9 +129,12 @@ export function LockerCard({ locker, onRefresh }: Props) {
       await apiPut(`/api/admin/lockers/${locker.id}/maintenance`, {
         maintenance: !isMaintenance,
       });
+      toast.success(isMaintenance ? "Đã huỷ bảo trì" : "Đã đặt tủ vào bảo trì");
       onRefresh();
-    } catch {
-      alert("Không thể thay đổi trạng thái bảo trì");
+    } catch (err) {
+      toast.error("Không thể thay đổi trạng thái bảo trì", {
+        description: errorText(err, "Vui lòng thử lại."),
+      });
     } finally {
       setActionLoading(false);
     }
@@ -177,7 +245,21 @@ export function LockerCard({ locker, onRefresh }: Props) {
         {/* Expanded: Box grid */}
         {expanded && (
           <div className="px-3 pb-3 border-t border-border/60 pt-3">
-            {boxes.length === 0 ? (
+            {boxesLoading && boxes === null ? (
+              <div className="flex items-center justify-center py-3 text-xs text-muted-foreground gap-1.5">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tải ngăn tủ...
+              </div>
+            ) : boxesError ? (
+              <div className="text-center py-2">
+                <p className="text-xs text-destructive">{boxesError}</p>
+                <button
+                  onClick={() => void loadBoxes()}
+                  className="mt-1 text-xs text-foreground underline"
+                >
+                  Thử lại
+                </button>
+              </div>
+            ) : !boxes || boxes.length === 0 ? (
               <>
                 <p className="text-xs text-muted-foreground/70 italic py-2 text-center">
                   Chưa có ngăn tủ nào
@@ -242,7 +324,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
           box={selectedBox}
           lockerName={locker.name}
           onClose={() => setSelectedBox(null)}
-          onRefresh={onRefresh}
+          onRefresh={refreshAll}
         />
       )}
 
@@ -257,9 +339,12 @@ export function LockerCard({ locker, onRefresh }: Props) {
       {showAddBox && (
         <AddBoxModal
           lockerId={locker.id}
-          existingCount={boxes.length}
+          defaultBoxNumber={nextBoxNumber}
           onClose={() => setShowAddBox(false)}
-          onCreated={onRefresh}
+          onCreated={() => {
+            onRefresh();
+            void loadBoxes();
+          }}
         />
       )}
     </>

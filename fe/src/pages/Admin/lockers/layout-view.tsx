@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -18,19 +18,18 @@ import {
   UserCheck,
   QrCode,
   Sliders,
-  Printer,
   Monitor,
   DoorOpen,
   DoorClosed,
   Trash2,
   Layers,
+  LayoutGrid,
 } from "lucide-react";
 import {
   isXlCell,
   isDroneCell,
   isDoorOpen,
-  getCellTypeLabel,
-  getCellStatusLabel,
+  normalizeBoxSize,
 } from "~/lib/lockerLayoutHelper";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -40,7 +39,6 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
-  TabsContent,
 } from "~/components/ui/tabs";
 import {
   DropdownMenu,
@@ -77,12 +75,11 @@ import {
   useAddBoxMutation,
   useAddBoxesBatchMutation,
   useDeleteBoxMutation,
-  useDeleteBoxByNumberMutation,
-  useDeleteBoxesBatchMutation,
   useGetStaffLockerQuery,
   useAssignLockerTechnicianMutation,
   useGetAllAdminReportsQuery,
   useGetGatewaysQuery,
+  useUpdateBoxMutation,
   type CellResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
@@ -99,13 +96,16 @@ const LOCKER_STATUS_STYLE: Record<string, { label: string; cls: string }> = {
   ACTIVE: { label: "Hoạt động", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
   INACTIVE: { label: "Vô hiệu", cls: "bg-secondary border-border text-muted-foreground" },
   MAINTENANCE: { label: "Bảo trì", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
-  DISCONNECTED: { label: "Mất kết nối", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
 };
 
 // Tủ MAINTENANCE/INACTIVE bị server từ chối đặt ô (LOCKER_NOT_ACTIVE)
 const SUSPENDED_LOCKER_STATUSES = ["MAINTENANCE", "INACTIVE"];
 
 const NO_TECHNICIAN = "NONE";
+
+// user-service /api/admin/users lọc theo `role` (khớp chuỗi con) ⇒ chỉ tải KTV tủ.
+// PageableRequest của users slice chưa khai báo `role` nên truyền qua hằng thay vì object literal.
+const TECHNICIAN_USERS_QUERY = { page: 0, size: 1000, role: "LOCKER_TECHNICIAN" };
 
 const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
   AVAILABLE: { label: "Sẵn sàng", cls: "bg-cyan-500/10 border-cyan-500/20 text-cyan-700 dark:text-cyan-400" },
@@ -115,30 +115,6 @@ const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
   OUT_OF_SERVICE: { label: "Ngưng dùng", cls: "bg-secondary/40 border-border text-muted-foreground" },
   CLEANING: { label: "Bảo trì", cls: "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400" },
 };
-
-function ActBtn({
-  icon,
-  label,
-  onClick,
-  busy,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  busy?: boolean;
-}) {
-  return (
-    <Button
-      size="sm"
-      variant="outline"
-      className="h-6 px-2 text-[10px] font-semibold border border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-800 dark:text-slate-100 shadow-2xs"
-      disabled={busy}
-      onClick={onClick}
-    >
-      {icon} {label}
-    </Button>
-  );
-}
 
 type BoxActionType = "FORCE_OPEN" | "FAULT" | "OUT_OF_SERVICE" | "CLEANING" | "RETURN" | "CLEAR_FAULT" | "DELETE_BOX";
 
@@ -180,46 +156,44 @@ function CellTile({
     </span>
   );
 
-  if (isDrone) {
-    if (cell.status === "FAULT") {
-      bgClass = "bg-rose-100/90 dark:bg-rose-950/60";
-      borderClass = "border-rose-400 dark:border-rose-700 ring-2 ring-rose-400/30";
-      textClass = "text-rose-950 dark:text-rose-100";
-      statusBadge = (
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-400 z-10">
-          <AlertTriangle className="w-3.5 h-3.5" /> Báo hỏng (Drone)
-        </span>
-      );
-    } else {
-      bgClass = "bg-indigo-50/90 dark:bg-indigo-950/60";
-      borderClass = "border-indigo-300 dark:border-indigo-600 ring-2 ring-indigo-400/30 shadow-xs";
-      textClass = "text-indigo-950 dark:text-indigo-100";
-      statusBadge = (
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-800 dark:text-indigo-300 z-10">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> Sẵn sàng nhận Drone
-        </span>
-      );
-    }
-  } else if (isXl) {
-    if (cell.status === "FAULT") {
-      bgClass = "bg-rose-50/95 dark:bg-rose-950/50";
-      borderClass = "border-rose-400 dark:border-rose-700 ring-1 ring-rose-400/30 shadow-xs";
-      textClass = "text-rose-950 dark:text-rose-100";
-      statusBadge = (
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 z-10">
-          <AlertTriangle className="w-3.5 h-3.5" /> Báo hỏng (Vali XL)
-        </span>
-      );
-    } else {
-      bgClass = "bg-cyan-50/90 dark:bg-cyan-950/60";
-      borderClass = "border-cyan-300 dark:border-cyan-600 shadow-xs";
-      textClass = "text-cyan-950 dark:text-cyan-100";
-      statusBadge = (
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-800 dark:text-cyan-300 z-10">
-          <span className="w-2 h-2 rounded-full bg-cyan-500" /> Ô trống (Vali XL)
-        </span>
-      );
-    }
+  // Kiểu riêng của ô Drone / vali XL chỉ dùng khi ô trống hoặc hỏng; trạng thái khác
+  // (đang dùng, đã đặt, tạm ngưng, vệ sinh) hiển thị như ô thường để không báo sai "sẵn sàng".
+  if (isDrone && cell.status === "FAULT") {
+    bgClass = "bg-rose-100/90 dark:bg-rose-950/60";
+    borderClass = "border-rose-400 dark:border-rose-700 ring-2 ring-rose-400/30";
+    textClass = "text-rose-950 dark:text-rose-100";
+    statusBadge = (
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-400 z-10">
+        <AlertTriangle className="w-3.5 h-3.5" /> Báo hỏng (Drone)
+      </span>
+    );
+  } else if (isDrone && cell.status === "AVAILABLE") {
+    bgClass = "bg-indigo-50/90 dark:bg-indigo-950/60";
+    borderClass = "border-indigo-300 dark:border-indigo-600 ring-2 ring-indigo-400/30 shadow-xs";
+    textClass = "text-indigo-950 dark:text-indigo-100";
+    statusBadge = (
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-800 dark:text-indigo-300 z-10">
+        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> Sẵn sàng nhận Drone
+      </span>
+    );
+  } else if (isXl && cell.status === "FAULT") {
+    bgClass = "bg-rose-50/95 dark:bg-rose-950/50";
+    borderClass = "border-rose-400 dark:border-rose-700 ring-1 ring-rose-400/30 shadow-xs";
+    textClass = "text-rose-950 dark:text-rose-100";
+    statusBadge = (
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 z-10">
+        <AlertTriangle className="w-3.5 h-3.5" /> Báo hỏng (Vali XL)
+      </span>
+    );
+  } else if (isXl && cell.status === "AVAILABLE") {
+    bgClass = "bg-cyan-50/90 dark:bg-cyan-950/60";
+    borderClass = "border-cyan-300 dark:border-cyan-600 shadow-xs";
+    textClass = "text-cyan-950 dark:text-cyan-100";
+    statusBadge = (
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-800 dark:text-cyan-300 z-10">
+        <span className="w-2 h-2 rounded-full bg-cyan-500" /> Ô trống (Vali XL)
+      </span>
+    );
   } else {
     switch (cell.status) {
       case "AVAILABLE":
@@ -449,19 +423,40 @@ function CellTile({
   );
 }
 
-function getBoxGridStyle(cell: CellResponse, maxRows: number) {
+/** Ô nằm ở cột Kiosk (cột 0: dưới màn hình 7 inch), gồm cả ô vali XL chưa có cột. */
+function isKioskColumnCell(cell: CellResponse) {
+  return cell.colIndex === 0 || (isXlCell(cell) && (cell.colIndex == null || cell.colIndex === 0));
+}
+
+/** Hàng/cột nhỏ nhất của các ô ngoài cột Kiosk — dùng để dồn sơ đồ về góc trên-trái như kiosk. */
+interface GridOrigin {
+  minRow: number;
+  minCol: number;
+}
+
+function getGridOrigin(cells: CellResponse[]): GridOrigin {
+  const regular = cells.filter((c) => !isKioskColumnCell(c));
+  if (regular.length === 0) return { minRow: 1, minCol: 1 };
+  return {
+    minRow: Math.min(...regular.map((c) => c.rowIndex ?? 1)),
+    minCol: Math.min(...regular.map((c) => (c.colIndex != null && c.colIndex > 0 ? c.colIndex : 1))),
+  };
+}
+
+function getBoxGridStyle(cell: CellResponse, maxRows: number, origin: GridOrigin) {
   // Ô vali XL ở cột 0 trạm Kiosk: khoang dọc lớn kéo dài trọn chiều cao dưới màn hình 7 inch (hàng 2 trở xuống)
-  if (cell.colIndex === 0 || (isXlCell(cell) && (cell.colIndex == null || cell.colIndex === 0))) {
+  if (isKioskColumnCell(cell)) {
     return {
       gridColumn: "1",
       gridRow: `2 / span ${Math.max(1, maxRows - 1)}`,
     };
   }
 
-  // Các ô Tiêu chuẩn hoặc Drone có rowIndex và colIndex:
-  // Cột 1 CSS dành riêng cho cột Kiosk / Vali XL. Các cột ô khác bắt đầu từ cột 2:
-  const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex + 1 : 2;
-  const row = cell.rowIndex ?? 1;
+  // Các ô Tiêu chuẩn hoặc Drone: cột 1 CSS dành cho cột Kiosk / Vali XL, các cột ô khác từ cột 2.
+  // Trừ hàng/cột nhỏ nhất (giống KioskScreen của iot/ui) để sơ đồ nhập lệch, vd bắt đầu ở hàng 3
+  // cột 3, không để trống cả mảng lớn phía trên/bên trái.
+  const col = (cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex : 1) - origin.minCol + 2;
+  const row = (cell.rowIndex ?? 1) - origin.minRow + 1;
 
   if (isXlCell(cell)) {
     return {
@@ -476,6 +471,40 @@ function getBoxGridStyle(cell: CellResponse, maxRows: number) {
   };
 }
 
+interface OverlapGroup {
+  boxNumbers: number[];
+  /** Nhóm ở cột Kiosk — "Tự sắp xếp" không xử lý cột này. */
+  kiosk: boolean;
+}
+
+/** Các nhóm ô bị vẽ chồng lên nhau: cùng ô lưới như getBoxGridStyle (vali XL chiếm 2 hàng). */
+function findOverlappingBoxes(cells: CellResponse[], origin: GridOrigin): OverlapGroup[] {
+  const slots = new Map<string, number[]>();
+  const put = (key: string, boxNumber: number) => {
+    const list = slots.get(key);
+    if (list) list.push(boxNumber);
+    else slots.set(key, [boxNumber]);
+  };
+  for (const cell of cells) {
+    // Mọi ô cột Kiosk cùng vẽ vào một khoang dưới màn hình
+    if (isKioskColumnCell(cell)) {
+      put("kiosk", cell.boxNumber);
+      continue;
+    }
+    const col = (cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex : 1) - origin.minCol;
+    const row = (cell.rowIndex ?? 1) - origin.minRow;
+    put(`${row}:${col}`, cell.boxNumber);
+    if (isXlCell(cell)) put(`${row + 1}:${col}`, cell.boxNumber);
+  }
+  const groups = new Map<string, OverlapGroup>();
+  for (const [key, list] of slots) {
+    const boxNumbers = [...new Set(list)].sort((a, b) => a - b);
+    if (boxNumbers.length < 2) continue;
+    groups.set(boxNumbers.join(","), { boxNumbers, kiosk: key === "kiosk" });
+  }
+  return [...groups.values()];
+}
+
 export default function LockerLayoutPage() {
   const { lockerId } = useParams();
   const navigate = useNavigate();
@@ -487,6 +516,7 @@ export default function LockerLayoutPage() {
   const [reportFault, { isLoading: faulting }] = useReportBoxFaultMutation();
   const [clearFault, { isLoading: clearing }] = useClearBoxFaultMutation();
   const [outOfService, { isLoading: oosing }] = useSetBoxOutOfServiceMutation();
+  const [updateBox] = useUpdateBoxMutation();
   const [cleaning, { isLoading: cleaningBusy }] = useSetBoxCleaningMutation();
   const [returnToService, { isLoading: returning }] = useReturnBoxToServiceMutation();
   const [forceOpen, { isLoading: forceOpening }] = useForceOpenBoxMutation();
@@ -536,7 +566,7 @@ export default function LockerLayoutPage() {
   const { data: staffLockerData } = useGetStaffLockerQuery(id, { skip: !Number.isFinite(id) });
   const staffLocker = staffLockerData?.data;
   const [assignLockerTechnician, { isLoading: savingTechnician }] = useAssignLockerTechnicianMutation();
-  const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
+  const { data: usersData } = useGetAllUsersQuery(TECHNICIAN_USERS_QUERY);
   const lockerTechnicians = useMemo(
     () =>
       extractList<any>(usersData?.data)
@@ -663,20 +693,99 @@ export default function LockerLayoutPage() {
     return layout.cells;
   }, [layout]);
 
+  const gridOrigin = useMemo(() => getGridOrigin(cells), [cells]);
+  const overlapGroups = useMemo(() => findOverlappingBoxes(cells, gridOrigin), [cells, gridOrigin]);
+
   const maxRows = useMemo(() => {
-    return Math.max(3, ...cells.map((c) => c.rowIndex ?? 1));
-  }, [cells]);
+    return Math.max(
+      3,
+      ...cells
+        .filter((c) => !isKioskColumnCell(c))
+        .map((c) => (c.rowIndex ?? 1) - gridOrigin.minRow + (isXlCell(c) ? 2 : 1)),
+    );
+  }, [cells, gridOrigin]);
 
   const maxCols = useMemo(() => {
     return Math.max(
       3,
       ...cells.map((c) =>
-        c.colIndex === 0 || (isXlCell(c) && (c.colIndex == null || c.colIndex === 0))
+        isKioskColumnCell(c)
           ? 1
-          : (c.colIndex != null && c.colIndex > 0 ? c.colIndex + 1 : 2)
-      )
+          : (c.colIndex != null && c.colIndex > 0 ? c.colIndex : 1) - gridOrigin.minCol + 2,
+      ),
     );
+  }, [cells, gridOrigin]);
+
+  // Vị trí gợi ý khi thêm ô: hàng ngay dưới ô cuối cùng, cột đầu tiên, giữ số cột hiện có.
+  const nextSlot = useMemo(() => {
+    const regular = cells.filter((c) => !isKioskColumnCell(c));
+    // Tính trên mọi ô, kể cả ô cột Kiosk (vd chỉ có vali XL #1) để không gợi ý số đã dùng
+    const boxNumber = cells.length ? Math.max(...cells.map((c) => c.boxNumber)) + 1 : 1;
+    if (regular.length === 0) return { row: 1, col: 1, colsPerRow: 4, boxNumber };
+    const cols = new Set(regular.map((c) => c.colIndex ?? 1));
+    return {
+      row: Math.max(...regular.map((c) => (c.rowIndex ?? 1) + (isXlCell(c) ? 2 : 1))),
+      col: Math.min(...cols),
+      colsPerRow: Math.max(1, Math.max(...cols) - Math.min(...cols) + 1),
+      boxNumber,
+    };
   }, [cells]);
+
+  const openAddModal = () => {
+    setNewRowIndex(nextSlot.row);
+    setNewColIndex(nextSlot.col);
+    setNewBoxNumber(nextSlot.boxNumber);
+    setBatchStartRow(nextSlot.row);
+    setBatchStartCol(nextSlot.col);
+    setBatchColsPerRow(nextSlot.colsPerRow);
+    setBatchStartNumber(nextSlot.boxNumber);
+    setShowAddModal(true);
+  };
+
+  // Tự sắp xếp: xếp lại các ô ngoài cột Kiosk theo số ô, lần lượt từng hàng, bắt đầu hàng 1 cột 1.
+  const [arrangeOpen, setArrangeOpen] = useState(false);
+  const [arrangeCols, setArrangeCols] = useState(3);
+  const [arranging, setArranging] = useState(false);
+  const arrangePlan = useMemo(() => {
+    const perRow = Math.max(1, Math.min(10, Number(arrangeCols) || 1));
+    const regular = cells
+      .filter((c) => !isKioskColumnCell(c))
+      .sort((a, b) => a.boxNumber - b.boxNumber);
+    const plan: { cell: CellResponse; rowIndex: number; colIndex: number }[] = [];
+    let row = 1;
+    for (let i = 0; i < regular.length; i += perRow) {
+      const chunk = regular.slice(i, i + perRow);
+      chunk.forEach((cell, j) => plan.push({ cell, rowIndex: row, colIndex: j + 1 }));
+      // Ô vali XL cao 2 hàng ⇒ hàng sau lùi xuống thêm một để không đè lên
+      row += chunk.some((c) => isXlCell(c)) ? 2 : 1;
+    }
+    return plan.filter((t) => t.cell.rowIndex !== t.rowIndex || t.cell.colIndex !== t.colIndex);
+  }, [cells, arrangeCols]);
+
+  const openArrange = () => {
+    setArrangeCols(Math.min(10, nextSlot.colsPerRow));
+    setArrangeOpen(true);
+  };
+
+  const handleArrange = async () => {
+    setArranging(true);
+    let moved = 0;
+    try {
+      for (const t of arrangePlan) {
+        await updateBox({ boxId: t.cell.id, rowIndex: t.rowIndex, colIndex: t.colIndex }).unwrap();
+        moved += 1;
+      }
+      toast.success(`Đã sắp xếp lại ${moved} ô tủ`);
+      setArrangeOpen(false);
+    } catch (err: any) {
+      toast.error(`Dừng ở ô thứ ${moved + 1}`, {
+        description: err?.data?.message || err?.message || "Không cập nhật được vị trí ô tủ",
+      });
+    } finally {
+      setArranging(false);
+      refetch();
+    }
+  };
 
   const parsedBatchNumbers = useMemo(() => {
     if (batchMethod === "range") {
@@ -700,21 +809,6 @@ export default function LockerLayoutPage() {
     }
     return Array.from(new Set(result));
   }, [batchMethod, batchStartNumber, batchCount, batchNumbersText]);
-
-  const normalizeBoxSize = (s: string) => {
-    switch (s?.toUpperCase()) {
-      case "S":
-        return "SMALL";
-      case "M":
-        return "MEDIUM";
-      case "L":
-        return "LARGE";
-      case "XL":
-        return "XL";
-      default:
-        return s || "MEDIUM";
-    }
-  };
 
   const handleAddBox = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -749,61 +843,73 @@ export default function LockerLayoutPage() {
         toast.error("Vui lòng nhập danh sách số ô hợp lệ cần tạo!");
         return;
       }
-      try {
-        let curRow = Number(batchStartRow) || 2;
-        let curCol = Number(batchStartCol) || 1;
-        const maxCol = Number(batchColsPerRow) || 4;
-
-        const boxes = parsedBatchNumbers.map((num) => {
-          const item = {
-            boxNumber: num,
-            cellType: newCellType,
-            size: chosenSize,
-            rowIndex: curRow,
-            colIndex: curCol,
-            status: "AVAILABLE",
-          };
-          curCol++;
-          if (curCol > maxCol) {
-            curCol = 1;
-            curRow++;
-          }
-          return item;
-        });
-
-        // Thử gọi endpoint batch trước. Nếu backend remote chưa deploy (404/500), tự động fallback tạo tuần tự từng ô.
-        let batchSucceeded = false;
-        try {
-          await addBoxesBatch({
-            lockerId: id,
-            data: { boxes },
-          }).unwrap();
-          batchSucceeded = true;
-        } catch (batchErr: any) {
-          // Fallback tạo từng ô qua addBox (đã có sẵn trên backend)
-          for (const box of boxes) {
-            await addBox({
-              lockerId: id,
-              boxNumber: box.boxNumber,
-              cellType: box.cellType,
-              size: box.size,
-              rowIndex: box.rowIndex,
-              colIndex: box.colIndex,
-              status: box.status,
-            }).unwrap();
-          }
-          batchSucceeded = true;
-        }
-
-        if (batchSucceeded) {
-          toast.success(`Đã thêm thành công ${boxes.length} ô tủ vào trạm!`);
-          setShowAddModal(false);
-          setBatchNumbersText("");
-          refetch();
-        }
-      } catch (err: any) {
-        toast.error(err?.data?.message || err?.message || "Không thể tạo danh sách ô tủ mới");
+      // Cột 0 (cột Kiosk) là vị trí hợp lệ ⇒ không dùng `|| mặc định` (sẽ biến 0 thành giá trị khác)
+      const startRow = Number(batchStartRow);
+      const startCol = Number(batchStartCol);
+      const colsPerRow = Number(batchColsPerRow);
+      if (!Number.isInteger(startRow) || startRow < 1) {
+        toast.error("Hàng đầu phải từ 1 trở lên");
+        return;
       }
+      if (!Number.isInteger(startCol) || startCol < 0) {
+        toast.error("Cột đầu phải từ 0 trở lên");
+        return;
+      }
+      if (!Number.isInteger(colsPerRow) || colsPerRow < 1) {
+        toast.error("Số cột mỗi hàng phải từ 1 trở lên");
+        return;
+      }
+      // Ô vali XL cao 2 hàng ⇒ xuống hàng thì lùi 2 để không đè lên nhau
+      const rowStep = newCellType === "XL" || chosenSize === "XL" ? 2 : 1;
+
+      let curRow = startRow;
+      let curCol = startCol;
+      const boxes = parsedBatchNumbers.map((num) => {
+        const item = {
+          boxNumber: num,
+          cellType: newCellType,
+          size: chosenSize,
+          rowIndex: curRow,
+          colIndex: curCol,
+          status: "AVAILABLE",
+        };
+        curCol++;
+        // Hết số cột của hàng ⇒ quay về cột bắt đầu (không phải cột 1) ở hàng kế tiếp
+        if (curCol >= startCol + colsPerRow) {
+          curCol = startCol;
+          curRow += rowStep;
+        }
+        return item;
+      });
+
+      try {
+        await addBoxesBatch({ lockerId: id, data: { boxes } }).unwrap();
+      } catch (batchErr: any) {
+        // Endpoint batch tạo tất cả hoặc không tạo ô nào. Chỉ khi server chưa có endpoint (404)
+        // mới tạo lần lượt; lỗi khác (trùng số ô, tủ không tồn tại...) báo luôn, không tạo dở dang.
+        if (batchErr?.status !== 404) {
+          toast.error(batchErr?.data?.message || batchErr?.message || "Không thể tạo danh sách ô tủ mới");
+          return;
+        }
+        let created = 0;
+        try {
+          for (const box of boxes) {
+            await addBox({ lockerId: id, ...box }).unwrap();
+            created += 1;
+          }
+        } catch (err: any) {
+          toast.error(`Đã tạo ${created}/${boxes.length} ô thì gặp lỗi ở ô #${boxes[created].boxNumber}`, {
+            description: err?.data?.message || err?.message || "Không thể thêm ô tủ mới",
+          });
+          refetch();
+          return;
+        }
+      }
+
+      toast.success(`Đã thêm thành công ${boxes.length} ô tủ vào trạm!`);
+      setShowAddModal(false);
+      setBatchNumbersText("");
+      refetch();
     }
   };
 
@@ -916,8 +1022,14 @@ export default function LockerLayoutPage() {
     try {
       if (type === "FORCE_OPEN") {
         const res = await forceOpen(cell.id).unwrap();
-        if (res.data?.accepted) {
+        const message = typeof res.data?.message === "string" ? res.data.message : undefined;
+        if (res.data?.accepted === true) {
           toast.success(`Đã mở khóa ô #${cell.boxNumber}`);
+        } else if (res.data?.accepted === false) {
+          // Bộ điều khiển không nhận lệnh / quá thời gian chờ ⇒ ô chưa mở
+          toast.error(`Không mở được ô #${cell.boxNumber}`, {
+            description: message || "Bộ điều khiển tủ không xác nhận lệnh mở.",
+          });
         } else {
           toast.info(`Lệnh mở khẩn cấp ô #${cell.boxNumber} đã được ghi nhận và gửi đến bộ điều khiển.`);
         }
@@ -997,11 +1109,21 @@ export default function LockerLayoutPage() {
               setSelectedQrCell(cells[0] || null);
               setShowQrModal(true);
             }}
+            disabled={cells.length === 0}
+            title={cells.length === 0 ? "Tủ chưa có ô nào để in tem" : undefined}
             className="shadow-xs"
           >
             <QrCode className="w-4 h-4 mr-1.5 text-primary" /> Mã QR & In tem
           </Button>
-          <Button onClick={() => setShowAddModal(true)} className="bg-primary text-primary-foreground shadow-xs">
+          <Button
+            variant="outline"
+            onClick={openArrange}
+            disabled={cells.filter((c) => !isKioskColumnCell(c)).length === 0}
+            className="shadow-xs"
+          >
+            <LayoutGrid className="w-4 h-4 mr-1.5 text-primary" /> Tự sắp xếp
+          </Button>
+          <Button onClick={openAddModal} className="bg-primary text-primary-foreground shadow-xs">
             <Plus className="w-4 h-4 mr-1.5" /> Thêm ô tủ
           </Button>
           <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
@@ -1148,6 +1270,32 @@ export default function LockerLayoutPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 p-5">
+          {/* Cảnh báo ô lưu trùng hàng/cột: trên lưới các ô này vẽ đè lên nhau nên dễ bị bỏ sót */}
+          {overlapGroups.length > 0 && (
+            <div className="p-3.5 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-1 text-xs">
+                  <p className="font-semibold text-sm text-amber-900 dark:text-amber-200">
+                    Có ô tủ trùng vị trí trên sơ đồ
+                  </p>
+                  <p className="text-amber-800 dark:text-amber-300">
+                    {overlapGroups
+                      .map((g) => `${g.boxNumbers.map((n) => `#${n}`).join(" & ")}${g.kiosk ? " (cột Kiosk)" : ""}`)
+                      .join("; ")}{" "}
+                    đang lưu cùng hàng/cột nên bị vẽ chồng lên nhau. Dùng &quot;Tự sắp xếp&quot; để xếp lại
+                    các ô, hoặc sửa hàng/cột trong &quot;Chỉnh sửa công năng&quot; của từng ô
+                    {overlapGroups.some((g) => g.kiosk) ? " (cột Kiosk chỉ chứa một khoang — chuyển các ô còn lại sang cột khác)" : ""}.
+                  </p>
+                </div>
+              </div>
+              {overlapGroups.some((g) => !g.kiosk) && (
+                <Button size="sm" variant="outline" onClick={openArrange} className="shrink-0 h-8 text-xs">
+                  <LayoutGrid className="w-3.5 h-3.5 mr-1.5" /> Tự sắp xếp
+                </Button>
+              )}
+            </div>
+          )}
           <div
             className="grid gap-3.5 p-5 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border-2 border-slate-300/90 dark:border-slate-700 shadow-inner"
             style={{
@@ -1238,7 +1386,7 @@ export default function LockerLayoutPage() {
             </div>
 
             {cells.map((cell) => {
-              const gridStyle = getBoxGridStyle(cell, maxRows);
+              const gridStyle = getBoxGridStyle(cell, maxRows, gridOrigin);
               return (
                 <div
                   key={cell.id}
@@ -1296,7 +1444,7 @@ export default function LockerLayoutPage() {
       </Card>
 
       {/* 1) Xem nhật ký của tủ */}
-      <LockerLogsPanel lockerId={id} cells={cells} gateway={currentGateway} />
+      <LockerLogsPanel lockerId={id} lockerCode={layout.code} cells={cells} gateway={currentGateway} />
 
       {/* Action Dialog (Replaces browser prompt/confirm) */}
       <Dialog
@@ -1633,6 +1781,46 @@ export default function LockerLayoutPage() {
         lockerName={layout.name}
         onSuccess={() => refetch()}
       />
+
+      {/* Tự sắp xếp lại vị trí các ô theo số ô (sửa sơ đồ nhập lệch) */}
+      <Dialog open={arrangeOpen} onOpenChange={(open) => !arranging && setArrangeOpen(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tự sắp xếp sơ đồ ô tủ</DialogTitle>
+            <DialogDescription>
+              Xếp lại các ô (trừ cột Kiosk dưới màn hình) theo số ô tăng dần, lần lượt từng hàng từ góc
+              trên-trái. Sơ đồ mới đồng bộ sang Kiosk và ứng dụng KTV — chỉ dùng khi vị trí đang lưu
+              không đúng với tủ thật.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="arrange-cols">Số ô mỗi hàng</Label>
+            <Input
+              id="arrange-cols"
+              type="number"
+              min={1}
+              max={10}
+              value={arrangeCols}
+              onChange={(e) => setArrangeCols(Number(e.target.value))}
+              disabled={arranging}
+            />
+            <p className="text-xs text-muted-foreground">
+              {arrangePlan.length === 0
+                ? "Các ô đã đúng thứ tự — không có gì để thay đổi."
+                : `Sẽ đổi vị trí ${arrangePlan.length} ô.`}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setArrangeOpen(false)} disabled={arranging}>
+              Huỷ
+            </Button>
+            <Button onClick={handleArrange} disabled={arranging || arrangePlan.length === 0}>
+              {arranging ? <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" /> : <LayoutGrid className="w-4 h-4 mr-1.5" />}
+              Sắp xếp
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 3) Hiển thị mã QR và in ấn tem nhãn dán cho từng ô tủ */}
       <BoxQrModal

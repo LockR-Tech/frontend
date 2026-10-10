@@ -1,26 +1,43 @@
+import type { SerializedError } from "@reduxjs/toolkit";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { revenueServiceMeta } from "~/components/shared/reporting";
+import type { RevenueByServiceItem } from "~/types/admin/reporting";
+import { ChartPlaceholder } from "./ChartPlaceholder";
 
-interface ServiceDataPoint {
-  service: string;
-  revenue: number;
-  orders: number;
-  color: string;
+interface ServiceRevenueChartProps {
+  items?: RevenueByServiceItem[];
+  year: string;
+  isLoading?: boolean;
+  error?: FetchBaseQueryError | SerializedError;
+  onRetry?: () => void;
 }
 
-const DEFAULT_SERVICES: ServiceDataPoint[] = [
-  { service: "Gửi hàng Kiosk", revenue: 18450000, orders: 382, color: "#6366F1" },
-  { service: "Thuê ô lưu trữ", revenue: 12200000, orders: 245, color: "#10B981" },
-  { service: "Giao nhận Drone", revenue: 6800000, orders: 94, color: "#0284C7" },
-  { service: "Phí quá hạn / Gia hạn", revenue: 2350000, orders: 67, color: "#F59E0B" },
-];
+const SERVICE_COLORS: Record<string, string> = {
+  SEND: "#6366F1",
+  RENTAL: "#10B981",
+  DRONE_DELIVERY: "#0284C7",
+  OVERTIME_FEE: "#F59E0B",
+};
 
 function formatVND(val: number) {
   if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)} tr đ`;
   return `${val.toLocaleString("vi-VN")} đ`;
 }
 
-export function ServiceRevenueChart() {
+// /api/admin/revenue/by-service — gồm dòng OVERTIME_FEE (phí quá hạn đã thu).
+export function ServiceRevenueChart({ items, year, isLoading, error, onRetry }: ServiceRevenueChartProps) {
+  const data = (items ?? [])
+    .filter((item) => Number(item.revenue) > 0)
+    .map((item) => ({
+      service: revenueServiceMeta(item.serviceType).label,
+      revenue: Number(item.revenue) || 0,
+      paidOrders: item.paidOrderCount,
+      color: SERVICE_COLORS[item.serviceType] ?? "#64748B",
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
   return (
     <Card className="border border-border bg-card shadow-xs">
       <CardHeader className="pb-2">
@@ -28,58 +45,64 @@ export function ServiceRevenueChart() {
           Doanh thu theo dịch vụ Kiosk
         </CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
-          So sánh tỷ trọng đóng góp giữa gửi hàng, thuê ô, drone và phí gia hạn
+          Tiền thực thu theo loại dịch vụ và phí quá hạn — năm {year}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-60 w-full pt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={DEFAULT_SERVICES}
-              layout="vertical"
-              margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} className="text-border/60" />
-              <XAxis
-                type="number"
-                tickFormatter={formatVND}
-                tickLine={false}
-                axisLine={false}
-                className="text-[11px] fill-muted-foreground"
-              />
-              <YAxis
-                type="category"
-                dataKey="service"
-                tickLine={false}
-                axisLine={false}
-                className="text-xs font-medium fill-foreground"
-                width={130}
-              />
-              <Tooltip
-                formatter={(val: any, _name: any, item: any) => [
-                  `${Number(val).toLocaleString("vi-VN")} đ (${item.payload.orders} lượt)`,
-                  "Doanh thu",
-                ]}
-                contentStyle={{
-                  backgroundColor: "var(--popover)",
-                  borderColor: "var(--border)",
-                  borderRadius: "0.5rem",
-                  fontSize: "12px",
-                  color: "var(--foreground)",
-                }}
-              />
-              <Bar
-                dataKey="revenue"
-                radius={[0, 6, 6, 0]}
-                barSize={20}
+        {isLoading || error || data.length === 0 ? (
+          <ChartPlaceholder
+            isLoading={isLoading}
+            error={error}
+            isEmpty={data.length === 0}
+            onRetry={onRetry}
+            className="h-60"
+          />
+        ) : (
+          <div className="h-60 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
               >
-                {DEFAULT_SERVICES.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} className="text-border/60" />
+                <XAxis
+                  type="number"
+                  tickFormatter={formatVND}
+                  tickLine={false}
+                  axisLine={false}
+                  className="text-[11px] fill-muted-foreground"
+                />
+                <YAxis
+                  type="category"
+                  dataKey="service"
+                  tickLine={false}
+                  axisLine={false}
+                  className="text-xs font-medium fill-foreground"
+                  width={110}
+                />
+                <Tooltip
+                  formatter={(val, _name, item) => [
+                    `${Number(val).toLocaleString("vi-VN")} đ (${(item?.payload as { paidOrders?: number } | undefined)?.paidOrders ?? 0} đơn có thu)`,
+                    "Thực thu",
+                  ]}
+                  contentStyle={{
+                    backgroundColor: "var(--popover)",
+                    borderColor: "var(--border)",
+                    borderRadius: "0.5rem",
+                    fontSize: "12px",
+                    color: "var(--foreground)",
+                  }}
+                />
+                <Bar dataKey="revenue" radius={[0, 6, 6, 0]} barSize={20}>
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

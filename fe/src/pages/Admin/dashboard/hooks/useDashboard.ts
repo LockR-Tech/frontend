@@ -1,22 +1,30 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGetDashboardOverviewQuery } from "~/stores/apis/admin/dashboard";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useGetAllStoresQuery } from "~/stores/apis/admin/stores";
 import { useGetAllLockersQuery } from "~/stores/apis/admin/lockers";
+import {
+  useGetRevenueByMethodQuery,
+  useGetRevenueByServiceQuery,
+  useGetRevenueByStoreQuery,
+  useGetRevenueDailyQuery,
+  useGetRevenueSummaryQuery,
+} from "~/stores/apis/admin/revenue";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { extractList } from "~/lib/extract-list";
-import {
-  monthlyChartData,
-  dashboardRecommendations,
-} from "~/constants/dashboard.constants";
-import type { DashboardOverviewResponse } from "~/types/admin/dashboard";
+import { shiftDay, vietnamToday } from "~/lib/report-format";
+import { dashboardRecommendations } from "~/constants/dashboard.constants";
+import type { DashboardOverviewResponse, MonthlyDataPoint } from "~/types/admin/dashboard";
 import type { AdminLockerResponse } from "~/types";
+import { LockerStatus } from "~/types/admin/enums";
+import {
+  useGetDashboardPeakHoursQuery,
+  useGetDashboardUserGrowthQuery,
+} from "./dashboardExtraApi";
 
-// The backend overview endpoint (order-service) only owns a subset of these
-// metrics; cross-service fields (users/stores/lockers/boxes/services) may be
-// absent. Normalize to a complete object so the dashboard never crashes on a
-// missing field (e.g. `overview.ordersToday.toString()`).
+// Overview của order-service chỉ có số liệu đơn; chỉ số liên service
+// (users/stores/lockers/boxes) có thể thiếu → chuẩn hoá để không vỡ trang.
 function normalizeOverview(
   raw?: Partial<DashboardOverviewResponse>,
 ): DashboardOverviewResponse {
@@ -35,29 +43,55 @@ function normalizeOverview(
   };
 }
 
+/** Năm có thể chọn cho biểu đồ tháng: năm nay và 2 năm trước. */
+function yearOptions(currentYear: number): string[] {
+  return [0, 1, 2].map((offset) => String(currentYear - offset));
+}
+
 export function useDashboard() {
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const navigate = useNavigate();
+  const today = useMemo(() => vietnamToday(), []);
+  const currentYear = Number(today.slice(0, 4));
+  const [selectedYear, setSelectedYear] = useState(String(currentYear));
 
   const { data, isLoading, refetch: refetchOverview } = useGetDashboardOverviewQuery();
 
   const { subscribe } = useWebSocket({ autoConnect: true });
 
-  // The order-service overview only owns order/revenue metrics. Fill the
-  // cross-service KPIs (users/stores/lockers/boxes) from the list endpoints so
-  // the dashboard shows real numbers instead of zeros.
+  // Bổ sung KPI liên service từ các API danh sách (số thật, không để 0).
   const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
   const { data: storesData } = useGetAllStoresQuery({ page: 0, size: 1000 });
   const { data: lockersData, refetch: refetchLockers } = useGetAllLockersQuery({ page: 0, size: 1000 });
 
+  // Doanh thu thực thu (payment COMPLETED) — /api/admin/revenue/summary.
+  // Kỳ tháng: mùng 1 → hôm nay (kỳ trước cùng độ dài); kỳ ngày: hôm nay so với hôm qua.
+  const monthSummary = useGetRevenueSummaryQuery({});
+  const todaySummary = useGetRevenueSummaryQuery({ from: today, to: today });
+
+  // Biểu đồ theo năm đã chọn (≤ 366 ngày nên gọi được cả năm).
+  const yearRange = useMemo(
+    () => ({ from: `${selectedYear}-01-01`, to: `${selectedYear}-12-31` }),
+    [selectedYear],
+  );
+  const daily = useGetRevenueDailyQuery(yearRange);
+  const byMethod = useGetRevenueByMethodQuery(yearRange);
+  const byService = useGetRevenueByServiceQuery(yearRange);
+  const byStore = useGetRevenueByStoreQuery(yearRange);
+
+  // 30 ngày gần nhất cho khung giờ cao điểm; 12 tháng cho người dùng mới.
+  const peakRange = useMemo(() => ({ from: shiftDay(today, -29), to: today }), [today]);
+  const peakHours = useGetDashboardPeakHoursQuery(peakRange);
+  const userGrowth = useGetDashboardUserGrowthQuery({ months: 12 });
+
   useEffect(() => {
     if (!subscribe) return;
 
-    const subOrders = subscribe<any>("/topic/orders", () => {
+    const subOrders = subscribe<unknown>("/topic/orders", () => {
       refetchOverview();
       refetchLockers();
     });
 
-    const subNotifications = subscribe<any>("/topic/notifications", () => {
+    const subNotifications = subscribe<unknown>("/topic/notifications", () => {
       refetchOverview();
       refetchLockers();
     });
@@ -77,6 +111,7 @@ export function useDashboard() {
     (sum, l) => sum + Math.max(0, (l.totalBoxes ?? 0) - (l.availableBoxes ?? 0)),
     0,
   );
+  const activeLockers = lockers.filter((l) => l.status === LockerStatus.ACTIVE).length;
 
   const base = normalizeOverview(data?.data);
   const overview: DashboardOverviewResponse = {
@@ -87,16 +122,51 @@ export function useDashboard() {
     availableBoxes: base.availableBoxes || computedAvailableBoxes,
     occupiedBoxes: base.occupiedBoxes || computedOccupiedBoxes,
   };
+  // `byStatus` có trong overview nhưng chưa khai báo ở DashboardOverviewResponse.
+  const byStatus = (data?.data as { byStatus?: Record<string, number> } | undefined)?.byStatus;
+
+  // Gộp chuỗi ngày thành 12 tháng; năm hiện tại chỉ hiện tới tháng này.
+  const chartData: MonthlyDataPoint[] = useMemo(() => {
+    const days = daily.data?.data?.days;
+    if (!days) return [];
+    const lastMonth = Number(selectedYear) === currentYear ? Number(today.slice(5, 7)) : 12;
+    const months = Array.from({ length: lastMonth }, (_, i) => ({
+      month: `T${i + 1}`,
+      orders: 0,
+      revenue: 0,
+    }));
+    for (const d of days) {
+      const m = Number(d.date.slice(5, 7));
+      if (m >= 1 && m <= lastMonth) {
+        months[m - 1].orders += Number(d.orderCount) || 0;
+        months[m - 1].revenue += Number(d.revenue) || 0;
+      }
+    }
+    return months;
+  }, [daily.data, selectedYear, currentYear, today]);
 
   const handleRecommendationClick = (id: string) => {
-    toast.info(`Mở ${id}`, {
-      description: `Đang chuyển đến ${id}...`,
-    });
+    const target = dashboardRecommendations.find((r) => r.id === id);
+    if (target) navigate(target.href);
   };
 
   return {
     overview,
-    chartData: monthlyChartData,
+    byStatus,
+    activeLockers,
+    lockersLoaded: !!lockersData,
+    chartData,
+    dailyQuery: daily,
+    yearOptions: yearOptions(currentYear),
+    yearRange,
+    byMethod,
+    byService,
+    byStore,
+    peakHours,
+    peakRange,
+    userGrowth,
+    monthSummary,
+    todaySummary,
     recommendations: dashboardRecommendations,
     selectedYear,
     setSelectedYear,

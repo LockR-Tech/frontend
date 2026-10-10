@@ -64,6 +64,20 @@ function feeRows(fees: AdminOrderFees) {
   ].filter((row) => row.value !== null && row.value !== undefined);
 }
 
+/**
+ * Backend trả `appliedPromotionCodes` là MỘT chuỗi nối bằng dấu phẩy, không phải mảng.
+ * Đơn cũ chỉ có `promotionCode` thì dùng mã đó.
+ */
+function parsePromotionCodes(order: AdminOrder): string[] {
+  const raw = order.appliedPromotionCodes;
+  const codes =
+    typeof raw === "string"
+      ? raw.split(",").map((code) => code.trim()).filter(Boolean)
+      : [];
+  if (codes.length > 0) return codes;
+  return order.promotionCode ? [order.promotionCode] : [];
+}
+
 function DetailSkeleton() {
   return (
     <div className="space-y-6">
@@ -415,6 +429,7 @@ export default function OrderDetailPage() {
   if (!order) return null;
 
   const fees = order.fees;
+  const promotionCodes = parsePromotionCodes(order);
 
   return (
     <div className="space-y-6">
@@ -540,10 +555,9 @@ export default function OrderDetailPage() {
                 </div>
               )}
 
-              {(order.promotionCode || order.appliedPromotionCodes?.length) && (
+              {promotionCodes.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Khuyến mãi:{" "}
-                  {order.appliedPromotionCodes?.join(", ") || order.promotionCode}
+                  Khuyến mãi: {promotionCodes.join(", ")}
                 </p>
               )}
             </CardContent>
@@ -579,21 +593,22 @@ export default function OrderDetailPage() {
 
               {order.orderDetails && order.orderDetails.length > 0 && (
                 <div className="space-y-2">
-                  {order.orderDetails.map((line) => (
+                  {/* `price` của dòng đã là thành tiền (đơn giá × số lượng) — không nhân lại. */}
+                  {order.orderDetails.map((line, index) => (
                     <div
-                      key={line.id}
-                      className="flex items-center justify-between rounded-lg bg-muted/30 p-2.5 text-sm"
+                      key={`${line.serviceId ?? "line"}-${index}`}
+                      className="flex items-center justify-between gap-3 rounded-lg bg-muted/30 p-2.5 text-sm"
                     >
                       <div className="min-w-0">
                         <p className="font-medium truncate">
-                          {line.serviceName ?? "Dịch vụ chưa tra được tên"}
+                          {line.description || "Không có mô tả"}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatNumber(line.quantity)} {line.unit ?? ""}
+                          Số lượng: {formatNumber(line.quantity)}
                         </p>
                       </div>
                       <span className="font-medium shrink-0">
-                        {formatCurrency((line.price ?? 0) * (line.quantity ?? 0))}
+                        {formatCurrency(line.price)}
                       </span>
                     </div>
                   ))}

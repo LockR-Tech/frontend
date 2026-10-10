@@ -161,7 +161,8 @@ export const paymentManagementApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { bankTransferRef },
       }),
-      invalidatesTags: [TAGS.REFUNDS, TAGS.PAYMENTS, TAGS.STATS],
+      // Duyệt/từ chối hoàn tiền đổi paymentStatus của đơn ⇒ làm mới cả trang đơn hàng
+      invalidatesTags: [TAGS.REFUNDS, TAGS.PAYMENTS, TAGS.STATS, "Orders"],
     }),
 
     /** Từ chối yêu cầu hoàn tiền kèm lý do. */
@@ -174,7 +175,8 @@ export const paymentManagementApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { rejectionReason },
       }),
-      invalidatesTags: [TAGS.REFUNDS, TAGS.PAYMENTS, TAGS.STATS],
+      // Duyệt/từ chối hoàn tiền đổi paymentStatus của đơn ⇒ làm mới cả trang đơn hàng
+      invalidatesTags: [TAGS.REFUNDS, TAGS.PAYMENTS, TAGS.STATS, "Orders"],
     }),
   }),
 });

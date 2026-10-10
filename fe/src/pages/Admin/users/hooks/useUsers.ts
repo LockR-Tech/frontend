@@ -1,91 +1,104 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useGetAllUsersQuery } from "~/stores/apis/adminApi";
 import type { AdminUserResponse } from "~/types";
 
-export type UserStatus = "ALL" | "ACTIVE" | "INACTIVE" | "PENDING";
-
-/** Row shape the table renders; extends AdminUserResponse with phone from the backend. */
-export type AdminUserRow = AdminUserResponse & { phoneNumber?: string };
+export type UserStatus = "ALL" | "ACTIVE" | "INACTIVE";
 
 /**
- * Backend `/api/admin/users` returns a flat `List<UserSummary>`:
- * `{ id, email, phoneNumber, fullName, status, roles }` — NOT a paginated Page,
- * and field names differ from the table's `AdminUserResponse`. Map it here so the
- * table works without changing the shared backend contract.
+ * Dòng bảng người dùng. Khác `AdminUserResponse` ở chỗ các trường backend có thể
+ * không gửi (provider/emailVerified khi auth-service lỗi, createdAt/updatedAt ở bản cũ)
+ * được giữ `null` để hiển thị "—" thay vì giá trị bịa.
  */
-interface BackendUserSummary {
-  id: number;
-  email?: string;
-  phoneNumber?: string;
-  fullName?: string;
+export type AdminUserRow = Omit<
+  AdminUserResponse,
+  "provider" | "emailVerified" | "createdAt" | "updatedAt"
+> & {
+  provider: string | null;
+  emailVerified: boolean | null;
+  createdAt: string | null;
+  updatedAt: string | null;
   status?: string;
-  roles?: string[];
-  createdAt?: string;
-  provider?: string;
-  emailVerified?: boolean;
-  imageUrl?: string;
+};
+
+/**
+ * `/api/admin/users` trả List<AdminUserView>, `/api/admin/users/{id}` trả UserSummary:
+ * `{ id, email, phoneNumber, fullName, status, roles, imageUrl, createdAt?, updatedAt?,
+ * provider?, emailVerified? }` — không phân trang, tên trường khác bảng nên map ở đây.
+ */
+export interface BackendUserSummary {
+  id: number;
+  email?: string | null;
+  phoneNumber?: string | null;
+  fullName?: string | null;
+  name?: string | null;
+  status?: string | null;
+  roles?: string[] | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  provider?: string | null;
+  emailVerified?: boolean | null;
+  imageUrl?: string | null;
 }
 
-function mapUser(u: BackendUserSummary): AdminUserRow {
+export function mapUser(u: BackendUserSummary): AdminUserRow {
+  const status = (u.status ?? "ACTIVE").toUpperCase();
   return {
     id: u.id,
     email: u.email ?? "",
-    name: u.fullName ?? "",
+    name: u.fullName ?? u.name ?? "",
     imageUrl: u.imageUrl ?? "",
-    provider: (u.provider ?? "LOCAL") as AdminUserResponse["provider"],
-    emailVerified: u.emailVerified ?? false,
-    enabled: (u.status ?? "ACTIVE").toUpperCase() === "ACTIVE",
+    provider: u.provider ?? null,
+    emailVerified: u.emailVerified ?? null,
+    enabled: status === "ACTIVE",
+    status,
     roles: u.roles ?? [],
-    createdAt: u.createdAt ?? "",
-    updatedAt: "",
-    phoneNumber: u.phoneNumber,
+    createdAt: u.createdAt ?? null,
+    updatedAt: u.updatedAt ?? null,
+    phoneNumber: u.phoneNumber ?? undefined,
   };
 }
 
+// Cùng tham số với dashboard/notifications để dùng chung cache — backend bỏ qua page/size.
+const ALL_USERS_ARGS = { page: 0, size: 1000 };
+
 export function useUsers() {
-  const [status, setStatus] = useState<UserStatus>("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [status, setStatusState] = useState<UserStatus>("ALL");
+  const [searchQuery, setSearchQueryState] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
-  const page = Number(urlParams.get("page") ?? "0");
-  const pageSize = Number(urlParams.get("size") ?? "10");
+  const page = Math.max(0, Number(urlParams.get("page") ?? "0") || 0);
+  const pageSize = Math.max(1, Number(urlParams.get("size") ?? "10") || 10);
   const setPage = (newPage: number) =>
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(newPage)); return next; });
   const setPageSize = (newSize: number) =>
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("size", String(newSize)); next.set("page", "0"); return next; });
 
-  const {
-    data: apiData,
-    isLoading,
-    error,
-    refetch,
-  } = useGetAllUsersQuery({ page, size: pageSize });
+  // Đổi bộ lọc thì quay về trang đầu, tránh đứng ở trang không còn dữ liệu.
+  const setStatus = (value: UserStatus) => {
+    setStatusState(value);
+    setPage(0);
+  };
+  const setSearchQuery = (value: string) => {
+    setSearchQueryState(value);
+    if (page !== 0) setPage(0);
+  };
 
-  // Tolerate both a flat list (current backend) and a paginated Page (future).
-  const raw = apiData?.data as unknown;
-  const rawList: BackendUserSummary[] = Array.isArray(raw)
-    ? (raw as BackendUserSummary[])
-    : ((raw as { content?: BackendUserSummary[] })?.content ?? []);
-  const users: AdminUserRow[] = rawList.map(mapUser);
-  const totalElements = users.length;
-  const totalPages = 1;
+  const { data: apiData, isLoading, error, refetch } = useGetAllUsersQuery(ALL_USERS_ARGS);
+
+  const users: AdminUserRow[] = useMemo(() => {
+    // Chấp nhận cả List (hiện tại) lẫn Page (nếu backend đổi sau này).
+    const raw = apiData?.data as unknown;
+    const list: BackendUserSummary[] = Array.isArray(raw)
+      ? (raw as BackendUserSummary[])
+      : ((raw as { content?: BackendUserSummary[] })?.content ?? []);
+    return list.map(mapUser);
+  }, [apiData]);
 
   const filteredUsers = useMemo(() => {
-    let result = [...users];
+    let result = users;
 
     if (status !== "ALL") {
-      result = result.filter((user) => {
-        switch (status) {
-          case "ACTIVE":
-            return user.enabled;
-          case "INACTIVE":
-            return !user.enabled;
-          case "PENDING":
-            return !user.emailVerified;
-          default:
-            return true;
-        }
-      });
+      result = result.filter((user) => (status === "ACTIVE" ? user.enabled : !user.enabled));
     }
 
     if (searchQuery) {
@@ -94,6 +107,7 @@ export function useUsers() {
         (user) =>
           user.email?.toLowerCase().includes(query) ||
           user.name?.toLowerCase().includes(query) ||
+          user.phoneNumber?.toLowerCase().includes(query) ||
           user.roles?.some((role) => role.toLowerCase().includes(query)),
       );
     }
@@ -101,26 +115,40 @@ export function useUsers() {
     return result;
   }, [users, status, searchQuery]);
 
+  // Phân trang tại client sau khi lọc.
+  const totalElements = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+  const pagedUsers = useMemo(
+    () => filteredUsers.slice(page * pageSize, (page + 1) * pageSize),
+    [filteredUsers, page, pageSize],
+  );
+
+  // Xoá bớt dòng làm trang hiện tại vượt quá số trang → lùi về trang cuối.
+  useEffect(() => {
+    if (!isLoading && page > 0 && page >= totalPages) {
+      setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(totalPages - 1)); return next; });
+    }
+  }, [isLoading, page, totalPages, setUrlParams]);
+
   const statusCounts = useMemo(
     () => ({
       ALL: users.length,
       ACTIVE: users.filter((u) => u.enabled).length,
       INACTIVE: users.filter((u) => !u.enabled).length,
-      PENDING: users.filter((u) => !u.emailVerified).length,
     }),
     [users],
   );
 
   const clearFilters = () => {
-    setStatus("ALL");
-    setSearchQuery("");
+    setStatusState("ALL");
+    setSearchQueryState("");
     setPage(0);
   };
 
   const hasActiveFilters = status !== "ALL" || searchQuery !== "";
 
   return {
-    users: filteredUsers,
+    users: pagedUsers,
     totalElements,
     totalPages,
     isLoading,

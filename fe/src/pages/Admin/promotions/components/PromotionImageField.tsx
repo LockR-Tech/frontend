@@ -21,11 +21,11 @@ import {
   useUpdatePromotionImageMutation,
 } from "~/stores/apis/admin/promotions";
 import type { MediaUpload } from "~/stores/apis/media";
-import type { PromotionResponse } from "~/types/admin/promotion";
+import type { AdminPromotion } from "~/stores/apis/admin/promotions";
 
 /// Ảnh khuyến mãi trong form sửa: đổi/xoá gọi thẳng PUT/DELETE /api/admin/promotions/{id}/image
 /// (độc lập với nút Lưu của form).
-export function PromotionImageField({ promotion }: { promotion: PromotionResponse }) {
+export function PromotionImageField({ promotion }: { promotion: AdminPromotion }) {
   const { t } = useTranslation();
   // Kết quả PUT/DELETE gần nhất cho khuyến mãi đang sửa (promotion prop là bản chụp lúc mở form)
   const [override, setOverride] = useState<{ id: number; url: string | null } | null>(null);

@@ -51,7 +51,15 @@ export function DataTablePagination<TData>({
     return pages;
   };
 
-  if (totalRows === 0) return null;
+  const pageSize = table.getState().pagination.pageSize;
+  const visibleRows = table.getRowModel().rows.length;
+  // Luôn có 20 (cỡ trang mặc định của các màn hình server) và cỡ trang đang dùng.
+  const pageSizeOptions = Array.from(
+    new Set([10, 20, 25, 50, 100, pageSize]),
+  ).sort((a, b) => a - b);
+
+  // Trang rỗng ngoài trang đầu vẫn hiện để quay lại được.
+  if (totalRows === 0 && pageIndex === 0) return null;
 
   return (
     <div
@@ -63,34 +71,38 @@ export function DataTablePagination<TData>({
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
         <span>Hiển thị</span>
         <Select
-          value={table.getState().pagination.pageSize.toString()}
+          value={pageSize.toString()}
           onValueChange={(value) => table.setPageSize(Number(value))}
         >
           <SelectTrigger className="h-8 w-[70px] bg-card border-border">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[10, 25, 50, 100].map((size) => (
+            {pageSizeOptions.map((size) => (
               <SelectItem key={size} value={size.toString()}>
                 {size}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <span className="text-muted-foreground">
-          <span className="font-medium text-foreground">
-            {pageIndex * table.getState().pagination.pageSize + 1}
+        {visibleRows > 0 ? (
+          <span className="text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {pageIndex * pageSize + 1}
+            </span>
+            {" - "}
+            <span className="font-medium text-foreground">
+              {Math.min((pageIndex + 1) * pageSize, totalRows)}
+            </span>
+            {" của "}
+            <span className="font-medium text-foreground">{totalRows}</span>
           </span>
-          {" - "}
-          <span className="font-medium text-foreground">
-            {Math.min(
-              (pageIndex + 1) * table.getState().pagination.pageSize,
-              totalRows
-            )}
+        ) : (
+          <span className="text-muted-foreground">
+            Trang {pageIndex + 1} không có dữ liệu · tổng{" "}
+            <span className="font-medium text-foreground">{totalRows}</span>
           </span>
-          {" của "}
-          <span className="font-medium text-foreground">{totalRows}</span>
-        </span>
+        )}
       </div>
 
       <div className="flex items-center gap-1">

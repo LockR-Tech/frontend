@@ -13,8 +13,8 @@ import type { AdminLockerResponse } from "~/types";
 export type LockerStatusFilter = "ALL" | LockerStatus;
 
 export function useLockers() {
-  const [status, setStatus] = useState<LockerStatusFilter>("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [status, setStatusState] = useState<LockerStatusFilter>("ALL");
+  const [searchQuery, setSearchQueryState] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
   const page = Number(urlParams.get("page") ?? "0");
   const pageSize = Number(urlParams.get("size") ?? "10");
@@ -22,6 +22,16 @@ export function useLockers() {
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(newPage)); return next; });
   const setPageSize = (newSize: number) =>
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("size", String(newSize)); next.set("page", "0"); return next; });
+  // Đổi bộ lọc / từ khoá ⇒ về trang đầu, tránh đứng ở trang không còn dữ liệu
+  // Chỉ đổi URL khi thật sự đang ở trang khác 0, tránh thêm một mục lịch sử mỗi lần gõ phím
+  const setStatus = (value: LockerStatusFilter) => {
+    setStatusState(value);
+    if (page !== 0) setPage(0);
+  };
+  const setSearchQuery = (value: string) => {
+    setSearchQueryState(value);
+    if (page !== 0) setPage(0);
+  };
 
   const { data, isLoading, refetch } = useGetAllLockersQuery({
     page: 0,
@@ -85,16 +95,13 @@ export function useLockers() {
       [LockerStatus.MAINTENANCE]: allLockers.filter(
         (l) => l.status === LockerStatus.MAINTENANCE,
       ).length,
-      [LockerStatus.DISCONNECTED]: allLockers.filter(
-        (l) => l.status === LockerStatus.DISCONNECTED,
-      ).length,
     }),
     [allLockers],
   );
 
   const clearFilters = () => {
-    setStatus("ALL");
-    setSearchQuery("");
+    setStatusState("ALL");
+    setSearchQueryState("");
     setPage(0);
   };
 

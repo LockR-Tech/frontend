@@ -22,25 +22,29 @@ import {
 } from "~/components/ui/select";
 import { DiscountType } from "~/types/admin/enums";
 import type {
-  PromotionResponse,
-  PromotionRequest,
-} from "~/types/admin/promotion";
+  AdminPromotion,
+  AdminPromotionRequest,
+} from "~/stores/apis/admin/promotions";
 import { PromotionImageField } from "./PromotionImageField";
+import { promotionError } from "../promotion-status";
 
 interface PromotionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  promotion?: PromotionResponse | null;
+  promotion?: AdminPromotion | null;
   mode: "create" | "edit";
-  onSave: (data: PromotionRequest) => Promise<void>;
+  onSave: (data: AdminPromotionRequest) => Promise<void>;
   isSaving: boolean;
 }
+
+// Backend chỉ hiểu PERCENTAGE, loại khác đều tính như số tiền cố định.
+type FormDiscountType = typeof DiscountType.PERCENTAGE | typeof DiscountType.FIXED_AMOUNT;
 
 /// Backend trả chuỗi trần = UTC. Ô `datetime-local` lại hiểu giá trị là giờ
 /// máy, nên cắt thẳng chuỗi UTC vào đó sẽ hiện sớm 7 tiếng — và khi lưu lại,
 /// `new Date(...).toISOString()` đổi VN→UTC thêm lần nữa, làm mã lùi 7 tiếng
 /// sau **mỗi** lần sửa cho tới khi hết hiệu lực.
-const toDatetimeLocal = (iso?: string) => {
+const toDatetimeLocal = (iso?: string | null) => {
   const date = parseBackendDateTime(iso ?? null);
   if (!date) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -54,7 +58,7 @@ interface FormState {
   code: string;
   title: string;
   description: string;
-  discountType: DiscountType;
+  discountType: FormDiscountType;
   discountValue: string;
   maxDiscountAmount: string;
   minOrderAmount: string;
@@ -82,6 +86,8 @@ const DEFAULT_FORM: FormState = {
   stackable: false,
 };
 
+const numText = (v: number | null | undefined) => (v != null ? String(v) : "");
+
 export function PromotionModal({
   isOpen,
   onClose,
@@ -95,28 +101,24 @@ export function PromotionModal({
 
   useEffect(() => {
     if (promotion && mode === "edit") {
+      // Trường null (không giới hạn) để trống, không tự điền giá trị mặc định.
       setForm({
-        code: promotion.code,
-        title: promotion.title,
+        code: promotion.code ?? "",
+        title: promotion.name ?? "",
         description: promotion.description ?? "",
-        discountType: promotion.discountType,
-        discountValue: String(promotion.discountValue),
-        maxDiscountAmount: promotion.maxDiscountAmount
-          ? String(promotion.maxDiscountAmount)
-          : "",
-        minOrderAmount: promotion.minOrderAmount
-          ? String(promotion.minOrderAmount)
-          : "",
-        startDate: toDatetimeLocal(promotion.startDate),
-        endDate: toDatetimeLocal(promotion.endDate),
-        totalUsageLimit: promotion.totalUsageLimit
-          ? String(promotion.totalUsageLimit)
-          : "",
-        perUserLimit: promotion.perUserLimit
-          ? String(promotion.perUserLimit)
-          : "1",
-        isActive: promotion.isActive,
-        stackable: promotion.stackable,
+        discountType:
+          promotion.discountType === DiscountType.PERCENTAGE
+            ? DiscountType.PERCENTAGE
+            : DiscountType.FIXED_AMOUNT,
+        discountValue: numText(promotion.discountValue),
+        maxDiscountAmount: numText(promotion.maxDiscountAmount),
+        minOrderAmount: numText(promotion.minOrderAmount),
+        startDate: toDatetimeLocal(promotion.startAt),
+        endDate: toDatetimeLocal(promotion.endAt),
+        totalUsageLimit: numText(promotion.totalUsageLimit),
+        perUserLimit: numText(promotion.perUserLimit),
+        isActive: (promotion.status ?? "").toUpperCase() !== "INACTIVE",
+        stackable: Boolean(promotion.stackable),
       });
     } else {
       setForm(DEFAULT_FORM);
@@ -152,27 +154,30 @@ export function PromotionModal({
       return;
     }
 
-    const payload: PromotionRequest = {
+    // PromotionRequest của order-service: name/startAt/endAt/status; startAt/endAt là
+    // LocalDateTime UTC không offset. PUT ghi đè mọi trường nên giữ lại lockerId khi sửa.
+    const payload: AdminPromotionRequest = {
       code: form.code.toUpperCase().trim(),
-      title: form.title.trim(),
+      name: form.title.trim(),
       description: form.description.trim() || undefined,
       discountType: form.discountType,
       discountValue: discountVal,
-      maxDiscountAmount: form.maxDiscountAmount
-        ? parseFloat(form.maxDiscountAmount)
-        : undefined,
+      maxDiscountAmount:
+        form.discountType === DiscountType.PERCENTAGE && form.maxDiscountAmount
+          ? parseFloat(form.maxDiscountAmount)
+          : undefined,
       minOrderAmount: form.minOrderAmount
         ? parseFloat(form.minOrderAmount)
         : undefined,
-      startDate: new Date(form.startDate).toISOString().slice(0, 19),
-      endDate: new Date(form.endDate).toISOString().slice(0, 19),
+      startAt: new Date(form.startDate).toISOString().slice(0, 19),
+      endAt: new Date(form.endDate).toISOString().slice(0, 19),
       totalUsageLimit: form.totalUsageLimit
         ? parseInt(form.totalUsageLimit, 10)
         : undefined,
-      perUserLimit: form.perUserLimit ? parseInt(form.perUserLimit, 10) : 1,
-      isActive: form.isActive,
+      perUserLimit: form.perUserLimit ? parseInt(form.perUserLimit, 10) : undefined,
+      status: form.isActive ? "ACTIVE" : "INACTIVE",
       stackable: form.stackable,
-      priority: 1,
+      lockerId: mode === "edit" ? (promotion?.lockerId ?? undefined) : undefined,
     };
 
     try {
@@ -182,11 +187,12 @@ export function PromotionModal({
           ? t("admin.promotions.modal.createSuccess")
           : t("admin.promotions.modal.editSuccess"),
       );
-    } catch {
+    } catch (err) {
       toast.error(
         mode === "create"
           ? t("admin.promotions.modal.createFailed")
           : t("admin.promotions.modal.editFailed"),
+        { description: promotionError(err).message || undefined },
       );
     }
   };
@@ -261,7 +267,9 @@ export function PromotionModal({
               </Label>
               <Select
                 value={form.discountType}
-                onValueChange={(v) => set("discountType", v)}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, discountType: v as FormDiscountType }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -272,9 +280,6 @@ export function PromotionModal({
                   </SelectItem>
                   <SelectItem value={DiscountType.FIXED_AMOUNT}>
                     {t("admin.promotions.modal.discountTypeFixed")}
-                  </SelectItem>
-                  <SelectItem value={DiscountType.FREE_SERVICE}>
-                    {t("admin.promotions.modal.discountTypeFree")}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -346,7 +351,7 @@ export function PromotionModal({
                 min="1"
                 value={form.perUserLimit}
                 onChange={(e) => set("perUserLimit", e.target.value)}
-                placeholder="1"
+                placeholder={t("admin.promotions.modal.totalLimitPlaceholder")}
               />
             </div>
           </div>

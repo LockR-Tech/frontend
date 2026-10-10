@@ -12,41 +12,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { NotificationTable } from "./components/NotificationTable";
 import { NotificationStats } from "./components/NotificationStats";
 import { BroadcastModal } from "./components/BroadcastModal";
 import { CreateNotificationModal } from "./components/CreateNotificationModal";
-import { useNotifications } from "./hooks/useNotifications";
-import {
-  NotificationStatus,
-  NotificationType,
-  NotificationChannel,
-} from "~/types/admin/enums";
+import { useNotifications, type NotificationRow } from "./hooks/useNotifications";
+import { NotificationStatus } from "~/types/admin/enums";
 
 export default function NotificationsPage() {
   const { t } = useTranslation();
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<NotificationRow | null>(null);
 
   const {
     notifications,
     totalElements,
     isLoading,
-    isLoadingStats,
+    isDeleting,
+    pendingIds,
     stats,
     statusFilter,
     setStatusFilter,
     typeFilter,
     setTypeFilter,
-    channelFilter,
-    setChannelFilter,
+    typeOptions,
     searchQuery,
     setSearchQuery,
     refetch,
     clearFilters,
     hasActiveFilters,
     handleDelete,
-    handleUpdateStatus,
+    handleMarkRead,
     handleResend,
     page,
     setPage,
@@ -54,6 +52,11 @@ export default function NotificationsPage() {
     setPageSize,
     totalPages,
   } = useNotifications();
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    if (await handleDelete(deleteTarget.id)) setDeleteTarget(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -88,7 +91,7 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <NotificationStats stats={stats} isLoading={isLoadingStats} />
+      <NotificationStats stats={stats} isLoading={isLoading} />
 
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6">
@@ -121,17 +124,12 @@ export default function NotificationsPage() {
                   <SelectItem value={NotificationStatus.READ}>
                     {t("admin.notifications.status.read")}
                   </SelectItem>
-                  <SelectItem value={NotificationStatus.ARCHIVED}>
-                    {t("admin.notifications.status.archived")}
-                  </SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select
-                value={typeFilter}
-                onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}
-              >
-                <SelectTrigger className="h-9 w-40 text-sm">
+              {/* Loại lọc dựng từ dữ liệu đã tải */}
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="h-9 w-48 text-sm">
                   <SelectValue
                     placeholder={t("admin.notifications.filter.type")}
                   />
@@ -140,69 +138,11 @@ export default function NotificationsPage() {
                   <SelectItem value="ALL">
                     {t("admin.notifications.filter.allTypes")}
                   </SelectItem>
-                  <SelectItem value={NotificationType.ORDER_CREATED}>
-                    {t("admin.notifications.type.orderCreated")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.ORDER_CONFIRMED}>
-                    {t("admin.notifications.type.orderConfirmed")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.ORDER_READY}>
-                    {t("admin.notifications.type.orderReady")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.ORDER_COMPLETED}>
-                    {t("admin.notifications.type.orderCompleted")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.ORDER_CANCELLED}>
-                    {t("admin.notifications.type.orderCancelled")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.PAYMENT_SUCCESSFUL}>
-                    {t("admin.notifications.type.paymentSuccessful")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.PAYMENT_FAILED}>
-                    {t("admin.notifications.type.paymentFailed")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.PROMOTION}>
-                    {t("admin.notifications.type.promotion")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.SYSTEM_ALERT}>
-                    {t("admin.notifications.type.systemAlert")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.LOYALTY_POINTS_EARNED}>
-                    {t("admin.notifications.type.loyaltyPointsEarned")}
-                  </SelectItem>
-                  <SelectItem value={NotificationType.LOYALTY_REWARD_UNLOCKED}>
-                    {t("admin.notifications.type.loyaltyRewardUnlocked")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={channelFilter}
-                onValueChange={(v) =>
-                  setChannelFilter(v as typeof channelFilter)
-                }
-              >
-                <SelectTrigger className="h-9 w-32 text-sm">
-                  <SelectValue
-                    placeholder={t("admin.notifications.filter.channel")}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">
-                    {t("admin.notifications.filter.allChannels")}
-                  </SelectItem>
-                  <SelectItem value={NotificationChannel.IN_APP}>
-                    {t("admin.notifications.channel.inApp")}
-                  </SelectItem>
-                  <SelectItem value={NotificationChannel.EMAIL}>
-                    {t("admin.notifications.channel.email")}
-                  </SelectItem>
-                  <SelectItem value={NotificationChannel.PUSH}>
-                    {t("admin.notifications.channel.push")}
-                  </SelectItem>
-                  <SelectItem value={NotificationChannel.SMS}>
-                    {t("admin.notifications.channel.sms")}
-                  </SelectItem>
+                  {typeOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label} ({opt.count})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -217,9 +157,10 @@ export default function NotificationsPage() {
           <NotificationTable
             notifications={notifications}
             isLoading={isLoading}
-            onDelete={handleDelete}
-            onUpdateStatus={handleUpdateStatus}
-            onResend={handleResend}
+            pendingIds={pendingIds}
+            onDelete={setDeleteTarget}
+            onMarkRead={(id) => void handleMarkRead(id)}
+            onResend={(id) => void handleResend(id)}
             page={page}
             pageSize={pageSize}
             totalPages={totalPages}
@@ -232,18 +173,28 @@ export default function NotificationsPage() {
 
       <BroadcastModal
         isOpen={showBroadcastModal}
-        onClose={() => {
-          setShowBroadcastModal(false);
-          refetch();
-        }}
+        onClose={() => setShowBroadcastModal(false)}
       />
 
       <CreateNotificationModal
         isOpen={showCreateModal}
-        onClose={() => {
-          setShowCreateModal(false);
-          refetch();
-        }}
+        onClose={() => setShowCreateModal(false)}
+      />
+
+      <ConfirmActionDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Xoá thông báo?"
+        description={
+          <p>
+            Thông báo #{deleteTarget?.id} «{deleteTarget?.title}» sẽ bị xoá khỏi hộp thư của người
+            nhận. Không hoàn tác được.
+          </p>
+        }
+        actionLabel="Xoá"
+        destructive
+        loading={isDeleting}
+        onConfirm={() => void confirmDelete()}
       />
     </div>
   );

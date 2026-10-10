@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { formatTime } from "~/lib/datetime";
 import type { JobResult } from "../hooks/useScheduler";
 
 interface JobResultsProps {
@@ -45,7 +46,7 @@ export function JobResults({ results }: JobResultsProps) {
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{result.jobName}</span>
                   <span className="text-xs text-muted-foreground">
-                    {result.timestamp.toLocaleTimeString("vi-VN")}
+                    {formatTime(result.timestamp)}
                   </span>
                 </div>
                 <p className={`text-sm ${result.success ? "text-green-700" : "text-red-700"}`}>

@@ -114,18 +114,24 @@ export const CreateUserRequestSchema = z.object({
   lastName: z.string().max(100).optional(),
   phoneNumber: z.string().max(20).optional(),
   roles: z.array(RoleNameSchema),
-  enabled: z.boolean().optional().default(true),
+  /** @deprecated user-service đọc `status`. */
+  enabled: z.boolean().optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 });
 
 export const UpdateUserRequestSchema = z.object({
   name: z.string().min(2).max(100).optional(),
+  firstName: z.string().max(100).optional(),
+  lastName: z.string().max(100).optional(),
   email: z.string().email('Invalid email format').optional(),
   imageUrl: z.string().url().optional(),
   phoneNumber: z.string().optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 });
 
+// user-service đọc `status` (UserController.adminStatus); gửi `enabled` thì nó lưu chuỗi "null".
 export const UpdateUserStatusRequestSchema = z.object({
-  enabled: z.boolean(),
+  status: z.enum(['ACTIVE', 'INACTIVE']),
 });
 
 export const UpdateUserRolesRequestSchema = z.object({

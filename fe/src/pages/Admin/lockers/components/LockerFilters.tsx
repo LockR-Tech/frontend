@@ -21,11 +21,6 @@ const options = [
     color: "yellow" as const,
   },
   { value: LockerStatus.INACTIVE, label: "Vô hiệu", color: "gray" as const },
-  {
-    value: LockerStatus.DISCONNECTED,
-    label: "Mất kết nối",
-    color: "red" as const,
-  },
 ];
 
 export function LockerFilters({
