@@ -127,6 +127,7 @@ export const baseApi = createApi({
     "Wallet", // Ví nội bộ / điều chỉnh số dư
     "Drones", // Đội drone giao/nhận gắn bãi đáp tủ
     "DroneOrders", // Hành trình giao hàng bằng drone (admin theo dõi)
+    "DroneIncidents", // Sự cố rơi kiện, thu hồi và phương án xử lý
     "BusinessSettings", // Quy tắc nghiệp vụ theo scope (ADR-0005)
     "BusinessSettingAudits", // Lịch sử thay đổi quy tắc nghiệp vụ
     "PaymentRefunds", // Hoàn tiền (báo cáo admin)
