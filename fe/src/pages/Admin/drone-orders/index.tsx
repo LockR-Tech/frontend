@@ -33,6 +33,7 @@ import {
 } from "~/stores/apis/admin/droneOrders";
 import { DroneJourneyTimeline } from "./DroneJourneyTimeline";
 import { DroneTrackingMap } from "./DroneTrackingMap";
+import { LiveCameraPanel } from "./LiveCameraPanel";
 import { isPickupCodeEvent, pickupCodeEvent, sentAt, stageTimes } from "./journey";
 
 /** Danh sách hỏi lại server sau mỗi khoảng này để chặng mới tự hiện, không cần tải lại trang. */
@@ -407,6 +408,10 @@ function DroneOrderDialog({
             <Section title="Bản đồ theo dõi">
               <DroneTrackingMap order={order} />
             </Section>
+
+            {!isFinished(order) && IN_FLIGHT_STAGES.has(order.deliveryStage ?? "") && (
+              <LiveCameraPanel order={order} />
+            )}
 
             {(order.parcelReturnPending || order.parcelReturnedAt) && (
               <ParcelReturnPanel order={order} />
