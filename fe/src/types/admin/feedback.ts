@@ -5,31 +5,45 @@
 import type { ReportAttachmentRequest } from "~/stores/apis/media";
 
 // ─── Feedback (OrderRating) ───────────────────────────────────────────────────
-// NOTE: Admin-wide feedback list endpoint not yet in BE — FeedbackTab shows error gracefully
+// BE: order-service AdminFeedbackController — /api/admin/feedback/**, /api/admin/analytics/*.
+// Tên khách/email là null khi user-service lỗi.
+
+/** PageResponse của common-lib (khác Page của Spring Data). */
+export interface AdminPage<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
 
 export interface FeedbackDTO {
   id: number;
   userId: number;
-  userName: string;
-  email: string;
+  userName: string | null;
+  email: string | null;
   rating: number; // 1-5
-  comment: string;
+  comment: string | null;
   relatedOrderId: number | null;
+  orderCode: string | null;
   orderDescription: string | null;
   isResolved: boolean;
+  /** Admin đã trả lời khách. */
+  replied: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string | null;
 }
 
 export interface FeedbackDetailDTO {
   id: number;
   userId: number;
-  userName: string;
-  userEmail: string;
-  userPhone: string;
+  userName: string | null;
+  userEmail: string | null;
+  userPhone: string | null;
   rating: number;
-  comment: string;
+  comment: string | null;
   relatedOrderId: number | null;
+  orderCode: string | null;
   serviceType: string | null;
   orderAmount: number | null;
   adminReply: string | null;
@@ -49,18 +63,21 @@ export interface ReplyFeedbackRequest {
 }
 
 // ─── LockerReport ─────────────────────────────────────────────────────────────
-// BE: GET /api/admin/lockers/reports  |  PUT /api/admin/lockers/reports/{id}/resolve
+// BE: GET /api/admin/lockers/reports (trả cả danh sách, không phân trang, không lọc)
+//     PUT /api/admin/lockers/reports/{id}/resolve
+// Trường khớp LockerReportResponse của locker-service.
 
-export type LockerReportStatus = "PENDING" | "RESOLVED" | "REJECTED";
+export type LockerReportStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED";
 
 export interface ReportDTO {
   id: number;
   lockerId: number;
-  lockerName: string;
+  lockerName: string | null;
+  boxNumber: number | null;
   userId: number;
-  userFullName: string;
-  userEmail: string;
-  userPhone: string;
+  reporterName: string | null;
+  reporterPhone: string | null;
+  title: string | null;
   description: string;
   status: LockerReportStatus;
   createdAt: string;

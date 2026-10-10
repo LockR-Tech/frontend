@@ -21,6 +21,8 @@ import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Textarea } from "~/components/ui/textarea";
+import { toast } from "sonner";
+import { orderTypeMeta } from "~/components/shared/reporting/report-meta";
 import {
   useGetFeedbackByIdQuery,
   useUpdateFeedbackStatusMutation,
@@ -31,6 +33,11 @@ import {
 // Chuỗi backend không kèm múi giờ = UTC, phải qua formatDateTime mới ra giờ VN.
 function fmtDate(d: string) {
   return formatDateTime(d);
+}
+
+function errorMessage(err: unknown): string {
+  const data = (err as { data?: { message?: string } } | undefined)?.data;
+  return data?.message || "Đã xảy ra lỗi, vui lòng thử lại.";
 }
 
 function StarRow({ rating, size = 16 }: { rating: number; size?: number }) {
@@ -130,12 +137,17 @@ export default function FeedbackDetailPage() {
     );
   }
 
+  // Ở lại trang để thấy kết quả (danh sách và chi tiết tự làm mới qua tag); lỗi thì báo lỗi.
   async function handleToggleResolved() {
-    await updateStatus({
-      id,
-      data: { status: !isResolved ? "RESOLVED" : "PENDING" },
-    });
-    navigate("/admin/feedback");
+    try {
+      await updateStatus({
+        id,
+        data: { status: !isResolved ? "RESOLVED" : "PENDING" },
+      }).unwrap();
+      toast.success(!isResolved ? "Đã đánh dấu đã xử lý" : "Đã mở lại phản hồi");
+    } catch (err) {
+      toast.error("Không cập nhật được trạng thái", { description: errorMessage(err) });
+    }
   }
 
   async function handleReply() {
@@ -144,9 +156,13 @@ export default function FeedbackDetailPage() {
       return;
     }
     setReplyError("");
-    await replyFeedback({ id, data: { reply: replyText.trim() } });
-    setReplyText("");
-    navigate("/admin/feedback");
+    try {
+      await replyFeedback({ id, data: { reply: replyText.trim() } }).unwrap();
+      setReplyText("");
+      toast.success("Đã gửi phản hồi tới khách hàng");
+    } catch (err) {
+      setReplyError(errorMessage(err));
+    }
   }
 
   const ratingColor =
@@ -250,10 +266,16 @@ export default function FeedbackDetailPage() {
                     <span className="text-sm text-muted-foreground">
                       Đơn hàng liên quan:
                     </span>
-                    <Badge variant="outline">#{fb.relatedOrderId}</Badge>
+                    <Badge
+                      variant="outline"
+                      className="cursor-pointer hover:bg-secondary"
+                      onClick={() => navigate(`/admin/orders/${fb.relatedOrderId}`)}
+                    >
+                      {fb.orderCode || `#${fb.relatedOrderId}`}
+                    </Badge>
                     {fb.serviceType && (
                       <Badge variant="outline" className="text-xs">
-                        {fb.serviceType}
+                        {orderTypeMeta(fb.serviceType).label}
                       </Badge>
                     )}
                     {fb.orderAmount != null && (
@@ -366,7 +388,7 @@ export default function FeedbackDetailPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold text-foreground">{fb.userName}</p>
+                  <p className="font-semibold text-foreground">{fb.userName || "Khách hàng"}</p>
                   <p className="text-xs text-muted-foreground">Mã KH #{fb.userId}</p>
                 </div>
               </div>

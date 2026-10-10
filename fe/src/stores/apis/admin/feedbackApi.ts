@@ -2,6 +2,7 @@ import { baseApi } from "../../baseAPi";
 import { ADMIN_ENDPOINTS } from "../../../constants";
 import type { ApiResponse, Page } from "../../../types";
 import type {
+  AdminPage,
   FeedbackDTO,
   FeedbackDetailDTO,
   UpdateFeedbackStatusRequest,
@@ -18,7 +19,7 @@ export const feedbackManagementApi = baseApi.injectEndpoints({
 
     // 1. GET /api/admin/feedback
     getAllFeedback: builder.query<
-      ApiResponse<Page<FeedbackDTO>>,
+      ApiResponse<AdminPage<FeedbackDTO>>,
       {
         page?: number;
         size?: number;
@@ -97,22 +98,13 @@ export const feedbackManagementApi = baseApi.injectEndpoints({
           ...(status && { status }),
         },
       }),
-      providesTags: ["NotificationStats"],
+      // Cùng phiếu LockerReport với trang Bảo trì: mutation bên đó làm mới tag Lockers.
+      providesTags: ["NotificationStats", "Lockers"],
     }),
 
-    // 6. PUT /api/admin/lockers/reports/{id}/resolve
-    resolveReport: builder.mutation<
-      ApiResponse<ReportDTO>,
-      { id: number; data: ResolveReportRequest }
-    >({
-      query: ({ id, data }) => ({
-        url: ADMIN_ENDPOINTS.REPORT_RESOLVE(id),
-        method: "PUT",
-        body: data,
-      }),
-      // Cùng phiếu LockerReport với trang Bảo trì (tag Lockers) — làm mới cả hai
-      invalidatesTags: ["NotificationStats", "Lockers"],
-    }),
+    // Giải quyết phiếu: dùng `resolveAdminReport` của lockerOps. Đừng định nghĩa lại tên
+    // `resolveReport` ở đây — trùng tên trong cùng baseApi thì RTK giữ bản tiêm trước, bản
+    // kia bị bỏ qua và gọi /reports/undefined/resolve.
 
     // ── ANALYTICS ──────────────────────────────────────────────────────────
 
@@ -145,7 +137,6 @@ export const {
   useUpdateFeedbackStatusMutation,
   useReplyToFeedbackMutation,
   useGetAllReportsQuery,
-  useResolveReportMutation,
   useGetFeedbackAnalyticsQuery,
   useGetSatisfactionMetricsQuery,
 } = feedbackManagementApi;

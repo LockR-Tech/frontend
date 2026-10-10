@@ -59,16 +59,16 @@ export const REPORT_STATUS_META: Record<
   string,
   { label: string; cls: string }
 > = {
-  PENDING: {
+  OPEN: {
     label: "Chờ xử lý",
     cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  },
+  IN_PROGRESS: {
+    label: "Đang xử lý",
+    cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
   },
   RESOLVED: {
     label: "Đã giải quyết",
     cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
-  },
-  REJECTED: {
-    label: "Từ chối",
-    cls: "bg-secondary text-muted-foreground border-border",
   },
 };
