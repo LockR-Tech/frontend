@@ -103,6 +103,7 @@
       "maintenance": "メンテナンス",
       "drones": "ドローン",
       "droneOrders": "ドローン配送の追跡",
+      "droneIncidents": "荷物落下インシデント",
       "businessSettings": "業務ルール設定",
       "knowledge": "ナレッジベース"
     },
