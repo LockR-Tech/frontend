@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   XCircle,
   Wrench,
-  WifiOff,
   Eye,
   Power,
   UserCheck,
@@ -100,8 +99,9 @@ const TruncatedText = ({
   );
 };
 
+// Backend chỉ có ACTIVE / INACTIVE / MAINTENANCE (không có DISCONNECTED) — giá trị lạ dùng nhãn thô
 const getStatusBadge = (status: LockerStatus, t: (key: string) => string) => {
-  const variants: Record<
+  const variants: Partial<Record<
     LockerStatus,
     {
       bg: string;
@@ -110,7 +110,7 @@ const getStatusBadge = (status: LockerStatus, t: (key: string) => string) => {
       icon: React.ElementType;
       label: string;
     }
-  > = {
+  >> = {
     [LockerStatus.ACTIVE]: {
       bg: "bg-emerald-500/10",
       text: "text-emerald-700 dark:text-emerald-400",
@@ -131,13 +131,6 @@ const getStatusBadge = (status: LockerStatus, t: (key: string) => string) => {
       border: "border-amber-500/20",
       icon: Wrench,
       label: t("admin.lockers.status.maintenance"),
-    },
-    [LockerStatus.DISCONNECTED]: {
-      bg: "bg-red-500/10",
-      text: "text-red-700 dark:text-red-400",
-      border: "border-red-500/20",
-      icon: WifiOff,
-      label: t("admin.lockers.status.disconnected"),
     },
   };
 
@@ -256,44 +249,50 @@ export function LockerTable({
       cell: ({ row }) => {
         const availableBoxes = row.original.availableBoxes ?? 0;
         const totalBoxes = row.original.totalBoxes ?? 0;
+
+        // Tủ bảo trì / vô hiệu: server trả availableBoxes = 0 ⇒ không suy ra "đang dùng", chỉ ghi số ô + trạng thái
+        if (row.original.status !== LockerStatus.ACTIVE) {
+          return (
+            <div className="flex flex-col gap-0.5 w-32">
+              <span className="text-sm font-semibold text-foreground/80">{totalBoxes} ô</span>
+              <span className="text-xs text-muted-foreground">
+                {row.original.status === LockerStatus.MAINTENANCE
+                  ? "Đang bảo trì"
+                  : row.original.status === LockerStatus.INACTIVE
+                    ? "Đã vô hiệu"
+                    : row.original.status || "—"}{" "}
+                · không nhận đơn
+              </span>
+            </div>
+          );
+        }
+
         const availablePercent =
           totalBoxes > 0 ? (availableBoxes / totalBoxes) * 100 : 0;
+        const toneText =
+          availablePercent > 50
+            ? "text-green-600"
+            : availablePercent > 20
+              ? "text-amber-500"
+              : "text-red-500";
+        const toneBar =
+          availablePercent > 50
+            ? "bg-green-500"
+            : availablePercent > 20
+              ? "bg-amber-500"
+              : "bg-red-500";
 
         return (
-          <div className="flex flex-col gap-1.5 w-28">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-foreground/80">
-                {availableBoxes}/{totalBoxes}
-              </span>
-              <span
-                className={`text-xs font-medium ${
-                  availablePercent > 50
-                    ? "text-green-600"
-                    : availablePercent > 20
-                      ? "text-amber-500"
-                      : "text-red-500"
-                }`}
-              >
-                trống
-              </span>
-            </div>
+          <div className="flex flex-col gap-1.5 w-32">
+            <span className="text-sm">
+              <span className={`font-semibold ${toneText}`}>{availableBoxes} trống</span>
+              <span className="text-muted-foreground"> / {totalBoxes} ô</span>
+            </span>
             <div className="w-full h-1.5 bg-muted/50 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full ${
-                  availablePercent > 50
-                    ? "bg-green-500"
-                    : availablePercent > 20
-                      ? "bg-amber-500"
-                      : "bg-red-500"
-                }`}
+                className={`h-full rounded-full ${toneBar}`}
                 style={{ width: `${availablePercent}%` }}
               />
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-orange-400"></span>
-                {totalBoxes - availableBoxes} đang dùng
-              </span>
             </div>
           </div>
         );

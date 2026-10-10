@@ -22,7 +22,6 @@ import {
   Box as BoxIcon,
   Plane,
   Luggage,
-  Sparkles,
   Trash2,
   Sliders,
   AlertTriangle,
@@ -32,7 +31,15 @@ import {
   useDeleteBoxMutation,
   type CellResponse,
 } from "~/stores/apis/admin/lockerOps";
-import { isXlCell, isDroneCell } from "~/lib/lockerLayoutHelper";
+import { isXlCell, isDroneCell, normalizeBoxSize } from "~/lib/lockerLayoutHelper";
+
+// Ô đang có đơn hoặc đang báo hỏng: trạng thái do luồng đơn hàng / phiếu sự cố quản lý, không sửa tay ở đây
+const LOCKED_STATUS_HINT: Record<string, { label: string; hint: string }> = {
+  OCCUPIED: { label: "Đang chứa hàng", hint: "Ô đang có đơn — trạng thái tự đổi khi khách lấy đồ." },
+  IN_USE: { label: "Đang chứa hàng", hint: "Ô đang có đơn — trạng thái tự đổi khi khách lấy đồ." },
+  RESERVED: { label: "Đã giữ chỗ", hint: "Ô đang được giữ cho một đơn — trạng thái tự đổi theo đơn hàng." },
+  FAULT: { label: "Báo hỏng", hint: "Dùng \"Khôi phục ô\" trên sơ đồ để đóng phiếu sự cố và trả ô về hoạt động." },
+};
 
 interface EditBoxModalProps {
   open: boolean;
@@ -54,7 +61,7 @@ export function EditBoxModal({
 
   const [boxNumber, setBoxNumber] = useState<number | "">("");
   const [cellType, setCellType] = useState<string>("STANDARD");
-  const [size, setSize] = useState<string>("M");
+  const [size, setSize] = useState<string>("MEDIUM");
   const [rowIndex, setRowIndex] = useState<number>(1);
   const [colIndex, setColIndex] = useState<number>(1);
   const [status, setStatus] = useState<string>("AVAILABLE");
@@ -68,7 +75,8 @@ export function EditBoxModal({
         cell.cellType ||
           (isXlCell(cell) ? "XL" : isDroneCell(cell) ? "DRONE" : "STANDARD")
       );
-      setSize(cell.size || "M");
+      // Backend lưu SMALL/MEDIUM/LARGE/XL; dữ liệu cũ có thể là S/M/L
+      setSize(normalizeBoxSize(cell.size));
       setRowIndex(cell.rowIndex ?? 1);
       setColIndex(cell.colIndex ?? 1);
       setStatus(cell.status || "AVAILABLE");
@@ -79,6 +87,9 @@ export function EditBoxModal({
 
   if (!cell) return null;
 
+  const isOccupied = cell.status === "OCCUPIED" || cell.status === "RESERVED" || cell.status === "IN_USE";
+  const lockedStatus = LOCKED_STATUS_HINT[cell.status] ?? null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!boxNumber) {
@@ -87,16 +98,6 @@ export function EditBoxModal({
     }
 
     try {
-      const normalizeBoxSize = (s: string) => {
-        switch (s?.toUpperCase()) {
-          case "S": return "SMALL";
-          case "M": return "MEDIUM";
-          case "L": return "LARGE";
-          case "XL": return "XL";
-          default: return s || "MEDIUM";
-        }
-      };
-
       await updateBox({
         boxId: cell.id,
         boxNumber: Number(boxNumber),
@@ -104,7 +105,8 @@ export function EditBoxModal({
         size: normalizeBoxSize(size),
         rowIndex: Number(rowIndex),
         colIndex: Number(colIndex),
-        status,
+        // Không gửi trạng thái khi ô đang có đơn / đang hỏng, hoặc khi admin không đổi
+        status: lockedStatus || status === cell.status ? undefined : status,
         description: description.trim() || undefined,
       }).unwrap();
 
@@ -127,8 +129,6 @@ export function EditBoxModal({
       toast.error(err?.data?.message || err?.message || "Không thể xóa ô tủ");
     }
   };
-
-  const isOccupied = cell.status === "OCCUPIED" || cell.status === "RESERVED" || cell.status === "IN_USE";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -246,9 +246,9 @@ export function EditBoxModal({
                       <SelectValue placeholder="Chọn cỡ" />
                     </SelectTrigger>
                     <SelectContent className="text-xs">
-                      <SelectItem value="S">Nhỏ (S)</SelectItem>
-                      <SelectItem value="M">Trung bình (M - Chuẩn)</SelectItem>
-                      <SelectItem value="L">Lớn (L)</SelectItem>
+                      <SelectItem value="SMALL">Nhỏ (S)</SelectItem>
+                      <SelectItem value="MEDIUM">Trung bình (M - Chuẩn)</SelectItem>
+                      <SelectItem value="LARGE">Lớn (L)</SelectItem>
                       <SelectItem value="XL">Đặc biệt lớn (XL)</SelectItem>
                     </SelectContent>
                   </Select>
@@ -297,22 +297,34 @@ export function EditBoxModal({
                 <Label htmlFor="editStatus" className="font-semibold text-xs">
                   Trạng thái ô tủ
                 </Label>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger id="editStatus" className="h-9 text-xs">
-                    <SelectValue placeholder="Chọn trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent className="text-xs">
-                    <SelectItem value="AVAILABLE">Sẵn sàng (AVAILABLE)</SelectItem>
-                    <SelectItem value="OUT_OF_SERVICE">Tạm ngưng dùng (OUT_OF_SERVICE)</SelectItem>
-                    <SelectItem value="CLEANING">Đang vệ sinh (CLEANING)</SelectItem>
-                    <SelectItem value="FAULT">Báo hỏng (FAULT)</SelectItem>
-                    {isOccupied && (
-                      <SelectItem value={cell.status} disabled>
-                        {cell.status} (Đang có đơn hàng)
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                {lockedStatus ? (
+                  <>
+                    <Input
+                      id="editStatus"
+                      value={`${lockedStatus.label} (${cell.status})`}
+                      readOnly
+                      disabled
+                      className="h-9 text-xs"
+                    />
+                    <p className="text-[10px] text-muted-foreground">{lockedStatus.hint}</p>
+                  </>
+                ) : (
+                  <>
+                    <Select value={status} onValueChange={setStatus}>
+                      <SelectTrigger id="editStatus" className="h-9 text-xs">
+                        <SelectValue placeholder="Chọn trạng thái" />
+                      </SelectTrigger>
+                      <SelectContent className="text-xs">
+                        <SelectItem value="AVAILABLE">Sẵn sàng (AVAILABLE)</SelectItem>
+                        <SelectItem value="OUT_OF_SERVICE">Tạm ngưng dùng (OUT_OF_SERVICE)</SelectItem>
+                        <SelectItem value="CLEANING">Đang vệ sinh (CLEANING)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground">
+                      Báo hỏng ô dùng mục &quot;Báo hỏng ô tủ&quot; trên sơ đồ để mở phiếu sự cố cho KTV.
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Ghi chú */}

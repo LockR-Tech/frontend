@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,10 +16,6 @@ import {
   Download,
   Copy,
   Check,
-  Plane,
-  Box as BoxIcon,
-  Luggage,
-  Layers,
   Sparkles,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -47,7 +43,6 @@ export function BoxQrModal({
 }: BoxQrModalProps) {
   const [printMode, setPrintMode] = useState<"single" | "all">("single");
   const [copied, setCopied] = useState(false);
-  const printContainerRef = useRef<HTMLDivElement>(null);
 
   if (!cell && cells.length === 0) return null;
 
@@ -127,7 +122,7 @@ export function BoxQrModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="box-qr-dialog sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2 text-base font-bold">
@@ -198,7 +193,7 @@ export function BoxQrModal({
                       DRONE
                     </Badge>
                   )}
-                  {currentCell.cellType === "XL" && (
+                  {isXl && (
                     <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-2 py-0.5">
                       VALI XL
                     </Badge>
@@ -224,7 +219,7 @@ export function BoxQrModal({
                   <span className="font-bold text-slate-800">
                     {isDrone
                       ? "Tiếp nhận Drone"
-                      : currentCell.cellType === "XL"
+                      : isXl
                       ? "Khoang Vali (XL)"
                       : "Ô tiêu chuẩn đa năng"}
                   </span>
@@ -322,7 +317,7 @@ export function BoxQrModal({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-6 w-full text-[10px]"
+                      className="h-6 w-full text-[10px] print:hidden"
                       onClick={() => handleDownloadPng(c)}
                     >
                       <Download className="w-3 h-3 mr-1" /> Tải PNG
@@ -393,15 +388,41 @@ export function BoxQrModal({
               border: 2px solid #000 !important;
               page-break-after: always;
             }
+            /* Bỏ giới hạn chiều cao / cuộn của dialog và lưới khi in, nếu không chỉ in được phần đang hiển thị */
+            html,
+            body {
+              height: auto !important;
+              overflow: visible !important;
+            }
+            .box-qr-dialog {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              transform: none !important;
+              translate: none !important;
+              animation: none !important;
+              max-height: none !important;
+              max-width: none !important;
+              width: 100% !important;
+              overflow: visible !important;
+              border: 0 !important;
+              box-shadow: none !important;
+            }
             #printable-all-stickers {
               position: absolute !important;
               left: 0 !important;
               top: 0 !important;
               width: 100% !important;
+              max-height: none !important;
+              overflow: visible !important;
               display: grid !important;
               grid-template-columns: repeat(3, 1fr) !important;
               gap: 15px !important;
               padding: 20px !important;
+            }
+            #printable-all-stickers > div {
+              break-inside: avoid;
+              page-break-inside: avoid;
             }
           }
         `}</style>
