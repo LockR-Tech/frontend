@@ -28,7 +28,13 @@
     "errLocked": "This account is locked.",
     "errDisabled": "This account is disabled.",
     "errLogin": "Sign-in failed.",
-    "errOtp": "Verification failed."
+    "errOtp": "Verification failed.",
+    "errNotAdmin": "This account does not have administrator access.",
+    "errOtpInvalid": "The verification code is incorrect or has expired.",
+    "errOtpRemaining": "The verification code is incorrect or has expired. {{count}} attempt(s) left.",
+    "errOtpTooMany": "The verification code is incorrect and this sign-in session has ended. Sign in again to get a new code.",
+    "errSessionExpired": "The verification session has expired. Sign in again to get a new code.",
+    "errNetwork": "Cannot reach the server. Check your connection and try again."
   },
   "button": {
     "login": "Sign In",
@@ -76,7 +82,16 @@
     "notifications": "Notifications",
     "search": "Search...",
     "noNotifications": "No new notifications",
-    "openNotificationCenter": "Open notification center >"
+    "openNotificationCenter": "Open notification center >",
+    "notificationsError": "Could not load notifications.",
+    "unreadNotifications": "Notifications ({{count}} unread)",
+    "unreadBadge": "{{count}} unread",
+    "searchTitle": "Go to page",
+    "searchDescription": "Type a page name, then press Enter to open it.",
+    "searchPlaceholder": "Search admin pages…",
+    "searchEmpty": "No matching page.",
+    "searchGroup": "Admin pages",
+    "loadingDrone": "Loading drone…"
   },
   "table": {
     "rowsPerPage": "Rows per page",
@@ -95,6 +110,7 @@
       "payments": "Payments",
       "revenue": "Revenue",
       "loyalty": "Loyalty",
+      "loyaltyProgram": "Loyalty points",
       "partners": "Partners",
       "feedback": "Feedback",
       "scheduler": "Scheduler",
@@ -232,6 +248,7 @@
       "title": "Partner Management",
       "description": "Manage and approve partners in the system",
       "searchPlaceholder": "Search partners...",
+      "addPartner": "Add partner",
       "columns": {
         "partner": "Partner",
         "representative": "Representative",
@@ -255,6 +272,7 @@
       "description": "Manage automated tasks and manual triggers",
       "statusTitle": "Scheduler Status",
       "systemStatus": "System Status",
+      "ownerLabel": "Running in:",
       "loading": "Loading...",
       "cannotConnect": "Cannot connect",
       "running": "Running",
@@ -269,24 +287,47 @@
       "runningNow": "Running...",
       "auto": "Automatic",
       "infoTitle": "Information",
-      "info1": "Scheduler jobs run automatically at configured intervals",
-      "info2": "Admin can trigger manually for testing or urgent processing",
-      "info3": "Job results are kept for the last 10 runs",
+      "info1": "Jobs run automatically inside order-service on the default OrderScheduler schedule; schedule times are server time (UTC).",
+      "info2": "Admins can trigger a job manually for testing or urgent processing — the effect is the same as an automatic run.",
+      "info3": "The history below only keeps the last 10 manual runs in this browser session.",
+      "confirmTitle": "Run \"{{job}}\" now?",
+      "result": {
+        "canceledOrders": "Canceled {{count}} orders",
+        "reminders": "Sent {{count}} reminders",
+        "expiredOrders": "Moved {{count}} orders to storage",
+        "reconciled": "Released {{released}} orphaned boxes, reclaimed {{reclaimed}} boxes for active orders",
+        "reconcileSkipped": "Skipped: locker-service unreachable",
+        "done": "Completed",
+        "failed": "Could not run the job"
+      },
       "jobs": {
         "autoCancel": {
-          "title": "Auto-Cancel Orders",
-          "description": "Automatically cancel INITIALIZED orders not confirmed within 30 minutes. Releases box and sends notification to customer.",
-          "frequency": "Every 5 minutes"
+          "title": "Auto-cancel unconfirmed orders",
+          "description": "Cancels INITIALIZED orders past their hold window, releases the box and refunds promotion usage: unpaid orders after the «auto-cancel-unpaid-minutes» setting, paid orders never dropped off after the «auto-cancel-hours» setting.",
+          "frequency": "Every 2 minutes",
+          "confirm": "Every INITIALIZED order past its hold window is canceled immediately and its box released. This cannot be undone."
         },
         "releaseBoxes": {
-          "title": "Release Boxes",
-          "description": "Release boxes from COMPLETED orders after 5 minutes. Clears PIN code for security.",
-          "frequency": "Every 2 minutes"
+          "title": "Release boxes of completed orders",
+          "description": "Safety net: sweeps COMPLETED orders and releases any box still held (e.g. orders completed through the legacy API).",
+          "frequency": "Daily at 03:15 (server time UTC, 10:15 Vietnam time)"
         },
         "pickupReminders": {
-          "title": "Pickup Reminders",
-          "description": "Send pickup reminder notifications to customers with RETURNED orders over 24 hours.",
-          "frequency": "Every 1 hour"
+          "title": "Overdue pickup reminders",
+          "description": "Notifies the sender (and receiver, if any) of stored orders past their pickup deadline; each order is reminded again only after the «reminder-cooldown-minutes» setting.",
+          "frequency": "Every 10 minutes"
+        },
+        "releaseOverdue": {
+          "title": "Move long-overdue orders to storage",
+          "description": "Stored orders overdue longer than the «overdue-release-hours» setting: finalizes the overtime fee, moves them to EXPIRED (items go to storage), releases the box, revokes the PIN and notifies the customer.",
+          "frequency": "Hourly at minute 05",
+          "confirm": "Long-overdue orders become EXPIRED, get the overtime fee, lose their PIN and their box is released for other orders; customers are notified. This cannot be undone."
+        },
+        "reconcileBoxes": {
+          "title": "Reconcile box states",
+          "description": "Compares box states in locker-service with active orders: releases RESERVED/OCCUPIED boxes no order holds, and reclaims AVAILABLE boxes that still belong to an active order.",
+          "frequency": "Hourly at minute 35",
+          "confirm": "Box states across all lockers may be changed to match active orders. Prefer running it when no drop-off/pickup is in progress."
         }
       }
     },

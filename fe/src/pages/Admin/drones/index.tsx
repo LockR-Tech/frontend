@@ -91,7 +91,11 @@ export default function DronesPage() {
   const [formOpen, setFormOpen] = useState(false);
 
   const drones = useMemo(() => data?.data ?? [], [data]);
-  const lockers = lockersQuery.data?.data ?? [];
+  // Drone chỉ đậu được ở Kiosk có bãi đáp
+  const landingPadLockers = useMemo(
+    () => (lockersQuery.data?.data ?? []).filter((locker) => locker.landingPad),
+    [lockersQuery.data],
+  );
 
   const statusCounts = useMemo(
     () =>
@@ -339,7 +343,8 @@ export default function DronesPage() {
       <DroneFormDialog
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        lockers={lockers}
+        lockers={landingPadLockers}
+        lockersLoading={lockersQuery.isLoading}
         isSaving={createState.isLoading}
         onSubmit={async ({ lockerId, code }) => {
           try {
@@ -383,12 +388,14 @@ function DroneFormDialog({
   open,
   onClose,
   lockers,
+  lockersLoading,
   isSaving,
   onSubmit,
 }: {
   open: boolean;
   onClose: () => void;
   lockers: LockerOption[];
+  lockersLoading: boolean;
   isSaving: boolean;
   onSubmit: (v: { lockerId: number; code: string }) => void;
 }) {
@@ -430,9 +437,21 @@ function DroneFormDialog({
           </div>
           <div>
             <Label className="mb-1.5 block text-xs">Tủ gốc (bãi đáp) *</Label>
-            <Select value={lockerId} onValueChange={setLockerId}>
+            <Select
+              value={lockerId}
+              onValueChange={setLockerId}
+              disabled={lockers.length === 0}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn tủ…" />
+                <SelectValue
+                  placeholder={
+                    lockersLoading
+                      ? "Đang tải danh sách tủ…"
+                      : lockers.length === 0
+                        ? "Chưa có tủ nào có bãi đáp"
+                        : "Chọn tủ có bãi đáp…"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {lockers.map((l) => (
@@ -444,6 +463,11 @@ function DroneFormDialog({
             </Select>
             {touched && !lockerId && (
               <p className="mt-1 text-xs text-red-600">Chọn tủ gốc.</p>
+            )}
+            {!lockersLoading && lockers.length === 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Chưa có tủ nào được cấu hình bãi đáp — cần có tủ có bãi đáp trước khi thêm drone.
+              </p>
             )}
           </div>
         </div>

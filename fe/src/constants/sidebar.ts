@@ -20,6 +20,8 @@ import {
   Wrench,
   SlidersHorizontal,
   BookOpen,
+  Gift,
+  Sparkles,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -47,6 +49,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     path: "/admin/lockers",
     label: "admin.sidebar.lockers",
     permission: "admin_access",
+  },
+  {
+    icon: Sparkles,
+    path: "/admin/services",
+    label: "admin.sidebar.services",
+    permission: "manage_services",
   },
   {
     icon: Wrench,
@@ -89,6 +97,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     path: "/admin/revenue",
     label: "admin.sidebar.revenue",
     permission: "view_payments",
+  },
+  {
+    icon: Gift,
+    path: "/admin/loyalty",
+    label: "admin.sidebar.loyaltyProgram",
+    permission: "manage_loyalty",
   },
   {
     icon: ListOrdered,

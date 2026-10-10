@@ -28,7 +28,13 @@
     "errLocked": "このアカウントはロックされています。",
     "errDisabled": "このアカウントは無効化されています。",
     "errLogin": "サインインに失敗しました。",
-    "errOtp": "認証に失敗しました。"
+    "errOtp": "認証に失敗しました。",
+    "errNotAdmin": "このアカウントには管理者権限がありません。",
+    "errOtpInvalid": "認証コードが正しくないか、有効期限が切れています。",
+    "errOtpRemaining": "認証コードが正しくないか、有効期限が切れています。残り {{count}} 回です。",
+    "errOtpTooMany": "認証コードが正しくなく、認証セッションが終了しました。もう一度サインインして新しいコードを受け取ってください。",
+    "errSessionExpired": "認証セッションの有効期限が切れました。もう一度サインインして新しいコードを受け取ってください。",
+    "errNetwork": "サーバーに接続できません。接続を確認して再度お試しください。"
   },
   "button": {
     "login": "サインイン",
@@ -76,7 +82,16 @@
     "notifications": "通知",
     "search": "検索...",
     "noNotifications": "新しい通知はありません",
-    "openNotificationCenter": "通知センターを開く >"
+    "openNotificationCenter": "通知センターを開く >",
+    "notificationsError": "通知を読み込めませんでした。",
+    "unreadNotifications": "通知（未読 {{count}} 件）",
+    "unreadBadge": "未読 {{count}}",
+    "searchTitle": "ページへ移動",
+    "searchDescription": "ページ名を入力して Enter キーで開きます。",
+    "searchPlaceholder": "管理ページを検索…",
+    "searchEmpty": "該当するページがありません。",
+    "searchGroup": "管理ページ",
+    "loadingDrone": "ドローンを読み込み中…"
   },
   "table": {
     "rowsPerPage": "ページあたりの行数",
@@ -93,7 +108,9 @@
       "lockers": "ロッカー",
       "services": "サービス",
       "payments": "支払い",
+      "revenue": "売上",
       "loyalty": "ロイヤルティ",
+      "loyaltyProgram": "ポイントプログラム",
       "partners": "パートナー",
       "feedback": "フィードバック",
       "scheduler": "スケジューラ",
@@ -229,6 +246,7 @@
       "title": "パートナー管理",
       "description": "システムのパートナーを管理および承認",
       "searchPlaceholder": "パートナーを検索...",
+      "addPartner": "パートナーを追加",
       "columns": {
         "partner": "パートナー",
         "representative": "担当者",
@@ -252,6 +270,7 @@
       "description": "自動タスクと手動トリガーの管理",
       "statusTitle": "スケジューラーの状態",
       "systemStatus": "システム状態",
+      "ownerLabel": "実行サービス:",
       "loading": "読み込み中...",
       "cannotConnect": "接続できません",
       "running": "稼働中",
@@ -266,24 +285,47 @@
       "runningNow": "実行中...",
       "auto": "自動",
       "infoTitle": "情報",
-      "info1": "スケジューラージョブは設定された間隔で自動実行されます",
-      "info2": "管理者はテストや緊急処理のために手動でトリガーできます",
-      "info3": "ジョブ結果は直近10回分が保存されます",
+      "info1": "ジョブは order-service 内で OrderScheduler の既定スケジュールに従って自動実行されます。時刻はサーバー時間(UTC)です。",
+      "info2": "管理者はテストや緊急処理のために手動実行できます。効果は自動実行と同じです。",
+      "info3": "下の履歴はこのブラウザセッションでの直近10回の手動実行のみ保持します。",
+      "confirmTitle": "「{{job}}」を今すぐ実行しますか?",
+      "result": {
+        "canceledOrders": "{{count}} 件の注文をキャンセルしました",
+        "reminders": "{{count}} 件のリマインダーを送信しました",
+        "expiredOrders": "{{count}} 件の注文を倉庫へ移しました",
+        "reconciled": "孤立したボックス {{released}} 個を解放し、有効な注文のボックス {{reclaimed}} 個を確保しました",
+        "reconcileSkipped": "スキップ: locker-service に接続できません",
+        "done": "完了しました",
+        "failed": "ジョブを実行できませんでした"
+      },
       "jobs": {
         "autoCancel": {
-          "title": "注文自動キャンセル",
-          "description": "30分以内に確認されなかったINITIALIZED注文を自動キャンセルします。ボックスを解放し顧客に通知します。",
-          "frequency": "5分ごと"
+          "title": "未確認注文の自動キャンセル",
+          "description": "保持期限を過ぎた INITIALIZED 注文をキャンセルし、ボックスを解放してプロモーション利用を戻します。未払いは「auto-cancel-unpaid-minutes」設定の分数後、支払済みで未投函は「auto-cancel-hours」設定の時間後です。",
+          "frequency": "2分ごと",
+          "confirm": "保持期限を過ぎたすべての INITIALIZED 注文が即時キャンセルされ、ボックスが解放されます。元に戻せません。"
         },
         "releaseBoxes": {
-          "title": "ボックス解放",
-          "description": "COMPLETED注文から5分後にボックスを解放します。セキュリティのためPINコードをクリアします。",
-          "frequency": "2分ごと"
+          "title": "完了注文のボックス解放",
+          "description": "安全策: COMPLETED 注文を走査し、まだ保持されているボックスを解放します(旧 API で完了した注文など)。",
+          "frequency": "毎日 03:15(サーバー時間 UTC、ベトナム時間 10:15)"
         },
         "pickupReminders": {
-          "title": "受取リマインダー",
-          "description": "24時間以上経過したRETURNED注文の顧客に受取リマインダーを送信します。",
-          "frequency": "1時間ごと"
+          "title": "受取期限切れリマインダー",
+          "description": "受取期限を過ぎた保管中注文の送り主(受取人がいれば受取人も)に通知します。同じ注文への再通知は「reminder-cooldown-minutes」設定の間隔後のみです。",
+          "frequency": "10分ごと"
+        },
+        "releaseOverdue": {
+          "title": "長期期限切れ注文の倉庫移動",
+          "description": "「overdue-release-hours」設定より長く受取期限を過ぎた保管中注文: 超過料金を確定し、EXPIRED(倉庫へ移動)にしてボックスを解放、PIN を無効化して顧客に通知します。",
+          "frequency": "毎時 05 分",
+          "confirm": "長期期限切れの注文は EXPIRED になり、超過料金が加算され、PIN が無効化され、ボックスは他の注文に解放されます。顧客に通知されます。元に戻せません。"
+        },
+        "reconcileBoxes": {
+          "title": "ボックス状態の照合",
+          "description": "locker-service のボックス状態と有効な注文を照合します。どの注文も保持していない RESERVED/OCCUPIED ボックスを解放し、有効な注文に属する AVAILABLE ボックスを確保し直します。",
+          "frequency": "毎時 35 分",
+          "confirm": "全ロッカーのボックス状態が有効な注文に合わせて変更される場合があります。投函・受取が行われていない時間帯の実行を推奨します。"
         }
       }
     },

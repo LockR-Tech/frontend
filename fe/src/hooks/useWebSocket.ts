@@ -27,6 +27,13 @@ export interface OrderUpdateNotification {
 
 type MessageHandler<T = unknown> = (message: T) => void;
 
+interface SubscriptionEntry {
+  destination: string;
+  handler: (message: IMessage) => void;
+  /** Subscription STOMP của phiên hiện tại; null khi chưa/mất kết nối */
+  stompSub: StompSubscription | null;
+}
+
 interface UseWebSocketOptions {
   /** Auto connect on mount */
   autoConnect?: boolean;
@@ -43,7 +50,10 @@ interface UseWebSocketReturn {
   connect: () => void;
   /** Disconnect from WebSocket server */
   disconnect: () => void;
-  /** Subscribe to a topic */
+  /**
+   * Subscribe to a topic. Gọi được cả trước khi kết nối: subscription được xếp hàng
+   * và tự đăng ký (lại) mỗi lần STOMP kết nối. Handle trả về luôn huỷ được.
+   */
   subscribe: <T = unknown>(
     destination: string,
     callback: MessageHandler<T>
@@ -66,6 +76,10 @@ export function useWebSocket(
   const { autoConnect = false, reconnectDelay = 5000, debug = false } = options;
 
   const clientRef = useRef<Client | null>(null);
+  // Sổ đăng ký subscription: giữ cả những subscription xin trước khi STOMP kết nối,
+  // để onConnect (kể cả sau khi tự kết nối lại) đăng ký lại toàn bộ.
+  const subscriptionsRef = useRef(new Map<string, SubscriptionEntry>());
+  const subscriptionSeqRef = useRef(0);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,6 +90,22 @@ export function useWebSocket(
       }
     },
     [debug]
+  );
+
+  // Gắn một subscription vào phiên STOMP hiện tại (nếu đang kết nối)
+  const attach = useCallback(
+    (entry: SubscriptionEntry) => {
+      const client = clientRef.current;
+      if (!client?.connected) return;
+      try {
+        entry.stompSub = client.subscribe(entry.destination, entry.handler);
+        log(`Subscribed to ${entry.destination}`);
+      } catch (e) {
+        entry.stompSub = null;
+        log(`Subscribe failed for ${entry.destination}`, e);
+      }
+    },
+    [log]
   );
 
   // Initialize STOMP client
@@ -90,13 +120,28 @@ export function useWebSocket(
       debug: (str) => {
         if (debug) console.log(`[STOMP] ${str}`);
       },
+      // Đọc token mỗi lần (kết nối lại) để dùng access token mới nhất sau khi refresh
+      beforeConnect: (stompClient) => {
+        const token = localStorage.getItem("accessToken")?.replace(/\s/g, "");
+        stompClient.connectHeaders = token
+          ? { Authorization: `Bearer ${token}` }
+          : {};
+      },
       onConnect: () => {
         log("Connected to WebSocket server");
+        // Phiên mới: subscription cũ đã mất, đăng ký lại tất cả
+        subscriptionsRef.current.forEach((entry) => attach(entry));
         setConnected(true);
         setError(null);
       },
       onDisconnect: () => {
         log("Disconnected from WebSocket server");
+        setConnected(false);
+      },
+      onWebSocketClose: () => {
+        subscriptionsRef.current.forEach((entry) => {
+          entry.stompSub = null;
+        });
         setConnected(false);
       },
       onStompError: (frame) => {
@@ -111,12 +156,12 @@ export function useWebSocket(
     });
 
     return client;
-  }, [reconnectDelay, debug, log]);
+  }, [reconnectDelay, debug, log, attach]);
 
   // Connect
   const connect = useCallback(() => {
-    if (clientRef.current?.connected) {
-      log("Already connected");
+    if (clientRef.current?.active) {
+      log("Already active");
       return;
     }
 
@@ -130,46 +175,68 @@ export function useWebSocket(
       clientRef.current = initClient();
     }
 
-    // Add auth header
-    clientRef.current.connectHeaders = {
-      Authorization: `Bearer ${token}`,
-    };
-
     log("Connecting to WebSocket...");
     clientRef.current.activate();
   }, [initClient, log]);
 
-  // Disconnect
+  // Disconnect: tắt cả khi đang kết nối dở / chờ kết nối lại, không chỉ khi đã connected
   const disconnect = useCallback(() => {
-    if (clientRef.current?.connected) {
+    const client = clientRef.current;
+    if (client?.active) {
       log("Disconnecting from WebSocket...");
-      clientRef.current.deactivate();
+      void client.deactivate();
     }
+    subscriptionsRef.current.forEach((entry) => {
+      entry.stompSub = null;
+    });
+    setConnected(false);
   }, [log]);
 
-  // Subscribe to a destination
+  // Subscribe: luôn trả về handle; nếu chưa kết nối thì xếp hàng chờ onConnect
   const subscribe = useCallback(
     <T = unknown>(
       destination: string,
       callback: MessageHandler<T>
-    ): StompSubscription | null => {
-      if (!clientRef.current?.connected) {
-        log("Cannot subscribe: not connected");
-        return null;
+    ): StompSubscription => {
+      subscriptionSeqRef.current += 1;
+      const key = `sub-${subscriptionSeqRef.current}`;
+      const entry: SubscriptionEntry = {
+        destination,
+        stompSub: null,
+        handler: (message: IMessage) => {
+          try {
+            const body = JSON.parse(message.body) as T;
+            log(`Received message from ${destination}:`, body);
+            callback(body);
+          } catch (e) {
+            console.error("Failed to parse WebSocket message:", e);
+          }
+        },
+      };
+      subscriptionsRef.current.set(key, entry);
+      if (clientRef.current?.connected) {
+        attach(entry);
+      } else {
+        log(`Queued subscription to ${destination} until connected`);
       }
 
-      log(`Subscribing to ${destination}`);
-      return clientRef.current.subscribe(destination, (message: IMessage) => {
-        try {
-          const body = JSON.parse(message.body) as T;
-          log(`Received message from ${destination}:`, body);
-          callback(body);
-        } catch (e) {
-          console.error("Failed to parse WebSocket message:", e);
-        }
-      });
+      return {
+        id: key,
+        unsubscribe: () => {
+          subscriptionsRef.current.delete(key);
+          const stompSub = entry.stompSub;
+          entry.stompSub = null;
+          if (stompSub && clientRef.current?.connected) {
+            try {
+              stompSub.unsubscribe();
+            } catch {
+              // phiên đã đóng — không còn gì để huỷ
+            }
+          }
+        },
+      };
     },
-    [log]
+    [log, attach]
   );
 
   // Unsubscribe

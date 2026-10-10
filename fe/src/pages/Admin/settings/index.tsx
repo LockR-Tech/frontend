@@ -6,6 +6,16 @@ import { Input } from "~/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
+import {
   useGetBusinessSettingsQuery,
   type SettingScope,
 } from "~/stores/apis/admin/businessSettings";
@@ -13,6 +23,7 @@ import { DEFAULT_SCOPE, SCOPE_TABS, isSettingScope, scopeTitle } from "./constan
 import { ScopeSettingsPanel } from "./ScopeSettingsPanel";
 import { AuditHistorySheet } from "./AuditHistorySheet";
 import { collectChanges, type DraftMap, type ScopeDrafts } from "./setting-utils";
+import { useUnsavedChangesGuard } from "./useUnsavedChangesGuard";
 
 /**
  * Cấu hình quy tắc nghiệp vụ (ADR-0005): giá, phí, thời hạn, SLA, giới hạn… của từng
@@ -76,6 +87,12 @@ export default function BusinessSettingsPage() {
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [hasDrafts]);
+
+  // Rời trang trong app (sidebar, breadcrumb, Back…) cũng phải hỏi trước khi bỏ bản nháp
+  const leaveGuard = useUnsavedChangesGuard(hasDrafts);
+  const draftScopes = SCOPE_TABS.filter(
+    (tab) => Object.keys(drafts[tab.scope] ?? {}).length > 0,
+  ).map((tab) => tab.title);
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -154,6 +171,30 @@ export default function BusinessSettingsPage() {
           onFilterKeyChange={setHistoryKey}
           onOpenChange={setHistoryOpen}
         />
+
+        <AlertDialog
+          open={leaveGuard.blocked}
+          onOpenChange={(open) => !open && leaveGuard.cancel()}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Rời trang khi còn thay đổi chưa lưu?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Nhóm {draftScopes.length > 0 ? `“${draftScopes.join("”, “")}”` : "đang sửa"} còn
+                thay đổi chưa lưu. Rời trang sẽ bỏ toàn bộ các thay đổi này.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Ở lại</AlertDialogCancel>
+              <Button
+                className="bg-rose-600 text-white hover:bg-rose-700"
+                onClick={leaveGuard.proceed}
+              >
+                Rời trang, bỏ thay đổi
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   );

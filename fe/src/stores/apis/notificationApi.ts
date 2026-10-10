@@ -6,13 +6,17 @@ import { baseApi } from "../baseAPi";
 
 export interface Notification {
   id: number;
-  type: "ORDER" | "PAYMENT" | "SYSTEM" | "STAFF" | "INFO" | "WARNING";
+  // notification-service lưu `type` là tên sự kiện (ORDER_STATUS_CHANGED, LOCKER_REPORT_ROUTED, ...)
+  type: "ORDER" | "PAYMENT" | "SYSTEM" | "STAFF" | "INFO" | "WARNING" | (string & {});
   title: string;
   message: string;
   isRead: boolean;
   createdAt: string;
   orderId?: number;
   userId?: number;
+  /** Đối tượng liên quan (NotificationResponse.referenceId / referenceType) */
+  referenceId?: number | null;
+  referenceType?: string | null;
 }
 
 interface PaginatedResponse<T> {
@@ -29,9 +33,8 @@ interface ApiResponse<T> {
   message?: string;
 }
 
-interface UnreadCountResponse {
-  count: number;
-}
+// Backend trả `data` là số (Long); giữ dạng { count } cho tương thích ngược
+type UnreadCountResponse = number | { count?: number } | null;
 
 interface GetNotificationsParams {
   page?: number;
@@ -78,10 +81,35 @@ export const notificationApi = baseApi.injectEndpoints({
     // ============================================
     // Get All Notifications (No Pagination)
     // ============================================
-    getAllNotifications: builder.query<Notification[], void>({
+    getAllMyNotifications: builder.query<Notification[], void>({
       query: () => "/api/notifications/all",
       transformResponse: (response: ApiResponse<Notification[]>) =>
         response.data,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({
+                type: "Notifications" as const,
+                id,
+              })),
+              { type: "Notifications", id: "LIST" },
+            ]
+          : [{ type: "Notifications", id: "LIST" }],
+    }),
+
+    // ============================================
+    // Hộp thư của chính người đang đăng nhập (GET /api/notifications trả danh sách phẳng,
+    // mới nhất trước) — dùng cho chuông thông báo ở Header
+    // ============================================
+    getMyNotificationInbox: builder.query<Notification[], void>({
+      query: () => "/api/notifications",
+      transformResponse: (
+        response: ApiResponse<Notification[] | PaginatedResponse<Notification>>,
+      ) => {
+        const data = response?.data;
+        if (Array.isArray(data)) return data;
+        return data?.content ?? [];
+      },
       providesTags: (result) =>
         result
           ? [
@@ -109,8 +137,11 @@ export const notificationApi = baseApi.injectEndpoints({
     // ============================================
     getUnreadCount: builder.query<number, void>({
       query: () => "/api/notifications/unread/count",
-      transformResponse: (response: ApiResponse<UnreadCountResponse>) =>
-        response.data.count,
+      transformResponse: (response: ApiResponse<UnreadCountResponse>) => {
+        const data = response?.data;
+        if (typeof data === "number") return data;
+        return Number(data?.count ?? 0);
+      },
       providesTags: [{ type: "Notifications", id: "COUNT" }],
     }),
 
@@ -147,7 +178,7 @@ export const notificationApi = baseApi.injectEndpoints({
     // ============================================
     // Delete Notification
     // ============================================
-    deleteNotification: builder.mutation<void, number>({
+    deleteMyNotification: builder.mutation<void, number>({
       query: (id) => ({
         url: `/api/notifications/${id}`,
         method: "DELETE",
@@ -167,10 +198,11 @@ export const notificationApi = baseApi.injectEndpoints({
 
 export const {
   useGetNotificationsQuery,
-  useGetAllNotificationsQuery,
+  useGetAllMyNotificationsQuery,
+  useGetMyNotificationInboxQuery,
   useGetUnreadNotificationsQuery,
   useGetUnreadCountQuery,
   useMarkNotificationAsReadMutation,
   useMarkAllNotificationsAsReadMutation,
-  useDeleteNotificationMutation,
+  useDeleteMyNotificationMutation,
 } = notificationApi;

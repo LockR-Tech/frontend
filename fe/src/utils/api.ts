@@ -1,4 +1,5 @@
-import { API_BASE_URL, AUTH_ENDPOINTS, ROOT_URI } from "~/constants/api-paths";
+import { API_BASE_URL, AUTH_ENDPOINTS } from "~/constants/api-paths";
+import { getAccessToken, recoverFromUnauthorized } from "~/utils/auth-session";
 
 /**
  * List of endpoints that DON'T require authentication
@@ -15,13 +16,6 @@ const PUBLIC_ENDPOINTS = [
   "/api/auth/register",
   "/api/auth/forgot-password",
 ];
-
-/**
- * Get the access token from localStorage
- */
-function getAccessToken(): string | null {
-  return localStorage.getItem("accessToken")?.replace(/\s/g, "") || null;
-}
 
 /**
  * Check if an endpoint requires authentication
@@ -48,38 +42,33 @@ export async function apiCall<T>(
 ): Promise<T> {
   const fullUrl = `${API_BASE_URL}${endpoint}`;
   const method = options?.method || "GET";
+  const isPublic = isPublicEndpoint(endpoint);
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  // Add Authorization header for protected endpoints
-  if (!isPublicEndpoint(endpoint)) {
-    const token = getAccessToken();
-    if (token) {
+  // Không log header: trong đó có bearer token
+  const send = (token: string | null) => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (!isPublic && token) {
       headers["Authorization"] = `Bearer ${token}`;
-      console.log(`✅ [API] Token attached to ${method} ${endpoint}`);
-    } else {
-      console.warn(`⚠️ [API] No token found for ${method} ${endpoint}`);
     }
-  } else {
-    console.log(
-      `📌 [API] Public endpoint (no token needed): ${method} ${endpoint}`,
-    );
-  }
-
-  const fetchOptions: RequestInit = {
-    method,
-    headers,
+    const fetchOptions: RequestInit = { method, headers };
+    if (options?.body) {
+      fetchOptions.body = JSON.stringify(options.body);
+    }
+    return fetch(fullUrl, fetchOptions);
   };
 
-  if (options?.body) {
-    fetchOptions.body = JSON.stringify(options.body);
+  const tokenUsed = isPublic ? null : getAccessToken();
+  let response = await send(tokenUsed);
+
+  // 401: dùng chung cơ chế refresh single-flight với baseApi, gửi lại một lần
+  if (response.status === 401 && !isPublic) {
+    const shouldRetry = await recoverFromUnauthorized(tokenUsed);
+    if (shouldRetry) {
+      response = await send(getAccessToken());
+    }
   }
-
-  console.log(`🔗 [API] Calling: ${fullUrl}`, { headers });
-
-  const response = await fetch(fullUrl, fetchOptions);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
@@ -89,8 +78,9 @@ export async function apiCall<T>(
     );
   }
 
-  const data = await response.json();
-  return data;
+  // Một số endpoint trả 204 / body rỗng
+  const text = await response.text();
+  return (text ? JSON.parse(text) : null) as T;
 }
 
 /**

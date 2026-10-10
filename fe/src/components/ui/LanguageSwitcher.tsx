@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-
-const LOCALES = ["en", "vi", "ja"] as const;
+import { SUPPORTED_LANGUAGES, currentLanguage } from "~/utils/i18n";
 
 export default function LanguageSwitcher({
   className = "",
@@ -8,17 +7,21 @@ export default function LanguageSwitcher({
   className?: string;
 }) {
   const { i18n } = useTranslation();
+  // So sánh với ngôn ngữ đã resolve ("en-US" → "en"), không phải i18n.language thô
+  const active = currentLanguage(i18n);
 
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
-      {LOCALES.map((l) => (
+      {SUPPORTED_LANGUAGES.map(({ code, label }) => (
         <button
-          key={l}
-          onClick={() => i18n.changeLanguage(l)}
-          className={`px-2 py-1 rounded-md text-sm ${l === i18n.language ? "bg-white/10 font-semibold" : "hover:bg-white/5"}`}
-          aria-pressed={l === i18n.language}
+          key={code}
+          type="button"
+          onClick={() => i18n.changeLanguage(code)}
+          className={`px-2 py-1 rounded-md text-sm ${code === active ? "bg-white/10 font-semibold" : "hover:bg-white/5"}`}
+          aria-pressed={code === active}
+          title={label}
         >
-          {l.toUpperCase()}
+          {code.toUpperCase()}
         </button>
       ))}
     </div>

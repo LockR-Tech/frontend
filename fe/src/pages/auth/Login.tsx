@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Button, Input } from "~/components/ui";
 import LanguageSwitcher from "~/components/ui/LanguageSwitcher";
 import LockerDroneIllustration from "./components/LockerDroneIllustration";
+import { AuthApiError, sanitizeRedirectPath } from "~/utils/auth-session";
 import {
   ArrowLeft,
   Drone,
@@ -20,11 +21,12 @@ import {
   Wrench,
 } from "lucide-react";
 
-// Map backend error codes to i18n keys
+// Mã lỗi `code` mà auth-service thực sự trả (AuthService.adminLogin / verifyAdmin2fa)
 const AUTH_ERROR_KEYS: Record<string, string> = {
-  E_ADMIN_AUTH_INVALID_CREDENTIALS: "login.errInvalid",
-  E_ADMIN_AUTH_ACCOUNT_LOCKED: "login.errLocked",
-  E_ADMIN_AUTH_ACCOUNT_DISABLED: "login.errDisabled",
+  AUTH_INVALID: "login.errInvalid",
+  ADMIN_AUTH_NOT_ADMIN: "login.errNotAdmin",
+  ADMIN_AUTH_OTP_INVALID: "login.errOtpInvalid",
+  AUTH_TEMP_TOKEN_INVALID: "login.errSessionExpired",
 };
 
 export default function LoginPage(): React.JSX.Element {
@@ -47,18 +49,34 @@ export default function LoginPage(): React.JSX.Element {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Backend may return "AuthenticationException: E_ADMIN_AUTH_INVALID_CREDENTIALS"
-  // or just the code directly
   const friendlyAuthError = (err: unknown, fallbackKey: string): string => {
-    const raw = err instanceof Error ? err.message : "";
-    for (const [code, key] of Object.entries(AUTH_ERROR_KEYS)) {
-      if (raw.includes(code)) return t(key);
+    if (err instanceof AuthApiError) {
+      if (err.code === "ADMIN_AUTH_OTP_INVALID") {
+        // Nhập sai quá số lần → token tạm bị huỷ, đã quay về bước 1
+        if (err.tempTokenGone) return t("login.errOtpTooMany");
+        const remaining = /còn\s+(\d+)\s+lần/i.exec(err.message)?.[1];
+        if (remaining) {
+          return t("login.errOtpRemaining", { count: Number(remaining) });
+        }
+      }
+      const key = AUTH_ERROR_KEYS[err.code];
+      return key ? t(key) : t(fallbackKey);
     }
-    return raw || t(fallbackKey);
+    // fetch ném TypeError khi không tới được máy chủ
+    if (err instanceof TypeError) return t("login.errNetwork");
+    return t(fallbackKey);
   };
 
   const getRedirectPath = (userRoles: string[]) => {
-    const from = location.state?.from?.pathname;
+    // Deep link: ProtectedRoute gửi state.from; phiên hết hạn gửi ?from=
+    const stateFrom = location.state?.from as
+      | { pathname?: string; search?: string; hash?: string }
+      | undefined;
+    const from = sanitizeRedirectPath(
+      stateFrom?.pathname
+        ? `${stateFrom.pathname}${stateFrom.search ?? ""}${stateFrom.hash ?? ""}`
+        : new URLSearchParams(location.search).get("from"),
+    );
     if (from) return from;
 
     // Normalize role: strip optional "ROLE_" prefix before comparing
@@ -92,10 +110,14 @@ export default function LoginPage(): React.JSX.Element {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          navigate(getRedirectPath(parsedUser.role || parsedUser.roles || []));
+          navigate(getRedirectPath(parsedUser.role || parsedUser.roles || []), {
+            replace: true,
+          });
         }
       }, 100);
     } catch (err) {
+      // Nếu token tạm đã mất, context đã đưa về bước 1 — xoá mã cũ, giữ email/mật khẩu
+      if (err instanceof AuthApiError && err.tempTokenGone) setOtpCode("");
       setError(friendlyAuthError(err, "login.errOtp"));
     } finally {
       setLoading(false);

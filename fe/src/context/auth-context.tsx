@@ -8,6 +8,11 @@ import {
 import type { AuthContextType, User } from "../types";
 import { API_BASE_URL, AUTH_ENDPOINTS } from "../constants/api-paths";
 import { isMockEnabled, mockDelay } from "./mock/mock-data-context";
+import {
+  AuthApiError,
+  clearAuthStorage,
+  revokeRefreshToken,
+} from "../utils/auth-session";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -46,10 +51,25 @@ async function apiFetch<T>(endpoint: string, body?: unknown): Promise<T> {
   });
 
   const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(json?.message || `Request failed (${res.status})`);
+  if (!res.ok || json?.success === false) {
+    // Giữ `code` (AUTH_INVALID, ADMIN_AUTH_OTP_INVALID, ...) để trang đăng nhập tự dịch
+    throw new AuthApiError(
+      json?.code || `HTTP_${res.status}`,
+      json?.message || `Request failed (${res.status})`,
+      res.status,
+    );
   }
   return (json?.data ?? json) as T;
+}
+
+// Token tạm của bước OTP đã mất: hết hạn, hoặc nhập sai quá số lần cho phép.
+// Backend mới trả "... (còn N lần thử)" khi token vẫn còn; không có phần đó ⇒ token đã bị huỷ.
+function isTempTokenGone(err: AuthApiError): boolean {
+  if (err.code === "AUTH_TEMP_TOKEN_INVALID") return true;
+  if (err.code === "ADMIN_AUTH_OTP_INVALID") {
+    return !/còn\s+\d+\s+lần/i.test(err.message);
+  }
+  return false;
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -190,10 +210,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setError(null);
-    const data = await apiFetch<Record<string, unknown>>(
-      AUTH_ENDPOINTS.ADMIN_VERIFY_2FA,
-      { tempToken, otpCode },
-    );
+    let data: Record<string, unknown>;
+    try {
+      data = await apiFetch<Record<string, unknown>>(
+        AUTH_ENDPOINTS.ADMIN_VERIFY_2FA,
+        { tempToken, otpCode },
+      );
+    } catch (err) {
+      // Token tạm không còn → về bước 1 để đăng nhập lại và nhận mã mới
+      if (err instanceof AuthApiError && isTempTokenGone(err)) {
+        err.tempTokenGone = true;
+        setIsWaitingFor2FA(false);
+        setTempToken("");
+        setMaskedEmail("");
+        setPendingAdminEmail("");
+      }
+      throw err;
+    }
 
     const emailUsed = pendingAdminEmail;
     setIsWaitingFor2FA(false);
@@ -331,9 +364,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Logout & Permissions
   // ============================================
   const logout = async () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
+    // Thu hồi refresh token ở backend trước khi xoá (best-effort, tối đa 3s)
+    if (!isMockEnabled) await revokeRefreshToken();
+    clearAuthStorage();
     setUser(null);
     setError(null);
     cancelAdmin2FA();
