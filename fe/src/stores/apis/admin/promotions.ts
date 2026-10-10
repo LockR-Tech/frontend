@@ -1,38 +1,102 @@
 import { baseApi } from "../../baseAPi";
 import { ADMIN_ENDPOINTS } from "../../../constants";
-import type {
-  ApiResponse,
-  Page,
-  PageableRequest,
-  PromotionResponse,
-  PromotionRequest,
-} from "../../../types";
+import type { ApiResponse } from "../../../types";
 import type { MediaUpload } from "../media";
 
 const TAGS = {
   PROMOTIONS: "Promotions",
 } as const;
 
+/** Entity Promotion của order-service (trả thẳng, không qua DTO). */
+export interface AdminPromotion {
+  id: number;
+  code: string;
+  name: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  /** PERCENTAGE; mọi giá trị khác backend tính như số tiền cố định. */
+  discountType: string;
+  discountValue: number;
+  maxDiscountAmount?: number | null;
+  minOrderAmount?: number | null;
+  stackable?: boolean | null;
+  /** null = áp dụng toàn hệ thống. */
+  lockerId?: number | null;
+  /** null = không giới hạn. */
+  totalUsageLimit?: number | null;
+  perUserLimit?: number | null;
+  /** Trạng thái lưu trong DB: ACTIVE / INACTIVE. */
+  status: string;
+  /** LocalDateTime UTC, không offset. */
+  startAt?: string | null;
+  endAt?: string | null;
+  usageCount?: number | null;
+  createdByUserId?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+/** PromotionRequest của order-service — PUT ghi đè mọi trường (kể cả lockerId). */
+export interface AdminPromotionRequest {
+  code: string;
+  name: string;
+  description?: string;
+  discountType: string;
+  discountValue: number;
+  maxDiscountAmount?: number;
+  minOrderAmount?: number;
+  stackable?: boolean;
+  status?: "ACTIVE" | "INACTIVE";
+  startAt?: string;
+  endAt?: string;
+  lockerId?: number;
+  totalUsageLimit?: number;
+  perUserLimit?: number;
+}
+
+/** Dựng lại request đầy đủ từ một khuyến mãi để chỉ đổi vài trường (vd ngưng áp dụng). */
+export const promotionToRequest = (
+  p: AdminPromotion,
+  overrides: Partial<AdminPromotionRequest> = {},
+): AdminPromotionRequest => ({
+  code: p.code,
+  name: p.name,
+  description: p.description ?? undefined,
+  discountType: p.discountType,
+  discountValue: Number(p.discountValue ?? 0),
+  maxDiscountAmount: p.maxDiscountAmount ?? undefined,
+  minOrderAmount: p.minOrderAmount ?? undefined,
+  stackable: p.stackable ?? false,
+  status: p.status?.toUpperCase() === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+  startAt: p.startAt ?? undefined,
+  endAt: p.endAt ?? undefined,
+  lockerId: p.lockerId ?? undefined,
+  totalUsageLimit: p.totalUsageLimit ?? undefined,
+  perUserLimit: p.perUserLimit ?? undefined,
+  ...overrides,
+});
+
 export const promotionManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    // GET /api/admin/promotions?code=&status= — List, không phân trang.
     getAllPromotions: builder.query<
-      ApiResponse<Page<PromotionResponse>>,
-      PageableRequest
+      ApiResponse<AdminPromotion[]>,
+      { code?: string; status?: string } | void
     >({
       query: (params) => ({
         url: ADMIN_ENDPOINTS.PROMOTIONS,
-        params,
+        params: params ? { ...params } : undefined,
       }),
       providesTags: [TAGS.PROMOTIONS],
     }),
 
-    getActivePromotions: builder.query<ApiResponse<PromotionResponse[]>, void>({
+    getActivePromotions: builder.query<ApiResponse<AdminPromotion[]>, void>({
       query: () => ADMIN_ENDPOINTS.PROMOTIONS_ACTIVE,
       providesTags: [TAGS.PROMOTIONS],
     }),
 
     getPromotionsByStatus: builder.query<
-      ApiResponse<PromotionResponse[]>,
+      ApiResponse<AdminPromotion[]>,
       string
     >({
       query: (status) => ADMIN_ENDPOINTS.PROMOTIONS_BY_STATUS(status),
@@ -40,7 +104,7 @@ export const promotionManagementApi = baseApi.injectEndpoints({
     }),
 
     searchPromotions: builder.query<
-      ApiResponse<PromotionResponse[]>,
+      ApiResponse<AdminPromotion[]>,
       { keyword: string }
     >({
       query: (params) => ({
@@ -50,21 +114,21 @@ export const promotionManagementApi = baseApi.injectEndpoints({
       providesTags: [TAGS.PROMOTIONS],
     }),
 
-    getPromotionById: builder.query<ApiResponse<PromotionResponse>, number>({
+    getPromotionById: builder.query<ApiResponse<AdminPromotion>, number>({
       query: (id) => ADMIN_ENDPOINTS.PROMOTION_BY_ID(id),
       providesTags: (result, error, id) => [{ type: TAGS.PROMOTIONS, id }],
     }),
 
     validatePromotionCode: builder.query<
-      ApiResponse<PromotionResponse>,
+      ApiResponse<AdminPromotion>,
       string
     >({
       query: (code) => ADMIN_ENDPOINTS.PROMOTION_VALIDATE(code),
     }),
 
     createPromotion: builder.mutation<
-      ApiResponse<PromotionResponse>,
-      PromotionRequest
+      ApiResponse<AdminPromotion>,
+      AdminPromotionRequest
     >({
       query: (data) => ({
         url: ADMIN_ENDPOINTS.PROMOTIONS,
@@ -75,8 +139,8 @@ export const promotionManagementApi = baseApi.injectEndpoints({
     }),
 
     updatePromotion: builder.mutation<
-      ApiResponse<PromotionResponse>,
-      { id: number; data: PromotionRequest }
+      ApiResponse<AdminPromotion>,
+      { id: number; data: AdminPromotionRequest }
     >({
       query: ({ id, data }) => ({
         url: ADMIN_ENDPOINTS.PROMOTION_BY_ID(id),
@@ -89,6 +153,7 @@ export const promotionManagementApi = baseApi.injectEndpoints({
       ],
     }),
 
+    // Mã đã có lượt dùng/đã lưu ví → 400 PROMOTION_HAS_HISTORY, phải chuyển INACTIVE.
     deletePromotion: builder.mutation<ApiResponse<void>, number>({
       query: (id) => ({
         url: ADMIN_ENDPOINTS.PROMOTION_BY_ID(id),
@@ -99,7 +164,7 @@ export const promotionManagementApi = baseApi.injectEndpoints({
 
     // Ảnh khuyến mãi: body là MediaUpload (purpose PROMOTION_IMAGE), trả về Promotion
     updatePromotionImage: builder.mutation<
-      ApiResponse<PromotionResponse>,
+      ApiResponse<AdminPromotion>,
       { id: number; media: MediaUpload }
     >({
       query: ({ id, media }) => ({
@@ -113,7 +178,7 @@ export const promotionManagementApi = baseApi.injectEndpoints({
       ],
     }),
 
-    deletePromotionImage: builder.mutation<ApiResponse<PromotionResponse>, number>({
+    deletePromotionImage: builder.mutation<ApiResponse<AdminPromotion>, number>({
       query: (id) => ({
         url: ADMIN_ENDPOINTS.PROMOTION_IMAGE(id),
         method: "DELETE",

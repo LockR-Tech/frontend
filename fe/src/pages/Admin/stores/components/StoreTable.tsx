@@ -4,16 +4,15 @@ import {
   MoreHorizontal,
   MapPin,
   Phone,
-  Clock,
   Store as StoreIcon,
-  CheckCircle2,
-  XCircle,
-  User,
   Eye,
+  Pencil,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Switch } from "~/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -24,16 +23,22 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
-import type { AdminStoreResponse } from "~/types/admin/store";
+import { isStoreActive, type StoreRecord } from "~/stores/apis/admin/stores";
+import type { RevenueByStoreItem } from "~/types/admin/reporting";
 
 interface StoreTableProps {
-  stores: AdminStoreResponse[];
+  stores: StoreRecord[];
   isLoading: boolean;
-  onEdit: (store: AdminStoreResponse) => void;
-  onDelete: (storeId: number) => void;
+  onEdit: (store: StoreRecord) => void;
+  onDelete: (store: StoreRecord) => void;
+  onToggleStatus: (store: StoreRecord) => void;
+  statusPendingIds: Set<number>;
+  /** Số tủ/đơn theo cửa hàng (báo cáo by-store); rỗng khi báo cáo lỗi. */
+  revenueByStoreId: Map<number, RevenueByStoreItem>;
   page: number;
   pageSize: number;
   totalPages: number;
@@ -42,7 +47,7 @@ interface StoreTableProps {
   onPageSizeChange: (size: number) => void;
 }
 
-const columnHelper = createColumnHelper<AdminStoreResponse>();
+const columnHelper = createColumnHelper<StoreRecord>();
 
 // Unified icon wrapper
 const IconWrapper = ({
@@ -60,7 +65,7 @@ const IconWrapper = ({
   };
   return (
     <div
-      className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClasses[color]}`}
+      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colorClasses[color]}`}
     >
       {children}
     </div>
@@ -101,6 +106,9 @@ export function StoreTable({
   isLoading,
   onEdit,
   onDelete,
+  onToggleStatus,
+  statusPendingIds,
+  revenueByStoreId,
   page,
   pageSize,
   totalPages,
@@ -122,7 +130,7 @@ export function StoreTable({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <p className="font-semibold text-foreground truncate max-w-[180px] cursor-help">
+                  <p className="font-semibold text-foreground truncate max-w-45 cursor-help">
                     {row.original.name}
                   </p>
                 </TooltipTrigger>
@@ -131,27 +139,24 @@ export function StoreTable({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
-              <MapPin size={14} className="text-muted-foreground/70 flex-shrink-0" />
-              <span className="truncate max-w-[150px]">
-                {row.original.description || "—"}
-              </span>
+            <p className="text-sm text-muted-foreground mt-0.5 truncate max-w-45">
+              {row.original.description || "—"}
             </p>
           </div>
         </div>
       ),
     }),
 
-    columnHelper.accessor("phone", {
+    columnHelper.accessor("contactPhone", {
       header: t("admin.stores.columns.contact"),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <IconWrapper color="green">
             <Phone size={16} />
           </IconWrapper>
-          <div className="min-w-0">
-            <p className="font-medium text-foreground/80">{row.original.phone}</p>
-          </div>
+          <p className="font-medium text-foreground/80">
+            {row.original.contactPhone || "—"}
+          </p>
         </div>
       ),
     }),
@@ -174,58 +179,52 @@ export function StoreTable({
       ),
     }),
 
-    columnHelper.accessor("openTime", {
-      header: t("admin.stores.columns.hours"),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <IconWrapper color="amber">
-            <Clock size={16} />
-          </IconWrapper>
-          <span className="font-medium text-foreground/80">
-            {row.original.openTime && row.original.closeTime
-              ? `${row.original.openTime} - ${row.original.closeTime}`
-              : "—"}
-          </span>
-        </div>
-      ),
-    }),
-
-    columnHelper.accessor("lockerCount", {
+    columnHelper.display({
+      id: "lockers",
       header: t("admin.stores.columns.lockers"),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-semibold text-foreground/80">
-            {row.original.lockerCount ?? 0}
-          </span>
-          <span className="text-xs text-muted-foreground/70">tủ</span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const stats = revenueByStoreId.get(row.original.id);
+        if (!stats) return <span className="text-sm text-muted-foreground">—</span>;
+        return (
+          <div className="text-sm">
+            <p>
+              <span className="font-semibold text-foreground/80">{stats.lockerCount}</span>{" "}
+              <span className="text-xs text-muted-foreground/70">tủ</span>
+              <span className="text-xs text-muted-foreground/70"> · {stats.boxCount} ô</span>
+            </p>
+            <p className="text-xs text-muted-foreground/70">{stats.orderCount} đơn / 12 tháng</p>
+          </div>
+        );
+      },
     }),
 
-    columnHelper.accessor("active", {
+    columnHelper.display({
+      id: "status",
       header: t("admin.stores.columns.status"),
-      cell: ({ row }) => (
-        <Badge
-          className={
-            row.original.active
-              ? "bg-green-50 text-green-700 border-green-200 font-medium"
-              : "bg-muted/50 text-muted-foreground border-border/50 font-medium"
-          }
-          variant="outline"
-        >
-          {row.original.active ? (
-            <>
-              <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-              {t("admin.stores.status.active")}
-            </>
-          ) : (
-            <>
-              <XCircle className="mr-1 h-3.5 w-3.5" />
-              {t("admin.stores.status.inactive")}
-            </>
-          )}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const store = row.original;
+        const active = isStoreActive(store);
+        const pending = statusPendingIds.has(store.id);
+        return (
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={active}
+              disabled={pending}
+              onCheckedChange={() => onToggleStatus(store)}
+              className="data-[state=checked]:bg-green-500"
+            />
+            {pending ? (
+              <Loader2 size={12} className="animate-spin text-muted-foreground/70" />
+            ) : (
+              <span
+                className={`text-xs font-medium ${active ? "text-green-600" : "text-muted-foreground/70"}`}
+              >
+                {active ? t("admin.stores.status.active") : t("admin.stores.status.inactive")}
+              </span>
+            )}
+          </div>
+        );
+      },
     }),
 
     columnHelper.display({
@@ -257,13 +256,14 @@ export function StoreTable({
               onClick={() => onEdit(row.original)}
               className="cursor-pointer"
             >
-              <span className="mr-2">✏️</span> {t("dropdown.edit")}
+              <Pencil className="mr-2 h-4 w-4" /> {t("dropdown.edit")}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => onDelete(row.original.id)}
+              onClick={() => onDelete(row.original)}
               className="cursor-pointer text-red-600 focus:text-red-600"
             >
-              <span className="mr-2">🗑️</span> {t("dropdown.delete")}
+              <Trash2 className="mr-2 h-4 w-4" /> {t("dropdown.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

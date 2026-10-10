@@ -1,65 +1,36 @@
-import { useState, useEffect } from "react";
-import { isMockEnabled, mockDelay } from "~/hooks/useMockData";
-import { apiGet } from "~/utils/api";
-import type { AdminStoreResponse } from "~/types";
+import { useMemo } from "react";
+import { useGetStoreByIdQuery } from "~/stores/apis/admin/stores";
+import { useGetLockersByStoreQuery } from "~/stores/apis/admin/lockers";
+import { extractList } from "~/lib/extract-list";
 import type { AdminLockerResponse } from "~/types/admin/locker";
-
-interface StoreDetail extends AdminStoreResponse {
-  manager?: string;
-  managerPhone?: string;
-  email?: string;
-  orderCount?: number;
-  availableLockers?: number;
-}
+import { useStoreRevenue } from "./useStoreRevenue";
 
 export function useStoreDetail(storeId: string | undefined) {
-  const [store, setStore] = useState<StoreDetail | null>(null);
-  const [lockers, setLockers] = useState<AdminLockerResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const id = storeId ? Number(storeId) : NaN;
+  const valid = Number.isFinite(id) && id > 0;
 
-  const refetch = () => setRefreshKey((k) => k + 1);
+  const storeQuery = useGetStoreByIdQuery(id, { skip: !valid });
+  // GET /api/admin/lockers/store/{storeId} — LockerResponse có totalBoxes/availableBoxes.
+  const lockersQuery = useGetLockersByStoreQuery(id, { skip: !valid });
+  const storeRevenue = useStoreRevenue();
 
-  useEffect(() => {
-    if (!storeId) {
-      setIsLoading(false);
-      return;
-    }
+  const lockers = useMemo(
+    () => extractList<AdminLockerResponse>(lockersQuery.data?.data),
+    [lockersQuery.data],
+  );
 
-    setIsLoading(true);
-
-    // Real API call with centralized token handling
-    const fetchStoreDetail = async () => {
-      try {
-        const [storeData, lockersData] = await Promise.all([
-          apiGet<{ data: StoreDetail }>(`/api/admin/stores/${storeId}`),
-          apiGet<{ data: AdminLockerResponse[] }>(
-            `/api/admin/lockers/store/${storeId}`,
-          ).catch(() => ({ data: [] })),
-        ]);
-        setStore(storeData.data);
-        // Handle both plain array and paginated { content: [...] } responses
-        const lockersRaw = lockersData.data as unknown;
-        const lockersList = Array.isArray(lockersRaw)
-          ? lockersRaw
-          : ((lockersRaw as { content?: AdminLockerResponse[] })?.content ??
-            []);
-        setLockers(lockersList);
-      } catch (error) {
-        console.error(error);
-        setStore(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStoreDetail();
-  }, [storeId, refreshKey]);
+  const refetch = () => {
+    void storeQuery.refetch();
+    void lockersQuery.refetch();
+  };
 
   return {
-    store,
+    store: storeQuery.data?.data ?? null,
     lockers,
-    isLoading,
+    isLoading: valid && storeQuery.isLoading,
+    isError: storeQuery.isError,
     refetch,
+    revenueStats: valid ? storeRevenue.byStoreId.get(id) : undefined,
+    revenueError: storeRevenue.error,
   };
 }

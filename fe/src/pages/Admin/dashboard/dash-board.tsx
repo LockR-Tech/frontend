@@ -18,6 +18,8 @@ import {
   CreditCard,
   TrendingUp,
 } from "lucide-react";
+import { changeDirection, formatDayLabel, formatPercentChange } from "~/lib/report-format";
+import { toReportError } from "~/lib/report-error";
 
 function formatVND(amount: number): string {
   if (amount >= 1_000_000_000)
@@ -26,10 +28,32 @@ function formatVND(amount: number): string {
   return `${amount.toLocaleString("vi-VN")} đ`;
 }
 
+/** Mức thay đổi theo % (null = kỳ trước bằng 0 → không so sánh được). */
+function deltaOf(pct: number | null | undefined, suffix: string) {
+  if (pct === undefined) return undefined;
+  return {
+    text: pct === null ? `Kỳ trước chưa có số liệu` : `${formatPercentChange(pct)} ${suffix}`,
+    direction: changeDirection(pct),
+  };
+}
+
 export default function Dashboard() {
   const {
     overview,
+    byStatus,
+    activeLockers,
+    lockersLoaded,
     chartData,
+    dailyQuery,
+    yearOptions,
+    byMethod,
+    byService,
+    byStore,
+    peakHours,
+    peakRange,
+    userGrowth,
+    monthSummary,
+    todaySummary,
     recommendations,
     selectedYear,
     setSelectedYear,
@@ -57,34 +81,53 @@ export default function Dashboard() {
     );
   }
 
+  // Doanh thu = tiền thực thu (payment COMPLETED) từ /api/admin/revenue/summary.
+  // Lỗi (vd 503 PAYMENT_DATA_UNAVAILABLE) → hiện "—" kèm lý do, không hiện 0.
+  const month = monthSummary.data?.data;
+  const day = todaySummary.data?.data;
+  const monthError = toReportError(monthSummary.error);
+  const dayError = toReportError(todaySummary.error);
+  const pending = "…";
+
   const heroCards = [
     {
       label: "Tổng đơn gửi & thuê",
       value: overview.totalOrders.toLocaleString("vi-VN"),
       icon: Package,
-      sublabel: "Toàn bộ mạng lưới Kiosk",
-      deltaAmount: "+148 đơn (+13.4%)",
+      sublabel: month
+        ? `Tháng này: ${month.current.orderCount.toLocaleString("vi-VN")} đơn`
+        : "Toàn bộ mạng lưới Kiosk",
+      delta: month ? deltaOf(month.changes.orderCountPct, "đơn so với kỳ trước") : undefined,
     },
     {
       label: "Đơn hôm nay",
-      value: overview.ordersToday.toString(),
-      sublabel: "Phát sinh trong ngày",
-      deltaAmount: "+6 đơn (+16.7%)",
+      // Ngày theo giờ Việt Nam từ báo cáo; overview (giờ máy chủ) chỉ là dự phòng.
+      value: (day ? day.current.orderCount : overview.ordersToday).toLocaleString("vi-VN"),
       icon: CalendarCheck,
+      sublabel: "Đơn tạo trong ngày",
+      delta: day ? deltaOf(day.changes.orderCountPct, "so với hôm qua") : undefined,
     },
     {
-      label: "Tổng doanh thu",
-      value: formatVND(overview.totalRevenue),
+      label: "Doanh thu tháng này",
+      value: month
+        ? formatVND(month.current.totalRevenue)
+        : monthSummary.isLoading
+          ? pending
+          : "—",
       icon: CreditCard,
-      sublabel: "Tích lũy hệ thống",
-      deltaAmount: "+115.000 đ (+14.2%)",
+      sublabel: monthError
+        ? monthError.message
+        : month
+          ? `Tiền thực thu từ ${formatDayLabel(month.from)}`
+          : undefined,
+      delta: month ? deltaOf(month.changes.totalRevenuePct, "so với kỳ trước") : undefined,
     },
     {
       label: "Doanh thu hôm nay",
-      value: formatVND(overview.revenueToday),
-      sublabel: "Ghi nhận hôm nay",
-      deltaAmount: "+45.000 đ (+6.5%)",
+      value: day ? formatVND(day.current.totalRevenue) : todaySummary.isLoading ? pending : "—",
       icon: TrendingUp,
+      sublabel: dayError ? dayError.message : "Tiền thực thu hôm nay",
+      delta: day ? deltaOf(day.changes.totalRevenuePct, "so với hôm qua") : undefined,
     },
   ];
 
@@ -113,36 +156,64 @@ export default function Dashboard() {
           <MainChart
             data={chartData}
             selectedYear={selectedYear}
+            yearOptions={yearOptions}
             onYearChange={setSelectedYear}
+            isLoading={dailyQuery.isFetching}
+            error={dailyQuery.error}
+            onRetry={dailyQuery.refetch}
           />
         </div>
         <div className="lg:col-span-1">
-          <OverviewSection data={overview} />
+          <OverviewSection data={overview} activeLockers={lockersLoaded ? activeLockers : null} />
         </div>
       </div>
 
       {/* Row 2: 3 Specialized Distribution Donut / Bar Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <PaymentMethodChart />
-        <OrderStatusChart
-          completed={Math.round(overview.totalOrders * 0.72) || 450}
-          inProgress={Math.round(overview.totalOrders * 0.15) || 85}
-          ready={Math.round(overview.totalOrders * 0.08) || 42}
-          canceled={Math.round(overview.totalOrders * 0.05) || 23}
+        <PaymentMethodChart
+          items={byMethod.data?.data?.items}
+          year={selectedYear}
+          isLoading={byMethod.isFetching}
+          error={byMethod.error}
+          onRetry={byMethod.refetch}
         />
-        <ServiceRevenueChart />
+        <OrderStatusChart byStatus={byStatus} />
+        <ServiceRevenueChart
+          items={byService.data?.data?.items}
+          year={selectedYear}
+          isLoading={byService.isFetching}
+          error={byService.error}
+          onRetry={byService.refetch}
+        />
       </div>
 
       {/* Row 3: Peak Hours + User Growth */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PeakHoursChart />
-        <UserGrowthChart />
+        <PeakHoursChart
+          points={peakHours.data?.data}
+          range={peakRange}
+          isLoading={peakHours.isLoading}
+          error={peakHours.error}
+          onRetry={peakHours.refetch}
+        />
+        <UserGrowthChart
+          points={userGrowth.data?.data}
+          isLoading={userGrowth.isLoading}
+          error={userGrowth.error}
+          onRetry={userGrowth.refetch}
+        />
       </div>
 
-      {/* Row 4: Top Performing Locations & Kiosks Table */}
-      <TopLocationsTable />
+      {/* Row 4: Top Performing Locations */}
+      <TopLocationsTable
+        items={byStore.data?.data?.items}
+        year={selectedYear}
+        isLoading={byStore.isFetching}
+        error={byStore.error}
+        onRetry={byStore.refetch}
+      />
 
-      {/* Row 5: Operational Recommendations */}
+      {/* Row 5: Shortcuts to admin pages */}
       <RecommendationsSection
         recommendations={recommendations}
         onRecommendationClick={handleRecommendationClick}
@@ -150,4 +221,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

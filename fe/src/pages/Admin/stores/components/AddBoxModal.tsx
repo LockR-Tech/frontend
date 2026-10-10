@@ -1,7 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -14,35 +22,53 @@ import { apiPost } from "~/utils/api";
 
 interface Props {
   lockerId: number;
-  existingCount: number;
+  /** Số ngăn gợi ý = số lớn nhất hiện có + 1. */
+  defaultBoxNumber: number;
   onClose: () => void;
   onCreated: () => void;
 }
 
+// Cỡ ô locker-service nhận (SIZE_ORDER); bỏ trống thì backend lưu MEDIUM.
+const SIZE_OPTIONS = [
+  { value: "SMALL", label: "Nhỏ (S)" },
+  { value: "MEDIUM", label: "Vừa (M)" },
+  { value: "LARGE", label: "Lớn (L)" },
+  { value: "XL", label: "Rất lớn (XL)" },
+];
+
 export function AddBoxModal({
   lockerId,
-  existingCount,
+  defaultBoxNumber,
   onClose,
   onCreated,
 }: Props) {
-  const [form, setForm] = useState({
-    boxNumber: existingCount + 1,
-    description: "",
-  });
+  const [boxNumber, setBoxNumber] = useState(defaultBoxNumber);
+  const [touched, setTouched] = useState(false);
+  const [size, setSize] = useState("MEDIUM");
   const [saving, setSaving] = useState(false);
 
+  // Danh sách ô có thể tải xong sau khi mở hộp thoại → cập nhật gợi ý nếu chưa sửa tay.
+  useEffect(() => {
+    if (!touched) setBoxNumber(defaultBoxNumber);
+  }, [defaultBoxNumber, touched]);
+
   const handleSubmit = async () => {
-    if (!form.boxNumber) return;
+    if (!boxNumber || boxNumber < 1) return;
     setSaving(true);
     try {
+      // BoxRequest bắt buộc lockerId + boxNumber (thiếu lockerId → 400).
       await apiPost(`/api/admin/lockers/${lockerId}/boxes`, {
-        boxNumber: form.boxNumber,
-        description: form.description || undefined,
+        lockerId,
+        boxNumber,
+        size,
       });
+      toast.success(`Đã thêm ngăn #${boxNumber}`);
       onCreated();
       onClose();
-    } catch {
-      alert("Không thể thêm ngăn tủ");
+    } catch (err) {
+      toast.error("Không thể thêm ngăn tủ", {
+        description: err instanceof Error ? err.message : undefined,
+      });
     } finally {
       setSaving(false);
     }
@@ -68,32 +94,38 @@ export function AddBoxModal({
             <Input
               type="number"
               min={1}
-              value={form.boxNumber}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, boxNumber: Number(e.target.value) }))
-              }
+              value={boxNumber}
+              onChange={(e) => {
+                setTouched(true);
+                setBoxNumber(Number(e.target.value));
+              }}
             />
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">
-              Mô tả (tùy chọn)
+              Kích cỡ
             </label>
-            <Input
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-              placeholder="VD: Ngăn cỡ nhỏ"
-            />
+            <Select value={size} onValueChange={setSize}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SIZE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
             Hủy
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={saving || !form.boxNumber}
+            disabled={saving || !boxNumber || boxNumber < 1}
           >
             {saving ? "Đang thêm..." : "Thêm ngăn"}
           </Button>

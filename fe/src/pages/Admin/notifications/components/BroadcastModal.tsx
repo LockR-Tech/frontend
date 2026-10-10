@@ -20,84 +20,34 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { useBroadcastNotificationMutation } from "@/stores/apis/admin/notifications";
-import { NotificationType, NotificationChannel } from "~/types/admin/enums";
+import { COMPOSE_TYPE_OPTIONS, notificationErrorMessage } from "../notification-meta";
 
 interface BroadcastModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const NOTIFICATION_TYPE_OPTIONS = [
-  {
-    value: NotificationType.PROMOTION,
-    labelKey: "admin.notifications.type.promotion",
-  },
-  {
-    value: NotificationType.SYSTEM_ALERT,
-    labelKey: "admin.notifications.type.systemAlert",
-  },
-  {
-    value: NotificationType.ORDER_CONFIRMED,
-    labelKey: "admin.notifications.type.orderConfirmed",
-  },
-  {
-    value: NotificationType.ORDER_READY,
-    labelKey: "admin.notifications.type.orderReady",
-  },
-  {
-    value: NotificationType.LOYALTY_REWARD_UNLOCKED,
-    labelKey: "admin.notifications.type.loyaltyRewardUnlocked",
-  },
-];
+const DEFAULT_FORM = {
+  type: COMPOSE_TYPE_OPTIONS[0].value as string,
+  title: "",
+  message: "",
+  targetAllUsers: true,
+  recipientIdsText: "",
+};
 
-const CHANNEL_OPTIONS = [
-  {
-    value: NotificationChannel.IN_APP,
-    labelKey: "admin.notifications.channel.inApp",
-  },
-  {
-    value: NotificationChannel.EMAIL,
-    labelKey: "admin.notifications.channel.email",
-  },
-  {
-    value: NotificationChannel.PUSH,
-    labelKey: "admin.notifications.channel.push",
-  },
-  {
-    value: NotificationChannel.SMS,
-    labelKey: "admin.notifications.channel.sms",
-  },
-];
+/** "12, 15 18" → [12, 15, 18] (bỏ trùng, bỏ giá trị không hợp lệ). */
+const parseIds = (text: string) =>
+  [...new Set(text.split(/[\s,;]+/).map((s) => Number(s.trim())))].filter(
+    (n) => Number.isInteger(n) && n > 0,
+  );
 
 export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
   const { t } = useTranslation();
-  const [broadcastNotification, { isLoading }] =
-    useBroadcastNotificationMutation();
-
-  const [formData, setFormData] = useState({
-    type: NotificationType.PROMOTION as string,
-    channel: NotificationChannel.IN_APP as string,
-    title: "",
-    message: "",
-    targetAllUsers: true,
-    recipientIdsText: "",
-    scheduledFor: "",
-  });
-
-  const reset = () => {
-    setFormData({
-      type: NotificationType.PROMOTION,
-      channel: NotificationChannel.IN_APP,
-      title: "",
-      message: "",
-      targetAllUsers: true,
-      recipientIdsText: "",
-      scheduledFor: "",
-    });
-  };
+  const [broadcastNotification, { isLoading }] = useBroadcastNotificationMutation();
+  const [formData, setFormData] = useState(DEFAULT_FORM);
 
   const handleClose = () => {
-    reset();
+    setFormData(DEFAULT_FORM);
     onClose();
   };
 
@@ -108,37 +58,35 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
       return;
     }
 
-    const recipientIds = formData.targetAllUsers
-      ? undefined
-      : formData.recipientIdsText
-          .split(",")
-          .map((s) => parseInt(s.trim(), 10))
-          .filter((n) => !isNaN(n));
+    const userIds = formData.targetAllUsers ? undefined : parseIds(formData.recipientIdsText);
+    if (userIds && userIds.length === 0) {
+      toast.error("Nhập ít nhất một ID người nhận hợp lệ");
+      return;
+    }
 
     try {
+      // Backend không hỗ trợ kênh/hẹn giờ: chỉ gửi ngay qua app (in-app + push).
       const result = await broadcastNotification({
-        type: formData.type as (typeof NotificationType)[keyof typeof NotificationType],
-        channel:
-          formData.channel as (typeof NotificationChannel)[keyof typeof NotificationChannel],
-        title: formData.title,
-        message: formData.message,
-        targetAllUsers: formData.targetAllUsers,
-        recipientIds,
-        scheduledFor: formData.scheduledFor || undefined,
+        type: formData.type,
+        title: formData.title.trim(),
+        message: formData.message.trim(),
+        ...(userIds ? { userIds } : {}),
       }).unwrap();
 
-      const sent = result.data?.totalNotificationsSent ?? 0;
+      // Phản hồi là danh sách thông báo đã tạo — mỗi phần tử là một người nhận.
+      const sent = Array.isArray(result.data) ? result.data.length : 0;
       toast.success(
-        t("admin.notifications.broadcast.successMsg").replace(
-          "{count}",
-          String(sent),
-        ),
+        t("admin.notifications.broadcast.successMsg").replace("{count}", String(sent)),
       );
       handleClose();
-    } catch {
-      toast.error(t("admin.notifications.broadcast.errorMsg"));
+    } catch (err) {
+      toast.error(t("admin.notifications.broadcast.errorMsg"), {
+        description: notificationErrorMessage(err, "") || undefined,
+      });
     }
   };
+
+  const typeHint = COMPOSE_TYPE_OPTIONS.find((o) => o.value === formData.type)?.hint;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -151,46 +99,24 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>{t("admin.notifications.broadcast.notifType")}</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(v) => setFormData((f) => ({ ...f, type: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {NOTIFICATION_TYPE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {t(opt.labelKey)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>{t("admin.notifications.broadcast.channel")}</Label>
-              <Select
-                value={formData.channel}
-                onValueChange={(v) =>
-                  setFormData((f) => ({ ...f, channel: v }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CHANNEL_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {t(opt.labelKey)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1.5">
+            <Label>{t("admin.notifications.broadcast.notifType")}</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(v) => setFormData((f) => ({ ...f, type: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {COMPOSE_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {typeHint && <p className="text-xs text-muted-foreground/70">{typeHint}</p>}
           </div>
 
           <div className="space-y-1.5">
@@ -265,19 +191,8 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
                 )}
               />
             )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t("admin.notifications.broadcast.scheduledFor")}</Label>
-            <Input
-              type="datetime-local"
-              value={formData.scheduledFor}
-              onChange={(e) =>
-                setFormData((f) => ({ ...f, scheduledFor: e.target.value }))
-              }
-            />
             <p className="text-xs text-muted-foreground/70">
-              {t("admin.notifications.broadcast.scheduledHint")}
+              Thông báo được gửi ngay; số người nhận thực tế hiển thị sau khi gửi.
             </p>
           </div>
 

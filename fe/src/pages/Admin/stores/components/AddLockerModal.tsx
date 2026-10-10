@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -44,8 +45,10 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
       });
       onCreated();
       onClose();
-    } catch {
-      alert("Không thể tạo tủ mới");
+    } catch (err) {
+      toast.error("Không thể tạo tủ mới", {
+        description: err instanceof Error ? err.message : undefined,
+      });
     } finally {
       setSaving(false);
     }

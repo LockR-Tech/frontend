@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Unlock, AlertTriangle } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -116,8 +117,10 @@ export function BoxSettingModal({
       await apiPut(`/api/admin/lockers/boxes/${box.id}/status`, { status });
       onRefresh();
       onClose();
-    } catch {
-      alert("Không thể cập nhật trạng thái ngăn");
+    } catch (err) {
+      toast.error("Không thể cập nhật trạng thái ngăn", {
+        description: err instanceof Error ? err.message : undefined,
+      });
     } finally {
       setSaving(false);
     }
@@ -129,8 +132,10 @@ export function BoxSettingModal({
       setConfirmForceOpen(false);
       onRefresh();
       onClose();
-    } catch {
-      alert("Không thể gửi lệnh mở tủ");
+    } catch (err) {
+      toast.error("Không thể gửi lệnh mở tủ", {
+        description: err instanceof Error ? err.message : undefined,
+      });
       setConfirmForceOpen(false);
     }
   };

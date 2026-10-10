@@ -1,54 +1,71 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  NotificationStatus,
-  NotificationType,
-  NotificationChannel,
-} from "~/types/admin/enums";
+import { toast } from "sonner";
+import { NotificationStatus } from "~/types/admin/enums";
 import {
   useGetAllNotificationsQuery,
   useDeleteNotificationMutation,
+  useMarkAdminNotificationReadMutation,
+  useResendNotificationMutation,
 } from "@/stores/apis/admin/notifications";
 import { useGetAllUsersQuery } from "@/stores/apis/admin/users";
-import type {
-  AdminNotificationResponse,
-  NotificationStatsResponse,
-} from "~/types/admin/notification";
+import type { AdminNotificationResponse } from "~/types/admin/notification";
 import { parseBackendDateTime } from "~/lib/datetime";
 import { extractList } from "~/lib/extract-list";
+import { notificationErrorMessage, notificationTypeLabel } from "../notification-meta";
 
 export type NotificationStatusFilter = "ALL" | NotificationStatus;
-export type NotificationTypeFilter = "ALL" | NotificationType;
-export type NotificationChannelFilter = "ALL" | NotificationChannel;
+
+/** Dòng bảng: NotificationResponse + tên người nhận ghép từ danh sách người dùng. */
+export type NotificationRow = Omit<AdminNotificationResponse, "type" | "status"> & {
+  type: string;
+  status: NotificationStatus;
+};
+
+export interface NotificationStats {
+  total: number;
+  unread: number;
+  read: number;
+  /** Phút trung bình từ lúc tạo tới lúc đọc; null khi chưa có thông báo nào được đọc. */
+  averageReadMinutes: number | null;
+}
 
 export function useNotifications() {
-  const [statusFilter, setStatusFilter] =
-    useState<NotificationStatusFilter>("ALL");
-  const [typeFilter, setTypeFilter] = useState<NotificationTypeFilter>("ALL");
-  const [channelFilter, setChannelFilter] =
-    useState<NotificationChannelFilter>("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilterState] = useState<NotificationStatusFilter>("ALL");
+  const [typeFilter, setTypeFilterState] = useState<string>("ALL");
+  const [searchQuery, setSearchQueryState] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
-  const page = Number(urlParams.get("page") ?? "0");
-  const pageSize = Number(urlParams.get("size") ?? "10");
+  const page = Math.max(0, Number(urlParams.get("page") ?? "0") || 0);
+  const pageSize = Math.max(1, Number(urlParams.get("size") ?? "10") || 10);
   const setPage = (newPage: number) =>
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(newPage)); return next; });
   const setPageSize = (newSize: number) =>
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("size", String(newSize)); next.set("page", "0"); return next; });
+  const resetPage = () => {
+    if (page !== 0) setPage(0);
+  };
+  const setStatusFilter = (v: NotificationStatusFilter) => {
+    setStatusFilterState(v);
+    resetPage();
+  };
+  const setTypeFilter = (v: string) => {
+    setTypeFilterState(v);
+    resetPage();
+  };
+  const setSearchQuery = (v: string) => {
+    setSearchQueryState(v);
+    resetPage();
+  };
 
-  const { data, isLoading, refetch } = useGetAllNotificationsQuery({
-    page,
-    size: pageSize,
-    ...(statusFilter !== "ALL" ? { status: statusFilter } : {}),
-    ...(typeFilter !== "ALL" ? { type: typeFilter } : {}),
-    ...(channelFilter !== "ALL" ? { channel: channelFilter } : {}),
-  });
+  // GET /api/admin/notifications trả toàn bộ (List) — lọc/phân trang tại client.
+  const { data, isLoading, refetch } = useGetAllNotificationsQuery({});
 
-  const [deleteNotification, { isLoading: isDeleting }] =
-    useDeleteNotificationMutation();
+  const [deleteNotification, { isLoading: isDeleting }] = useDeleteNotificationMutation();
+  const [markRead] = useMarkAdminNotificationReadMutation();
+  const [resendNotification] = useResendNotificationMutation();
+  const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
 
-  // Join recipient names from the users list (notification-service only carries
-  // `userId`, no name/email).
+  // notification-service chỉ có `userId` → ghép tên/email từ danh sách người dùng.
   const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
   const userById = useMemo(() => {
     const m = new Map<number, { name: string; email?: string }>();
@@ -62,14 +79,19 @@ export function useNotifications() {
     return m;
   }, [usersData]);
 
-  const allNotifications: AdminNotificationResponse[] = useMemo(
+  const allNotifications: NotificationRow[] = useMemo(
     () =>
-      extractList<AdminNotificationResponse>(data?.data).map((n) => {
+      extractList<AdminNotificationResponse & { isRead?: boolean }>(data?.data).map((n) => {
         const recipientId = n.recipientId ?? n.userId;
-        const matched =
-          recipientId != null ? userById.get(recipientId) : undefined;
+        const matched = recipientId != null ? userById.get(recipientId) : undefined;
+        const status =
+          n.status === NotificationStatus.READ || (!n.status && n.isRead)
+            ? NotificationStatus.READ
+            : NotificationStatus.UNREAD;
         return {
           ...n,
+          type: n.type ?? "SYSTEM",
+          status,
           recipientId,
           recipientName: n.recipientName ?? matched?.name,
           recipientEmail: n.recipientEmail ?? matched?.email,
@@ -78,70 +100,52 @@ export function useNotifications() {
     [data, userById],
   );
 
-  // `GET /api/admin/notifications` chỉ nhận `userId`, mọi tham số status/type/
-  // channel gửi lên đều bị bỏ qua — nên phải lọc tại client, nếu không ba bộ
-  // lọc trên giao diện không có tác dụng gì.
+  // Danh sách loại lọc dựng từ dữ liệu thật (type là chuỗi tự do ở backend).
+  const typeOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const n of allNotifications) counts.set(n.type, (counts.get(n.type) ?? 0) + 1);
+    return [...counts.entries()]
+      .map(([value, count]) => ({ value, label: notificationTypeLabel(value), count }))
+      .sort((a, b) => a.label.localeCompare(b.label, "vi"));
+  }, [allNotifications]);
+
   const filteredNotifications = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return allNotifications.filter((n) => {
       if (statusFilter !== "ALL" && n.status !== statusFilter) return false;
       if (typeFilter !== "ALL" && n.type !== typeFilter) return false;
-      if (channelFilter !== "ALL" && n.channel !== channelFilter) return false;
       if (!query) return true;
       return (
-        n.title.toLowerCase().includes(query) ||
+        (n.title ?? "").toLowerCase().includes(query) ||
         (n.recipientName ?? "").toLowerCase().includes(query) ||
-        n.message.toLowerCase().includes(query) ||
+        (n.message ?? "").toLowerCase().includes(query) ||
         (n.recipientEmail ?? "").toLowerCase().includes(query) ||
         String(n.id).includes(query)
       );
     });
-  }, [allNotifications, searchQuery, statusFilter, typeFilter, channelFilter]);
+  }, [allNotifications, searchQuery, statusFilter, typeFilter]);
 
-  // `GET /api/admin/notifications` trả cả danh sách (không phân trang), nên
-  // thống kê tính được ngay tại client. Trước đây hook trả `stats: undefined`
-  // khiến toàn bộ thẻ số liệu hiện 0.
-  const stats: NotificationStatsResponse = useMemo(() => {
-    const byStatus = (s: NotificationStatus) =>
-      allNotifications.filter((n) => n.status === s).length;
-
-    const notificationsByType: Record<string, number> = {};
-    const notificationsByChannel: Record<string, number> = {};
+  const stats: NotificationStats = useMemo(() => {
+    let read = 0;
     let readTimeSum = 0;
     let readTimeCount = 0;
-
     for (const n of allNotifications) {
-      notificationsByType[n.type] = (notificationsByType[n.type] ?? 0) + 1;
-      if (n.channel) {
-        notificationsByChannel[n.channel] =
-          (notificationsByChannel[n.channel] ?? 0) + 1;
-      }
+      if (n.status === NotificationStatus.READ) read += 1;
       const created = parseBackendDateTime(n.createdAt);
-      const read = parseBackendDateTime(n.readAt ?? null);
-      if (created && read && read >= created) {
-        readTimeSum += (read.getTime() - created.getTime()) / 60000;
+      const readAt = parseBackendDateTime(n.readAt ?? null);
+      if (created && readAt && readAt >= created) {
+        readTimeSum += (readAt.getTime() - created.getTime()) / 60000;
         readTimeCount += 1;
       }
     }
-
-    const total = allNotifications.length;
-    const sent = allNotifications.filter((n) => n.sentAt).length;
-
     return {
-      totalNotifications: total,
-      unreadCount: byStatus(NotificationStatus.UNREAD),
-      readCount: byStatus(NotificationStatus.READ),
-      archivedCount: byStatus(NotificationStatus.ARCHIVED),
-      notificationsByType,
-      notificationsByChannel,
-      deliveryRate: total > 0 ? sent / total : 0,
-      averageReadTime:
-        readTimeCount > 0 ? Math.round(readTimeSum / readTimeCount) : 0,
+      total: allNotifications.length,
+      unread: allNotifications.length - read,
+      read,
+      averageReadMinutes: readTimeCount > 0 ? Math.round(readTimeSum / readTimeCount) : null,
     };
   }, [allNotifications]);
 
-  // Backend không phân trang nên cắt trang ở client; trước đây `totalPages`
-  // cứng bằng 1 làm thanh phân trang vô dụng và số tổng chỉ đếm 1 trang.
   const totalElements = filteredNotifications.length;
   const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
   const pagedNotifications = useMemo(
@@ -149,23 +153,72 @@ export function useNotifications() {
     [filteredNotifications, page, pageSize],
   );
 
+  useEffect(() => {
+    if (!isLoading && page > 0 && page >= totalPages) {
+      setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(totalPages - 1)); return next; });
+    }
+  }, [isLoading, page, totalPages, setUrlParams]);
+
   const clearFilters = () => {
-    setStatusFilter("ALL");
-    setTypeFilter("ALL");
-    setChannelFilter("ALL");
-    setSearchQuery("");
+    setStatusFilterState("ALL");
+    setTypeFilterState("ALL");
+    setSearchQueryState("");
     setPage(0);
   };
 
-  const hasActiveFilters =
-    statusFilter !== "ALL" ||
-    typeFilter !== "ALL" ||
-    channelFilter !== "ALL" ||
-    searchQuery !== "";
+  const hasActiveFilters = statusFilter !== "ALL" || typeFilter !== "ALL" || searchQuery !== "";
 
-  const handleDelete = async (id: number) => {
-    await deleteNotification(id).unwrap();
+  const withPending = async (id: number, action: () => Promise<void>) => {
+    if (pendingIds.has(id)) return;
+    setPendingIds((prev) => new Set(prev).add(id));
+    try {
+      await action();
+    } finally {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   };
+
+  /** Trả true khi xoá được (để đóng hộp xác nhận). */
+  const handleDelete = async (id: number): Promise<boolean> => {
+    try {
+      await deleteNotification(id).unwrap();
+      toast.success("Đã xoá thông báo");
+      return true;
+    } catch (err) {
+      toast.error("Không xoá được thông báo", {
+        description: notificationErrorMessage(err, "Vui lòng thử lại."),
+      });
+      return false;
+    }
+  };
+
+  const handleMarkRead = (id: number) =>
+    withPending(id, async () => {
+      try {
+        await markRead(id).unwrap();
+        toast.success("Đã đánh dấu đã đọc");
+      } catch (err) {
+        toast.error("Không đánh dấu được", {
+          description: notificationErrorMessage(err, "Vui lòng thử lại."),
+        });
+      }
+    });
+
+  const handleResend = (id: number) =>
+    withPending(id, async () => {
+      try {
+        await resendNotification(id).unwrap();
+        toast.success("Đã gửi lại thông báo");
+      } catch (err) {
+        toast.error("Không gửi lại được thông báo", {
+          description: notificationErrorMessage(err, "Vui lòng thử lại."),
+        });
+      }
+    });
 
   return {
     notifications: pagedNotifications,
@@ -173,17 +226,13 @@ export function useNotifications() {
     totalPages,
     stats,
     isLoading,
-    isLoadingStats: isLoading,
     isDeleting,
-    isBulkDeleting: false,
-    isUpdatingStatus: false,
-    isResending: false,
+    pendingIds,
     statusFilter,
     setStatusFilter,
     typeFilter,
     setTypeFilter,
-    channelFilter,
-    setChannelFilter,
+    typeOptions,
     searchQuery,
     setSearchQuery,
     page,
@@ -194,8 +243,7 @@ export function useNotifications() {
     clearFilters,
     hasActiveFilters,
     handleDelete,
-    handleBulkDelete: async (_ids: number[]) => {},
-    handleUpdateStatus: async (_id: number, _status: NotificationStatus) => {},
-    handleResend: async (_id: number) => {},
+    handleMarkRead,
+    handleResend,
   };
 }

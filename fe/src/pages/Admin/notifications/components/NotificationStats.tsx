@@ -1,10 +1,10 @@
-import { Bell, BellOff, CheckCheck, Archive, TrendingUp, Clock } from "lucide-react";
+import { Bell, BellOff, CheckCheck, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "~/components/ui/card";
-import type { NotificationStatsResponse } from "~/types/admin/notification";
+import type { NotificationStats as Stats } from "../hooks/useNotifications";
 
 interface NotificationStatsProps {
-  stats?: NotificationStatsResponse;
+  stats: Stats;
   isLoading: boolean;
 }
 
@@ -41,48 +41,33 @@ function StatCard({ title, value, icon: Icon, isLoading, description }: StatCard
   );
 }
 
+// Chỉ các chỉ số tính được từ dữ liệu thật (notification-service không có kênh/tỷ lệ gửi).
 export function NotificationStats({ stats, isLoading }: NotificationStatsProps) {
   const { t } = useTranslation();
-  const deliveryRate =
-    stats?.deliveryRate != null
-      ? `${(stats.deliveryRate * 100).toFixed(1)}%`
-      : "—";
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
       <StatCard
         title={t("admin.notifications.stats.total")}
-        value={stats?.totalNotifications ?? 0}
+        value={stats.total}
         icon={Bell}
         isLoading={isLoading}
       />
       <StatCard
         title={t("admin.notifications.stats.unread")}
-        value={stats?.unreadCount ?? 0}
+        value={stats.unread}
         icon={BellOff}
         isLoading={isLoading}
       />
       <StatCard
         title={t("admin.notifications.stats.read")}
-        value={stats?.readCount ?? 0}
+        value={stats.read}
         icon={CheckCheck}
         isLoading={isLoading}
       />
       <StatCard
-        title={t("admin.notifications.stats.archived")}
-        value={stats?.archivedCount ?? 0}
-        icon={Archive}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title={t("admin.notifications.stats.deliveryRate")}
-        value={deliveryRate}
-        icon={TrendingUp}
-        isLoading={isLoading}
-      />
-      <StatCard
         title={t("admin.notifications.stats.avgReadTime")}
-        value={stats?.averageReadTime != null ? `${stats.averageReadTime}m` : "—"}
+        value={stats.averageReadMinutes != null ? `${stats.averageReadMinutes}m` : "—"}
         icon={Clock}
         isLoading={isLoading}
         description={t("admin.notifications.stats.minutes")}

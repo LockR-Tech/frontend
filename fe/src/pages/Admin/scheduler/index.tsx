@@ -1,50 +1,33 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
+import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { useScheduler } from "./hooks/useScheduler";
 import { SchedulerStatus } from "./components/SchedulerStatus";
 import { JobCard } from "./components/JobCard";
 import { JobResults } from "./components/JobResults";
-import { Timer, Package, Bell, Info } from "lucide-react";
+import { SCHEDULER_JOBS, jobI18nKey, type SchedulerJobKey } from "./jobs";
+import { Info } from "lucide-react";
 
 export default function SchedulerPage() {
   const { t } = useTranslation();
-  const {
-    handleTriggerAutoCancel,
-    handleTriggerBoxRelease,
-    handleTriggerPickupReminders,
-    isTriggeringCancel,
-    isTriggeringRelease,
-    isTriggeringReminders,
-    jobResults,
-  } = useScheduler();
+  const { runJob, loading, jobResults } = useScheduler();
+  const [confirmKey, setConfirmKey] = useState<SchedulerJobKey | null>(null);
 
-  const jobs = [
-    {
-      title: t("admin.scheduler.jobs.autoCancel.title"),
-      description: t("admin.scheduler.jobs.autoCancel.description"),
-      frequency: t("admin.scheduler.jobs.autoCancel.frequency"),
-      icon: <Timer size={20} className="text-orange-600" />,
-      onTrigger: handleTriggerAutoCancel,
-      isLoading: isTriggeringCancel,
-    },
-    {
-      title: t("admin.scheduler.jobs.releaseBoxes.title"),
-      description: t("admin.scheduler.jobs.releaseBoxes.description"),
-      frequency: t("admin.scheduler.jobs.releaseBoxes.frequency"),
-      icon: <Package size={20} className="text-primary" />,
-      onTrigger: handleTriggerBoxRelease,
-      isLoading: isTriggeringRelease,
-    },
-    {
-      title: t("admin.scheduler.jobs.pickupReminders.title"),
-      description: t("admin.scheduler.jobs.pickupReminders.description"),
-      frequency: t("admin.scheduler.jobs.pickupReminders.frequency"),
-      icon: <Bell size={20} className="text-violet-500" />,
-      onTrigger: handleTriggerPickupReminders,
-      isLoading: isTriggeringReminders,
-    },
-  ];
+  const handleTrigger = (key: SchedulerJobKey, needsConfirm: boolean) => {
+    if (needsConfirm) {
+      setConfirmKey(key);
+      return;
+    }
+    void runJob(key);
+  };
+
+  const handleConfirm = async () => {
+    if (!confirmKey) return;
+    await runJob(confirmKey);
+    setConfirmKey(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -55,18 +38,21 @@ export default function SchedulerPage() {
 
       <SchedulerStatus />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {jobs.map((job) => (
-          <JobCard
-            key={job.title}
-            title={job.title}
-            description={job.description}
-            frequency={job.frequency}
-            icon={job.icon}
-            onTrigger={job.onTrigger}
-            isLoading={job.isLoading}
-          />
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {SCHEDULER_JOBS.map((job) => {
+          const Icon = job.icon;
+          return (
+            <JobCard
+              key={job.key}
+              title={t(jobI18nKey(job.key, "title"))}
+              description={t(jobI18nKey(job.key, "description"))}
+              frequency={t(jobI18nKey(job.key, "frequency"))}
+              icon={<Icon size={20} className={job.color} />}
+              onTrigger={() => handleTrigger(job.key, job.needsConfirm)}
+              isLoading={loading[job.key]}
+            />
+          );
+        })}
       </div>
 
       <JobResults results={jobResults} />
@@ -84,6 +70,19 @@ export default function SchedulerPage() {
           </ul>
         </CardContent>
       </Card>
+
+      <ConfirmActionDialog
+        open={confirmKey !== null}
+        onOpenChange={(open) => !open && setConfirmKey(null)}
+        title={t("admin.scheduler.confirmTitle", {
+          job: confirmKey ? t(jobI18nKey(confirmKey, "title")) : "",
+        })}
+        description={confirmKey ? <p>{t(jobI18nKey(confirmKey, "confirm"))}</p> : null}
+        actionLabel={t("admin.scheduler.runNow")}
+        destructive
+        loading={confirmKey ? loading[confirmKey] : false}
+        onConfirm={() => void handleConfirm()}
+      />
     </div>
   );
 }

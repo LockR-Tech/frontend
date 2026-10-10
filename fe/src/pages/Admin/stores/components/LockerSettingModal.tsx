@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Settings } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -60,8 +61,10 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
       });
       onRefresh();
       onClose();
-    } catch {
-      alert("Không thể cập nhật thông tin tủ");
+    } catch (err) {
+      toast.error("Không thể cập nhật thông tin tủ", {
+        description: err instanceof Error ? err.message : undefined,
+      });
     } finally {
       setSaving(false);
     }
@@ -75,8 +78,10 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
       });
       setMaintenance(val);
       onRefresh();
-    } catch {
-      alert("Không thể thay đổi chế độ bảo trì");
+    } catch (err) {
+      toast.error("Không thể thay đổi chế độ bảo trì", {
+        description: err instanceof Error ? err.message : undefined,
+      });
     } finally {
       setSavingMaintenance(false);
     }

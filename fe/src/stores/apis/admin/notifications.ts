@@ -5,25 +5,34 @@ import type {
   Page,
   PageableRequest,
   AdminNotificationResponse,
-  CreateNotificationRequest,
-  BroadcastNotificationRequest,
-  BroadcastResult,
 } from "../../../types";
-import type {
-  NotificationStatus,
-  NotificationType,
-  NotificationChannel,
-} from "../../../types/admin/enums";
 
 const TAGS = {
   NOTIFICATIONS: "Notifications",
 } as const;
 
+// GET /api/admin/notifications chỉ nhận `userId` (trả List, không phân trang);
+// page/size giữ để tương thích chỗ gọi cũ, backend bỏ qua.
 export interface GetNotificationsParams extends PageableRequest {
-  type?: NotificationType;
-  status?: NotificationStatus;
-  channel?: NotificationChannel;
-  recipientId?: number;
+  userId?: number;
+}
+
+/** NotificationRequest (common-lib) — body của POST /api/admin/notifications/send. */
+export interface SendNotificationRequest {
+  userId: number;
+  title: string;
+  message: string;
+  type: string;
+  referenceId?: number;
+  referenceType?: string;
+}
+
+/** POST /api/admin/notifications/broadcast — có `userIds` thì chỉ gửi những người đó. */
+export interface BroadcastNotificationBody {
+  title: string;
+  message: string;
+  type: string;
+  userIds?: number[];
 }
 
 export const notificationManagementApi = baseApi.injectEndpoints({
@@ -39,20 +48,12 @@ export const notificationManagementApi = baseApi.injectEndpoints({
       providesTags: [TAGS.NOTIFICATIONS],
     }),
 
-    getNotificationById: builder.query<
+    sendNotification: builder.mutation<
       ApiResponse<AdminNotificationResponse>,
-      number
-    >({
-      query: (id) => ADMIN_ENDPOINTS.NOTIFICATION_BY_ID(id),
-      providesTags: (_, __, id) => [{ type: TAGS.NOTIFICATIONS, id }],
-    }),
-
-    createNotification: builder.mutation<
-      ApiResponse<AdminNotificationResponse>,
-      CreateNotificationRequest
+      SendNotificationRequest
     >({
       query: (data) => ({
-        url: ADMIN_ENDPOINTS.NOTIFICATIONS,
+        url: `${ADMIN_ENDPOINTS.NOTIFICATIONS}/send`,
         method: "POST",
         body: data,
       }),
@@ -67,9 +68,34 @@ export const notificationManagementApi = baseApi.injectEndpoints({
       invalidatesTags: [TAGS.NOTIFICATIONS],
     }),
 
+    // PATCH /api/admin/notifications/{id}/read
+    markAdminNotificationRead: builder.mutation<
+      ApiResponse<AdminNotificationResponse>,
+      number
+    >({
+      query: (id) => ({
+        url: `${ADMIN_ENDPOINTS.NOTIFICATION_BY_ID(id)}/read`,
+        method: "PATCH",
+      }),
+      invalidatesTags: [TAGS.NOTIFICATIONS],
+    }),
+
+    // POST /api/admin/notifications/{id}/resend — trả về thông báo mới
+    resendNotification: builder.mutation<
+      ApiResponse<AdminNotificationResponse>,
+      number
+    >({
+      query: (id) => ({
+        url: ADMIN_ENDPOINTS.NOTIFICATION_RESEND(id),
+        method: "POST",
+      }),
+      invalidatesTags: [TAGS.NOTIFICATIONS],
+    }),
+
+    // Trả List các thông báo đã tạo — số người nhận = độ dài danh sách.
     broadcastNotification: builder.mutation<
-      ApiResponse<BroadcastResult>,
-      BroadcastNotificationRequest
+      ApiResponse<AdminNotificationResponse[]>,
+      BroadcastNotificationBody
     >({
       query: (data) => ({
         url: ADMIN_ENDPOINTS.NOTIFICATION_BROADCAST,
@@ -83,8 +109,9 @@ export const notificationManagementApi = baseApi.injectEndpoints({
 
 export const {
   useGetAllNotificationsQuery,
-  useGetNotificationByIdQuery,
-  useCreateNotificationMutation,
+  useSendNotificationMutation,
   useDeleteNotificationMutation,
+  useMarkAdminNotificationReadMutation,
+  useResendNotificationMutation,
   useBroadcastNotificationMutation,
 } = notificationManagementApi;

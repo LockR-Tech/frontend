@@ -150,18 +150,32 @@ export type StampType = (typeof StampType)[keyof typeof StampType];
 // ============================================
 // Notification Type
 // ============================================
+// Loại thông báo các service thật sự gửi (grep NotificationRequest ở order/payment-service);
+// `type` là chuỗi tự do nên vẫn có thể gặp giá trị khác — UI phải có nhãn dự phòng.
+// OPEN_PROMOTION_TAB: app mobile mở tab Khuyến mãi khi bấm (actionType = type).
 export const NotificationType = {
+  SYSTEM: "SYSTEM",
+  OPEN_PROMOTION_TAB: "OPEN_PROMOTION_TAB",
   ORDER_CREATED: "ORDER_CREATED",
-  ORDER_CONFIRMED: "ORDER_CONFIRMED",
-  ORDER_READY: "ORDER_READY",
-  ORDER_COMPLETED: "ORDER_COMPLETED",
-  ORDER_CANCELLED: "ORDER_CANCELLED",
-  PAYMENT_SUCCESSFUL: "PAYMENT_SUCCESSFUL",
-  PAYMENT_FAILED: "PAYMENT_FAILED",
-  PROMOTION: "PROMOTION",
-  SYSTEM_ALERT: "SYSTEM_ALERT",
-  LOYALTY_POINTS_EARNED: "LOYALTY_POINTS_EARNED",
-  LOYALTY_REWARD_UNLOCKED: "LOYALTY_REWARD_UNLOCKED",
+  ORDER_STATUS: "ORDER_STATUS",
+  ORDER_PARCEL_READY: "ORDER_PARCEL_READY",
+  ORDER_PARCEL_STORED: "ORDER_PARCEL_STORED",
+  ORDER_PICKUP_OVERDUE: "ORDER_PICKUP_OVERDUE",
+  ORDER_EXPIRED: "ORDER_EXPIRED",
+  ORDER_RENTAL_EXTENDED: "ORDER_RENTAL_EXTENDED",
+  ORDER_RELOCATED: "ORDER_RELOCATED",
+  ORDER_DELEGATED: "ORDER_DELEGATED",
+  ORDER_ESCROWED: "ORDER_ESCROWED",
+  PAYMENT_COMPLETED: "PAYMENT_COMPLETED",
+  REFUND_COMPLETED: "REFUND_COMPLETED",
+  REFUND_REJECTED: "REFUND_REJECTED",
+  DRONE_ORDER_CREATED: "DRONE_ORDER_CREATED",
+  DRONE_DELIVERY_STATUS_CHANGED: "DRONE_DELIVERY_STATUS_CHANGED",
+  DRONE_INCIDENT: "DRONE_INCIDENT",
+  DRONE_INCIDENT_RESOLUTION_PROPOSED: "DRONE_INCIDENT_RESOLUTION_PROPOSED",
+  DRONE_PARCEL_DROP_REPORTED: "DRONE_PARCEL_DROP_REPORTED",
+  DRONE_PARCEL_RECOVERY_ASSIGNED: "DRONE_PARCEL_RECOVERY_ASSIGNED",
+  FEEDBACK_REPLY: "FEEDBACK_REPLY",
 } as const;
 
 export type NotificationType =
@@ -170,10 +184,10 @@ export type NotificationType =
 // ============================================
 // Notification Status
 // ============================================
+// notification-service chỉ có UNREAD/READ (không có lưu trữ).
 export const NotificationStatus = {
   UNREAD: "UNREAD",
   READ: "READ",
-  ARCHIVED: "ARCHIVED",
 } as const;
 
 export type NotificationStatus =

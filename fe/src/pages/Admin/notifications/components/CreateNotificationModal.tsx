@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -19,93 +19,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { useCreateNotificationMutation } from "@/stores/apis/admin/notifications";
-import { NotificationType, NotificationChannel } from "~/types/admin/enums";
+import { useSendNotificationMutation } from "@/stores/apis/admin/notifications";
+import { useGetAllUsersQuery } from "@/stores/apis/admin/users";
+import { extractList } from "~/lib/extract-list";
+import { COMPOSE_TYPE_OPTIONS, notificationErrorMessage } from "../notification-meta";
 
 interface CreateNotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const NOTIFICATION_TYPE_OPTIONS: {
-  value: NotificationType;
-  labelKey: string;
-}[] = [
-  {
-    value: NotificationType.ORDER_CREATED,
-    labelKey: "admin.notifications.type.orderCreated",
-  },
-  {
-    value: NotificationType.ORDER_CONFIRMED,
-    labelKey: "admin.notifications.type.orderConfirmed",
-  },
-  {
-    value: NotificationType.ORDER_READY,
-    labelKey: "admin.notifications.type.orderReady",
-  },
-  {
-    value: NotificationType.ORDER_COMPLETED,
-    labelKey: "admin.notifications.type.orderCompleted",
-  },
-  {
-    value: NotificationType.ORDER_CANCELLED,
-    labelKey: "admin.notifications.type.orderCancelled",
-  },
-  {
-    value: NotificationType.PAYMENT_SUCCESSFUL,
-    labelKey: "admin.notifications.type.paymentSuccessful",
-  },
-  {
-    value: NotificationType.PAYMENT_FAILED,
-    labelKey: "admin.notifications.type.paymentFailed",
-  },
-  {
-    value: NotificationType.PROMOTION,
-    labelKey: "admin.notifications.type.promotion",
-  },
-  {
-    value: NotificationType.SYSTEM_ALERT,
-    labelKey: "admin.notifications.type.systemAlert",
-  },
-  {
-    value: NotificationType.LOYALTY_POINTS_EARNED,
-    labelKey: "admin.notifications.type.loyaltyPointsEarned",
-  },
-  {
-    value: NotificationType.LOYALTY_REWARD_UNLOCKED,
-    labelKey: "admin.notifications.type.loyaltyRewardUnlocked",
-  },
-];
-
-const CHANNEL_OPTIONS: { value: NotificationChannel; labelKey: string }[] = [
-  {
-    value: NotificationChannel.IN_APP,
-    labelKey: "admin.notifications.channel.inApp",
-  },
-  {
-    value: NotificationChannel.EMAIL,
-    labelKey: "admin.notifications.channel.email",
-  },
-  {
-    value: NotificationChannel.PUSH,
-    labelKey: "admin.notifications.channel.push",
-  },
-  {
-    value: NotificationChannel.SMS,
-    labelKey: "admin.notifications.channel.sms",
-  },
-];
-
-const DEFAULT_FORM: {
-  type: NotificationType;
-  channel: NotificationChannel;
-  recipientId: string;
-  title: string;
-  message: string;
-  relatedOrderId: string;
-} = {
-  type: NotificationType.SYSTEM_ALERT,
-  channel: NotificationChannel.IN_APP,
+const DEFAULT_FORM = {
+  type: COMPOSE_TYPE_OPTIONS[0].value as string,
   recipientId: "",
   title: "",
   message: "",
@@ -117,8 +42,19 @@ export function CreateNotificationModal({
   onClose,
 }: CreateNotificationModalProps) {
   const { t } = useTranslation();
-  const [createNotification, { isLoading }] = useCreateNotificationMutation();
+  const [sendNotification, { isLoading }] = useSendNotificationMutation();
   const [formData, setFormData] = useState(DEFAULT_FORM);
+
+  // Hiện tên người nhận để admin kiểm tra đúng ID trước khi gửi.
+  const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 }, { skip: !isOpen });
+  const recipientName = useMemo(() => {
+    const id = Number(formData.recipientId);
+    if (!id) return null;
+    const user = extractList<{ id: number; fullName?: string; email?: string }>(
+      usersData?.data,
+    ).find((u) => u.id === id);
+    return user ? user.fullName || user.email || `#${user.id}` : undefined;
+  }, [formData.recipientId, usersData]);
 
   const handleClose = () => {
     setFormData(DEFAULT_FORM);
@@ -128,8 +64,8 @@ export function CreateNotificationModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const recipientId = parseInt(formData.recipientId, 10);
-    if (isNaN(recipientId) || recipientId <= 0) {
+    const userId = parseInt(formData.recipientId, 10);
+    if (isNaN(userId) || userId <= 0) {
       toast.error(t("admin.notifications.create.invalidRecipient"));
       return;
     }
@@ -139,24 +75,27 @@ export function CreateNotificationModal({
       return;
     }
 
+    const orderId = formData.relatedOrderId ? parseInt(formData.relatedOrderId, 10) : NaN;
     try {
-      await createNotification({
+      // POST /api/admin/notifications/send — body NotificationRequest {userId, title, message, type, referenceId?, referenceType?}
+      await sendNotification({
+        userId,
         type: formData.type,
-        channel: formData.channel,
-        recipientId,
-        title: formData.title,
-        message: formData.message,
-        relatedOrderId: formData.relatedOrderId
-          ? parseInt(formData.relatedOrderId, 10) || undefined
-          : undefined,
+        title: formData.title.trim(),
+        message: formData.message.trim(),
+        ...(orderId > 0 ? { referenceId: orderId, referenceType: "ORDER" } : {}),
       }).unwrap();
 
       toast.success(t("admin.notifications.create.successMsg"));
       handleClose();
-    } catch {
-      toast.error(t("admin.notifications.create.errorMsg"));
+    } catch (err) {
+      toast.error(t("admin.notifications.create.errorMsg"), {
+        description: notificationErrorMessage(err, "") || undefined,
+      });
     }
   };
+
+  const typeHint = COMPOSE_TYPE_OPTIONS.find((o) => o.value === formData.type)?.hint;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -169,51 +108,24 @@ export function CreateNotificationModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>{t("admin.notifications.create.notifType")}</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(v) =>
-                  setFormData((f) => ({ ...f, type: v as NotificationType }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {NOTIFICATION_TYPE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {t(opt.labelKey)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>{t("admin.notifications.create.channel")}</Label>
-              <Select
-                value={formData.channel}
-                onValueChange={(v) =>
-                  setFormData((f) => ({
-                    ...f,
-                    channel: v as NotificationChannel,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CHANNEL_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {t(opt.labelKey)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1.5">
+            <Label>{t("admin.notifications.create.notifType")}</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(v) => setFormData((f) => ({ ...f, type: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {COMPOSE_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {typeHint && <p className="text-xs text-muted-foreground/70">{typeHint}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -231,6 +143,13 @@ export function CreateNotificationModal({
                 )}
                 required
               />
+              {recipientName !== null && (
+                <p
+                  className={`text-xs ${recipientName ? "text-muted-foreground" : "text-amber-600"}`}
+                >
+                  {recipientName ? `Người nhận: ${recipientName}` : "Không tìm thấy người dùng này"}
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>{t("admin.notifications.create.relatedOrder")}</Label>

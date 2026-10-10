@@ -4,7 +4,6 @@ export { OverviewSection } from "./OverviewSection";
 export { MainChart } from "./MainChart";
 export { RecommendationCard } from "./RecommendationCard";
 export { RecommendationsSection } from "./RecommendationsSection";
-export { SchedulerCard } from "./SchedulerCard";
 export { PaymentMethodChart } from "./PaymentMethodChart";
 export { OrderStatusChart } from "./OrderStatusChart";
 export { ServiceRevenueChart } from "./ServiceRevenueChart";

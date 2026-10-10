@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Store, MapPin, Phone, Clock } from "lucide-react";
+import { Store, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
@@ -14,15 +14,26 @@ import { Label } from "~/components/ui/label";
 import {
   useCreateStoreMutation,
   useUpdateStoreMutation,
+  type StoreRecord,
+  type StoreRequestBody,
 } from "@/stores/apis/admin/stores";
-import type { AdminStoreResponse } from "~/types/admin/store";
+import { storeErrorMessage } from "../hooks/useStores";
 
 interface StoreModalProps {
   isOpen: boolean;
   onClose: () => void;
-  store?: AdminStoreResponse | null;
+  store?: StoreRecord | null;
   mode: "create" | "edit";
 }
+
+const EMPTY_FORM = {
+  name: "",
+  address: "",
+  contactPhone: "",
+  description: "",
+  latitude: "",
+  longitude: "",
+};
 
 export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
   const { t } = useTranslation();
@@ -30,57 +41,37 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
   const [updateStore, { isLoading: isUpdating }] = useUpdateStoreMutation();
   const isSaving = isCreating || isUpdating;
 
-  const [formData, setFormData] = useState({
-    name: "",
-    address: "",
-    phone: "",
-    description: "",
-    openTime: "",
-    closeTime: "",
-    latitude: "",
-    longitude: "",
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
   useEffect(() => {
     if (store && mode === "edit") {
       setFormData({
         name: store.name || "",
         address: store.address || "",
-        phone: store.phone || "",
+        contactPhone: store.contactPhone || "",
         description: store.description || "",
-        openTime: store.openTime || "",
-        closeTime: store.closeTime || "",
         latitude: store.latitude != null ? String(store.latitude) : "",
         longitude: store.longitude != null ? String(store.longitude) : "",
       });
     } else {
-      setFormData({
-        name: "",
-        address: "",
-        phone: "",
-        description: "",
-        openTime: "07:00",
-        closeTime: "21:00",
-        latitude: "",
-        longitude: "",
-      });
+      setFormData(EMPTY_FORM);
     }
   }, [store, mode, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const lat = formData.latitude ? parseFloat(formData.latitude) : undefined;
-      const lng = formData.longitude ? parseFloat(formData.longitude) : undefined;
-      const payload = {
-        name: formData.name,
-        address: formData.address || undefined,
-        phone: formData.phone || undefined,
-        description: formData.description || undefined,
-        openTime: formData.openTime || undefined,
-        closeTime: formData.closeTime || undefined,
-        latitude: !isNaN(lat!) ? lat : undefined,
-        longitude: !isNaN(lng!) ? lng : undefined,
+      const lat = formData.latitude ? parseFloat(formData.latitude) : NaN;
+      const lng = formData.longitude ? parseFloat(formData.longitude) : NaN;
+      // store-service giữ nguyên trường null/bỏ trống → muốn xoá chữ phải gửi "".
+      // Không gửi active/status: đổi trạng thái đi qua PUT …/status.
+      const payload: StoreRequestBody = {
+        name: formData.name.trim(),
+        address: formData.address.trim(),
+        contactPhone: formData.contactPhone.trim(),
+        description: formData.description.trim(),
+        latitude: Number.isFinite(lat) ? lat : undefined,
+        longitude: Number.isFinite(lng) ? lng : undefined,
       };
       if (mode === "create") {
         await createStore(payload).unwrap();
@@ -90,11 +81,12 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
         toast.success(t("admin.stores.modal.editSuccess"));
       }
       onClose();
-    } catch {
+    } catch (err) {
       toast.error(
         mode === "create"
           ? t("admin.stores.modal.createFailed")
           : t("admin.stores.modal.editFailed"),
+        { description: storeErrorMessage(err, "") || undefined },
       );
     }
   };
@@ -140,18 +132,17 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone" className="flex items-center gap-2">
+            <Label htmlFor="contactPhone" className="flex items-center gap-2">
               <Phone size={14} />
-              {t("admin.stores.modal.phone")} *
+              {t("admin.stores.modal.phone")}
             </Label>
             <Input
-              id="phone"
-              value={formData.phone}
+              id="contactPhone"
+              value={formData.contactPhone}
               onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
+                setFormData({ ...formData, contactPhone: e.target.value })
               }
               placeholder={t("admin.stores.modal.phonePlaceholder")}
-              required
             />
           </div>
 
@@ -180,37 +171,6 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
                   setFormData({ ...formData, longitude: e.target.value })
                 }
                 placeholder="VD: 106.8098"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="openTime" className="flex items-center gap-2">
-                <Clock size={14} />
-                {t("admin.stores.modal.openTime")}
-              </Label>
-              <Input
-                id="openTime"
-                type="time"
-                value={formData.openTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, openTime: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="closeTime" className="flex items-center gap-2">
-                <Clock size={14} />
-                {t("admin.stores.modal.closeTime")}
-              </Label>
-              <Input
-                id="closeTime"
-                type="time"
-                value={formData.closeTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, closeTime: e.target.value })
-                }
               />
             </div>
           </div>

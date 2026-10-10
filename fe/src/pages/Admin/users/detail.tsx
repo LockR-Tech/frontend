@@ -39,6 +39,9 @@ import { UserLoyaltySection } from "./components/UserLoyaltySection";
 import { ImageUploadButton } from "~/components/shared/media";
 import { getRoleLabel } from "~/constants";
 import { getMediaErrorMessage, pickImageUrl } from "~/lib/media";
+import { formatDateTime } from "~/lib/datetime";
+import { formatCurrency, formatDayLabel, formatNumber } from "~/lib/report-format";
+import { toReportError } from "~/lib/report-error";
 import { apiGet } from "~/utils/api";
 import type { MediaUpload } from "~/stores/apis/media";
 
@@ -53,26 +56,21 @@ const getRoleBadge = (role: string) => {
   );
 };
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(amount);
-
-const formatDate = (dateString: string) =>
-  new Date(dateString).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+/** user-service ghép fullName = firstName + " " + lastName → tách ở khoảng trắng đầu tiên. */
+const splitFullName = (fullName: string) => {
+  const trimmed = fullName.trim().replace(/\s+/g, " ");
+  const idx = trimmed.indexOf(" ");
+  return idx < 0
+    ? { firstName: trimmed, lastName: "" }
+    : { firstName: trimmed.slice(0, idx), lastName: trimmed.slice(idx + 1) };
+};
 
 export default function UserDetailPage() {
   const { t } = useTranslation();
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { user, isLoading } = useUserDetail(userId);
+  const { user, isLoading, revenue } = useUserDetail(userId);
+  const revenueError = toReportError(revenue.error);
   const numUserId = userId ? Number(userId) : 0;
 
   const [formData, setFormData] = useState({
@@ -134,16 +132,40 @@ export default function UserDetailPage() {
   };
 
   const handleSave = async () => {
+    if (!user) return;
+    if (!formData.name.trim()) {
+      setShowConfirm(false);
+      toast.error("Tên người dùng không được để trống");
+      return;
+    }
     setShowConfirm(false);
     setIsSaving(true);
     try {
-      await updateUser({ id: Number(userId), data: formData }).unwrap();
+      // PUT /api/admin/users/{id} nhận UserProfileRequest: trường null được giữ nguyên,
+      // riêng `status` thiếu thì bị đặt lại ACTIVE → luôn gửi trạng thái hiện tại.
+      const body: Record<string, string> = { status: user.status ?? "ACTIVE" };
+      if (formData.name.trim() !== (user.name || "").trim()) {
+        Object.assign(body, splitFullName(formData.name));
+      }
+      if (formData.email.trim() !== (user.email || "")) body.email = formData.email.trim();
+      if (formData.phoneNumber.trim() !== (user.phoneNumber || "")) {
+        body.phoneNumber = formData.phoneNumber.trim();
+      }
+      await updateUser({ id: Number(userId), data: body }).unwrap();
       toast.success(t("admin.users.updateSuccess", "Cập nhật thông tin người dùng thành công"));
       setIsDirty(false);
       navigate("/admin/users");
     } catch (error) {
-      console.error("❌ [User] Save failed:", error);
-      toast.error(t("admin.users.updateFailed", "Cập nhật người dùng thất bại"));
+      const e = error as { data?: { message?: unknown }; message?: unknown } | undefined;
+      const detail =
+        typeof e?.data?.message === "string" && e.data.message.trim()
+          ? e.data.message
+          : typeof e?.message === "string"
+            ? e.message
+            : undefined;
+      toast.error(t("admin.users.updateFailed", "Cập nhật người dùng thất bại"), {
+        description: detail,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -331,7 +353,7 @@ export default function UserDetailPage() {
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Nhà cung cấp</p>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">{user.provider}</Badge>
+                    <Badge variant="outline">{user.provider ?? "—"}</Badge>
                   </div>
                 </div>
                 <div>
@@ -354,7 +376,9 @@ export default function UserDetailPage() {
                     Email đã xác minh
                   </p>
                   <p className="font-medium">
-                    {user.emailVerified ? (
+                    {user.emailVerified == null ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : user.emailVerified ? (
                       <span className="text-emerald-700 dark:text-emerald-400 font-medium">Đã xác minh</span>
                     ) : (
                       <span className="text-muted-foreground">Chưa xác minh</span>
@@ -365,7 +389,7 @@ export default function UserDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Activity & Stats */}
+          {/* Activity & Stats — /api/admin/revenue/customers/{userId}, 12 tháng gần nhất */}
           <div className="grid grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -375,8 +399,16 @@ export default function UserDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">{user.orderCount || 0}</p>
-                <p className="text-sm text-muted-foreground mt-2">Tổng số đơn hàng</p>
+                <p className="text-3xl font-bold">
+                  {revenue.isLoading
+                    ? "…"
+                    : revenueError
+                      ? "—"
+                      : formatNumber(revenue.data?.orderCount)}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Đơn tạo từ {formatDayLabel(revenue.range.from)} đến {formatDayLabel(revenue.range.to)}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -388,13 +420,22 @@ export default function UserDetailPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-foreground">
-                  {formatCurrency(user.totalSpent || 0)}
+                  {revenue.isLoading
+                    ? "…"
+                    : revenueError
+                      ? "—"
+                      : formatCurrency(revenue.data?.totalSpent)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Tổng giá trị đơn hàng
+                  Tiền thực thu trong cùng khoảng
                 </p>
               </CardContent>
             </Card>
+            {revenueError && (
+              <p className="col-span-2 text-xs text-destructive -mt-3">
+                Không tải được số liệu đơn/chi tiêu: {revenueError.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -438,7 +479,7 @@ export default function UserDetailPage() {
                   <span>Ngày tạo</span>
                 </div>
                 <p className="font-medium text-sm mt-2">
-                  {formatDate(user.createdAt)}
+                  {formatDateTime(user.createdAt)}
                 </p>
               </div>
               <div className="border-t border-border/60 pt-4">
@@ -447,20 +488,9 @@ export default function UserDetailPage() {
                   <span>Cập nhật cuối cùng</span>
                 </div>
                 <p className="font-medium text-sm mt-2">
-                  {formatDate(user.updatedAt)}
+                  {formatDateTime(user.updatedAt)}
                 </p>
               </div>
-              {user.lastLogin && (
-                <div className="border-t border-border/60 pt-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Lần đăng nhập cuối</span>
-                  </div>
-                  <p className="font-medium text-sm mt-2">
-                    {formatDate(user.lastLogin)}
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
