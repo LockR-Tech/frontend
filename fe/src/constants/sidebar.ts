@@ -15,6 +15,7 @@ import {
   Tag,
   Plane,
   Route,
+  PackageSearch,
   TrendingUp,
   Wrench,
   SlidersHorizontal,
@@ -63,6 +64,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: Route,
     path: "/admin/drone-orders",
     label: "admin.sidebar.droneOrders",
+    permission: "admin_access",
+  },
+  {
+    icon: PackageSearch,
+    path: "/admin/drone-incidents",
+    label: "admin.sidebar.droneIncidents",
     permission: "admin_access",
   },
   {
