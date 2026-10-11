@@ -35,6 +35,7 @@ const OVERTIME_KEYS = [
   OrderSettingsKeys.OVERTIME_FEE_PER_HOUR,
   OrderSettingsKeys.MAX_OVERTIME_FEE,
   OrderSettingsKeys.MAX_OVERTIME_PERCENT,
+  OrderSettingsKeys.OVERTIME_GRACE_PERIOD_MINUTES,
 ];
 
 export const SERVICE_CATALOG: ServiceDefinition[] = [
@@ -82,6 +83,8 @@ export const SERVICE_CATALOG: ServiceDefinition[] = [
         keys: [
           OrderSettingsKeys.EXTEND_DEFAULT_HOURS,
           OrderSettingsKeys.EXTEND_MAX_HOURS,
+          OrderSettingsKeys.BLOCK_UNPAID_RENTAL_ACCESS,
+          OrderSettingsKeys.RENTAL_AUTO_RELEASE_ENABLED,
         ],
       },
       { titleKey: "admin.services.ruleGroup.overtime", keys: OVERTIME_KEYS },

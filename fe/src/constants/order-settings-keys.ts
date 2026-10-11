@@ -29,6 +29,10 @@ export const OrderSettingsKeys = {
 
   REQUIRE_PAYMENT_BEFORE_DROP: "app.order.require-payment-before-drop",
 
+  OVERTIME_GRACE_PERIOD_MINUTES: "app.order.overtime-grace-period-minutes",
+  RENTAL_AUTO_RELEASE_ENABLED: "app.order.rental-auto-release-enabled",
+  BLOCK_UNPAID_RENTAL_ACCESS: "app.order.block-unpaid-rental-access",
+
   DRONE_DEFAULT_PARCEL_WEIGHT: "app.order.drone-default-parcel-weight-grams",
   DRONE_MIN_PREFLIGHT_BATTERY: "app.order.drone-min-preflight-battery-percent",
 } as const;
