@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Trans, useTranslation } from "react-i18next";
 import { Badge } from "~/components/ui/badge";
 import { apiGet, apiPut } from "~/utils/api";
 import type { AdminLockerResponse, BoxInfo } from "~/types/admin/locker";
@@ -44,6 +45,7 @@ const errorText = (err: unknown, fallback: string) =>
   err instanceof Error && err.message ? err.message : fallback;
 
 export function LockerCard({ locker, onRefresh }: Props) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [selectedBox, setSelectedBox] = useState<BoxInfo | null>(null);
   const [showLockerSetting, setShowLockerSetting] = useState(false);
@@ -72,11 +74,11 @@ export function LockerCard({ locker, onRefresh }: Props) {
         list.map(toBoxInfo).sort((a, b) => a.boxNumber - b.boxNumber),
       );
     } catch (err) {
-      setBoxesError(errorText(err, "Không tải được danh sách ngăn"));
+      setBoxesError(errorText(err, t("admin.stores.lockerCard.loadBoxesFailed")));
     } finally {
       setBoxesLoading(false);
     }
-  }, [locker.id]);
+  }, [locker.id, t]);
 
   useEffect(() => {
     if (expanded && boxes === null && !boxesLoading && !boxesError) void loadBoxes();
@@ -112,11 +114,11 @@ export function LockerCard({ locker, onRefresh }: Props) {
         latitude: locker.latitude ?? undefined,
         longitude: locker.longitude ?? undefined,
       });
-      toast.success(isActive ? "Đã tắt tủ" : "Đã bật tủ");
+      toast.success(isActive ? t("admin.stores.lockerCard.turnedOff") : t("admin.stores.lockerCard.turnedOn"));
       onRefresh();
     } catch (err) {
-      toast.error("Không thể thay đổi trạng thái tủ", {
-        description: errorText(err, "Vui lòng thử lại."),
+      toast.error(t("admin.stores.lockerCard.toggleFailed"), {
+        description: errorText(err, t("common.pleaseRetry")),
       });
     } finally {
       setActionLoading(false);
@@ -129,11 +131,15 @@ export function LockerCard({ locker, onRefresh }: Props) {
       await apiPut(`/api/admin/lockers/${locker.id}/maintenance`, {
         maintenance: !isMaintenance,
       });
-      toast.success(isMaintenance ? "Đã huỷ bảo trì" : "Đã đặt tủ vào bảo trì");
+      toast.success(
+        isMaintenance
+          ? t("admin.stores.lockerCard.maintenanceOff")
+          : t("admin.stores.lockerCard.maintenanceOn"),
+      );
       onRefresh();
     } catch (err) {
-      toast.error("Không thể thay đổi trạng thái bảo trì", {
-        description: errorText(err, "Vui lòng thử lại."),
+      toast.error(t("admin.stores.lockerCard.maintenanceFailed"), {
+        description: errorText(err, t("common.pleaseRetry")),
       });
     } finally {
       setActionLoading(false);
@@ -162,7 +168,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
               variant="outline"
               className={`text-[10px] px-1.5 py-0 shrink-0 ${statusCfg.badge}`}
             >
-              {statusCfg.label}
+              {t(statusCfg.labelKey)}
             </Badge>
           </div>
           <p className="text-[10px] font-mono text-muted-foreground/70 truncate pl-3.5">
@@ -175,8 +181,11 @@ export function LockerCard({ locker, onRefresh }: Props) {
         <div className="px-4 pb-2">
           <div className="flex items-center justify-between text-[11px] mb-1">
             <span className="text-muted-foreground">
-              <span className="text-foreground font-semibold">{available}</span>/
-              {total} trống
+              <Trans
+                i18nKey="admin.stores.lockerCard.freeCount"
+                values={{ available, total }}
+                components={{ b: <span className="text-foreground font-semibold" /> }}
+              />
             </span>
             <span className="text-muted-foreground/70">{usagePercent}%</span>
           </div>
@@ -191,7 +200,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
         {/* Action footer */}
         <div className="flex items-center border-t border-border/60 px-3 py-1.5 gap-1 mt-auto">
           <button
-            title={isActive ? "Tắt tủ" : "Bật tủ"}
+            title={isActive ? t("admin.stores.lockerCard.turnOff") : t("admin.stores.lockerCard.turnOn")}
             onClick={handleToggleActive}
             className={`rounded p-1.5 transition-colors ${
               isActive
@@ -202,7 +211,11 @@ export function LockerCard({ locker, onRefresh }: Props) {
             <Power className="h-3.5 w-3.5" />
           </button>
           <button
-            title={isMaintenance ? "Hủy bảo trì" : "Đặt bảo trì"}
+            title={
+              isMaintenance
+                ? t("admin.stores.lockerCard.endMaintenance")
+                : t("admin.stores.lockerCard.startMaintenance")
+            }
             onClick={handleToggleMaintenance}
             className={`rounded p-1.5 transition-colors ${
               isMaintenance
@@ -213,7 +226,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
             <Wrench className="h-3.5 w-3.5" />
           </button>
           <button
-            title="Cài đặt tủ"
+            title={t("admin.stores.lockerCard.settings")}
             onClick={() => setShowLockerSetting(true)}
             className="rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
@@ -223,7 +236,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
             onClick={() => setExpanded((v) => !v)}
             className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-1.5 py-1 hover:bg-secondary transition-colors"
           >
-            {expanded ? "Thu gọn" : "Xem ngăn"}
+            {expanded ? t("admin.stores.lockerCard.collapse") : t("admin.stores.lockerCard.viewBoxes")}
             {expanded ? (
               <ChevronUp className="h-3 w-3" />
             ) : (
@@ -231,7 +244,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
             )}
           </button>
           <button
-            title="Thêm ngăn tủ"
+            title={t("admin.stores.addBox.title")}
             onClick={() => {
               setExpanded(true);
               setShowAddBox(true);
@@ -247,7 +260,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
           <div className="px-3 pb-3 border-t border-border/60 pt-3">
             {boxesLoading && boxes === null ? (
               <div className="flex items-center justify-center py-3 text-xs text-muted-foreground gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tải ngăn tủ...
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t("admin.stores.lockerCard.loadingBoxes")}
               </div>
             ) : boxesError ? (
               <div className="text-center py-2">
@@ -256,20 +269,20 @@ export function LockerCard({ locker, onRefresh }: Props) {
                   onClick={() => void loadBoxes()}
                   className="mt-1 text-xs text-foreground underline"
                 >
-                  Thử lại
+                  {t("common.retry")}
                 </button>
               </div>
             ) : !boxes || boxes.length === 0 ? (
               <>
                 <p className="text-xs text-muted-foreground/70 italic py-2 text-center">
-                  Chưa có ngăn tủ nào
+                  {t("admin.stores.lockerCard.noBoxes")}
                 </p>
                 <button
                   onClick={() => setShowAddBox(true)}
                   className="w-full mt-1 flex items-center justify-center gap-1.5 text-xs text-foreground hover:bg-secondary py-2 rounded border border-dashed border-border transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Thêm ngăn đầu tiên
+                  {t("admin.stores.lockerCard.addFirstBox")}
                 </button>
               </>
             ) : (
@@ -281,7 +294,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
                         className={`w-2 h-2 rounded-sm border ${c.bg} ${c.border}`}
                       />
                       <span className="text-[10px] text-muted-foreground">
-                        {c.label}
+                        {t(c.labelKey)}
                       </span>
                     </div>
                   ))}
@@ -294,7 +307,10 @@ export function LockerCard({ locker, onRefresh }: Props) {
                     return (
                       <button
                         key={box.id}
-                        title={`Ngăn #${box.boxNumber} — ${cfg.label} (nhấn để chỉnh)`}
+                        title={t("admin.stores.lockerCard.boxTitle", {
+                          number: box.boxNumber,
+                          status: t(cfg.labelKey),
+                        })}
                         onClick={() => setSelectedBox(box)}
                         className={`relative w-9 h-9 rounded border flex items-center justify-center text-xs font-bold transition-all cursor-pointer hover:shadow-sm ${cfg.bg} ${cfg.border} ${cfg.text}`}
                       >
@@ -306,7 +322,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
                     );
                   })}
                   <button
-                    title="Thêm ngăn mới"
+                    title={t("admin.stores.lockerCard.addNewBox")}
                     onClick={() => setShowAddBox(true)}
                     className="w-9 h-9 rounded border border-dashed border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                   >

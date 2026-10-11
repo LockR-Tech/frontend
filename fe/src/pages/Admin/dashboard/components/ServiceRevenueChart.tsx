@@ -2,7 +2,9 @@ import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { useTranslation } from "react-i18next";
 import { revenueServiceMeta } from "~/components/shared/reporting";
+import i18n from "~/utils/i18n";
 import type { RevenueByServiceItem } from "~/types/admin/reporting";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
@@ -22,12 +24,14 @@ const SERVICE_COLORS: Record<string, string> = {
 };
 
 function formatVND(val: number) {
-  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)} tr đ`;
+  if (val >= 1_000_000)
+    return i18n.t("admin.dashboard.format.millionVnd", { value: (val / 1_000_000).toFixed(1) });
   return `${val.toLocaleString("vi-VN")} đ`;
 }
 
 // /api/admin/revenue/by-service — gồm dòng OVERTIME_FEE (phí quá hạn đã thu).
 export function ServiceRevenueChart({ items, year, isLoading, error, onRetry }: ServiceRevenueChartProps) {
+  const { t } = useTranslation();
   const data = (items ?? [])
     .filter((item) => Number(item.revenue) > 0)
     .map((item) => ({
@@ -42,10 +46,10 @@ export function ServiceRevenueChart({ items, year, isLoading, error, onRetry }: 
     <Card className="border border-border bg-card shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-          Doanh thu theo dịch vụ Kiosk
+          {t("admin.dashboard.serviceRevenue.title")}
         </CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
-          Tiền thực thu theo loại dịch vụ và phí quá hạn — năm {year}
+          {t("admin.dashboard.serviceRevenue.description", { year })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -83,8 +87,11 @@ export function ServiceRevenueChart({ items, year, isLoading, error, onRetry }: 
                 />
                 <Tooltip
                   formatter={(val, _name, item) => [
-                    `${Number(val).toLocaleString("vi-VN")} đ (${(item?.payload as { paidOrders?: number } | undefined)?.paidOrders ?? 0} đơn có thu)`,
-                    "Thực thu",
+                    t("admin.dashboard.serviceRevenue.tooltipValue", {
+                      value: `${Number(val).toLocaleString("vi-VN")} đ`,
+                      count: (item?.payload as { paidOrders?: number } | undefined)?.paidOrders ?? 0,
+                    }),
+                    t("admin.dashboard.chart.collected"),
                   ]}
                   contentStyle={{
                     backgroundColor: "var(--popover)",

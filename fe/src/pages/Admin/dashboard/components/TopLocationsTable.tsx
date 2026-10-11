@@ -3,6 +3,7 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { MapPin, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { formatCurrency } from "~/lib/report-format";
 import type { RevenueByStoreItem } from "~/types/admin/reporting";
 import { ChartPlaceholder } from "./ChartPlaceholder";
@@ -19,6 +20,7 @@ const TOP_N = 5;
 
 // /api/admin/revenue/by-store — xếp theo tiền thực thu trong năm đang chọn.
 export function TopLocationsTable({ items, year, isLoading, error, onRetry }: TopLocationsTableProps) {
+  const { t } = useTranslation();
   const top = [...(items ?? [])]
     .filter((item) => Number(item.revenue) > 0 || item.orderCount > 0)
     .sort((a, b) => Number(b.revenue) - Number(a.revenue) || b.orderCount - a.orderCount)
@@ -29,17 +31,17 @@ export function TopLocationsTable({ items, year, isLoading, error, onRetry }: To
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <div>
           <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-            Top địa điểm hiệu quả nhất
+            {t("admin.dashboard.topLocations.title")}
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
-            Xếp hạng theo tiền thực thu và số đơn — năm {year}
+            {t("admin.dashboard.topLocations.description", { year })}
           </CardDescription>
         </div>
         <Link
           to="/admin/revenue"
           className="text-xs font-medium text-foreground hover:text-muted-foreground inline-flex items-center gap-1 transition-colors"
         >
-          Báo cáo chi tiết <ArrowUpRight className="w-3.5 h-3.5" />
+          {t("admin.dashboard.topLocations.detailedReport")} <ArrowUpRight className="w-3.5 h-3.5" />
         </Link>
       </CardHeader>
       <CardContent>
@@ -54,7 +56,10 @@ export function TopLocationsTable({ items, year, isLoading, error, onRetry }: To
         ) : (
           <div className="divide-y divide-border/60">
             {top.map((loc, idx) => {
-              const name = loc.storeId == null ? "Chưa gán cửa hàng" : loc.name || `Cửa hàng #${loc.storeId}`;
+              const name =
+                loc.storeId == null
+                  ? t("admin.dashboard.topLocations.unassignedStore")
+                  : loc.name || t("admin.dashboard.topLocations.storeFallback", { id: loc.storeId });
               return (
                 <div
                   key={loc.storeId ?? "unassigned"}
@@ -86,12 +91,15 @@ export function TopLocationsTable({ items, year, isLoading, error, onRetry }: To
 
                   <div className="flex items-center gap-4 shrink-0 text-right">
                     <p className="hidden sm:block text-xs text-muted-foreground">
-                      {loc.lockerCount} Kiosk • {loc.orderCount.toLocaleString("vi-VN")} đơn
+                      {t("admin.dashboard.topLocations.kioskOrders", {
+                        kiosks: loc.lockerCount,
+                        orders: loc.orderCount.toLocaleString("vi-VN"),
+                      })}
                     </p>
                     <div>
                       <p className="text-sm font-bold text-foreground">{formatCurrency(loc.revenue)}</p>
                       <p className="text-[11px] text-muted-foreground sm:hidden">
-                        {loc.orderCount.toLocaleString("vi-VN")} đơn
+                        {t("admin.dashboard.chart.ordersValue", { value: loc.orderCount.toLocaleString("vi-VN") })}
                       </p>
                     </div>
                   </div>

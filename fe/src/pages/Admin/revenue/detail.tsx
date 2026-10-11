@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { createColumnHelper } from "@tanstack/react-table";
+import { useTranslation } from "react-i18next";
 import {
   AlertCircle,
   ArrowLeft,
@@ -43,6 +44,7 @@ const columnHelper = createColumnHelper<CustomerRevenueOrder>();
  * CỘNG đơn có lần thu tiền trong kỳ, nên có thể xuất hiện đơn tạo từ trước.
  */
 export default function RevenueDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { range, setRange, skip } = useRevenueRange();
@@ -59,7 +61,7 @@ export default function RevenueDetailPage() {
 
   const columns = [
     columnHelper.accessor("orderCode", {
-      header: "Đơn hàng",
+      header: t("common.order"),
       cell: ({ row }) => (
         <button
           type="button"
@@ -67,7 +69,7 @@ export default function RevenueDetailPage() {
           className="text-left min-w-0 hover:underline"
         >
           <p className="font-mono text-sm truncate">
-            {row.original.orderCode ?? "Đơn chưa có mã"}
+            {row.original.orderCode ?? t("admin.orders.noCode")}
           </p>
           <p className="text-[11px] text-muted-foreground">
             ID #{row.original.orderId}
@@ -76,11 +78,11 @@ export default function RevenueDetailPage() {
       ),
     }),
     columnHelper.accessor("type", {
-      header: "Loại",
+      header: t("admin.orders.fields.kind"),
       cell: ({ row }) => <MetaBadge meta={orderTypeMeta(row.original.type)} hideIcon />,
     }),
     columnHelper.accessor("status", {
-      header: "Trạng thái",
+      header: t("common.status"),
       cell: ({ row }) => (
         <div className="space-y-1">
           <MetaBadge meta={orderStatusMeta(row.original.status)} hideIcon />
@@ -92,12 +94,12 @@ export default function RevenueDetailPage() {
       ),
     }),
     columnHelper.accessor("lockerCode", {
-      header: "Tủ",
+      header: t("admin.orders.fields.locker"),
       cell: ({ row }) => (
         <div className="min-w-0">
           <p className="text-xs font-mono truncate">
             {row.original.lockerCode ??
-              "Chưa tra được tên tủ"}
+              t("admin.orders.lookup.lockerName")}
           </p>
           <p className="text-[11px] text-muted-foreground truncate max-w-[160px]">
             {row.original.lockerName ?? ""}
@@ -106,11 +108,11 @@ export default function RevenueDetailPage() {
       ),
     }),
     columnHelper.accessor("totalPrice", {
-      header: "Tổng đơn",
+      header: t("admin.revenue.detail.columns.orderTotal"),
       cell: ({ row }) => formatCurrency(row.original.totalPrice),
     }),
     columnHelper.accessor("paidInRange", {
-      header: "Thu trong kỳ",
+      header: t("admin.revenue.detail.columns.paidInRange"),
       cell: ({ row }) => (
         <div className="text-right">
           <p className="font-semibold text-sm">
@@ -118,14 +120,16 @@ export default function RevenueDetailPage() {
           </p>
           {(row.original.refundedInRange ?? 0) > 0 && (
             <p className="text-[11px] text-violet-600 dark:text-violet-400">
-              Hoàn {formatCurrency(row.original.refundedInRange)}
+              {t("admin.payments.table.refundedAmount", {
+                amount: formatCurrency(row.original.refundedInRange),
+              })}
             </p>
           )}
         </div>
       ),
     }),
     columnHelper.accessor("paidAllTime", {
-      header: "Thu mọi lúc",
+      header: t("admin.revenue.detail.columns.paidAllTime"),
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
           {formatCurrency(row.original.paidAllTime)}
@@ -133,7 +137,7 @@ export default function RevenueDetailPage() {
       ),
     }),
     columnHelper.accessor("paymentMethods", {
-      header: "Phương thức",
+      header: t("admin.payments.method"),
       cell: ({ row }) => {
         const methods = row.original.paymentMethods ?? [];
         if (methods.length === 0) {
@@ -149,7 +153,7 @@ export default function RevenueDetailPage() {
       },
     }),
     columnHelper.accessor("createdAt", {
-      header: "Tạo lúc",
+      header: t("common.createdAtTime"),
       cell: ({ row }) => (
         <p className="font-mono text-xs whitespace-nowrap">
           {row.original.createdAt ? formatDateTime(row.original.createdAt) : EMPTY_VALUE}
@@ -157,7 +161,7 @@ export default function RevenueDetailPage() {
       ),
     }),
     columnHelper.accessor("lastPaidAt", {
-      header: "Thu gần nhất",
+      header: t("admin.revenue.customer.columns.lastPaid"),
       cell: ({ row }) => (
         <p className="font-mono text-xs whitespace-nowrap text-muted-foreground">
           {row.original.lastPaidAt
@@ -167,7 +171,7 @@ export default function RevenueDetailPage() {
       ),
     }),
     columnHelper.accessor("completedAt", {
-      header: "Hoàn thành",
+      header: t("admin.orders.detail.milestones.completed"),
       cell: ({ row }) => (
         <p className="font-mono text-xs whitespace-nowrap text-muted-foreground">
           {row.original.completedAt
@@ -182,10 +186,10 @@ export default function RevenueDetailPage() {
     return (
       <div className="text-center py-12 space-y-4">
         <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground/70" />
-        <h3 className="text-lg font-medium">Mã khách hàng không hợp lệ</h3>
+        <h3 className="text-lg font-medium">{t("admin.revenue.detail.invalidId")}</h3>
         <Button variant="outline" onClick={() => navigate("/admin/revenue")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Về báo cáo doanh thu
+          {t("admin.revenue.detail.back")}
         </Button>
       </div>
     );
@@ -205,11 +209,14 @@ export default function RevenueDetailPage() {
         <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight text-foreground truncate">
             {isLoading
-              ? "Đang tải…"
-              : customer?.fullName || "Chưa tra được tên khách"}
+              ? t("common.loadingEllipsis")
+              : customer?.fullName || t("admin.orders.lookup.customerName")}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Doanh thu {formatDayLabel(range.from)} – {formatDayLabel(range.to)}
+            {t("admin.revenue.detail.subtitle", {
+              from: formatDayLabel(range.from),
+              to: formatDayLabel(range.to),
+            })}
           </p>
         </div>
       </div>
@@ -220,7 +227,7 @@ export default function RevenueDetailPage() {
         <ReportErrorState
           error={error}
           onRetry={refetch}
-          title="Không tải được doanh thu của khách hàng"
+          title={t("admin.revenue.detail.loadFailed")}
         />
       ) : (
         <>
@@ -232,10 +239,10 @@ export default function RevenueDetailPage() {
                 ))
               ) : (
                 <>
-                  <LabelValue label="Họ tên">
-                    {customer?.fullName ?? "Chưa tra được tên khách"}
+                  <LabelValue label={t("admin.orders.fields.fullName")}>
+                    {customer?.fullName ?? t("admin.orders.lookup.customerName")}
                   </LabelValue>
-                  <LabelValue label="Điện thoại" mono>
+                  <LabelValue label={t("common.phoneShort")} mono>
                     {customer?.phoneNumber ? (
                       <span className="inline-flex items-center gap-1.5">
                         <Phone className="h-3 w-3 text-muted-foreground" />
@@ -243,7 +250,7 @@ export default function RevenueDetailPage() {
                       </span>
                     ) : null}
                   </LabelValue>
-                  <LabelValue label="Email">
+                  <LabelValue label={t("common.email")}>
                     {customer?.email ? (
                       <span className="inline-flex items-center gap-1.5">
                         <Mail className="h-3 w-3 text-muted-foreground" />
@@ -251,7 +258,7 @@ export default function RevenueDetailPage() {
                       </span>
                     ) : null}
                   </LabelValue>
-                  <LabelValue label="Trạng thái tài khoản">
+                  <LabelValue label={t("admin.orders.fields.accountStatus")}>
                     {customer?.status}
                   </LabelValue>
                 </>
@@ -261,38 +268,40 @@ export default function RevenueDetailPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
             <ReportStatCard
-              label="Đã chi trong kỳ"
+              label={t("admin.revenue.detail.stats.spent")}
               value={formatCurrency(customer?.totalSpent)}
               icon={Wallet}
               isLoading={isLoading}
             />
             <ReportStatCard
-              label="Thực chi"
+              label={t("admin.revenue.customer.columns.netSpent")}
               value={formatCurrency(customer?.netSpent)}
-              hint={`Đã hoàn ${formatCurrency(customer?.refundAmount)}`}
+              hint={t("admin.revenue.refundedHint", {
+                amount: formatCurrency(customer?.refundAmount),
+              })}
               icon={Undo2}
               isLoading={isLoading}
             />
             <ReportStatCard
-              label="Giá trị đơn TB"
+              label={t("admin.revenue.customer.columns.aov")}
               value={formatCurrency(customer?.averageOrderValue)}
               icon={ShoppingBag}
               isLoading={isLoading}
             />
             <ReportStatCard
-              label="Đơn tạo trong kỳ"
+              label={t("admin.revenue.detail.stats.ordersCreated")}
               value={formatNumber(customer?.orderCount)}
               icon={Receipt}
               isLoading={isLoading}
             />
             <ReportStatCard
-              label="Đơn đã trả tiền"
+              label={t("admin.revenue.detail.stats.paidOrders")}
               value={formatNumber(customer?.paidOrderCount)}
               icon={Receipt}
               isLoading={isLoading}
             />
             <ReportStatCard
-              label="Đơn đầu tiên"
+              label={t("admin.revenue.detail.stats.firstOrder")}
               value={
                 customer?.firstOrderAt
                   ? formatDateTime(customer.firstOrderAt)
@@ -300,7 +309,9 @@ export default function RevenueDetailPage() {
               }
               hint={
                 customer?.lastOrderAt
-                  ? `Gần nhất ${formatDateTime(customer.lastOrderAt)}`
+                  ? t("admin.revenue.detail.stats.lastOrderHint", {
+                      time: formatDateTime(customer.lastOrderAt),
+                    })
                   : undefined
               }
               isLoading={isLoading}
@@ -311,18 +322,18 @@ export default function RevenueDetailPage() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-6 space-y-3">
               <h2 className="text-sm font-semibold">
-                Đơn hàng trong kỳ ({formatNumber(customer?.orders.length ?? 0)})
+                {t("admin.revenue.detail.ordersTitle", {
+                  total: formatNumber(customer?.orders.length ?? 0),
+                })}
               </h2>
               <DataTable
                 columns={columns}
                 data={customer?.orders ?? []}
                 isLoading={isLoading}
-                emptyMessage="Khách hàng không có đơn nào trong khoảng đã chọn"
+                emptyMessage={t("admin.revenue.detail.empty")}
               />
               <p className="text-[11px] text-muted-foreground">
-                Danh sách gồm đơn tạo trong kỳ và đơn có lần thu tiền trong kỳ, nên có
-                thể xuất hiện đơn được tạo từ trước. Chỉ tính các khoản do chính khách
-                này thanh toán.
+                {t("admin.revenue.detail.note")}
               </p>
             </CardContent>
           </Card>

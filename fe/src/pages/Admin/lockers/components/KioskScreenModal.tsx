@@ -1,4 +1,5 @@
 import { Monitor, Cpu, Tv } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ export function KioskScreenModal({
   lastSeenAt,
   gatewayMac,
 }: KioskScreenModalProps) {
+  const { t } = useTranslation();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
@@ -40,7 +42,7 @@ export function KioskScreenModal({
             </div>
             <div>
               <DialogTitle className="text-base font-bold flex items-center gap-2">
-                Màn hình cảm ứng Kiosk 7 inch
+                {t("admin.lockers.kioskScreen.title")}
                 <Badge
                   className={
                     isOnline
@@ -48,11 +50,11 @@ export function KioskScreenModal({
                       : "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300 border text-[11px]"
                   }
                 >
-                  {isOnline ? "Hoạt động (Online)" : "Mất kết nối (Offline)"}
+                  {isOnline ? t("admin.lockers.kioskScreen.online") : t("admin.lockers.kioskScreen.offline")}
                 </Badge>
               </DialogTitle>
               <DialogDescription className="text-xs">
-                Thiết bị hiển thị & tương tác khách hàng tại Kiosk {lockerCode || `#${lockerId}`}
+                {t("admin.lockers.kioskScreen.description", { kiosk: lockerCode || `#${lockerId}` })}
               </DialogDescription>
             </div>
           </div>
@@ -88,22 +90,22 @@ export function KioskScreenModal({
                   Lock.R Touch Kiosk Interface
                 </p>
                 <p className="text-[11px] text-slate-400">
-                  Ứng dụng React 19 · Chromium Kiosk Mode (Cổng :3002)
+                  {t("admin.lockers.kioskScreen.appInfo")}
                 </p>
               </div>
             ) : (
               <div className="py-4 text-center z-10 space-y-1">
                 <p className="text-sm font-bold text-rose-400 tracking-wide flex items-center justify-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-rose-500" /> Màn hình chưa có nguồn (Offline)
+                  <span className="w-2 h-2 rounded-full bg-rose-500" /> {t("admin.lockers.kioskScreen.noPower")}
                 </p>
                 <p className="text-[11px] text-slate-400">
-                  Chờ cấp nguồn trạm Kiosk hoặc kết nối lại Raspberry Pi
+                  {t("admin.lockers.kioskScreen.waitingPower")}
                 </p>
               </div>
             )}
 
             <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-[10px] text-slate-400 z-10">
-              <span>Cảm ứng điện dung 5 điểm (USB HID)</span>
+              <span>{t("admin.lockers.kioskScreen.touchInfo")}</span>
               <span>Micro-HDMI Video Direct</span>
             </div>
           </div>
@@ -111,33 +113,33 @@ export function KioskScreenModal({
           {/* Hardware Specs Grid */}
           <div className="space-y-2">
             <h4 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 text-xs">
-              <Cpu className="w-3.5 h-3.5 text-primary" /> Thông số phần cứng màn hình
+              <Cpu className="w-3.5 h-3.5 text-primary" /> {t("admin.lockers.kioskScreen.hardwareSpecs")}
             </h4>
             <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
               <div>
-                <span className="text-muted-foreground block text-[11px]">Model phần cứng:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.model")}</span>
                 <span className="font-semibold text-foreground">Waveshare 7inch HDMI LCD (C)</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Độ phân giải hiển thị:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.resolution")}</span>
                 <span className="font-semibold text-foreground">1024 × 600 px (IPS 178°)</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Chuẩn cảm ứng:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.touchStandard")}</span>
                 <span className="font-semibold text-foreground">Capacitive Touch (Goodix GT911)</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Cổng xuất hình ảnh:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.videoPort")}</span>
                 <span className="font-semibold text-foreground">Micro-HDMI (Raspberry Pi 4)</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Cổng cảm ứng:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.touchPort")}</span>
                 <span className="font-semibold text-foreground">Micro-USB Touch (I2C/USB HID)</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Cấu hình năng lượng:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.power")}</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                  Không tắt màn hình (Blanking OFF)
+                  {t("admin.lockers.kioskScreen.powerValue")}
                 </span>
               </div>
             </div>
@@ -146,25 +148,25 @@ export function KioskScreenModal({
           {/* Software & Gateway Connection */}
           <div className="space-y-2">
             <h4 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 text-xs">
-              <Tv className="w-3.5 h-3.5 text-indigo-600" /> Trạng thái ứng dụng & Bộ điều khiển
+              <Tv className="w-3.5 h-3.5 text-indigo-600" /> {t("admin.lockers.kioskScreen.appStatus")}
             </h4>
             <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
               <div>
-                <span className="text-muted-foreground block text-[11px]">Ứng dụng giao diện:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.uiApp")}</span>
                 <span className="font-semibold text-foreground">Chromium Kiosk (--kiosk :3002)</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Địa chỉ ứng dụng (trên Pi):</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.appAddress")}</span>
                 <span className="font-mono font-medium text-foreground">localhost:3002</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Địa chỉ MAC Pi:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.mac")}</span>
                 <span className="font-mono font-medium text-foreground">{gatewayMac || "—"}</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-[11px]">Thấy lần cuối:</span>
+                <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.lastSeen")}</span>
                 <span className="font-semibold text-foreground">
-                  {lastSeenAt ? formatDateTime(lastSeenAt) : "Chưa có tín hiệu"}
+                  {lastSeenAt ? formatDateTime(lastSeenAt) : t("admin.lockers.kioskScreen.noSignal")}
                 </span>
               </div>
             </div>
@@ -174,7 +176,7 @@ export function KioskScreenModal({
         {/* Chưa có API ping màn hình / mở Kiosk UI từ xa — Kiosk UI chỉ chạy trên chính Pi */}
         <DialogFooter className="flex items-center justify-end sm:justify-end pt-2 border-t">
           <Button size="sm" onClick={() => onOpenChange(false)} className="text-xs h-8">
-            Đóng
+            {t("button.close")}
           </Button>
         </DialogFooter>
       </DialogContent>

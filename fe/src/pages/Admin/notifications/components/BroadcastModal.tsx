@@ -60,7 +60,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
 
     const userIds = formData.targetAllUsers ? undefined : parseIds(formData.recipientIdsText);
     if (userIds && userIds.length === 0) {
-      toast.error("Nhập ít nhất một ID người nhận hợp lệ");
+      toast.error(t("admin.notifications.broadcast.invalidRecipients"));
       return;
     }
 
@@ -75,9 +75,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
 
       // Phản hồi là danh sách thông báo đã tạo — mỗi phần tử là một người nhận.
       const sent = Array.isArray(result.data) ? result.data.length : 0;
-      toast.success(
-        t("admin.notifications.broadcast.successMsg").replace("{count}", String(sent)),
-      );
+      toast.success(t("admin.notifications.broadcast.sentCount", { count: sent }));
       handleClose();
     } catch (err) {
       toast.error(t("admin.notifications.broadcast.errorMsg"), {
@@ -86,7 +84,8 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
     }
   };
 
-  const typeHint = COMPOSE_TYPE_OPTIONS.find((o) => o.value === formData.type)?.hint;
+  const typeHintKey = COMPOSE_TYPE_OPTIONS.find((o) => o.value === formData.type)?.hintKey;
+  const typeHint = typeHintKey ? t(typeHintKey) : undefined;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -111,7 +110,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
               <SelectContent>
                 {COMPOSE_TYPE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -192,7 +191,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
               />
             )}
             <p className="text-xs text-muted-foreground/70">
-              Thông báo được gửi ngay; số người nhận thực tế hiển thị sau khi gửi.
+              {t("admin.notifications.broadcast.sendNowHint")}
             </p>
           </div>
 

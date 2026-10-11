@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
 import { TableToolbar } from "~/components/shared/data-table";
@@ -29,14 +30,15 @@ export default function OrdersPage() {
     hasActiveFilters,
     clearFilters,
   } = useOrders();
+  const { t } = useTranslation();
 
   const [editingOrder, setEditingOrder] = useState<AdminOrder | null>(null);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quản lý đơn hàng"
-        description="Toàn bộ đơn gửi hàng, thuê ô và giao bằng drone — dữ liệu đồng bộ với app khách"
+        title={t("admin.orders.title")}
+        description={t("admin.orders.pageDescription")}
       />
 
       {error && <ReportErrorState error={error} onRetry={refetch} />}
@@ -59,8 +61,8 @@ export default function OrdersPage() {
 
           <p className="text-xs text-muted-foreground">
             {isFetching
-              ? "Đang tải…"
-              : `${formatNumber(totalElements)} đơn khớp bộ lọc`}
+              ? t("common.loadingEllipsis")
+              : t("admin.orders.matchCount", { total: formatNumber(totalElements) })}
           </p>
 
           <OrderTable

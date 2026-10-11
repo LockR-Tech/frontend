@@ -8,6 +8,7 @@ import {
   Target,
   Wallet,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import {
@@ -47,6 +48,7 @@ export function PaymentStats({
   onRangeChange,
   onRetry,
 }: PaymentStatsProps) {
+  const { t } = useTranslation();
   const current = stats?.current;
   const changes = stats?.changes;
 
@@ -56,8 +58,10 @@ export function PaymentStats({
         <DateRangeFilter value={range} onChange={onRangeChange} />
         {stats && (
           <p className="text-[11px] text-muted-foreground shrink-0">
-            So sánh với {formatDayLabel(stats.previousFrom)} –{" "}
-            {formatDayLabel(stats.previousTo)}
+            {t("admin.payments.stats.compareWith", {
+              from: formatDayLabel(stats.previousFrom),
+              to: formatDayLabel(stats.previousTo),
+            })}
           </p>
         )}
       </div>
@@ -66,20 +70,22 @@ export function PaymentStats({
         <ReportErrorState
           error={error}
           onRetry={onRetry}
-          title="Không tải được thống kê giao dịch"
+          title={t("admin.payments.stats.loadFailed")}
         />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
           <ReportStatCard
-            label="Tổng giao dịch"
+            label={t("admin.payments.stats.total")}
             value={formatNumber(current?.totalCount)}
-            hint={`Giá trị ${formatCurrency(current?.totalAmount)}`}
+            hint={t("admin.payments.stats.totalValue", {
+              amount: formatCurrency(current?.totalAmount),
+            })}
             icon={CreditCard}
             changePct={changes?.totalCountPct}
             isLoading={isLoading}
           />
           <ReportStatCard
-            label="Thành công"
+            label={t("common.success")}
             value={formatNumber(current?.completedCount)}
             hint={formatCurrency(current?.completedAmount)}
             icon={CheckCircle}
@@ -87,41 +93,43 @@ export function PaymentStats({
             isLoading={isLoading}
           />
           <ReportStatCard
-            label="Chờ thanh toán"
+            label={t("admin.payments.stats.pending")}
             value={formatNumber(current?.pendingCount)}
             hint={formatCurrency(current?.pendingAmount)}
             icon={Clock}
             isLoading={isLoading}
           />
           <ReportStatCard
-            label="Thất bại"
+            label={t("common.failed")}
             value={formatNumber(current?.failedCount)}
             hint={formatCurrency(current?.failedAmount)}
             icon={AlertCircle}
             isLoading={isLoading}
           />
           <ReportStatCard
-            label="Tỉ lệ thành công"
+            label={t("admin.payments.stats.successRate")}
             value={formatPercent(current?.successRate)}
-            hint="Số giao dịch thành công / tổng"
+            hint={t("admin.payments.stats.successRateHint")}
             icon={Target}
             changePct={changes?.successRatePoints}
             changeLabel={formatPercentPoints(changes?.successRatePoints)}
             isLoading={isLoading}
           />
           <ReportStatCard
-            label="Hoàn tiền"
+            label={t("admin.payments.refunds")}
             value={formatCurrency(current?.refundAmount)}
-            hint={`${formatNumber(current?.refundCount)} lượt hoàn`}
+            hint={t("admin.payments.stats.refundCount", {
+              total: formatNumber(current?.refundCount),
+            })}
             icon={RefreshCcw}
             changePct={changes?.refundAmountPct}
             invertChangeColor
             isLoading={isLoading}
           />
           <ReportStatCard
-            label="Thực thu theo đơn"
+            label={t("admin.payments.stats.netCollected")}
             value={formatCurrency(current?.netCollectedAmount)}
-            hint="Thu theo đơn trừ hoàn tiền, không tính nạp ví"
+            hint={t("admin.payments.stats.netCollectedHint")}
             icon={Wallet}
             changePct={changes?.netCollectedAmountPct}
             isLoading={isLoading}
@@ -132,13 +140,13 @@ export function PaymentStats({
       {current && !error && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <StatsBreakdown
-            title="Theo trạng thái"
+            title={t("admin.payments.stats.byStatus")}
             rows={current.byStatus}
             icon={CreditCard}
             formatKey={(key) => paymentStatusMeta(key).label}
           />
           <StatsBreakdown
-            title="Theo phương thức"
+            title={t("admin.payments.stats.byMethod")}
             rows={current.byMethod}
             icon={PiggyBank}
             formatKey={(key) => paymentMethodMeta(key).label}
@@ -161,6 +169,7 @@ function StatsBreakdown({
   /** Đổi mã enum backend sang nhãn tiếng Việt. */
   formatKey: (key: string) => string;
 }) {
+  const { t } = useTranslation();
   if (rows.length === 0) return null;
   const max = Math.max(...rows.map((row) => row.amount), 1);
 
@@ -178,7 +187,10 @@ function StatsBreakdown({
                 {formatKey(row.key)}
               </span>
               <span className="text-muted-foreground shrink-0">
-                {formatNumber(row.count)} GD · {formatCurrency(row.amount)}
+                {t("admin.payments.stats.breakdownRow", {
+                  total: formatNumber(row.count),
+                  amount: formatCurrency(row.amount),
+                })}
               </span>
             </div>
             <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -188,7 +200,9 @@ function StatsBreakdown({
               />
             </div>
             <p className="text-[10px] text-muted-foreground">
-              Thành công {formatCurrency(row.completedAmount)}
+              {t("admin.payments.stats.breakdownCompleted", {
+                amount: formatCurrency(row.completedAmount),
+              })}
             </p>
           </div>
         ))}

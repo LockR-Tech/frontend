@@ -1,4 +1,5 @@
 import type { MediaUpload, UploadSignatureItem } from "~/stores/apis/media";
+import i18n from "~/utils/i18n";
 
 // Upload trực tiếp lên Cloudinary bằng chữ ký do backend cấp.
 // KHÔNG đi qua RTK/baseQuery: baseQuery luôn gắn Authorization + Content-Type JSON,
@@ -62,7 +63,7 @@ export function validateImageFile(
   const allowed = (opts.allowedFormats ?? DEFAULT_ALLOWED_IMAGE_FORMATS).map((f) => f.toLowerCase());
   const format = detectImageFormat(file);
   if (!format || !allowed.includes(format)) {
-    return `"${file.name}" không đúng định dạng (chỉ nhận ${allowed.join(", ")})`;
+    return i18n.t("shared.media.error.fileFormat", { name: file.name, formats: allowed.join(", ") });
   }
   const baseMax = opts.maxBytes ?? DEFAULT_MAX_IMAGE_BYTES;
   const maxBytes =
@@ -70,7 +71,11 @@ export function validateImageFile(
       ? baseMax * DOWNSCALABLE_SIZE_FACTOR
       : baseMax;
   if (file.size > maxBytes) {
-    return `"${file.name}" quá lớn (${formatBytes(file.size)}, tối đa ${formatBytes(maxBytes)})`;
+    return i18n.t("shared.media.error.fileTooLarge", {
+      name: file.name,
+      size: formatBytes(file.size),
+      max: formatBytes(maxBytes),
+    });
   }
   return null;
 }
@@ -85,7 +90,7 @@ const loadImage = (file: File): Promise<HTMLImageElement> =>
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Không đọc được ảnh"));
+      reject(new Error(i18n.t("shared.media.error.readFailed")));
     };
     img.src = url;
   });
@@ -155,7 +160,7 @@ export function uploadToCloudinary(
 ): Promise<MediaUpload> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
-      reject(new CloudinaryUploadError("Đã huỷ upload"));
+      reject(new CloudinaryUploadError(i18n.t("shared.media.error.uploadCanceled")));
       return;
     }
 
@@ -206,19 +211,20 @@ export function uploadToCloudinary(
 
       reject(
         new CloudinaryUploadError(
-          json?.error?.message || `Cloudinary từ chối ảnh (HTTP ${xhr.status})`,
+          json?.error?.message ||
+            i18n.t("shared.media.error.cloudinaryRejected", { status: xhr.status }),
         ),
       );
     };
 
     xhr.onerror = () => {
       cleanup();
-      reject(new CloudinaryUploadError("Lỗi mạng khi tải ảnh lên Cloudinary"));
+      reject(new CloudinaryUploadError(i18n.t("shared.media.error.cloudinaryNetwork")));
     };
 
     xhr.onabort = () => {
       cleanup();
-      reject(new CloudinaryUploadError("Đã huỷ upload"));
+      reject(new CloudinaryUploadError(i18n.t("shared.media.error.uploadCanceled")));
     };
 
     xhr.send(form);

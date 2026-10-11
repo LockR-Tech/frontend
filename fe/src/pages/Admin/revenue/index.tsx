@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   CalendarDays,
@@ -31,6 +32,7 @@ import { StoreRevenueTab } from "./components/StoreRevenueTab";
 import { CustomerRevenueTab } from "./components/CustomerRevenueTab";
 
 export default function RevenuePage() {
+  const { t } = useTranslation();
   const { range, setRange, valid, skip } = useRevenueRange();
 
   const {
@@ -56,17 +58,16 @@ export default function RevenuePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/60 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Quản lý doanh thu
+            {t("admin.revenue.title")}
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Doanh thu tính theo tiền thực thu của đơn thật; tiền nạp ví không được tính
-            là doanh thu.
+            {t("admin.revenue.description")}
           </p>
         </div>
         <Link to="/admin/payments">
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
             <CreditCard className="w-3.5 h-3.5" />
-            Đối soát giao dịch
+            {t("admin.revenue.reconcile")}
             <ArrowRight className="w-3.5 h-3.5" />
           </Button>
         </Link>
@@ -76,8 +77,10 @@ export default function RevenuePage() {
         <DateRangeFilter value={range} onChange={setRange} />
         {summary && (
           <p className="text-[11px] text-muted-foreground shrink-0">
-            So sánh với {formatDayLabel(summary.previousFrom)} –{" "}
-            {formatDayLabel(summary.previousTo)}
+            {t("admin.payments.stats.compareWith", {
+              from: formatDayLabel(summary.previousFrom),
+              to: formatDayLabel(summary.previousTo),
+            })}
           </p>
         )}
       </div>
@@ -86,12 +89,12 @@ export default function RevenuePage() {
         <ReportErrorState
           error={summaryError}
           onRetry={refetchSummary}
-          title="Không tải được tổng quan doanh thu"
+          title={t("admin.revenue.summary.loadFailed")}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
           <ReportStatCard
-            label="Doanh thu trong kỳ"
+            label={t("admin.revenue.summary.periodRevenue")}
             value={formatCurrency(current?.totalRevenue)}
             hint={`${formatDayLabel(range.from)} – ${formatDayLabel(range.to)}`}
             icon={TrendingUp}
@@ -99,42 +102,49 @@ export default function RevenuePage() {
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
-            label="Thực thu sau hoàn"
+            label={t("admin.revenue.netAfterRefund")}
             value={formatCurrency(current?.netRevenue)}
-            hint={`Đã hoàn ${formatCurrency(current?.refundAmount)}`}
+            hint={t("admin.revenue.refundedHint", {
+              amount: formatCurrency(current?.refundAmount),
+            })}
             icon={Wallet}
             changePct={changes?.netRevenuePct}
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
-            label="Tiền hoàn"
+            label={t("admin.revenue.summary.refundAmount")}
             value={formatCurrency(current?.refundAmount)}
-            hint="Phiếu hoàn đã xử lý xong trong kỳ"
+            hint={t("admin.revenue.summary.refundHint")}
             icon={Undo2}
             changePct={changes?.refundAmountPct}
             invertChangeColor
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
-            label="Giá trị đơn trung bình"
+            label={t("admin.revenue.summary.aov")}
             value={formatCurrency(current?.averageOrderValue)}
-            hint="Doanh thu chia số đơn có thu tiền"
+            hint={t("admin.revenue.summary.aovHint")}
             icon={ShoppingBag}
             changePct={changes?.averageOrderValuePct}
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
-            label="Đơn tạo mới"
+            label={t("admin.revenue.columns.newOrders")}
             value={formatNumber(current?.orderCount)}
-            hint={`Hoàn thành ${formatNumber(current?.completedOrderCount)} · huỷ ${formatNumber(current?.canceledOrderCount)}`}
+            hint={t("admin.revenue.summary.ordersHint", {
+              completed: formatNumber(current?.completedOrderCount),
+              canceled: formatNumber(current?.canceledOrderCount),
+            })}
             icon={Receipt}
             changePct={changes?.orderCountPct}
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
-            label="Đơn có thu tiền"
+            label={t("admin.revenue.columns.paidOrders")}
             value={formatNumber(current?.paidOrderCount)}
-            hint={`${formatNumber(current?.paymentCount)} lượt thanh toán`}
+            hint={t("admin.revenue.summary.paymentCount", {
+              total: formatNumber(current?.paymentCount),
+            })}
             icon={CreditCard}
             changePct={changes?.paidOrderCountPct}
             isLoading={isSummaryLoading}
@@ -146,22 +156,24 @@ export default function RevenuePage() {
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { label: "Hôm nay", period: summary.today },
-            { label: "Tuần này", period: summary.thisWeek },
-            { label: "Tháng này", period: summary.thisMonth },
-          ].map(({ label, period }) => (
+            { labelKey: "common.today", period: summary.today },
+            { labelKey: "admin.revenue.quick.thisWeek", period: summary.thisWeek },
+            { labelKey: "admin.revenue.quick.thisMonth", period: summary.thisMonth },
+          ].map(({ labelKey, period }) => (
             <div
-              key={label}
+              key={labelKey}
               className="rounded-xl border border-border bg-card p-3 flex items-center gap-3"
             >
               <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
               <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground">{label}</p>
+                <p className="text-[11px] text-muted-foreground">{t(labelKey)}</p>
                 <p className="text-sm font-semibold text-foreground">
                   {formatCurrency(period.totalRevenue)}
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  {formatNumber(period.paidOrderCount)} đơn thu tiền
+                  {t("admin.revenue.quick.paidOrders", {
+                    total: formatNumber(period.paidOrderCount),
+                  })}
                 </p>
               </div>
             </div>
@@ -181,19 +193,19 @@ export default function RevenuePage() {
           <Tabs defaultValue="service">
             <TabsList className="mb-6 flex-wrap h-auto">
               <TabsTrigger value="service" className="text-xs px-4">
-                Theo dịch vụ
+                {t("admin.revenue.tabs.service")}
               </TabsTrigger>
               <TabsTrigger value="method" className="text-xs px-4">
-                Theo phương thức
+                {t("admin.revenue.tabs.method")}
               </TabsTrigger>
               <TabsTrigger value="locker" className="text-xs px-4">
-                Theo tủ
+                {t("admin.revenue.tabs.locker")}
               </TabsTrigger>
               <TabsTrigger value="store" className="text-xs px-4">
-                Theo cửa hàng
+                {t("admin.revenue.tabs.store")}
               </TabsTrigger>
               <TabsTrigger value="customer" className="text-xs px-4">
-                Theo khách hàng
+                {t("admin.revenue.tabs.customer")}
               </TabsTrigger>
             </TabsList>
 
@@ -217,7 +229,7 @@ export default function RevenuePage() {
 
           {!valid && (
             <p className="text-xs text-destructive mt-4">
-              Khoảng ngày chưa hợp lệ nên chưa tải được số liệu.
+              {t("admin.revenue.invalidRange")}
             </p>
           )}
         </CardContent>

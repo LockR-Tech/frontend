@@ -1,6 +1,7 @@
 import { parseBackendDateTime } from "~/lib/datetime";
 import { PromotionStatus } from "~/types/admin/enums";
 import type { AdminPromotion } from "~/stores/apis/admin/promotions";
+import i18n from "~/utils/i18n";
 
 /**
  * Backend chỉ lưu ACTIVE/INACTIVE; các trạng thái Sắp diễn ra / Hết hạn / Hết lượt
@@ -29,7 +30,7 @@ export function promotionError(err: unknown): { code: string; message: string } 
     typeof e?.data?.message === "string" && e.data.message.trim()
       ? e.data.message
       : e?.status === "FETCH_ERROR"
-        ? "Không kết nối được máy chủ"
+        ? i18n.t("common.serverUnreachable")
         : "";
   return { code, message };
 }

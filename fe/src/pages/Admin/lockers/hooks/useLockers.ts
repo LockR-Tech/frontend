@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { LockerStatus } from "~/types/admin/enums";
 import {
   useGetAllLockersQuery,
@@ -13,6 +14,7 @@ import type { AdminLockerResponse } from "~/types";
 export type LockerStatusFilter = "ALL" | LockerStatus;
 
 export function useLockers() {
+  const { t } = useTranslation();
   const [status, setStatusState] = useState<LockerStatusFilter>("ALL");
   const [searchQuery, setSearchQueryState] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
@@ -112,20 +114,20 @@ export function useLockers() {
   const handleMaintenance = async (lockerId: number) => {
     try {
       await setMaintenance({ id: lockerId, data: { maintenance: true } }).unwrap();
-      toast.success("Đã chuyển tủ sang bảo trì");
+      toast.success(t("admin.lockers.toast.maintenanceOn"));
       refetch();
     } catch {
-      toast.error("Không chuyển được trạng thái bảo trì");
+      toast.error(t("admin.lockers.toast.maintenanceFailed"));
     }
   };
 
   const handleActivate = async (lockerId: number) => {
     try {
       await setMaintenance({ id: lockerId, data: { maintenance: false } }).unwrap();
-      toast.success("Tủ đã hoạt động lại");
+      toast.success(t("admin.lockers.toast.reactivated"));
       refetch();
     } catch {
-      toast.error("Không kích hoạt được tủ");
+      toast.error(t("admin.lockers.toast.activateFailed"));
     }
   };
 

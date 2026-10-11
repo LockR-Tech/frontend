@@ -31,10 +31,12 @@ import {
   ResolveReportDialog,
   type ResolveReportPayload,
 } from "~/pages/Admin/maintenance/ResolveReportDialog";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 20;
 
 export function ReportsTab() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<string>("all");
   const [page, setPage] = useState(0);
 
@@ -51,10 +53,13 @@ export function ReportsTab() {
       ...(payload.note ? { note: payload.note } : {}),
       ...(payload.attachments?.length ? { attachments: payload.attachments } : {}),
     }).unwrap();
-    toast.success("Giải quyết báo cáo thành công", {
-      description: `Báo cáo RPT-${id} đã được đánh dấu là đã giải quyết${
-        payload.attachments?.length ? ` kèm ${payload.attachments.length} ảnh nghiệm thu` : ""
-      }.`,
+    toast.success(t("admin.feedback.reports.resolveSuccess"), {
+      description: payload.attachments?.length
+        ? t("admin.feedback.reports.resolvedDescWithPhotos", {
+            id,
+            count: payload.attachments.length,
+          })
+        : t("admin.feedback.reports.resolvedDesc", { id }),
     });
   };
 
@@ -80,19 +85,19 @@ export function ReportsTab() {
             }}
           >
             <SelectTrigger className="w-44 h-9 text-xs">
-              <SelectValue placeholder="Trạng thái" />
+              <SelectValue placeholder={t("common.status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="OPEN">Chờ xử lý</SelectItem>
-              <SelectItem value="IN_PROGRESS">Đang xử lý</SelectItem>
-              <SelectItem value="RESOLVED">Đã giải quyết</SelectItem>
+              <SelectItem value="all">{t("admin.feedback.filters.allStatuses")}</SelectItem>
+              <SelectItem value="OPEN">{t("admin.feedback.reportStatus.open")}</SelectItem>
+              <SelectItem value="IN_PROGRESS">{t("admin.feedback.reportStatus.inProgress")}</SelectItem>
+              <SelectItem value="RESOLVED">{t("admin.feedback.reportStatus.resolved")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <span className="text-xs text-muted-foreground">
-          {isLoading ? "..." : `${total.toLocaleString("vi-VN")} báo cáo`}
+          {isLoading ? "..." : t("admin.feedback.reports.count", { total: total.toLocaleString("vi-VN") })}
         </span>
       </div>
 
@@ -108,12 +113,12 @@ export function ReportsTab() {
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
-                <TableHead className="font-semibold text-foreground">Khách hàng</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.customer")}</TableHead>
                 <TableHead className="font-semibold text-foreground">Locker</TableHead>
-                <TableHead className="font-semibold text-foreground">Mô tả</TableHead>
-                <TableHead className="font-semibold text-foreground">Trạng thái</TableHead>
-                <TableHead className="font-semibold text-foreground">Ngày tạo</TableHead>
-                <TableHead className="font-semibold text-foreground">Giải quyết lúc</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.description")}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.status")}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.createdAt")}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("admin.feedback.columns.resolvedAt")}</TableHead>
                 <TableHead className="w-24 text-right" />
               </TableRow>
             </TableHeader>
@@ -124,7 +129,7 @@ export function ReportsTab() {
                     colSpan={7}
                     className="text-center py-10 text-muted-foreground text-sm"
                   >
-                    Không có báo cáo nào
+                    {t("admin.feedback.reports.empty")}
                   </TableCell>
                 </TableRow>
               )}
@@ -136,7 +141,7 @@ export function ReportsTab() {
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground text-sm">
-                          {r.reporterName || "Khách hàng"}
+                          {r.reporterName || t("common.customer")}
                         </p>
                         <p className="text-xs text-muted-foreground">{r.reporterPhone || "—"}</p>
                       </div>
@@ -144,9 +149,12 @@ export function ReportsTab() {
                     <TableCell>
                       <div className="flex items-center gap-1.5 text-xs text-foreground">
                         <Lock size={13} className="text-muted-foreground shrink-0" />
-                        {r.lockerName || `Tủ #${r.lockerId ?? ""}`}
+                        {r.lockerName || t("admin.feedback.reports.lockerFallback", { id: r.lockerId ?? "" })}
                         {r.boxNumber != null && (
-                          <span className="text-muted-foreground"> · Ô {r.boxNumber}</span>
+                          <span className="text-muted-foreground">
+                            {" · "}
+                            {t("admin.feedback.reports.box", { number: r.boxNumber })}
+                          </span>
                         )}
                       </div>
                     </TableCell>
@@ -157,7 +165,7 @@ export function ReportsTab() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-[11px] ${statusMeta.cls}`}>
-                        {statusMeta.label}
+                        {t(statusMeta.labelKey)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
@@ -176,7 +184,7 @@ export function ReportsTab() {
                           onClick={() => setResolving(r)}
                         >
                           <CheckCircle2 size={13} />
-                          Giải quyết
+                          {t("admin.feedback.reports.resolve")}
                         </Button>
                       )}
                     </TableCell>
@@ -197,10 +205,10 @@ export function ReportsTab() {
             disabled={currentPage === 0}
             onClick={() => setPage(currentPage - 1)}
           >
-            Trước
+            {t("pagination.previous")}
           </Button>
           <span className="text-xs text-muted-foreground">
-            Trang {currentPage + 1} / {totalPages}
+            {t("admin.feedback.pagination.page", { page: currentPage + 1, total: totalPages })}
           </span>
           <Button
             variant="outline"
@@ -208,7 +216,7 @@ export function ReportsTab() {
             disabled={currentPage >= totalPages - 1}
             onClick={() => setPage(currentPage + 1)}
           >
-            Tiếp
+            {t("admin.feedback.pagination.next")}
           </Button>
         </div>
       )}
@@ -216,10 +224,10 @@ export function ReportsTab() {
       <ResolveReportDialog
         open={!!resolving}
         onOpenChange={(open) => !open && setResolving(null)}
-        title={resolving ? `Giải quyết báo cáo RPT-${resolving.id}?` : ""}
+        title={resolving ? t("admin.feedback.reports.resolveTitle", { id: resolving.id }) : ""}
         description={resolving?.description}
-        confirmLabel="Giải quyết"
-        errorTitle="Không giải quyết được báo cáo"
+        confirmLabel={t("admin.feedback.reports.resolve")}
+        errorTitle={t("admin.feedback.reports.resolveFailed")}
         onSubmit={async (payload) => {
           if (resolving) await handleResolve(resolving.id, payload);
         }}

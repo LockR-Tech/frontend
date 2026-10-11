@@ -45,6 +45,7 @@ import {
   sameTitle,
   type EvalRun,
 } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 interface EvalTabProps {
   lastRun: EvalRun | null;
@@ -57,6 +58,7 @@ interface EvalTabProps {
  * bằng Claude tốn phí nên phải xác nhận.
  */
 export function EvalTab({ lastRun, onRun }: EvalTabProps) {
+  const { t } = useTranslation();
   const casesQuery = useGetKnowledgeEvalCasesQuery();
   const documentsQuery = useGetKnowledgeDocumentsQuery();
   const [runEval, runState] = useRunKnowledgeEvalMutation();
@@ -88,11 +90,11 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
       const report = response.data;
       onRun({ report, generated: generate, ranAt: new Date() });
       setConfirmGenerate(false);
-      toast.success(`Đánh giá xong: đạt ${report.passed}/${report.total} câu`);
+      toast.success(t("admin.knowledge.eval.runDone", { passed: report.passed, total: report.total }));
     } catch (err) {
       setConfirmGenerate(false);
-      toast.error("Không chạy được đánh giá", {
-        description: getKnowledgeErrorMessage(err, "Đã xảy ra lỗi khi chạy đánh giá."),
+      toast.error(t("admin.knowledge.eval.runFailed"), {
+        description: getKnowledgeErrorMessage(err, t("admin.knowledge.errors.genericRun")),
       });
     } finally {
       setRunningMode(null);
@@ -103,11 +105,11 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
     if (!deleting) return;
     try {
       await deleteCase(deleting.id).unwrap();
-      toast.success("Đã xoá câu đánh giá");
+      toast.success(t("admin.knowledge.eval.caseDeleted"));
       setDeleteOpen(false);
     } catch (err) {
-      toast.error("Không xoá được câu đánh giá", {
-        description: getKnowledgeErrorMessage(err, "Đã xảy ra lỗi."),
+      toast.error(t("admin.knowledge.eval.caseDeleteFailed"), {
+        description: getKnowledgeErrorMessage(err, t("admin.knowledge.errors.generic")),
       });
     }
   };
@@ -120,18 +122,20 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="max-w-2xl text-sm text-muted-foreground">
-          {cases.length} câu đánh giá · {cases.length - refusalCount} câu phải trúng tài liệu ·{" "}
-          {refusalCount} câu phải từ chối. Chạy lại sau mỗi lần thêm/sửa tài liệu hoặc đổi ngưỡng liên
-          quan.
+          {t("admin.knowledge.eval.summary", {
+            total: cases.length,
+            retrieval: cases.length - refusalCount,
+            refusal: refusalCount,
+          })}
         </p>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
-            Thêm câu
+            {t("admin.knowledge.eval.addCase")}
           </Button>
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
             <FileJson className="h-4 w-4" />
-            Nhập JSON
+            {t("admin.knowledge.eval.importJson")}
           </Button>
           <Button size="sm" onClick={() => run(false)} disabled={running || cases.length === 0}>
             {runningMode === "retrieval" ? (
@@ -139,7 +143,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
             ) : (
               <Play className="h-4 w-4" />
             )}
-            Chạy đánh giá truy xuất
+            {t("admin.knowledge.eval.runRetrieval")}
           </Button>
           <Button
             variant="outline"
@@ -153,7 +157,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
             ) : (
               <Sparkles className="h-4 w-4" />
             )}
-            Chạy kèm sinh câu trả lời
+            {t("admin.knowledge.eval.runGenerate")}
           </Button>
         </div>
       </div>
@@ -162,8 +166,8 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           {runningMode === "generate"
-            ? "Đang truy xuất và gọi Claude cho từng câu — có thể mất vài phút…"
-            : "Đang nhúng câu hỏi và truy xuất…"}
+            ? t("admin.knowledge.eval.runningGenerate")
+            : t("admin.knowledge.eval.runningRetrieval")}
         </p>
       )}
 
@@ -172,14 +176,14 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
       {casesQuery.error ? (
         <ErrorState
           variant="inline"
-          title="Không tải được bộ câu đánh giá"
-          message={getKnowledgeErrorMessage(casesQuery.error, "Không tải được bộ câu đánh giá.")}
+          title={t("admin.knowledge.eval.loadFailed")}
+          message={getKnowledgeErrorMessage(casesQuery.error, t("admin.knowledge.eval.loadFailedMessage"))}
           onRetry={() => casesQuery.refetch()}
         />
       ) : (
         <Card className="overflow-hidden border border-border">
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5">
-            <h3 className="text-sm font-semibold text-foreground">Bộ câu đánh giá</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t("admin.knowledge.eval.setTitle")}</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -188,17 +192,21 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
               disabled={casesQuery.isFetching}
             >
               <RefreshCw className={cn("h-4 w-4", casesQuery.isFetching && "animate-spin")} />
-              Làm mới
+              {t("button.refresh")}
             </Button>
           </div>
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
                 <TableHead className="w-16 font-semibold text-foreground">#</TableHead>
-                <TableHead className="min-w-[260px] font-semibold text-foreground">Câu hỏi</TableHead>
-                <TableHead className="font-semibold text-foreground">Người hỏi</TableHead>
-                <TableHead className="min-w-[180px] font-semibold text-foreground">Mong đợi</TableHead>
-                <TableHead className="font-semibold text-foreground">Tạo lúc</TableHead>
+                <TableHead className="min-w-[260px] font-semibold text-foreground">
+                  {t("admin.knowledge.eval.columns.question")}
+                </TableHead>
+                <TableHead className="font-semibold text-foreground">{t("admin.knowledge.eval.columns.asker")}</TableHead>
+                <TableHead className="min-w-[180px] font-semibold text-foreground">
+                  {t("admin.knowledge.eval.columns.expected")}
+                </TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.createdAtTime")}</TableHead>
                 <TableHead className="w-14" />
               </TableRow>
             </TableHeader>
@@ -215,7 +223,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
                 <TableRow>
                   <TableCell colSpan={6} className="py-12 text-center text-sm text-muted-foreground">
                     <FlaskConical className="mx-auto mb-2 h-8 w-8 opacity-40" />
-                    Chưa có câu đánh giá. Thêm từng câu hoặc nhập cả bộ bằng JSON.
+                    {t("admin.knowledge.eval.empty")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -239,7 +247,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
                     <TableCell className="align-top text-sm">
                       {c.mustRefuse ? (
                         <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800">
-                          Phải từ chối
+                          {t("admin.knowledge.eval.mustRefuse")}
                         </Badge>
                       ) : (
                         <span className="inline-flex items-start gap-1.5 text-foreground">
@@ -249,11 +257,11 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
                               <TooltipTrigger asChild>
                                 <TriangleAlert
                                   className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600"
-                                  aria-label="Không có tài liệu mang tiêu đề này"
+                                  aria-label={t("admin.knowledge.eval.orphanAria")}
                                 />
                               </TooltipTrigger>
                               <TooltipContent className="max-w-xs text-xs">
-                                Kho tri thức không có tài liệu nào mang tiêu đề này — câu sẽ luôn trượt.
+                                {t("admin.knowledge.eval.orphanTooltip")}
                               </TooltipContent>
                             </Tooltip>
                           )}
@@ -272,8 +280,8 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
                           setDeleting(c);
                           setDeleteOpen(true);
                         }}
-                        aria-label="Xoá câu đánh giá"
-                        title="Xoá câu đánh giá"
+                        aria-label={t("admin.knowledge.eval.deleteCase")}
+                        title={t("admin.knowledge.eval.deleteCase")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -292,18 +300,14 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
       <ConfirmActionDialog
         open={confirmGenerate}
         onOpenChange={setConfirmGenerate}
-        title="Chạy đánh giá kèm sinh câu trả lời?"
+        title={t("admin.knowledge.eval.generateTitle")}
         description={
           <>
-            <p className="font-medium text-rose-700">Thao tác này tốn phí mô hình thật.</p>
-            <p>
-              Ngoài phí nhúng {cases.length} câu hỏi, mỗi câu có đoạn tài liệu đạt ngưỡng sẽ gọi Claude
-              một lần — tối đa {cases.length} lần gọi. Chỉ dùng khi cần xem chất lượng câu trả lời;
-              kiểm tra truy xuất thì chạy “Chạy đánh giá truy xuất” (rẻ hơn nhiều).
-            </p>
+            <p className="font-medium text-rose-700">{t("admin.knowledge.eval.generateCost")}</p>
+            <p>{t("admin.knowledge.eval.generateDescription", { count: cases.length })}</p>
           </>
         }
-        actionLabel="Vẫn chạy (tốn phí)"
+        actionLabel={t("admin.knowledge.eval.generateAction")}
         destructive
         loading={runningMode === "generate"}
         onConfirm={() => run(true)}
@@ -312,9 +316,9 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
       <ConfirmActionDialog
         open={deleteOpen && !!deleting}
         onOpenChange={setDeleteOpen}
-        title="Xoá câu đánh giá?"
+        title={t("admin.knowledge.eval.deleteTitle")}
         description={<p className="line-clamp-4 whitespace-pre-wrap">“{deleting?.question}”</p>}
-        actionLabel="Xoá"
+        actionLabel={t("common.delete")}
         destructive
         loading={deleteState.isLoading}
         onConfirm={confirmDelete}

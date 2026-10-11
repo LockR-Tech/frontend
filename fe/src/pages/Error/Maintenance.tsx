@@ -2,9 +2,11 @@ import * as React from "react";
 import { Construction, ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "~/components/ui";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function MaintenancePage(): React.JSX.Element {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-muted to-background p-4">
@@ -67,18 +69,17 @@ export default function MaintenancePage(): React.JSX.Element {
           </div>
           
           <h2 className="text-3xl font-semibold text-foreground">
-            Đang bảo trì hệ thống
+            {t("errorPage.maintenance.title")}
           </h2>
           
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
-            Chúng tôi đang nâng cấp hệ thống để mang đến trải nghiệm tốt hơn cho bạn.
-            Vui lòng quay lại sau ít phút.
+            {t("errorPage.maintenance.description")}
           </p>
 
           <div className="text-sm text-muted-foreground bg-muted rounded-lg p-4 max-w-md mx-auto">
-            <p className="font-medium mb-2">Thời gian bảo trì dự kiến:</p>
-            <p>🕐 Bắt đầu: 02:00 AM</p>
-            <p>🕑 Kết thúc: 04:00 AM</p>
+            <p className="font-medium mb-2">{t("errorPage.maintenance.scheduleTitle")}</p>
+            <p>{t("errorPage.maintenance.start", { time: "02:00 AM" })}</p>
+            <p>{t("errorPage.maintenance.end", { time: "04:00 AM" })}</p>
           </div>
         </div>
 
@@ -90,7 +91,7 @@ export default function MaintenancePage(): React.JSX.Element {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
+            {t("button.back")}
           </Button>
           
           <Button
@@ -98,13 +99,13 @@ export default function MaintenancePage(): React.JSX.Element {
             className="flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
-            Thử lại
+            {t("common.retry")}
           </Button>
         </div>
 
         {/* Footer */}
         <div className="text-sm text-muted-foreground">
-          <p>Nếu có thắc mắc, vui lòng liên hệ:</p>
+          <p>{t("errorPage.maintenance.contact")}</p>
           <a href="mailto:support@laundrylocker.com" className="text-primary hover:underline">
             support@laundrylocker.com
           </a>

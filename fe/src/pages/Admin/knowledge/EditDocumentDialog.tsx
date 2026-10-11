@@ -19,6 +19,7 @@ import {
 } from "~/stores/apis/admin/knowledge";
 import { RoleCheckboxGroup } from "./RoleCheckboxGroup";
 import { MAX_TITLE_LENGTH, getKnowledgeErrorMessage, toggleDocumentRole } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 interface EditDocumentDialogProps {
   document: KnowledgeDocument | null;
@@ -38,6 +39,7 @@ function initialRoles(doc: KnowledgeDocument | null): string[] {
 
 /** Sửa tiêu đề / vai trò được đọc. Đổi vai trò không cần đánh chỉ mục lại. */
 export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProps) {
+  const { t } = useTranslation();
   const [update, { isLoading }] = useUpdateKnowledgeDocumentMutation();
   const [title, setTitle] = useState("");
   const [roles, setRoles] = useState<string[]>(["ALL"]);
@@ -76,12 +78,12 @@ export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProp
         ...(titleChanged ? { title: trimmed } : {}),
         ...(rolesChanged ? { allowedRoles: roles } : {}),
       }).unwrap();
-      toast.success(`Đã cập nhật “${trimmed}”`);
+      toast.success(t("admin.knowledge.edit.updated", { title: trimmed }));
       setLastId(null);
       onClose();
     } catch (err) {
-      toast.error("Không cập nhật được tài liệu", {
-        description: getKnowledgeErrorMessage(err, "Đã xảy ra lỗi khi lưu."),
+      toast.error(t("admin.knowledge.edit.updateFailed"), {
+        description: getKnowledgeErrorMessage(err, t("admin.knowledge.errors.genericSave")),
       });
     }
   };
@@ -90,7 +92,7 @@ export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProp
     <Dialog open={!!document} onOpenChange={(open) => !open && close()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Sửa tài liệu</DialogTitle>
+          <DialogTitle>{t("admin.knowledge.edit.title")}</DialogTitle>
           <DialogDescription className="truncate" title={document?.fileName}>
             {document?.fileName}
           </DialogDescription>
@@ -99,7 +101,7 @@ export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProp
         <div className="space-y-4">
           <div>
             <Label htmlFor="knowledge-edit-title" className="mb-1.5 block text-xs">
-              Tiêu đề *
+              {t("admin.knowledge.edit.titleLabel")}
             </Label>
             <Input
               id="knowledge-edit-title"
@@ -109,15 +111,15 @@ export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProp
               disabled={isLoading}
             />
             {touched && !title.trim() && (
-              <p className="mt-1 text-xs text-red-600">Nhập tiêu đề tài liệu.</p>
+              <p className="mt-1 text-xs text-red-600">{t("admin.knowledge.edit.titleRequired")}</p>
             )}
             <p className="mt-1 text-xs text-muted-foreground">
-              Đổi tiêu đề thì các câu đánh giá đang trỏ tới tiêu đề cũ cần sửa theo.
+              {t("admin.knowledge.edit.titleHint")}
             </p>
           </div>
 
           <div>
-            <Label className="mb-1.5 block text-xs">Ai được dùng tài liệu này để hỏi đáp</Label>
+            <Label className="mb-1.5 block text-xs">{t("admin.knowledge.edit.rolesLabel")}</Label>
             <RoleCheckboxGroup
               idPrefix="knowledge-edit-role"
               options={KNOWLEDGE_ROLES}
@@ -126,18 +128,18 @@ export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProp
               disabled={isLoading}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Đổi vai trò có hiệu lực ngay, không cần đánh chỉ mục lại.
+              {t("admin.knowledge.edit.rolesHint")}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={close} disabled={isLoading}>
-            Huỷ
+            {t("common.cancel")}
           </Button>
           <Button onClick={submit} disabled={isLoading}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Lưu
+            {t("button.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

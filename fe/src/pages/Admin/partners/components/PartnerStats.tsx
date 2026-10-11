@@ -1,4 +1,5 @@
 import { Building2, Clock, CheckCircle, XCircle, AlertCircle, Store } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "~/components/ui/card";
 
 interface PartnerStatsProps {
@@ -13,44 +14,45 @@ interface PartnerStatsProps {
 }
 
 export function PartnerStats({ statistics }: PartnerStatsProps) {
+  const { t } = useTranslation();
   const stats = [
     {
-      label: "Tổng đối tác",
+      label: t("admin.partners.stats.total"),
       value: statistics.totalPartners,
       icon: Building2,
       color: "bg-blue-500",
       textColor: "text-blue-600",
     },
     {
-      label: "Chờ duyệt",
+      label: t("admin.partners.status.pending"),
       value: statistics.pendingApproval,
       icon: Clock,
       color: "bg-yellow-500",
       textColor: "text-yellow-600",
     },
     {
-      label: "Đã duyệt",
+      label: t("admin.partners.status.approved"),
       value: statistics.approved,
       icon: CheckCircle,
       color: "bg-green-500",
       textColor: "text-green-600",
     },
     {
-      label: "Từ chối",
+      label: t("admin.partners.status.rejected"),
       value: statistics.rejected,
       icon: XCircle,
       color: "bg-red-500",
       textColor: "text-red-600",
     },
     {
-      label: "Đình chỉ",
+      label: t("admin.partners.status.suspended"),
       value: statistics.suspended,
       icon: AlertCircle,
       color: "bg-muted/300",
       textColor: "text-muted-foreground",
     },
     {
-      label: "Tổng địa điểm",
+      label: t("admin.partners.stats.totalStores"),
       value: statistics.totalStores,
       icon: Store,
       color: "bg-purple-500",

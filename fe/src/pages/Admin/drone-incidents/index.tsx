@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   AlertTriangle,
   Eye,
@@ -52,20 +54,26 @@ import {
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useConfirmDroneParcelHubHandoverMutation } from "./hubHandoverApi";
 
+// Giá trị là khoá i18n; dịch lúc render.
 const statusLabel: Record<string, string> = {
-  REPORTED: "Đã báo sự cố",
-  EVIDENCE_PENDING: "Chờ bằng chứng",
-  INVESTIGATING: "Đang điều tra",
-  RECOVERY_IN_PROGRESS: "Đang thu hồi",
-  AWAITING_ADMIN_REVIEW: "Chờ Admin xác minh",
-  RESOLUTION_PROPOSED: "Đã gửi phương án",
-  AWAITING_CUSTOMER_RESPONSE: "Chờ khách phản hồi",
-  RESOLUTION_IN_PROGRESS: "Đang xử lý phương án",
-  DISPUTED: "Yêu cầu xem xét lại",
-  RESOLVED: "Đã giải quyết",
-  CLOSED: "Đã đóng",
-  MANUAL_INTERVENTION_REQUIRED: "Cần can thiệp thủ công",
+  REPORTED: "admin.droneIncidents.status.reported",
+  EVIDENCE_PENDING: "admin.droneIncidents.status.evidencePending",
+  INVESTIGATING: "admin.droneIncidents.status.investigating",
+  RECOVERY_IN_PROGRESS: "admin.droneIncidents.status.recoveryInProgress",
+  AWAITING_ADMIN_REVIEW: "admin.droneIncidents.status.awaitingAdminReview",
+  RESOLUTION_PROPOSED: "admin.droneIncidents.status.resolutionProposed",
+  AWAITING_CUSTOMER_RESPONSE: "admin.droneIncidents.status.awaitingCustomerResponse",
+  RESOLUTION_IN_PROGRESS: "admin.droneIncidents.status.resolutionInProgress",
+  DISPUTED: "admin.droneIncidents.status.disputed",
+  RESOLVED: "admin.droneIncidents.status.resolved",
+  CLOSED: "admin.droneIncidents.status.closed",
+  MANUAL_INTERVENTION_REQUIRED: "admin.droneIncidents.status.manualInterventionRequired",
 };
+
+function statusText(value: string, t: TFunction): string {
+  const key = statusLabel[value];
+  return key ? t(key) : value;
+}
 
 // Nhóm lọc theo trạng thái sự cố (DroneIncidentStates.INCIDENT ở backend)
 const FILTERS = [
@@ -82,26 +90,26 @@ const FILTERS = [
   "CLOSED",
 ] as const;
 
+// Giá trị là khoá i18n; dịch lúc render.
 const RESOLUTION_LABELS: Record<string, string> = {
-  FREE_REDELIVERY: "Giao lại miễn phí",
-  REDELIVERY_PARTIAL_COMPENSATION: "Giao lại + bồi thường một phần",
-  COMPENSATION_ONLY: "Chỉ bồi thường",
-  MANUAL_RESOLUTION: "Xử lý thủ công",
+  FREE_REDELIVERY: "admin.droneIncidents.resolution.freeRedelivery",
+  REDELIVERY_PARTIAL_COMPENSATION: "admin.droneIncidents.resolution.redeliveryPartialCompensation",
+  COMPENSATION_ONLY: "admin.droneIncidents.resolution.compensationOnly",
+  MANUAL_RESOLUTION: "admin.droneIncidents.resolution.manualResolution",
 };
 
-// Mã lỗi DroneParcelIncidentService → thông báo tiếng Việt
+// Mã lỗi DroneParcelIncidentService → khoá i18n của thông báo
 const INCIDENT_ERRORS: Record<string, string> = {
-  RESOLUTION_CONTENT_INVALID:
-    "Loại phương án không khớp với lựa chọn giao lại / mức bồi thường.",
-  RESOLUTION_TYPE_INVALID: "Loại phương án không được hỗ trợ.",
-  PARCEL_NOT_AT_HUB: "Chỉ đề xuất giao lại sau khi kiện đã được xác nhận về hub.",
-  FREE_REDELIVERY_DISABLED: "Chính sách của đơn không cho phép giao lại miễn phí.",
-  INCIDENT_POLICY_DISABLED: "Đơn này không áp dụng chính sách bồi thường sự cố.",
+  RESOLUTION_CONTENT_INVALID: "admin.droneIncidents.errors.resolutionContentInvalid",
+  RESOLUTION_TYPE_INVALID: "admin.droneIncidents.errors.resolutionTypeInvalid",
+  PARCEL_NOT_AT_HUB: "admin.droneIncidents.errors.parcelNotAtHub",
+  FREE_REDELIVERY_DISABLED: "admin.droneIncidents.errors.freeRedeliveryDisabled",
+  INCIDENT_POLICY_DISABLED: "admin.droneIncidents.errors.incidentPolicyDisabled",
   COMPENSATION_OVERRIDE_REASON_REQUIRED:
-    "Mức bồi thường vượt mức chính sách — cần nhập lý do override.",
-  RECOVERY_NOT_VERIFIED: "Kết quả thu hồi chưa được xác minh.",
-  PARCEL_NOT_FOUND: "Chỉ kiện đã tìm thấy mới bàn giao về hub được.",
-  RECOVERY_FORBIDDEN: "Bạn không có quyền xác nhận bàn giao này.",
+    "admin.droneIncidents.errors.compensationOverrideReasonRequired",
+  RECOVERY_NOT_VERIFIED: "admin.droneIncidents.errors.recoveryNotVerified",
+  PARCEL_NOT_FOUND: "admin.droneIncidents.errors.parcelNotFound",
+  RECOVERY_FORBIDDEN: "admin.droneIncidents.errors.recoveryForbidden",
 };
 
 /** Backend (bản mới) trả thêm mức bồi thường đề xuất theo chính sách; bản cũ chưa có. */
@@ -116,33 +124,34 @@ const REDELIVERY_TYPES = new Set(["FREE_REDELIVERY", "REDELIVERY_PARTIAL_COMPENS
 
 /** Kiểm tra phương án giống DroneParcelIncidentService.propose để báo lỗi trước khi gửi. */
 function validateProposal(
+  t: TFunction,
   incident: DroneParcelIncident,
   resolutionType: string,
   amountText: string,
   overrideReason: string,
 ): string | null {
   if (!["VERIFIED", "CLOSED"].includes(incident.recoveryStatus)) {
-    return "Cần xác minh kết quả thu hồi trước khi tạo phương án.";
+    return t("admin.droneIncidents.validation.recoveryNotVerified");
   }
   const amount = amountText.trim() === "" ? Number.NaN : Number(amountText);
   if (!Number.isFinite(amount) || amount < 0) {
-    return "Nhập mức bồi thường hợp lệ (số ≥ 0).";
+    return t("admin.droneIncidents.validation.invalidAmount");
   }
   if (REDELIVERY_TYPES.has(resolutionType) && incident.parcelStatus !== "RETURNED_TO_HUB") {
-    return "Chỉ đề xuất giao lại sau khi kiện đã được xác nhận về hub.";
+    return t("admin.droneIncidents.errors.parcelNotAtHub");
   }
   if (resolutionType === "FREE_REDELIVERY" && amount !== 0) {
-    return "Giao lại miễn phí không kèm tiền bồi thường — mức bồi thường phải là 0.";
+    return t("admin.droneIncidents.validation.freeRedeliveryNonZero");
   }
   if (resolutionType === "REDELIVERY_PARTIAL_COMPENSATION" && amount <= 0) {
-    return "Giao lại + bồi thường một phần cần mức bồi thường lớn hơn 0.";
+    return t("admin.droneIncidents.validation.partialNeedsAmount");
   }
   if (resolutionType === "COMPENSATION_ONLY" && amount <= 0) {
-    return "Chỉ bồi thường cần mức bồi thường lớn hơn 0.";
+    return t("admin.droneIncidents.validation.compensationNeedsAmount");
   }
   const suggested = suggestedCompensationOf(incident);
   if (suggested != null && amount > suggested && !overrideReason.trim()) {
-    return `Mức bồi thường vượt mức đề xuất ${formatCurrency(suggested)} — nhập lý do override.`;
+    return t("admin.droneIncidents.validation.overSuggested", { amount: formatCurrency(suggested) });
   }
   return null;
 }
@@ -157,6 +166,7 @@ function statusTone(status: string) {
 }
 
 export default function DroneIncidentsPage() {
+  const { t } = useTranslation();
   const { data, isLoading, isFetching, refetch } = useGetDroneIncidentsQuery(
     undefined,
     { pollingInterval: 10_000 },
@@ -198,14 +208,14 @@ export default function DroneIncidentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Sự cố rơi kiện Drone"
-        description="Theo dõi điều phối thu hồi, kiểm tra drone, bằng chứng và phương án xử lý cho khách hàng."
+        title={t("admin.droneIncidents.title")}
+        description={t("admin.droneIncidents.description")}
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Đang mở" value={counts.open} />
-        <Stat label="Đang thu hồi" value={counts.recovering} />
-        <Stat label="Chờ xác minh" value={counts.review} />
-        <Stat label="Đã hoàn tất" value={counts.closed} />
+        <Stat label={t("admin.droneIncidents.stats.open")} value={counts.open} />
+        <Stat label={t("admin.droneIncidents.stats.recovering")} value={counts.recovering} />
+        <Stat label={t("admin.droneIncidents.stats.review")} value={counts.review} />
+        <Stat label={t("admin.droneIncidents.stats.closed")} value={counts.closed} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
@@ -219,7 +229,7 @@ export default function DroneIncidentsPage() {
                 setSearchParams(next, { replace: true });
               }}
             >
-              Đơn {orderFilter}
+              {t("admin.droneIncidents.orderChip", { code: orderFilter })}
               <X className="ml-1 h-3.5 w-3.5" />
             </Button>
           )}
@@ -230,7 +240,7 @@ export default function DroneIncidentsPage() {
               variant={filter === value ? "default" : "outline"}
               onClick={() => setFilter(value)}
             >
-              {value === "ALL" ? "Tất cả" : (statusLabel[value] ?? value)}
+              {value === "ALL" ? t("common.all") : statusText(value, t)}
               <span className="ml-1 text-xs opacity-70">
                 {value === "ALL" ? byOrder.length : (filterCounts[value] ?? 0)}
               </span>
@@ -241,7 +251,7 @@ export default function DroneIncidentsPage() {
           <RefreshCw
             className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
           />
-          Làm mới
+          {t("button.refresh")}
         </Button>
       </div>
       <Card className="border-0 shadow-sm">
@@ -252,19 +262,19 @@ export default function DroneIncidentsPage() {
             <div className="py-16 text-center text-sm text-muted-foreground">
               <PackageSearch className="mx-auto mb-3 h-9 w-9 opacity-40" />
               {orderFilter && byOrder.length === 0
-                ? `Chưa thấy sự cố của đơn ${orderFilter} — sự cố có thể đang được tạo, bấm Làm mới sau ít giây.`
-                : "Không có sự cố trong nhóm này."}
+                ? t("admin.droneIncidents.emptyForOrder", { code: orderFilter })
+                : t("admin.droneIncidents.empty")}
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-xs text-muted-foreground">
-                  <th className="px-4 py-3">Mã sự cố</th>
-                  <th className="px-4 py-3">Đơn / Drone</th>
-                  <th className="px-4 py-3">Sự cố</th>
-                  <th className="px-4 py-3">Thu hồi</th>
-                  <th className="px-4 py-3">Kiểm tra drone</th>
-                  <th className="px-4 py-3">Thời gian</th>
+                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.code")}</th>
+                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.orderDrone")}</th>
+                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.incident")}</th>
+                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.recovery")}</th>
+                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.inspection")}</th>
+                  <th className="px-4 py-3">{t("common.time")}</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -304,7 +314,7 @@ export default function DroneIncidentsPage() {
                         onClick={() => setSelected(item.id)}
                       >
                         <Eye className="mr-1 h-4 w-4" />
-                        Chi tiết
+                        {t("button.detail")}
                       </Button>
                     </td>
                   </tr>
@@ -331,12 +341,13 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 function Status({ value }: { value: string }) {
+  const { t } = useTranslation();
   return (
     <Badge
       variant="outline"
       className={`whitespace-nowrap border-0 ${statusTone(value)}`}
     >
-      {statusLabel[value] ?? value.replaceAll("_", " ")}
+      {statusLabel[value] ? t(statusLabel[value]) : value.replaceAll("_", " ")}
     </Badge>
   );
 }
@@ -348,6 +359,7 @@ function IncidentDetail({
   id: number | null;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const { data, isLoading } = useGetDroneIncidentQuery(id ?? 0, {
     skip: id == null,
     pollingInterval: 8_000,
@@ -359,7 +371,7 @@ function IncidentDetail({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
-            {incident?.incidentCode ?? "Chi tiết sự cố"}
+            {incident?.incidentCode ?? t("admin.droneIncidents.detail.title")}
           </DialogTitle>
         </DialogHeader>
         {isLoading || !incident ? (
@@ -373,34 +385,39 @@ function IncidentDetail({
 }
 
 function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-3">
         <Info
-          label="Đơn hàng"
+          label={t("common.order")}
           value={incident.orderCode ?? `#${incident.orderId}`}
         />
         <Info label="Drone" value={incident.droneCode} />
         <Info
-          label="Trạng thái"
-          value={statusLabel[incident.status] ?? incident.status}
+          label={t("common.status")}
+          value={statusText(incident.status, t)}
         />
         <Info
-          label="Vị trí rơi"
+          label={t("admin.droneIncidents.detail.dropLocation")}
           value={
             incident.dropLatitude != null
               ? `${incident.dropLatitude.toFixed(6)}, ${incident.dropLongitude?.toFixed(6)}`
-              : "Không có GPS"
+              : t("admin.droneIncidents.detail.noGps")
           }
         />
-        <Info label="Nguồn GPS" value={incident.gpsSource} />
+        <Info label={t("admin.droneIncidents.detail.gpsSource")} value={incident.gpsSource} />
         <Info
           label="Camera / telemetry"
-          value={`${incident.cameraStatus} · ${incident.telemetryStale ? "dữ liệu cũ" : "trực tuyến"}`}
+          value={`${incident.cameraStatus} · ${
+            incident.telemetryStale
+              ? t("admin.droneIncidents.detail.staleData")
+              : t("admin.droneIncidents.detail.online")
+          }`}
         />
       </div>
       <div className="rounded-lg border p-4">
-        <p className="font-semibold">Mô tả sự cố</p>
+        <p className="font-semibold">{t("admin.droneIncidents.detail.description")}</p>
         <p className="mt-2 text-sm text-muted-foreground">{incident.reason}</p>
       </div>
       {incident.dropLatitude != null && (
@@ -411,17 +428,17 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
           href={`https://www.openstreetmap.org/?mlat=${incident.dropLatitude}&mlon=${incident.dropLongitude}#map=17/${incident.dropLatitude}/${incident.dropLongitude}`}
         >
           <MapPin className="mr-1 h-4 w-4" />
-          Mở vị trí rơi trên bản đồ
+          {t("admin.droneIncidents.detail.openMap")}
         </a>
       )}
       <AdminActions incident={incident} />
       <div>
         <h3 className="mb-3 font-semibold">
-          Bằng chứng ({incident.evidence.length})
+          {t("admin.droneIncidents.detail.evidence", { count: incident.evidence.length })}
         </h3>
         {incident.evidence.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Chưa có ảnh bằng chứng.
+            {t("admin.droneIncidents.detail.noEvidence")}
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -445,7 +462,7 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
         )}
       </div>
       <div>
-        <h3 className="mb-3 font-semibold">Lịch sử xử lý</h3>
+        <h3 className="mb-3 font-semibold">{t("admin.droneIncidents.detail.history")}</h3>
         <div className="space-y-2">
           {incident.timeline.map((item) => (
             <div key={item.id} className="rounded-lg border p-3 text-sm">
@@ -466,25 +483,28 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
       </div>
       <div>
         <h3 className="mb-3 font-semibold">
-          Phương án đã tạo ({incident.proposals.length})
+          {t("admin.droneIncidents.detail.proposals", { count: incident.proposals.length })}
         </h3>
         {incident.proposals.map((proposal) => (
           <div key={proposal.id} className="mb-2 rounded-lg border p-3 text-sm">
             <div className="flex justify-between">
               <b>
-                Phiên bản {proposal.proposalVersion} ·{" "}
-                {RESOLUTION_LABELS[proposal.resolutionType] ??
-                  proposal.resolutionType.replaceAll("_", " ")}
+                {t("admin.droneIncidents.detail.proposalVersion", { version: proposal.proposalVersion })} ·{" "}
+                {RESOLUTION_LABELS[proposal.resolutionType]
+                  ? t(RESOLUTION_LABELS[proposal.resolutionType])
+                  : proposal.resolutionType.replaceAll("_", " ")}
               </b>
               <Status value={proposal.status} />
             </div>
             <p className="mt-1 text-muted-foreground">
-              Bồi thường: {formatCurrency(proposal.compensationAmount ?? 0)} ·
-              Policy: {proposal.policyVersion}
+              {t("admin.droneIncidents.detail.compensationPolicy", {
+                amount: formatCurrency(proposal.compensationAmount ?? 0),
+                policy: proposal.policyVersion,
+              })}
             </p>
             {proposal.customerResponseNote && (
               <p className="mt-1">
-                Khách phản hồi: {proposal.customerResponseNote}
+                {t("admin.droneIncidents.detail.customerResponse", { note: proposal.customerResponseNote })}
               </p>
             )}
           </div>
@@ -504,6 +524,7 @@ function Info({ label, value }: { label: string; value: string }) {
 }
 
 function AdminActions({ incident }: { incident: DroneParcelIncident }) {
+  const { t } = useTranslation();
   const { data: users } = useGetAllUsersQuery({ page: 0, size: 1000 });
   const raw = users?.data as unknown;
   const techs = useMemo(() => {
@@ -547,6 +568,7 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
     useApproveDroneIncidentCompensationMutation();
   const [handover, handoverState] = useConfirmDroneParcelHubHandoverMutation();
   const proposalError = validateProposal(
+    t,
     incident,
     resolutionType,
     amount,
@@ -562,9 +584,9 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
     } catch (error) {
       const data = (error as { data?: { code?: string; message?: string } })?.data;
       toast.error(
-        (data?.code && INCIDENT_ERRORS[data.code]) ||
+        (data?.code && INCIDENT_ERRORS[data.code] && t(INCIDENT_ERRORS[data.code])) ||
           data?.message ||
-          "Thao tác thất bại",
+          t("admin.droneIncidents.actions.failed"),
       );
       return false;
     }
@@ -592,26 +614,26 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
           refundShippingFee: false,
           overrideReason: overrideReason.trim() || undefined,
         }).unwrap(),
-      "Đã gửi phương án cho khách",
+      t("admin.droneIncidents.actions.proposalSent"),
     );
     if (ok) setShowProposalError(false);
   };
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <div className="rounded-lg border p-4">
-        <h3 className="font-semibold">Điều phối thu hồi</h3>
+        <h3 className="font-semibold">{t("admin.droneIncidents.actions.recoveryTitle")}</h3>
         <p className="mb-3 text-xs text-muted-foreground">
-          Chỉ hiển thị KTV tủ đang hoạt động.
+          {t("admin.droneIncidents.actions.activeTechsOnly")}
         </p>
         <div className="flex gap-2">
           <Select value={technicianId} onValueChange={setTechnicianId}>
             <SelectTrigger>
-              <SelectValue placeholder="Chọn KTV tủ" />
+              <SelectValue placeholder={t("admin.droneIncidents.actions.selectTech")} />
             </SelectTrigger>
             <SelectContent>
               {techs.map((tech) => (
                 <SelectItem key={tech.id} value={String(tech.id)}>
-                  {tech.fullName ?? `KTV #${tech.id}`}
+                  {tech.fullName ?? t("admin.droneIncidents.actions.techFallback", { id: tech.id })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -625,11 +647,11 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                     id: incident.id,
                     technicianId: Number(technicianId),
                   }).unwrap(),
-                "Đã phân công thu hồi",
+                t("admin.droneIncidents.actions.assigned"),
               )
             }
           >
-            Phân công
+            {t("admin.droneIncidents.actions.assign")}
           </Button>
         </div>
         {incident.recoveryStatus === "SUBMITTED" && (
@@ -640,21 +662,21 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             onClick={() =>
               handle(
                 () => verify(incident.id).unwrap(),
-                "Đã xác minh kết quả thu hồi",
+                t("admin.droneIncidents.actions.verified"),
               )
             }
           >
-            Xác minh kết quả
+            {t("admin.droneIncidents.actions.verify")}
           </Button>
         )}
         {atHub ? (
           <p className="mt-3 flex items-center gap-1.5 text-xs text-emerald-700">
             <PackageCheck className="h-4 w-4" />
-            Kiện đã về hub
             {incident.returnedToHubAt
-              ? ` lúc ${formatDateTime(incident.returnedToHubAt)}`
-              : ""}
-            .
+              ? t("admin.droneIncidents.actions.atHubAt", {
+                  time: formatDateTime(incident.returnedToHubAt),
+                })
+              : t("admin.droneIncidents.actions.atHub")}
           </p>
         ) : canHandover ? (
           <div className="mt-3 space-y-1">
@@ -664,10 +686,10 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               onClick={() => setConfirmHandover(true)}
             >
               <PackageCheck className="mr-1 h-4 w-4" />
-              Xác nhận đã về hub
+              {t("admin.droneIncidents.actions.confirmHub")}
             </Button>
             <p className="text-xs text-muted-foreground">
-              Cần xác nhận kiện đã về hub trước khi đề xuất giao lại cho khách.
+              {t("admin.droneIncidents.actions.confirmHubHint")}
             </p>
           </div>
         ) : null}
@@ -678,47 +700,49 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận kiện đã về hub?</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.droneIncidents.actions.confirmHubTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Kiện của đơn {incident.orderCode ?? `#${incident.orderId}`} được ghi nhận
-              đã bàn giao về hub và đóng bước thu hồi. Sau đó mới tạo được phương án giao
-              lại cho khách.
+              {t("admin.droneIncidents.actions.confirmHubDescription", {
+                code: incident.orderCode ?? `#${incident.orderId}`,
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={handoverState.isLoading}>Huỷ</AlertDialogCancel>
+            <AlertDialogCancel disabled={handoverState.isLoading}>{t("common.cancel")}</AlertDialogCancel>
             <Button
               disabled={handoverState.isLoading}
               onClick={async () => {
                 const ok = await handle(
                   () => handover(incident.id).unwrap(),
-                  "Đã xác nhận kiện về hub",
+                  t("admin.droneIncidents.actions.hubConfirmed"),
                 );
                 if (ok) setConfirmHandover(false);
               }}
             >
               {handoverState.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Xác nhận
+              {t("button.confirm")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
       <div className="rounded-lg border p-4">
-        <h3 className="font-semibold">Phương án cho khách hàng</h3>
+        <h3 className="font-semibold">{t("admin.droneIncidents.actions.proposalTitle")}</h3>
         <div className="mt-3 space-y-2">
           <Select value={resolutionType} onValueChange={changeResolutionType}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(RESOLUTION_LABELS).map(([value, label]) => (
+              {Object.entries(RESOLUTION_LABELS).map(([value, labelKey]) => (
                 <SelectItem
                   key={value}
                   value={value}
                   disabled={REDELIVERY_TYPES.has(value) && !atHub}
                 >
-                  {label}
-                  {REDELIVERY_TYPES.has(value) && !atHub ? " (cần kiện về hub)" : ""}
+                  {t(labelKey)}
+                  {REDELIVERY_TYPES.has(value) && !atHub
+                    ? ` ${t("admin.droneIncidents.actions.needsHub")}`
+                    : ""}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -732,11 +756,11 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               setAmount(event.target.value);
               setShowProposalError(true);
             }}
-            placeholder="Mức bồi thường (VND)"
+            placeholder={t("admin.droneIncidents.actions.amountPlaceholder")}
           />
           {suggested != null && (
             <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              Mức đề xuất theo chính sách:{" "}
+              {t("admin.droneIncidents.actions.suggested")}{" "}
               <b className="text-foreground">{formatCurrency(suggested)}</b>
               {resolutionType !== "FREE_REDELIVERY" && String(suggested) !== amount && (
                 <button
@@ -744,7 +768,7 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                   className="font-medium text-primary hover:underline"
                   onClick={() => setAmount(String(suggested))}
                 >
-                  Dùng mức này
+                  {t("admin.droneIncidents.actions.useSuggested")}
                 </button>
               )}
             </p>
@@ -752,7 +776,7 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
           <Input
             value={overrideReason}
             onChange={(event) => setOverrideReason(event.target.value)}
-            placeholder="Lý do override (nếu vượt mức chính sách)"
+            placeholder={t("admin.droneIncidents.actions.overridePlaceholder")}
           />
           {showProposalError && proposalError && (
             <p className="text-xs text-red-600">{proposalError}</p>
@@ -765,7 +789,7 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             }
             onClick={() => void submitProposal()}
           >
-            Tạo phương án mới
+            {t("admin.droneIncidents.actions.createProposal")}
           </Button>
           {["AWAITING_APPROVAL", "PAYMENT_PENDING", "PAYMENT_FAILED"].includes(
             incident.compensationStatus,
@@ -776,19 +800,17 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               onClick={() =>
                 handle(
                   () => approveCompensation(incident.id).unwrap(),
-                  "Đã xử lý yêu cầu duyệt/chi bồi thường",
+                  t("admin.droneIncidents.actions.compensationProcessed"),
                 )
               }
             >
               {incident.compensationStatus === "AWAITING_APPROVAL"
-                ? "Duyệt bồi thường"
-                : "Thử lại chi bồi thường"}
+                ? t("admin.droneIncidents.actions.approveCompensation")
+                : t("admin.droneIncidents.actions.retryPayout")}
             </Button>
           )}
           <p className="text-xs text-muted-foreground">
-            Nếu cổng chi bồi thường chưa được cấu hình, hệ thống giữ trạng thái
-            chờ và ghi rõ Integration Unavailable trong lịch sử; không giả lập
-            đã thanh toán.
+            {t("admin.droneIncidents.actions.payoutNote")}
           </p>
         </div>
       </div>

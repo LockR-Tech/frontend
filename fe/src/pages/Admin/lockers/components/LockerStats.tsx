@@ -1,4 +1,5 @@
 import { Box, CheckCircle, Wrench, WifiOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "~/components/ui/card";
 
 interface LockerStatsProps {
@@ -15,34 +16,35 @@ interface LockerStatsProps {
 }
 
 export function LockerStats({ statistics }: LockerStatsProps) {
+  const { t } = useTranslation();
   const stats = [
     {
-      label: "Tổng tủ đồ",
+      label: t("admin.lockers.stats.totalLockers"),
       value: statistics.total,
       icon: Box,
     },
     {
-      label: "Hoạt động",
+      label: t("admin.lockers.status.active"),
       value: statistics.active,
       icon: CheckCircle,
     },
     {
-      label: "Bảo trì",
+      label: t("admin.lockers.status.maintenance"),
       value: statistics.maintenance,
       icon: Wrench,
     },
     {
-      label: "Mất kết nối",
+      label: t("admin.lockers.status.disconnected"),
       value: statistics.disconnected,
       icon: WifiOff,
     },
     {
-      label: "Tổng ngăn",
+      label: t("admin.lockers.stats.totalBoxes"),
       value: statistics.totalBoxes,
       icon: Box,
     },
     {
-      label: "Ngăn trống",
+      label: t("admin.lockers.stats.availableBoxes"),
       value: statistics.availableBoxes,
       icon: CheckCircle,
     },

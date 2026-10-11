@@ -6,6 +6,7 @@
 
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import type { SerializedError } from "@reduxjs/toolkit";
+import i18n from "~/utils/i18n";
 
 export interface ReportError {
   /** Mã nghiệp vụ backend trả về, rỗng nếu lỗi mạng hoặc không parse được. */
@@ -16,33 +17,32 @@ export interface ReportError {
   status?: number;
 }
 
-const MESSAGES: Record<string, string> = {
-  PAYMENT_DATA_UNAVAILABLE:
-    "Không lấy được dữ liệu thanh toán (payment-service không phản hồi). Số liệu doanh thu chưa thể hiển thị.",
-  INVALID_PAGE: "Số trang không hợp lệ.",
-  INVALID_PAGE_SIZE: "Số dòng mỗi trang phải từ 1 đến 100.",
-  INVALID_SORT: "Tiêu chí sắp xếp không hợp lệ.",
-  INVALID_DATE: "Ngày không hợp lệ.",
-  INVALID_DATE_RANGE:
-    "Khoảng thời gian không hợp lệ: ngày cuối phải từ ngày đầu trở đi và tối đa 366 ngày.",
-  INVALID_KIND: "Loại giao dịch không hợp lệ.",
-  NOT_FOUND: "Không tìm thấy dữ liệu.",
-  VALIDATION_ERROR: "Dữ liệu gửi lên không hợp lệ.",
-  INTERNAL_ERROR: "Máy chủ gặp lỗi khi xử lý yêu cầu.",
+// Khoá i18n theo mã nghiệp vụ; dịch lúc gọi để theo ngôn ngữ hiện tại.
+const MESSAGE_KEYS: Record<string, string> = {
+  PAYMENT_DATA_UNAVAILABLE: "shared.reportError.paymentDataUnavailable",
+  INVALID_PAGE: "shared.reportError.invalidPage",
+  INVALID_PAGE_SIZE: "shared.reportError.invalidPageSize",
+  INVALID_SORT: "shared.reportError.invalidSort",
+  INVALID_DATE: "shared.reportError.invalidDate",
+  INVALID_DATE_RANGE: "shared.reportError.invalidDateRange",
+  INVALID_KIND: "shared.reportError.invalidKind",
+  NOT_FOUND: "shared.reportError.notFound",
+  VALIDATION_ERROR: "shared.reportError.validationError",
+  INTERNAL_ERROR: "shared.reportError.internalError",
 };
 
 function messageForStatus(status: number | undefined): string {
   switch (status) {
     case 401:
-      return "Phiên đăng nhập đã hết hạn. Đăng nhập lại để xem báo cáo.";
+      return i18n.t("shared.reportError.status401");
     case 403:
-      return "Tài khoản không có quyền ADMIN để xem báo cáo này.";
+      return i18n.t("shared.reportError.status403");
     case 404:
-      return "Không tìm thấy dữ liệu.";
+      return i18n.t("shared.reportError.notFound");
     case 503:
-      return "Dịch vụ phụ thuộc đang không phản hồi. Thử lại sau.";
+      return i18n.t("shared.reportError.status503");
     default:
-      return "Không tải được dữ liệu. Thử lại hoặc kiểm tra kết nối.";
+      return i18n.t("shared.reportError.loadFailed");
   }
 }
 
@@ -56,19 +56,19 @@ export function toReportError(
     if (error.status === "FETCH_ERROR") {
       return {
         code: "FETCH_ERROR",
-        message: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
+        message: i18n.t("shared.reportError.fetchError"),
       };
     }
     if (error.status === "PARSING_ERROR" || error.status === "CUSTOM_ERROR") {
       return {
         code: String(error.status),
-        message: "Máy chủ trả dữ liệu không đọc được.",
+        message: i18n.t("shared.reportError.parsingError"),
       };
     }
     if (error.status === "TIMEOUT_ERROR") {
       return {
         code: "TIMEOUT_ERROR",
-        message: "Máy chủ phản hồi quá lâu. Thử lại sau.",
+        message: i18n.t("shared.reportError.timeout"),
       };
     }
 
@@ -86,13 +86,16 @@ export function toReportError(
     return {
       code,
       status,
-      message: MESSAGES[code] || serverMessage || messageForStatus(status),
+      message:
+        (MESSAGE_KEYS[code] ? i18n.t(MESSAGE_KEYS[code]) : "") ||
+        serverMessage ||
+        messageForStatus(status),
     };
   }
 
   return {
     code: error.code ?? "",
-    message: error.message?.trim() || "Không tải được dữ liệu.",
+    message: error.message?.trim() || i18n.t("shared.reportError.loadFailedShort"),
   };
 }
 

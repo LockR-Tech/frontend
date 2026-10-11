@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { DataTable } from "~/components/shared/data-table";
@@ -19,17 +20,19 @@ import type { AdminWalletTransaction } from "~/types/admin/reporting";
 
 const columnHelper = createColumnHelper<AdminWalletTransaction>();
 
-const TYPE_OPTIONS = (["CREDIT", "DEBIT"] as const).map((value) => ({
-  value,
-  label: walletTypeMeta(value).label,
-}));
+const WALLET_TYPES = ["CREDIT", "DEBIT"] as const;
 
-const SOURCE_OPTIONS = (
-  ["TOPUP", "ORDER_PAYMENT", "REFUND", "ADJUST", "WITHDRAW"] as const
-).map((value) => ({ value, label: walletSourceMeta(value).label }));
+const WALLET_SOURCES = [
+  "TOPUP",
+  "ORDER_PAYMENT",
+  "REFUND",
+  "ADJUST",
+  "WITHDRAW",
+] as const;
 
 /** Biến động ví của mọi khách (`GET /api/admin/payments/wallet-transactions`, § 2.5). */
 export function WalletTransactionTab() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
@@ -73,26 +76,36 @@ export function WalletTransactionTab() {
   const pageData = data?.data;
   const transactions = pageData?.content ?? [];
 
+  // Nhãn enum dựng mỗi lần render để đổi theo ngôn ngữ đang chọn.
+  const typeOptions = WALLET_TYPES.map((value) => ({
+    value,
+    label: walletTypeMeta(value).label,
+  }));
+  const sourceOptions = WALLET_SOURCES.map((value) => ({
+    value,
+    label: walletSourceMeta(value).label,
+  }));
+
   const columns = [
     columnHelper.accessor("id", {
-      header: "Biến động",
+      header: t("admin.payments.wallet.table.movement"),
       cell: ({ row }) => (
         <div>
           <p className="font-mono font-semibold text-sm">#{row.original.id}</p>
           <p className="text-[11px] text-muted-foreground font-mono">
-            Ví #{row.original.walletId ?? "?"}
+            {t("admin.payments.wallet.table.walletId", { id: row.original.walletId ?? "?" })}
           </p>
         </div>
       ),
     }),
     columnHelper.accessor("customer", {
-      header: "Khách hàng",
+      header: t("common.customer"),
       cell: ({ row }) => {
         const { customer, userId } = row.original;
         return (
           <div className="min-w-0">
             <p className="text-sm truncate">
-              {customer?.fullName || "Chưa tra được tên khách"}
+              {customer?.fullName || t("admin.orders.lookup.customerName")}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer?.phoneNumber || EMPTY_VALUE}
@@ -102,15 +115,15 @@ export function WalletTransactionTab() {
       },
     }),
     columnHelper.accessor("type", {
-      header: "Chiều",
+      header: t("admin.payments.wallet.direction"),
       cell: ({ row }) => <MetaBadge meta={walletTypeMeta(row.original.type)} hideIcon />,
     }),
     columnHelper.accessor("source", {
-      header: "Nguồn",
+      header: t("admin.payments.wallet.source"),
       cell: ({ row }) => <MetaBadge meta={walletSourceMeta(row.original.source)} hideIcon />,
     }),
     columnHelper.accessor("amount", {
-      header: "Số tiền",
+      header: t("admin.payments.amount"),
       cell: ({ row }) => {
         const isCredit = row.original.type === "CREDIT";
         return (
@@ -125,14 +138,16 @@ export function WalletTransactionTab() {
               {isCredit ? "+" : "−"} {formatCurrency(row.original.amount)}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              Số dư {formatCurrency(row.original.balanceAfter)}
+              {t("admin.payments.wallet.table.balance", {
+                amount: formatCurrency(row.original.balanceAfter),
+              })}
             </p>
           </div>
         );
       },
     }),
     columnHelper.accessor("relatedOrderId", {
-      header: "Đơn liên quan",
+      header: t("admin.payments.wallet.table.relatedOrder"),
       cell: ({ row }) => {
         // Backend chỉ gán đơn cho biến động nguồn ORDER_PAYMENT.
         const orderId = row.original.relatedOrderId;
@@ -151,7 +166,7 @@ export function WalletTransactionTab() {
       },
     }),
     columnHelper.accessor("referenceId", {
-      header: "Tham chiếu",
+      header: t("admin.payments.wallet.table.reference"),
       cell: ({ row }) => (
         <p className="font-mono text-[11px] text-muted-foreground max-w-[200px] truncate">
           {row.original.referenceId ?? EMPTY_VALUE}
@@ -159,7 +174,7 @@ export function WalletTransactionTab() {
       ),
     }),
     columnHelper.accessor("createdAt", {
-      header: "Thời điểm",
+      header: t("admin.payments.wallet.table.timestamp"),
       cell: ({ row }) => (
         <p className="font-mono text-xs whitespace-nowrap">
           {formatDateTime(row.original.createdAt)}
@@ -177,15 +192,15 @@ export function WalletTransactionTab() {
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
-            placeholder="Mã tham chiếu hoặc nội dung…"
+            placeholder={t("admin.payments.wallet.searchPlaceholder")}
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
             className="pl-9 h-9"
           />
         </div>
         <MultiSelectFilter
-          label="Chiều"
-          options={TYPE_OPTIONS}
+          label={t("admin.payments.wallet.direction")}
+          options={typeOptions}
           value={types}
           onChange={(value) => {
             setTypes(value);
@@ -193,8 +208,8 @@ export function WalletTransactionTab() {
           }}
         />
         <MultiSelectFilter
-          label="Nguồn"
-          options={SOURCE_OPTIONS}
+          label={t("admin.payments.wallet.source")}
+          options={sourceOptions}
           value={sources}
           onChange={(value) => {
             setSources(value);
@@ -206,8 +221,10 @@ export function WalletTransactionTab() {
       <DateRangeFilter value={range} onChange={handleRangeChange} allowEmpty />
       <p className="text-[11px] text-muted-foreground">
         {isFetching
-          ? "Đang tải…"
-          : `${formatNumber(pageData?.totalElements ?? 0)} biến động ví.`}
+          ? t("common.loadingEllipsis")
+          : t("admin.payments.wallet.count", {
+              total: formatNumber(pageData?.totalElements ?? 0),
+            })}
       </p>
 
       {error && <ReportErrorState error={error} onRetry={refetch} />}
@@ -216,7 +233,7 @@ export function WalletTransactionTab() {
         columns={columns}
         data={transactions}
         isLoading={isLoading}
-        emptyMessage="Không có biến động ví nào khớp bộ lọc"
+        emptyMessage={t("admin.payments.wallet.empty")}
         serverPagination={{
           pageIndex: page,
           pageSize,

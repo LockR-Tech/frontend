@@ -1,6 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Button, type ButtonProps } from "~/components/ui/button";
 import { IMAGE_ACCEPT_ATTR, validateImageFile } from "~/lib/cloudinary-upload";
 import { getMediaErrorMessage } from "~/lib/media";
@@ -21,10 +22,11 @@ export function ImageUploadButton({
   purpose,
   onUploaded,
   children,
-  errorTitle = "Không cập nhật được ảnh",
+  errorTitle,
   disabled,
   ...buttonProps
 }: ImageUploadButtonProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const { upload, items, isUploading, reset } = useImageUpload(purpose);
   const [saving, setSaving] = useState(false);
@@ -35,7 +37,7 @@ export function ImageUploadButton({
     if (!file) return;
     const invalid = validateImageFile(file, { beforeDownscale: true });
     if (invalid) {
-      toast.error("Ảnh không hợp lệ", { description: invalid });
+      toast.error(t("shared.media.invalidImage"), { description: invalid });
       return;
     }
     try {
@@ -44,7 +46,9 @@ export function ImageUploadButton({
       await onUploaded(media);
     } catch (err) {
       if (!isHandledUploadError(err)) {
-        toast.error(errorTitle, { description: getMediaErrorMessage(err) });
+        toast.error(errorTitle ?? t("shared.media.updateFailed"), {
+          description: getMediaErrorMessage(err),
+        });
       }
     } finally {
       setSaving(false);
@@ -73,7 +77,11 @@ export function ImageUploadButton({
         onClick={() => inputRef.current?.click()}
       >
         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-        {isUploading ? `Đang tải ${progress}%` : saving ? "Đang lưu..." : (children ?? "Đổi ảnh")}
+        {isUploading
+          ? t("shared.media.uploadingPercent", { progress })
+          : saving
+            ? t("common.saving")
+            : (children ?? t("common.changePhoto"))}
       </Button>
     </>
   );

@@ -146,11 +146,11 @@ export function PromotionModal({
 
     const discountVal = parseFloat(form.discountValue);
     if (isNaN(discountVal) || discountVal <= 0) {
-      toast.error("Giá trị giảm giá không hợp lệ (phải lớn hơn 0)");
+      toast.error(t("admin.promotions.modal.invalidDiscount"));
       return;
     }
     if (form.discountType === DiscountType.PERCENTAGE && discountVal > 100) {
-      toast.error("Phần trăm giảm giá không được vượt quá 100%");
+      toast.error(t("admin.promotions.modal.percentTooHigh"));
       return;
     }
 

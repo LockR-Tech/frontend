@@ -148,7 +148,7 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="latitude">Vĩ độ (Latitude)</Label>
+              <Label htmlFor="latitude">{t("admin.stores.form.latitude")}</Label>
               <Input
                 id="latitude"
                 type="number"
@@ -157,11 +157,11 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, latitude: e.target.value })
                 }
-                placeholder="VD: 10.8412"
+                placeholder={t("admin.stores.form.latPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="longitude">Kinh độ (Longitude)</Label>
+              <Label htmlFor="longitude">{t("admin.stores.form.longitude")}</Label>
               <Input
                 id="longitude"
                 type="number"
@@ -170,7 +170,7 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, longitude: e.target.value })
                 }
-                placeholder="VD: 106.8098"
+                placeholder={t("admin.stores.form.lngPlaceholder")}
               />
             </div>
           </div>

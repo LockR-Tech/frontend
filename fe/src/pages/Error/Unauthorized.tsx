@@ -2,9 +2,11 @@ import * as React from "react";
 import { ShieldAlert, Home, ArrowLeft, Lock } from "lucide-react";
 import { Button } from "~/components/ui";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function UnauthorizedPage(): React.JSX.Element {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-destructive/10 to-background p-4">
@@ -94,24 +96,23 @@ export default function UnauthorizedPage(): React.JSX.Element {
           </div>
           
           <h2 className="text-3xl font-semibold text-foreground">
-            Truy cập bị từ chối
+            {t("errorPage.unauthorized.title")}
           </h2>
           
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
-            Bạn không có quyền truy cập vào trang này.
-            Vui lòng đăng nhập hoặc liên hệ quản trị viên để được cấp quyền.
+            {t("errorPage.unauthorized.description")}
           </p>
 
           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 max-w-md mx-auto">
             <div className="flex items-start gap-3">
               <ShieldAlert className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-left">
-                <p className="font-medium text-foreground mb-2">Lý do có thể:</p>
+                <p className="font-medium text-foreground mb-2">{t("errorPage.unauthorized.reasonsTitle")}</p>
                 <ul className="text-destructive/80 space-y-1">
-                  <li>• Bạn chưa đăng nhập</li>
-                  <li>• Phiên đăng nhập đã hết hạn</li>
-                  <li>• Tài khoản không có quyền truy cập</li>
-                  <li>• Khu vực bị giới hạn truy cập</li>
+                  <li>• {t("errorPage.unauthorized.reasonNotSignedIn")}</li>
+                  <li>• {t("errorPage.unauthorized.reasonSessionExpired")}</li>
+                  <li>• {t("errorPage.unauthorized.reasonNoPermission")}</li>
+                  <li>• {t("errorPage.unauthorized.reasonRestricted")}</li>
                 </ul>
               </div>
             </div>
@@ -126,7 +127,7 @@ export default function UnauthorizedPage(): React.JSX.Element {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
+            {t("button.back")}
           </Button>
           
           <Button
@@ -134,7 +135,7 @@ export default function UnauthorizedPage(): React.JSX.Element {
             className="flex items-center gap-2"
           >
             <Lock className="h-4 w-4" />
-            Đăng nhập
+            {t("button.login")}
           </Button>
           
           <Button
@@ -143,20 +144,20 @@ export default function UnauthorizedPage(): React.JSX.Element {
             className="flex items-center gap-2"
           >
             <Home className="h-4 w-4" />
-            Trang chủ
+            {t("errorPage.routes.home")}
           </Button>
         </div>
 
         {/* Help Section */}
         <div className="text-sm text-muted-foreground">
-          <p className="mb-2">Cần hỗ trợ?</p>
+          <p className="mb-2">{t("errorPage.unauthorized.needHelp")}</p>
           <div className="flex items-center justify-center gap-4">
             <a href="/contact" className="text-primary hover:underline">
-              Liên hệ hỗ trợ
+              {t("errorPage.unauthorized.contactSupport")}
             </a>
             <span>•</span>
             <a href="/help" className="text-primary hover:underline">
-              Trung tâm trợ giúp
+              {t("errorPage.unauthorized.helpCenter")}
             </a>
             <span>•</span>
             <a href="mailto:support@laundrylocker.com" className="text-primary hover:underline">

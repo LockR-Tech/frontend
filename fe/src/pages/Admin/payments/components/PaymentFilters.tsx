@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowDownUp, Search } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import {
@@ -29,30 +30,20 @@ interface PaymentFiltersProps {
   onDateRangeChange: (range: { from: string; to: string }) => void;
 }
 
-const STATUS_OPTIONS = ADMIN_PAYMENT_STATUSES.map((value) => ({
-  value,
-  label: paymentStatusMeta(value).label,
-}));
-
-const METHOD_OPTIONS = ADMIN_PAYMENT_METHODS.map((value) => ({
-  value,
-  label: paymentMethodMeta(value).label,
-}));
-
 /** `kind` quyết định có tính giao dịch nạp ví hay không (§ 2.2 của hợp đồng API). */
-const KIND_OPTIONS: { value: PaymentKindFilter; label: string }[] = [
-  { value: "ALL", label: "Đơn và nạp ví" },
-  { value: "ORDER", label: "Chỉ thu theo đơn" },
-  { value: "TOPUP", label: "Chỉ nạp ví" },
+const KIND_OPTIONS: { value: PaymentKindFilter; labelKey: string }[] = [
+  { value: "ALL", labelKey: "admin.payments.kind.all" },
+  { value: "ORDER", labelKey: "admin.payments.kind.order" },
+  { value: "TOPUP", labelKey: "admin.payments.kind.topup" },
 ];
 
 const SORT_OPTIONS = [
-  { value: "createdAt,desc", label: "Mới tạo trước" },
-  { value: "createdAt,asc", label: "Cũ tạo trước" },
-  { value: "updatedAt,desc", label: "Vừa cập nhật" },
-  { value: "amount,desc", label: "Tiền cao → thấp" },
-  { value: "amount,asc", label: "Tiền thấp → cao" },
-  { value: "id,desc", label: "Mã giao dịch giảm dần" },
+  { value: "createdAt,desc", labelKey: "admin.orders.sort.createdDesc" },
+  { value: "createdAt,asc", labelKey: "admin.orders.sort.createdAsc" },
+  { value: "updatedAt,desc", labelKey: "admin.orders.sort.updatedDesc" },
+  { value: "amount,desc", labelKey: "admin.orders.sort.amountDesc" },
+  { value: "amount,asc", labelKey: "admin.orders.sort.amountAsc" },
+  { value: "id,desc", labelKey: "admin.payments.sort.idDesc" },
 ];
 
 export function PaymentFilters({
@@ -60,6 +51,16 @@ export function PaymentFilters({
   onFilterChange,
   onDateRangeChange,
 }: PaymentFiltersProps) {
+  const { t } = useTranslation();
+  // Nhãn enum dựng mỗi lần render để đổi theo ngôn ngữ đang chọn.
+  const statusOptions = ADMIN_PAYMENT_STATUSES.map((value) => ({
+    value,
+    label: paymentStatusMeta(value).label,
+  }));
+  const methodOptions = ADMIN_PAYMENT_METHODS.map((value) => ({
+    value,
+    label: paymentMethodMeta(value).label,
+  }));
   const [searchDraft, setSearchDraft] = useState(filters.q);
 
   useEffect(() => {
@@ -81,7 +82,7 @@ export function PaymentFilters({
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
-            placeholder="Mã tham chiếu, mô tả, mã giao dịch hoặc mã đơn…"
+            placeholder={t("admin.payments.filters.searchPlaceholder")}
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
             className="pl-9 h-9"
@@ -89,14 +90,14 @@ export function PaymentFilters({
         </div>
 
         <MultiSelectFilter
-          label="Trạng thái"
-          options={STATUS_OPTIONS}
+          label={t("common.status")}
+          options={statusOptions}
           value={filters.status}
           onChange={(value) => onFilterChange("status", value)}
         />
         <MultiSelectFilter
-          label="Phương thức"
-          options={METHOD_OPTIONS}
+          label={t("admin.payments.method")}
+          options={methodOptions}
           value={filters.method}
           onChange={(value) => onFilterChange("method", value)}
         />
@@ -108,12 +109,12 @@ export function PaymentFilters({
           }
         >
           <SelectTrigger className="h-9 w-[180px]">
-            <SelectValue placeholder="Loại giao dịch" />
+            <SelectValue placeholder={t("admin.payments.filters.kindPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             {KIND_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -125,12 +126,12 @@ export function PaymentFilters({
         >
           <SelectTrigger className="h-9 w-[190px]">
             <ArrowDownUp className="h-3.5 w-3.5 opacity-60 shrink-0" />
-            <SelectValue placeholder="Sắp xếp" />
+            <SelectValue placeholder={t("common.sort")} />
           </SelectTrigger>
           <SelectContent>
             {SORT_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -143,7 +144,7 @@ export function PaymentFilters({
         allowEmpty
       />
       <p className="text-[11px] text-muted-foreground">
-        Khoảng ngày lọc theo thời điểm tạo giao dịch. Bỏ trống để xem mọi thời điểm.
+        {t("admin.payments.filters.dateHint")}
       </p>
     </div>
   );

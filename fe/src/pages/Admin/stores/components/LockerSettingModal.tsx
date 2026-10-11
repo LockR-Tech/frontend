@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Settings } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     code: locker.code,
     name: locker.name,
@@ -62,7 +64,7 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
       onRefresh();
       onClose();
     } catch (err) {
-      toast.error("Không thể cập nhật thông tin tủ", {
+      toast.error(t("admin.stores.lockerSetting.updateFailed"), {
         description: err instanceof Error ? err.message : undefined,
       });
     } finally {
@@ -79,7 +81,7 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
       setMaintenance(val);
       onRefresh();
     } catch (err) {
-      toast.error("Không thể thay đổi chế độ bảo trì", {
+      toast.error(t("admin.stores.lockerSetting.maintenanceFailed"), {
         description: err instanceof Error ? err.message : undefined,
       });
     } finally {
@@ -93,10 +95,10 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-4 w-4 text-muted-foreground" />
-            Cài đặt Kiosk
+            {t("admin.stores.lockerSetting.title")}
           </DialogTitle>
           <DialogDescription>
-            Chỉnh sửa thông tin và trạng thái cho Kiosk này.
+            {t("admin.stores.lockerSetting.desc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -104,45 +106,45 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
           <div className="space-y-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">
-                Tên Kiosk <span className="text-red-500">*</span>
+                {t("admin.stores.lockerForm.name")} <span className="text-red-500">*</span>
               </label>
               <Input
                 value={form.name}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, name: e.target.value }))
                 }
-                placeholder="VD: Kiosk sảnh chính A"
+                placeholder={t("admin.stores.lockerForm.namePlaceholder")}
               />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">
-                Mã thiết bị <span className="text-red-500">*</span>
+                {t("admin.stores.lockerForm.deviceCode")} <span className="text-red-500">*</span>
               </label>
               <Input
                 value={form.code}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, code: e.target.value }))
                 }
-                placeholder="VD: LOCKER-001"
+                placeholder={t("admin.stores.lockerForm.codePlaceholder")}
                 className="font-mono"
               />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">
-                Vị trí (tùy chọn)
+                {t("admin.stores.lockerForm.location")}
               </label>
               <Input
                 value={form.address}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, address: e.target.value }))
                 }
-                placeholder="VD: Tầng 1, khu A"
+                placeholder={t("admin.stores.lockerForm.locationPlaceholder")}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">
-                  Vĩ độ (Latitude)
+                  {t("admin.stores.form.latitude")}
                 </label>
                 <Input
                   type="number"
@@ -151,12 +153,12 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, latitude: e.target.value }))
                   }
-                  placeholder="VD: 10.8412"
+                  placeholder={t("admin.stores.form.latPlaceholder")}
                 />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">
-                  Kinh độ (Longitude)
+                  {t("admin.stores.form.longitude")}
                 </label>
                 <Input
                   type="number"
@@ -165,7 +167,7 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, longitude: e.target.value }))
                   }
-                  placeholder="VD: 106.8098"
+                  placeholder={t("admin.stores.form.lngPlaceholder")}
                 />
               </div>
             </div>
@@ -173,13 +175,13 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
 
           <div className="border-t pt-3">
             <p className="text-xs text-muted-foreground mb-2 font-medium">
-              Chế độ bảo trì
+              {t("admin.stores.lockerSetting.maintenanceMode")}
             </p>
             <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
               <div>
-                <p className="text-sm font-medium text-foreground/80">Bảo trì</p>
+                <p className="text-sm font-medium text-foreground/80">{t("dropdown.maintenance")}</p>
                 <p className="text-xs text-muted-foreground/70">
-                  Kiosk sẽ khóa toàn bộ ngăn khi bật
+                  {t("admin.stores.lockerSetting.maintenanceHint")}
                 </p>
               </div>
               <button
@@ -201,13 +203,13 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Hủy
+            {t("button.cancel")}
           </Button>
           <Button
             onClick={handleSave}
             disabled={saving || !form.code || !form.name}
           >
-            {saving ? "Đang lưu..." : "Lưu"}
+            {saving ? t("common.saving") : t("button.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

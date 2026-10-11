@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Box,
@@ -25,25 +26,25 @@ import { useState } from "react";
 
 const lockerStatusConfig: Record<
   LockerStatus,
-  { label: string; style: string; icon: React.ElementType }
+  { labelKey: string; style: string; icon: React.ElementType }
 > = {
   [LockerStatus.ACTIVE]: {
-    label: "Hoạt động",
+    labelKey: "admin.lockers.status.active",
     style: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
     icon: CheckCircle2,
   },
   [LockerStatus.INACTIVE]: {
-    label: "Vô hiệu",
+    labelKey: "admin.lockers.status.inactive",
     style: "bg-secondary text-muted-foreground border-border",
     icon: XCircle,
   },
   [LockerStatus.MAINTENANCE]: {
-    label: "Bảo trì",
+    labelKey: "admin.lockers.status.maintenance",
     style: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
     icon: Wrench,
   },
   [LockerStatus.DISCONNECTED]: {
-    label: "Mất kết nối",
+    labelKey: "admin.lockers.status.disconnected",
     style: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
     icon: WifiOff,
   },
@@ -51,25 +52,25 @@ const lockerStatusConfig: Record<
 
 const boxStatusConfig: Record<
   BoxStatus,
-  { label: string; style: string; badge: string }
+  { labelKey: string; style: string; badge: string }
 > = {
   [BoxStatus.AVAILABLE]: {
-    label: "Trống",
+    labelKey: "admin.lockers.detail.boxStatus.available",
     style: "bg-card hover:bg-secondary/40 border-border text-foreground",
     badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
   },
   [BoxStatus.OCCUPIED]: {
-    label: "Có đồ",
+    labelKey: "admin.lockers.detail.boxStatus.occupied",
     style: "bg-secondary/70 hover:bg-secondary border-border/80 text-foreground",
     badge: "bg-secondary text-foreground border-border",
   },
   [BoxStatus.RESERVED]: {
-    label: "Đã đặt",
+    labelKey: "admin.lockers.boxStatus.reserved",
     style: "bg-secondary/40 hover:bg-secondary/60 border-border/60 text-foreground",
     badge: "bg-secondary text-muted-foreground border-border",
   },
   [BoxStatus.MAINTENANCE]: {
-    label: "Bảo trì",
+    labelKey: "admin.lockers.status.maintenance",
     style: "bg-amber-500/5 hover:bg-amber-500/10 border-amber-500/20 text-foreground",
     badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   },
@@ -78,12 +79,13 @@ const boxStatusConfig: Record<
 export default function LockerDetailPage() {
   const { lockerId } = useParams<{ lockerId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { locker, isLoading, boxes, refreshBoxes } = useLockerDetail(lockerId);
   const [selectedBox, setSelectedBox] = useState<typeof boxes[0] | null>(null);
   const [isForceOpenModalOpen, setIsForceOpenModalOpen] = useState(false);
 
   const handleForceOpen = (boxId: number) => {
-    toast.success(`Đã mở ngăn tủ #${boxId}`);
+    toast.success(t("admin.lockers.detail.opened", { id: boxId }));
     setIsForceOpenModalOpen(false);
     setSelectedBox(null);
     setTimeout(() => refreshBoxes(), 1000);
@@ -110,10 +112,10 @@ export default function LockerDetailPage() {
     return (
       <div className="text-center py-12">
         <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground/70" />
-        <h3 className="mt-4 text-lg font-medium text-foreground">Không tìm thấy tủ đồ</h3>
+        <h3 className="mt-4 text-lg font-medium text-foreground">{t("admin.lockers.detail.notFound")}</h3>
         <Button onClick={() => navigate(-1)} className="mt-4" variant="outline">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại
+          {t("button.back")}
         </Button>
       </div>
     );
@@ -135,14 +137,14 @@ export default function LockerDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Chi tiết Kiosk</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Mã thiết bị: {locker.code}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("admin.lockers.detail.title")}</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("admin.lockers.detail.deviceCodeValue", { code: locker.code })}</p>
           </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={refreshBoxes} className="gap-1.5 h-8 text-xs">
             <RefreshCw className="h-3.5 w-3.5" />
-            Làm mới
+            {t("button.refresh")}
           </Button>
         </div>
       </div>
@@ -155,13 +157,13 @@ export default function LockerDetailPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Trạng thái:</span>
+              <span className="text-xs text-muted-foreground">{t("admin.lockers.detail.statusLabel")}</span>
               <Badge variant="outline" className={`${status.style} text-xs font-semibold px-2 py-0.5 rounded`}>
-                {status.label}
+                {t(status.labelKey)}
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Kết nối lần cuối: {locker.lastConnected || "N/A"}
+              {t("admin.lockers.detail.lastConnected", { time: locker.lastConnected || "N/A" })}
             </p>
           </div>
         </div>
@@ -174,30 +176,30 @@ export default function LockerDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Box className="h-4 w-4 text-muted-foreground" />
-                Thông tin Kiosk
+                {t("admin.lockers.detail.infoTitle")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3.5 text-sm">
               <div>
-                <p className="text-xs text-muted-foreground mb-0.5">Tên Kiosk</p>
+                <p className="text-xs text-muted-foreground mb-0.5">{t("admin.lockers.detail.name")}</p>
                 <p className="font-semibold text-foreground">{locker.name}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-0.5">Mã thiết bị</p>
+                <p className="text-xs text-muted-foreground mb-0.5">{t("admin.lockers.detail.deviceCode")}</p>
                 <p className="font-mono text-xs font-medium bg-secondary p-1.5 rounded border border-border/50">{locker.code}</p>
               </div>
               <Separator />
               <div className="flex items-start gap-2">
                 <Store className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Địa điểm</p>
+                  <p className="text-xs text-muted-foreground">{t("common.location")}</p>
                   <p className="font-medium text-foreground">{locker.storeName}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Địa chỉ</p>
+                  <p className="text-xs text-muted-foreground">{t("common.address")}</p>
                   <p className="text-xs text-foreground/80 leading-relaxed">{locker.address}</p>
                 </div>
               </div>
@@ -209,26 +211,26 @@ export default function LockerDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <History className="h-4 w-4 text-muted-foreground" />
-                Thống kê ngăn Kiosk
+                {t("admin.lockers.detail.statsTitle")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="p-3 bg-secondary/60 border border-border/50 rounded-lg text-center">
                   <p className="text-xl font-bold text-foreground">{availableBoxes}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Ngăn trống</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t("admin.lockers.stats.availableBoxes")}</p>
                 </div>
                 <div className="p-3 bg-secondary/60 border border-border/50 rounded-lg text-center">
                   <p className="text-xl font-bold text-foreground">{occupiedBoxes}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Có đồ</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t("admin.lockers.detail.boxStatus.occupied")}</p>
                 </div>
                 <div className="p-3 bg-secondary/60 border border-border/50 rounded-lg text-center">
                   <p className="text-xl font-bold text-foreground">{reservedBoxes}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Đã đặt</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t("admin.lockers.boxStatus.reserved")}</p>
                 </div>
                 <div className="p-3 bg-secondary/60 border border-border/50 rounded-lg text-center">
                   <p className="text-xl font-bold text-foreground">{boxes.length}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Tổng số</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t("admin.lockers.detail.total")}</p>
                 </div>
               </div>
             </CardContent>
@@ -241,7 +243,7 @@ export default function LockerDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Box className="h-4 w-4 text-muted-foreground" />
-                Sơ đồ các ngăn Kiosk
+                {t("admin.lockers.detail.gridTitle")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -256,7 +258,7 @@ export default function LockerDetailPage() {
                     >
                       <div className="text-center w-full">
                         <p className="font-bold text-base tracking-tight">{box.number}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{config.label}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{t(config.labelKey)}</p>
                       </div>
                       {box.status === BoxStatus.OCCUPIED && (
                         <div className="absolute top-1 right-1">
@@ -278,7 +280,7 @@ export default function LockerDetailPage() {
                 {Object.entries(boxStatusConfig).map(([status, config]) => (
                   <div key={status} className="flex items-center gap-1.5">
                     <Badge variant="outline" className={`${config.badge} text-[11px] px-2 py-0.5`}>
-                      {config.label}
+                      {t(config.labelKey)}
                     </Badge>
                   </div>
                 ))}
@@ -287,7 +289,7 @@ export default function LockerDetailPage() {
               <div className="mt-4 p-3 bg-secondary/60 border border-border/60 rounded-lg flex items-start gap-2.5">
                 <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Nhấn vào ngăn có trạng thái <strong>Có đồ</strong> để thực hiện mở ngăn khẩn cấp hỗ trợ khách hàng. Mọi hành động sẽ được lưu vết trong nhật ký kiểm toán hệ thống.
+                  <Trans i18nKey="admin.lockers.detail.hint" components={{ b: <strong /> }} />
                 </p>
               </div>
             </CardContent>

@@ -27,6 +27,7 @@ import {
   knowledgeRoleLabel,
   statusMeta,
 } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 interface DocumentDetailSheetProps {
   open: boolean;
@@ -37,6 +38,7 @@ interface DocumentDetailSheetProps {
 
 /** Nội dung một tài liệu: tải file gốc và đọc từng đoạn trợ lý dùng khi trả lời. */
 export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDetailSheetProps) {
+  const { t } = useTranslation();
   const { currentData, error, isFetching, refetch } = useGetKnowledgeDocumentChunksQuery(
     { id: doc?.id ?? 0, indexedAt: doc?.indexedAt ?? null },
     { skip: doc == null || !open },
@@ -68,8 +70,8 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
     } catch (err) {
-      toast.error("Không tải được file gốc", {
-        description: getKnowledgeErrorMessage(err, "Đã xảy ra lỗi."),
+      toast.error(t("admin.knowledge.detail.downloadFailed"), {
+        description: getKnowledgeErrorMessage(err, t("admin.knowledge.errors.generic")),
       });
     }
   };
@@ -82,7 +84,7 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
     <Sheet open={open && doc != null} onOpenChange={(next) => !next && onClose()}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
         <SheetHeader className="space-y-2 border-b border-border/60 px-5 pb-4 pt-5 pr-12 text-left">
-          <SheetTitle className="text-base">{doc?.title ?? "Tài liệu"}</SheetTitle>
+          <SheetTitle className="text-base">{doc?.title ?? t("common.document")}</SheetTitle>
           <SheetDescription asChild>
             <div className="space-y-2 text-xs text-muted-foreground">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -96,10 +98,12 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
                     {meta.label}
                   </Badge>
                 )}
-                {doc?.indexedAt && <span>Đánh chỉ mục {formatDateTime(doc.indexedAt)}</span>}
+                {doc?.indexedAt && (
+                  <span>{t("admin.knowledge.detail.indexedAt", { date: formatDateTime(doc.indexedAt) })}</span>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-1">
-                <span className="mr-1">Vai trò được đọc:</span>
+                <span className="mr-1">{t("admin.knowledge.detail.rolesLabel")}</span>
                 {roles.map((role) => (
                   <Badge key={role} variant="outline" className="font-medium text-foreground">
                     {knowledgeRoleLabel(role)}
@@ -118,11 +122,11 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
                   ) : (
                     <Download className="h-4 w-4" />
                   )}
-                  Tải file gốc
+                  {t("admin.knowledge.detail.download")}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => refetch()} disabled={isFetching}>
                   <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-                  Làm mới
+                  {t("button.refresh")}
                 </Button>
               </div>
             </div>
@@ -131,13 +135,11 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
 
         <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
           <p className="text-xs text-muted-foreground">
-            Trợ lý chỉ đọc các đoạn dưới đây — chia theo mục, mỗi đoạn tối đa khoảng 2.000 ký tự,
-            đoạn sau lặp lại khoảng 200 ký tự cuối của đoạn trước. Đoạn thiếu hay sai chữ thì sửa
-            file gốc rồi tải lên lại.
+            {t("admin.knowledge.detail.chunksIntro")}
           </p>
           {reindexing && chunks.length > 0 && (
             <p className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
-              Đang đánh chỉ mục lại — trợ lý vẫn trả lời bằng các đoạn này cho tới khi xong.
+              {t("admin.knowledge.detail.reindexing")}
             </p>
           )}
 
@@ -147,8 +149,8 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Tìm trong các đoạn…"
-                aria-label="Tìm trong các đoạn"
+                placeholder={t("admin.knowledge.detail.searchPlaceholder")}
+                aria-label={t("admin.knowledge.detail.searchAria")}
                 className="h-9 pl-9 pr-8"
               />
               {search && (
@@ -156,7 +158,7 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
                   type="button"
                   onClick={() => setSearch("")}
                   className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground"
-                  aria-label="Xoá tìm kiếm"
+                  aria-label={t("admin.knowledge.documents.clearSearch")}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -171,22 +173,26 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
           ) : error ? (
             <ErrorState
               variant="inline"
-              title="Không tải được các đoạn"
-              message={getKnowledgeErrorMessage(error, "Không tải được các đoạn của tài liệu.")}
+              title={t("admin.knowledge.detail.loadFailed")}
+              message={getKnowledgeErrorMessage(error, t("admin.knowledge.detail.loadFailedMessage"))}
               onRetry={() => refetch()}
             />
           ) : chunks.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted-foreground">
               {doc?.status === "FAILED"
-                ? `Đánh chỉ mục thất bại nên chưa có đoạn nào${doc.error ? `: ${doc.error}` : "."}`
+                ? doc.error
+                  ? t("admin.knowledge.detail.failedNoChunksWithError", { error: doc.error })
+                  : t("admin.knowledge.detail.failedNoChunks")
                 : reindexing
-                  ? "Tài liệu đang chờ/đang đánh chỉ mục — chưa có đoạn nào."
-                  : "Tài liệu không có đoạn nào."}
+                  ? t("admin.knowledge.detail.pendingNoChunks")
+                  : t("admin.knowledge.detail.noChunks")}
             </p>
           ) : (
             <>
               <p className="text-xs text-muted-foreground">
-                {search ? `${filtered.length}/${chunks.length}` : chunks.length} đoạn
+                {t("admin.knowledge.detail.chunkCount", {
+                  shown: search ? `${filtered.length}/${chunks.length}` : chunks.length,
+                })}
               </p>
               {filtered.map((chunk) => (
                 <ChunkCard key={chunk.id} chunk={chunk} />
@@ -200,13 +206,18 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
 }
 
 function ChunkCard({ chunk }: { chunk: KnowledgeChunk }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="mb-1.5 flex items-start justify-between gap-2 text-xs">
-        <p className="min-w-0 font-medium text-foreground">{chunk.heading || "Phần mở đầu"}</p>
+        <p className="min-w-0 font-medium text-foreground">{chunk.heading || t("admin.knowledge.detail.intro")}</p>
         {/* #id khớp "đoạn #…" ở nguồn trích dẫn trong tab Hội thoại */}
         <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
-          Đoạn {chunk.ordinal + 1} · #{chunk.id} · {chunk.content.length.toLocaleString("vi-VN")} ký tự
+          {t("admin.knowledge.detail.chunkMeta", {
+            position: chunk.ordinal + 1,
+            id: chunk.id,
+            chars: chunk.content.length.toLocaleString("vi-VN"),
+          })}
         </span>
       </div>
       <p className="whitespace-pre-wrap break-words text-sm text-foreground/90">{chunk.content}</p>

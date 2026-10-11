@@ -13,6 +13,7 @@ import {
   SETTING_SCOPES,
   type SettingScope,
 } from "~/stores/apis/admin/businessSettings";
+import i18n from "~/utils/i18n";
 
 export interface ScopeTab {
   scope: SettingScope;
@@ -21,57 +22,40 @@ export interface ScopeTab {
   icon: LucideIcon;
 }
 
+/** `title`/`description` dịch lúc đọc (getter) theo ngôn ngữ hiện tại. */
+function scopeTab(
+  scope: SettingScope,
+  icon: LucideIcon,
+  titleKey: string,
+  descriptionKey: string,
+): ScopeTab {
+  return {
+    scope,
+    icon,
+    get title() {
+      return i18n.t(titleKey);
+    },
+    get description() {
+      return i18n.t(descriptionKey);
+    },
+  };
+}
+
 // Chỉ mô tả nhóm; danh sách quy tắc trong mỗi tab luôn lấy từ API.
 export const SCOPE_TABS: ScopeTab[] = [
-  {
-    scope: "order",
-    title: "Đơn hàng & giá",
-    description: "Giá gửi hàng, thuê tủ, phí lưu giữ, thời hạn nhận hàng và tự huỷ đơn.",
-    icon: Package,
-  },
-  {
-    scope: "locker",
-    title: "Tủ & bảo trì",
-    description: "SLA xử lý sự cố, ngưỡng phạt, ảnh nghiệm thu, giữ ô và drone.",
-    icon: Boxes,
-  },
-  {
-    scope: "payment",
-    title: "Thanh toán & ví",
-    description: "Hạn mức nạp ví, mệnh giá gợi ý và phương thức thanh toán.",
-    icon: Wallet,
-  },
-  {
-    scope: "iot",
-    title: "Thiết bị IoT",
-    description: "Khoá tạm sau nhiều lần nhập sai, thời gian chờ mở và đóng cửa tủ.",
-    icon: Cpu,
-  },
-  {
-    scope: "auth",
-    title: "Xác thực",
-    description: "Hiệu lực và độ dài mã OTP, thời hạn token tạm.",
-    icon: ShieldCheck,
-  },
-  {
-    scope: "loyalty",
-    title: "Khách hàng thân thiết",
-    description: "Ngưỡng hạng thành viên, tem và điểm đổi thưởng.",
-    icon: Award,
-  },
-  {
-    scope: "store",
-    title: "Cửa hàng",
-    description: "Bán kính mặc định khi tìm cửa hàng gần.",
-    icon: Store,
-  },
-  {
-    scope: "assistant",
-    title: "Trợ lý hỏi đáp",
-    description:
-      "Bật/tắt trợ lý, ngưỡng liên quan tối thiểu, số đoạn tài liệu gửi kèm, giới hạn câu hỏi mỗi giờ và số lượt hội thoại nhớ.",
-    icon: Bot,
-  },
+  scopeTab("order", Package, "admin.settings.scopes.order.title", "admin.settings.scopes.order.description"),
+  scopeTab("locker", Boxes, "admin.settings.scopes.locker.title", "admin.settings.scopes.locker.description"),
+  scopeTab("payment", Wallet, "admin.settings.scopes.payment.title", "admin.settings.scopes.payment.description"),
+  scopeTab("iot", Cpu, "admin.settings.scopes.iot.title", "admin.settings.scopes.iot.description"),
+  scopeTab("auth", ShieldCheck, "admin.settings.scopes.auth.title", "admin.settings.scopes.auth.description"),
+  scopeTab("loyalty", Award, "admin.settings.scopes.loyalty.title", "admin.settings.scopes.loyalty.description"),
+  scopeTab("store", Store, "admin.settings.scopes.store.title", "admin.settings.scopes.store.description"),
+  scopeTab(
+    "assistant",
+    Bot,
+    "admin.settings.scopes.assistant.title",
+    "admin.settings.scopes.assistant.description",
+  ),
 ];
 
 export const DEFAULT_SCOPE: SettingScope = "order";

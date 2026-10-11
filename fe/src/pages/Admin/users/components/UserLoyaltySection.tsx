@@ -8,6 +8,7 @@ import {
   Minus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -30,21 +31,28 @@ const PAGE_SIZE = 10;
 // loyalty-service ghi "ADJUSTMENT" cho mọi lần điều chỉnh không kèm type.
 const ADJUST_TYPE = "ADJUSTMENT";
 
-const TIER_META: Record<string, { label: string; cls: string }> = {
-  BRONZE: { label: "Đồng", cls: "bg-secondary text-foreground border-border" },
-  SILVER: { label: "Bạc", cls: "bg-secondary text-foreground border-border" },
+const TIER_META: Record<string, { labelKey: string; cls: string }> = {
+  BRONZE: { labelKey: "admin.loyalty.tier.bronze", cls: "bg-secondary text-foreground border-border" },
+  SILVER: { labelKey: "admin.loyalty.tier.silver", cls: "bg-secondary text-foreground border-border" },
   GOLD: {
-    label: "Vàng",
+    labelKey: "admin.loyalty.tier.gold",
     cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   },
-  PLATINUM: { label: "Bạch kim", cls: "bg-primary text-primary-foreground border-primary" },
+  PLATINUM: { labelKey: "admin.loyalty.tier.platinum", cls: "bg-primary text-primary-foreground border-primary" },
 };
 
 // Loại giao dịch backend thực sự ghi: ADJUSTMENT (admin), REDEEM (đổi điểm).
-const TX_LABEL: Record<string, string> = {
-  ADJUSTMENT: "Điều chỉnh",
-  REDEEM: "Đổi điểm",
+const TX_LABEL_KEY: Record<string, string> = {
+  ADJUSTMENT: "admin.users.loyalty.txType.adjustment",
+  REDEEM: "admin.users.loyalty.txType.redeem",
 };
+
+const HISTORY_COLUMN_KEYS = [
+  "admin.users.loyalty.columns.type",
+  "admin.users.loyalty.columns.points",
+  "common.order",
+  "common.time",
+];
 
 function errorMessage(err: unknown, fallback: string) {
   const e = err as { data?: { message?: unknown } } | undefined;
@@ -54,6 +62,7 @@ function errorMessage(err: unknown, fallback: string) {
 }
 
 export function UserLoyaltySection({ userId }: Props) {
+  const { t } = useTranslation();
   const {
     data: loyaltyData,
     isLoading: loyaltyLoading,
@@ -80,12 +89,12 @@ export function UserLoyaltySection({ userId }: Props) {
   async function handleAdjust() {
     const value = Math.abs(Math.trunc(Number(amount)));
     if (!value) {
-      setAdjustError("Vui lòng nhập số điểm lớn hơn 0.");
+      setAdjustError(t("admin.users.loyalty.enterPositive"));
       return;
     }
     // Backend không chặn số dư âm nên kiểm tra tại đây.
     if (direction === "DEDUCT" && value > (loyalty?.points ?? 0)) {
-      setAdjustError("Không thể trừ nhiều hơn số điểm hiện có.");
+      setAdjustError(t("admin.users.loyalty.cannotDeductMore"));
       return;
     }
     setAdjustError(null);
@@ -95,11 +104,15 @@ export function UserLoyaltySection({ userId }: Props) {
         points: direction === "ADD" ? value : -value,
         type: ADJUST_TYPE,
       }).unwrap();
-      toast.success(direction === "ADD" ? `Đã cộng ${value} điểm` : `Đã trừ ${value} điểm`);
+      toast.success(
+        direction === "ADD"
+          ? t("admin.users.loyalty.added", { value })
+          : t("admin.users.loyalty.deducted", { value }),
+      );
       setAmount("");
       setHistoryPage(0);
     } catch (err) {
-      const msg = errorMessage(err, "Không thể điều chỉnh điểm. Vui lòng thử lại.");
+      const msg = errorMessage(err, t("admin.users.loyalty.adjustFailed"));
       setAdjustError(msg);
       toast.error(msg);
     }
@@ -114,7 +127,7 @@ export function UserLoyaltySection({ userId }: Props) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Coins size={15} className="text-muted-foreground" /> Tóm tắt điểm thưởng
+              <Coins size={15} className="text-muted-foreground" /> {t("admin.users.loyalty.summaryTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -125,39 +138,41 @@ export function UserLoyaltySection({ userId }: Props) {
                 ))}
               </div>
             ) : loyaltyError ? (
-              <p className="text-sm text-destructive">Không tải được thông tin tích điểm.</p>
+              <p className="text-sm text-destructive">{t("admin.users.loyalty.loadFailed")}</p>
             ) : loyalty ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Hạng thành viên</span>
+                  <span className="text-sm text-muted-foreground">{t("admin.users.loyalty.tier")}</span>
                   {loyalty.tier ? (
                     <Badge variant="outline" className={`text-xs ${tier?.cls ?? ""}`}>
-                      {tier?.label ?? loyalty.tier}
+                      {tier ? t(tier.labelKey) : loyalty.tier}
                     </Badge>
                   ) : (
                     <span className="text-sm text-muted-foreground">—</span>
                   )}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Điểm hiện tại</span>
+                  <span className="text-sm text-muted-foreground">{t("admin.users.loyalty.currentPoints")}</span>
                   <span className="font-semibold text-foreground">
-                    {(loyalty.points ?? 0).toLocaleString("vi-VN")} điểm
+                    {t("admin.users.loyalty.pointsValue", {
+                      points: (loyalty.points ?? 0).toLocaleString("vi-VN"),
+                    })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Tem tích luỹ</span>
+                  <span className="text-sm text-muted-foreground">{t("admin.users.loyalty.stamps")}</span>
                   <span className="font-semibold text-foreground">
                     {(loyalty.stamps ?? 0).toLocaleString("vi-VN")}
                   </span>
                 </div>
                 {loyalty.id == null && (
                   <p className="text-xs text-muted-foreground/80">
-                    Người dùng chưa có tài khoản tích điểm — sẽ được tạo ở lần điều chỉnh đầu tiên.
+                    {t("admin.users.loyalty.noAccount")}
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Chưa có thông tin tích điểm.</p>
+              <p className="text-sm text-muted-foreground">{t("admin.users.loyalty.noInfo")}</p>
             )}
           </CardContent>
         </Card>
@@ -166,7 +181,7 @@ export function UserLoyaltySection({ userId }: Props) {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <TrendingUp size={15} className="text-muted-foreground" /> Điều chỉnh điểm
+              <TrendingUp size={15} className="text-muted-foreground" /> {t("admin.users.loyalty.adjustTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -177,20 +192,20 @@ export function UserLoyaltySection({ userId }: Props) {
             )}
             <div>
               <label className="text-xs text-muted-foreground mb-1 block font-medium">
-                Số điểm
+                {t("admin.users.loyalty.amount")}
               </label>
               <Input
                 type="number"
                 min="1"
                 step="1"
-                placeholder="Nhập số điểm..."
+                placeholder={t("admin.users.loyalty.amountPlaceholder")}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block font-medium">
-                Loại điều chỉnh
+                {t("admin.users.loyalty.direction")}
               </label>
               <div className="flex gap-2">
                 {(["ADD", "DEDUCT"] as const).map((d) => (
@@ -203,16 +218,16 @@ export function UserLoyaltySection({ userId }: Props) {
                     className="flex-1 gap-1.5 h-9"
                   >
                     {d === "ADD" ? <Plus size={14} /> : <Minus size={14} />}
-                    {d === "ADD" ? "Cộng điểm" : "Trừ điểm"}
+                    {d === "ADD" ? t("admin.users.loyalty.add") : t("admin.users.loyalty.deduct")}
                   </Button>
                 ))}
               </div>
             </div>
             <p className="text-xs text-muted-foreground/80">
-              Giao dịch được ghi với loại «Điều chỉnh»; hạng thành viên tự tính lại theo tổng điểm.
+              {t("admin.users.loyalty.adjustHint")}
             </p>
             <Button onClick={handleAdjust} disabled={adjusting} className="w-full">
-              {adjusting ? "Đang xử lý..." : "Xác nhận điều chỉnh"}
+              {adjusting ? t("admin.users.loyalty.processing") : t("admin.users.loyalty.confirmAdjust")}
             </Button>
           </CardContent>
         </Card>
@@ -222,7 +237,7 @@ export function UserLoyaltySection({ userId }: Props) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <History size={15} className="text-muted-foreground" /> Lịch sử giao dịch điểm
+            <History size={15} className="text-muted-foreground" /> {t("admin.users.loyalty.historyTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -234,7 +249,7 @@ export function UserLoyaltySection({ userId }: Props) {
             </div>
           ) : historyTotal === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">
-              Chưa có giao dịch điểm nào.
+              {t("admin.users.loyalty.noHistory")}
             </p>
           ) : (
             <>
@@ -242,12 +257,12 @@ export function UserLoyaltySection({ userId }: Props) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border/60">
-                      {["Loại", "Điểm", "Đơn hàng", "Thời gian"].map((h) => (
+                      {HISTORY_COLUMN_KEYS.map((h) => (
                         <th
                           key={h}
                           className="text-left py-2.5 px-3 text-xs text-muted-foreground font-medium"
                         >
-                          {h}
+                          {t(h)}
                         </th>
                       ))}
                     </tr>
@@ -262,7 +277,7 @@ export function UserLoyaltySection({ userId }: Props) {
                         >
                           <td className="py-2.5 px-3">
                             <Badge variant="outline" className="text-xs">
-                              {TX_LABEL[tx.type] ?? tx.type ?? "—"}
+                              {TX_LABEL_KEY[tx.type] ? t(TX_LABEL_KEY[tx.type]) : (tx.type ?? "—")}
                             </Badge>
                           </td>
                           <td
@@ -290,7 +305,7 @@ export function UserLoyaltySection({ userId }: Props) {
               {historyTotal > PAGE_SIZE && (
                 <div className="flex items-center justify-between pt-3">
                   <span className="text-xs text-muted-foreground">
-                    {historyTotal} giao dịch
+                    {t("admin.users.loyalty.transactionsCount", { count: historyTotal })}
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -299,7 +314,7 @@ export function UserLoyaltySection({ userId }: Props) {
                       disabled={historyPage === 0}
                       onClick={() => setHistoryPage((p) => p - 1)}
                     >
-                      Trước
+                      {t("pagination.previous")}
                     </Button>
                     <Button
                       size="sm"
@@ -307,7 +322,7 @@ export function UserLoyaltySection({ userId }: Props) {
                       disabled={(historyPage + 1) * PAGE_SIZE >= historyTotal}
                       onClick={() => setHistoryPage((p) => p + 1)}
                     >
-                      Sau
+                      {t("pagination.next")}
                     </Button>
                   </div>
                 </div>

@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Box as BoxIcon,
   Plane,
@@ -34,11 +35,11 @@ import {
 import { isXlCell, isDroneCell, normalizeBoxSize } from "~/lib/lockerLayoutHelper";
 
 // Ô đang có đơn hoặc đang báo hỏng: trạng thái do luồng đơn hàng / phiếu sự cố quản lý, không sửa tay ở đây
-const LOCKED_STATUS_HINT: Record<string, { label: string; hint: string }> = {
-  OCCUPIED: { label: "Đang chứa hàng", hint: "Ô đang có đơn — trạng thái tự đổi khi khách lấy đồ." },
-  IN_USE: { label: "Đang chứa hàng", hint: "Ô đang có đơn — trạng thái tự đổi khi khách lấy đồ." },
-  RESERVED: { label: "Đã giữ chỗ", hint: "Ô đang được giữ cho một đơn — trạng thái tự đổi theo đơn hàng." },
-  FAULT: { label: "Báo hỏng", hint: "Dùng \"Khôi phục ô\" trên sơ đồ để đóng phiếu sự cố và trả ô về hoạt động." },
+const LOCKED_STATUS_HINT: Record<string, { labelKey: string; hintKey: string }> = {
+  OCCUPIED: { labelKey: "admin.lockers.cell.holdingItems", hintKey: "admin.lockers.editBox.hint.occupied" },
+  IN_USE: { labelKey: "admin.lockers.cell.holdingItems", hintKey: "admin.lockers.editBox.hint.occupied" },
+  RESERVED: { labelKey: "admin.lockers.cell.reserved", hintKey: "admin.lockers.editBox.hint.reserved" },
+  FAULT: { labelKey: "admin.lockers.cell.faulty", hintKey: "admin.lockers.editBox.hint.fault" },
 };
 
 interface EditBoxModalProps {
@@ -58,6 +59,7 @@ export function EditBoxModal({
 }: EditBoxModalProps) {
   const [updateBox, { isLoading: isUpdating }] = useUpdateBoxMutation();
   const [deleteBox, { isLoading: isDeleting }] = useDeleteBoxMutation();
+  const { t } = useTranslation();
 
   const [boxNumber, setBoxNumber] = useState<number | "">("");
   const [cellType, setCellType] = useState<string>("STANDARD");
@@ -93,7 +95,7 @@ export function EditBoxModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!boxNumber) {
-      toast.error("Vui lòng nhập số ô tủ!");
+      toast.error(t("admin.lockers.boxNumberRequired"));
       return;
     }
 
@@ -110,23 +112,23 @@ export function EditBoxModal({
         description: description.trim() || undefined,
       }).unwrap();
 
-      toast.success(`Đã cập nhật công năng ô #${boxNumber} thành công!`);
+      toast.success(t("admin.lockers.editBox.updated", { number: boxNumber }));
       onOpenChange(false);
       onSuccess();
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Không thể cập nhật thông tin ô tủ");
+      toast.error(err?.data?.message || err?.message || t("admin.lockers.editBox.updateFailed"));
     }
   };
 
   const handleDelete = async () => {
     try {
       await deleteBox(cell.id).unwrap();
-      toast.success(`Đã xóa ô #${cell.boxNumber} khỏi tủ`);
+      toast.success(t("admin.lockers.editBox.deleted", { number: cell.boxNumber }));
       setShowDeleteConfirm(false);
       onOpenChange(false);
       onSuccess();
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Không thể xóa ô tủ");
+      toast.error(err?.data?.message || err?.message || t("admin.lockers.editBox.deleteFailed"));
     }
   };
 
@@ -137,10 +139,10 @@ export function EditBoxModal({
           <div className="space-y-4 py-2">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-rose-600">
-                <AlertTriangle className="w-5 h-5" /> Xác nhận xóa ô #{cell.boxNumber}?
+                <AlertTriangle className="w-5 h-5" /> {t("admin.lockers.layout.action.deleteTitle", { number: cell.boxNumber })}
               </DialogTitle>
               <DialogDescription>
-                Hành động này sẽ xóa vĩnh viễn ô #{cell.boxNumber} (ID: {cell.id}) khỏi sơ đồ tủ. Thao tác này không thể hoàn tác.
+                {t("admin.lockers.editBox.deleteDesc", { number: cell.boxNumber, id: cell.id })}
               </DialogDescription>
             </DialogHeader>
 
@@ -152,7 +154,7 @@ export function EditBoxModal({
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
               >
-                Hủy bỏ
+                {t("common.cancelAction")}
               </Button>
               <Button
                 type="button"
@@ -161,7 +163,7 @@ export function EditBoxModal({
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
-                {isDeleting ? "Đang xóa..." : "Xác nhận xóa"}
+                {isDeleting ? t("admin.lockers.editBox.deleting") : t("admin.lockers.editBox.confirmDelete")}
               </Button>
             </DialogFooter>
           </div>
@@ -170,10 +172,10 @@ export function EditBoxModal({
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-base font-bold">
                 <Sliders className="w-5 h-5 text-primary" />
-                Chỉnh sửa công năng ô #{cell.boxNumber}
+                {t("admin.lockers.editBox.title", { number: cell.boxNumber })}
               </DialogTitle>
               <DialogDescription className="text-xs">
-                Cấu hình công năng (ô thường, ô drone, ô vali), kích cỡ và bố cục vị trí trong tủ {lockerName ? `"${lockerName}"` : ""}.
+                {t("admin.lockers.editBox.description", { locker: lockerName ? `"${lockerName}"` : "" })}
               </DialogDescription>
             </DialogHeader>
 
@@ -181,20 +183,20 @@ export function EditBoxModal({
               {/* Chọn công năng / loại ô */}
               <div className="space-y-1.5">
                 <Label htmlFor="editCellType" className="font-semibold text-xs flex items-center justify-between">
-                  <span>Công năng ô tủ (Loại ô)</span>
-                  <span className="text-[10px] text-muted-foreground font-normal">Quyết định luồng dịch vụ</span>
+                  <span>{t("admin.lockers.editBox.cellType")}</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">{t("admin.lockers.editBox.cellTypeHint")}</span>
                 </Label>
                 <Select value={cellType} onValueChange={setCellType}>
                   <SelectTrigger id="editCellType" className="h-9 text-xs">
-                    <SelectValue placeholder="Chọn loại công năng" />
+                    <SelectValue placeholder={t("admin.lockers.editBox.cellTypePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent className="text-xs">
                     <SelectItem value="STANDARD">
                       <div className="flex items-center gap-2 py-0.5">
                         <BoxIcon className="w-4 h-4 text-emerald-600" />
                         <div>
-                          <span className="font-semibold">Ô tiêu chuẩn (STANDARD)</span>
-                          <p className="text-[10px] text-muted-foreground">Đa dịch vụ: Gửi đồ, giữ đồ, giặt ủi, giao nhận C2C</p>
+                          <span className="font-semibold">{t("admin.lockers.editBox.typeStandard")}</span>
+                          <p className="text-[10px] text-muted-foreground">{t("admin.lockers.editBox.typeStandardHint")}</p>
                         </div>
                       </div>
                     </SelectItem>
@@ -202,8 +204,8 @@ export function EditBoxModal({
                       <div className="flex items-center gap-2 py-0.5">
                         <Plane className="w-4 h-4 text-sky-600" />
                         <div>
-                          <span className="font-semibold text-sky-700 dark:text-sky-300">Ô tiếp nhận Drone (DRONE)</span>
-                          <p className="text-[10px] text-muted-foreground">Nhận hàng tự động thả từ Drone qua nắp trượt ArUco</p>
+                          <span className="font-semibold text-sky-700 dark:text-sky-300">{t("admin.lockers.editBox.typeDrone")}</span>
+                          <p className="text-[10px] text-muted-foreground">{t("admin.lockers.editBox.typeDroneHint")}</p>
                         </div>
                       </div>
                     </SelectItem>
@@ -211,8 +213,8 @@ export function EditBoxModal({
                       <div className="flex items-center gap-2 py-0.5">
                         <Luggage className="w-4 h-4 text-indigo-600" />
                         <div>
-                          <span className="font-semibold text-indigo-700 dark:text-indigo-300">Khoang vali lớn (XL)</span>
-                          <p className="text-[10px] text-muted-foreground">Khoang hành lý chiều cao 2 tầng, dành riêng gửi vali</p>
+                          <span className="font-semibold text-indigo-700 dark:text-indigo-300">{t("admin.lockers.boxType.xl")}</span>
+                          <p className="text-[10px] text-muted-foreground">{t("admin.lockers.editBox.typeXlHint")}</p>
                         </div>
                       </div>
                     </SelectItem>
@@ -224,7 +226,7 @@ export function EditBoxModal({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="editBoxNumber" className="font-semibold text-xs">
-                    Số thứ tự ô (#)
+                    {t("admin.lockers.editBox.boxNumber")}
                   </Label>
                   <Input
                     id="editBoxNumber"
@@ -239,17 +241,17 @@ export function EditBoxModal({
 
                 <div className="space-y-1.5">
                   <Label htmlFor="editSize" className="font-semibold text-xs">
-                    Kích cỡ khoang
+                    {t("admin.lockers.editBox.size")}
                   </Label>
                   <Select value={size} onValueChange={setSize}>
                     <SelectTrigger id="editSize" className="h-9 text-xs">
-                      <SelectValue placeholder="Chọn cỡ" />
+                      <SelectValue placeholder={t("admin.lockers.editBox.sizePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent className="text-xs">
-                      <SelectItem value="SMALL">Nhỏ (S)</SelectItem>
-                      <SelectItem value="MEDIUM">Trung bình (M - Chuẩn)</SelectItem>
-                      <SelectItem value="LARGE">Lớn (L)</SelectItem>
-                      <SelectItem value="XL">Đặc biệt lớn (XL)</SelectItem>
+                      <SelectItem value="SMALL">{t("admin.lockers.boxSize.small")}</SelectItem>
+                      <SelectItem value="MEDIUM">{t("admin.lockers.boxSize.mediumDefault")}</SelectItem>
+                      <SelectItem value="LARGE">{t("admin.lockers.boxSize.large")}</SelectItem>
+                      <SelectItem value="XL">{t("admin.lockers.boxSize.xl")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -259,7 +261,7 @@ export function EditBoxModal({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="editRowIndex" className="font-semibold text-xs">
-                    Vị trí hàng (Row)
+                    {t("admin.lockers.editBox.row")}
                   </Label>
                   <Input
                     id="editRowIndex"
@@ -271,12 +273,12 @@ export function EditBoxModal({
                     className="h-9 text-xs"
                     required
                   />
-                  <p className="text-[10px] text-muted-foreground">Hàng 1 thường là hàng Drone nóc tủ</p>
+                  <p className="text-[10px] text-muted-foreground">{t("admin.lockers.editBox.rowHint")}</p>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="editColIndex" className="font-semibold text-xs">
-                    Vị trí cột (Col)
+                    {t("admin.lockers.editBox.col")}
                   </Label>
                   <Input
                     id="editColIndex"
@@ -288,40 +290,40 @@ export function EditBoxModal({
                     className="h-9 text-xs"
                     required
                   />
-                  <p className="text-[10px] text-muted-foreground">Cột 0 dành cho khoang XL dọc bên trái</p>
+                  <p className="text-[10px] text-muted-foreground">{t("admin.lockers.editBox.colHint")}</p>
                 </div>
               </div>
 
               {/* Trạng thái hoạt động */}
               <div className="space-y-1.5">
                 <Label htmlFor="editStatus" className="font-semibold text-xs">
-                  Trạng thái ô tủ
+                  {t("admin.lockers.editBox.status")}
                 </Label>
                 {lockedStatus ? (
                   <>
                     <Input
                       id="editStatus"
-                      value={`${lockedStatus.label} (${cell.status})`}
+                      value={`${t(lockedStatus.labelKey)} (${cell.status})`}
                       readOnly
                       disabled
                       className="h-9 text-xs"
                     />
-                    <p className="text-[10px] text-muted-foreground">{lockedStatus.hint}</p>
+                    <p className="text-[10px] text-muted-foreground">{t(lockedStatus.hintKey)}</p>
                   </>
                 ) : (
                   <>
                     <Select value={status} onValueChange={setStatus}>
                       <SelectTrigger id="editStatus" className="h-9 text-xs">
-                        <SelectValue placeholder="Chọn trạng thái" />
+                        <SelectValue placeholder={t("admin.lockers.editBox.statusPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent className="text-xs">
-                        <SelectItem value="AVAILABLE">Sẵn sàng (AVAILABLE)</SelectItem>
-                        <SelectItem value="OUT_OF_SERVICE">Tạm ngưng dùng (OUT_OF_SERVICE)</SelectItem>
-                        <SelectItem value="CLEANING">Đang vệ sinh (CLEANING)</SelectItem>
+                        <SelectItem value="AVAILABLE">{t("admin.lockers.editBox.statusAvailable")}</SelectItem>
+                        <SelectItem value="OUT_OF_SERVICE">{t("admin.lockers.editBox.statusOutOfService")}</SelectItem>
+                        <SelectItem value="CLEANING">{t("admin.lockers.editBox.statusCleaning")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-[10px] text-muted-foreground">
-                      Báo hỏng ô dùng mục &quot;Báo hỏng ô tủ&quot; trên sơ đồ để mở phiếu sự cố cho KTV.
+                      {t("admin.lockers.editBox.faultHint")}
                     </p>
                   </>
                 )}
@@ -330,11 +332,11 @@ export function EditBoxModal({
               {/* Ghi chú */}
               <div className="space-y-1.5">
                 <Label htmlFor="editDescription" className="font-semibold text-xs">
-                  Ghi chú kỹ thuật (tùy chọn)
+                  {t("admin.lockers.editBox.note")}
                 </Label>
                 <Input
                   id="editDescription"
-                  placeholder="Ghi chú về công năng, chốt điện hoặc phần cứng..."
+                  placeholder={t("admin.lockers.editBox.notePlaceholder")}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="h-9 text-xs"
@@ -350,9 +352,9 @@ export function EditBoxModal({
                 className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isOccupied || isUpdating}
-                title={isOccupied ? "Không thể xóa ô đang chứa hàng" : "Xóa ô khỏi tủ"}
+                title={isOccupied ? t("admin.lockers.editBox.cannotDelete") : t("admin.lockers.editBox.deleteTooltip")}
               >
-                <Trash2 className="w-3.5 h-3.5 mr-1" /> Xóa ô
+                <Trash2 className="w-3.5 h-3.5 mr-1" /> {t("admin.lockers.editBox.delete")}
               </Button>
 
               <div className="flex items-center gap-2">
@@ -364,10 +366,10 @@ export function EditBoxModal({
                   onClick={() => onOpenChange(false)}
                   disabled={isUpdating}
                 >
-                  Hủy
+                  {t("button.cancel")}
                 </Button>
                 <Button type="submit" size="sm" className="text-xs" disabled={isUpdating}>
-                  {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
+                  {isUpdating ? t("common.saving") : t("common.saveChanges")}
                 </Button>
               </div>
             </DialogFooter>

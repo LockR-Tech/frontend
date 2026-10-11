@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   AlertCircle,
   ArrowLeft,
@@ -43,10 +45,10 @@ import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
  * Không bao giờ rơi về `#id` — mã số nội bộ không cho người xem biết tủ nào.
  * Tra cứu hỏng (không có cả tên lẫn mã) thì nói thẳng là chưa tra được.
  */
-function lockerLabel(locker: AdminOrder["locker"]): string | null {
+function lockerLabel(locker: AdminOrder["locker"], t: TFunction): string | null {
   if (!locker) return null;
   if (locker.name && locker.code) return `${locker.name} (${locker.code})`;
-  return locker.name ?? locker.code ?? "Chưa tra được tên tủ";
+  return locker.name ?? locker.code ?? t("admin.orders.lookup.lockerName");
 }
 
 /**
@@ -55,12 +57,12 @@ function lockerLabel(locker: AdminOrder["locker"]): string | null {
  */
 function feeRows(fees: AdminOrderFees) {
   return [
-    { label: "Giá gốc", value: fees.originalPrice },
-    { label: "Phí giữ ô", value: fees.reservationFee },
-    { label: "Phí lưu trữ", value: fees.storagePrice },
-    { label: "Phí vận chuyển", value: fees.shippingFee },
-    { label: "Phí quá hạn", value: fees.overtimeFee },
-    { label: "Giảm giá", value: fees.discount, negative: true },
+    { labelKey: "admin.orders.detail.fees.originalPrice", value: fees.originalPrice },
+    { labelKey: "admin.orders.detail.fees.reservationFee", value: fees.reservationFee },
+    { labelKey: "admin.orders.detail.fees.storagePrice", value: fees.storagePrice },
+    { labelKey: "admin.orders.detail.fees.shippingFee", value: fees.shippingFee },
+    { labelKey: "admin.orders.detail.fees.overtimeFee", value: fees.overtimeFee },
+    { labelKey: "admin.orders.detail.fees.discount", value: fees.discount, negative: true },
   ].filter((row) => row.value !== null && row.value !== undefined);
 }
 
@@ -99,27 +101,28 @@ function DetailSkeleton() {
 }
 
 function CustomerCard({ order }: { order: AdminOrder }) {
+  const { t } = useTranslation();
   const { customer, receiver } = order;
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Users className="h-4 w-4" />
-          Khách hàng
+          {t("common.customer")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
             <User className="h-3 w-3" />
-            Người gửi
+            {t("admin.orders.fields.sender")}
           </p>
-          <LabelValue label="Họ tên">{customer?.fullName}</LabelValue>
-          <LabelValue label="Điện thoại" mono>
+          <LabelValue label={t("admin.orders.fields.fullName")}>{customer?.fullName}</LabelValue>
+          <LabelValue label={t("common.phoneShort")} mono>
             {customer?.phoneNumber}
           </LabelValue>
-          <LabelValue label="Email">{customer?.email}</LabelValue>
-          <LabelValue label="Trạng thái tài khoản">{customer?.status}</LabelValue>
+          <LabelValue label={t("common.email")}>{customer?.email}</LabelValue>
+          <LabelValue label={t("admin.orders.fields.accountStatus")}>{customer?.status}</LabelValue>
         </div>
 
         <Separator />
@@ -127,25 +130,26 @@ function CustomerCard({ order }: { order: AdminOrder }) {
         <div className="space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
             <User className="h-3 w-3" />
-            Người nhận
+            {t("admin.orders.fields.receiver")}
           </p>
-          <LabelValue label="Tên ghi trên đơn">{receiver?.name}</LabelValue>
-          <LabelValue label="Số điện thoại ghi trên đơn" mono>
+          <LabelValue label={t("admin.orders.detail.customer.receiverName")}>{receiver?.name}</LabelValue>
+          <LabelValue label={t("admin.orders.detail.customer.receiverPhone")} mono>
             {receiver?.phone}
           </LabelValue>
-          <LabelValue label="Email ghi trên đơn">{receiver?.email}</LabelValue>
+          <LabelValue label={t("admin.orders.detail.customer.receiverEmail")}>{receiver?.email}</LabelValue>
           {/* Thông tin tài khoản chỉ có khi người nhận đã có tài khoản Lock.R. */}
-          <LabelValue label="Tài khoản người nhận">
+          <LabelValue label={t("admin.orders.detail.customer.receiverAccount")}>
             {receiver?.userId ? (
               <span>
-                {receiver.accountFullName ?? "Đã có tài khoản, chưa tra được tên"}
+                {receiver.accountFullName ??
+                  t("admin.orders.detail.customer.receiverAccountNoName")}
                 {receiver.accountPhoneNumber
                   ? ` · ${receiver.accountPhoneNumber}`
                   : ""}
               </span>
             ) : null}
           </LabelValue>
-          <LabelValue label="Email tài khoản">{receiver?.accountEmail}</LabelValue>
+          <LabelValue label={t("admin.orders.detail.customer.accountEmail")}>{receiver?.accountEmail}</LabelValue>
         </div>
       </CardContent>
     </Card>
@@ -153,74 +157,79 @@ function CustomerCard({ order }: { order: AdminOrder }) {
 }
 
 function LockerCard({ order }: { order: AdminOrder }) {
+  const { t } = useTranslation();
   const { locker, destinationLocker, store } = order;
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <MapPin className="h-4 w-4" />
-          Tủ &amp; ô
+          {t("admin.orders.detail.locker.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <LabelValue label="Tủ gửi">{lockerLabel(locker)}</LabelValue>
-        <LabelValue label="Địa chỉ tủ gửi">{locker?.address}</LabelValue>
+        <LabelValue label={t("admin.orders.detail.locker.sendLocker")}>{lockerLabel(locker, t)}</LabelValue>
+        <LabelValue label={t("admin.orders.detail.locker.sendLockerAddress")}>{locker?.address}</LabelValue>
 
         {destinationLocker && (
           <>
-            <LabelValue label="Tủ đích">
-              {lockerLabel(destinationLocker)}
+            <LabelValue label={t("admin.orders.detail.locker.destinationLocker")}>
+              {lockerLabel(destinationLocker, t)}
             </LabelValue>
-            <LabelValue label="Địa chỉ tủ đích">
+            <LabelValue label={t("admin.orders.detail.locker.destinationLockerAddress")}>
               {destinationLocker.address}
             </LabelValue>
           </>
         )}
 
         <div className="grid grid-cols-3 gap-2">
-          <LabelValue label="Ô gửi">
-            {order.sendBoxNumber !== null ? `Ô ${order.sendBoxNumber}` : null}
+          <LabelValue label={t("admin.orders.detail.locker.sendBox")}>
+            {order.sendBoxNumber !== null
+              ? t("admin.orders.boxNumber", { number: order.sendBoxNumber })
+              : null}
           </LabelValue>
-          <LabelValue label="Ô nhận">
-            {order.receiveBoxNumber !== null ? `Ô ${order.receiveBoxNumber}` : null}
+          <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
+            {order.receiveBoxNumber !== null
+              ? t("admin.orders.boxNumber", { number: order.receiveBoxNumber })
+              : null}
           </LabelValue>
-          <LabelValue label="Ô giữ chỗ">
+          <LabelValue label={t("admin.orders.detail.locker.reservedBox")}>
             {order.reservedBoxNumber !== null
-              ? `Ô ${order.reservedBoxNumber}`
+              ? t("admin.orders.boxNumber", { number: order.reservedBoxNumber })
               : null}
           </LabelValue>
         </div>
         {order.status === "EXPIRED" && (
           <p className="text-[11px] text-muted-foreground">
-            Đơn quá hạn đã được giải phóng ô nên không còn số ô.
+            {t("admin.orders.detail.locker.expiredNoBox")}
           </p>
         )}
 
         <Separator />
 
-        <LabelValue label="Cửa hàng">
+        <LabelValue label={t("common.store")}>
           <span className="inline-flex items-center gap-1.5">
             <Store className="h-3.5 w-3.5 text-muted-foreground" />
             {store?.name ?? null}
           </span>
         </LabelValue>
-        <LabelValue label="Liên hệ cửa hàng" mono>
+        <LabelValue label={t("admin.orders.detail.locker.storeContact")} mono>
           {store?.contactPhone}
         </LabelValue>
 
         <Separator />
 
         <div className="grid grid-cols-2 gap-3">
-          <LabelValue label="Mã PIN" mono>
+          <LabelValue label={t("admin.orders.detail.locker.pinCode")} mono>
             {order.pinCode ? (
               <span className="tracking-widest font-bold">{order.pinCode}</span>
             ) : null}
           </LabelValue>
-          <LabelValue label="PIN phát lúc">
+          <LabelValue label={t("admin.orders.detail.locker.pinIssuedAt")}>
             {order.pinCodeIssuedAt ? formatDateTime(order.pinCodeIssuedAt) : null}
           </LabelValue>
         </div>
-        <LabelValue label="Mã QR" mono>
+        <LabelValue label={t("admin.orders.detail.locker.qrCode")} mono>
           {order.qrToken}
         </LabelValue>
       </CardContent>
@@ -229,13 +238,14 @@ function LockerCard({ order }: { order: AdminOrder }) {
 }
 
 function PaymentCard({ order }: { order: AdminOrder }) {
+  const { t } = useTranslation();
   const payment = order.payment;
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <CreditCard className="h-4 w-4" />
-          Thanh toán
+          {t("common.payment")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -243,7 +253,7 @@ function PaymentCard({ order }: { order: AdminOrder }) {
           <MetaBadge meta={orderPaymentStatusMeta(order.paymentStatus)} />
           {order.paymentRequired === false && (
             <span className="text-[11px] text-muted-foreground">
-              Không cần thu thêm
+              {t("admin.orders.detail.payment.noMoreDue")}
             </span>
           )}
         </div>
@@ -251,19 +261,19 @@ function PaymentCard({ order }: { order: AdminOrder }) {
         {/* `payment = null` nghĩa là payment-service không trả lời, không phải "chưa trả đồng nào". */}
         {payment === null ? (
           <p className="text-xs text-muted-foreground">
-            Không lấy được số liệu thu tiền (payment-service không phản hồi).
+            {t("admin.orders.detail.payment.unavailable")}
           </p>
         ) : payment.paymentCount === 0 ? (
           <p className="text-xs text-muted-foreground">
-            Chưa có lần thanh toán nào cho đơn này.
+            {t("admin.orders.detail.payment.noPayments")}
           </p>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
-              <LabelValue label="Đã thu">
+              <LabelValue label={t("admin.orders.detail.payment.paid")}>
                 {formatCurrency(payment.paidAmount)}
               </LabelValue>
-              <LabelValue label="Còn thiếu">
+              <LabelValue label={t("admin.orders.detail.payment.outstanding")}>
                 <span
                   className={
                     (payment.outstandingAmount ?? 0) > 0
@@ -274,17 +284,17 @@ function PaymentCard({ order }: { order: AdminOrder }) {
                   {formatCurrency(payment.outstandingAmount)}
                 </span>
               </LabelValue>
-              <LabelValue label="Đã hoàn">
+              <LabelValue label={t("admin.orders.detail.payment.refunded")}>
                 {formatCurrency(payment.refundedAmount)}
               </LabelValue>
-              <LabelValue label="Số lần thanh toán">
+              <LabelValue label={t("admin.orders.detail.payment.paymentCount")}>
                 {formatNumber(payment.paymentCount)}
               </LabelValue>
             </div>
 
             <Separator />
 
-            <LabelValue label="Lần thu gần nhất">
+            <LabelValue label={t("admin.orders.detail.payment.lastPaid")}>
               {payment.lastPaidAt ? (
                 <span>
                   {formatDateTime(payment.lastPaidAt)}
@@ -297,7 +307,7 @@ function PaymentCard({ order }: { order: AdminOrder }) {
 
             <div className="space-y-1.5">
               <p className="text-[11px] text-muted-foreground">
-                Giao dịch mới nhất (mọi trạng thái)
+                {t("admin.orders.detail.payment.latestTransaction")}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 {payment.latestStatus && (
@@ -330,6 +340,7 @@ function PaymentCard({ order }: { order: AdminOrder }) {
 }
 
 function DroneCard({ order }: { order: AdminOrder }) {
+  const { t } = useTranslation();
   const drone = order.drone;
   if (!drone) return null;
 
@@ -338,7 +349,7 @@ function DroneCard({ order }: { order: AdminOrder }) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Plane className="h-4 w-4" />
-          Chuyến bay drone
+          {t("admin.orders.detail.drone.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -348,7 +359,7 @@ function DroneCard({ order }: { order: AdminOrder }) {
           )}
           {drone.missionStatus && (
             <span className="text-xs text-muted-foreground self-center">
-              Nhiệm vụ: {drone.missionStatus}
+              {t("admin.orders.detail.drone.mission", { status: drone.missionStatus })}
             </span>
           )}
         </div>
@@ -356,34 +367,36 @@ function DroneCard({ order }: { order: AdminOrder }) {
         {/* Khi đơn chưa được gán nhiệm vụ, backend chỉ trả chặng và tủ đích. */}
         {drone.missionId === null ? (
           <p className="text-xs text-muted-foreground">
-            Đơn chưa được gán nhiệm vụ bay.
+            {t("admin.orders.detail.drone.noMission")}
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <LabelValue label="Drone">
               {/* Mã drone là tên gọi ngoài đời của thiết bị (DR-01), luôn ưu tiên. */}
-              {drone.droneCode ?? "Chưa tra được mã drone"}
+              {drone.droneCode ?? t("admin.orders.lookup.droneCode")}
             </LabelValue>
-            <LabelValue label="Người điều phối">
-              {drone.assignedByUserId ? "Đã có người gán" : "Hệ thống tự gán"}
+            <LabelValue label={t("admin.orders.detail.drone.dispatcher")}>
+              {drone.assignedByUserId
+                ? t("admin.orders.detail.drone.assignedManually")
+                : t("admin.orders.detail.drone.assignedAuto")}
             </LabelValue>
-            <LabelValue label="Tủ xuất phát">
-              {lockerLabel(drone.sourceLocker) ?? "Chưa tra được tên tủ"}
+            <LabelValue label={t("admin.orders.detail.drone.sourceLocker")}>
+              {lockerLabel(drone.sourceLocker, t) ?? t("admin.orders.lookup.lockerName")}
             </LabelValue>
-            <LabelValue label="Tủ đích">
+            <LabelValue label={t("admin.orders.detail.locker.destinationLocker")}>
               {/* Tủ đích của đơn và của chuyến bay là một; khối Tủ ở trên đã có tên. */}
-              {lockerLabel(order.destinationLocker) ?? "Chưa tra được tên tủ"}
+              {lockerLabel(order.destinationLocker, t) ?? t("admin.orders.lookup.lockerName")}
             </LabelValue>
-            <LabelValue label="Sẵn sàng cất cánh">
+            <LabelValue label={t("admin.orders.detail.drone.readyToLaunch")}>
               {drone.readyToLaunchAt ? formatDateTime(drone.readyToLaunchAt) : null}
             </LabelValue>
-            <LabelValue label="Bắt đầu cất cánh">
+            <LabelValue label={t("admin.orders.detail.drone.launching")}>
               {drone.launchingAt ? formatDateTime(drone.launchingAt) : null}
             </LabelValue>
-            <LabelValue label="Tạo nhiệm vụ">
+            <LabelValue label={t("admin.orders.detail.drone.missionCreated")}>
               {drone.createdAt ? formatDateTime(drone.createdAt) : null}
             </LabelValue>
-            <LabelValue label="Cập nhật">
+            <LabelValue label={t("admin.orders.detail.updatedAt")}>
               {drone.updatedAt ? formatDateTime(drone.updatedAt) : null}
             </LabelValue>
           </div>
@@ -396,6 +409,7 @@ function DroneCard({ order }: { order: AdminOrder }) {
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { order, isLoading, error, refetch, isValidId } = useOrderDetail(orderId);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
@@ -408,18 +422,20 @@ export default function OrderDetailPage() {
           <ReportErrorState
             error={error}
             onRetry={refetch}
-            title="Không tải được đơn hàng"
+            title={t("admin.orders.detail.loadFailed")}
           />
         ) : (
           <div className="text-center py-12">
             <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground/70" />
-            <h3 className="mt-4 text-lg font-medium">Mã đơn không hợp lệ</h3>
+            <h3 className="mt-4 text-lg font-medium">
+              {t("admin.orders.detail.invalidId")}
+            </h3>
           </div>
         )}
         <div className="text-center">
           <Button onClick={() => navigate("/admin/orders")} variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Về danh sách đơn
+            {t("admin.orders.detail.backToList")}
           </Button>
         </div>
       </div>
@@ -445,16 +461,19 @@ export default function OrderDetailPage() {
           </Button>
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight text-foreground truncate">
-              {order.orderCode ?? "Đơn chưa có mã"}
+              {order.orderCode ?? t("admin.orders.noCode")}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5 font-mono">
-              ID #{order.id} · tạo {formatDateTime(order.createdAt)}
+              {t("admin.orders.detail.idCreated", {
+                id: order.id,
+                time: formatDateTime(order.createdAt),
+              })}
             </p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => setIsStatusModalOpen(true)}>
           <Edit3 className="mr-1.5 h-3.5 w-3.5" />
-          Cập nhật trạng thái
+          {t("admin.orders.updateStatus")}
         </Button>
       </div>
 
@@ -468,11 +487,13 @@ export default function OrderDetailPage() {
         )}
         {order.overtime && (
           <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-            Đơn bị tính phí quá hạn
+            {t("admin.orders.detail.overtimeCharged")}
           </span>
         )}
         <span className="text-xs text-muted-foreground ml-auto font-mono">
-          Cập nhật {formatDateTime(order.updatedAt ?? order.createdAt)}
+          {t("admin.orders.detail.updatedAtTime", {
+            time: formatDateTime(order.updatedAt ?? order.createdAt),
+          })}
         </span>
       </div>
 
@@ -483,37 +504,37 @@ export default function OrderDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4" />
-                Mốc thời gian
+                {t("admin.orders.detail.milestones.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <LabelValue label="Tạo đơn">
+              <LabelValue label={t("admin.orders.detail.milestones.created")}>
                 {formatDateTime(order.createdAt)}
               </LabelValue>
-              <LabelValue label="Thanh toán">
+              <LabelValue label={t("admin.orders.detail.milestones.paid")}>
                 {order.paidAt ? formatDateTime(order.paidAt) : null}
               </LabelValue>
-              <LabelValue label="Hạn lấy hàng">
+              <LabelValue label={t("admin.orders.detail.milestones.pickupDeadline")}>
                 {order.pickupDeadline ? formatDateTime(order.pickupDeadline) : null}
               </LabelValue>
-              <LabelValue label="Hẹn nhận">
+              <LabelValue label={t("admin.orders.detail.milestones.intendedReceive")}>
                 {order.intendedReceiveAt
                   ? formatDateTime(order.intendedReceiveAt)
                   : null}
               </LabelValue>
-              <LabelValue label="Nhận thực tế">
+              <LabelValue label={t("admin.orders.detail.milestones.actualReceive")}>
                 {order.receiveAt ? formatDateTime(order.receiveAt) : null}
               </LabelValue>
-              <LabelValue label="Hoàn thành">
+              <LabelValue label={t("admin.orders.detail.milestones.completed")}>
                 {order.completedAt ? formatDateTime(order.completedAt) : null}
               </LabelValue>
-              <LabelValue label="Trả lại">
+              <LabelValue label={t("admin.orders.detail.milestones.returned")}>
                 {order.returnedAt ? formatDateTime(order.returnedAt) : null}
               </LabelValue>
-              <LabelValue label="Nhắc lần cuối">
+              <LabelValue label={t("admin.orders.detail.milestones.lastReminder")}>
                 {order.lastReminderAt ? formatDateTime(order.lastReminderAt) : null}
               </LabelValue>
-              <LabelValue label="Cập nhật">
+              <LabelValue label={t("admin.orders.detail.updatedAt")}>
                 {order.updatedAt ? formatDateTime(order.updatedAt) : null}
               </LabelValue>
             </CardContent>
@@ -524,15 +545,15 @@ export default function OrderDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Receipt className="h-4 w-4" />
-                Chi tiết phí
+                {t("admin.orders.detail.fees.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               {fees ? (
                 <>
                   {feeRows(fees).map((row) => (
-                    <div key={row.label} className="flex justify-between gap-3">
-                      <span className="text-muted-foreground">{row.label}</span>
+                    <div key={row.labelKey} className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">{t(row.labelKey)}</span>
                       <span className={row.negative ? "text-emerald-600 dark:text-emerald-400" : ""}>
                         {row.negative && (row.value ?? 0) > 0 ? "− " : ""}
                         {formatCurrency(row.value)}
@@ -541,23 +562,27 @@ export default function OrderDetailPage() {
                   ))}
                   <Separator />
                   <div className="flex justify-between gap-3 font-semibold">
-                    <span>Tổng phải trả</span>
+                    <span>{t("admin.orders.detail.fees.total")}</span>
                     <span className="text-base">{formatCurrency(fees.totalPrice)}</span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Giá chưa gồm phí quá hạn: {formatCurrency(fees.basePrice)}
+                    {t("admin.orders.detail.fees.basePrice", {
+                      amount: formatCurrency(fees.basePrice),
+                    })}
                   </p>
                 </>
               ) : (
                 <div className="flex justify-between gap-3 font-semibold">
-                  <span>Tổng phải trả</span>
+                  <span>{t("admin.orders.detail.fees.total")}</span>
                   <span>{formatCurrency(order.totalPrice)}</span>
                 </div>
               )}
 
               {promotionCodes.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Khuyến mãi: {promotionCodes.join(", ")}
+                  {t("admin.orders.detail.fees.promotions", {
+                    codes: promotionCodes.join(", "),
+                  })}
                 </p>
               )}
             </CardContent>
@@ -568,25 +593,27 @@ export default function OrderDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Package className="h-4 w-4" />
-                Kiện hàng &amp; ghi chú
+                {t("admin.orders.detail.parcel.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <LabelValue label="Nhóm dịch vụ">{order.serviceCategory}</LabelValue>
-                <LabelValue label="Khối lượng khai báo">
+                <LabelValue label={t("admin.orders.detail.parcel.serviceCategory")}>{order.serviceCategory}</LabelValue>
+                <LabelValue label={t("admin.orders.detail.parcel.declaredWeight")}>
                   {order.parcelWeightGrams !== null
                     ? `${formatNumber(order.parcelWeightGrams)} g`
                     : null}
                 </LabelValue>
-                <LabelValue label="Khối lượng cân">
+                <LabelValue label={t("admin.orders.detail.parcel.measuredWeight")}>
                   {order.actualWeight !== null
                     ? `${formatNumber(order.actualWeight)} ${order.weightUnit ?? ""}`
                     : null}
                 </LabelValue>
-                <LabelValue label="Số giờ thuê">
+                <LabelValue label={t("admin.orders.detail.parcel.rentalHours")}>
                   {order.rentalDurationHours !== null
-                    ? `${formatNumber(order.rentalDurationHours)} giờ`
+                    ? t("admin.orders.detail.parcel.hours", {
+                        hours: formatNumber(order.rentalDurationHours),
+                      })
                     : null}
                 </LabelValue>
               </div>
@@ -601,10 +628,12 @@ export default function OrderDetailPage() {
                     >
                       <div className="min-w-0">
                         <p className="font-medium truncate">
-                          {line.description || "Không có mô tả"}
+                          {line.description || t("admin.orders.detail.parcel.noDescription")}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Số lượng: {formatNumber(line.quantity)}
+                          {t("admin.orders.detail.parcel.quantity", {
+                            quantity: formatNumber(line.quantity),
+                          })}
                         </p>
                       </div>
                       <span className="font-medium shrink-0">
@@ -616,19 +645,21 @@ export default function OrderDetailPage() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <LabelValue label="Ghi chú của khách">
+                <LabelValue label={t("admin.orders.detail.parcel.customerNote")}>
                   {order.customerNote}
                 </LabelValue>
-                <LabelValue label="Ghi chú nội bộ">{order.staffNote}</LabelValue>
-                <LabelValue label="Mô tả">{order.description}</LabelValue>
-                <LabelValue label="Địa chỉ giao">
+                <LabelValue label={t("admin.orders.detail.parcel.staffNote")}>{order.staffNote}</LabelValue>
+                <LabelValue label={t("common.description")}>{order.description}</LabelValue>
+                <LabelValue label={t("admin.orders.detail.parcel.deliveryAddress")}>
                   {order.deliveryAddress}
                 </LabelValue>
-                <LabelValue label="Việc cần làm tiếp">
+                <LabelValue label={t("admin.orders.detail.parcel.nextAction")}>
                   {order.nextActionMessage ?? order.nextAction}
                 </LabelValue>
-                <LabelValue label="Lý do huỷ" mono>
-                  {order.cancelReason !== null ? `Mã ${order.cancelReason}` : null}
+                <LabelValue label={t("admin.orders.detail.parcel.cancelReason")} mono>
+                  {order.cancelReason !== null
+                    ? t("admin.orders.detail.parcel.cancelReasonCode", { code: order.cancelReason })
+                    : null}
                 </LabelValue>
               </div>
             </CardContent>
@@ -639,7 +670,7 @@ export default function OrderDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4" />
-                Lịch sử trạng thái
+                {t("admin.orders.detail.statusHistory")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -661,28 +692,30 @@ export default function OrderDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <KeyRound className="h-4 w-4" />
-                Tóm tắt liên kết
+                {t("admin.orders.detail.links.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-3">
-              <LabelValue label="Tủ">
+              <LabelValue label={t("admin.orders.fields.locker")}>
                 {order.locker?.name ?? order.locker?.code}
               </LabelValue>
-              <LabelValue label="Cửa hàng">{order.store?.name}</LabelValue>
-              <LabelValue label="Ô gửi">
-                {order.sendBoxNumber !== null ? `Ô số ${order.sendBoxNumber}` : null}
+              <LabelValue label={t("common.store")}>{order.store?.name}</LabelValue>
+              <LabelValue label={t("admin.orders.detail.locker.sendBox")}>
+                {order.sendBoxNumber !== null
+                  ? t("admin.orders.boxNumberLong", { number: order.sendBoxNumber })
+                  : null}
               </LabelValue>
-              <LabelValue label="Ô nhận">
+              <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
                 {order.receiveBoxNumber !== null
-                  ? `Ô số ${order.receiveBoxNumber}`
+                  ? t("admin.orders.boxNumberLong", { number: order.receiveBoxNumber })
                   : null}
               </LabelValue>
-              <LabelValue label="Ô giữ chỗ">
+              <LabelValue label={t("admin.orders.detail.locker.reservedBox")}>
                 {order.reservedBoxNumber !== null
-                  ? `Ô số ${order.reservedBoxNumber}`
+                  ? t("admin.orders.boxNumberLong", { number: order.reservedBoxNumber })
                   : null}
               </LabelValue>
-              <LabelValue label="Loại hình">
+              <LabelValue label={t("admin.orders.detail.links.type")}>
                 {orderTypeMeta(order.type).label}
               </LabelValue>
             </CardContent>
@@ -692,9 +725,10 @@ export default function OrderDetailPage() {
             <CardContent className="p-4 flex items-start gap-2.5">
               <Box className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground">
-                Mọi thời gian hiển thị theo giờ Việt Nam, định dạng
-                <span className="font-mono"> HH:mm:ss dd/MM/yyyy</span> — trùng với app
-                khách.
+                <Trans
+                  i18nKey="admin.orders.detail.timezoneNote"
+                  components={{ mono: <span className="font-mono" /> }}
+                />
               </p>
             </CardContent>
           </Card>

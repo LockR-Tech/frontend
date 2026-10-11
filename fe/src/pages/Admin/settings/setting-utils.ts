@@ -3,9 +3,11 @@ import type {
   SettingValueInput,
   SettingView,
 } from "~/stores/apis/admin/businessSettings";
+import i18n from "~/utils/i18n";
 
 // Toàn bộ logic kiểm tra / chuẩn hoá / hiển thị giá trị quy tắc nghiệp vụ.
 // Dựa hoàn toàn vào metadata từ API (type, min, max, allowedValues, unit) — không biết trước key nào.
+// Chuỗi hiển thị dịch lúc gọi (i18n.t) — component hiển thị phải gọi useTranslation() để render lại khi đổi ngôn ngữ.
 
 /** Bản nháp theo key, lưu ở dạng chuỗi giống `SettingView.value`. */
 export type DraftMap = Record<string, string>;
@@ -20,7 +22,10 @@ export interface SettingChange {
 const INTEGER_RE = /^[+-]?\d+$/;
 const DECIMAL_RE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const LIST_SEPARATOR_RE = /[,;\s]+/;
-const EMPTY_TEXT = "(để trống)";
+
+function emptyText(): string {
+  return i18n.t("admin.settings.value.empty");
+}
 
 export const EMPTY_SELECT_VALUE = "__empty__";
 
@@ -69,10 +74,14 @@ function checkRange(setting: SettingView, n: number, lowercase = false): string 
   const min = parseBound(setting.min);
   const max = parseBound(setting.max);
   if (min !== null && n < min) {
-    return `${lowercase ? "tối" : "Tối"} thiểu ${withUnit(formatNumber(min), setting.unit)}`;
+    return i18n.t(lowercase ? "admin.settings.validation.minLower" : "admin.settings.validation.min", {
+      value: withUnit(formatNumber(min), setting.unit),
+    });
   }
   if (max !== null && n > max) {
-    return `${lowercase ? "tối" : "Tối"} đa ${withUnit(formatNumber(max), setting.unit)}`;
+    return i18n.t(lowercase ? "admin.settings.validation.maxLower" : "admin.settings.validation.max", {
+      value: withUnit(formatNumber(max), setting.unit),
+    });
   }
   return null;
 }
@@ -113,45 +122,45 @@ function checkAllowed(setting: SettingView, raw: string): string | null {
   if (allowed.length === 0) return null;
   const normalized = normalizeValue(setting, raw);
   const ok = allowed.some((a) => normalizeValue(setting, a) === normalized);
-  return ok ? null : "Giá trị không nằm trong danh sách cho phép";
+  return ok ? null : i18n.t("admin.settings.validation.notAllowed");
 }
 
 /** Kiểm tra một phần tử của INTEGER_LIST (min/max áp cho từng phần tử). */
 export function validateListItem(setting: SettingView, item: string): string | null {
-  if (!INTEGER_RE.test(item)) return `"${item}" không phải số nguyên`;
+  if (!INTEGER_RE.test(item)) return i18n.t("admin.settings.validation.itemNotInteger", { item });
   const n = Number(item);
-  if (!Number.isSafeInteger(n)) return `"${item}" quá lớn`;
+  if (!Number.isSafeInteger(n)) return i18n.t("admin.settings.validation.itemTooLarge", { item });
   const range = checkRange(setting, n, true);
   if (range) return `${formatNumber(n)}: ${range}`;
   const allowed = allowedValuesOf(setting);
   if (allowed.length > 0 && !allowed.some((a) => normalizeValue(setting, a) === String(n))) {
-    return `${formatNumber(n)} không nằm trong danh sách cho phép`;
+    return i18n.t("admin.settings.validation.itemNotAllowed", { value: formatNumber(n) });
   }
   return null;
 }
 
-/** Thông báo lỗi tiếng Việt, hoặc `null` nếu hợp lệ. Mirror kiểm tra phía backend. */
+/** Thông báo lỗi (theo ngôn ngữ đang chọn), hoặc `null` nếu hợp lệ. Mirror kiểm tra phía backend. */
 export function validateSetting(setting: SettingView, raw: string): string | null {
   switch (setting.type) {
     case "INTEGER": {
       const t = raw.trim();
-      if (!t) return "Không được để trống";
-      if (!INTEGER_RE.test(t)) return "Phải là số nguyên";
+      if (!t) return i18n.t("admin.settings.validation.required");
+      if (!INTEGER_RE.test(t)) return i18n.t("admin.settings.validation.mustBeInteger");
       const n = Number(t);
-      if (!Number.isSafeInteger(n)) return "Số quá lớn";
+      if (!Number.isSafeInteger(n)) return i18n.t("admin.settings.validation.tooLarge");
       return checkRange(setting, n) ?? checkAllowed(setting, t);
     }
     case "DECIMAL": {
       const t = toDecimalString(raw);
-      if (!t) return "Không được để trống";
-      if (!DECIMAL_RE.test(t)) return "Phải là số (ví dụ 12.5)";
+      if (!t) return i18n.t("admin.settings.validation.required");
+      if (!DECIMAL_RE.test(t)) return i18n.t("admin.settings.validation.mustBeNumber");
       const n = Number(t);
-      if (!Number.isFinite(n)) return "Số không hợp lệ";
+      if (!Number.isFinite(n)) return i18n.t("admin.settings.validation.invalidNumber");
       return checkRange(setting, n) ?? checkAllowed(setting, t);
     }
     case "BOOLEAN": {
       const t = raw.trim().toLowerCase();
-      return t === "true" || t === "false" ? null : "Chỉ nhận bật hoặc tắt";
+      return t === "true" || t === "false" ? null : i18n.t("admin.settings.validation.booleanOnly");
     }
     case "INTEGER_LIST": {
       for (const item of splitList(raw)) {
@@ -207,20 +216,20 @@ export function formatSettingValue(setting: SettingView, raw: string | null | un
     case "INTEGER":
     case "DECIMAL": {
       const t = setting.type === "DECIMAL" ? toDecimalString(raw) : raw.trim();
-      if (t === "") return EMPTY_TEXT;
+      if (t === "") return emptyText();
       const pattern = setting.type === "DECIMAL" ? DECIMAL_RE : INTEGER_RE;
       const n = Number(t);
       return pattern.test(t) && Number.isFinite(n) ? withUnit(formatNumber(n), setting.unit) : raw;
     }
     case "BOOLEAN": {
       const t = raw.trim().toLowerCase();
-      if (t === "true") return "Bật";
-      if (t === "false") return "Tắt";
+      if (t === "true") return i18n.t("admin.settings.value.on");
+      if (t === "false") return i18n.t("admin.settings.value.off");
       return raw;
     }
     case "INTEGER_LIST": {
       const items = splitList(raw);
-      if (items.length === 0) return EMPTY_TEXT;
+      if (items.length === 0) return emptyText();
       const text = items
         .map((item) => (INTEGER_RE.test(item) ? formatNumber(Number(item)) : item))
         .join(", ");
@@ -228,7 +237,7 @@ export function formatSettingValue(setting: SettingView, raw: string | null | un
     }
     case "STRING":
     default:
-      return raw === "" ? EMPTY_TEXT : raw;
+      return raw === "" ? emptyText() : raw;
   }
 }
 
@@ -239,18 +248,24 @@ export function rangeHint(setting: SettingView): string | null {
   }
   const min = parseBound(setting.min);
   const max = parseBound(setting.max);
-  let core: string;
+  const each = setting.type === "INTEGER_LIST";
   if (min !== null && max !== null) {
-    core = `từ ${formatNumber(min)} đến ${withUnit(formatNumber(max), setting.unit)}`;
-  } else if (min !== null) {
-    core = `tối thiểu ${withUnit(formatNumber(min), setting.unit)}`;
-  } else if (max !== null) {
-    core = `tối đa ${withUnit(formatNumber(max), setting.unit)}`;
-  } else {
-    return null;
+    return i18n.t(each ? "admin.settings.range.eachBetween" : "admin.settings.range.between", {
+      min: formatNumber(min),
+      max: withUnit(formatNumber(max), setting.unit),
+    });
   }
-  if (setting.type === "INTEGER_LIST") return `Mỗi giá trị ${core}`;
-  return core.charAt(0).toUpperCase() + core.slice(1);
+  if (min !== null) {
+    return i18n.t(each ? "admin.settings.range.eachMin" : "admin.settings.validation.min", {
+      value: withUnit(formatNumber(min), setting.unit),
+    });
+  }
+  if (max !== null) {
+    return i18n.t(each ? "admin.settings.range.eachMax" : "admin.settings.validation.max", {
+      value: withUnit(formatNumber(max), setting.unit),
+    });
+  }
+  return null;
 }
 
 function foldText(text: string): string {
@@ -279,11 +294,14 @@ export interface SettingGroup {
   items: SettingView[];
 }
 
-/** Gom theo `group`, giữ thứ tự xuất hiện từ API. */
-export function groupSettings(settings: SettingView[]): SettingGroup[] {
+/** Gom theo `group`, giữ thứ tự xuất hiện từ API. `fallbackName`: tên nhóm cho quy tắc không có `group`. */
+export function groupSettings(
+  settings: SettingView[],
+  fallbackName: string = i18n.t("admin.settings.groups.other"),
+): SettingGroup[] {
   const groups = new Map<string, SettingView[]>();
   for (const setting of settings) {
-    const name = setting.group?.trim() || "Khác";
+    const name = setting.group?.trim() || fallbackName;
     const list = groups.get(name);
     if (list) list.push(setting);
     else groups.set(name, [setting]);
@@ -322,8 +340,8 @@ export function getApiErrorMessage(err: unknown, fallback: string): string {
   if (typeof e.data === "string" && e.data.trim() && !e.data.trim().startsWith("<")) {
     return e.data.trim();
   }
-  if (e.status === "FETCH_ERROR") return "Không kết nối được máy chủ";
-  if (e.status === "TIMEOUT_ERROR") return "Máy chủ phản hồi quá lâu";
-  if (e.status === 403) return "Tài khoản không có quyền thực hiện thao tác này";
+  if (e.status === "FETCH_ERROR") return i18n.t("common.serverUnreachable");
+  if (e.status === "TIMEOUT_ERROR") return i18n.t("admin.settings.errors.timeout");
+  if (e.status === 403) return i18n.t("admin.settings.errors.forbidden");
   return e.message || e.error || fallback;
 }

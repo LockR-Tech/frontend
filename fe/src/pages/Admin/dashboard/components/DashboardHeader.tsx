@@ -1,4 +1,5 @@
 import { Settings, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
@@ -17,11 +18,12 @@ export function DashboardHeader({
   onSettings,
   onCreateScenario,
 }: DashboardHeaderProps) {
+  const { t } = useTranslation();
   return (
     <div className="mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-          Dashboard
+          {t("admin.sidebar.dashboard")}
         </h1>
 
         <div className="flex gap-3">
@@ -32,7 +34,7 @@ export function DashboardHeader({
             onClick={onSettings}
           >
             <Settings size={18} />
-            <span className="hidden sm:inline">Cài đặt</span>
+            <span className="hidden sm:inline">{t("admin.sidebar.settings")}</span>
           </Button>
           <Button
             size="default"
@@ -40,7 +42,7 @@ export function DashboardHeader({
             onClick={onCreateScenario}
           >
             <Plus size={18} />
-            <span className="hidden sm:inline">Tạo kịch bản</span>
+            <span className="hidden sm:inline">{t("admin.dashboard.createScenario")}</span>
           </Button>
         </div>
       </div>

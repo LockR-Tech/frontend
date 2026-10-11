@@ -1,5 +1,6 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Edit3, Eye, MapPin, MoreHorizontal } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { Button } from "~/components/ui/button";
@@ -50,11 +51,12 @@ export function OrderTable({
   onPageSizeChange,
   onUpdateStatus,
 }: OrderTableProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const columns = [
     columnHelper.accessor("orderCode", {
-      header: "Đơn hàng",
+      header: t("common.order"),
       cell: ({ row }) => {
         const order = row.original;
         return (
@@ -62,7 +64,7 @@ export function OrderTable({
             {/* Mã đơn là thứ khách và nhân viên đọc cho nhau; id nội bộ bỏ đi vì
                 nhìn vào không biết là đơn nào. */}
             <p className="font-mono font-semibold text-sm text-foreground truncate">
-              {order.orderCode ?? "Đơn chưa có mã"}
+              {order.orderCode ?? t("admin.orders.noCode")}
             </p>
             {order.fulfillmentMode && (
               <p className="text-[11px] text-muted-foreground">
@@ -75,13 +77,13 @@ export function OrderTable({
     }),
 
     columnHelper.accessor("customer", {
-      header: "Khách gửi",
+      header: t("admin.orders.table.senderCustomer"),
       cell: ({ row }) => {
         const { customer } = row.original;
         return (
           <div className="min-w-0">
             <p className="font-medium text-sm text-foreground truncate">
-              {customer?.fullName || "Chưa tra được tên khách"}
+              {customer?.fullName || t("admin.orders.lookup.customerName")}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer?.phoneNumber || EMPTY_VALUE}
@@ -92,7 +94,7 @@ export function OrderTable({
     }),
 
     columnHelper.accessor("receiverName", {
-      header: "Người nhận",
+      header: t("admin.orders.fields.receiver"),
       cell: ({ row }) => {
         const receiver = row.original.receiver;
         const name = receiver?.name || receiver?.accountFullName;
@@ -111,19 +113,19 @@ export function OrderTable({
     }),
 
     columnHelper.accessor("type", {
-      header: "Loại",
+      header: t("admin.orders.fields.kind"),
       cell: ({ row }) => (
         <MetaBadge meta={orderTypeMeta(row.original.type)} hideIcon />
       ),
     }),
 
     columnHelper.accessor("status", {
-      header: "Trạng thái",
+      header: t("common.status"),
       cell: ({ row }) => <MetaBadge meta={orderStatusMeta(row.original.status)} />,
     }),
 
     columnHelper.accessor("paymentStatus", {
-      header: "Thanh toán",
+      header: t("common.payment"),
       cell: ({ row }) => {
         const order = row.original;
         const method = order.payment?.lastPaidMethod;
@@ -142,7 +144,7 @@ export function OrderTable({
     }),
 
     columnHelper.accessor("lockerId", {
-      header: "Tủ / ô",
+      header: t("admin.orders.table.lockerBox"),
       cell: ({ row }) => {
         const order = row.original;
         const locker = lockerOf(order);
@@ -151,12 +153,12 @@ export function OrderTable({
           <div className="min-w-0">
             <p className="text-sm text-foreground truncate flex items-center gap-1">
               <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-              {locker?.name || locker?.code || "Chưa tra được tên tủ"}
+              {locker?.name || locker?.code || t("admin.orders.lookup.lockerName")}
             </p>
             <p className="text-[11px] text-muted-foreground">
               {boxNumber !== null && boxNumber !== undefined
-                ? `Ô ${boxNumber}`
-                : "Chưa gán ô"}
+                ? t("admin.orders.boxNumber", { number: boxNumber })
+                : t("admin.orders.table.noBox")}
             </p>
           </div>
         );
@@ -164,7 +166,7 @@ export function OrderTable({
     }),
 
     columnHelper.accessor("totalPrice", {
-      header: "Tổng tiền",
+      header: t("admin.orders.columns.total"),
       cell: ({ row }) => {
         const order = row.original;
         const outstanding = order.payment?.outstandingAmount ?? null;
@@ -175,7 +177,9 @@ export function OrderTable({
             </p>
             {outstanding !== null && outstanding > 0 && (
               <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                Còn thiếu {formatCurrency(outstanding)}
+                {t("admin.orders.table.outstanding", {
+                  amount: formatCurrency(outstanding),
+                })}
               </p>
             )}
           </div>
@@ -184,7 +188,7 @@ export function OrderTable({
     }),
 
     columnHelper.accessor("createdAt", {
-      header: "Tạo lúc",
+      header: t("common.createdAtTime"),
       cell: ({ row }) => (
         <p className="font-mono text-xs text-foreground whitespace-nowrap">
           {formatDateTime(row.original.createdAt)}
@@ -210,14 +214,14 @@ export function OrderTable({
                 className="cursor-pointer"
               >
                 <Eye className="mr-2 h-4 w-4" />
-                Xem chi tiết
+                {t("dropdown.viewDetail")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onUpdateStatus(order)}
                 className="cursor-pointer"
               >
                 <Edit3 className="mr-2 h-4 w-4" />
-                Cập nhật trạng thái
+                {t("admin.orders.updateStatus")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -231,7 +235,7 @@ export function OrderTable({
       columns={columns}
       data={orders}
       isLoading={isLoading}
-      emptyMessage="Không có đơn nào khớp bộ lọc"
+      emptyMessage={t("admin.orders.table.empty")}
       serverPagination={{
         pageIndex: page,
         pageSize,

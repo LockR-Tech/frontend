@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ProtectedRoute from "./protected-route";
 import AuthLayout from "../pages/auth/layout";
 import AdminLayout from "../pages/Admin/layout";
@@ -17,11 +18,12 @@ import {
 
 // Loading fallback component
 function PageLoader(): ReactNode {
+  const { t } = useTranslation();
   return (
     <div className="min-h-100 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-        <p className="text-sm text-gray-500">Đang tải...</p>
+        <p className="text-sm text-gray-500">{t("common.loading")}</p>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Search, Home, ArrowLeft, MapPin, Sparkles } from "lucide-react";
 import { Button } from "~/components/ui";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { 
   findClosestRoute, 
   getRouteSuggestions, 
@@ -10,35 +11,36 @@ import {
   ROUTE_ALIASES 
 } from "~/lib/fuzzy-router";
 
-// Route display names cho UI
+// Route display names cho UI (khoá i18n)
 const ROUTE_NAMES: Record<string, string> = {
-  "/": "Trang chủ",
-  "/auth/login": "Đăng nhập",
-  "/auth/register": "Đăng ký",
-  "/admin/dashboard": "Dashboard",
-  "/admin/users": "Người dùng",
-  "/admin/orders": "Đơn hàng",
-  "/admin/stores": "Cửa hàng",
-  "/admin/lockers": "Tủ đồ",
-  "/admin/services": "Dịch vụ",
-  "/admin/payments": "Thanh toán",
-  "/admin/loyalty": "Khách hàng thân thiết",
-  "/admin/partners": "Đối tác",
-  "/admin/feedback": "Phản hồi",
-  "/admin/scheduler": "Lập lịch",
-  "/admin/settings": "Cấu hình nghiệp vụ",
-  "/partner/dashboard": "Partner Dashboard",
-  "/partner/orders": "Đơn hàng",
-  "/partner/staff": "Nhân viên",
-  "/partner/revenue": "Doanh thu",
-  "/partner/lockers": "Tủ đồ",
-  "/partner/services": "Dịch vụ",
-  "/partner/settings": "Cài đặt",
+  "/": "errorPage.routes.home",
+  "/auth/login": "button.login",
+  "/auth/register": "errorPage.routes.register",
+  "/admin/dashboard": "admin.sidebar.dashboard",
+  "/admin/users": "admin.sidebar.users",
+  "/admin/orders": "admin.sidebar.orders",
+  "/admin/stores": "errorPage.routes.stores",
+  "/admin/lockers": "errorPage.routes.lockers",
+  "/admin/services": "admin.sidebar.services",
+  "/admin/payments": "admin.sidebar.payments",
+  "/admin/loyalty": "admin.sidebar.loyalty",
+  "/admin/partners": "admin.sidebar.partners",
+  "/admin/feedback": "admin.sidebar.feedback",
+  "/admin/scheduler": "admin.sidebar.scheduler",
+  "/admin/settings": "admin.sidebar.businessSettings",
+  "/partner/dashboard": "errorPage.routes.partnerDashboard",
+  "/partner/orders": "admin.sidebar.orders",
+  "/partner/staff": "admin.breadcrumb.staff",
+  "/partner/revenue": "admin.sidebar.revenue",
+  "/partner/lockers": "errorPage.routes.lockers",
+  "/partner/services": "admin.sidebar.services",
+  "/partner/settings": "admin.sidebar.settings",
 };
 
 export default function NotFoundPage(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [isChecking, setIsChecking] = useState(true);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [didRedirect, setDidRedirect] = useState(false);
@@ -161,10 +163,10 @@ export default function NotFoundPage(): React.JSX.Element {
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
               <div className="flex items-center justify-center gap-2 text-primary">
                 <Sparkles className="h-5 w-5" />
-                <span className="font-medium">Tự động chuyển hướng...</span>
+                <span className="font-medium">{t("errorPage.notFound.autoRedirect")}</span>
               </div>
               <p className="text-sm text-primary mt-1">
-                Phát hiện URL gần đúng, đang chuyển đến trang phù hợp
+                {t("errorPage.notFound.redirectHint")}
               </p>
               <div className="mt-3 flex items-center justify-center gap-2 text-sm">
                 <code className="bg-primary/20 px-2 py-1 rounded text-primary">{currentPath}</code>
@@ -178,11 +180,15 @@ export default function NotFoundPage(): React.JSX.Element {
             // Hiển thị khi không tìm được
             <>
               <h2 className="text-3xl font-semibold text-foreground">
-                Không tìm thấy trang
+                {t("errorPage.notFound.title")}
               </h2>
               
               <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                Đường dẫn <code className="bg-muted/50 px-2 py-1 rounded text-foreground">{currentPath}</code> không tồn tại.
+                <Trans
+                  i18nKey="errorPage.notFound.pathMissing"
+                  values={{ path: currentPath }}
+                  components={{ code: <code className="bg-muted/50 px-2 py-1 rounded text-foreground" /> }}
+                />
               </p>
 
               {/* Gợi ý các trang gần nhất */}
@@ -191,7 +197,7 @@ export default function NotFoundPage(): React.JSX.Element {
                   <div className="flex items-start gap-3">
                     <Sparkles className="h-5 w-5 text-secondary-foreground mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-left">
-                      <p className="font-medium text-foreground mb-2">Có thể bạn muốn tìm:</p>
+                      <p className="font-medium text-foreground mb-2">{t("errorPage.notFound.suggestionsTitle")}</p>
                       <div className="flex flex-wrap gap-2">
                         {suggestions.map((route) => (
                           <button
@@ -201,7 +207,7 @@ export default function NotFoundPage(): React.JSX.Element {
                                      text-foreground hover:bg-secondary/30 hover:border-amber-400 
                                      transition-colors text-sm"
                           >
-                            {ROUTE_NAMES[route] || route}
+                            {ROUTE_NAMES[route] ? t(ROUTE_NAMES[route]) : route}
                           </button>
                         ))}
                       </div>
@@ -214,12 +220,26 @@ export default function NotFoundPage(): React.JSX.Element {
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div className="text-sm text-left">
-                    <p className="font-medium text-foreground mb-1">Gợi ý:</p>
+                    <p className="font-medium text-foreground mb-1">{t("errorPage.notFound.tipsTitle")}</p>
                     <ul className="text-muted-foreground space-y-1">
-                      <li>• Kiểm tra lại đường dẫn URL</li>
-                      <li>• Gõ <code>/login</code> thay vì <code>/auth/login</code></li>
-                      <li>• Gõ <code>/order</code> thay vì <code>/admin/orders</code></li>
-                      <li>• Quay về trang chủ và tìm kiếm lại</li>
+                      <li>• {t("errorPage.notFound.tipCheckUrl")}</li>
+                      <li>
+                        •{" "}
+                        <Trans
+                          i18nKey="errorPage.notFound.tipTypeInstead"
+                          values={{ short: "/login", full: "/auth/login" }}
+                          components={{ code: <code /> }}
+                        />
+                      </li>
+                      <li>
+                        •{" "}
+                        <Trans
+                          i18nKey="errorPage.notFound.tipTypeInstead"
+                          values={{ short: "/order", full: "/admin/orders" }}
+                          components={{ code: <code /> }}
+                        />
+                      </li>
+                      <li>• {t("errorPage.notFound.tipGoHome")}</li>
                     </ul>
                   </div>
                 </div>
@@ -237,7 +257,7 @@ export default function NotFoundPage(): React.JSX.Element {
             disabled={didRedirect}
           >
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
+            {t("button.back")}
           </Button>
           
           <Button
@@ -246,18 +266,18 @@ export default function NotFoundPage(): React.JSX.Element {
             disabled={didRedirect}
           >
             <Home className="h-4 w-4" />
-            Về trang chủ
+            {t("shared.errorBoundary.goHome")}
           </Button>
         </div>
 
         {/* Quick Links */}
         {!didRedirect && (
           <div className="max-w-md mx-auto pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground mb-3">Truy cập nhanh:</p>
+            <p className="text-sm text-muted-foreground mb-3">{t("errorPage.notFound.quickLinks")}</p>
             <div className="flex flex-wrap justify-center gap-2">
               {[
                 { path: "/admin/dashboard", label: "Dashboard" },
-                { path: "/admin/orders", label: "Đơn hàng" },
+                { path: "/admin/orders", label: t("admin.sidebar.orders") },
                 { path: "/admin/users", label: "Users" },
                 { path: "/partner/dashboard", label: "Partner" },
               ].map((link) => (

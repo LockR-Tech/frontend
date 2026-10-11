@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { ExternalLink, Package, RefreshCcw, Wallet } from "lucide-react";
 import {
   Dialog,
@@ -58,6 +60,7 @@ export function PaymentDetailModal({
   onClose,
   onUpdated,
 }: PaymentDetailModalProps) {
+  const { t } = useTranslation();
   const open = paymentId !== null;
   const navigate = useNavigate();
 
@@ -82,27 +85,30 @@ export function PaymentDetailModal({
     try {
       await updateStatus({ paymentId, status: selectedStatus }).unwrap();
       toast.success(
-        `Đã chuyển giao dịch ${payment?.referenceId ?? paymentId} sang “${paymentStatusMeta(selectedStatus).label}”`,
+        t("admin.payments.detail.statusUpdated", {
+          ref: payment?.referenceId ?? paymentId,
+          status: paymentStatusMeta(selectedStatus).label,
+        }),
       );
       onUpdated?.();
     } catch (mutationError) {
       toast.error(
         toReportError(mutationError as Parameters<typeof toReportError>[0])
-          ?.message ?? "Không cập nhật được trạng thái",
+          ?.message ?? t("admin.orders.statusModal.updateFailed"),
       );
     }
   };
 
   const statusChanged = !!payment && selectedStatus !== payment.status;
-  const editLock = payment ? statusEditLock(payment) : null;
+  const editLock = payment ? statusEditLock(payment, t) : null;
 
   return (
     <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Chi tiết giao dịch #{paymentId}</DialogTitle>
+          <DialogTitle>{t("admin.payments.detail.title", { id: paymentId })}</DialogTitle>
           <DialogDescription>
-            Thông tin thu tiền, hoàn tiền và biến động ví liên quan tới giao dịch này.
+            {t("admin.payments.detail.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -118,7 +124,7 @@ export function PaymentDetailModal({
           <ReportErrorState
             error={error}
             onRetry={refetch}
-            title="Không tải được giao dịch"
+            title={t("admin.payments.detail.loadFailed")}
           />
         )}
 
@@ -128,11 +134,11 @@ export function PaymentDetailModal({
 
             {payment.order && (
               <section className="space-y-2">
-                <SectionTitle icon={Package}>Đơn hàng liên quan</SectionTitle>
+                <SectionTitle icon={Package}>{t("admin.payments.detail.relatedOrder")}</SectionTitle>
                 <div className="rounded-xl border border-border p-3 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-sm font-semibold">
-                      {payment.order.orderCode ?? "Đơn chưa có mã"}
+                      {payment.order.orderCode ?? t("admin.orders.noCode")}
                     </span>
                     <MetaBadge meta={orderStatusMeta(payment.order.status)} hideIcon />
                     <MetaBadge
@@ -145,16 +151,16 @@ export function PaymentDetailModal({
                       className="ml-auto h-7 text-xs"
                       onClick={() => navigate(`/admin/orders/${payment.order!.id}`)}
                     >
-                      Mở đơn
+                      {t("admin.payments.detail.openOrder")}
                       <ExternalLink className="ml-1.5 h-3 w-3" />
                     </Button>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <LabelValue label="Loại đơn">{payment.order.type}</LabelValue>
-                    <LabelValue label="Tổng tiền đơn">
+                    <LabelValue label={t("admin.orders.fields.orderType")}>{payment.order.type}</LabelValue>
+                    <LabelValue label={t("admin.payments.detail.orderTotal")}>
                       {formatCurrency(payment.order.totalPrice)}
                     </LabelValue>
-                    <LabelValue label="Đơn tạo lúc">
+                    <LabelValue label={t("admin.payments.detail.orderCreatedAt")}>
                       {payment.order.createdAt
                         ? formatDateTime(payment.order.createdAt)
                         : null}
@@ -171,7 +177,7 @@ export function PaymentDetailModal({
             <Separator />
 
             <section className="space-y-2">
-              <SectionTitle>Cập nhật trạng thái</SectionTitle>
+              <SectionTitle>{t("admin.orders.updateStatus")}</SectionTitle>
               {editLock ? (
                 <p className="text-xs text-muted-foreground">{editLock}</p>
               ) : (
@@ -183,7 +189,7 @@ export function PaymentDetailModal({
                     }
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Chọn trạng thái" />
+                      <SelectValue placeholder={t("admin.payments.detail.selectStatus")} />
                     </SelectTrigger>
                     <SelectContent>
                       {ADMIN_PAYMENT_STATUSES.map((status) => (
@@ -198,7 +204,7 @@ export function PaymentDetailModal({
                     disabled={!statusChanged || saving}
                     onClick={handleSave}
                   >
-                    {saving ? "Đang lưu…" : "Lưu trạng thái"}
+                    {saving ? t("admin.orders.saving") : t("admin.payments.detail.saveStatus")}
                   </Button>
                 </div>
               )}
@@ -217,12 +223,14 @@ const TERMINAL_STATUSES = ["COMPLETED", "FAILED", "REFUNDED"];
  * Lý do khoá ô đổi trạng thái, `null` = được sửa. Nạp ví chỉ được ghi nhận qua callback
  * cổng thanh toán: đổi tay sang "Thành công" không cộng tiền vào ví khách.
  */
-function statusEditLock(payment: AdminPayment): string | null {
+function statusEditLock(payment: AdminPayment, t: TFunction): string | null {
   if (payment.kind === "TOPUP" || payment.method?.endsWith("_TOPUP")) {
-    return "Giao dịch nạp ví chỉ được xác nhận qua cổng thanh toán. Đổi tay trạng thái không cộng hay trừ tiền ví nên không cho phép sửa ở đây.";
+    return t("admin.payments.detail.lockTopup");
   }
   if (TERMINAL_STATUSES.includes(payment.status)) {
-    return `Giao dịch đã ở trạng thái cuối (“${paymentStatusMeta(payment.status).label}”) nên không đổi tay được. Cần trả tiền cho khách thì xử lý qua tab Hoàn tiền.`;
+    return t("admin.payments.detail.lockTerminal", {
+      status: paymentStatusMeta(payment.status).label,
+    });
   }
   return null;
 }
@@ -243,11 +251,12 @@ function SectionTitle({
 }
 
 function PaymentSummary({ payment }: { payment: AdminPayment }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       <div className="rounded-xl bg-secondary/50 border border-border p-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs text-muted-foreground mb-0.5">Số tiền</p>
+          <p className="text-xs text-muted-foreground mb-0.5">{t("admin.payments.amount")}</p>
           <p className="text-2xl font-bold tracking-tight text-foreground">
             {formatCurrency(payment.amount)}
           </p>
@@ -260,33 +269,33 @@ function PaymentSummary({ payment }: { payment: AdminPayment }) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <LabelValue label="Khách hàng">
+        <LabelValue label={t("common.customer")}>
           {payment.customer?.fullName ??
-            "Chưa tra được tên khách"}
+            t("admin.orders.lookup.customerName")}
         </LabelValue>
-        <LabelValue label="Điện thoại" mono>
+        <LabelValue label={t("common.phoneShort")} mono>
           {payment.customer?.phoneNumber}
         </LabelValue>
-        <LabelValue label="Tạo lúc">{formatDateTime(payment.createdAt)}</LabelValue>
-        <LabelValue label="Thu lúc">
+        <LabelValue label={t("common.createdAtTime")}>{formatDateTime(payment.createdAt)}</LabelValue>
+        <LabelValue label={t("admin.payments.paidAt")}>
           {payment.paidAt ? formatDateTime(payment.paidAt) : null}
         </LabelValue>
-        <LabelValue label="Cập nhật">
+        <LabelValue label={t("admin.orders.detail.updatedAt")}>
           {payment.updatedAt ? formatDateTime(payment.updatedAt) : null}
         </LabelValue>
-        <LabelValue label="Đã hoàn">
+        <LabelValue label={t("admin.orders.detail.payment.refunded")}>
           {formatCurrency(payment.refundedAmount)}
         </LabelValue>
-        <LabelValue label="Mã tham chiếu" mono>
+        <LabelValue label={t("admin.payments.detail.referenceId")} mono>
           {payment.referenceId}
         </LabelValue>
-        <LabelValue label="Mã giao dịch cổng" mono>
+        <LabelValue label={t("admin.payments.detail.gatewayTxnId")} mono>
           {payment.referenceTransactionId}
         </LabelValue>
       </div>
 
       {(payment.description || payment.content) && (
-        <LabelValue label="Nội dung">
+        <LabelValue label={t("admin.payments.detail.content")}>
           {payment.description ?? payment.content}
         </LabelValue>
       )}
@@ -295,14 +304,15 @@ function PaymentSummary({ payment }: { payment: AdminPayment }) {
 }
 
 function RefundSection({ refunds }: { refunds: AdminRefund[] }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-2">
       <SectionTitle icon={RefreshCcw}>
-        Hoàn tiền ({refunds.length})
+        {t("admin.payments.detail.refundsCount", { count: refunds.length })}
       </SectionTitle>
       {refunds.length === 0 ? (
         <p className="text-xs text-muted-foreground">
-          Giao dịch này chưa có lần hoàn tiền nào.
+          {t("admin.payments.detail.noRefunds")}
         </p>
       ) : (
         <div className="space-y-2">
@@ -323,21 +333,20 @@ function RefundSection({ refunds }: { refunds: AdminRefund[] }) {
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <LabelValue label="Lý do">{refund.reason}</LabelValue>
-                <LabelValue label="Mã giao dịch hoàn" mono>
+                <LabelValue label={t("admin.payments.detail.reason")}>{refund.reason}</LabelValue>
+                <LabelValue label={t("admin.payments.detail.refundTxnId")} mono>
                   {refund.transactionId}
                 </LabelValue>
-                <LabelValue label="Người xử lý">
+                <LabelValue label={t("admin.payments.detail.processedBy")}>
                   {refund.processedBy?.fullName ??
-                    (refund.processedByUserId ? "Chưa tra được tên" : null)}
+                    (refund.processedByUserId ? t("admin.orders.lookup.name") : null)}
                 </LabelValue>
               </div>
             </div>
           ))}
           {/* Backend hiện không đổi trạng thái giao dịch hay đơn khi tạo hoàn tiền. */}
           <p className="text-[11px] text-muted-foreground">
-            Tạo hoàn tiền không tự đổi trạng thái giao dịch hay tình trạng thanh toán
-            của đơn.
+            {t("admin.payments.detail.refundNote")}
           </p>
         </div>
       )}
@@ -350,14 +359,15 @@ function WalletSection({
 }: {
   transactions: AdminWalletTransaction[];
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-2">
       <SectionTitle icon={Wallet}>
-        Biến động ví ({transactions.length})
+        {t("admin.payments.detail.walletCount", { count: transactions.length })}
       </SectionTitle>
       {transactions.length === 0 ? (
         <p className="text-xs text-muted-foreground">
-          Giao dịch này không sinh biến động ví.
+          {t("admin.payments.detail.noWallet")}
         </p>
       ) : (
         <div className="space-y-2">
@@ -372,7 +382,9 @@ function WalletSection({
                 {formatCurrency(tx.amount)}
               </span>
               <span className="text-xs text-muted-foreground">
-                Số dư sau: {formatCurrency(tx.balanceAfter)}
+                {t("admin.payments.detail.balanceAfter", {
+                  amount: formatCurrency(tx.balanceAfter),
+                })}
               </span>
               <span className="text-[11px] text-muted-foreground font-mono ml-auto">
                 {formatDateTime(tx.createdAt)}
@@ -386,11 +398,14 @@ function WalletSection({
 }
 
 function OtherPaymentsSection({ payments }: { payments: AdminPayment[] }) {
+  const { t } = useTranslation();
   if (payments.length === 0) return null;
 
   return (
     <section className="space-y-2">
-      <SectionTitle>Giao dịch khác của cùng đơn ({payments.length})</SectionTitle>
+      <SectionTitle>
+        {t("admin.payments.detail.otherPayments", { count: payments.length })}
+      </SectionTitle>
       <div className="space-y-2">
         {payments.map((payment) => (
           <div

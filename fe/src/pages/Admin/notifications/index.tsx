@@ -184,14 +184,16 @@ export default function NotificationsPage() {
       <ConfirmActionDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Xoá thông báo?"
+        title={t("admin.notifications.deleteDialog.title")}
         description={
           <p>
-            Thông báo #{deleteTarget?.id} «{deleteTarget?.title}» sẽ bị xoá khỏi hộp thư của người
-            nhận. Không hoàn tác được.
+            {t("admin.notifications.deleteDialog.desc", {
+              id: deleteTarget?.id,
+              title: deleteTarget?.title,
+            })}
           </p>
         }
-        actionLabel="Xoá"
+        actionLabel={t("common.delete")}
         destructive
         loading={isDeleting}
         onConfirm={() => void confirmDelete()}

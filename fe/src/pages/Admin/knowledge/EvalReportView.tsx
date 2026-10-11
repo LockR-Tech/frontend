@@ -27,9 +27,11 @@ import {
   sameTitle,
   type EvalRun,
 } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 /** Tổng kết + bảng từng câu của lần chạy đánh giá gần nhất. */
 export function EvalReportView({ run }: { run: EvalRun }) {
+  const { t } = useTranslation();
   const { report, generated, ranAt } = run;
   const [failedOnly, setFailedOnly] = useState(false);
   const results = useMemo(
@@ -42,7 +44,7 @@ export function EvalReportView({ run }: { run: EvalRun }) {
     <Card className="space-y-4 border border-border p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-base font-semibold text-foreground">Kết quả đánh giá</h3>
+          <h3 className="text-base font-semibold text-foreground">{t("admin.knowledge.report.title")}</h3>
           <Badge
             variant="outline"
             className={cn(
@@ -51,51 +53,58 @@ export function EvalReportView({ run }: { run: EvalRun }) {
             )}
           >
             {generated && <Sparkles className="h-3 w-3" />}
-            {generated ? "Truy xuất + sinh câu trả lời" : "Chỉ truy xuất"}
+            {generated ? t("admin.knowledge.report.generated") : t("admin.knowledge.report.retrievalOnly")}
           </Badge>
           <span className="text-xs text-muted-foreground">{formatDateTime(ranAt)}</span>
         </div>
         <div className="flex items-center gap-2">
           <Switch id="eval-failed-only" checked={failedOnly} onCheckedChange={setFailedOnly} />
           <Label htmlFor="eval-failed-only" className="text-xs">
-            Chỉ hiện câu trượt ({failed})
+            {t("admin.knowledge.report.failedOnly", { count: failed })}
           </Label>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <SummaryTile
-          label="Đạt"
+          label={t("admin.knowledge.report.passed")}
           value={formatRatio(report.passed, report.total)}
           tone={report.total > 0 && failed === 0 ? "good" : failed > 0 ? "bad" : undefined}
         />
         <SummaryTile
-          label="Truy xuất trúng tài liệu"
+          label={t("admin.knowledge.report.retrievalHits")}
           value={formatRatio(report.retrievalHits, report.retrievalCases)}
           tone={report.retrievalCases > 0 && report.retrievalHits < report.retrievalCases ? "bad" : undefined}
         />
         <SummaryTile
-          label="Từ chối đúng"
+          label={t("admin.knowledge.report.refusalCorrect")}
           value={formatRatio(report.refusalCorrect, report.refusalCases)}
           tone={report.refusalCases > 0 && report.refusalCorrect < report.refusalCases ? "bad" : undefined}
         />
-        <SummaryTile label="Ngưỡng liên quan đang áp dụng" value={formatScore(report.minScore)} />
+        <SummaryTile label={t("admin.knowledge.report.minScore")} value={formatScore(report.minScore)} />
       </div>
       <p className="text-xs text-muted-foreground">
-        Truy xuất trượt nhiều → cân nhắc hạ ngưỡng hoặc sửa tài liệu; câu phải từ chối lại lọt → nâng
-        ngưỡng. Chỉnh ngưỡng ở Cấu hình nghiệp vụ › Trợ lý hỏi đáp.
+        {t("admin.knowledge.report.hint")}
       </p>
 
       <div className="overflow-hidden rounded-lg border border-border">
         <Table>
           <TableHeader>
             <TableRow className="bg-secondary/60 hover:bg-secondary/60">
-              <TableHead className="w-24 font-semibold text-foreground">Kết quả</TableHead>
-              <TableHead className="min-w-[240px] font-semibold text-foreground">Câu hỏi</TableHead>
-              <TableHead className="min-w-[160px] font-semibold text-foreground">Mong đợi</TableHead>
-              <TableHead className="text-right font-semibold text-foreground">Điểm cao nhất</TableHead>
+              <TableHead className="w-24 font-semibold text-foreground">
+                {t("admin.knowledge.report.columns.result")}
+              </TableHead>
+              <TableHead className="min-w-[240px] font-semibold text-foreground">
+                {t("admin.knowledge.eval.columns.question")}
+              </TableHead>
+              <TableHead className="min-w-[160px] font-semibold text-foreground">
+                {t("admin.knowledge.eval.columns.expected")}
+              </TableHead>
+              <TableHead className="text-right font-semibold text-foreground">
+                {t("admin.knowledge.report.columns.topScore")}
+              </TableHead>
               <TableHead className="min-w-[200px] font-semibold text-foreground">
-                Tài liệu tìm được (≥ ngưỡng)
+                {t("admin.knowledge.report.columns.retrieved")}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -103,7 +112,7 @@ export function EvalReportView({ run }: { run: EvalRun }) {
             {results.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
-                  {report.total === 0 ? "Chưa có câu đánh giá nào." : "Không có câu trượt."}
+                  {report.total === 0 ? t("admin.knowledge.report.noCases") : t("admin.knowledge.report.noFailed")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -142,6 +151,7 @@ function SummaryTile({
 }
 
 function ResultRow({ result }: { result: KnowledgeEvalResult }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const titles = result.retrievedTitles ?? [];
 
@@ -151,25 +161,25 @@ function ResultRow({ result }: { result: KnowledgeEvalResult }) {
         {result.passed ? (
           <Badge variant="outline" className="gap-1 border-green-300 bg-green-50 text-green-800">
             <CircleCheck className="h-3 w-3" />
-            Đạt
+            {t("admin.knowledge.report.passed")}
           </Badge>
         ) : (
           <Badge variant="outline" className="gap-1 border-red-300 bg-red-50 text-red-800">
             <CircleX className="h-3 w-3" />
-            Trượt
+            {t("admin.knowledge.report.failed")}
           </Badge>
         )}
       </TableCell>
       <TableCell className="align-top">
         <p className="whitespace-pre-wrap text-sm text-foreground">{result.question}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          {(result.roles ?? []).map(knowledgeRoleLabel).join(", ") || "Khách hàng"}
+          {(result.roles ?? []).map(knowledgeRoleLabel).join(", ") || t("common.customer")}
         </p>
         {result.answer && (
           <Collapsible open={open} onOpenChange={setOpen} className="mt-1.5">
             <CollapsibleTrigger className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
               <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
-              Câu trả lời của Claude
+              {t("admin.knowledge.report.claudeAnswer")}
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-1.5 whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-2.5 text-xs text-foreground">
               {result.answer}
@@ -180,7 +190,7 @@ function ResultRow({ result }: { result: KnowledgeEvalResult }) {
       <TableCell className="align-top text-sm">
         {result.mustRefuse ? (
           <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800">
-            Phải từ chối
+            {t("admin.knowledge.eval.mustRefuse")}
           </Badge>
         ) : (
           <span className="text-foreground">{result.expectedDocumentTitle ?? "—"}</span>
@@ -195,7 +205,7 @@ function ResultRow({ result }: { result: KnowledgeEvalResult }) {
       </TableCell>
       <TableCell className="align-top">
         {titles.length === 0 ? (
-          <span className="text-xs text-muted-foreground">Không có đoạn nào đạt ngưỡng</span>
+          <span className="text-xs text-muted-foreground">{t("admin.knowledge.report.noChunks")}</span>
         ) : (
           <ul className="space-y-0.5 text-xs">
             {titles.map((title) => {

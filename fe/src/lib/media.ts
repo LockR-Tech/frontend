@@ -1,23 +1,29 @@
 // Helper dùng chung cho các API gắn ảnh (Cloudinary) — mã lỗi theo docs/01-overview/media-storage.md
 
-export const MEDIA_STORAGE_DISABLED_MESSAGE = "Chưa cấu hình lưu trữ ảnh Cloudinary trên server";
+import i18n from "~/utils/i18n";
 
-const MEDIA_ERROR_MESSAGES: Record<string, string> = {
-  MEDIA_STORAGE_DISABLED: MEDIA_STORAGE_DISABLED_MESSAGE,
-  MEDIA_PURPOSE_INVALID: "Loại ảnh không hợp lệ",
-  MEDIA_PURPOSE_FORBIDDEN: "Tài khoản không có quyền tải loại ảnh này",
-  MEDIA_SIGNATURE_INVALID: "Chữ ký ảnh không hợp lệ hoặc đã hết hạn, vui lòng tải lại ảnh",
-  MEDIA_OWNER_MISMATCH: "Ảnh không thuộc tài khoản đang đăng nhập",
-  MEDIA_FORMAT_INVALID: "Định dạng ảnh không được hỗ trợ",
-  ATTACHMENT_LIMIT_EXCEEDED: "Đã vượt quá số ảnh cho phép của phiếu",
-  ATTACHMENT_STAGE_INVALID: "Giai đoạn ảnh không hợp lệ",
-  ATTACHMENT_DELETE_FORBIDDEN: "Không có quyền xoá ảnh này",
-  REPORT_NOT_IN_PROGRESS: "Phiếu chưa ở trạng thái Đang xử lý",
-  REPORT_ALREADY_RESOLVED: "Phiếu đã hoàn tất, không thể thay đổi ảnh",
-  REPORT_NOT_ASSIGNED: "Bạn không phải người được giao phiếu này",
-  REPORT_NOT_OWNED: "Bạn không phải chủ phiếu này",
-  RESOLUTION_PHOTO_REQUIRED: "Cần ít nhất 1 ảnh nghiệm thu trước khi hoàn tất phiếu",
-  DATA_CONFLICT: "Ảnh này đã được gắn trước đó",
+/** Thông báo khi server chưa cấu hình Cloudinary (dịch theo ngôn ngữ hiện tại). */
+export function getMediaStorageDisabledMessage(): string {
+  return i18n.t("shared.media.error.storageDisabled");
+}
+
+// Khoá i18n theo mã lỗi; dịch lúc gọi để theo ngôn ngữ hiện tại.
+const MEDIA_ERROR_KEYS: Record<string, string> = {
+  MEDIA_STORAGE_DISABLED: "shared.media.error.storageDisabled",
+  MEDIA_PURPOSE_INVALID: "shared.media.error.purposeInvalid",
+  MEDIA_PURPOSE_FORBIDDEN: "shared.media.error.purposeForbidden",
+  MEDIA_SIGNATURE_INVALID: "shared.media.error.signatureInvalid",
+  MEDIA_OWNER_MISMATCH: "shared.media.error.ownerMismatch",
+  MEDIA_FORMAT_INVALID: "shared.media.error.formatInvalid",
+  ATTACHMENT_LIMIT_EXCEEDED: "shared.media.error.attachmentLimitExceeded",
+  ATTACHMENT_STAGE_INVALID: "shared.media.error.attachmentStageInvalid",
+  ATTACHMENT_DELETE_FORBIDDEN: "shared.media.error.attachmentDeleteForbidden",
+  REPORT_NOT_IN_PROGRESS: "shared.media.error.reportNotInProgress",
+  REPORT_ALREADY_RESOLVED: "shared.media.error.reportAlreadyResolved",
+  REPORT_NOT_ASSIGNED: "shared.media.error.reportNotAssigned",
+  REPORT_NOT_OWNED: "shared.media.error.reportNotOwned",
+  RESOLUTION_PHOTO_REQUIRED: "shared.media.error.resolutionPhotoRequired",
+  DATA_CONFLICT: "shared.media.error.dataConflict",
 };
 
 interface ErrorLike {
@@ -38,13 +44,13 @@ export function isMediaStorageDisabled(err: unknown): boolean {
 }
 
 /** Thông báo lỗi dễ hiểu cho các thao tác ảnh (xin chữ ký, gắn ảnh, xoá ảnh…). */
-export function getMediaErrorMessage(err: unknown, fallback = "Đã xảy ra lỗi khi xử lý ảnh"): string {
+export function getMediaErrorMessage(err: unknown, fallback?: string): string {
   const code = getApiErrorCode(err);
-  if (code && MEDIA_ERROR_MESSAGES[code]) return MEDIA_ERROR_MESSAGES[code];
-  if (isMediaStorageDisabled(err)) return MEDIA_STORAGE_DISABLED_MESSAGE;
+  if (code && MEDIA_ERROR_KEYS[code]) return i18n.t(MEDIA_ERROR_KEYS[code]);
+  if (isMediaStorageDisabled(err)) return getMediaStorageDisabledMessage();
   const e = err as ErrorLike;
   const serverMessage = e?.data && typeof e.data === "object" ? e.data.message : undefined;
-  return serverMessage || e?.message || fallback;
+  return serverMessage || e?.message || (fallback ?? i18n.t("shared.media.error.generic"));
 }
 
 /** Backend mỗi service đặt tên trường ảnh khác nhau (`imageUrl`, `image`, `avatarUrl`). */

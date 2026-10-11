@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -16,20 +17,21 @@ import { Textarea } from "~/components/ui/textarea";
 import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
 import { useExtendReportSlaMutation, type LockerReportResponse } from "~/stores/apis/admin/lockerOps";
 
-const COMMON_REASONS = [
-  "Chờ linh kiện thay thế từ kho trung tâm",
-  "Sự cố bo mạch phức tạp cần đo kiểm chuyên sâu",
-  "Thời tiết mưa gió xấu không thể thử nghiệm bay Drone",
-  "Kẹt cơ khí nặng cần công cụ can thiệp chuyên dụng",
-  "Khu vực đặt Kiosk tạm thời phong tỏa sửa chữa mặt bằng",
+// Lưu khoá i18n; dịch lúc render bằng t()
+const COMMON_REASON_KEYS = [
+  "admin.maintenance.extendSla.reasons.parts",
+  "admin.maintenance.extendSla.reasons.board",
+  "admin.maintenance.extendSla.reasons.weather",
+  "admin.maintenance.extendSla.reasons.mechanical",
+  "admin.maintenance.extendSla.reasons.siteClosed",
 ];
 
 const PRESET_HOURS = [
-  { label: "+2 giờ", hours: 2 },
-  { label: "+4 giờ", hours: 4 },
-  { label: "+8 giờ", hours: 8 },
-  { label: "+1 ngày (24h)", hours: 24 },
-  { label: "+2 ngày (48h)", hours: 48 },
+  { labelKey: "admin.maintenance.extendSla.presets.hours2", hours: 2 },
+  { labelKey: "admin.maintenance.extendSla.presets.hours4", hours: 4 },
+  { labelKey: "admin.maintenance.extendSla.presets.hours8", hours: 8 },
+  { labelKey: "admin.maintenance.extendSla.presets.day1", hours: 24 },
+  { labelKey: "admin.maintenance.extendSla.presets.days2", hours: 48 },
 ];
 
 export function ExtendSlaDialog({
@@ -43,6 +45,7 @@ export function ExtendSlaDialog({
   onOpenChange: (open: boolean) => void;
   onSuccess?: (updated?: LockerReportResponse) => void;
 }) {
+  const { t } = useTranslation();
   const [selectedHours, setSelectedHours] = useState<number>(4);
   const [customHours, setCustomHours] = useState<string>("");
   const [reason, setReason] = useState<string>("");
@@ -68,11 +71,11 @@ export function ExtendSlaDialog({
 
   const handleSubmit = async () => {
     if (!reason.trim()) {
-      toast.error("Vui lòng cung cấp lý do gia hạn SLA!");
+      toast.error(t("admin.maintenance.extendSla.reasonRequired"));
       return;
     }
     if (effectiveHours < 1) {
-      toast.error("Số giờ gia hạn phải là số nguyên từ 1 trở lên");
+      toast.error(t("admin.maintenance.extendSla.hoursInvalid"));
       return;
     }
 
@@ -82,17 +85,17 @@ export function ExtendSlaDialog({
         data: { extensionHours: effectiveHours, reason: reason.trim() },
       }).unwrap();
       const updated = res?.data;
-      toast.success(`Đã gia hạn SLA (+${effectiveHours} giờ)`, {
+      toast.success(t("admin.maintenance.extendSla.success", { hours: effectiveHours }), {
         description: updated?.slaDueAt
-          ? `Hạn hoàn tất mới cho phiếu RPT-${report.id}: ${formatDateTime(updated.slaDueAt)}.`
-          : `Phiếu RPT-${report.id} đã được gia hạn.`,
+          ? t("admin.maintenance.extendSla.successNewDue", { id: report.id, due: formatDateTime(updated.slaDueAt) })
+          : t("admin.maintenance.extendSla.successExtended", { id: report.id }),
       });
       onOpenChange(false);
       onSuccess?.(updated);
     } catch (err: any) {
       // Giữ hộp thoại để admin thử lại; không ghi nhận gì phía client khi server từ chối
-      toast.error("Không gia hạn được SLA", {
-        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      toast.error(t("admin.maintenance.extendSla.failed"), {
+        description: err?.data?.message || err?.message || t("common.pleaseRetry"),
       });
     }
   };
@@ -103,10 +106,10 @@ export function ExtendSlaDialog({
         <DialogHeader className="pb-3 border-b">
           <DialogTitle className="text-base font-bold flex items-center gap-2 text-foreground">
             <Clock className="w-4 h-4 text-amber-600" />
-            Gia hạn thời gian xử lý sự cố (SLA)
+            {t("admin.maintenance.extendSla.title")}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-            Phiếu RPT-{report.id} · {report.title}
+            {t("admin.maintenance.reportLabel", { id: report.id, title: report.title })}
           </DialogDescription>
         </DialogHeader>
 
@@ -114,20 +117,20 @@ export function ExtendSlaDialog({
           {/* Hạn hiện tại vs hạn dự kiến sau gia hạn */}
           <div className="p-3 rounded-lg border border-border/70 bg-muted/30 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Hạn SLA hiện tại:</span>
+              <span className="text-muted-foreground">{t("admin.maintenance.extendSla.currentDue")}</span>
               <span className="font-mono text-muted-foreground">
                 {report.slaDueAt ? formatDateTime(report.slaDueAt) : "—"}
               </span>
             </div>
             {(report.slaExtendedHours ?? 0) > 0 && (
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Đã gia hạn trước đó:</span>
+                <span className="text-muted-foreground">{t("admin.maintenance.extendSla.extendedBefore")}</span>
                 <span className="font-mono text-muted-foreground">+{report.slaExtendedHours}h</span>
               </div>
             )}
             <div className="flex items-center justify-between pt-1 border-t border-border/50">
               <span className="font-semibold text-foreground flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Hạn mới (dự kiến):
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> {t("admin.maintenance.extendSla.newDue")}
               </span>
               <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
                 {previewDue ? formatDateTime(previewDue) : "—"}
@@ -138,7 +141,7 @@ export function ExtendSlaDialog({
           {/* Mức gia hạn nhanh + số giờ tuỳ chọn */}
           <div>
             <Label className="block text-xs font-semibold mb-1.5 text-foreground">
-              Chọn mức thời gian gia hạn thêm:
+              {t("admin.maintenance.extendSla.chooseExtension")}
             </Label>
             <div className="grid grid-cols-3 gap-1.5">
               {PRESET_HOURS.map((preset) => (
@@ -154,7 +157,7 @@ export function ExtendSlaDialog({
                       : "border-border/80 text-foreground"
                   }`}
                 >
-                  {preset.label}
+                  {t(preset.labelKey)}
                 </Button>
               ))}
               <Input
@@ -164,37 +167,37 @@ export function ExtendSlaDialog({
                 inputMode="numeric"
                 value={customHours}
                 onChange={(e) => setCustomHours(e.target.value)}
-                placeholder="Số giờ khác"
-                aria-label="Số giờ gia hạn tuỳ chọn"
+                placeholder={t("admin.maintenance.extendSla.customPlaceholder")}
+                aria-label={t("admin.maintenance.extendSla.customAria")}
                 className={`h-8 text-xs ${usingCustom ? (customValid ? "border-amber-500 ring-1 ring-amber-400" : "border-rose-400") : ""}`}
               />
             </div>
             {usingCustom && !customValid && (
-              <p className="text-[11px] text-rose-600 mt-1">Nhập số nguyên từ 1 giờ trở lên.</p>
+              <p className="text-[11px] text-rose-600 mt-1">{t("admin.maintenance.extendSla.customInvalid")}</p>
             )}
           </div>
 
           {/* Lý do gia hạn */}
           <div>
             <Label className="block text-xs font-semibold mb-1.5 text-foreground">
-              Lý do gia hạn SLA phổ biến:
+              {t("admin.maintenance.extendSla.commonReasons")}
             </Label>
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {COMMON_REASONS.map((r, idx) => (
+              {COMMON_REASON_KEYS.map((key, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => setReason(r)}
+                  onClick={() => setReason(t(key))}
                   className="px-2 py-1 rounded bg-muted/60 hover:bg-muted text-[11px] text-muted-foreground hover:text-foreground border border-border/60 transition-colors text-left"
                 >
-                  {r}
+                  {t(key)}
                 </button>
               ))}
             </div>
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Nhập chi tiết hoàn cảnh sự cố hoặc khó khăn kỹ thuật khiến việc hoàn tất cần thêm thời gian..."
+              placeholder={t("admin.maintenance.extendSla.reasonPlaceholder")}
               rows={3}
               className="text-xs resize-none"
             />
@@ -203,7 +206,7 @@ export function ExtendSlaDialog({
           <div className="p-2.5 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
             <span>
-              Hạn mới do máy chủ tính (phiếu đã quá hạn thì cộng từ thời điểm gia hạn) và được ghi vào nhật ký xử lý của phiếu.
+              {t("admin.maintenance.extendSla.serverNote")}
             </span>
           </div>
         </div>
@@ -216,7 +219,7 @@ export function ExtendSlaDialog({
             disabled={isSubmitting}
             className="text-xs"
           >
-            Hủy
+            {t("button.cancel")}
           </Button>
           <Button
             size="sm"
@@ -225,7 +228,7 @@ export function ExtendSlaDialog({
             className="text-xs bg-amber-600 hover:bg-amber-700 text-white"
           >
             {isSubmitting && <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />}
-            Xác nhận gia hạn SLA
+            {t("admin.maintenance.extendSla.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

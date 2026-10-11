@@ -1,9 +1,12 @@
 import { getRoleLabel } from "~/constants/roles";
+import i18n from "~/utils/i18n";
 import type {
   KnowledgeDocumentStatus,
   KnowledgeEvalCaseInput,
   KnowledgeEvalReport,
 } from "~/stores/apis/admin/knowledge";
+
+// Chuỗi hiển thị dịch lúc gọi (i18n.t) — component hiển thị phải gọi useTranslation() để render lại khi đổi ngôn ngữ.
 
 /** Kết quả lần chạy đánh giá gần nhất (giữ ở cấp trang để đổi tab không mất). */
 export interface EvalRun {
@@ -40,11 +43,11 @@ export const MAX_QUESTION_LENGTH = 2000;
 export function validateUploadFile(file: File): string | null {
   const name = file.name.toLowerCase();
   if (!ACCEPTED_EXTENSIONS.some((ext) => name.endsWith(ext))) {
-    return "Chỉ hỗ trợ Markdown (.md), TXT, HTML, PDF và DOCX.";
+    return i18n.t("admin.knowledge.upload.unsupportedType");
   }
-  if (file.size === 0) return "File rỗng.";
+  if (file.size === 0) return i18n.t("admin.knowledge.upload.emptyFile");
   if (file.size > MAX_UPLOAD_BYTES) {
-    return `File ${formatBytes(file.size)} vượt quá giới hạn 20 MB.`;
+    return i18n.t("admin.knowledge.upload.tooLarge", { size: formatBytes(file.size) });
   }
   return null;
 }
@@ -69,24 +72,33 @@ export function formatBytes(bytes: number | null | undefined): string {
 // Trạng thái & vai trò
 // ---------------------------------------------------------------------------
 
+// `label` là getter: dịch lúc đọc theo ngôn ngữ hiện tại.
 export const STATUS_META: Record<
   KnowledgeDocumentStatus,
   { label: string; className: string }
 > = {
   PENDING: {
-    label: "Chờ đánh chỉ mục",
+    get label() {
+      return i18n.t("admin.knowledge.status.pending");
+    },
     className: "border-amber-300 bg-amber-50 text-amber-800",
   },
   INDEXING: {
-    label: "Đang đánh chỉ mục",
+    get label() {
+      return i18n.t("admin.knowledge.status.indexing");
+    },
     className: "border-blue-300 bg-blue-50 text-blue-800",
   },
   READY: {
-    label: "Sẵn sàng",
+    get label() {
+      return i18n.t("admin.knowledge.status.ready");
+    },
     className: "border-green-300 bg-green-50 text-green-800",
   },
   FAILED: {
-    label: "Lỗi",
+    get label() {
+      return i18n.t("admin.knowledge.status.failed");
+    },
     className: "border-red-300 bg-red-50 text-red-800",
   },
 };
@@ -101,7 +113,7 @@ export function statusMeta(status: string): { label: string; className: string }
 }
 
 export function knowledgeRoleLabel(role: string): string {
-  return role === "ALL" ? "Tất cả người dùng" : getRoleLabel(role);
+  return role === "ALL" ? i18n.t("admin.knowledge.roles.all") : getRoleLabel(role);
 }
 
 /**
@@ -150,25 +162,25 @@ export function sameTitle(a: string | null | undefined, b: string | null | undef
 // Lỗi API
 // ---------------------------------------------------------------------------
 
-/** Mã lỗi chung của backend có message tiếng Anh -> luôn dùng câu tiếng Việt. */
+/** Mã lỗi chung của backend có message tiếng Anh -> luôn dùng câu đã dịch (giá trị = message key). */
 const GENERIC_CODE_MESSAGES: Record<string, string> = {
-  NOT_FOUND: "Không tìm thấy dữ liệu (có thể đã bị xoá).",
-  VALIDATION_ERROR: "Dữ liệu gửi lên không hợp lệ.",
-  DATA_CONFLICT: "Dữ liệu bị trùng hoặc vi phạm ràng buộc.",
-  INTERNAL_ERROR: "Máy chủ gặp lỗi khi xử lý yêu cầu.",
+  NOT_FOUND: "admin.knowledge.errors.notFound",
+  VALIDATION_ERROR: "admin.knowledge.errors.validation",
+  DATA_CONFLICT: "admin.knowledge.errors.conflict",
+  INTERNAL_ERROR: "admin.knowledge.errors.internal",
 };
 
-/** Dự phòng khi backend không kèm message (bình thường message đã là tiếng Việt). */
+/** Dự phòng khi backend không kèm message (bình thường message đã là tiếng Việt). Giá trị = message key. */
 const BUSINESS_CODE_MESSAGES: Record<string, string> = {
-  DOCUMENT_EMPTY: "File rỗng.",
-  DOCUMENT_TOO_LARGE: "File tối đa 20 MB.",
-  DOCUMENT_TYPE_UNSUPPORTED: "Chỉ hỗ trợ Markdown, TXT, HTML, PDF và DOCX.",
-  DOCUMENT_DUPLICATE: "Tài liệu này đã có trong kho tri thức.",
-  DOCUMENT_UNREADABLE: "Không đọc được file tải lên.",
-  ROLE_INVALID: "Vai trò không hợp lệ.",
-  EVAL_CASE_INVALID: "Câu không bắt buộc từ chối phải có tài liệu mong đợi.",
-  ASSISTANT_NOT_CONFIGURED: "Trợ lý hỏi đáp chưa được cấu hình trên máy chủ (thiếu khoá API mô hình).",
-  ASSISTANT_UNAVAILABLE: "Nhà cung cấp mô hình đang lỗi, thử lại sau.",
+  DOCUMENT_EMPTY: "admin.knowledge.upload.emptyFile",
+  DOCUMENT_TOO_LARGE: "admin.knowledge.errors.documentTooLarge",
+  DOCUMENT_TYPE_UNSUPPORTED: "admin.knowledge.errors.documentTypeUnsupported",
+  DOCUMENT_DUPLICATE: "admin.knowledge.errors.documentDuplicate",
+  DOCUMENT_UNREADABLE: "admin.knowledge.errors.documentUnreadable",
+  ROLE_INVALID: "admin.knowledge.errors.roleInvalid",
+  EVAL_CASE_INVALID: "admin.knowledge.errors.evalCaseInvalid",
+  ASSISTANT_NOT_CONFIGURED: "admin.knowledge.errors.assistantNotConfigured",
+  ASSISTANT_UNAVAILABLE: "admin.knowledge.errors.assistantUnavailable",
 };
 
 interface RtkErrorLike {
@@ -190,34 +202,34 @@ export function getKnowledgeErrorMessage(err: unknown, fallback: string): string
   if (!e) return fallback;
 
   const code = getKnowledgeErrorCode(err);
-  if (code && GENERIC_CODE_MESSAGES[code]) return GENERIC_CODE_MESSAGES[code];
+  if (code && GENERIC_CODE_MESSAGES[code]) return i18n.t(GENERIC_CODE_MESSAGES[code]);
 
   // Chỉ tin `message` của ApiResponse (có `code`); lỗi mặc định của Spring/gateway là tiếng Anh.
   if (code) {
     const message = (e.data as { message?: unknown }).message;
     if (typeof message === "string" && message.trim()) return message.trim();
-    if (BUSINESS_CODE_MESSAGES[code]) return BUSINESS_CODE_MESSAGES[code];
+    if (BUSINESS_CODE_MESSAGES[code]) return i18n.t(BUSINESS_CODE_MESSAGES[code]);
   }
 
   // Nginx trả HTML (không parse được JSON) khi body vượt giới hạn.
   const status = e.status === "PARSING_ERROR" ? e.originalStatus : e.status;
   switch (status) {
     case 413:
-      return "File vượt quá giới hạn 20 MB của máy chủ.";
+      return i18n.t("admin.knowledge.errors.payloadTooLarge");
     case 403:
-      return "Tài khoản không có quyền ADMIN để thực hiện thao tác này.";
+      return i18n.t("admin.knowledge.errors.forbidden");
     case 404:
-      return "Máy chủ chưa hỗ trợ chức năng này (assistant-service chưa triển khai?).";
+      return i18n.t("admin.knowledge.errors.notSupported");
     case 500:
-      return "Máy chủ gặp lỗi khi xử lý yêu cầu.";
+      return i18n.t("admin.knowledge.errors.internal");
     case 502:
     case 503:
     case 504:
-      return "Trợ lý hỏi đáp đang không phản hồi. Thử lại sau.";
+      return i18n.t("admin.knowledge.errors.unavailable");
     case "FETCH_ERROR":
-      return "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.";
+      return i18n.t("admin.knowledge.errors.network");
     case "TIMEOUT_ERROR":
-      return "Máy chủ phản hồi quá lâu. Thử lại sau.";
+      return i18n.t("admin.knowledge.errors.timeout");
     default:
       return fallback;
   }
@@ -251,7 +263,7 @@ export interface ParsedEvalCases {
 /** Kiểm tra JSON dán vào trước khi gửi (backend báo lỗi cả lô nếu một câu sai). */
 export function parseEvalCasesJson(text: string): ParsedEvalCases {
   const trimmed = text.trim();
-  if (!trimmed) return { cases: [], errors: ["Chưa dán nội dung JSON."] };
+  if (!trimmed) return { cases: [], errors: [i18n.t("admin.knowledge.import.errors.empty")] };
 
   let parsed: unknown;
   try {
@@ -259,35 +271,39 @@ export function parseEvalCasesJson(text: string): ParsedEvalCases {
   } catch (err) {
     return {
       cases: [],
-      errors: [`JSON không hợp lệ: ${err instanceof Error ? err.message : String(err)}`],
+      errors: [
+        i18n.t("admin.knowledge.import.errors.invalidJson", {
+          message: err instanceof Error ? err.message : String(err),
+        }),
+      ],
     };
   }
   const items = Array.isArray(parsed) ? parsed : [parsed];
-  if (items.length === 0) return { cases: [], errors: ["Mảng rỗng."] };
+  if (items.length === 0) return { cases: [], errors: [i18n.t("admin.knowledge.import.errors.emptyArray")] };
 
   const cases: KnowledgeEvalCaseInput[] = [];
   const errors: string[] = [];
 
   items.forEach((item, index) => {
-    const at = `Câu #${index + 1}`;
+    const at = { index: index + 1 };
     if (!item || typeof item !== "object" || Array.isArray(item)) {
-      errors.push(`${at}: phải là một object.`);
+      errors.push(i18n.t("admin.knowledge.import.errors.notObject", at));
       return;
     }
     const raw = item as Record<string, unknown>;
 
     const question = typeof raw.question === "string" ? raw.question.trim() : "";
     if (!question) {
-      errors.push(`${at}: thiếu "question".`);
+      errors.push(i18n.t("admin.knowledge.import.errors.missingQuestion", at));
       return;
     }
     if (question.length > MAX_QUESTION_LENGTH) {
-      errors.push(`${at}: "question" dài quá ${MAX_QUESTION_LENGTH} ký tự.`);
+      errors.push(i18n.t("admin.knowledge.import.errors.questionTooLong", { ...at, max: MAX_QUESTION_LENGTH }));
       return;
     }
 
     if (raw.mustRefuse !== undefined && typeof raw.mustRefuse !== "boolean") {
-      errors.push(`${at}: "mustRefuse" phải là true/false.`);
+      errors.push(i18n.t("admin.knowledge.import.errors.mustRefuseBoolean", at));
       return;
     }
     const mustRefuse = raw.mustRefuse === true;
@@ -295,7 +311,7 @@ export function parseEvalCasesJson(text: string): ParsedEvalCases {
     let roles: string[] | undefined;
     if (raw.roles !== undefined && raw.roles !== null) {
       if (!Array.isArray(raw.roles) || raw.roles.some((r) => typeof r !== "string")) {
-        errors.push(`${at}: "roles" phải là mảng chuỗi.`);
+        errors.push(i18n.t("admin.knowledge.import.errors.rolesArray", at));
         return;
       }
       roles = (raw.roles as string[])
@@ -303,7 +319,7 @@ export function parseEvalCasesJson(text: string): ParsedEvalCases {
         .filter(Boolean);
       const invalid = roles.filter((r) => !VALID_EVAL_ROLES.has(r));
       if (invalid.length > 0) {
-        errors.push(`${at}: vai trò không hợp lệ ${invalid.join(", ")}.`);
+        errors.push(i18n.t("admin.knowledge.import.errors.rolesInvalid", { ...at, roles: invalid.join(", ") }));
         return;
       }
     }
@@ -311,15 +327,15 @@ export function parseEvalCasesJson(text: string): ParsedEvalCases {
     const expected =
       typeof raw.expectedDocumentTitle === "string" ? raw.expectedDocumentTitle.trim() : "";
     if (raw.expectedDocumentTitle != null && typeof raw.expectedDocumentTitle !== "string") {
-      errors.push(`${at}: "expectedDocumentTitle" phải là chuỗi.`);
+      errors.push(i18n.t("admin.knowledge.import.errors.expectedString", at));
       return;
     }
     if (expected.length > MAX_TITLE_LENGTH) {
-      errors.push(`${at}: "expectedDocumentTitle" dài quá ${MAX_TITLE_LENGTH} ký tự.`);
+      errors.push(i18n.t("admin.knowledge.import.errors.expectedTooLong", { ...at, max: MAX_TITLE_LENGTH }));
       return;
     }
     if (!mustRefuse && !expected) {
-      errors.push(`${at}: câu không bắt buộc từ chối phải có "expectedDocumentTitle".`);
+      errors.push(i18n.t("admin.knowledge.import.errors.expectedRequired", at));
       return;
     }
 

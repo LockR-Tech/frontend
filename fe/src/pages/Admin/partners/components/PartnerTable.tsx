@@ -96,8 +96,9 @@ const TruncatedText = ({
   maxLength?: number;
   className?: string;
 }) => {
+  const { t } = useTranslation();
   if (!text || text.length <= maxLength)
-    return <span className={className}>{text || "Chưa cập nhật"}</span>;
+    return <span className={className}>{text || t("admin.partners.table.notUpdated")}</span>;
 
   return (
     <TooltipProvider>
@@ -219,7 +220,7 @@ export function PartnerTable({
         <div className="flex items-start gap-2">
           <MapPin size={16} className="text-muted-foreground/70 flex-shrink-0 mt-0.5" />
           <TruncatedText
-            text={row.original.address || "Chưa cập nhật"}
+            text={row.original.address || t("admin.partners.table.notUpdated")}
             maxLength={30}
             className="text-sm text-muted-foreground"
           />
@@ -235,7 +236,7 @@ export function PartnerTable({
             <Building2 size={16} />
           </IconWrapper>
           <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold">
-            {row.original.storeCount || 0} địa điểm
+            {t("admin.partners.table.storesCount", { count: row.original.storeCount || 0 })}
           </Badge>
         </div>
       ),
@@ -271,7 +272,7 @@ export function PartnerTable({
                 className="cursor-pointer"
               >
                 <Eye className="mr-2 h-4 w-4" />
-                Xem chi tiết
+                {t("dropdown.viewDetail")}
               </DropdownMenuItem>
               {partner.status === PartnerStatus.PENDING && (
                 <>
@@ -280,14 +281,14 @@ export function PartnerTable({
                     className="cursor-pointer text-green-600 focus:text-green-600"
                   >
                     <CheckCircle size={16} className="mr-2" />
-                    Phê duyệt
+                    {t("dropdown.approve")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => onReject(partner.id)}
                     className="cursor-pointer text-red-600 focus:text-red-600"
                   >
                     <XCircle size={16} className="mr-2" />
-                    Từ chối
+                    {t("dropdown.reject")}
                   </DropdownMenuItem>
                 </>
               )}
@@ -297,7 +298,7 @@ export function PartnerTable({
                   className="cursor-pointer text-amber-600 focus:text-amber-600"
                 >
                   <AlertCircle size={16} className="mr-2" />
-                  Đình chỉ
+                  {t("dropdown.suspend")}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

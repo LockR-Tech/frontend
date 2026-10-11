@@ -26,6 +26,7 @@ import {
   settingLabel,
   validateSetting,
 } from "./setting-utils";
+import { useTranslation } from "react-i18next";
 
 interface SettingRowProps {
   setting: SettingView;
@@ -48,6 +49,7 @@ function SettingRowComponent({
   onReset,
   onShowHistory,
 }: SettingRowProps) {
+  const { t } = useTranslation();
   const label = settingLabel(setting);
   const value = draft ?? currentRaw(setting);
   const dirty = isDirty(setting, draft);
@@ -70,12 +72,12 @@ function SettingRowComponent({
           </label>
           {dirty && (
             <Badge variant="outline" className="border-amber-300 bg-amber-100 text-[11px] font-medium text-amber-800">
-              Chưa lưu
+              {t("admin.settings.row.unsaved")}
             </Badge>
           )}
           {setting.overridden && (
             <Badge variant="outline" className="border-blue-200 bg-blue-50 text-[11px] font-medium text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
-              Đã tuỳ chỉnh
+              {t("admin.settings.row.overridden")}
             </Badge>
           )}
           {setting.publicValue && (
@@ -86,11 +88,11 @@ function SettingRowComponent({
                   className="cursor-help gap-1 border-emerald-200 bg-emerald-50 text-[11px] font-medium text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
                 >
                   <Globe className="h-3 w-3" />
-                  Công khai
+                  {t("admin.settings.row.public")}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Giá trị được trả cho ứng dụng khách qua API công khai, không cần đăng nhập.
+                {t("admin.settings.row.publicHint")}
               </TooltipContent>
             </Tooltip>
           )}
@@ -104,15 +106,19 @@ function SettingRowComponent({
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
           <span>
-            Mặc định:{" "}
+            {t("admin.settings.row.defaultLabel")}{" "}
             <span className="font-medium text-foreground/80">
               {formatSettingValue(setting, setting.defaultValue)}
             </span>
           </span>
           {setting.updatedAt && (
             <span>
-              Cập nhật lúc {formatDateTime(setting.updatedAt)}
-              {setting.updatedByUserId != null && ` · người dùng #${setting.updatedByUserId}`}
+              {setting.updatedByUserId != null
+                ? t("admin.settings.row.updatedAtBy", {
+                    date: formatDateTime(setting.updatedAt),
+                    id: setting.updatedByUserId,
+                  })
+                : t("admin.settings.row.updatedAt", { date: formatDateTime(setting.updatedAt) })}
             </span>
           )}
           <button
@@ -121,7 +127,7 @@ function SettingRowComponent({
             className="inline-flex items-center gap-1 font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
             <History className="h-3 w-3" />
-            Xem lịch sử
+            {t("admin.settings.row.viewHistory")}
           </button>
         </div>
       </div>
@@ -145,7 +151,7 @@ function SettingRowComponent({
 
         {dirty && (
           <p className="text-[11px] text-amber-800 dark:text-amber-300">
-            Đang lưu trên hệ thống: {formatSettingValue(setting, setting.value)}
+            {t("admin.settings.row.savedValue", { value: formatSettingValue(setting, setting.value) })}
           </p>
         )}
 
@@ -160,7 +166,7 @@ function SettingRowComponent({
                 onClick={() => onRevertDraft(setting.key)}
               >
                 <Undo2 className="h-3.5 w-3.5" />
-                Hoàn tác
+                {t("admin.settings.row.undo")}
               </Button>
             )}
             {setting.overridden && (
@@ -178,30 +184,30 @@ function SettingRowComponent({
                     ) : (
                       <RotateCcw className="h-3.5 w-3.5" />
                     )}
-                    Khôi phục mặc định
+                    {t("admin.settings.row.resetDefault")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Khôi phục giá trị mặc định?</AlertDialogTitle>
+                    <AlertDialogTitle>{t("admin.settings.row.resetTitle")}</AlertDialogTitle>
                     <AlertDialogDescription asChild>
                       <div className="space-y-2 text-sm text-muted-foreground">
                         <p>
-                          <span className="font-medium text-foreground">{label}</span> sẽ quay về giá
-                          trị mặc định của service.
+                          <span className="font-medium text-foreground">{label}</span>{" "}
+                          {t("admin.settings.row.resetDescriptionSuffix")}
                         </p>
                         <p>
-                          Hiện tại: <span className="font-medium text-foreground">{formatSettingValue(setting, setting.value)}</span>
+                          {t("admin.settings.row.currentLabel")} <span className="font-medium text-foreground">{formatSettingValue(setting, setting.value)}</span>
                           <br />
-                          Mặc định: <span className="font-medium text-foreground">{formatSettingValue(setting, setting.defaultValue)}</span>
+                          {t("admin.settings.row.defaultLabel")} <span className="font-medium text-foreground">{formatSettingValue(setting, setting.defaultValue)}</span>
                         </p>
-                        {dirty && <p className="text-amber-700">Thay đổi chưa lưu của quy tắc này sẽ bị bỏ.</p>}
+                        {dirty && <p className="text-amber-700">{t("admin.settings.row.dirtyWarning")}</p>}
                       </div>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Huỷ</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onReset(setting)}>Khôi phục</AlertDialogAction>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onReset(setting)}>{t("admin.settings.row.restore")}</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

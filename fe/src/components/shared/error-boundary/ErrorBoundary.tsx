@@ -1,5 +1,6 @@
 import { Component, type ReactNode, type ErrorInfo } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 
 interface Props {
@@ -70,6 +71,7 @@ function ErrorFallback({
   onReset: () => void;
   onReload: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
@@ -78,15 +80,15 @@ function ErrorFallback({
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Đã xảy ra lỗi
+          {t("shared.errorBoundary.title")}
         </h1>
         <p className="text-gray-500 mb-6">
-          Ứng dụng đã gặp sự cố. Vui lòng thử lại hoặc quay về trang chủ.
+          {t("shared.errorBoundary.description")}
         </p>
 
         {error && (
           <div className="mb-6 p-4 bg-gray-50 rounded-lg text-left">
-            <p className="text-sm font-medium text-gray-700 mb-1">Chi tiết lỗi:</p>
+            <p className="text-sm font-medium text-gray-700 mb-1">{t("shared.errorBoundary.details")}</p>
             <p className="text-xs text-red-600 font-mono break-all">
               {error.message}
             </p>
@@ -100,14 +102,14 @@ function ErrorFallback({
             className="flex items-center justify-center gap-2"
           >
             <RefreshCw size={16} />
-            Thử lại
+            {t("common.retry")}
           </Button>
           <Button
             onClick={onReload}
             className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
           >
             <RefreshCw size={16} />
-            Tải lại trang
+            {t("shared.errorBoundary.reloadPage")}
           </Button>
           <Button
             onClick={() => window.location.href = "/"}
@@ -115,7 +117,7 @@ function ErrorFallback({
             className="flex items-center justify-center gap-2"
           >
             <Home size={16} />
-            Về trang chủ
+            {t("shared.errorBoundary.goHome")}
           </Button>
         </div>
       </div>

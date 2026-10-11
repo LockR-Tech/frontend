@@ -1,4 +1,5 @@
 import { Check, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ export function MultiSelectFilter({
   onChange,
   className,
 }: MultiSelectFilterProps) {
+  const { t } = useTranslation();
   const selected = new Set(value);
 
   const toggle = (option: string) => {
@@ -48,10 +50,10 @@ export function MultiSelectFilter({
 
   const summary =
     value.length === 0
-      ? "Tất cả"
+      ? t("common.all")
       : value.length === 1
         ? (options.find((o) => o.value === value[0])?.label ?? value[0])
-        : `${value.length} mục`;
+        : t("shared.multiSelect.selectedCount", { count: value.length });
 
   return (
     <DropdownMenu>
@@ -110,7 +112,7 @@ export function MultiSelectFilter({
               }}
               className="cursor-pointer text-muted-foreground"
             >
-              Bỏ chọn tất cả
+              {t("shared.multiSelect.clearAll")}
             </DropdownMenuItem>
           </>
         )}

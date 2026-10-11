@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
@@ -34,9 +35,10 @@ interface PageLoadingProps {
 }
 
 export const PageLoading: React.FC<PageLoadingProps> = ({ 
-  message = 'Đang tải dữ liệu...', 
+  message, 
   fullScreen = false 
 }) => {
+  const { t } = useTranslation();
   return (
     <div className={cn(
       'flex items-center justify-center',
@@ -44,7 +46,7 @@ export const PageLoading: React.FC<PageLoadingProps> = ({
     )}>
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="text-lg font-medium text-muted-foreground">{message}</p>
+        <p className="text-lg font-medium text-muted-foreground">{message ?? t('shared.loading.page')}</p>
       </div>
     </div>
   );
@@ -96,9 +98,10 @@ interface ButtonLoadingProps {
 }
 
 export const ButtonLoading: React.FC<ButtonLoadingProps> = ({ 
-  text = 'Đang xử lý...', 
+  text, 
   variant = 'default' 
 }) => {
+  const { t } = useTranslation();
   return (
     <button 
       disabled 
@@ -111,7 +114,7 @@ export const ButtonLoading: React.FC<ButtonLoadingProps> = ({
       )}
     >
       <Loader2 className="h-4 w-4 animate-spin" />
-      {text}
+      {text ?? t('shared.loading.processing')}
     </button>
   );
 };

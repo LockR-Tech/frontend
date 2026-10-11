@@ -27,6 +27,7 @@ import {
   toggleDocumentRole,
   validateUploadFile,
 } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 interface UploadDocumentDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ interface UploadDocumentDialogProps {
 }
 
 export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialogProps) {
+  const { t } = useTranslation();
   const [upload, { isLoading }] = useUploadKnowledgeDocumentMutation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -77,7 +79,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
 
   const submit = async () => {
     if (!file) {
-      setFileError("Chọn file tài liệu.");
+      setFileError(t("admin.knowledge.upload.chooseFile"));
       return;
     }
     const error = validateUploadFile(file);
@@ -88,14 +90,14 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
     const finalTitle = title.trim() || defaultTitleFromFileName(file.name);
     try {
       await upload({ file, title: title.trim() || undefined, allowedRoles: roles }).unwrap();
-      toast.success(`Đã tải lên “${finalTitle}”`, {
-        description: "Tài liệu đang chờ đánh chỉ mục; danh sách tự cập nhật khi xong.",
+      toast.success(t("admin.knowledge.upload.uploaded", { title: finalTitle }), {
+        description: t("admin.knowledge.upload.uploadedDesc"),
       });
       reset();
       onOpenChange(false);
     } catch (err) {
-      toast.error("Không tải lên được tài liệu", {
-        description: getKnowledgeErrorMessage(err, "Đã xảy ra lỗi khi tải lên."),
+      toast.error(t("admin.knowledge.upload.failed"), {
+        description: getKnowledgeErrorMessage(err, t("admin.knowledge.errors.genericUpload")),
       });
     }
   };
@@ -104,16 +106,15 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Tải tài liệu lên kho tri thức</DialogTitle>
+          <DialogTitle>{t("admin.knowledge.upload.title")}</DialogTitle>
           <DialogDescription>
-            Markdown, TXT, HTML, PDF hoặc DOCX, tối đa 20 MB. Tài liệu được chia đoạn và đánh chỉ
-            mục ở nền.
+            {t("admin.knowledge.upload.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label className="mb-1.5 block text-xs">File tài liệu *</Label>
+            <Label className="mb-1.5 block text-xs">{t("admin.knowledge.upload.fileLabel")}</Label>
             <input
               ref={inputRef}
               type="file"
@@ -141,7 +142,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
                   size="sm"
                   onClick={clearFile}
                   disabled={isLoading}
-                  aria-label="Bỏ chọn file"
+                  aria-label={t("admin.knowledge.upload.removeFile")}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -172,10 +173,10 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
               >
                 <FileUp className="h-7 w-7 text-muted-foreground" />
                 <p className="text-sm font-medium text-foreground">
-                  Kéo thả file vào đây hoặc bấm để chọn
+                  {t("admin.knowledge.upload.dropzone")}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  .md · .markdown · .txt · .html · .htm · .pdf · .docx — tối đa 20 MB
+                  {t("admin.knowledge.upload.formats")}
                 </p>
               </div>
             )}
@@ -184,23 +185,23 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
 
           <div>
             <Label htmlFor="knowledge-upload-title" className="mb-1.5 block text-xs">
-              Tiêu đề
+              {t("admin.knowledge.upload.titleLabel")}
             </Label>
             <Input
               id="knowledge-upload-title"
               value={title}
               maxLength={MAX_TITLE_LENGTH}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={file ? defaultTitleFromFileName(file.name) : "Mặc định lấy theo tên file"}
+              placeholder={file ? defaultTitleFromFileName(file.name) : t("admin.knowledge.upload.titlePlaceholder")}
               disabled={isLoading}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Trợ lý trích dẫn nguồn bằng tiêu đề này; bộ đánh giá cũng so khớp theo tiêu đề.
+              {t("admin.knowledge.upload.titleHint")}
             </p>
           </div>
 
           <div>
-            <Label className="mb-1.5 block text-xs">Ai được dùng tài liệu này để hỏi đáp</Label>
+            <Label className="mb-1.5 block text-xs">{t("admin.knowledge.edit.rolesLabel")}</Label>
             <RoleCheckboxGroup
               idPrefix="knowledge-upload-role"
               options={KNOWLEDGE_ROLES}
@@ -209,15 +210,14 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
               disabled={isLoading}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              “Tất cả người dùng” = mọi tài khoản đã đăng nhập. Tài liệu nội bộ (quy trình kỹ thuật…)
-              chỉ nên mở cho vai trò cần thiết.
+              {t("admin.knowledge.upload.rolesHint")}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
-            Huỷ
+            {t("common.cancel")}
           </Button>
           <Button onClick={submit} disabled={isLoading || !file || !!fileError}>
             {isLoading ? (
@@ -225,7 +225,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
             ) : (
               <FileUp className="h-4 w-4" />
             )}
-            Tải lên
+            {t("admin.knowledge.upload.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

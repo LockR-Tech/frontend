@@ -24,10 +24,12 @@ import { useGetAllFeedbackQuery } from "~/stores/apis/admin";
 import { fmtDate, StarRow, ErrorBanner } from "./shared";
 import { extractList } from "~/lib/extract-list";
 import type { FeedbackDTO } from "~/types/admin/feedback";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 20;
 
 export function FeedbackTab() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [minRating, setMinRating] = useState<string>("all");
   const [isResolved, setIsResolved] = useState<string>("all");
@@ -60,13 +62,13 @@ export function FeedbackTab() {
             }}
           >
             <SelectTrigger className="w-40 h-9 text-xs">
-              <SelectValue placeholder="Số sao" />
+              <SelectValue placeholder={t("admin.feedback.filters.stars")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả sao</SelectItem>
+              <SelectItem value="all">{t("admin.feedback.filters.allStars")}</SelectItem>
               {[1, 2, 3, 4, 5].map((n) => (
                 <SelectItem key={n} value={String(n)}>
-                  {"★".repeat(n)} ({n} sao)
+                  {t("admin.feedback.filters.starOption", { stars: "★".repeat(n), count: n })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -80,18 +82,18 @@ export function FeedbackTab() {
             }}
           >
             <SelectTrigger className="w-40 h-9 text-xs">
-              <SelectValue placeholder="Trạng thái" />
+              <SelectValue placeholder={t("common.status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="false">Chưa xử lý</SelectItem>
-              <SelectItem value="true">Đã xử lý</SelectItem>
+              <SelectItem value="all">{t("admin.feedback.filters.allStatuses")}</SelectItem>
+              <SelectItem value="false">{t("admin.feedback.status.unresolved")}</SelectItem>
+              <SelectItem value="true">{t("admin.feedback.status.resolved")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <span className="text-xs text-muted-foreground">
-          {isLoading ? "..." : `${total.toLocaleString("vi-VN")} phản hồi`}
+          {isLoading ? "..." : t("admin.feedback.list.count", { total: total.toLocaleString("vi-VN") })}
         </span>
       </div>
 
@@ -107,12 +109,12 @@ export function FeedbackTab() {
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
-                <TableHead className="font-semibold text-foreground">Khách hàng</TableHead>
-                <TableHead className="font-semibold text-foreground">Đánh giá</TableHead>
-                <TableHead className="font-semibold text-foreground max-w-xs">Nội dung</TableHead>
-                <TableHead className="font-semibold text-foreground">Đơn hàng</TableHead>
-                <TableHead className="font-semibold text-foreground text-center">Trạng thái</TableHead>
-                <TableHead className="font-semibold text-foreground">Thời gian</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.customer")}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("admin.feedback.columns.rating")}</TableHead>
+                <TableHead className="font-semibold text-foreground max-w-xs">{t("admin.feedback.columns.content")}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.order")}</TableHead>
+                <TableHead className="font-semibold text-foreground text-center">{t("common.status")}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.time")}</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -123,7 +125,7 @@ export function FeedbackTab() {
                     colSpan={7}
                     className="text-center py-10 text-muted-foreground text-sm"
                   >
-                    Không có phản hồi nào
+                    {t("admin.feedback.list.empty")}
                   </TableCell>
                 </TableRow>
               )}
@@ -135,7 +137,7 @@ export function FeedbackTab() {
                 >
                   <TableCell>
                     <div>
-                      <p className="font-medium text-foreground text-sm">{fb.userName || "Khách hàng"}</p>
+                      <p className="font-medium text-foreground text-sm">{fb.userName || t("common.customer")}</p>
                       <p className="text-xs text-muted-foreground">{fb.email || "—"}</p>
                     </div>
                   </TableCell>
@@ -164,7 +166,7 @@ export function FeedbackTab() {
                           : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
                       }`}
                     >
-                      {fb.isResolved ? "Đã xử lý" : "Chờ xử lý"}
+                      {fb.isResolved ? t("admin.feedback.status.resolved") : t("admin.feedback.status.pending")}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
@@ -196,10 +198,10 @@ export function FeedbackTab() {
             disabled={page === 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
           >
-            Trước
+            {t("pagination.previous")}
           </Button>
           <span className="text-xs text-muted-foreground">
-            Trang {page + 1} / {totalPages}
+            {t("admin.feedback.pagination.page", { page: page + 1, total: totalPages })}
           </span>
           <Button
             variant="outline"
@@ -207,7 +209,7 @@ export function FeedbackTab() {
             disabled={page >= totalPages - 1}
             onClick={() => setPage((p) => p + 1)}
           >
-            Tiếp
+            {t("admin.feedback.pagination.next")}
           </Button>
         </div>
       )}

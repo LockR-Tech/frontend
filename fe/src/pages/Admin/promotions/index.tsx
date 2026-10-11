@@ -7,7 +7,7 @@ import {
   PackageX,
   PowerOff,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -191,15 +191,17 @@ export default function PromotionsPage() {
       <ConfirmActionDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Xoá khuyến mãi?"
+        title={t("admin.promotions.deleteDialog.title")}
         description={
           <p>
-            Mã <span className="font-mono font-semibold text-foreground">{deleteTarget?.code}</span>{" "}
-            sẽ bị xoá vĩnh viễn. Mã đã có lượt dùng hoặc đã được khách lưu vào ví không thể xoá —
-            khi đó có thể ngưng áp dụng thay thế.
+            <Trans
+              i18nKey="admin.promotions.deleteDialog.desc"
+              values={{ code: deleteTarget?.code }}
+              components={{ b: <span className="font-mono font-semibold text-foreground" /> }}
+            />
           </p>
         }
-        actionLabel="Xoá"
+        actionLabel={t("common.delete")}
         destructive
         loading={isDeleting}
         onConfirm={() => void confirmDelete()}
@@ -208,18 +210,20 @@ export default function PromotionsPage() {
       <ConfirmActionDialog
         open={deactivateTarget !== null}
         onOpenChange={(open) => !open && setDeactivateTarget(null)}
-        title="Không thể xoá mã đã có lịch sử"
+        title={t("admin.promotions.historyDialog.title")}
         description={
           <>
             <p>
-              Mã <span className="font-mono font-semibold text-foreground">{deactivateTarget?.code}</span>{" "}
-              đã có lượt sử dụng hoặc đã được lưu vào ví khách hàng nên không xoá được (để giữ lịch sử
-              giảm giá của các đơn).
+              <Trans
+                i18nKey="admin.promotions.historyDialog.desc"
+                values={{ code: deactivateTarget?.code }}
+                components={{ b: <span className="font-mono font-semibold text-foreground" /> }}
+              />
             </p>
-            <p>Ngưng áp dụng sẽ chuyển mã sang trạng thái INACTIVE — khách không dùng được nữa.</p>
+            <p>{t("admin.promotions.historyDialog.hint")}</p>
           </>
         }
-        actionLabel="Ngưng áp dụng"
+        actionLabel={t("admin.promotions.actions.deactivate")}
         loading={isUpdating}
         onConfirm={() => void confirmDeactivate()}
       />

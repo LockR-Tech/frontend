@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock, AlertTriangle } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { parseBackendDateTime } from "~/lib/datetime";
@@ -18,6 +19,7 @@ export function SlaCountdownBadge({
   status,
   className = "",
 }: SlaCountdownBadgeProps) {
+  const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export function SlaCountdownBadge({
         className={`bg-emerald-50 text-emerald-700 border-emerald-300 font-mono text-xs gap-1 py-0.5 shadow-2xs ${className}`}
       >
         <Clock className="w-3 h-3 text-emerald-600 animate-pulse" />
-        Còn {pad(h)}:{pad(m)}:{pad(s)}
+        {t("admin.maintenance.sla.remaining", { time: `${pad(h)}:${pad(m)}:${pad(s)}` })}
       </Badge>
     );
   } else {
@@ -67,7 +69,7 @@ export function SlaCountdownBadge({
         className={`bg-rose-50 text-rose-700 border-rose-300 font-mono text-xs gap-1 py-0.5 shadow-2xs ${className}`}
       >
         <AlertTriangle className="w-3 h-3 text-rose-600 animate-pulse" />
-        Quá hạn {pad(h)}:{pad(m)}:{pad(s)}
+        {t("admin.maintenance.sla.overdueBy", { time: `${pad(h)}:${pad(m)}:${pad(s)}` })}
       </Badge>
     );
   }

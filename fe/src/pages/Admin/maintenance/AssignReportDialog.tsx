@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { UserCheck, Boxes, AlertTriangle, CheckCircle2, User, Phone } from "lucide-react";
 import {
   Dialog,
@@ -40,6 +41,7 @@ export function AssignReportDialog({
   onOpenChange,
   onSuccess,
 }: AssignReportDialogProps) {
+  const { t } = useTranslation();
   const [selectedTechId, setSelectedTechId] = useState<string>("");
   const [assign, { isLoading }] = useAssignReportToTechnicianMutation();
 
@@ -52,17 +54,17 @@ export function AssignReportDialog({
   // Server chỉ nhận đúng vai trò: phiếu drone ⇒ DRONE_TECHNICIAN, còn lại LOCKER_TECHNICIAN
   const isDroneIncident = isDroneReport(report);
   const requiredRole = isDroneIncident ? "DRONE_TECHNICIAN" : "LOCKER_TECHNICIAN";
-  const hasRequiredRole = (t: TechnicianSummary) =>
-    (t.roles ?? []).some((role) => role.replace(/^ROLE_/, "") === requiredRole);
+  const hasRequiredRole = (tech: TechnicianSummary) =>
+    (tech.roles ?? []).some((role) => role.replace(/^ROLE_/, "") === requiredRole);
   const eligibleTechnicians = technicians.filter(hasRequiredRole);
 
   const handleAssign = async () => {
     if (!selectedTechId) {
-      toast.error("Vui lòng chọn kỹ thuật viên để phân công!");
+      toast.error(t("admin.maintenance.assign.selectRequired"));
       return;
     }
     const techId = Number(selectedTechId);
-    const tech = technicians.find((t) => t.id === techId);
+    const tech = technicians.find((item) => item.id === techId);
 
     try {
       await assign({
@@ -70,15 +72,15 @@ export function AssignReportDialog({
         technicianId: techId,
       }).unwrap();
 
-      toast.success(`Đã phân công phiếu RPT-${report.id} cho KTV ${tech?.fullName || `#${techId}`}`, {
-        description: "Thông báo điều phối đã được gửi đến ứng dụng di động của kỹ thuật viên.",
+      toast.success(t("admin.maintenance.assign.success", { id: report.id, name: tech?.fullName || `#${techId}` }), {
+        description: t("admin.maintenance.assign.successDesc"),
       });
       onOpenChange(false);
       if (onSuccess) onSuccess();
     } catch (err: any) {
       const errMsg = err?.data?.message || err?.message;
-      toast.error("Không thể phân công phiếu sự cố", {
-        description: errMsg || "Vui lòng thử lại.",
+      toast.error(t("admin.maintenance.assign.failed"), {
+        description: errMsg || t("common.pleaseRetry"),
       });
     }
   };
@@ -89,12 +91,12 @@ export function AssignReportDialog({
         <DialogHeader>
           <DialogTitle className="text-base font-bold flex items-center gap-2">
             <UserCheck className="w-5 h-5 text-indigo-600" />
-            Phân công Kỹ thuật viên xử lý sự cố
+            {t("admin.maintenance.assign.title")}
           </DialogTitle>
           <DialogDescription className="text-xs">
             {isDroneIncident
-              ? "Giao phiếu sự cố Drone cho KTV Drone tiếp nhận và khắc phục thiết bị bay"
-              : "Giao phiếu sự cố Kiosk cho nhân sự kỹ thuật tiếp nhận và khắc phục tại hiện trường"}
+              ? t("admin.maintenance.assign.descDrone")
+              : t("admin.maintenance.assign.descKiosk")}
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +104,7 @@ export function AssignReportDialog({
         <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-sm text-foreground">
-              Phiếu RPT-{report.id} · {report.title}
+              {t("admin.maintenance.reportLabel", { id: report.id, title: report.title })}
             </span>
             <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]">
               {report.status}
@@ -113,39 +115,39 @@ export function AssignReportDialog({
             <span className="font-medium text-foreground">
               {report.lockerName ?? `Kiosk #${report.lockerId}`}
             </span>
-            {report.boxNumber && <span>· Ô #{report.boxNumber}</span>}
+            {report.boxNumber && <span>· {t("admin.maintenance.boxNumber", { number: report.boxNumber })}</span>}
           </div>
         </div>
 
         {/* Technician Selection */}
         <div className="space-y-2 pt-2">
           <label className="text-xs font-semibold text-foreground block">
-            Chọn Kỹ thuật viên phụ trách:
+            {t("admin.maintenance.assign.chooseTech")}
           </label>
           <Select value={selectedTechId} onValueChange={setSelectedTechId}>
             <SelectTrigger className="h-10 text-xs">
-              <SelectValue placeholder="-- Chọn kỹ thuật viên sẵn sàng --" />
+              <SelectValue placeholder={t("admin.maintenance.assign.placeholder")} />
             </SelectTrigger>
             <SelectContent>
-              {eligibleTechnicians.map((t) => (
-                <SelectItem key={t.id} value={String(t.id)} disabled={!t.enabled}>
+              {eligibleTechnicians.map((tech) => (
+                <SelectItem key={tech.id} value={String(tech.id)} disabled={!tech.enabled}>
                   <div className="flex items-center gap-2 py-0.5">
-                    <span className="font-medium">{t.fullName}</span>
+                    <span className="font-medium">{tech.fullName}</span>
                     <span className="text-muted-foreground text-[11px]">
-                      ({t.phoneNumber ? `${t.phoneNumber}` : ""})
+                      ({tech.phoneNumber ? `${tech.phoneNumber}` : ""})
                     </span>
                     {isDroneIncident ? (
                       <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-purple-200">
-                        KTV Drone
+                        {t("admin.maintenance.specialty.droneShort")}
                       </span>
                     ) : (
                       <span className="text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-sky-200">
-                        KTV Kiosk
+                        {t("admin.maintenance.specialty.kioskShort")}
                       </span>
                     )}
-                    {!t.enabled && (
+                    {!tech.enabled && (
                       <span className="text-rose-500 text-[10px] font-semibold">
-                        [Đã đình chỉ]
+                        {t("admin.maintenance.assign.suspendedTag")}
                       </span>
                     )}
                   </div>
@@ -153,7 +155,7 @@ export function AssignReportDialog({
               ))}
               {eligibleTechnicians.length === 0 && (
                 <div className="px-2 py-3 text-xs text-muted-foreground text-center">
-                  Chưa có KTV {isDroneIncident ? "Drone" : "Kiosk"} phù hợp.
+                  {t("admin.maintenance.assign.noEligible", { type: isDroneIncident ? "Drone" : "Kiosk" })}
                 </div>
               )}
             </SelectContent>
@@ -167,7 +169,7 @@ export function AssignReportDialog({
             className="h-9 text-xs"
             onClick={() => onOpenChange(false)}
           >
-            Hủy bỏ
+            {t("common.cancelAction")}
           </Button>
           <Button
             type="button"
@@ -176,7 +178,7 @@ export function AssignReportDialog({
             disabled={isLoading || !selectedTechId}
           >
             <CheckCircle2 className="w-4 h-4" />
-            Xác nhận phân công
+            {t("admin.maintenance.assign.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

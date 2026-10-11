@@ -1,5 +1,6 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Eye, MoreHorizontal, Package } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { Button } from "~/components/ui/button";
@@ -45,11 +46,12 @@ export function PaymentTable({
   onPageChange,
   onPageSizeChange,
 }: PaymentTableProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const columns = [
     columnHelper.accessor("id", {
-      header: "Giao dịch",
+      header: t("admin.payments.table.transaction"),
       cell: ({ row }) => {
         const payment = row.original;
         return (
@@ -57,7 +59,8 @@ export function PaymentTable({
             {/* Giao dịch không có tên; mã tham chiếu là thứ đối soát được với cổng
                 thanh toán nên đưa lên làm nhãn chính thay cho số thứ tự nội bộ. */}
             <p className="font-mono font-semibold text-sm text-foreground truncate max-w-[200px]">
-              {payment.referenceId ?? `Giao dịch ${payment.id}`}
+              {payment.referenceId ??
+                t("admin.payments.table.transactionId", { id: payment.id })}
             </p>
             <p className="text-[11px] text-muted-foreground">
               {paymentKindMeta(payment.kind).label}
@@ -68,13 +71,13 @@ export function PaymentTable({
     }),
 
     columnHelper.accessor("customer", {
-      header: "Khách hàng",
+      header: t("common.customer"),
       cell: ({ row }) => {
         const { customer } = row.original;
         return (
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {customer?.fullName || "Chưa tra được tên khách"}
+              {customer?.fullName || t("admin.orders.lookup.customerName")}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer?.phoneNumber || EMPTY_VALUE}
@@ -85,7 +88,7 @@ export function PaymentTable({
     }),
 
     columnHelper.accessor("order", {
-      header: "Đơn hàng",
+      header: t("common.order"),
       cell: ({ row }) => {
         const payment = row.original;
         // Giao dịch nạp ví không gắn đơn nào (`orderId = 0`).
@@ -100,7 +103,7 @@ export function PaymentTable({
           // hiện một con số mà người xem không tra được thành đơn nào.
           return (
             <span className="text-xs text-muted-foreground">
-              {payment.orderId ? "Chưa tra được đơn" : EMPTY_VALUE}
+              {payment.orderId ? t("admin.orders.lookup.order") : EMPTY_VALUE}
             </span>
           );
         }
@@ -112,7 +115,7 @@ export function PaymentTable({
           >
             <p className="text-sm font-mono text-foreground truncate flex items-center gap-1">
               <Package className="h-3 w-3 text-muted-foreground shrink-0" />
-              {order.orderCode ?? "Đơn chưa có mã"}
+              {order.orderCode ?? t("admin.orders.noCode")}
             </p>
             <div className="mt-0.5">
               <MetaBadge meta={orderStatusMeta(order.status)} hideIcon />
@@ -123,7 +126,7 @@ export function PaymentTable({
     }),
 
     columnHelper.accessor("amount", {
-      header: "Số tiền",
+      header: t("admin.payments.amount"),
       cell: ({ row }) => {
         const payment = row.original;
         const refunded = payment.refundedAmount ?? 0;
@@ -134,7 +137,9 @@ export function PaymentTable({
             </p>
             {refunded > 0 && (
               <p className="text-[11px] text-violet-600 dark:text-violet-400">
-                Hoàn {formatCurrency(refunded)}
+                {t("admin.payments.table.refundedAmount", {
+                  amount: formatCurrency(refunded),
+                })}
               </p>
             )}
           </div>
@@ -143,21 +148,21 @@ export function PaymentTable({
     }),
 
     columnHelper.accessor("method", {
-      header: "Phương thức",
+      header: t("admin.payments.method"),
       cell: ({ row }) => (
         <MetaBadge meta={paymentMethodMeta(row.original.method)} />
       ),
     }),
 
     columnHelper.accessor("status", {
-      header: "Trạng thái",
+      header: t("common.status"),
       cell: ({ row }) => (
         <MetaBadge meta={paymentStatusMeta(row.original.status)} />
       ),
     }),
 
     columnHelper.accessor("createdAt", {
-      header: "Tạo lúc",
+      header: t("common.createdAtTime"),
       cell: ({ row }) => (
         <p className="font-mono text-xs text-foreground whitespace-nowrap">
           {formatDateTime(row.original.createdAt)}
@@ -166,7 +171,7 @@ export function PaymentTable({
     }),
 
     columnHelper.accessor("paidAt", {
-      header: "Thu lúc",
+      header: t("admin.payments.paidAt"),
       cell: ({ row }) => {
         // `paidAt` chỉ có khi giao dịch COMPLETED; PENDING/FAILED luôn trống.
         const paidAt = row.original.paidAt;
@@ -194,7 +199,7 @@ export function PaymentTable({
               onClick={() => onViewDetail(row.original.id)}
             >
               <Eye className="mr-2 h-4 w-4" />
-              Xem chi tiết
+              {t("dropdown.viewDetail")}
             </DropdownMenuItem>
             {row.original.order && (
               <DropdownMenuItem
@@ -202,7 +207,7 @@ export function PaymentTable({
                 onClick={() => navigate(`/admin/orders/${row.original.order!.id}`)}
               >
                 <Package className="mr-2 h-4 w-4" />
-                Mở đơn hàng
+                {t("admin.payments.table.openOrder")}
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -216,7 +221,7 @@ export function PaymentTable({
       columns={columns}
       data={payments}
       isLoading={isLoading}
-      emptyMessage="Không có giao dịch nào khớp bộ lọc"
+      emptyMessage={t("admin.payments.table.empty")}
       serverPagination={{
         pageIndex: page,
         pageSize,

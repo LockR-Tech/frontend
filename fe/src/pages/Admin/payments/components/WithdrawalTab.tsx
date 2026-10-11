@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Trans, useTranslation } from "react-i18next";
 import {
   useGetWithdrawalsQuery,
   useProcessWithdrawalMutation,
@@ -50,6 +51,7 @@ function customerName(item: WithdrawalResponse): string {
 }
 
 export function WithdrawalTab() {
+  const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItem, setSelectedItem] = useState<WithdrawalResponse | null>(null);
@@ -100,7 +102,7 @@ export function WithdrawalTab() {
     if (!selectedItem || !actionType) return;
 
     if (actionType === "REJECT" && !rejectionReason.trim()) {
-      toast.error("Vui lòng nhập lý do từ chối");
+      toast.error(t("admin.payments.withdrawal.toast.reasonRequired"));
       return;
     }
 
@@ -112,17 +114,19 @@ export function WithdrawalTab() {
       }).unwrap();
 
       if (actionType === "APPROVE") {
-        toast.success(`Đã duyệt yêu cầu rút tiền #${selectedItem.referenceId}`);
+        toast.success(
+          t("admin.payments.withdrawal.toast.approved", { ref: selectedItem.referenceId })
+        );
       } else {
         toast.success(
-          `Đã từ chối yêu cầu #${selectedItem.referenceId} và hoàn tiền về ví cho khách`
+          t("admin.payments.withdrawal.toast.rejected", { ref: selectedItem.referenceId })
         );
       }
       handleCloseModal();
       refetch();
     } catch (err: any) {
       toast.error(
-        err?.data?.message || "Không thể xử lý yêu cầu rút tiền. Vui lòng thử lại!"
+        err?.data?.message || t("admin.payments.withdrawal.toast.failed")
       );
     }
   };
@@ -136,7 +140,7 @@ export function WithdrawalTab() {
             className="bg-amber-500/10 text-amber-700 border-amber-300 dark:text-amber-400 dark:border-amber-600 font-medium text-xs px-2.5 py-0.5"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse" />
-            Chờ duyệt
+            {t("admin.payments.review.pending")}
           </Badge>
         );
       case "COMPLETED":
@@ -146,7 +150,7 @@ export function WithdrawalTab() {
             className="bg-emerald-500/10 text-emerald-700 border-emerald-300 dark:text-emerald-400 dark:border-emerald-600 font-medium text-xs px-2.5 py-0.5"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
-            Đã chuyển
+            {t("admin.payments.withdrawal.status.completed")}
           </Badge>
         );
       case "REJECTED":
@@ -156,7 +160,7 @@ export function WithdrawalTab() {
             className="bg-rose-500/10 text-rose-700 border-rose-300 dark:text-rose-400 dark:border-rose-600 font-medium text-xs px-2.5 py-0.5"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5" />
-            Từ chối
+            {t("admin.payments.review.rejected")}
           </Badge>
         );
       default:
@@ -177,7 +181,7 @@ export function WithdrawalTab() {
             className="text-xs h-8 px-3"
             onClick={() => setStatusFilter("ALL")}
           >
-            Tất cả
+            {t("common.all")}
           </Button>
           <Button
             type="button"
@@ -186,7 +190,7 @@ export function WithdrawalTab() {
             className="text-xs h-8 px-3 relative"
             onClick={() => setStatusFilter("PENDING")}
           >
-            Chờ duyệt
+            {t("admin.payments.review.pending")}
             {pendingCount > 0 && (
               <span className="ml-1.5 px-1.5 py-0.2 bg-amber-500 text-white text-[10px] font-bold rounded-full">
                 {pendingCount}
@@ -200,7 +204,7 @@ export function WithdrawalTab() {
             className="text-xs h-8 px-3"
             onClick={() => setStatusFilter("COMPLETED")}
           >
-            Đã chuyển
+            {t("admin.payments.withdrawal.status.completed")}
           </Button>
           <Button
             type="button"
@@ -209,7 +213,7 @@ export function WithdrawalTab() {
             className="text-xs h-8 px-3"
             onClick={() => setStatusFilter("REJECTED")}
           >
-            Từ chối
+            {t("admin.payments.review.rejected")}
           </Button>
         </div>
 
@@ -218,7 +222,7 @@ export function WithdrawalTab() {
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              placeholder="Tìm mã, tên, STK, ngân hàng..."
+              placeholder={t("admin.payments.withdrawal.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="h-8 pl-8 text-xs"
@@ -231,7 +235,7 @@ export function WithdrawalTab() {
             className="h-8 w-8"
             onClick={() => refetch()}
             disabled={isFetching}
-            title="Làm mới"
+            title={t("button.refresh")}
           >
             <RefreshCw
               className={`h-3.5 w-3.5 text-muted-foreground ${
@@ -247,14 +251,16 @@ export function WithdrawalTab() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[130px]">Mã yêu cầu</TableHead>
-              <TableHead className="w-[160px]">Khách hàng</TableHead>
-              <TableHead className="w-[200px]">Tài khoản thụ hưởng</TableHead>
-              <TableHead className="w-[130px] text-right">Số tiền rút</TableHead>
-              <TableHead className="w-[120px] text-center">Trạng thái</TableHead>
-              <TableHead className="w-[150px]">Thời gian</TableHead>
-              <TableHead className="w-[180px]">Ghi chú / Lý do</TableHead>
-              <TableHead className="w-[140px] text-right">Thao tác</TableHead>
+              <TableHead className="w-[130px]">{t("admin.payments.withdrawal.table.requestId")}</TableHead>
+              <TableHead className="w-[160px]">{t("common.customer")}</TableHead>
+              <TableHead className="w-[200px]">{t("admin.payments.withdrawal.table.beneficiary")}</TableHead>
+              <TableHead className="w-[130px] text-right">
+                {t("admin.payments.withdrawal.table.amount")}
+              </TableHead>
+              <TableHead className="w-[120px] text-center">{t("common.status")}</TableHead>
+              <TableHead className="w-[150px]">{t("common.time")}</TableHead>
+              <TableHead className="w-[180px]">{t("admin.payments.withdrawal.table.note")}</TableHead>
+              <TableHead className="w-[140px] text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -263,7 +269,7 @@ export function WithdrawalTab() {
                 <TableCell colSpan={8} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    Đang tải danh sách yêu cầu rút tiền...
+                    {t("admin.payments.withdrawal.loading")}
                   </div>
                 </TableCell>
               </TableRow>
@@ -272,7 +278,7 @@ export function WithdrawalTab() {
                 <TableCell colSpan={8} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center gap-1 text-muted-foreground text-xs">
                     <CreditCard className="h-6 w-6 opacity-40 mb-1" />
-                    Không tìm thấy yêu cầu rút tiền nào
+                    {t("admin.payments.withdrawal.empty")}
                   </div>
                 </TableCell>
               </TableRow>
@@ -335,7 +341,9 @@ export function WithdrawalTab() {
                       </div>
                       {item.processedAt && (
                         <p className="text-[11px] text-muted-foreground">
-                          Duyệt: {formatDateTime(item.processedAt)}
+                          {t("admin.payments.withdrawal.table.processedAt", {
+                            time: formatDateTime(item.processedAt),
+                          })}
                         </p>
                       )}
                     </div>
@@ -360,7 +368,7 @@ export function WithdrawalTab() {
                           onClick={() => handleOpenAction(item, "APPROVE")}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                          Duyệt
+                          {t("admin.payments.review.approve")}
                         </Button>
                         <Button
                           type="button"
@@ -370,12 +378,12 @@ export function WithdrawalTab() {
                           onClick={() => handleOpenAction(item, "REJECT")}
                         >
                           <XCircle className="h-3.5 w-3.5 mr-1" />
-                          Từ chối
+                          {t("dropdown.reject")}
                         </Button>
                       </div>
                     ) : (
                       <span className="text-xs text-muted-foreground font-mono">
-                        Hoàn tất
+                        {t("admin.payments.withdrawal.table.done")}
                       </span>
                     )}
                   </TableCell>
@@ -395,10 +403,10 @@ export function WithdrawalTab() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-emerald-600">
               <CheckCircle2 className="h-5 w-5" />
-              Xác nhận duyệt yêu cầu rút tiền
+              {t("admin.payments.withdrawal.approveDialog.title")}
             </DialogTitle>
             <DialogDescription>
-              Kiểm tra kỹ thông tin tài khoản và xác nhận đã thực hiện chuyển tiền thực tế:
+              {t("admin.payments.withdrawal.approveDialog.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -406,31 +414,31 @@ export function WithdrawalTab() {
             <div className="space-y-3 py-2">
               <div className="bg-muted/60 p-3 rounded-lg space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Mã yêu cầu:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.withdrawal.table.requestId")}:</span>
                   <span className="font-mono font-semibold text-primary">
                     {selectedItem.referenceId}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Số tiền rút:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.withdrawal.table.amount")}:</span>
                   <span className="font-mono font-bold text-sm text-emerald-600">
                     {formatCurrency(selectedItem.amount)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ngân hàng:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.bank.bank")}:</span>
                   <span className="font-semibold text-foreground">
                     {selectedItem.bankName} ({selectedItem.bankCode})
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Số tài khoản:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.bank.accountNumber")}:</span>
                   <span className="font-mono font-bold text-foreground">
                     {selectedItem.accountNumber}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Chủ tài khoản:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.bank.accountHolder")}:</span>
                   <span className="font-semibold uppercase tracking-wide text-foreground">
                     {selectedItem.accountHolderName}
                   </span>
@@ -440,8 +448,10 @@ export function WithdrawalTab() {
               <div className="flex items-start gap-2 p-2.5 rounded-md bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                 <span>
-                  Hành động này sẽ đánh dấu giao dịch là <strong>ĐÃ CHUYỂN TIỀN</strong>{" "}
-                  và không thể hoàn tác.
+                  <Trans
+                    i18nKey="admin.payments.withdrawal.approveDialog.warning"
+                    components={{ b: <strong /> }}
+                  />
                 </span>
               </div>
             </div>
@@ -454,7 +464,7 @@ export function WithdrawalTab() {
               onClick={handleCloseModal}
               disabled={isProcessing}
             >
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               type="button"
@@ -463,7 +473,7 @@ export function WithdrawalTab() {
               disabled={isProcessing}
             >
               {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Xác nhận đã chuyển & Duyệt
+              {t("admin.payments.withdrawal.approveDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -478,10 +488,10 @@ export function WithdrawalTab() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-rose-600">
               <XCircle className="h-5 w-5" />
-              Từ chối yêu cầu rút tiền
+              {t("admin.payments.withdrawal.rejectDialog.title")}
             </DialogTitle>
             <DialogDescription>
-              Khi từ chối, hệ thống sẽ tự động hoàn trả số tiền rút về ví khách hàng.
+              {t("admin.payments.withdrawal.rejectDialog.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -489,11 +499,11 @@ export function WithdrawalTab() {
             <div className="space-y-3 py-2">
               <div className="bg-muted/60 p-3 rounded-lg space-y-1.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Mã yêu cầu:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.withdrawal.table.requestId")}:</span>
                   <span className="font-mono font-semibold">{selectedItem.referenceId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Số tiền hoàn lại ví:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.withdrawal.rejectDialog.refundToWallet")}:</span>
                   <span className="font-mono font-bold text-rose-600">
                     {formatCurrency(selectedItem.amount)}
                   </span>
@@ -502,10 +512,10 @@ export function WithdrawalTab() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">
-                  Lý do từ chối <span className="text-rose-500">*</span>:
+                  {t("admin.payments.rejectionReason")} <span className="text-rose-500">*</span>:
                 </label>
                 <Textarea
-                  placeholder="Ví dụ: Sai thông tin chủ tài khoản, ngân hàng từ chối giao dịch..."
+                  placeholder={t("admin.payments.withdrawal.rejectDialog.placeholder")}
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   rows={3}
@@ -516,8 +526,9 @@ export function WithdrawalTab() {
               <div className="flex items-start gap-2 p-2.5 rounded-md bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 text-xs">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" />
                 <span>
-                  Số tiền {formatCurrency(selectedItem.amount)} sẽ được cộng trả lại vào ví
-                  ngay lập tức.
+                  {t("admin.payments.withdrawal.rejectDialog.warning", {
+                    amount: formatCurrency(selectedItem.amount),
+                  })}
                 </span>
               </div>
             </div>
@@ -530,7 +541,7 @@ export function WithdrawalTab() {
               onClick={handleCloseModal}
               disabled={isProcessing}
             >
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               type="button"
@@ -539,7 +550,7 @@ export function WithdrawalTab() {
               disabled={isProcessing || !rejectionReason.trim()}
             >
               {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Xác nhận từ chối & Hoàn tiền ví
+              {t("admin.payments.withdrawal.rejectDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

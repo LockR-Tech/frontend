@@ -17,6 +17,7 @@ import {
   getKnowledgeErrorMessage,
   parseEvalCasesJson,
 } from "./knowledge-utils";
+import { Trans, useTranslation } from "react-i18next";
 
 interface ImportEvalCasesDialogProps {
   open: boolean;
@@ -25,10 +26,12 @@ interface ImportEvalCasesDialogProps {
 
 /** Dán một mảng JSON câu đánh giá; kiểm tra toàn bộ trước khi gửi một lần. */
 export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDialogProps) {
+  const { t } = useTranslation();
   const [addCases, { isLoading }] = useAddKnowledgeEvalCasesMutation();
   const [text, setText] = useState("");
 
-  const parsed = useMemo(() => (text.trim() ? parseEvalCasesJson(text) : null), [text]);
+  // `t` trong deps: thông báo lỗi do parseEvalCasesJson dịch, cần tính lại khi đổi ngôn ngữ.
+  const parsed = useMemo(() => (text.trim() ? parseEvalCasesJson(text) : null), [text, t]);
   const canSubmit = !!parsed && parsed.errors.length === 0 && parsed.cases.length > 0;
 
   const handleOpenChange = (next: boolean) => {
@@ -41,12 +44,12 @@ export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDia
     if (!parsed || !canSubmit) return;
     try {
       await addCases(parsed.cases).unwrap();
-      toast.success(`Đã nhập ${parsed.cases.length} câu đánh giá`);
+      toast.success(t("admin.knowledge.import.imported", { count: parsed.cases.length }));
       setText("");
       onOpenChange(false);
     } catch (err) {
-      toast.error("Không nhập được bộ câu đánh giá", {
-        description: getKnowledgeErrorMessage(err, "Đã xảy ra lỗi khi lưu."),
+      toast.error(t("admin.knowledge.import.importFailed"), {
+        description: getKnowledgeErrorMessage(err, t("admin.knowledge.errors.genericSave")),
       });
     }
   };
@@ -55,14 +58,15 @@ export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDia
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Nhập câu đánh giá từ JSON</DialogTitle>
+          <DialogTitle>{t("admin.knowledge.import.title")}</DialogTitle>
           <DialogDescription>
-            Dán một mảng các object{" "}
-            <code className="rounded bg-muted px-1 font-mono text-[11px]">
-              {"{ question, roles?, expectedDocumentTitle?, mustRefuse }"}
-            </code>
-            . <code className="font-mono text-[11px]">roles</code> mặc định CUSTOMER; câu không phải
-            từ chối bắt buộc có <code className="font-mono text-[11px]">expectedDocumentTitle</code>.
+            <Trans
+              i18nKey="admin.knowledge.import.description"
+              components={{
+                shape: <code className="rounded bg-muted px-1 font-mono text-[11px]" />,
+                code: <code className="font-mono text-[11px]" />,
+              }}
+            />
           </DialogDescription>
         </DialogHeader>
 
@@ -76,7 +80,7 @@ export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDia
               disabled={isLoading}
             >
               <ClipboardPaste className="h-4 w-4" />
-              Chèn ví dụ
+              {t("admin.knowledge.import.insertExample")}
             </Button>
           </div>
           <Textarea
@@ -87,13 +91,13 @@ export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDia
             placeholder={EVAL_JSON_EXAMPLE}
             className="font-mono text-xs"
             disabled={isLoading}
-            aria-label="Mảng JSON câu đánh giá"
+            aria-label={t("admin.knowledge.import.textareaAria")}
           />
 
           {parsed && parsed.errors.length > 0 && (
             <div className="max-h-40 overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
               <p className="mb-1 font-semibold">
-                {parsed.errors.length} lỗi — sửa hết rồi mới nhập được:
+                {t("admin.knowledge.import.errorsTitle", { count: parsed.errors.length })}
               </p>
               <ul className="list-disc space-y-0.5 pl-4">
                 {parsed.errors.map((message, i) => (
@@ -104,19 +108,23 @@ export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDia
           )}
           {canSubmit && parsed && (
             <p className="text-xs text-green-700">
-              Hợp lệ: {parsed.cases.length} câu (
-              {parsed.cases.filter((c) => c.mustRefuse).length} câu phải từ chối).
+              {t("admin.knowledge.import.valid", {
+                count: parsed.cases.length,
+                refusal: parsed.cases.filter((c) => c.mustRefuse).length,
+              })}
             </p>
           )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
-            Huỷ
+            {t("common.cancel")}
           </Button>
           <Button onClick={submit} disabled={!canSubmit || isLoading}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            Nhập {canSubmit && parsed ? `${parsed.cases.length} câu` : ""}
+            {canSubmit && parsed
+              ? t("admin.knowledge.import.submitCount", { count: parsed.cases.length })
+              : t("admin.knowledge.import.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

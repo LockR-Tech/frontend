@@ -1,5 +1,6 @@
 import { ChevronRight, Home } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 
 interface BreadcrumbItem {
@@ -12,30 +13,31 @@ interface BreadcrumbProps {
   className?: string;
 }
 
-// Path mapping - no "admin" or "Trang chủ"
+// Path mapping (khoá i18n) - no "admin" or "Trang chủ"
 const pathMap: Record<string, string> = {
-  dashboard: "Dashboard",
-  users: "Người dùng",
-  orders: "Đơn hàng",
-  stores: "Địa điểm",
-  lockers: "Kiosk",
-  services: "Dịch vụ",
-  payments: "Thanh toán",
-  revenue: "Doanh thu",
-  maintenance: "Bảo trì thiết bị",
-  drones: "Drone",
-  loyalty: "Khách hàng thân thiết",
-  partners: "Đối tác",
-  feedback: "Phản hồi",
-  settings: "Cài đặt",
-  scheduler: "Lập lịch",
-  detail: "Chi tiết",
-  create: "Tạo mới",
-  edit: "Chỉnh sửa",
+  dashboard: "admin.sidebar.dashboard",
+  users: "admin.sidebar.users",
+  orders: "admin.sidebar.orders",
+  stores: "admin.sidebar.stores",
+  lockers: "admin.sidebar.lockers",
+  services: "admin.sidebar.services",
+  payments: "admin.sidebar.payments",
+  revenue: "admin.sidebar.revenue",
+  maintenance: "admin.sidebar.maintenance",
+  drones: "admin.sidebar.drones",
+  loyalty: "admin.sidebar.loyalty",
+  partners: "admin.sidebar.partners",
+  feedback: "admin.sidebar.feedback",
+  settings: "admin.sidebar.settings",
+  scheduler: "admin.sidebar.scheduler",
+  detail: "admin.breadcrumb.detail",
+  create: "admin.breadcrumb.create",
+  edit: "admin.breadcrumb.edit",
 };
 
 export function Breadcrumb({ items, className }: BreadcrumbProps) {
   const location = useLocation();
+  const { t } = useTranslation();
 
   // Auto-generate items from path if not provided
   const breadcrumbItems: BreadcrumbItem[] =
@@ -50,7 +52,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
         const fullPath = "/" + paths.slice(0, index + 1).join("/");
         const isLast = index === paths.length - 1;
         return {
-          label: pathMap[path] || path,
+          label: pathMap[path] ? t(pathMap[path]) : path,
           path: isLast ? undefined : fullPath,
         };
       });

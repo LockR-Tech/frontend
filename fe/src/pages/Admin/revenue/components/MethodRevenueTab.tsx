@@ -1,4 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
+import { useTranslation } from "react-i18next";
 import { DataTable } from "~/components/shared/data-table";
 import {
   MetaBadge,
@@ -22,41 +23,42 @@ const columnHelper = createColumnHelper<RevenueByMethodItem>();
  * hiện ở đây vì tiền nạp là tiền gửi, chỉ tính khi khách dùng ví trả cho một đơn.
  */
 export function MethodRevenueTab({ range, skip }: MethodRevenueTabProps) {
+  const { t } = useTranslation();
   const { data, isLoading, error, refetch } = useGetRevenueByMethodQuery(range, {
     skip,
   });
 
   const columns = [
     columnHelper.accessor("method", {
-      header: "Phương thức",
+      header: t("admin.payments.method"),
       cell: ({ row }) => <MetaBadge meta={paymentMethodMeta(row.original.method)} />,
     }),
     columnHelper.accessor("revenue", {
-      header: "Doanh thu",
+      header: t("admin.revenue.columns.revenue"),
       cell: ({ row }) => (
         <span className="font-semibold">{formatCurrency(row.original.revenue)}</span>
       ),
     }),
     columnHelper.accessor("refundAmount", {
-      header: "Hoàn tiền",
+      header: t("admin.payments.refunds"),
       cell: ({ row }) => formatCurrency(row.original.refundAmount),
     }),
     columnHelper.accessor("netRevenue", {
-      header: "Thực thu",
+      header: t("admin.revenue.columns.net"),
       cell: ({ row }) => (
         <span className="font-medium">{formatCurrency(row.original.netRevenue)}</span>
       ),
     }),
     columnHelper.accessor("sharePct", {
-      header: "Tỉ trọng",
+      header: t("admin.revenue.columns.share"),
       cell: ({ row }) => formatPercent(row.original.sharePct),
     }),
     columnHelper.accessor("paymentCount", {
-      header: "Lượt thanh toán",
+      header: t("admin.revenue.columns.paymentCount"),
       cell: ({ row }) => formatNumber(row.original.paymentCount),
     }),
     columnHelper.accessor("paidOrderCount", {
-      header: "Đơn có thu tiền",
+      header: t("admin.revenue.columns.paidOrders"),
       cell: ({ row }) => formatNumber(row.original.paidOrderCount),
     }),
   ];
@@ -66,7 +68,7 @@ export function MethodRevenueTab({ range, skip }: MethodRevenueTabProps) {
       <ReportErrorState
         error={error}
         onRetry={refetch}
-        title="Không tải được doanh thu theo phương thức"
+        title={t("admin.revenue.method.loadFailed")}
       />
     );
   }
@@ -77,11 +79,10 @@ export function MethodRevenueTab({ range, skip }: MethodRevenueTabProps) {
         columns={columns}
         data={data?.data.items ?? []}
         isLoading={isLoading}
-        emptyMessage="Chưa có khoản thu nào trong khoảng đã chọn"
+        emptyMessage={t("admin.revenue.method.empty")}
       />
       <p className="text-[11px] text-muted-foreground">
-        Hoàn tiền được quy về phương thức của giao dịch bị hoàn. Tiền nạp ví không nằm
-        trong doanh thu; ví chỉ tính khi khách dùng số dư trả cho một đơn.
+        {t("admin.revenue.method.note")}
       </p>
     </div>
   );

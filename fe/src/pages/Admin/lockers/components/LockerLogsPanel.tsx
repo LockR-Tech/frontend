@@ -43,11 +43,15 @@ import {
   type GatewayDeviceResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { formatDateTime } from "~/lib/datetime";
+import { useTranslation } from "react-i18next";
+import i18n from "~/utils/i18n";
 
 const HARDWARE_LABEL: Record<string, string> = {
   gpio: "GPIO",
   rs485: "Arduino RS485",
-  simulation: "Giả lập",
+  get simulation() {
+    return i18n.t("admin.lockers.hardware.simulation");
+  },
 };
 
 interface LockerLogsPanelProps {
@@ -57,35 +61,36 @@ interface LockerLogsPanelProps {
   gateway?: GatewayDeviceResponse | null;
 }
 
-const CREDENTIAL_LABEL: Record<string, { label: string; cls: string; icon: any }> = {
-  PIN: { label: "Mã PIN", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: Key },
-  QR: { label: "Quét mã QR", cls: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-300", icon: QrCode },
-  PIN_OR_QR: { label: "Mở ô (PIN/QR)", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: Key },
-  ACCESS_CODE: { label: "Mã Kiosk", cls: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-300", icon: Key },
-  MASTER: { label: "Khẩn cấp (MASTER)", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300", icon: ShieldAlert },
-  DISCOVERY: { label: "Bộ điều khiển (IoT)", cls: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-300", icon: RadioTower },
-  DISPLAY: { label: "Màn hình 7 inch", cls: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-300", icon: Monitor },
-  HARDWARE: { label: "Lỗi phần cứng", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
-  HARDWARE_FAULT: { label: "Sự cố phần cứng", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
-  SETUP: { label: "Kiểm tra sơ đồ", cls: "bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-300", icon: Wrench },
-  GATEWAY: { label: "Gán bộ điều khiển", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: RadioTower },
-  SENSOR: { label: "Cảm biến", cls: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-300", icon: Cpu },
+const CREDENTIAL_LABEL: Record<string, { labelKey: string; cls: string; icon: any }> = {
+  PIN: { labelKey: "admin.lockers.logs.credential.pin", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: Key },
+  QR: { labelKey: "admin.lockers.logs.credential.qr", cls: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-300", icon: QrCode },
+  PIN_OR_QR: { labelKey: "admin.lockers.logs.credential.pinOrQr", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: Key },
+  ACCESS_CODE: { labelKey: "admin.lockers.logs.credential.accessCode", cls: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-300", icon: Key },
+  MASTER: { labelKey: "admin.lockers.logs.credential.master", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300", icon: ShieldAlert },
+  DISCOVERY: { labelKey: "admin.lockers.logs.credential.discovery", cls: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-300", icon: RadioTower },
+  DISPLAY: { labelKey: "admin.lockers.logs.credential.display", cls: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-300", icon: Monitor },
+  HARDWARE: { labelKey: "admin.lockers.logs.credential.hardware", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
+  HARDWARE_FAULT: { labelKey: "admin.lockers.logs.credential.hardwareFault", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
+  SETUP: { labelKey: "admin.lockers.logs.credential.setup", cls: "bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-300", icon: Wrench },
+  GATEWAY: { labelKey: "admin.lockers.logs.credential.gateway", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: RadioTower },
+  SENSOR: { labelKey: "admin.lockers.logs.credential.sensor", cls: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-300", icon: Cpu },
 };
 
-const RESULT_LABEL: Record<string, { label: string; cls: string; icon: any }> = {
-  ONLINE: { label: "Trực tuyến (Cắm điện)", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-400/50", icon: RadioTower },
-  OFFLINE: { label: "Mất kết nối (Rút điện)", cls: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-400/50", icon: Unplug },
-  SUCCESS: { label: "Thành công", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300", icon: CheckCircle2 },
-  OPEN: { label: "Cửa mở", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300", icon: CheckCircle2 },
-  CLOSED: { label: "Cửa đóng", cls: "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-300", icon: CheckCircle2 },
-  FAILED: { label: "Thất bại", cls: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-300", icon: XCircle },
-  TIMEOUT: { label: "Quá hạn", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300", icon: Clock },
-  JAMMED: { label: "Kẹt khóa", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
-  DENIED: { label: "Từ chối", cls: "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-300", icon: XCircle },
-  RESTART_REQUESTED: { label: "Yêu cầu khởi động", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: RefreshCw },
+const RESULT_LABEL: Record<string, { labelKey: string; cls: string; icon: any }> = {
+  ONLINE: { labelKey: "admin.lockers.logs.result.online", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-400/50", icon: RadioTower },
+  OFFLINE: { labelKey: "admin.lockers.logs.result.offline", cls: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-400/50", icon: Unplug },
+  SUCCESS: { labelKey: "common.success", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300", icon: CheckCircle2 },
+  OPEN: { labelKey: "admin.lockers.cell.doorOpen", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300", icon: CheckCircle2 },
+  CLOSED: { labelKey: "admin.lockers.logs.result.closed", cls: "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-300", icon: CheckCircle2 },
+  FAILED: { labelKey: "common.failed", cls: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-300", icon: XCircle },
+  TIMEOUT: { labelKey: "admin.lockers.logs.result.timeout", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300", icon: Clock },
+  JAMMED: { labelKey: "admin.lockers.logs.result.jammed", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
+  DENIED: { labelKey: "admin.lockers.logs.result.denied", cls: "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-300", icon: XCircle },
+  RESTART_REQUESTED: { labelKey: "admin.lockers.logs.result.restartRequested", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: RefreshCw },
 };
 
 export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGateway }: LockerLogsPanelProps) {
+  const { t } = useTranslation();
   const lockerLabel = lockerCode || `#${lockerId}`;
   const { data, isLoading, isFetching, refetch } = useGetLockerAccessLogsQuery(lockerId, {
     pollingInterval: 10000,
@@ -120,7 +125,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
   const gatewayHardware = gateway?.hardware
     ? (HARDWARE_LABEL[gateway.hardware.toLowerCase()] ?? gateway.hardware.toUpperCase())
     : "—";
-  const gatewaySlots = gateway?.availableSlots != null ? `${gateway.availableSlots} ô` : "— ô";
+  const gatewaySlots = gateway?.availableSlots != null ? t("admin.lockers.table.boxCount", { count: gateway.availableSlots }) : t("admin.lockers.logs.slotsUnknown");
   const gatewayFirmware = gateway?.firmwareVersion || "—";
 
   // Tạo map tra cứu từ boxId sang boxNumber
@@ -223,10 +228,10 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
           <div>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <History className="w-4.5 h-4.5 text-primary" />
-              Nhật ký vận hành & IoT của tủ {lockerLabel}
+              {t("admin.lockers.logs.title", { locker: lockerLabel })}
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
-              Theo dõi chi tiết từng lần kết nối (cắm điện), mất kết nối (rút điện), mở khóa và can thiệp phần cứng.
+              {t("admin.lockers.logs.description")}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -240,7 +245,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                 }`}
                 onClick={() => setActiveTab("access")}
               >
-                Nhật ký mở tủ & IoT ({logs.length})
+                {t("admin.lockers.logs.tabAccess", { count: logs.length })}
               </button>
               <button
                 type="button"
@@ -251,7 +256,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                 }`}
                 onClick={() => setActiveTab("reports")}
               >
-                Sự cố & Sửa chữa ({lockerReports.length})
+                {t("admin.lockers.logs.tabReports", { count: lockerReports.length })}
               </button>
             </div>
             <Button
@@ -262,7 +267,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
               disabled={isFetching}
             >
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isFetching ? "animate-spin" : ""}`} />
-              Làm mới
+              {t("button.refresh")}
             </Button>
           </div>
         </div>
@@ -280,7 +285,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
               setSelectedResult("ALL");
             }}
           >
-            <span className="text-[11px] text-muted-foreground">Tổng bản ghi nhật ký</span>
+            <span className="text-[11px] text-muted-foreground">{t("admin.lockers.logs.totalEntries")}</span>
             <span className="text-xl font-bold mt-1">{stats.total}</span>
           </div>
 
@@ -291,7 +296,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
             onClick={() => setSelectedResult(selectedResult === "ONLINE" ? "ALL" : "ONLINE")}
           >
             <span className="text-[11px] text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
-              Trực tuyến (Cắm điện)
+              {t("admin.lockers.logs.result.online")}
               <RadioTower className="w-3.5 h-3.5 text-emerald-500" />
             </span>
             <span className="text-xl font-bold text-emerald-600 mt-1">{stats.onlineCount}</span>
@@ -304,7 +309,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
             onClick={() => setSelectedResult(selectedResult === "OFFLINE" ? "ALL" : "OFFLINE")}
           >
             <span className="text-[11px] text-rose-700 dark:text-rose-400 flex items-center justify-between">
-              Mất kết nối (Rút điện)
+              {t("admin.lockers.logs.result.offline")}
               <Unplug className="w-3.5 h-3.5 text-rose-500" />
             </span>
             <span className="text-xl font-bold text-rose-600 mt-1">{stats.offlineCount}</span>
@@ -317,7 +322,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
             onClick={() => setSelectedType(selectedType === "HARDWARE_ISSUES" ? "ALL" : "HARDWARE_ISSUES")}
           >
             <span className="text-[11px] text-amber-700 dark:text-amber-400 flex items-center justify-between">
-              Lỗi & Cảnh báo phần cứng
+              {t("admin.lockers.logs.hardwareIssues")}
               <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
             </span>
             <span className="text-xl font-bold text-amber-600 mt-1">{stats.hardwareIssues}</span>
@@ -347,13 +352,18 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
               <div>
                 <span className="font-bold mr-1.5">
                   {gateway.online
-                    ? `🟢 Tủ ${lockerLabel} đang cấp nguồn & kết nối (Online):`
-                    : `🔴 Tủ ${lockerLabel} mất kết nối / rút điện (Offline):`}
+                    ? t("admin.lockers.logs.banner.online", { locker: lockerLabel })
+                    : t("admin.lockers.logs.banner.offline", { locker: lockerLabel })}
                 </span>
                 <span className="text-muted-foreground dark:text-muted-foreground/80">
                   {gateway.online
-                    ? `Phần cứng ${gatewayHardware} · ${gatewaySlots} · firmware ${gatewayFirmware} · Tín hiệu gần nhất: ${formatDateTime(gateway.lastSeenAt)}`
-                    : `Tủ hiện chưa có nguồn điện hoặc bộ điều khiển đã tắt · Tín hiệu cuối lúc: ${formatDateTime(gateway.lastSeenAt)}`}
+                    ? t("admin.lockers.logs.banner.onlineDetail", {
+                        hardware: gatewayHardware,
+                        slots: gatewaySlots,
+                        firmware: gatewayFirmware,
+                        time: formatDateTime(gateway.lastSeenAt),
+                      })
+                    : t("admin.lockers.logs.banner.offlineDetail", { time: formatDateTime(gateway.lastSeenAt) })}
                 </span>
               </div>
             </div>
@@ -366,7 +376,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                     : "bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-400"
                 }`}
               >
-                {gateway.online ? "Trực tuyến (Cắm điện)" : "Mất kết nối (Rút điện)"}
+                {gateway.online ? t("admin.lockers.logs.result.online") : t("admin.lockers.logs.result.offline")}
               </Badge>
             </div>
           </div>
@@ -379,7 +389,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
               <div className="relative flex-1 min-w-[180px]">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Tìm theo nội dung, mã đơn, tài khoản..."
+                  placeholder={t("admin.lockers.logs.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="h-8 pl-8 text-xs"
@@ -388,28 +398,28 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
 
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger className="w-[180px] h-8 text-xs">
-                  <SelectValue placeholder="Loại sự kiện" />
+                  <SelectValue placeholder={t("admin.lockers.logs.filter.eventType")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tất cả loại sự kiện</SelectItem>
-                  <SelectItem value="DISCOVERY">Bộ điều khiển & Cấp nguồn (IoT)</SelectItem>
-                  <SelectItem value="DISPLAY">Màn hình 7" (Waveshare Kiosk)</SelectItem>
-                  <SelectItem value="USER_OPEN">Mở ô (Khách / Kiosk)</SelectItem>
-                  <SelectItem value="HARDWARE_ISSUES">Lỗi & Cảnh báo phần cứng</SelectItem>
-                  <SelectItem value="MASTER">Khẩn cấp (MASTER)</SelectItem>
+                  <SelectItem value="ALL">{t("admin.lockers.logs.filter.allEventTypes")}</SelectItem>
+                  <SelectItem value="DISCOVERY">{t("admin.lockers.logs.filter.discovery")}</SelectItem>
+                  <SelectItem value="DISPLAY">{t("admin.lockers.logs.filter.display")}</SelectItem>
+                  <SelectItem value="USER_OPEN">{t("admin.lockers.logs.filter.userOpen")}</SelectItem>
+                  <SelectItem value="HARDWARE_ISSUES">{t("admin.lockers.logs.hardwareIssues")}</SelectItem>
+                  <SelectItem value="MASTER">{t("admin.lockers.logs.credential.master")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={selectedBox} onValueChange={setSelectedBox}>
                 <SelectTrigger className="w-[140px] h-8 text-xs">
-                  <SelectValue placeholder="Lọc theo ô" />
+                  <SelectValue placeholder={t("admin.lockers.logs.filter.box")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tất cả các ô</SelectItem>
-                  <SelectItem value="0">Toàn bộ tủ (Bộ ĐK)</SelectItem>
+                  <SelectItem value="ALL">{t("admin.lockers.logs.filter.allBoxes")}</SelectItem>
+                  <SelectItem value="0">{t("admin.lockers.logs.filter.wholeLocker")}</SelectItem>
                   {cells.map((c) => (
                     <SelectItem key={c.id} value={String(c.boxNumber)}>
-                      Ô #{c.boxNumber} (ID: {c.id})
+                      {t("admin.lockers.logs.filter.boxOption", { number: c.boxNumber, id: c.id })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -417,17 +427,17 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
 
               <Select value={selectedResult} onValueChange={setSelectedResult}>
                 <SelectTrigger className="w-[160px] h-8 text-xs">
-                  <SelectValue placeholder="Kết quả" />
+                  <SelectValue placeholder={t("admin.lockers.logs.filter.result")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tất cả kết quả</SelectItem>
-                  <SelectItem value="ONLINE">Trực tuyến (Cắm điện)</SelectItem>
-                  <SelectItem value="OFFLINE">Mất kết nối (Rút điện)</SelectItem>
-                  <SelectItem value="SUCCESS">Thành công</SelectItem>
-                  <SelectItem value="FAILED">Thất bại</SelectItem>
-                  <SelectItem value="JAMMED">Kẹt khóa / Lỗi</SelectItem>
-                  <SelectItem value="TIMEOUT">Quá hạn</SelectItem>
-                  <SelectItem value="DENIED">Từ chối</SelectItem>
+                  <SelectItem value="ALL">{t("admin.lockers.logs.filter.allResults")}</SelectItem>
+                  <SelectItem value="ONLINE">{t("admin.lockers.logs.result.online")}</SelectItem>
+                  <SelectItem value="OFFLINE">{t("admin.lockers.logs.result.offline")}</SelectItem>
+                  <SelectItem value="SUCCESS">{t("common.success")}</SelectItem>
+                  <SelectItem value="FAILED">{t("common.failed")}</SelectItem>
+                  <SelectItem value="JAMMED">{t("admin.lockers.logs.filter.jammed")}</SelectItem>
+                  <SelectItem value="TIMEOUT">{t("admin.lockers.logs.result.timeout")}</SelectItem>
+                  <SelectItem value="DENIED">{t("admin.lockers.logs.result.denied")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -436,12 +446,12 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
             {isLoading ? (
               <div className="py-12 text-center text-xs text-muted-foreground">
                 <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-primary" />
-                Đang tải nhật ký...
+                {t("admin.lockers.logs.loading")}
               </div>
             ) : filteredLogs.length === 0 ? (
               <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed">
                 <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                Chưa có bản ghi nhật ký nào phù hợp.
+                {t("admin.lockers.logs.empty")}
               </div>
             ) : (
               <div className="rounded-lg border border-border/80 overflow-hidden">
@@ -449,27 +459,33 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                   <Table className="text-xs">
                     <TableHeader className="bg-muted/40 sticky top-0 z-10">
                       <TableRow>
-                        <TableHead className="w-[150px] font-semibold">Thời gian</TableHead>
-                        <TableHead className="w-[110px] font-semibold">Vị trí / Ô</TableHead>
-                        <TableHead className="w-[170px] font-semibold">Phân loại sự kiện</TableHead>
-                        <TableHead className="w-[150px] font-semibold">Trạng thái</TableHead>
-                        <TableHead className="w-[110px] font-semibold">Đối tượng</TableHead>
-                        <TableHead className="font-semibold">Chi tiết sự kiện & Phần cứng</TableHead>
+                        <TableHead className="w-[150px] font-semibold">{t("common.time")}</TableHead>
+                        <TableHead className="w-[110px] font-semibold">{t("admin.lockers.logs.col.location")}</TableHead>
+                        <TableHead className="w-[170px] font-semibold">{t("admin.lockers.logs.col.eventType")}</TableHead>
+                        <TableHead className="w-[150px] font-semibold">{t("common.status")}</TableHead>
+                        <TableHead className="w-[110px] font-semibold">{t("admin.lockers.logs.col.actor")}</TableHead>
+                        <TableHead className="font-semibold">{t("admin.lockers.logs.col.details")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredLogs.map((log, index) => {
                         const boxNum = log.boxId === 0 ? null : boxIdToNumber.get(log.boxId);
-                        const cred = CREDENTIAL_LABEL[log.credentialType?.toUpperCase()] ?? {
-                          label: log.credentialType,
-                          cls: "bg-secondary text-foreground border-border",
-                          icon: Key,
-                        };
-                        const res = RESULT_LABEL[log.result?.toUpperCase()] ?? {
-                          label: log.result,
-                          cls: "bg-secondary text-foreground border-border",
-                          icon: CheckCircle2,
-                        };
+                        const credMeta = CREDENTIAL_LABEL[log.credentialType?.toUpperCase()];
+                        const cred = credMeta
+                          ? { ...credMeta, label: t(credMeta.labelKey) }
+                          : {
+                              label: log.credentialType,
+                              cls: "bg-secondary text-foreground border-border",
+                              icon: Key,
+                            };
+                        const resMeta = RESULT_LABEL[log.result?.toUpperCase()];
+                        const res = resMeta
+                          ? { ...resMeta, label: t(resMeta.labelKey) }
+                          : {
+                              label: log.result,
+                              cls: "bg-secondary text-foreground border-border",
+                              icon: CheckCircle2,
+                            };
                         const CredIcon = cred.icon;
                         const ResIcon = res.icon;
 
@@ -498,7 +514,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                                     className="text-[10px] bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-300 whitespace-nowrap"
                                   >
                                     <Monitor className="w-2.5 h-2.5 mr-1" />
-                                    Màn hình Kiosk
+                                    {t("admin.lockers.logs.kioskScreen")}
                                   </Badge>
                                 ) : (
                                   <Badge
@@ -506,12 +522,12 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                                     className="text-[10px] bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-300 whitespace-nowrap"
                                   >
                                     <RadioTower className="w-2.5 h-2.5 mr-1" />
-                                    Bộ điều khiển
+                                    {t("admin.lockers.logs.controller")}
                                   </Badge>
                                 )
                               ) : boxNum != null ? (
                                 <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
-                                  Ô #{boxNum}
+                                  {t("admin.lockers.boxLabel", { number: boxNum })}
                                 </Badge>
                               ) : (
                                 <span className="text-muted-foreground text-[11px]">ID #{log.boxId}</span>
@@ -535,15 +551,15 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                             </TableCell>
                             <TableCell className="text-muted-foreground">
                               {log.orderId ? (
-                                <span className="font-mono text-[11px]">Đơn #{log.orderId}</span>
+                                <span className="font-mono text-[11px]">{t("admin.lockers.logs.orderRef", { id: log.orderId })}</span>
                               ) : log.actorUserId ? (
-                                <span className="text-[11px]">KTV #{log.actorUserId}</span>
+                                <span className="text-[11px]">{t("admin.lockers.table.technicianId", { id: log.actorUserId })}</span>
                               ) : isDisplay ? (
                                 <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400">Waveshare 7"</span>
                               ) : isDiscovery ? (
                                 <span className="text-[11px] font-mono text-purple-600 dark:text-purple-400">Pi Controller</span>
                               ) : (
-                                "Hệ thống"
+                                t("common.system")
                               )}
                             </TableCell>
                             <TableCell
@@ -577,19 +593,19 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
             {lockerReports.length === 0 ? (
               <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed">
                 <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500 opacity-60" />
-                Tủ chưa từng ghi nhận phiếu sự cố nào. Hoạt động hoàn toàn ổn định!
+                {t("admin.lockers.logs.noReports")}
               </div>
             ) : (
               <div className="rounded-lg border border-border/80 overflow-hidden">
                 <Table className="text-xs">
                   <TableHeader className="bg-muted/40">
                     <TableRow>
-                      <TableHead className="w-[100px] font-semibold">Mã phiếu</TableHead>
-                      <TableHead className="w-[100px] font-semibold">Ô tủ</TableHead>
-                      <TableHead className="w-[120px] font-semibold">Phân loại</TableHead>
-                      <TableHead className="w-[120px] font-semibold">Trạng thái</TableHead>
-                      <TableHead className="font-semibold">Mô tả sự cố</TableHead>
-                      <TableHead className="w-[150px] font-semibold">Thời gian</TableHead>
+                      <TableHead className="w-[100px] font-semibold">{t("admin.lockers.logs.reports.id")}</TableHead>
+                      <TableHead className="w-[100px] font-semibold">{t("admin.lockers.logs.reports.box")}</TableHead>
+                      <TableHead className="w-[120px] font-semibold">{t("admin.lockers.logs.reports.category")}</TableHead>
+                      <TableHead className="w-[120px] font-semibold">{t("common.status")}</TableHead>
+                      <TableHead className="font-semibold">{t("admin.lockers.logs.reports.description")}</TableHead>
+                      <TableHead className="w-[150px] font-semibold">{t("common.time")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -599,7 +615,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                         <TableCell className="font-semibold">
                           {report.boxNumber != null ? (
                             <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
-                              Ô #{report.boxNumber}
+                              {t("admin.lockers.boxLabel", { number: report.boxNumber })}
                             </Badge>
                           ) : (
                             "—"
@@ -607,7 +623,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px]">
-                            {report.category || "CHUNG"}
+                            {report.category || t("admin.lockers.logs.reports.categoryGeneral")}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -621,14 +637,14 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                             }`}
                           >
                             {report.status === "RESOLVED"
-                              ? "Đã xử lý"
+                              ? t("admin.lockers.logs.reports.resolved")
                               : report.status === "IN_PROGRESS"
-                              ? "Đang xử lý"
-                              : "Đang mở"}
+                              ? t("admin.lockers.logs.reports.inProgress")
+                              : t("admin.lockers.logs.reports.open")}
                           </Badge>
                         </TableCell>
                         <TableCell className="max-w-[300px] truncate" title={report.description}>
-                          {report.description || "Không có mô tả"}
+                          {report.description || t("admin.lockers.logs.reports.noDescription")}
                         </TableCell>
                         <TableCell className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                           {formatDateTime(report.createdAt)}

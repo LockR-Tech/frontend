@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, Pencil } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -38,6 +39,7 @@ export function ServiceCard({
   isRevenueFetching,
   disabled,
 }: ServiceCardProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const Icon = service.icon;
   const headline = settingByKey.get(service.headlineKey);
@@ -52,10 +54,10 @@ export function ServiceCard({
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-base font-bold text-foreground leading-tight">
-              {service.name}
+              {t(service.nameKey)}
             </h2>
             <p className="text-[11px] text-muted-foreground">
-              {service.tagline} · mã loại đơn{" "}
+              {t(service.taglineKey)} · {t("admin.services.card.orderTypeCode")}{" "}
               <span className="font-mono">{service.type}</span>
             </p>
           </div>
@@ -69,9 +71,9 @@ export function ServiceCard({
                     ? formatSettingValue(headline, valueOf(service.headlineKey))
                     : "—"}
                 </p>
-                {service.headlineSuffix && (
+                {service.headlineSuffixKey && (
                   <p className="text-[11px] text-muted-foreground">
-                    {service.headlineSuffix}
+                    {t(service.headlineSuffixKey)}
                   </p>
                 )}
               </>
@@ -80,23 +82,23 @@ export function ServiceCard({
         </div>
 
         <p className="text-xs text-muted-foreground leading-relaxed">
-          {service.description}
+          {t(service.descriptionKey)}
         </p>
 
         {/* Hiệu quả trong kỳ */}
         <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-            Hiệu quả trong kỳ
+            {t("admin.services.card.performance")}
           </p>
           {isRevenueFetching && !revenue ? (
             <Skeleton className="h-12 w-full" />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <Metric label="Doanh thu" value={formatCurrency(revenue?.revenue)} />
-              <Metric label="Tỉ trọng" value={formatPercent(revenue?.sharePct)} />
-              <Metric label="Đơn tạo mới" value={formatNumber(revenue?.orderCount)} />
+              <Metric label={t("admin.services.card.revenue")} value={formatCurrency(revenue?.revenue)} />
+              <Metric label={t("admin.services.card.share")} value={formatPercent(revenue?.sharePct)} />
+              <Metric label={t("admin.services.card.newOrders")} value={formatNumber(revenue?.orderCount)} />
               <Metric
-                label="Đơn thu được tiền"
+                label={t("admin.services.card.paidOrders")}
                 value={formatNumber(revenue?.paidOrderCount)}
               />
             </div>
@@ -107,7 +109,7 @@ export function ServiceCard({
             className="h-7 mt-2 text-xs px-2"
             onClick={() => navigate(`/admin/orders?type=${service.type}`)}
           >
-            Xem đơn của dịch vụ này
+            {t("admin.services.card.viewOrders")}
             <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
         </div>
@@ -116,14 +118,14 @@ export function ServiceCard({
         <div className="space-y-4">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
             <Pencil className="h-3 w-3" />
-            Quy tắc áp dụng
+            {t("admin.services.card.rules")}
           </p>
           {isSettingsLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : (
             service.ruleGroups.map((group) => (
               <RuleGroup
-                key={group.title}
+                key={group.titleKey}
                 group={group}
                 settingByKey={settingByKey}
                 valueOf={valueOf}
@@ -165,6 +167,7 @@ export function RuleGroup({
   onChange,
   disabled,
 }: RuleGroupProps) {
+  const { t } = useTranslation();
   // Key backend chưa khai báo thì bỏ qua — trang không vỡ khi catalog hai bên lệch nhau.
   const settings = group.keys
     .map((key) => settingByKey.get(key))
@@ -174,7 +177,7 @@ export function RuleGroup({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold text-foreground">{group.title}</p>
+      <p className="text-xs font-semibold text-foreground">{t(group.titleKey)}</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
         {settings.map((setting) => {
           const id = `svc-${setting.key}`;

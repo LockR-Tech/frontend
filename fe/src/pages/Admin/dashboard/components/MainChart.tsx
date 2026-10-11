@@ -19,7 +19,11 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import type { MonthlyDataPoint } from "~/types/admin/dashboard";
+import { monthName } from "~/lib/report-format";
+import i18n, { currentLanguage } from "~/utils/i18n";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
 interface MainChartProps {
@@ -33,9 +37,22 @@ interface MainChartProps {
 }
 
 function formatRevenueTick(value: number) {
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)} tỷ`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)} tr`;
+  if (value >= 1_000_000_000)
+    return i18n.t("admin.dashboard.format.billionShort", { value: (value / 1_000_000_000).toFixed(1) });
+  if (value >= 1_000_000)
+    return i18n.t("admin.dashboard.format.millionShort", { value: (value / 1_000_000).toFixed(0) });
   return `${value}`;
+}
+
+/** Nhãn tháng từ dữ liệu `T3`: tiếng Việt giữ `T3` / `Tháng 3`, ngôn ngữ khác dùng tên tháng. */
+function monthText(label: string | undefined, t: TFunction, style: "short" | "long"): string {
+  const month = Number(label?.replace(/^T/, ""));
+  if (!month) return label ?? "";
+  const lang = currentLanguage(i18n);
+  const value = lang === "vi" ? String(month) : monthName(month, lang, style);
+  return style === "short"
+    ? t("admin.dashboard.mainChart.monthTick", { month: value })
+    : t("admin.dashboard.mainChart.monthTitle", { month: value });
 }
 
 interface TooltipEntry {
@@ -53,6 +70,7 @@ function CustomTooltip({
   payload?: TooltipEntry[];
   label?: string;
 }) {
+  const { t } = useTranslation();
   if (!active || !payload || !payload.length) return null;
 
   const orders = payload.find((p) => p.dataKey === "orders")?.value ?? 0;
@@ -61,14 +79,16 @@ function CustomTooltip({
   return (
     <div className="rounded-lg border border-border bg-popover p-3 shadow-md text-xs space-y-1.5 min-w-35">
       <p className="font-semibold text-foreground border-b border-border pb-1">
-        Tháng {label?.replace(/^T/, "")}
+        {monthText(label, t, "long")}
       </p>
       <div className="flex items-center justify-between gap-4">
-        <span className="text-muted-foreground">Đơn tạo:</span>
-        <span className="font-medium text-foreground">{orders.toLocaleString("vi-VN")} đơn</span>
+        <span className="text-muted-foreground">{t("admin.dashboard.mainChart.ordersCreatedLabel")}</span>
+        <span className="font-medium text-foreground">
+          {t("admin.dashboard.chart.ordersValue", { value: orders.toLocaleString("vi-VN") })}
+        </span>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <span className="text-muted-foreground">Thực thu:</span>
+        <span className="text-muted-foreground">{t("admin.dashboard.mainChart.collectedLabel")}</span>
         <span className="font-medium text-foreground">{revenue.toLocaleString("vi-VN")} đ</span>
       </div>
     </div>
@@ -84,6 +104,7 @@ export function MainChart({
   error,
   onRetry,
 }: MainChartProps) {
+  const { t } = useTranslation();
   const hasData = data.some((d) => d.orders > 0 || d.revenue > 0);
   const placeholder = (
     <ChartPlaceholder
@@ -100,20 +121,20 @@ export function MainChart({
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div>
           <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-            Xu hướng đơn hàng & doanh thu
+            {t("admin.dashboard.mainChart.title")}
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground mt-0.5">
-            Đơn tạo mới và tiền thực thu theo từng tháng trong năm {selectedYear}
+            {t("admin.dashboard.mainChart.description", { year: selectedYear })}
           </CardDescription>
         </div>
         <Select value={selectedYear} onValueChange={onYearChange}>
           <SelectTrigger className="w-28 h-8 text-xs font-medium">
-            <SelectValue placeholder="Chọn năm" />
+            <SelectValue placeholder={t("admin.dashboard.mainChart.selectYear")} />
           </SelectTrigger>
           <SelectContent align="end">
             {yearOptions.map((year) => (
               <SelectItem key={year} value={year} className="text-xs">
-                Năm {year}
+                {t("admin.dashboard.mainChart.yearOption", { year })}
               </SelectItem>
             ))}
           </SelectContent>
@@ -140,6 +161,7 @@ export function MainChart({
                   tickLine={false}
                   axisLine={false}
                   tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  tickFormatter={(value: string) => monthText(value, t, "short")}
                 />
                 <YAxis
                   yAxisId="orders"
@@ -166,7 +188,9 @@ export function MainChart({
                   wrapperStyle={{ paddingBottom: "12px", fontSize: "12px" }}
                   formatter={(value) => (
                     <span className="text-xs text-muted-foreground mr-3">
-                      {value === "orders" ? "Đơn tạo" : "Thực thu"}
+                      {value === "orders"
+                        ? t("admin.dashboard.chart.ordersCreated")
+                        : t("admin.dashboard.chart.collected")}
                     </span>
                   )}
                 />

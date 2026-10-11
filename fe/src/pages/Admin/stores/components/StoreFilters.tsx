@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Input } from "~/components/ui/input";
 import { StatusDropdown } from "~/components/shared/status-tabs";
 import type { StoreStatus } from "../hooks/useStores";
@@ -12,9 +13,9 @@ interface StoreFiltersProps {
 }
 
 const options = [
-  { value: "ALL", label: "Tất cả" },
-  { value: "ACTIVE", label: "Hoạt động", color: "green" as const },
-  { value: "INACTIVE", label: "Vô hiệu", color: "gray" as const },
+  { value: "ALL", labelKey: "common.all" },
+  { value: "ACTIVE", labelKey: "admin.stores.status.active", color: "green" as const },
+  { value: "INACTIVE", labelKey: "admin.stores.status.inactive", color: "gray" as const },
 ];
 
 export function StoreFilters({
@@ -24,8 +25,10 @@ export function StoreFilters({
   onSearchChange,
   statusCounts,
 }: StoreFiltersProps) {
-  const optionsWithCounts = options.map((opt) => ({
+  const { t } = useTranslation();
+  const optionsWithCounts = options.map(({ labelKey, ...opt }) => ({
     ...opt,
+    label: t(labelKey),
     count: statusCounts[opt.value as StoreStatus],
   }));
 
@@ -35,7 +38,7 @@ export function StoreFilters({
         options={optionsWithCounts}
         value={status}
         onChange={(value) => onStatusChange(value as StoreStatus)}
-        placeholder="Trạng thái"
+        placeholder={t("common.status")}
       />
 
       <div className="relative w-full sm:w-72">
@@ -44,7 +47,7 @@ export function StoreFilters({
           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
         />
         <Input
-          placeholder="Tìm kiếm địa điểm..."
+          placeholder={t("admin.stores.searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 h-10"

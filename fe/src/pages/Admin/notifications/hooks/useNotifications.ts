@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { NotificationStatus } from "~/types/admin/enums";
 import {
   useGetAllNotificationsQuery,
@@ -31,6 +32,7 @@ export interface NotificationStats {
 }
 
 export function useNotifications() {
+  const { t } = useTranslation();
   const [statusFilter, setStatusFilterState] = useState<NotificationStatusFilter>("ALL");
   const [typeFilter, setTypeFilterState] = useState<string>("ALL");
   const [searchQuery, setSearchQueryState] = useState("");
@@ -107,7 +109,8 @@ export function useNotifications() {
     return [...counts.entries()]
       .map(([value, count]) => ({ value, label: notificationTypeLabel(value), count }))
       .sort((a, b) => a.label.localeCompare(b.label, "vi"));
-  }, [allNotifications]);
+    // `t` đổi khi đổi ngôn ngữ → dựng lại nhãn.
+  }, [allNotifications, t]);
 
   const filteredNotifications = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -186,11 +189,11 @@ export function useNotifications() {
   const handleDelete = async (id: number): Promise<boolean> => {
     try {
       await deleteNotification(id).unwrap();
-      toast.success("Đã xoá thông báo");
+      toast.success(t("admin.notifications.toast.deleted"));
       return true;
     } catch (err) {
-      toast.error("Không xoá được thông báo", {
-        description: notificationErrorMessage(err, "Vui lòng thử lại."),
+      toast.error(t("admin.notifications.toast.deleteFailed"), {
+        description: notificationErrorMessage(err, t("common.pleaseRetry")),
       });
       return false;
     }
@@ -200,10 +203,10 @@ export function useNotifications() {
     withPending(id, async () => {
       try {
         await markRead(id).unwrap();
-        toast.success("Đã đánh dấu đã đọc");
+        toast.success(t("admin.notifications.toast.markedRead"));
       } catch (err) {
-        toast.error("Không đánh dấu được", {
-          description: notificationErrorMessage(err, "Vui lòng thử lại."),
+        toast.error(t("admin.notifications.toast.markReadFailed"), {
+          description: notificationErrorMessage(err, t("common.pleaseRetry")),
         });
       }
     });
@@ -212,10 +215,10 @@ export function useNotifications() {
     withPending(id, async () => {
       try {
         await resendNotification(id).unwrap();
-        toast.success("Đã gửi lại thông báo");
+        toast.success(t("admin.notifications.toast.resent"));
       } catch (err) {
-        toast.error("Không gửi lại được thông báo", {
-          description: notificationErrorMessage(err, "Vui lòng thử lại."),
+        toast.error(t("admin.notifications.toast.resendFailed"), {
+          description: notificationErrorMessage(err, t("common.pleaseRetry")),
         });
       }
     });

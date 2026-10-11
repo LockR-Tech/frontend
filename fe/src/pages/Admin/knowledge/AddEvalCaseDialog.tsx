@@ -34,6 +34,7 @@ import {
   statusMeta,
   toggleEvalRole,
 } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 const CUSTOM_TITLE = "__custom__";
 
@@ -44,6 +45,7 @@ interface AddEvalCaseDialogProps {
 }
 
 export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCaseDialogProps) {
+  const { t } = useTranslation();
   const [addCases, { isLoading }] = useAddKnowledgeEvalCasesMutation();
   const [question, setQuestion] = useState("");
   const [roles, setRoles] = useState<string[]>(["CUSTOMER"]);
@@ -67,11 +69,11 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
 
   const expectedTitle = titleChoice === CUSTOM_TITLE ? customTitle.trim() : titleChoice;
   const questionError = !question.trim()
-    ? "Nhập câu hỏi."
+    ? t("admin.knowledge.addCase.questionRequired")
     : question.trim().length > MAX_QUESTION_LENGTH
-      ? `Câu hỏi tối đa ${MAX_QUESTION_LENGTH} ký tự.`
+      ? t("admin.knowledge.addCase.questionTooLong", { max: MAX_QUESTION_LENGTH })
       : null;
-  const titleError = !mustRefuse && !expectedTitle ? "Chọn hoặc nhập tài liệu mong đợi." : null;
+  const titleError = !mustRefuse && !expectedTitle ? t("admin.knowledge.addCase.expectedRequired") : null;
 
   const reset = () => {
     setQuestion("");
@@ -100,7 +102,7 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
           mustRefuse,
         },
       ]).unwrap();
-      toast.success("Đã thêm câu đánh giá");
+      toast.success(t("admin.knowledge.addCase.added"));
       if (keepOpen) {
         // Giữ vai trò / tài liệu để nhập tiếp các câu cùng nhóm.
         setQuestion("");
@@ -110,8 +112,8 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
         onOpenChange(false);
       }
     } catch (err) {
-      toast.error("Không thêm được câu đánh giá", {
-        description: getKnowledgeErrorMessage(err, "Đã xảy ra lỗi khi lưu."),
+      toast.error(t("admin.knowledge.addCase.addFailed"), {
+        description: getKnowledgeErrorMessage(err, t("admin.knowledge.errors.genericSave")),
       });
     }
   };
@@ -120,17 +122,16 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Thêm câu đánh giá</DialogTitle>
+          <DialogTitle>{t("admin.knowledge.addCase.title")}</DialogTitle>
           <DialogDescription>
-            Câu thường phải truy xuất trúng tài liệu mong đợi; câu “phải từ chối” (ngoài phạm vi,
-            hoặc tài liệu nội bộ mà vai trò này không được đọc) phải không có đoạn nào đạt ngưỡng.
+            {t("admin.knowledge.addCase.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
             <Label htmlFor="eval-question" className="mb-1.5 block text-xs">
-              Câu hỏi *
+              {t("admin.knowledge.addCase.questionLabel")}
             </Label>
             <Textarea
               id="eval-question"
@@ -138,14 +139,14 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
               value={question}
               maxLength={MAX_QUESTION_LENGTH}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ví dụ: Quá hạn nhận đồ thì bị tính phí thế nào?"
+              placeholder={t("admin.knowledge.addCase.questionPlaceholder")}
               disabled={isLoading}
             />
             {touched && questionError && <p className="mt-1 text-xs text-red-600">{questionError}</p>}
           </div>
 
           <div>
-            <Label className="mb-1.5 block text-xs">Người hỏi có vai trò</Label>
+            <Label className="mb-1.5 block text-xs">{t("admin.knowledge.addCase.rolesLabel")}</Label>
             <RoleCheckboxGroup
               idPrefix="eval-role"
               options={EVAL_CASE_ROLES}
@@ -154,17 +155,17 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
               disabled={isLoading}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Chỉ tài liệu mở cho các vai trò này (hoặc “Tất cả người dùng”) mới được tìm. Bỏ hết = Khách hàng.
+              {t("admin.knowledge.addCase.rolesHint")}
             </p>
           </div>
 
           <div className="flex items-start justify-between gap-4 rounded-lg border border-border px-3 py-2.5">
             <div>
               <Label htmlFor="eval-must-refuse" className="text-sm font-medium">
-                Phải từ chối
+                {t("admin.knowledge.eval.mustRefuse")}
               </Label>
               <p className="text-xs text-muted-foreground">
-                Đạt khi không có đoạn tài liệu nào vượt ngưỡng liên quan.
+                {t("admin.knowledge.addCase.mustRefuseHint")}
               </p>
             </div>
             <Switch
@@ -177,10 +178,10 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
 
           {!mustRefuse && (
             <div>
-              <Label className="mb-1.5 block text-xs">Tài liệu mong đợi *</Label>
+              <Label className="mb-1.5 block text-xs">{t("admin.knowledge.addCase.expectedLabel")}</Label>
               <Select value={titleChoice} onValueChange={setTitleChoice} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chọn tài liệu trong kho…" />
+                  <SelectValue placeholder={t("admin.knowledge.addCase.expectedPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {titleOptions.map((option) => (
@@ -193,7 +194,7 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
                       )}
                     </SelectItem>
                   ))}
-                  <SelectItem value={CUSTOM_TITLE}>Nhập tiêu đề khác…</SelectItem>
+                  <SelectItem value={CUSTOM_TITLE}>{t("admin.knowledge.addCase.customTitle")}</SelectItem>
                 </SelectContent>
               </Select>
               {titleChoice === CUSTOM_TITLE && (
@@ -202,7 +203,7 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
                   value={customTitle}
                   maxLength={MAX_TITLE_LENGTH}
                   onChange={(e) => setCustomTitle(e.target.value)}
-                  placeholder="Tiêu đề tài liệu (khớp không phân biệt hoa thường)"
+                  placeholder={t("admin.knowledge.addCase.customTitlePlaceholder")}
                   disabled={isLoading}
                 />
               )}
@@ -213,14 +214,14 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
-            Huỷ
+            {t("common.cancel")}
           </Button>
           <Button variant="secondary" onClick={() => submit(true)} disabled={isLoading}>
-            Lưu và thêm câu khác
+            {t("admin.knowledge.addCase.saveAndAdd")}
           </Button>
           <Button onClick={() => submit(false)} disabled={isLoading}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Thêm
+            {t("admin.knowledge.addCase.add")}
           </Button>
         </DialogFooter>
       </DialogContent>

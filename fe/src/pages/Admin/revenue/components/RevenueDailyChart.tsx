@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   Area,
   CartesianGrid,
@@ -48,17 +50,21 @@ interface RevenueDailyChartProps {
 // Hai chuỗi cùng đơn vị tiền nên chung một trục; màu lấy từ biến CSS đổi theo
 // sáng/tối ở `src/index.css`.
 const SERIES = [
-  { key: "revenue", label: "Tiền thu được", color: "var(--report-series-1)" },
-  { key: "netRevenue", label: "Thực thu sau hoàn", color: "var(--report-series-2)" },
+  { key: "revenue", labelKey: "admin.revenue.chart.revenue", color: "var(--report-series-1)" },
+  { key: "netRevenue", labelKey: "admin.revenue.netAfterRefund", color: "var(--report-series-2)" },
 ] as const;
 
 /** Rút gọn trục tiền: 1.500.000 → "1,5 tr". */
-function axisMoney(value: number): string {
+function axisMoney(value: number, t: TFunction): string {
   if (Math.abs(value) >= 1_000_000) {
-    return `${(value / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} tr`;
+    return t("admin.revenue.chart.axisMillion", {
+      value: (value / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 }),
+    });
   }
   if (Math.abs(value) >= 1_000) {
-    return `${(value / 1_000).toLocaleString("vi-VN", { maximumFractionDigits: 0 })} n`;
+    return t("admin.revenue.chart.axisThousand", {
+      value: (value / 1_000).toLocaleString("vi-VN", { maximumFractionDigits: 0 }),
+    });
   }
   return value.toLocaleString("vi-VN");
 }
@@ -69,6 +75,7 @@ export function RevenueDailyChart({
   error,
   onRetry,
 }: RevenueDailyChartProps) {
+  const { t } = useTranslation();
   const [showTable, setShowTable] = useState(false);
 
   const rows = useMemo(
@@ -86,11 +93,12 @@ export function RevenueDailyChart({
         <div>
           <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Doanh thu theo ngày
+            {t("admin.revenue.chart.title")}
           </CardTitle>
           <CardDescription className="text-xs">
-            Tiền thu được trong ngày (theo lịch Việt Nam) và phần còn lại sau khi trừ
-            hoàn tiền. Tổng kỳ: {formatCurrency(data?.totalRevenue)}
+            {t("admin.revenue.chart.description", {
+              amount: formatCurrency(data?.totalRevenue),
+            })}
           </CardDescription>
         </div>
         <Button
@@ -100,7 +108,7 @@ export function RevenueDailyChart({
           onClick={() => setShowTable((value) => !value)}
         >
           <Table2 className="h-3.5 w-3.5 mr-1.5" />
-          {showTable ? "Xem biểu đồ" : "Xem bảng"}
+          {showTable ? t("admin.revenue.chart.showChart") : t("admin.revenue.chart.showTable")}
         </Button>
       </CardHeader>
 
@@ -109,13 +117,13 @@ export function RevenueDailyChart({
           <ReportErrorState
             error={error}
             onRetry={onRetry}
-            title="Không tải được doanh thu theo ngày"
+            title={t("admin.revenue.chart.loadFailed")}
           />
         ) : isLoading ? (
           <Skeleton className="h-72 w-full" />
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground py-10 text-center">
-            Không có ngày nào trong khoảng đã chọn.
+            {t("admin.revenue.chart.empty")}
           </p>
         ) : (
           <>
@@ -130,7 +138,7 @@ export function RevenueDailyChart({
                     className="h-0.5 w-4 rounded-full"
                     style={{ backgroundColor: series.color }}
                   />
-                  {series.label}
+                  {t(series.labelKey)}
                 </span>
               ))}
             </div>
@@ -140,12 +148,12 @@ export function RevenueDailyChart({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Ngày</TableHead>
-                      <TableHead className="text-right">Thu được</TableHead>
-                      <TableHead className="text-right">Hoàn tiền</TableHead>
-                      <TableHead className="text-right">Thực thu</TableHead>
-                      <TableHead className="text-right">Đơn thu được</TableHead>
-                      <TableHead className="text-right">Đơn tạo mới</TableHead>
+                      <TableHead>{t("admin.revenue.chart.table.date")}</TableHead>
+                      <TableHead className="text-right">{t("admin.revenue.chart.table.collected")}</TableHead>
+                      <TableHead className="text-right">{t("admin.payments.refunds")}</TableHead>
+                      <TableHead className="text-right">{t("admin.revenue.columns.net")}</TableHead>
+                      <TableHead className="text-right">{t("admin.revenue.chart.table.paidOrders")}</TableHead>
+                      <TableHead className="text-right">{t("admin.revenue.columns.newOrders")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -209,7 +217,7 @@ export function RevenueDailyChart({
                       className="text-[11px] fill-muted-foreground"
                     />
                     <YAxis
-                      tickFormatter={axisMoney}
+                      tickFormatter={(value: number) => axisMoney(value, t)}
                       tickLine={false}
                       axisLine={false}
                       width={56}
@@ -227,10 +235,10 @@ export function RevenueDailyChart({
                       labelFormatter={(_label, payload) =>
                         formatDayLabel(payload?.[0]?.payload?.date)
                       }
-                      formatter={(value: number, name: string) => [
-                        formatCurrency(value),
-                        SERIES.find((series) => series.key === name)?.label ?? name,
-                      ]}
+                      formatter={(value: number, name: string) => {
+                        const series = SERIES.find((item) => item.key === name);
+                        return [formatCurrency(value), series ? t(series.labelKey) : name];
+                      }}
                     />
 
                     <Area

@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { formatSettingValue, settingLabel, type SettingChange } from "./setting-utils";
+import { useTranslation } from "react-i18next";
 
 interface SaveChangesDialogProps {
   open: boolean;
@@ -27,14 +28,14 @@ export function SaveChangesDialog({
   onOpenChange,
   onConfirm,
 }: SaveChangesDialogProps) {
+  const { t } = useTranslation();
   return (
     <Dialog open={open} onOpenChange={(next) => !saving && onOpenChange(next)}>
       <DialogContent className="max-w-2xl gap-0 p-0">
         <DialogHeader className="border-b border-border/60 px-6 pb-4 pt-6">
-          <DialogTitle>Xác nhận lưu {changes.length} thay đổi</DialogTitle>
+          <DialogTitle>{t("admin.settings.save.title", { count: changes.length })}</DialogTitle>
           <DialogDescription>
-            Nhóm “{scopeTitle}”. Các giá trị được lưu cùng lúc; nếu có giá trị bị từ chối thì cả
-            lô sẽ không được áp dụng.
+            {t("admin.settings.save.description", { scope: scopeTitle })}
           </DialogDescription>
         </DialogHeader>
 
@@ -58,11 +59,11 @@ export function SaveChangesDialog({
 
         <DialogFooter className="gap-2 border-t border-border/60 px-6 py-4 sm:gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Quay lại
+            {t("button.back")}
           </Button>
           <Button onClick={onConfirm} disabled={saving || changes.length === 0}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Xác nhận lưu
+            {t("admin.settings.save.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

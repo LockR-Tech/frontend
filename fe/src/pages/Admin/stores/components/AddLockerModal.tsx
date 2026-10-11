@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     code: "",
     name: "",
@@ -46,7 +48,7 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
       onCreated();
       onClose();
     } catch (err) {
-      toast.error("Không thể tạo tủ mới", {
+      toast.error(t("admin.stores.addLocker.createFailed"), {
         description: err instanceof Error ? err.message : undefined,
       });
     } finally {
@@ -60,50 +62,50 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Thêm Kiosk mới
+            {t("admin.stores.addLocker.title")}
           </DialogTitle>
           <DialogDescription>
-            Kiosk sẽ được gán vào địa điểm này sau khi tạo.
+            {t("admin.stores.addLocker.desc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">
-              Mã thiết bị <span className="text-red-500">*</span>
+              {t("admin.stores.lockerForm.deviceCode")} <span className="text-red-500">*</span>
             </label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-              placeholder="VD: LOCKER-001"
+              placeholder={t("admin.stores.lockerForm.codePlaceholder")}
               className="font-mono"
             />
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">
-              Tên Kiosk <span className="text-red-500">*</span>
+              {t("admin.stores.lockerForm.name")} <span className="text-red-500">*</span>
             </label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="VD: Kiosk sảnh chính A"
+              placeholder={t("admin.stores.lockerForm.namePlaceholder")}
             />
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">
-              Vị trí (tùy chọn)
+              {t("admin.stores.lockerForm.location")}
             </label>
             <Input
               value={form.address}
               onChange={(e) =>
                 setForm((f) => ({ ...f, address: e.target.value }))
               }
-              placeholder="VD: Tầng 1, khu A"
+              placeholder={t("admin.stores.lockerForm.locationPlaceholder")}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">
-                Vĩ độ (Latitude)
+                {t("admin.stores.form.latitude")}
               </label>
               <Input
                 type="number"
@@ -112,12 +114,12 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, latitude: e.target.value }))
                 }
-                placeholder="VD: 10.8412"
+                placeholder={t("admin.stores.form.latPlaceholder")}
               />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">
-                Kinh độ (Longitude)
+                {t("admin.stores.form.longitude")}
               </label>
               <Input
                 type="number"
@@ -126,20 +128,20 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, longitude: e.target.value }))
                 }
-                placeholder="VD: 106.8098"
+                placeholder={t("admin.stores.form.lngPlaceholder")}
               />
             </div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Hủy
+            {t("button.cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={saving || !form.code || !form.name}
           >
-            {saving ? "Đang tạo..." : "Tạo Kiosk"}
+            {saving ? t("admin.stores.addLocker.creating") : t("admin.stores.addLocker.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

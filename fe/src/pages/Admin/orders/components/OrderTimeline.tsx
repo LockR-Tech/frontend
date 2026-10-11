@@ -1,4 +1,5 @@
 import { ArrowRight, CircleDashed, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { MetaBadge, orderStatusMeta } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
 import type { AdminOrderTimelineEntry } from "~/types/admin/reporting";
@@ -14,11 +15,12 @@ interface OrderTimelineProps {
  * gì đã xảy ra.
  */
 export function OrderTimeline({ timeline }: OrderTimelineProps) {
+  const { t } = useTranslation();
   if (!timeline || timeline.length === 0) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center">
         <CircleDashed className="h-4 w-4" />
-        Chưa có bản ghi chuyển trạng thái nào.
+        {t("admin.orders.timeline.empty")}
       </div>
     );
   }
@@ -50,7 +52,7 @@ export function OrderTimeline({ timeline }: OrderTimelineProps) {
             {(entry.changedByName || entry.changedByUserId !== null) && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <User className="h-3 w-3 shrink-0" />
-                {entry.changedByName ?? "Không rõ người thao tác"}
+                {entry.changedByName ?? t("admin.orders.timeline.unknownActor")}
               </p>
             )}
             {entry.note && (

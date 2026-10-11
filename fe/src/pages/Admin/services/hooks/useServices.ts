@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   useGetBusinessSettingsQuery,
   useUpdateBusinessSettingsMutation,
@@ -25,6 +26,7 @@ import type { RevenueByServiceItem } from "~/types/admin/reporting";
 /// Không có endpoint "services" nào ở backend — trang cũ gọi `/api/admin/services` và
 /// nhận 404. Xem `service-catalog.ts`.
 export function useServices() {
+  const { t } = useTranslation();
   const [range, setRange] = useState<DateRangeValue>(defaultReportRange);
   const [drafts, setDrafts] = useState<DraftMap>({});
 
@@ -85,7 +87,7 @@ export function useServices() {
   const save = useCallback(async () => {
     if (validChanges.length === 0) return;
     if (invalidChanges.length > 0) {
-      toast.error("Còn giá trị không hợp lệ — sửa trước khi lưu");
+      toast.error(t("admin.services.toast.invalidBeforeSave"));
       return;
     }
     const values: Record<string, ReturnType<typeof toPayloadValue>> = {};
@@ -97,16 +99,16 @@ export function useServices() {
       resetDrafts();
       toast.success(
         validChanges.length === 1
-          ? "Đã lưu 1 thay đổi"
-          : `Đã lưu ${validChanges.length} thay đổi`,
+          ? t("admin.services.toast.savedOne")
+          : t("admin.services.toast.savedMany", { count: validChanges.length }),
       );
     } catch (error) {
       toast.error(
         toReportError(error as Parameters<typeof toReportError>[0])?.message ??
-          "Không lưu được thay đổi",
+          t("admin.services.toast.saveFailed"),
       );
     }
-  }, [validChanges, invalidChanges, saveSettings, resetDrafts]);
+  }, [validChanges, invalidChanges, saveSettings, resetDrafts, t]);
 
   const refetch = useCallback(() => {
     refetchSettings();

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useDashboard } from "./hooks/useDashboard";
 import {
@@ -21,23 +23,28 @@ import {
 import { changeDirection, formatDayLabel, formatPercentChange } from "~/lib/report-format";
 import { toReportError } from "~/lib/report-error";
 
-function formatVND(amount: number): string {
+function formatVND(amount: number, t: TFunction): string {
   if (amount >= 1_000_000_000)
-    return `${(amount / 1_000_000_000).toFixed(1)} tỷ đ`;
-  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(2)} tr đ`;
+    return t("admin.dashboard.format.billionVnd", { value: (amount / 1_000_000_000).toFixed(1) });
+  if (amount >= 1_000_000)
+    return t("admin.dashboard.format.millionVnd", { value: (amount / 1_000_000).toFixed(2) });
   return `${amount.toLocaleString("vi-VN")} đ`;
 }
 
-/** Mức thay đổi theo % (null = kỳ trước bằng 0 → không so sánh được). */
-function deltaOf(pct: number | null | undefined, suffix: string) {
+/** Mức thay đổi theo % (null = kỳ trước bằng 0 → không so sánh được). `key` nhận `{{value}}`. */
+function deltaOf(pct: number | null | undefined, t: TFunction, key: string) {
   if (pct === undefined) return undefined;
   return {
-    text: pct === null ? `Kỳ trước chưa có số liệu` : `${formatPercentChange(pct)} ${suffix}`,
+    text:
+      pct === null
+        ? t("admin.dashboard.hero.noPreviousData")
+        : t(key, { value: formatPercentChange(pct) }),
     direction: changeDirection(pct),
   };
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const {
     overview,
     byStatus,
@@ -91,26 +98,32 @@ export default function Dashboard() {
 
   const heroCards = [
     {
-      label: "Tổng đơn gửi & thuê",
+      label: t("admin.dashboard.hero.totalOrders"),
       value: overview.totalOrders.toLocaleString("vi-VN"),
       icon: Package,
       sublabel: month
-        ? `Tháng này: ${month.current.orderCount.toLocaleString("vi-VN")} đơn`
-        : "Toàn bộ mạng lưới Kiosk",
-      delta: month ? deltaOf(month.changes.orderCountPct, "đơn so với kỳ trước") : undefined,
+        ? t("admin.dashboard.hero.ordersThisMonth", {
+            value: month.current.orderCount.toLocaleString("vi-VN"),
+          })
+        : t("admin.dashboard.hero.wholeNetwork"),
+      delta: month
+        ? deltaOf(month.changes.orderCountPct, t, "admin.dashboard.hero.ordersVsPrevious")
+        : undefined,
     },
     {
-      label: "Đơn hôm nay",
+      label: t("admin.dashboard.hero.ordersToday"),
       // Ngày theo giờ Việt Nam từ báo cáo; overview (giờ máy chủ) chỉ là dự phòng.
       value: (day ? day.current.orderCount : overview.ordersToday).toLocaleString("vi-VN"),
       icon: CalendarCheck,
-      sublabel: "Đơn tạo trong ngày",
-      delta: day ? deltaOf(day.changes.orderCountPct, "so với hôm qua") : undefined,
+      sublabel: t("admin.dashboard.hero.ordersCreatedToday"),
+      delta: day
+        ? deltaOf(day.changes.orderCountPct, t, "admin.dashboard.hero.vsYesterday")
+        : undefined,
     },
     {
-      label: "Doanh thu tháng này",
+      label: t("admin.dashboard.monthlyRevenue"),
       value: month
-        ? formatVND(month.current.totalRevenue)
+        ? formatVND(month.current.totalRevenue, t)
         : monthSummary.isLoading
           ? pending
           : "—",
@@ -118,16 +131,24 @@ export default function Dashboard() {
       sublabel: monthError
         ? monthError.message
         : month
-          ? `Tiền thực thu từ ${formatDayLabel(month.from)}`
+          ? t("admin.dashboard.hero.collectedSince", { date: formatDayLabel(month.from) })
           : undefined,
-      delta: month ? deltaOf(month.changes.totalRevenuePct, "so với kỳ trước") : undefined,
+      delta: month
+        ? deltaOf(month.changes.totalRevenuePct, t, "admin.dashboard.hero.vsPrevious")
+        : undefined,
     },
     {
-      label: "Doanh thu hôm nay",
-      value: day ? formatVND(day.current.totalRevenue) : todaySummary.isLoading ? pending : "—",
+      label: t("admin.dashboard.hero.revenueToday"),
+      value: day
+        ? formatVND(day.current.totalRevenue, t)
+        : todaySummary.isLoading
+          ? pending
+          : "—",
       icon: TrendingUp,
-      sublabel: dayError ? dayError.message : "Tiền thực thu hôm nay",
-      delta: day ? deltaOf(day.changes.totalRevenuePct, "so với hôm qua") : undefined,
+      sublabel: dayError ? dayError.message : t("admin.dashboard.hero.collectedToday"),
+      delta: day
+        ? deltaOf(day.changes.totalRevenuePct, t, "admin.dashboard.hero.vsYesterday")
+        : undefined,
     },
   ];
 
@@ -136,9 +157,9 @@ export default function Dashboard() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/60 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("admin.sidebar.dashboard")}</h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Tổng quan thời gian thực về đơn gửi hàng, thuê ô, doanh thu và vận hành mạng lưới Kiosk
+            {t("admin.dashboard.subtitle")}
           </p>
         </div>
       </div>

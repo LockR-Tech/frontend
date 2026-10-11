@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, Polyline, TileLayer, Tooltip } from "react-leaflet";
+import { useTranslation } from "react-i18next";
 import { useWebSocket } from "~/hooks/useWebSocket";
 import { deliveryStageMeta } from "~/components/shared/reporting";
 import { formatTime } from "~/lib/datetime";
@@ -48,6 +49,7 @@ const DESTINATION_ICON = pointIcon("B", "#0a2342");
  * snapshot nào (vd drone thật chưa có telemetry) thì đặt drone theo chặng hiện tại.
  */
 export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
+  const { t } = useTranslation();
   const source = order.sourceLocker;
   const destination = order.destinationLocker;
   const inFlight = !["COMPLETED", "CANCELED", "EXPIRED"].includes(order.status)
@@ -77,7 +79,7 @@ export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
   if (!a || !b || !bounds) {
     return (
       <p className="text-sm text-muted-foreground">
-        Tủ gửi hoặc tủ nhận chưa có toạ độ nên chưa vẽ được bản đồ hành trình.
+        {t("admin.droneOrders.map.noCoordinates")}
       </p>
     );
   }
@@ -113,15 +115,22 @@ export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
             <Polyline positions={[a, drone ?? b]} pathOptions={{ color: "#1e5a8a", weight: 4 }} />
           )}
           <Marker position={a} icon={SOURCE_ICON}>
-            <Tooltip direction="top">Tủ gửi · {source?.name ?? source?.code}</Tooltip>
+            <Tooltip direction="top">
+              {t("admin.droneOrders.map.sourceTooltip", { name: source?.name ?? source?.code ?? "" })}
+            </Tooltip>
           </Marker>
           <Marker position={b} icon={DESTINATION_ICON}>
-            <Tooltip direction="top">Tủ nhận · {destination?.name ?? destination?.code}</Tooltip>
+            <Tooltip direction="top">
+              {t("admin.droneOrders.map.destinationTooltip", {
+                name: destination?.name ?? destination?.code ?? "",
+              })}
+            </Tooltip>
           </Marker>
           {drone && (
             <Marker position={drone} icon={droneIcon(heading, Boolean(live))}>
               <Tooltip direction="top">
-                {order.droneCode ?? "Drone"} · {live ? "vị trí trực tiếp" : "vị trí ước theo chặng"}
+                {order.droneCode ?? "Drone"} ·{" "}
+                {live ? t("admin.droneOrders.map.livePosition") : t("admin.droneOrders.map.estimatedPosition")}
               </Tooltip>
             </Marker>
           )}
@@ -129,27 +138,39 @@ export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Metric label="Chặng hiện tại" value={stage.label} />
-        <Metric label="Quãng đường A → B" value={kmLabel(totalKm)} />
+        <Metric label={t("admin.droneOrders.map.currentStage")} value={stage.label} />
+        <Metric label={t("admin.droneOrders.map.distanceAB")} value={kmLabel(totalKm)} />
         <Metric
-          label="Còn lại"
-          value={remainingKm === null ? (delivered ? "Đã tới nơi" : "—") : kmLabel(remainingKm)}
+          label={t("admin.droneOrders.map.remaining")}
+          value={
+            remainingKm === null
+              ? (delivered ? t("admin.droneOrders.map.arrived") : "—")
+              : kmLabel(remainingKm)
+          }
         />
         <Metric
-          label="Dự kiến đến"
+          label={t("admin.droneOrders.map.eta")}
           value={
             eta
-              ? `${formatTime(eta)} · còn ${durationLabel(eta.getTime() - Date.now())}`
+              ? t("admin.droneOrders.map.etaRemaining", {
+                  time: formatTime(eta),
+                  duration: durationLabel(eta.getTime() - Date.now()),
+                })
               : order.etaMinutes != null && inFlight
-                ? `khoảng ${order.etaMinutes} phút`
+                ? t("admin.droneOrders.map.etaApprox", { minutes: order.etaMinutes })
                 : "—"
           }
         />
       </div>
       {drone && (
         <p className="font-mono text-[11px] text-muted-foreground">
-          Vĩ độ, kinh độ: {drone[0].toFixed(6)}, {drone[1].toFixed(6)}
-          {live ? " · trực tiếp" : " · ước theo chặng (chưa có tín hiệu vị trí)"}
+          {t("admin.droneOrders.map.coordinates", {
+            lat: drone[0].toFixed(6),
+            lng: drone[1].toFixed(6),
+          })}
+          {live
+            ? ` · ${t("admin.droneOrders.map.coordsLive")}`
+            : ` · ${t("admin.droneOrders.map.coordsEstimated")}`}
         </p>
       )}
     </div>

@@ -1,4 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { ReportErrorState } from "~/components/shared/reporting";
@@ -24,27 +25,28 @@ const columnHelper = createColumnHelper<RevenueByLockerItem>();
  * ngay tủ nào đang không sinh tiền — đó là lý do bảng này không lọc bỏ dòng bằng 0.
  */
 export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
+  const { t } = useTranslation();
   const { data, isLoading, error, refetch } = useGetRevenueByLockerQuery(range, {
     skip,
   });
 
   const columns = [
     columnHelper.accessor("code", {
-      header: "Tủ",
+      header: t("admin.orders.fields.locker"),
       cell: ({ row }) => {
         const locker = row.original;
         // `lockerId = null` là dòng gộp các đơn không gắn tủ nào.
         if (locker.lockerId === null) {
           return (
             <span className="text-sm text-muted-foreground italic">
-              Đơn không gắn tủ
+              {t("admin.revenue.locker.noLocker")}
             </span>
           );
         }
         return (
           <div className="min-w-0">
             <p className="text-sm font-medium font-mono truncate">
-              {locker.name ?? locker.code ?? "Chưa tra được tên tủ"}
+              {locker.name ?? locker.code ?? t("admin.orders.lookup.lockerName")}
             </p>
             <p className="text-[11px] text-muted-foreground truncate max-w-[220px]">
               {locker.name ?? locker.address ?? EMPTY_VALUE}
@@ -54,42 +56,42 @@ export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
       },
     }),
     columnHelper.accessor("storeName", {
-      header: "Cửa hàng",
+      header: t("common.store"),
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
           {row.original.storeName ??
-            "Chưa tra được tên cửa hàng"}
+            t("admin.orders.lookup.storeName")}
         </span>
       ),
     }),
     columnHelper.accessor("revenue", {
-      header: "Doanh thu",
+      header: t("admin.revenue.columns.revenue"),
       cell: ({ row }) => (
         <span className="font-semibold">{formatCurrency(row.original.revenue)}</span>
       ),
     }),
     columnHelper.accessor("netRevenue", {
-      header: "Thực thu",
+      header: t("admin.revenue.columns.net"),
       cell: ({ row }) => formatCurrency(row.original.netRevenue),
     }),
     columnHelper.accessor("sharePct", {
-      header: "Tỉ trọng",
+      header: t("admin.revenue.columns.share"),
       cell: ({ row }) => formatPercent(row.original.sharePct),
     }),
     columnHelper.accessor("boxCount", {
-      header: "Số ô",
+      header: t("admin.revenue.columns.boxCount"),
       cell: ({ row }) => formatNumber(row.original.boxCount),
     }),
     columnHelper.accessor("revenuePerBox", {
-      header: "Doanh thu / ô",
+      header: t("admin.revenue.locker.revenuePerBox"),
       cell: ({ row }) => formatCurrency(row.original.revenuePerBox),
     }),
     columnHelper.accessor("orderCount", {
-      header: "Đơn tạo mới",
+      header: t("admin.revenue.columns.newOrders"),
       cell: ({ row }) => formatNumber(row.original.orderCount),
     }),
     columnHelper.accessor("paidOrderCount", {
-      header: "Đơn có thu tiền",
+      header: t("admin.revenue.columns.paidOrders"),
       cell: ({ row }) => formatNumber(row.original.paidOrderCount),
     }),
   ];
@@ -99,7 +101,7 @@ export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
       <ReportErrorState
         error={error}
         onRetry={refetch}
-        title="Không tải được doanh thu theo tủ"
+        title={t("admin.revenue.locker.loadFailed")}
       />
     );
   }
@@ -112,8 +114,7 @@ export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground">
-            Không tra cứu được danh mục tủ hoặc cửa hàng: tên tủ có thể trống và các tủ
-            chưa phát sinh doanh thu có thể bị thiếu khỏi bảng.
+            {t("admin.revenue.locker.lookupUnavailable")}
           </p>
         </div>
       )}
@@ -122,11 +123,11 @@ export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
         columns={columns}
         data={data?.data.items ?? []}
         isLoading={isLoading}
-        emptyMessage="Chưa có tủ nào trong khoảng đã chọn"
+        emptyMessage={t("admin.revenue.locker.empty")}
       />
 
       <p className="text-[11px] text-muted-foreground">
-        Bảng gồm cả tủ chưa phát sinh doanh thu. Số ô tính cả ô đang ngừng hoạt động.
+        {t("admin.revenue.locker.note")}
       </p>
     </div>
   );

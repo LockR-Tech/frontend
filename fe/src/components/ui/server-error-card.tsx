@@ -1,5 +1,6 @@
 import React from 'react';
 import { XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,7 @@ export const ServerErrorCard: React.FC<ServerErrorCardProps> = ({
   onClose,
   className,
 }) => {
+  const { t } = useTranslation();
   const [isMinimized, setIsMinimized] = React.useState(false);
 
   // Extract error details
@@ -150,7 +152,7 @@ export const ServerErrorCard: React.FC<ServerErrorCardProps> = ({
                     className="w-full"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    Thử lại
+                    {t('common.retry')}
                   </Button>
                 </div>
               )}

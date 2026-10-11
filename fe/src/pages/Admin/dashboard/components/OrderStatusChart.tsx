@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
+import { useTranslation } from "react-i18next";
 import { orderStatusMeta } from "~/components/shared/reporting";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
@@ -31,6 +32,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps) {
+  const { t } = useTranslation();
   const entries = Object.entries(byStatus ?? {})
     .map(([status, count]) => ({ status, value: Number(count) || 0 }))
     .filter((e) => e.value > 0)
@@ -52,10 +54,10 @@ export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps)
     <Card className="border border-border bg-card shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-          Trạng thái đơn hàng
+          {t("admin.dashboard.orderStatus.title")}
         </CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
-          Toàn bộ đơn trong hệ thống theo trạng thái hiện tại
+          {t("admin.dashboard.orderStatus.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -78,7 +80,12 @@ export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps)
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => [`${Number(value).toLocaleString("vi-VN")} đơn`, "Số lượng"]}
+                    formatter={(value) => [
+                      t("admin.dashboard.chart.ordersValue", {
+                        value: Number(value).toLocaleString("vi-VN"),
+                      }),
+                      t("admin.dashboard.orderStatus.quantity"),
+                    ]}
                     contentStyle={{
                       backgroundColor: "var(--popover)",
                       borderColor: "var(--border)",
@@ -90,7 +97,7 @@ export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps)
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[11px] text-muted-foreground font-medium">Tổng số đơn</span>
+                <span className="text-[11px] text-muted-foreground font-medium">{t("admin.dashboard.orderStatus.totalOrders")}</span>
                 <span className="text-sm font-bold text-foreground">
                   {total.toLocaleString("vi-VN")}
                 </span>

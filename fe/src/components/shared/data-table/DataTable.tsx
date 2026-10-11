@@ -8,6 +8,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { DataTablePagination } from "./DataTablePagination";
@@ -44,10 +45,11 @@ export function DataTable<TData, TValue>({
   data,
   pageSize = 10,
   className,
-  emptyMessage = "Không có dữ liệu",
+  emptyMessage,
   isLoading = false,
   serverPagination,
 }: DataTableProps<TData, TValue>) {
+  const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
@@ -119,9 +121,9 @@ export function DataTable<TData, TValue>({
               d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
             />
           </svg>
-          <p className="text-lg font-medium text-muted-foreground">{emptyMessage}</p>
+          <p className="text-lg font-medium text-muted-foreground">{emptyMessage ?? t("common.noData")}</p>
           <p className="text-sm text-muted-foreground/60 mt-1">
-            Dữ liệu sẽ hiển thị tại đây
+            {t("table.emptyHint")}
           </p>
         </div>
       </div>

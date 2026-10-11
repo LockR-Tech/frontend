@@ -32,7 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { getRoleLabel } from "~/constants";
 import { useDeleteUserMutation, useUpdateUserStatusMutation } from "~/stores/apis/admin";
 import { formatDate, formatTime } from "~/lib/datetime";
@@ -134,13 +134,13 @@ export function UserTable({
     if (!deleteTarget) return;
     try {
       await deleteUser(deleteTarget.id).unwrap();
-      toast.success("Đã xoá người dùng");
+      toast.success(t("admin.users.table.deleted"));
       setDeleteTarget(null);
     } catch (err) {
       const e = err as { data?: { message?: unknown } } | undefined;
       const msg = typeof e?.data?.message === "string" && e.data.message.trim()
         ? e.data.message
-        : "Không xoá được người dùng";
+        : t("admin.users.table.deleteFailed");
       toast.error(msg);
     }
   };
@@ -155,11 +155,11 @@ export function UserTable({
       }).unwrap();
       toast.success(
         !user.enabled
-          ? t("admin.users.status.enabledSuccess", "Đã kích hoạt người dùng thành công")
-          : t("admin.users.status.disabledSuccess", "Đã vô hiệu hóa người dùng thành công")
+          ? t("admin.users.status.enabledSuccess")
+          : t("admin.users.status.disabledSuccess")
       );
     } catch {
-      toast.error(t("admin.users.status.toggleFailed", "Cập nhật trạng thái người dùng thất bại"));
+      toast.error(t("admin.users.status.toggleFailed"));
     } finally {
       setPendingIds((prev) => {
         const next = new Set(prev);
@@ -201,7 +201,7 @@ export function UserTable({
     }),
 
     columnHelper.accessor("phoneNumber", {
-      header: "SĐT",
+      header: t("admin.users.columns.phone"),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground flex items-center gap-1.5">
           <Smartphone size={14} className="text-muted-foreground/70 shrink-0" />
@@ -342,7 +342,7 @@ export function UserTable({
               onClick={() => setWalletUser(row.original)}
             >
               <Wallet className="mr-2 h-4 w-4" />
-              Ví
+              {t("admin.users.table.wallet")}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer text-red-600 focus:text-red-600"
@@ -383,20 +383,22 @@ export function UserTable({
       <ConfirmActionDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Xoá người dùng?"
+        title={t("admin.users.table.deleteTitle")}
         description={
           <>
             <p>
-              Hồ sơ của{" "}
-              <span className="font-semibold text-foreground">
-                {deleteTarget?.name || deleteTarget?.email || `#${deleteTarget?.id}`}
-              </span>{" "}
-              sẽ bị xoá khỏi user-service. Thao tác không hoàn tác được.
+              <Trans
+                i18nKey="admin.users.table.deleteDesc"
+                values={{
+                  name: deleteTarget?.name || deleteTarget?.email || `#${deleteTarget?.id}`,
+                }}
+                components={{ b: <span className="font-semibold text-foreground" /> }}
+              />
             </p>
-            <p>Nếu chỉ muốn chặn đăng nhập, hãy tắt trạng thái hoạt động thay vì xoá.</p>
+            <p>{t("admin.users.table.deleteHint")}</p>
           </>
         }
-        actionLabel="Xoá người dùng"
+        actionLabel={t("admin.users.table.deleteAction")}
         destructive
         loading={isDeleting}
         onConfirm={() => void handleDelete()}

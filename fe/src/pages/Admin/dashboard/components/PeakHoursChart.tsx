@@ -2,6 +2,7 @@ import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { useTranslation } from "react-i18next";
 import { formatDayLabel } from "~/lib/report-format";
 import type { PeakHourPoint } from "../hooks/dashboardExtraApi";
 import { ChartPlaceholder } from "./ChartPlaceholder";
@@ -16,6 +17,7 @@ interface PeakHoursChartProps {
 
 // GET /api/admin/dashboard/peak-hours — 24 mốc giờ (giờ Việt Nam), số đơn tạo mới.
 export function PeakHoursChart({ points, range, isLoading, error, onRetry }: PeakHoursChartProps) {
+  const { t } = useTranslation();
   const byHour = new Map((points ?? []).map((p) => [Number(p.hour), Number(p.orders) || 0]));
   const data = Array.from({ length: 24 }, (_, hour) => ({
     hour: `${String(hour).padStart(2, "0")}h`,
@@ -27,11 +29,13 @@ export function PeakHoursChart({ points, range, isLoading, error, onRetry }: Pea
     <Card className="border border-border bg-card shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-          Khung giờ cao điểm sử dụng Kiosk
+          {t("admin.dashboard.peakHours.title")}
         </CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
-          Số đơn tạo theo giờ trong ngày, từ {formatDayLabel(range.from)} đến{" "}
-          {formatDayLabel(range.to)}
+          {t("admin.dashboard.peakHours.description", {
+            from: formatDayLabel(range.from),
+            to: formatDayLabel(range.to),
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -62,7 +66,10 @@ export function PeakHoursChart({ points, range, isLoading, error, onRetry }: Pea
                   className="text-[11px] fill-muted-foreground"
                 />
                 <Tooltip
-                  formatter={(val) => [`${Number(val).toLocaleString("vi-VN")} đơn`, "Đơn tạo"]}
+                  formatter={(val) => [
+                    t("admin.dashboard.chart.ordersValue", { value: Number(val).toLocaleString("vi-VN") }),
+                    t("admin.dashboard.chart.ordersCreated"),
+                  ]}
                   contentStyle={{
                     backgroundColor: "var(--popover)",
                     borderColor: "var(--border)",

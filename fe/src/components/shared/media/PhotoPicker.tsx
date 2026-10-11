@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import {
   DEFAULT_MAX_IMAGE_BYTES,
@@ -40,6 +41,7 @@ export function PhotoPicker({
   hint,
   className,
 }: PhotoPickerProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [previews, setPreviews] = useState<Map<File, string>>(new Map());
@@ -73,12 +75,12 @@ export function PhotoPicker({
 
     const room = Math.max(0, maxFiles - value.length);
     if (accepted.length > room) {
-      rejected.push(`Chỉ được chọn tối đa ${maxFiles} ảnh`);
+      rejected.push(t("shared.media.picker.maxFiles", { max: maxFiles }));
     }
     const next = accepted.slice(0, room);
 
     if (rejected.length > 0) {
-      toast.error("Một số ảnh không được thêm", { description: rejected.slice(0, 3).join(" · ") });
+      toast.error(t("shared.media.picker.someRejected"), { description: rejected.slice(0, 3).join(" · ") });
     }
     if (next.length > 0) onChange([...value, ...next]);
   };
@@ -109,7 +111,7 @@ export function PhotoPicker({
   return (
     <div
       role="group"
-      aria-label="Chọn ảnh đính kèm"
+      aria-label={t("shared.media.picker.groupLabel")}
       className={cn(
         "rounded-lg border border-dashed p-2.5 transition-colors",
         dragOver ? "border-primary bg-primary/5" : "border-border bg-muted/20",
@@ -159,7 +161,7 @@ export function PhotoPicker({
               {showImage ? (
                 <img
                   src={preview}
-                  alt={`Ảnh xem trước ${file.name}`}
+                  alt={t("shared.media.picker.previewAlt", { name: file.name })}
                   className="w-full h-full object-cover"
                   onError={() => setBrokenPreviews((prev) => new Set(prev).add(file))}
                 />
@@ -167,7 +169,7 @@ export function PhotoPicker({
                 <div className="w-full h-full flex flex-col items-center justify-center gap-0.5 text-muted-foreground px-1">
                   <ImagePlus className="w-4 h-4" aria-hidden />
                   <span className="text-[9px] font-mono uppercase truncate max-w-full">
-                    {detectImageFormat(file) ?? "ảnh"}
+                    {detectImageFormat(file) ?? t("shared.media.picker.imageFallback")}
                   </span>
                 </div>
               )}
@@ -182,7 +184,7 @@ export function PhotoPicker({
                 <div
                   className="absolute bottom-0 inset-x-0 h-1 bg-black/30"
                   role="progressbar"
-                  aria-label={`Tiến trình tải ${file.name}`}
+                  aria-label={t("shared.media.picker.progressLabel", { name: file.name })}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={item?.progress ?? 0}
@@ -191,12 +193,12 @@ export function PhotoPicker({
                 </div>
               )}
               {item?.status === "done" && (
-                <span className="absolute bottom-1 left-1 rounded-full bg-emerald-600 text-white p-0.5" aria-label="Đã tải lên">
+                <span className="absolute bottom-1 left-1 rounded-full bg-emerald-600 text-white p-0.5" aria-label={t("shared.media.picker.uploaded")}>
                   <CheckCircle2 className="w-3 h-3" aria-hidden />
                 </span>
               )}
               {item?.status === "error" && (
-                <span className="absolute bottom-1 left-1 rounded-full bg-rose-600 text-white p-0.5" aria-label={`Lỗi: ${item.error ?? ""}`}>
+                <span className="absolute bottom-1 left-1 rounded-full bg-rose-600 text-white p-0.5" aria-label={t("shared.media.picker.errorLabel", { error: item.error ?? "" })}>
                   <AlertCircle className="w-3 h-3" aria-hidden />
                 </span>
               )}
@@ -205,7 +207,7 @@ export function PhotoPicker({
                 type="button"
                 onClick={() => removeAt(idx)}
                 disabled={disabled || isBusy}
-                aria-label={`Bỏ ảnh ${file.name}`}
+                aria-label={t("shared.media.picker.removeLabel", { name: file.name })}
                 className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 hover:bg-rose-600 text-white flex items-center justify-center transition-colors disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <X className="w-3 h-3" aria-hidden />
@@ -227,13 +229,14 @@ export function PhotoPicker({
             <ImagePlus className="w-4 h-4" aria-hidden />
             {value.length === 0 ? (
               <>
-                <span className="text-xs font-medium">Bấm để chọn, kéo thả hoặc dán (Ctrl+V) ảnh</span>
+                <span className="text-xs font-medium">{t("shared.media.picker.dropzone")}</span>
                 <span className="text-[10px]">
-                  {hint ?? `JPG, PNG, WebP, HEIC · tối đa ${formatBytes(maxBytes)}/ảnh · ${maxFiles} ảnh`}
+                  {hint ??
+                    t("shared.media.picker.defaultHint", { max: formatBytes(maxBytes), count: maxFiles })}
                 </span>
               </>
             ) : (
-              <span className="text-[10px] font-medium">Thêm ảnh</span>
+              <span className="text-[10px] font-medium">{t("shared.media.picker.addPhoto")}</span>
             )}
           </button>
         )}
@@ -241,7 +244,7 @@ export function PhotoPicker({
 
       {value.length > 0 && (
         <p className="text-[10px] text-muted-foreground pt-1.5">
-          {value.length}/{maxFiles} ảnh · Ảnh lớn sẽ được tự động nén trước khi tải lên
+          {t("shared.media.picker.summary", { count: value.length, max: maxFiles })}
         </p>
       )}
     </div>

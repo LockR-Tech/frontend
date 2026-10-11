@@ -51,7 +51,8 @@
     "close": "Close",
     "back": "Back",
     "viewAll": "View All",
-    "logout": "Logout"
+    "logout": "Logout",
+    "reload": "Reload"
   },
   "common": {
     "loading": "Loading...",
@@ -71,7 +72,39 @@
     "address": "Address",
     "note": "Note",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "cancel": "Cancel",
+    "cancelAction": "Cancel",
+    "delete": "Delete",
+    "retry": "Retry",
+    "pleaseRetry": "Please try again.",
+    "saving": "Saving...",
+    "saveChanges": "Save changes",
+    "loadingEllipsis": "Loading…",
+    "noDataYet": "No data yet",
+    "time": "Time",
+    "customer": "Customer",
+    "order": "Order",
+    "today": "Today",
+    "update": "Update",
+    "success": "Success",
+    "failed": "Failed",
+    "serverUnreachable": "Cannot reach the server",
+    "unassigned": "Unassigned",
+    "system": "System",
+    "phoneShort": "Phone",
+    "createdAtTime": "Created at",
+    "sort": "Sort",
+    "photoNumber": "Photo {{index}}",
+    "removePhoto": "Remove photo",
+    "changePhoto": "Change photo",
+    "store": "Store",
+    "payment": "Payment",
+    "refund": "Refund",
+    "location": "Location",
+    "document": "Document",
+    "disconnected": "Disconnected",
+    "overdue": "Overdue"
   },
   "header": {
     "language": "Language",
@@ -97,7 +130,11 @@
     "rowsPerPage": "Rows per page",
     "of": "of",
     "showing": "Showing",
-    "results": "results"
+    "results": "results",
+    "emptyHint": "Data will appear here",
+    "rangeOfTotal": "<b>{{from}}</b> - <b>{{to}}</b> of <b>{{total}}</b>",
+    "emptyPage": "Page {{page}} has no data · total <b>{{total}}</b>",
+    "clearFilters": "Clear filters"
   },
   "admin": {
     "sidebar": {
@@ -129,7 +166,100 @@
       "welcome": "Welcome back",
       "monthlyOrders": "Monthly Orders",
       "monthlyRevenue": "Monthly Revenue",
-      "newUsers": "New Users"
+      "newUsers": "New Users",
+      "subtitle": "Real-time overview of parcel orders, box rentals, revenue and kiosk network operations",
+      "createScenario": "Create Scenario",
+      "format": {
+        "billionVnd": "{{value}}B đ",
+        "millionVnd": "{{value}}M đ",
+        "billionShort": "{{value}}B",
+        "millionShort": "{{value}}M"
+      },
+      "hero": {
+        "noPreviousData": "No data for the previous period",
+        "totalOrders": "Total send & rental orders",
+        "ordersThisMonth": "This month: {{value}} orders",
+        "wholeNetwork": "Entire kiosk network",
+        "ordersVsPrevious": "{{value}} orders vs previous period",
+        "ordersToday": "Orders today",
+        "ordersCreatedToday": "Orders created today",
+        "vsYesterday": "{{value}} vs yesterday",
+        "vsPrevious": "{{value}} vs previous period",
+        "collectedSince": "Collected since {{date}}",
+        "revenueToday": "Revenue today",
+        "collectedToday": "Collected today"
+      },
+      "chart": {
+        "loadFailed": "Could not load chart data",
+        "collected": "Collected",
+        "total": "Total",
+        "ordersValue": "{{value}} orders",
+        "ordersCreated": "Orders created"
+      },
+      "paymentMethod": {
+        "title": "Payment mix",
+        "description": "Collected amount by payment method — {{year}}"
+      },
+      "orderStatus": {
+        "title": "Order status",
+        "description": "All orders in the system by current status",
+        "quantity": "Quantity",
+        "totalOrders": "Total orders"
+      },
+      "mainChart": {
+        "monthTick": "{{month}}",
+        "monthTitle": "{{month}}",
+        "ordersCreatedLabel": "Orders created:",
+        "collectedLabel": "Collected:",
+        "title": "Orders & revenue trend",
+        "description": "New orders and collected amount by month in {{year}}",
+        "selectYear": "Select year",
+        "yearOption": "{{year}}"
+      },
+      "overview": {
+        "totalKiosks": "Total kiosks",
+        "activeKiosks": "Active kiosks",
+        "title": "System overview",
+        "description": "Kiosk infrastructure status and service capacity",
+        "occupancyRate": "Kiosk occupancy rate",
+        "available": "Available: <b>{{value}}</b>",
+        "inUse": "In use: <b>{{value}}</b>",
+        "total": "Total: <b>{{value}}</b>",
+        "pendingOrders": "Pending orders"
+      },
+      "peakHours": {
+        "title": "Kiosk peak hours",
+        "description": "Orders created by hour of day, from {{from}} to {{to}}"
+      },
+      "serviceRevenue": {
+        "title": "Revenue by kiosk service",
+        "description": "Collected amount by service type and overtime fees — {{year}}",
+        "tooltipValue": "{{value}} ({{count}} paid orders)"
+      },
+      "topLocations": {
+        "title": "Top performing stores",
+        "description": "Ranked by collected amount and orders — {{year}}",
+        "detailedReport": "Detailed report",
+        "unassignedStore": "No store assigned",
+        "storeFallback": "Store #{{id}}",
+        "kioskOrders": "{{kiosks}} kiosks • {{orders}} orders"
+      },
+      "userGrowth": {
+        "monthTick": "{{month}} '{{year}}",
+        "title": "New customer growth",
+        "description": "New account sign-ups per month (last 12 months)",
+        "total12Months": "12-month total",
+        "peopleValue": "{{value}} people",
+        "newSignups": "New sign-ups"
+      },
+      "recommendations": {
+        "title": "Recommended for you",
+        "maintenanceDescription": "Incident reports, scheduled inspections and technicians",
+        "revenueTitle": "Revenue report",
+        "revenueDescription": "Collected revenue by day, service, store and customer",
+        "loyaltyDescription": "Member and loyalty points statistics",
+        "promotionsDescription": "Create and manage promotion codes"
+      }
     },
     "users": {
       "title": "User Management",
@@ -154,13 +284,121 @@
         "status": "Status",
         "provider": "Provider",
         "verified": "Verified",
-        "createdAt": "Created At"
+        "createdAt": "Created At",
+        "phone": "Phone"
       },
       "verified": {
         "yes": "Verified",
         "no": "Pending"
       },
-      "noName": "Unnamed"
+      "noName": "Unnamed",
+      "table": {
+        "deleted": "User deleted",
+        "deleteFailed": "Couldn't delete user",
+        "wallet": "Wallet",
+        "deleteTitle": "Delete user?",
+        "deleteDesc": "The profile of <b>{{name}}</b> will be deleted from user-service. This cannot be undone.",
+        "deleteHint": "To only block sign-in, turn off the active status instead of deleting.",
+        "deleteAction": "Delete User"
+      },
+      "create": {
+        "title": "Create New User",
+        "required": "Required",
+        "invalidEmail": "Invalid email",
+        "invalidPhone": "Invalid phone number",
+        "passwordMin": "At least 6 characters",
+        "fillRequired": "Please fill in all required fields.",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "password": "Password",
+        "roles": "Roles",
+        "enableAccount": "Activate Account",
+        "enableAccountHint": "The account can sign in right away",
+        "creating": "Creating...",
+        "submit": "Create User"
+      },
+      "wallet": {
+        "title": "Wallet: {{name}}",
+        "invalidAmount": "Enter a valid amount (> 0).",
+        "topUpSuccess": "Wallet topped up successfully",
+        "deductSuccess": "Amount deducted from wallet",
+        "adjustFailed": "Failed to adjust the balance.",
+        "currentBalance": "Current Balance",
+        "amount": "Adjustment Amount",
+        "reason": "Reason (optional)",
+        "reasonPlaceholder": "Refund / promotion / adjustment...",
+        "deduct": "Deduct",
+        "add": "Add Funds"
+      },
+      "loyalty": {
+        "txType": {
+          "adjustment": "Adjustment",
+          "redeem": "Redemption"
+        },
+        "enterPositive": "Please enter a number of points greater than 0.",
+        "cannotDeductMore": "Cannot deduct more points than the current balance.",
+        "added": "Added {{value}} points",
+        "deducted": "Deducted {{value}} points",
+        "adjustFailed": "Couldn't adjust points. Please try again.",
+        "summaryTitle": "Loyalty Points Summary",
+        "loadFailed": "Couldn't load loyalty information.",
+        "tier": "Membership Tier",
+        "currentPoints": "Current Points",
+        "pointsValue": "{{points}} points",
+        "stamps": "Stamps Collected",
+        "noAccount": "This user has no loyalty account yet — it will be created on the first adjustment.",
+        "noInfo": "No loyalty information yet.",
+        "adjustTitle": "Adjust Points",
+        "amount": "Points",
+        "amountPlaceholder": "Enter points...",
+        "direction": "Adjustment Type",
+        "add": "Add Points",
+        "deduct": "Deduct Points",
+        "adjustHint": "The transaction is recorded with type «Adjustment»; the membership tier is recalculated from the point total.",
+        "processing": "Processing...",
+        "confirmAdjust": "Confirm Adjustment",
+        "historyTitle": "Points Transaction History",
+        "noHistory": "No points transactions yet.",
+        "columns": {
+          "type": "Type",
+          "points": "Points"
+        },
+        "transactionsCount": "{{count}} transaction(s)"
+      },
+      "detail": {
+        "title": "User Details",
+        "notFound": "User not found",
+        "avatarUpdated": "Profile photo updated",
+        "avatarRemoved": "Profile photo removed",
+        "avatarRemoveFailed": "Couldn't remove the profile photo",
+        "avatarChangeFailed": "Couldn't change the profile photo",
+        "avatarAlt": "Profile photo of {{name}}",
+        "nameRequired": "User name cannot be empty",
+        "enabled": "Active",
+        "locked": "Locked",
+        "personalInfo": "Personal Information",
+        "nameLabel": "User Name",
+        "provider": "Provider",
+        "phonePlaceholder": "Not set",
+        "emailVerified": "Email Verified",
+        "verified": "Verified",
+        "notVerified": "Not verified",
+        "orders": "Orders",
+        "ordersRange": "Orders created from {{from}} to {{to}}",
+        "totalSpent": "Total Spending",
+        "totalSpentHint": "Amount actually collected in the same period",
+        "revenueLoadFailed": "Couldn't load order/spending figures: {{message}}",
+        "accountInfo": "Account Information",
+        "userId": "User ID",
+        "history": "History",
+        "lastUpdated": "Last Updated",
+        "confirmSaveTitle": "Confirm Saving Changes",
+        "confirmSaveDesc": "Are you sure you want to save these changes? This action cannot be undone.",
+        "confirmSave": "Confirm Save",
+        "removeAvatarTitle": "Remove profile photo?",
+        "removeAvatarDesc": "The user's current profile photo will be removed and deleted from image storage.",
+        "removing": "Removing..."
+      }
     },
     "orders": {
       "title": "Order Management",
@@ -186,6 +424,179 @@
         "returned": "Returned",
         "completed": "Completed",
         "canceled": "Canceled"
+      },
+      "pageDescription": "All send, box rental and drone delivery orders — data synced with the customer app",
+      "matchCount": "{{total}} order(s) match the filters",
+      "noCode": "Order without code",
+      "noCodeInline": "(no code)",
+      "orderNumber": "Order #{{id}}",
+      "boxNumber": "Box {{number}}",
+      "boxNumberLong": "Box no. {{number}}",
+      "saving": "Saving…",
+      "updateStatus": "Update Status",
+      "lookup": {
+        "customerName": "Customer name unavailable",
+        "lockerName": "Locker name unavailable",
+        "storeName": "Store name unavailable",
+        "name": "Name unavailable",
+        "order": "Order unavailable",
+        "droneCode": "Drone code unavailable"
+      },
+      "fields": {
+        "kind": "Type",
+        "orderType": "Order type",
+        "locker": "Locker",
+        "sender": "Sender",
+        "receiver": "Recipient",
+        "fullName": "Full name",
+        "accountStatus": "Account status"
+      },
+      "sort": {
+        "createdDesc": "Newest first",
+        "createdAsc": "Oldest first",
+        "updatedDesc": "Recently updated",
+        "amountDesc": "Amount: high → low",
+        "amountAsc": "Amount: low → high",
+        "paidDesc": "Recently paid",
+        "completedDesc": "Recently completed",
+        "idDesc": "Order ID descending"
+      },
+      "filters": {
+        "searchPlaceholder": "Order code, phone number, recipient name…",
+        "dateHint": "The date range filters by order creation time. Leave it empty to see all time."
+      },
+      "table": {
+        "senderCustomer": "Sender",
+        "lockerBox": "Locker / Box",
+        "noBox": "No box assigned",
+        "outstanding": "{{amount}} outstanding",
+        "empty": "No orders match the filters"
+      },
+      "statusModal": {
+        "title": "Update Order Status",
+        "description": "{{code}} — the change is recorded in the status history with the operator's name.",
+        "currentStatus": "Current status",
+        "newStatus": "New status",
+        "newStatusPlaceholder": "Select a new status",
+        "currentTag": "(current)",
+        "receiveBox": "Receiving box ID (optional)",
+        "receiveBoxPlaceholder": "Leave empty to not assign a receiving box",
+        "releasesBox": "This status releases the box held by the order.",
+        "receiveBoxInvalid": "The receiving box ID must be an integer",
+        "updated": "Moved order {{code}} to “{{status}}”",
+        "updateFailed": "Couldn't update the status",
+        "hint": {
+          "initialized": "Order just created; the customer hasn't put the parcel in the locker yet.",
+          "storing": "The parcel is in the box; the recipient hasn't picked it up yet.",
+          "expired": "Pickup deadline passed. Unlike the automatic transition, setting this status manually does NOT release the held box.",
+          "awaitingDispatch": "Waiting for a drone to be dispatched for the delivery leg.",
+          "completed": "Delivered. This action releases the held box.",
+          "canceled": "Cancels the order. This action releases the held box."
+        }
+      },
+      "timeline": {
+        "empty": "No status changes recorded yet.",
+        "unknownActor": "Unknown operator"
+      },
+      "detail": {
+        "loadFailed": "Couldn't load the order",
+        "invalidId": "Invalid order ID",
+        "backToList": "Back to Orders",
+        "idCreated": "ID #{{id}} · created {{time}}",
+        "overtimeCharged": "Overtime fee charged",
+        "updatedAtTime": "Updated {{time}}",
+        "updatedAt": "Updated",
+        "statusHistory": "Status History",
+        "timezoneNote": "All times are shown in Vietnam time, formatted as <mono>HH:mm:ss dd/MM/yyyy</mono> — the same as the customer app.",
+        "customer": {
+          "receiverName": "Name on order",
+          "receiverPhone": "Phone on order",
+          "receiverEmail": "Email on order",
+          "receiverAccount": "Recipient account",
+          "receiverAccountNoName": "Has an account, name unavailable",
+          "accountEmail": "Account email"
+        },
+        "locker": {
+          "title": "Locker & Box",
+          "sendLocker": "Drop-off locker",
+          "sendLockerAddress": "Drop-off locker address",
+          "destinationLocker": "Destination locker",
+          "destinationLockerAddress": "Destination locker address",
+          "sendBox": "Drop-off box",
+          "receiveBox": "Receiving box",
+          "reservedBox": "Reserved box",
+          "expiredNoBox": "Expired orders have their box released, so there is no box number.",
+          "storeContact": "Store contact",
+          "pinCode": "PIN code",
+          "pinIssuedAt": "PIN issued at",
+          "qrCode": "QR code"
+        },
+        "payment": {
+          "noMoreDue": "Nothing more to collect",
+          "unavailable": "Couldn't load payment data (payment-service did not respond).",
+          "noPayments": "No payments for this order yet.",
+          "paid": "Collected",
+          "outstanding": "Outstanding",
+          "refunded": "Refunded",
+          "paymentCount": "Number of payments",
+          "lastPaid": "Last collected",
+          "latestTransaction": "Latest transaction (any status)"
+        },
+        "drone": {
+          "title": "Drone Flight",
+          "mission": "Mission: {{status}}",
+          "noMission": "This order hasn't been assigned a flight mission yet.",
+          "dispatcher": "Dispatcher",
+          "assignedManually": "Assigned manually",
+          "assignedAuto": "Auto-assigned by the system",
+          "sourceLocker": "Departure locker",
+          "readyToLaunch": "Ready to launch",
+          "launching": "Launch started",
+          "missionCreated": "Mission created"
+        },
+        "milestones": {
+          "title": "Milestones",
+          "created": "Order created",
+          "paid": "Paid",
+          "pickupDeadline": "Pickup deadline",
+          "intendedReceive": "Scheduled pickup",
+          "actualReceive": "Actual pickup",
+          "completed": "Completed",
+          "returned": "Returned",
+          "lastReminder": "Last reminder"
+        },
+        "fees": {
+          "title": "Fee Breakdown",
+          "originalPrice": "Original price",
+          "reservationFee": "Box reservation fee",
+          "storagePrice": "Storage fee",
+          "shippingFee": "Shipping fee",
+          "overtimeFee": "Overtime fee",
+          "discount": "Discount",
+          "total": "Total due",
+          "basePrice": "Price excluding overtime fee: {{amount}}",
+          "promotions": "Promotions: {{codes}}"
+        },
+        "parcel": {
+          "title": "Parcel & Notes",
+          "serviceCategory": "Service category",
+          "declaredWeight": "Declared weight",
+          "measuredWeight": "Measured weight",
+          "rentalHours": "Rental hours",
+          "hours": "{{hours}} hour(s)",
+          "noDescription": "No description",
+          "quantity": "Quantity: {{quantity}}",
+          "customerNote": "Customer note",
+          "staffNote": "Internal note",
+          "deliveryAddress": "Delivery address",
+          "nextAction": "Next action",
+          "cancelReason": "Cancellation reason",
+          "cancelReasonCode": "Code {{code}}"
+        },
+        "links": {
+          "title": "Links Summary",
+          "type": "Type"
+        }
       }
     },
     "stores": {
@@ -225,6 +636,166 @@
         "editSuccess": "Store updated successfully!",
         "createFailed": "Failed to create store",
         "editFailed": "Failed to update store"
+      },
+      "form": {
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "latPlaceholder": "e.g. 10.8412",
+        "lngPlaceholder": "e.g. 106.8098"
+      },
+      "boxStatus": {
+        "available": "Available",
+        "occupied": "Occupied",
+        "reserved": "Reserved",
+        "maintenance": "Maintenance"
+      },
+      "lockerStatus": {
+        "active": "Active",
+        "inactive": "Off",
+        "maintenance": "Maintenance",
+        "disconnected": "Disconnected"
+      },
+      "toast": {
+        "deleted": "Store deleted",
+        "deleteFailed": "Couldn't delete the store",
+        "deleteRejected": "The server rejected the delete request.",
+        "activated": "Store activated",
+        "deactivated": "Store deactivated",
+        "statusFailed": "Couldn't change the store status"
+      },
+      "revenueLoadFailed": "Couldn't load locker/order counts per store: {{message}}",
+      "delete": {
+        "title": "Delete store?",
+        "desc": "Store <b>{{name}}</b> will be permanently deleted.",
+        "lockersHint": "Lockers (kiosks) attached to this store must be moved to another store before deleting.",
+        "lockersHintCount": "Lockers (kiosks) attached to this store must be moved to another store before deleting — {{count}} locker(s) still attached.",
+        "action": "Delete Store"
+      },
+      "table": {
+        "lockersUnit": "locker(s)",
+        "boxesCount": "{{count}} box(es)",
+        "ordersPerYear": "{{count}} order(s) / 12 months"
+      },
+      "detail": {
+        "imageUpdated": "Store photo updated",
+        "imageRemoved": "Store photo removed",
+        "imageRemoveFailed": "Couldn't remove the photo",
+        "nameRequired": "Store name cannot be empty",
+        "updated": "Store details updated",
+        "saveFailed": "Couldn't save the store details",
+        "activated": "Store activated",
+        "deactivated": "Store deactivated",
+        "statusFailed": "Couldn't change the status",
+        "notFound": "Store not found",
+        "confirmSaveTitle": "Save changes?",
+        "confirmSaveDesc": "Are you sure you want to save the changes to this store?",
+        "deactivateTitle": "Deactivate store?",
+        "reactivateTitle": "Reactivate store?",
+        "toInactive": "The store will be set to INACTIVE.",
+        "toActive": "The store will be set to ACTIVE.",
+        "updating": "Updating...",
+        "deactivate": "Deactivate",
+        "removeImageTitle": "Remove store photo?",
+        "removeImageDesc": "The current photo will be removed from the store and deleted from image storage.",
+        "removing": "Removing...",
+        "storeCode": "Store ID: #{{id}}",
+        "active": "Active",
+        "inactive": "Inactive",
+        "imageAlt": "Photo of {{name}}",
+        "imageLoadFailed": "Couldn't load the photo",
+        "noImage": "No store photo yet",
+        "removeImageAria": "Remove store photo",
+        "changeImageFailed": "Couldn't change the store photo",
+        "namePlaceholder": "Enter store name",
+        "addressPlaceholder": "Enter address",
+        "descriptionPlaceholder": "Short description of the store",
+        "stats": "Statistics",
+        "totalKiosks": "Total Kiosks",
+        "totalBoxes": "Total Boxes",
+        "freeBoxes": "Free Boxes",
+        "ordersHint": "Orders created in the last 12 months",
+        "orders12m": "Orders (12 months)",
+        "usageRate": "Usage Rate",
+        "history": "History",
+        "lastUpdated": "Last Updated",
+        "storeCodeLabel": "Store ID",
+        "kioskList": "Kiosks",
+        "addKiosk": "Add Kiosk",
+        "noKiosks": "No kiosks at this store yet",
+        "addFirstKiosk": "Add First Kiosk"
+      },
+      "lockerForm": {
+        "deviceCode": "Device Code",
+        "codePlaceholder": "e.g. LOCKER-001",
+        "name": "Kiosk Name",
+        "namePlaceholder": "e.g. Main Lobby Kiosk A",
+        "location": "Location (optional)",
+        "locationPlaceholder": "e.g. Floor 1, Zone A"
+      },
+      "addLocker": {
+        "createFailed": "Couldn't create the locker",
+        "title": "Add New Kiosk",
+        "desc": "The kiosk will be assigned to this store once created.",
+        "creating": "Creating...",
+        "submit": "Create Kiosk"
+      },
+      "lockerSetting": {
+        "updateFailed": "Couldn't update the locker details",
+        "maintenanceFailed": "Couldn't change maintenance mode",
+        "title": "Kiosk Settings",
+        "desc": "Edit the details and status of this kiosk.",
+        "maintenanceMode": "Maintenance Mode",
+        "maintenanceHint": "All boxes of the kiosk are locked while this is on"
+      },
+      "addBox": {
+        "size": {
+          "small": "Small (S)",
+          "medium": "Medium (M)",
+          "large": "Large (L)",
+          "xl": "Extra Large (XL)"
+        },
+        "added": "Added box #{{number}}",
+        "addFailed": "Couldn't add the box",
+        "title": "Add Box",
+        "desc": "The new box will be added to this locker right after it's created.",
+        "boxNumber": "Box Number",
+        "sizeLabel": "Size",
+        "adding": "Adding...",
+        "submit": "Add Box"
+      },
+      "boxSetting": {
+        "forceOpenTitle": "Emergency Open",
+        "forceOpenDesc": "This action will be recorded in the system log.",
+        "boxTitle": "Box #{{number}} — {{locker}}",
+        "forceOpenWarning": "The open command will be sent to the device via MQTT. Make sure staff are on site before proceeding.",
+        "confirmOpen": "Confirm Open",
+        "statusUpdateFailed": "Couldn't update the box status",
+        "forceOpenFailed": "Couldn't send the open command",
+        "currentStatus": "Current status:",
+        "changeStatus": "Change Status",
+        "emergency": "Emergency Actions"
+      },
+      "lockerCard": {
+        "loadBoxesFailed": "Couldn't load the box list",
+        "turnedOff": "Locker turned off",
+        "turnedOn": "Locker turned on",
+        "toggleFailed": "Couldn't change the locker status",
+        "maintenanceOff": "Maintenance ended",
+        "maintenanceOn": "Locker put into maintenance",
+        "maintenanceFailed": "Couldn't change the maintenance status",
+        "freeCount": "<b>{{available}}</b>/{{total}} free",
+        "turnOff": "Turn off locker",
+        "turnOn": "Turn on locker",
+        "endMaintenance": "End maintenance",
+        "startMaintenance": "Set maintenance",
+        "settings": "Locker settings",
+        "collapse": "Collapse",
+        "viewBoxes": "View boxes",
+        "loadingBoxes": "Loading boxes...",
+        "noBoxes": "No boxes yet",
+        "addFirstBox": "Add First Box",
+        "boxTitle": "Box #{{number}} — {{status}} (click to edit)",
+        "addNewBox": "Add new box"
       }
     },
     "lockers": {
@@ -235,13 +806,508 @@
         "code": "Code",
         "store": "Store",
         "status": "Status",
-        "boxes": "Boxes"
+        "boxes": "Boxes",
+        "technician": "Assigned Technician"
       },
       "status": {
         "active": "Active",
         "inactive": "Inactive",
         "maintenance": "Maintenance",
         "disconnected": "Disconnected"
+      },
+      "filters": {
+        "searchPlaceholder": "Search lockers..."
+      },
+      "stats": {
+        "totalLockers": "Total Lockers",
+        "totalBoxes": "Total Boxes",
+        "availableBoxes": "Available Boxes"
+      },
+      "table": {
+        "technicianId": "Technician #{{id}}",
+        "boxCount": "{{count}} box(es)",
+        "availableCount": "{{count}} free",
+        "underMaintenance": "Under maintenance",
+        "disabled": "Disabled",
+        "notAcceptingOrders": "· not accepting orders"
+      },
+      "toast": {
+        "maintenanceOn": "Locker switched to maintenance",
+        "maintenanceFailed": "Couldn't switch to maintenance",
+        "reactivated": "Locker is active again",
+        "activateFailed": "Couldn't activate the locker"
+      },
+      "cellType": {
+        "drone": "Drone (Top)",
+        "xl": "Luggage (XL - Column 1)",
+        "standard": "Standard (Medium)"
+      },
+      "detail": {
+        "boxStatus": {
+          "available": "Empty",
+          "occupied": "Occupied"
+        },
+        "opened": "Opened box #{{id}}",
+        "notFound": "Locker not found",
+        "title": "Kiosk Details",
+        "deviceCodeValue": "Device code: {{code}}",
+        "statusLabel": "Status:",
+        "lastConnected": "Last connected: {{time}}",
+        "infoTitle": "Kiosk Information",
+        "name": "Kiosk Name",
+        "deviceCode": "Device Code",
+        "statsTitle": "Kiosk Box Statistics",
+        "total": "Total",
+        "gridTitle": "Kiosk Box Layout",
+        "hint": "Click a box with status <b>Occupied</b> to emergency-open it and assist the customer. Every action is recorded in the system audit log."
+      },
+      "boxSize": {
+        "mediumDefault": "Medium (M - Standard)",
+        "small": "Small (S)",
+        "medium": "Medium (M)",
+        "large": "Large (L)",
+        "xl": "Extra large (XL)"
+      },
+      "editBox": {
+        "hint": {
+          "occupied": "This box has an active order — its status changes automatically when the customer picks up.",
+          "reserved": "This box is held for an order — its status follows the order.",
+          "fault": "Use \"Restore box\" on the layout to close the incident report and return the box to service."
+        },
+        "updated": "Box #{{number}} settings updated successfully!",
+        "updateFailed": "Couldn't update the box",
+        "deleted": "Box #{{number}} removed from the locker",
+        "deleteFailed": "Couldn't delete the box",
+        "deleteDesc": "This will permanently delete box #{{number}} (ID: {{id}}) from the locker layout. This action cannot be undone.",
+        "deleting": "Deleting...",
+        "confirmDelete": "Confirm Delete",
+        "title": "Edit Box #{{number}} Settings",
+        "description": "Configure the box function (standard, drone, luggage), size and position in locker {{locker}}.",
+        "cellType": "Box function (type)",
+        "cellTypeHint": "Determines the service flow",
+        "cellTypePlaceholder": "Select a function",
+        "typeStandard": "Standard box (STANDARD)",
+        "typeStandardHint": "Multi-service: drop-off, storage, laundry, C2C delivery",
+        "typeDrone": "Drone receiving box (DRONE)",
+        "typeDroneHint": "Automatically receives parcels dropped by drone through the ArUco sliding lid",
+        "typeXlHint": "Double-height luggage compartment reserved for suitcases",
+        "boxNumber": "Box number (#)",
+        "size": "Compartment size",
+        "sizePlaceholder": "Select size",
+        "row": "Row position",
+        "rowHint": "Row 1 is usually the drone row on top of the locker",
+        "col": "Column position",
+        "colHint": "Column 0 is for the vertical XL compartment on the left",
+        "status": "Box status",
+        "statusPlaceholder": "Select status",
+        "statusAvailable": "Available (AVAILABLE)",
+        "statusOutOfService": "Suspended (OUT_OF_SERVICE)",
+        "statusCleaning": "Cleaning (CLEANING)",
+        "faultHint": "To report a fault, use \"Report box fault\" on the layout to open an incident report for the technician.",
+        "note": "Technical note (optional)",
+        "notePlaceholder": "Notes on the function, electric latch or hardware...",
+        "cannotDelete": "Can't delete a box that is holding items",
+        "deleteTooltip": "Remove box from locker",
+        "delete": "Delete Box"
+      },
+      "hardware": {
+        "simulation": "Simulation"
+      },
+      "gateway": {
+        "setupStatus": {
+          "none": "Not set up",
+          "pending": "Command sent, waiting for the Pi",
+          "running": "Pi is testing each box",
+          "completed": "Ready",
+          "partial": "Some boxes failed",
+          "failed": "Setup failed",
+          "cleared": "Removed"
+        },
+        "option": {
+          "offline": "offline",
+          "reportingLocker": "reporting locker #{{id}}"
+        },
+        "toast": {
+          "assigned": "Box layout sent to the controller",
+          "assignedTesting": "The Pi is test-opening each box in turn.",
+          "assignedNoTest": "The Pi only saves the layout and won't open any box.",
+          "assignFailed": "Couldn't assign the controller",
+          "unassigned": "Controller removed from the locker",
+          "unassignFailed": "Couldn't remove the controller",
+          "rediscovered": "Asked the Pi to report again",
+          "rediscoverFailed": "Couldn't send the request"
+        },
+        "title": "Locker Controller",
+        "hardwareSlots": "{{count}} hardware slot(s)",
+        "lastSeen": "last seen {{time}}",
+        "notAttached": "No controller attached — the app and kiosk can't open this locker's real boxes yet.",
+        "resend": "Resend Layout",
+        "rediscover": "Request Report",
+        "unassign": "Remove",
+        "selectPlaceholder": "Select a controller that has reported in",
+        "noneReported": "No Pi has reported in yet",
+        "assign": "Assign to Locker",
+        "noPiHint": "The Pi reports in automatically when <code>main.py</code> is running and connected to the MQTT broker. If you don't see the Pi, check the <code>lockr-controller</code> service on the Pi and its MQTT account.",
+        "wrongLocker": "The Pi reports that it serves locker #{{reported}}, not this one. Click “Resend Layout”; if that doesn't help, check that the Pi's MQTT account has permissions on locker #{{id}}.",
+        "tooManyBoxes": "The locker has box number {{highest}} but the controller only has {{slots}} slot(s) — boxes beyond that can't be opened.",
+        "failedSlots": "Boxes that failed the test",
+        "slot": "Box {{number}}",
+        "assignTitle": "Assign Controller to Locker #{{id}}",
+        "assignDesc": "{{mac}} will receive the layout of {{count}} box(es): box number N in admin controls lock N (relay IN N) on the Pi.",
+        "testDoors": "Test-open each box in turn",
+        "testDoorsHint": "Every door will pop open in turn to check the locks and sensors — only do this when the locker is empty and someone is standing by. Uncheck this if the locker has items inside: the Pi will only save the layout.",
+        "tooManyBoxesDevice": "The locker has box number {{highest}} but the device only has {{slots}} slot(s) — iot-service will reject it.",
+        "send": "Send Layout",
+        "unassignTitle": "Remove the controller from this locker?",
+        "unassignDesc": "Pi {{mac}} will clear its box layout and stop accepting commands for locker #{{id}}. The app and kiosk won't be able to open real boxes until it is reassigned."
+      },
+      "boxLabel": "Box #{{number}}",
+      "boxNumberRequired": "Please enter the box number!",
+      "boxStatus": {
+        "available": "Available",
+        "reserved": "Reserved",
+        "occupied": "In use",
+        "fault": "Faulty",
+        "outOfService": "Out of service",
+        "cleaning": "Maintenance",
+        "suspended": "Suspended",
+        "droneReady": "Drone ready"
+      },
+      "cell": {
+        "faultDrone": "Faulty (Drone)",
+        "readyForDrone": "Ready for drone",
+        "faultXl": "Faulty (XL luggage)",
+        "emptyXl": "Empty (XL luggage)",
+        "emptyReady": "Empty (Ready)",
+        "holdingItems": "Holding items",
+        "reserved": "Reserved",
+        "faulty": "Reported faulty",
+        "xlBadge": "XL Luggage",
+        "doorOpen": "Door open",
+        "doorClosed": "Closed",
+        "qrTooltip": "View and print the box QR code",
+        "restoreBox": "Restore box",
+        "restore": "Restore",
+        "forceOpen": "Emergency open",
+        "moreActions": "More actions",
+        "qrAndLabel": "QR code & print label",
+        "editFunction": "Edit box settings",
+        "suspendUse": "Suspend box",
+        "sendToCleaning": "Mark for cleaning",
+        "reportFault": "Report box fault",
+        "cannotDelete": "Can't delete a box that is holding items or reserved",
+        "deleteBox": "Delete this box"
+      },
+      "layout": {
+        "toast": {
+          "layoutUpdated": "The kiosk layout was just updated"
+        },
+        "tech": {
+          "unassignedToast": "Assigned technician removed from the locker",
+          "unassignedToastDesc": "New incident reports for this locker will notify all locker technicians.",
+          "assignedToast": "Locker assigned to {{name}}",
+          "assignedToastDesc": "The technician has been notified. New and unclaimed reports for this locker now go to this technician.",
+          "saveFailed": "Couldn't save the assigned technician",
+          "routedTo": "New incident reports for this locker go only to <b>{{name}}</b>.",
+          "unassignedHint": "Unassigned — new incident reports for this locker notify all locker technicians.",
+          "selectPlaceholder": "Select a technician",
+          "noneOption": "Unassigned (notify all locker technicians)",
+          "locked": "Locked"
+        },
+        "routing": {
+          "byTechnician": "The report is routed to the locker's assigned technician.",
+          "toTechnician": "The report goes to the locker's assigned technician: {{name}}.",
+          "allTechnicians": "This locker has no assigned technician — the report notifies all locker technicians."
+        },
+        "arrange": {
+          "done": "Rearranged {{count}} box(es)",
+          "stoppedAt": "Stopped at box {{index}} in the sequence",
+          "updateFailed": "Couldn't update the box position",
+          "title": "Auto-Arrange Box Layout",
+          "description": "Rearranges the boxes (except the kiosk column below the screen) by ascending box number, row by row from the top-left corner. The new layout syncs to the kiosk and the technician app — use only when the saved positions don't match the real locker.",
+          "perRow": "Boxes per row",
+          "nothing": "The boxes are already in order — nothing to change.",
+          "willMove": "{{count}} box(es) will be moved.",
+          "submit": "Arrange"
+        },
+        "add": {
+          "addedOne": "Box #{{number}} added successfully!",
+          "addFailed": "Couldn't add the new box",
+          "listRequired": "Please enter a valid list of box numbers to create!",
+          "startRowMin": "Start row must be 1 or greater",
+          "startColMin": "Start column must be 0 or greater",
+          "colsPerRowMin": "Columns per row must be 1 or greater",
+          "batchFailed": "Couldn't create the new boxes",
+          "partialFailed": "Created {{created}}/{{total}} boxes, then failed at box #{{number}}",
+          "addedMany": "Added {{count}} box(es) to the station!",
+          "title": "Add New Boxes to Kiosk",
+          "description": "Add one or more physical boxes to {{locker}}. New boxes sync to the technician app and the kiosk immediately.",
+          "tabSingle": "Add 1 Box",
+          "tabBatch": "Add Multiple (Batch)",
+          "boxNumber": "Box No. (#)",
+          "boxNumberPlaceholder": "e.g. 12",
+          "row": "Row",
+          "col": "Column",
+          "colHint": "Column 0 is for the XL compartment (below the 7-inch screen); columns 1, 2, ... are for the boxes beside it",
+          "methodList": "Enter box numbers",
+          "methodRange": "Create a consecutive range",
+          "list": "Box list",
+          "listPlaceholder": "e.g. 3, 6, 9 or 1-6",
+          "listHint": "Enter numbers separated by commas (e.g. 3, 6, 9) or a range (e.g. 1-6)",
+          "range": "Range",
+          "startNumber": "Start number (#)",
+          "count": "Number of boxes",
+          "willCreate": "Will create {{count}} box(es):",
+          "autoPlace": "Rows & columns assigned automatically",
+          "layout": "Layout",
+          "startRow": "Start row",
+          "startCol": "Start column",
+          "colsPerRow": "Columns / row",
+          "cellType": "Box type",
+          "cellTypePlaceholder": "Select box type",
+          "size": "Size",
+          "sizePlaceholder": "Select size",
+          "adding": "Adding...",
+          "submitOne": "Add 1 Box",
+          "submitMany": "Add {{count}} Box(es)"
+        },
+        "action": {
+          "forceOpenTitle": "Emergency open box #{{number}}?",
+          "forceOpenDesc": "Sends an unlock command directly, without the customer's PIN. This action will be recorded in the IoT system's audit log (MASTER audit log).",
+          "forceOpenConfirm": "Confirm Unlock",
+          "faultTitle": "Report fault on box #{{number}}",
+          "faultDesc": "Sets the box status to FAULT and opens an incident report (if the box already has an open report, it is merged into that one). {{routing}}",
+          "faultConfirm": "Confirm Fault Report",
+          "outOfServiceTitle": "Suspend box #{{number}}",
+          "outOfServiceDesc": "The box will be temporarily removed from the available boxes (no new reservations/drop-offs).",
+          "outOfServiceConfirm": "Confirm Suspension",
+          "cleaningTitle": "Mark box #{{number}} for cleaning",
+          "cleaningDesc": "Marks the box as undergoing disinfection and routine cleaning.",
+          "returnTitle": "Return box #{{number}} to service",
+          "returnDesc": "Moves the box from suspended/cleaning back to AVAILABLE to serve customers.",
+          "returnConfirm": "Return to Service",
+          "clearFaultTitle": "Confirm box #{{number}} is working again?",
+          "clearFaultDesc": "Closes the box's open incident report (if any) and returns the box to its status before the fault — a box still holding items goes back to \"Occupied\".",
+          "clearFaultConfirm": "Restore Box",
+          "deleteTitle": "Delete box #{{number}}?",
+          "deleteDesc": "Box #{{number}} will be removed from locker {{locker}}. The layout will sync to the technician app and the kiosk immediately. This action cannot be undone.",
+          "deleteConfirm": "Delete Box",
+          "unlocked": "Box #{{number}} unlocked",
+          "openFailed": "Couldn't open box #{{number}}",
+          "openNotConfirmed": "The locker controller didn't confirm the open command.",
+          "openSent": "The emergency open command for box #{{number}} was recorded and sent to the controller.",
+          "faultReported": "Fault reported for box #{{number}}",
+          "suspended": "Box #{{number}} set to Suspended.",
+          "cleaning": "Box #{{number}} set to Cleaning.",
+          "returned": "Box #{{number}} is available again.",
+          "restored": "Box #{{number}} restored",
+          "restoredDescWithStatus": "Current status: {{status}}. The box's open incident report (if any) has been closed.",
+          "restoredDesc": "The box's open incident report (if any) has been closed.",
+          "deleted": "Box #{{number}} deleted successfully!",
+          "failed": "Action failed",
+          "reasonLabel": "Reason:",
+          "reasonPlaceholder": "Enter a reason (e.g. jammed lock, latch won't release, maintenance...)",
+          "oosReasonLabel": "Suspension reason (optional):",
+          "oosReasonPlaceholder": "e.g. checking the power circuit, waiting for a latch replacement..."
+        },
+        "loading": "Loading locker layout...",
+        "notFound": "Locker #{{id}} not found",
+        "landingPad": "Drone landing pad",
+        "noBoxesToPrint": "This locker has no boxes to print labels for",
+        "qrAndPrint": "QR Codes & Labels",
+        "autoArrange": "Auto Arrange",
+        "addBox": "Add Box",
+        "suspended": {
+          "title": "This locker is not accepting orders ({{status}})",
+          "desc": "Customers can't book new boxes at this locker until it is active again.",
+          "blockedBy": "Blocked by incident report(s) {{reports}} — the locker reactivates automatically once the last blocking report is resolved."
+        },
+        "kpi": {
+          "totalBoxes": "Total Physical Boxes",
+          "emptyBoxes": "Empty Boxes",
+          "inUse": "In Use",
+          "faultyBoxes": "Faulty Boxes"
+        },
+        "doorWarning": {
+          "title": "Safety warning: {{count}} box(es) with open doors ({{boxes}})",
+          "desc": "Locker doors weren't fully closed after use. Please check on site or close the doors to avoid the risk of lost items.",
+          "badge": "DOOR OPEN"
+        },
+        "gridTitle": "Kiosk Physical Layout (Row 1: Drone Receiving Boxes)",
+        "overlap": {
+          "title": "Some boxes share the same position on the layout",
+          "kioskColumn": "kiosk column",
+          "body": "{{groups}} are saved in the same row/column, so they are drawn on top of each other. Use \"Auto Arrange\" to rearrange the boxes, or fix the row/column in each box's \"Edit box settings\".",
+          "bodyKiosk": "{{groups}} are saved in the same row/column, so they are drawn on top of each other. Use \"Auto Arrange\" to rearrange the boxes, or fix the row/column in each box's \"Edit box settings\" (the kiosk column holds only one compartment — move the other boxes to another column)."
+        },
+        "screen": {
+          "tooltipOnline": "Click to view the 7-inch touchscreen data & specs",
+          "tooltipOffline": "7-inch screen disconnected (Pi not powered or kiosk station not plugged in)",
+          "name": "7\" Screen",
+          "noPower": "Screen has no power",
+          "waitingPower": "Waiting for kiosk station power...",
+          "touch5": "5-point touch",
+          "notPowered": "Not powered",
+          "data": "Screen data →",
+          "specs": "View specs →"
+        },
+        "legend": {
+          "none": "None",
+          "drone": "Drone receiving boxes ({{boxes}})",
+          "xl": "XL luggage compartments ({{boxes}})",
+          "available": "Available boxes ({{boxes}})",
+          "inUse": "In use / Reserved ({{boxes}})",
+          "fault": "Faulty / maintenance ({{boxes}})",
+          "doorsOpen": "Doors open ({{boxes}})",
+          "doorsClosed": "Doors closed ({{count}})"
+        }
+      },
+      "boxType": {
+        "standard": "Standard (STANDARD)",
+        "drone": "Drone receiving (DRONE)",
+        "xl": "Large luggage compartment (XL)"
+      },
+      "logs": {
+        "credential": {
+          "pin": "PIN code",
+          "qr": "QR scan",
+          "pinOrQr": "Box open (PIN/QR)",
+          "accessCode": "Kiosk code",
+          "master": "Emergency (MASTER)",
+          "discovery": "Controller (IoT)",
+          "display": "7-inch screen",
+          "hardware": "Hardware error",
+          "hardwareFault": "Hardware incident",
+          "setup": "Layout check",
+          "gateway": "Controller assignment",
+          "sensor": "Sensor"
+        },
+        "result": {
+          "online": "Online (Plugged in)",
+          "offline": "Disconnected (Unplugged)",
+          "closed": "Door closed",
+          "timeout": "Timed out",
+          "jammed": "Lock jammed",
+          "denied": "Denied",
+          "restartRequested": "Restart requested"
+        },
+        "slotsUnknown": "— boxes",
+        "title": "Operations & IoT Log for Locker {{locker}}",
+        "description": "Track every connection (plugged in), disconnection (unplugged), unlock and hardware intervention in detail.",
+        "tabAccess": "Open & IoT Log ({{count}})",
+        "tabReports": "Incidents & Repairs ({{count}})",
+        "totalEntries": "Total log entries",
+        "hardwareIssues": "Hardware errors & warnings",
+        "banner": {
+          "online": "🟢 Locker {{locker}} is powered & connected (Online):",
+          "offline": "🔴 Locker {{locker}} is disconnected / unplugged (Offline):",
+          "onlineDetail": "Hardware {{hardware}} · {{slots}} · firmware {{firmware}} · Latest signal: {{time}}",
+          "offlineDetail": "The locker has no power or the controller is off · Last signal at: {{time}}"
+        },
+        "searchPlaceholder": "Search by content, order ID, account...",
+        "filter": {
+          "eventType": "Event type",
+          "allEventTypes": "All event types",
+          "discovery": "Controller & power (IoT)",
+          "display": "7\" screen (Waveshare Kiosk)",
+          "userOpen": "Box open (Customer / Kiosk)",
+          "box": "Filter by box",
+          "allBoxes": "All boxes",
+          "wholeLocker": "Whole locker (controller)",
+          "boxOption": "Box #{{number}} (ID: {{id}})",
+          "result": "Result",
+          "allResults": "All results",
+          "jammed": "Lock jammed / Error"
+        },
+        "loading": "Loading logs...",
+        "empty": "No matching log entries yet.",
+        "col": {
+          "location": "Location / Box",
+          "eventType": "Event Type",
+          "actor": "Actor",
+          "details": "Event & Hardware Details"
+        },
+        "kioskScreen": "Kiosk screen",
+        "controller": "Controller",
+        "orderRef": "Order #{{id}}",
+        "noReports": "This locker has never had an incident report. Running perfectly stable!",
+        "reports": {
+          "id": "Report ID",
+          "box": "Box",
+          "category": "Category",
+          "description": "Incident Description",
+          "categoryGeneral": "GENERAL",
+          "resolved": "Resolved",
+          "inProgress": "In progress",
+          "open": "Open",
+          "noDescription": "No description"
+        }
+      },
+      "boxQr": {
+        "defaultLockerName": "Lock.R Locker",
+        "copied": "QR code content copied to the clipboard!",
+        "notFound": "QR code not found",
+        "downloaded": "Downloaded the QR image for box #{{number}}",
+        "downloadFailed": "Couldn't download the QR image",
+        "title": "QR Sticker for Box #{{number}}",
+        "printAllTab": "Whole locker ({{count}} boxes)",
+        "description": "Print this QR label and stick it directly on the physical box door. Technicians and users can scan it to test or operate the box.",
+        "lockerNumber": "Locker #{{id}}",
+        "xlBadge": "XL LUGGAGE",
+        "function": "FUNCTION:",
+        "functionDrone": "Drone receiving",
+        "functionXl": "Luggage compartment (XL)",
+        "functionStandard": "Multi-purpose standard box",
+        "size": "SIZE:",
+        "position": "POSITION:",
+        "positionValue": "Row {{row}} · Column {{col}}",
+        "identifier": "IDENTIFIER (ID):",
+        "scanHint": "* Scan this QR code with the Lock.R app to operate or check the box",
+        "payload": "QR payload (JSON):",
+        "copiedShort": "Copied",
+        "copy": "Copy",
+        "batchTitle": "Batch printing for the whole locker ({{count}} boxes)",
+        "batchDesc": "Click the \"Print all labels\" button below to print a grid of labels for every box in locker #{{id}}. You can cut them out and stick them on each real box for testing.",
+        "xlShort": "Luggage (XL)",
+        "standardShort": "Standard",
+        "cellMeta": "ID: {{id}} · Row {{row}} Col {{col}}",
+        "downloadPng": "Download PNG",
+        "downloadImage": "Download QR Image (PNG)",
+        "printOne": "Print Label for Box #{{number}}",
+        "printAll": "Print All {{count}} Labels"
+      },
+      "forceOpen": {
+        "title": "Emergency Box Open",
+        "description": "You are requesting to open a box manually. This action will be recorded in the system.",
+        "boxNumber": "Box #{{number}}",
+        "size": "Size: {{size}}",
+        "order": "Order:",
+        "warning": "The open command will be sent to the device via MQTT. Make sure staff are on site before proceeding.",
+        "confirm": "Confirm Open"
+      },
+      "kioskScreen": {
+        "title": "7-inch Kiosk Touchscreen",
+        "online": "Active (Online)",
+        "offline": "Disconnected (Offline)",
+        "description": "Customer display & interaction device at kiosk {{kiosk}}",
+        "appInfo": "React 19 app · Chromium Kiosk Mode (Port :3002)",
+        "noPower": "Screen has no power (Offline)",
+        "waitingPower": "Waiting for kiosk station power or for the Raspberry Pi to reconnect",
+        "touchInfo": "5-point capacitive touch (USB HID)",
+        "hardwareSpecs": "Screen Hardware Specs",
+        "model": "Hardware model:",
+        "resolution": "Display resolution:",
+        "touchStandard": "Touch standard:",
+        "videoPort": "Video output port:",
+        "touchPort": "Touch port:",
+        "power": "Power settings:",
+        "powerValue": "Screen always on (Blanking OFF)",
+        "appStatus": "App & Controller Status",
+        "uiApp": "UI app:",
+        "appAddress": "App address (on the Pi):",
+        "mac": "Pi MAC address:",
+        "lastSeen": "Last seen:",
+        "noSignal": "No signal yet"
       }
     },
     "partners": {
@@ -261,11 +1327,183 @@
         "approved": "Approved",
         "rejected": "Rejected",
         "suspended": "Suspended"
+      },
+      "detail": {
+        "status": {
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "suspended": "Suspended"
+        },
+        "title": "Partner Details #{{id}}",
+        "notFound": "Partner not found.",
+        "stores": "Stores",
+        "staff": "Staff",
+        "revenueShare": "Revenue Share",
+        "businessInfo": "Business Information",
+        "businessName": "Business Name",
+        "registrationNumber": "Business Registration No.",
+        "taxId": "Tax ID",
+        "contactInfo": "Contact Information",
+        "representative": "Representative",
+        "contactEmail": "Contact Email",
+        "systemInfo": "System Information",
+        "registeredAt": "Registered On",
+        "approvedAt": "Approved On",
+        "rejectionReason": "Rejection Reason",
+        "rejecting": "Rejecting…",
+        "approving": "Approving…",
+        "suspending": "Suspending…"
+      },
+      "stats": {
+        "total": "Total Partners",
+        "totalStores": "Total Stores"
+      },
+      "table": {
+        "notUpdated": "Not provided",
+        "storesCount": "{{count}} store(s)"
+      },
+      "toast": {
+        "approved": "Partner approved successfully!",
+        "approveFailed": "Couldn't approve the partner",
+        "rejected": "Partner rejected!",
+        "rejectFailed": "Couldn't reject the partner",
+        "suspended": "Partner suspended!",
+        "suspendFailed": "Couldn't suspend the partner"
       }
     },
     "feedback": {
       "title": "Feedback",
-      "empty": "No feedback yet"
+      "empty": "No feedback yet",
+      "page": {
+        "title": "Feedback & Reports",
+        "description": "Track service quality ratings and handle customer complaints"
+      },
+      "tabs": {
+        "reports": "Incident Reports",
+        "feedback": "Service Ratings",
+        "analytics": "Metrics & Statistics"
+      },
+      "loadError": "Couldn't load data.",
+      "rating": {
+        "poor": "Poor",
+        "ok": "OK",
+        "good": "Good"
+      },
+      "reportStatus": {
+        "open": "Pending",
+        "inProgress": "In Progress",
+        "resolved": "Resolved"
+      },
+      "status": {
+        "pending": "Pending",
+        "unresolved": "Unresolved",
+        "resolved": "Resolved"
+      },
+      "filters": {
+        "stars": "Stars",
+        "allStars": "All ratings",
+        "starOption": "{{stars}} ({{count}} star(s))",
+        "allStatuses": "All statuses"
+      },
+      "columns": {
+        "rating": "Rating",
+        "content": "Content",
+        "resolvedAt": "Resolved At"
+      },
+      "list": {
+        "count": "{{total}} feedback",
+        "empty": "No feedback found"
+      },
+      "pagination": {
+        "page": "Page {{page}} / {{total}}",
+        "next": "Next"
+      },
+      "reports": {
+        "count": "{{total}} report(s)",
+        "empty": "No reports found",
+        "lockerFallback": "Locker #{{id}}",
+        "box": "Box {{number}}",
+        "resolve": "Resolve",
+        "resolveTitle": "Resolve report RPT-{{id}}?",
+        "resolveFailed": "Couldn't resolve the report",
+        "resolveSuccess": "Report resolved",
+        "resolvedDesc": "Report RPT-{{id}} has been marked as resolved.",
+        "resolvedDescWithPhotos": "Report RPT-{{id}} has been marked as resolved with {{count}} acceptance photo(s)."
+      },
+      "analytics": {
+        "trendTitle": {
+          "day": "Ratings in the last 14 days",
+          "week": "Ratings in the last 12 weeks",
+          "month": "Ratings in the last 12 months"
+        },
+        "period": {
+          "day": "Daily",
+          "week": "Weekly",
+          "month": "Monthly"
+        },
+        "weekLabel": "Wk {{date}}",
+        "noTrend": "No ratings in this period",
+        "barTitle": "{{label}}: {{count}} rating(s)",
+        "barTitleAvg": "{{label}}: {{count}} rating(s) · avg {{avg}}★",
+        "overview": "Ratings Overview",
+        "averageRating": "Average rating",
+        "thisWeek": "This week",
+        "thisMonth": "This month",
+        "pendingFeedback": "Pending feedback",
+        "satisfaction": "Satisfaction Metrics",
+        "satisfactionScore": "Satisfaction score (0-100)",
+        "npsHint": "On a 5-star scale: % of 5-star ratings minus % of 1–3-star ratings (−100 to 100)",
+        "nps": "NPS (5-star scale)",
+        "positive": "Positive (4-5★)",
+        "negative": "Negative (1-2★)",
+        "topComplaint": "Most common complaint",
+        "last90Days": "last 90 days",
+        "complaint": {
+          "other": "Other"
+        },
+        "topService": "Top-rated service",
+        "scoreByService": "Score by service"
+      },
+      "detail": {
+        "title": "Feedback Details",
+        "titleWithId": "Feedback Details #{{id}}",
+        "notFound": "Feedback not found.",
+        "createdAt": "Created at {{date}}",
+        "genericError": "Something went wrong, please try again.",
+        "markedResolved": "Marked as resolved",
+        "reopened": "Feedback reopened",
+        "statusUpdateFailed": "Couldn't update the status",
+        "replyRequired": "Please enter a reply.",
+        "replySent": "Reply sent to the customer",
+        "markPending": "Mark as Pending",
+        "markResolved": "Mark as Resolved",
+        "ratingContent": "Rating Details",
+        "sentiment": {
+          "veryHappy": "Very satisfied",
+          "neutral": "Neutral",
+          "unhappy": "Dissatisfied"
+        },
+        "comment": "Comment",
+        "relatedOrder": "Related order:",
+        "adminReply": "Admin Reply",
+        "repliedAt": "Replied at {{date}}",
+        "resolvedBy": "Resolved by",
+        "resolvedAt": "Resolved at",
+        "updateReply": "Update Reply",
+        "addReply": "Add Reply",
+        "replyPlaceholder": "Enter your reply to the customer...",
+        "sending": "Sending...",
+        "sendReply": "Send Reply",
+        "customerInfo": "Customer Information",
+        "customerId": "Customer ID #{{id}}",
+        "history": "History",
+        "timeline": {
+          "created": "Rating submitted",
+          "adminReplied": "Admin replied",
+          "resolved": "Resolved",
+          "lastUpdated": "Last updated"
+        }
+      }
     },
     "scheduler": {
       "title": "Scheduler",
@@ -337,7 +1575,161 @@
       "language": "Language",
       "languageHelp": "Choose display language",
       "theme": "Theme",
-      "themeHelp": "Switch between light / dark / system"
+      "themeHelp": "Switch between light / dark / system",
+      "business": {
+        "title": "Business Rules",
+        "description": "Prices, fees, time limits, SLAs and limits for each service. Every change is validated and logged.",
+        "searchPlaceholder": "Search by name, key, description…",
+        "searchAria": "Search rules in the current group",
+        "clearSearch": "Clear search",
+        "leave": {
+          "title": "Leave with unsaved changes?",
+          "descriptionGroups": "Unsaved changes remain in {{groups}}. Leaving will discard all of them.",
+          "descriptionCurrent": "The group you are editing has unsaved changes. Leaving will discard all of them.",
+          "stay": "Stay",
+          "confirm": "Leave and Discard"
+        }
+      },
+      "scopes": {
+        "order": {
+          "title": "Orders & Pricing",
+          "description": "Shipping and locker rental prices, storage fees, pickup deadlines and automatic order cancellation."
+        },
+        "locker": {
+          "title": "Lockers & Maintenance",
+          "description": "Incident handling SLAs, penalty thresholds, acceptance photos, box holds and drones."
+        },
+        "payment": {
+          "title": "Payments & Wallet",
+          "description": "Wallet top-up limits, suggested amounts and payment methods."
+        },
+        "iot": {
+          "title": "IoT Devices",
+          "description": "Temporary lockout after repeated wrong entries, door open and close timeouts."
+        },
+        "auth": {
+          "title": "Authentication",
+          "description": "OTP validity and length, temporary token lifetime."
+        },
+        "loyalty": {
+          "title": "Loyalty",
+          "description": "Membership tier thresholds, stamps and loyalty points."
+        },
+        "store": {
+          "title": "Stores",
+          "description": "Default radius when searching for nearby stores."
+        },
+        "assistant": {
+          "title": "Q&A Assistant",
+          "description": "Assistant on/off, minimum relevance threshold, number of document chunks attached, hourly question limit and number of conversation turns remembered."
+        }
+      },
+      "panel": {
+        "resetSuccess": "Default restored: {{label}}",
+        "resetFailed": "Couldn't restore the default value",
+        "saveSuccess": "Saved {{count}} change(s) to “{{scope}}”",
+        "saveFailed": "Couldn't save changes",
+        "summary": "{{rules}} rule(s) · {{overridden}} customized",
+        "history": "Change History",
+        "loadFailedTitle": "Couldn't load settings",
+        "loadFailedMessage": "Something went wrong while loading business rules. Please try again.",
+        "emptyTitle": "No rules yet",
+        "emptyMessage": "The service hasn't declared any business rules for this group.",
+        "noMatchTitle": "No matching rules",
+        "noMatchMessage": "No rules match “{{query}}” in this group.",
+        "ruleCount": "{{count}} rule(s)",
+        "unsavedCount": "{{count}} unsaved change(s)",
+        "invalidCount": "{{count}} invalid value(s)",
+        "hiddenCount": "{{count}} change(s) hidden by the search filter",
+        "unsupportedTitle": "Configuration not supported yet",
+        "unsupportedMessage": "The service behind “{{title}}” hasn't implemented the business rules API yet, so it can't be edited from the admin console for now. Other groups work normally.",
+        "recheck": "Check Again",
+        "loadingAria": "Loading settings"
+      },
+      "row": {
+        "unsaved": "Unsaved",
+        "overridden": "Customized",
+        "public": "Public",
+        "publicHint": "This value is returned to client apps through the public API, no sign-in required.",
+        "defaultLabel": "Default:",
+        "currentLabel": "Current:",
+        "updatedAt": "Updated at {{date}}",
+        "updatedAtBy": "Updated at {{date}} · user #{{id}}",
+        "viewHistory": "View history",
+        "savedValue": "Currently saved: {{value}}",
+        "undo": "Undo",
+        "resetDefault": "Restore Default",
+        "resetTitle": "Restore the default value?",
+        "resetDescriptionSuffix": "will revert to the service's default value.",
+        "dirtyWarning": "Unsaved changes to this rule will be discarded.",
+        "restore": "Restore"
+      },
+      "save": {
+        "title": "Confirm saving {{count}} change(s)",
+        "description": "Group “{{scope}}”. All values are saved together; if any value is rejected, none of the batch is applied.",
+        "confirm": "Confirm Save"
+      },
+      "audit": {
+        "description": "Group “{{scope}}” · last {{limit}} changes, newest first.",
+        "filterAria": "Filter by rule",
+        "allRules": "All rules",
+        "refreshAria": "Refresh history",
+        "unsupportedMessage": "This group's service hasn't implemented change history yet.",
+        "loadFailed": "Couldn't load history",
+        "loadFailedMessage": "Something went wrong. Please try again.",
+        "emptyTitle": "No changes yet",
+        "emptyRule": "This rule has never been changed.",
+        "emptyGroup": "All rules in this group still use their initial values.",
+        "default": "Default",
+        "defaultWithValue": "Default ({{value}})",
+        "filterThisRule": "Show only this rule's history",
+        "resetBadge": "Reset to default",
+        "actorUser": "User #{{id}}",
+        "loadingAria": "Loading history"
+      },
+      "input": {
+        "on": "On",
+        "off": "Off",
+        "invalidValue": "{{value}} (invalid)",
+        "chooseValue": "Select a value",
+        "removeItem": "Remove {{item}}",
+        "addMore": "Add…",
+        "typeNumberEnter": "Type a number, then press Enter"
+      },
+      "value": {
+        "empty": "(empty)",
+        "on": "On",
+        "off": "Off"
+      },
+      "validation": {
+        "min": "Minimum {{value}}",
+        "max": "Maximum {{value}}",
+        "minLower": "minimum {{value}}",
+        "maxLower": "maximum {{value}}",
+        "notAllowed": "Value is not in the allowed list",
+        "itemNotInteger": "\"{{item}}\" is not an integer",
+        "itemTooLarge": "\"{{item}}\" is too large",
+        "itemNotAllowed": "{{value}} is not in the allowed list",
+        "required": "Required",
+        "mustBeInteger": "Must be an integer",
+        "tooLarge": "Number is too large",
+        "mustBeNumber": "Must be a number (e.g. 12.5)",
+        "invalidNumber": "Invalid number",
+        "booleanOnly": "Only on or off is allowed"
+      },
+      "range": {
+        "between": "From {{min}} to {{max}}",
+        "eachBetween": "Each value from {{min}} to {{max}}",
+        "eachMin": "Each value at least {{value}}",
+        "eachMax": "Each value at most {{value}}"
+      },
+      "groups": {
+        "other": "Other"
+      },
+      "errors": {
+        "timeout": "The server took too long to respond",
+        "forbidden": "Your account doesn't have permission to perform this action"
+      }
     },
     "notifications": {
       "title": "Notification Management",
@@ -376,7 +1768,26 @@
         "promotion": "Promotion",
         "systemAlert": "System",
         "loyaltyPointsEarned": "Points Earned",
-        "loyaltyRewardUnlocked": "Reward Unlocked"
+        "loyaltyRewardUnlocked": "Reward Unlocked",
+        "orderStatus": "Order Status Changed",
+        "orderParcelReady": "Parcel Ready for Pickup",
+        "orderParcelStored": "Parcel Stored in Locker",
+        "orderPickupOverdue": "Pickup Overdue",
+        "orderExpired": "Moved to Storage (Overdue)",
+        "orderRentalExtended": "Box Rental Extended",
+        "orderRelocated": "Moved to a New Box",
+        "orderDelegated": "Pickup Delegated",
+        "orderEscrowed": "Sealed and Sent to Hub",
+        "paymentCompleted": "Payment Successful",
+        "refundCompleted": "Refunded",
+        "refundRejected": "Refund Rejected",
+        "droneOrderCreated": "New Drone Order",
+        "droneDeliveryStatusChanged": "Drone Delivery Status",
+        "droneIncident": "Drone Incident",
+        "droneIncidentResolutionProposed": "Incident Resolution Proposed",
+        "droneParcelDropReported": "Parcel Drop Reported",
+        "droneParcelRecoveryAssigned": "Parcel Recovery Assigned",
+        "feedbackReply": "Feedback Reply"
       },
       "stats": {
         "total": "Total Notifications",
@@ -419,7 +1830,10 @@
         "sending": "Sending...",
         "successMsg": "Broadcast sent to {count} users",
         "errorMsg": "Failed to send broadcast, please try again",
-        "requiredFields": "Please enter title and content"
+        "requiredFields": "Please enter title and content",
+        "invalidRecipients": "Enter at least one valid recipient ID",
+        "sentCount": "Broadcast sent to {{count}} user(s)",
+        "sendNowHint": "The notification is sent immediately; the actual number of recipients is shown after sending."
       },
       "create": {
         "title": "Create Notification",
@@ -438,7 +1852,28 @@
         "successMsg": "Notification sent successfully",
         "errorMsg": "Failed to send notification",
         "invalidRecipient": "Invalid recipient ID",
-        "requiredFields": "Please enter title and content"
+        "requiredFields": "Please enter title and content",
+        "recipientName": "Recipient: {{name}}",
+        "recipientNotFound": "User not found"
+      },
+      "composeHint": {
+        "system": "Tapping opens the notification details in the app.",
+        "promotion": "Tapping opens the Promotions tab in the app."
+      },
+      "error": {
+        "unsupported": "The server doesn't support this action yet"
+      },
+      "toast": {
+        "deleted": "Notification deleted",
+        "deleteFailed": "Couldn't delete the notification",
+        "markedRead": "Marked as read",
+        "markReadFailed": "Couldn't mark as read",
+        "resent": "Notification resent",
+        "resendFailed": "Couldn't resend the notification"
+      },
+      "deleteDialog": {
+        "title": "Delete notification?",
+        "desc": "Notification #{{id}} «{{title}}» will be removed from the recipient's inbox. This cannot be undone."
       }
     },
     "promotions": {
@@ -501,7 +1936,41 @@
         "editFailed": "Failed to update promotion",
         "requiredCode": "Please enter code and campaign name",
         "requiredDates": "Please select start and end dates",
-        "invalidDates": "End date must be after start date"
+        "invalidDates": "End date must be after start date",
+        "imageUpdated": "Promotion image updated",
+        "imageRemoved": "Promotion image removed",
+        "imageRemoveFailed": "Couldn't remove the image",
+        "image": "Promotion Image",
+        "imageAlt": "Promotion image {{code}}",
+        "imageUpdateFailed": "Couldn't update the promotion image",
+        "imageChange": "Change image",
+        "imageAdd": "Add image",
+        "imageRemove": "Remove image",
+        "imageHint": "The image is saved right away; no need to click Save",
+        "imageRemoveTitle": "Remove promotion image?",
+        "imageRemoveDesc": "The current image will be removed from the promotion and deleted from image storage.",
+        "invalidDiscount": "Invalid discount value (must be greater than 0)",
+        "percentTooHigh": "Percentage discount cannot exceed 100%"
+      },
+      "actions": {
+        "reactivate": "Reactivate",
+        "deactivate": "Deactivate"
+      },
+      "toast": {
+        "deleted": "Deleted code {{code}}",
+        "deleteFailed": "Couldn't delete the promotion",
+        "deactivated": "Deactivated code {{code}}",
+        "reactivated": "Reactivated code {{code}}",
+        "statusFailed": "Couldn't update the status"
+      },
+      "deleteDialog": {
+        "title": "Delete promotion?",
+        "desc": "Code <b>{{code}}</b> will be permanently deleted. Codes that have been used or saved to a customer's wallet can't be deleted — deactivate them instead."
+      },
+      "historyDialog": {
+        "title": "Can't delete a code with usage history",
+        "desc": "Code <b>{{code}}</b> has been used or saved to a customer's wallet, so it can't be deleted (to keep the orders' discount history).",
+        "hint": "Deactivating sets the code to INACTIVE — customers can no longer use it."
       }
     },
     "breadcrumb": {
@@ -510,6 +1979,2112 @@
       "detail": "Detail",
       "create": "Create",
       "edit": "Edit"
+    },
+    "loyalty": {
+      "title": "Loyalty Program Statistics",
+      "description": "Overview of members and loyalty points from loyalty-service",
+      "loadFailed": "Couldn't load data.",
+      "tier": {
+        "bronze": "Bronze",
+        "silver": "Silver",
+        "gold": "Gold",
+        "platinum": "Platinum"
+      },
+      "stats": {
+        "members": "Members",
+        "newThisMonth": "New Members This Month",
+        "active30d": "Active (30 Days)",
+        "outstanding": "Outstanding Points"
+      },
+      "tierDistribution": "Membership Tier Distribution",
+      "pointsMetrics": "Loyalty Points Metrics",
+      "metrics": {
+        "issued": "Total Points Issued",
+        "redeemed": "Total Points Redeemed",
+        "average": "Avg. Points / Member",
+        "median": "Median Points / Member",
+        "transactions": "Total Points Transactions",
+        "pointsValue": "{{value}} points"
+      },
+      "thisMonth": "This Month",
+      "month": {
+        "issued": "Points Issued",
+        "redeemed": "Points Redeemed",
+        "newMembers": "New Members"
+      }
+    },
+    "services": {
+      "title": "Service Management",
+      "description": "Pricing, rules and performance of the three services on sale — changes apply to orders created after saving",
+      "rulesLoadFailed": "Couldn't load service rules",
+      "totalRevenue": "Total revenue in period: {{amount}}",
+      "revenueLoadFailed": "Couldn't load service performance",
+      "sharedRules": "Shared Rules",
+      "sharedRulesHint": "Applies to all three services",
+      "overtimeCollected": "Overtime Fees Collected in Period",
+      "overtimeHint": "Not included in the revenue of the three services above — the backend keeps it separate to avoid double counting.",
+      "invalidValues": "Some values are invalid",
+      "unsavedCount": "{{count}} unsaved change(s)",
+      "discard": "Discard Changes",
+      "saving": "Saving…",
+      "toast": {
+        "invalidBeforeSave": "Some values are invalid — fix them before saving",
+        "savedOne": "Saved 1 change",
+        "savedMany": "Saved {{count}} changes",
+        "saveFailed": "Couldn't save the changes"
+      },
+      "card": {
+        "orderTypeCode": "order type",
+        "performance": "Performance in Period",
+        "revenue": "Revenue",
+        "share": "Share",
+        "newOrders": "New Orders",
+        "paidOrders": "Paid Orders",
+        "viewOrders": "View orders for this service",
+        "rules": "Applicable Rules"
+      },
+      "catalog": {
+        "send": {
+          "name": "Locker Shipping",
+          "tagline": "Send to someone else",
+          "description": "The customer drops the parcel into a box with a code, and the system sends the recipient a new code to pick it up. Charged once per order, plus an overtime fee if the recipient picks up late.",
+          "headlineSuffix": "per order"
+        },
+        "rental": {
+          "name": "Hourly Box Rental",
+          "tagline": "Store your own items",
+          "description": "The customer rents a box for a chosen period and can extend it or delegate pickup to someone else. Charged by the hour and by box type.",
+          "headlineSuffix": "per hour, standard box"
+        },
+        "drone": {
+          "name": "Drone Delivery",
+          "tagline": "Flies between two lockers",
+          "description": "A drone carries the parcel from the origin locker to the destination locker, where the recipient picks it up with a code. Only available at lockers with a landing pad.",
+          "headlineSuffix": "per trip"
+        }
+      },
+      "ruleGroup": {
+        "price": "Price",
+        "duration": "Time Limit",
+        "overtime": "Overtime Fee",
+        "priceByBoxType": "Price by Box Type",
+        "rentalHours": "Rental Hours",
+        "extension": "Extension",
+        "parcelSafety": "Parcel & Flight Safety",
+        "shared": "Applies to All Services"
+      }
+    },
+    "droneOrders": {
+      "title": "Drone Journeys",
+      "description": "Track every drone delivery from the sending locker to the receiving locker. Refreshes every 5 seconds.",
+      "undetermined": "Not determined",
+      "notePlaceholderOptional": "Note (optional)",
+      "scope": {
+        "active": "In Progress",
+        "finished": "Finished"
+      },
+      "stats": {
+        "waiting": "Awaiting Dispatch",
+        "inFlight": "In Flight",
+        "finishedHint": "Select Finished or All to see this"
+      },
+      "missionStatus": {
+        "awaitingLoading": "Awaiting loading",
+        "readyToLaunch": "Ready to launch",
+        "launching": "Launching",
+        "departed": "Departed station",
+        "enRoute": "In flight",
+        "approaching": "Approaching receiving locker",
+        "arrived": "Arrived at receiving locker",
+        "deposited": "Parcel placed in box",
+        "canceled": "Canceled before flight",
+        "failed": "Flight failed",
+        "dropReported": "Parcel drop reported — handed over to incident handling"
+      },
+      "cancelReason": {
+        "badWeather": "Bad weather",
+        "droneFault": "Drone fault",
+        "landingPadUnavailable": "Landing pad not ready",
+        "operational": "Operational reason",
+        "other": "Other reason",
+        "unknown": "Reason #{{code}}"
+      },
+      "parcelCategory": {
+        "document": "Documents",
+        "food": "Food",
+        "clothing": "Clothing",
+        "electronics": "Electronics",
+        "cosmetics": "Cosmetics",
+        "other": "Other"
+      },
+      "locker": {
+        "nameNotFound": "Locker name not found"
+      },
+      "checklist": {
+        "notChecked": "Not checked",
+        "passed": "Passed",
+        "failed": "Failed"
+      },
+      "journey": {
+        "loaded": "Parcel loaded onto drone",
+        "pickupCodeSent": "Pickup code sent to receiver",
+        "created": "Drone order created"
+      },
+      "list": {
+        "loadFailed": "Could not load the drone journey list.",
+        "emptyAll": "No drone delivery orders yet",
+        "emptyScope": "No orders in this group",
+        "handleDropIncident": "Handle parcel drop incident →",
+        "accepted": "Accepted",
+        "notAccepted": "Not accepted yet"
+      },
+      "columns": {
+        "orderCode": "Order Code",
+        "route": "Route",
+        "stage": "Stage",
+        "dispatcher": "Dispatcher",
+        "createdAt": "Created",
+        "updatedAt": "Last Updated"
+      },
+      "detail": {
+        "title": "Journey of order {{code}}",
+        "loadFailed": "Could not load journey details.",
+        "autoRefresh": "Refreshes every 3 seconds · last updated {{time}}",
+        "dropReportedBanner": "The parcel was reported dropped mid-flight — delivery is stopped; recovery and the customer resolution are handled on the Parcel Drop Incidents page.",
+        "openIncident": "Open incident →",
+        "flightFailedBanner": "Flight failed after launch — the flight team returns the parcel to the sender",
+        "canceled": "Order canceled",
+        "refundPending": "Refund pending — approve and transfer it under Payments › Refunds",
+        "refunded": "Refund transferred to the customer",
+        "refundMissing": "NO refund request yet — must be handled manually on the Payments page"
+      },
+      "section": {
+        "map": "Tracking Map",
+        "route": "Route · sending and receiving",
+        "progress": "Delivery Progress",
+        "people": "People Involved",
+        "mission": "Flight Mission & Loading Record",
+        "journeyLog": "Journey Log · newest first",
+        "parcelReturn": "Parcel Awaiting Return to Sender",
+        "flightIncident": "Flight Incident"
+      },
+      "lockerBlock": {
+        "source": "Sending locker · Locker A",
+        "destination": "Receiving locker · Locker B",
+        "parcelInDroneBox": "Parcel is in drone box no. {{number}}",
+        "reservedBox": "Receiving box no. {{number}}",
+        "sentAt": "Sent at",
+        "notSent": "Not sent yet",
+        "arrivedAt": "Placed in locker at",
+        "notArrived": "Not arrived yet",
+        "codeSentAt": "Code sent to receiver at",
+        "pickedUpAt": "Picked up by receiver at",
+        "notPickedUp": "Not picked up yet",
+        "viewOnMap": "View on map"
+      },
+      "fields": {
+        "orderStatus": "Order status",
+        "droneFee": "Drone delivery fee",
+        "paymentMethod": "Payment method",
+        "paymentReference": "Payment reference",
+        "transactionId": "Transaction ID",
+        "paidAt": "Paid at",
+        "declaredWeight": "Declared weight",
+        "parcelCategory": "Parcel type",
+        "fragile": "FRAGILE",
+        "parcelSize": "Parcel size",
+        "declaredValue": "Declared value",
+        "droppedAt": "Dropped in sending box at",
+        "notDropped": "Sender has not dropped off the parcel",
+        "flightDistance": "Flight distance",
+        "flightMode": "Flight mode",
+        "modeDemo": "Simulated (DEMO)",
+        "modeStandard": "Real drone",
+        "parcelDescription": "Parcel description",
+        "sender": "Sender",
+        "senderPhone": "Sender phone",
+        "receiver": "Receiver",
+        "receiverPhone": "Receiver phone",
+        "loader": "Loaded by",
+        "loaded": "Loaded",
+        "notLoaded": "Not loaded yet",
+        "missionId": "Mission ID",
+        "notInitialized": "Not created yet",
+        "missionStatus": "Mission status",
+        "actualWeight": "Actual weight",
+        "weightSurcharge": "Weight difference surcharge",
+        "surchargeUnpaid": "unpaid by customer",
+        "surchargePaid": "paid",
+        "sealCode": "Seal code",
+        "parcelMatched": "Correct parcel, correct order",
+        "payloadSecured": "Parcel secured",
+        "compartmentLocked": "Cargo compartment locked",
+        "loadingNote": "Loading note",
+        "batteryAtLaunch": "Battery at takeoff",
+        "landedAt": "Arrived at receiving locker at",
+        "depositedAt": "Placed in box at",
+        "autoConfirmed": "auto-confirmed by system",
+        "missionEndedAt": "Mission ended at",
+        "failedAtStage": "failed at stage {{stage}}"
+      },
+      "log": {
+        "empty": "No journey milestones yet.",
+        "latest": "Latest",
+        "staff": "Lock.R staff"
+      },
+      "parcelReturn": {
+        "returnedAt": "Parcel returned to sender at {{time}}",
+        "confirm": "Confirm that the parcel of order {{code}} is back with the sender?",
+        "success": "Parcel return recorded for order {{code}}",
+        "failed": "Could not record the parcel return",
+        "failedHint": "Please reload and try again.",
+        "inSourceBox": "The parcel is still in the sending box — the box is held until the parcel is returned.",
+        "inSourceBoxNumber": "The parcel is still in sending box no. {{number}} — the box is held until the parcel is returned.",
+        "heldByFlightTeam": "The parcel is held by the flight team.",
+        "sender": "Sender: {{name}}",
+        "noteLabel": "Parcel return note",
+        "confirmButton": "Confirm parcel returned"
+      },
+      "flightFailure": {
+        "noteRequired": "A note is required when choosing Other reason",
+        "confirm": "Report the flight of order {{code}} as failed? The order will be closed, a refund request will be created for the customer and the drone will be set to fault status. This cannot be undone.",
+        "success": "Flight of order {{code}} reported as failed",
+        "failed": "Could not report the flight failure",
+        "failedHint": "Please reload and check the order's current stage.",
+        "reasonLabel": "Flight failure reason",
+        "noteLabel": "Incident note",
+        "notePlaceholderRequired": "Note (required)",
+        "submit": "Report Flight Failure"
+      },
+      "timeline": {
+        "loaded": "Loaded onto drone",
+        "codeSent": "Code sent to receiver",
+        "pickupDeadline": "Pickup deadline",
+        "pickedUp": "Picked up by receiver",
+        "transitionAfter": "Moved after {{duration}}",
+        "inStageFor": "In this stage for {{duration}}",
+        "notYet": "Not yet"
+      },
+      "duration": {
+        "daysHours": "{{days}}d {{hours}}h",
+        "days": "{{days}}d",
+        "hoursMinutes": "{{hours}}h {{minutes}}m",
+        "hours": "{{hours}}h",
+        "minutesSeconds": "{{minutes}}m {{seconds}}s",
+        "minutes": "{{minutes}}m",
+        "seconds": "{{seconds}}s"
+      },
+      "map": {
+        "noCoordinates": "The sending or receiving locker has no coordinates, so the journey map cannot be drawn.",
+        "sourceTooltip": "Sending locker · {{name}}",
+        "destinationTooltip": "Receiving locker · {{name}}",
+        "livePosition": "live position",
+        "estimatedPosition": "position estimated from stage",
+        "currentStage": "Current stage",
+        "distanceAB": "Distance A → B",
+        "remaining": "Remaining",
+        "arrived": "Arrived",
+        "eta": "Estimated arrival",
+        "etaRemaining": "{{time}} · {{duration}} left",
+        "etaApprox": "about {{minutes}} min",
+        "coordinates": "Latitude, longitude: {{lat}}, {{lng}}",
+        "coordsLive": "live",
+        "coordsEstimated": "estimated from stage (no position signal yet)"
+      },
+      "camera": {
+        "state": {
+          "connecting": "Connecting",
+          "live": "Live",
+          "reconnecting": "Reconnecting",
+          "unavailable": "Camera not integrated",
+          "error": "Camera stream error"
+        },
+        "title": "Live Camera Monitoring",
+        "subtitle": "Real data from the drone; the system never fabricates images or status when the camera is disconnected.",
+        "reportDrop": "Report Parcel Drop",
+        "noGateway": "No camera gateway for {{drone}} yet. You can still report an incident manually and attach real photos.",
+        "reconnect": "Try reconnecting",
+        "battery": "Battery",
+        "flightMode": "Flight mode",
+        "online": "Online",
+        "stale": "Stale / disconnected"
+      },
+      "reportDrop": {
+        "reasonRequired": "Please enter the reason and what was observed",
+        "success": "Parcel drop incident created",
+        "successHint": "Delivery has stopped; the system is dispatching a drone inspection and parcel recovery.",
+        "failed": "Could not report the parcel drop",
+        "failedHint": "Please check the flight status and try again.",
+        "title": "Confirm Parcel Drop Report",
+        "unknown": "Unknown",
+        "noLiveGps": "No live GPS",
+        "warning": "Confirming stops the current delivery flow and prevents the order from being marked as delivered. RTL is only requested when telemetry and safety conditions are valid.",
+        "reasonLabel": "Reason / observation *",
+        "reasonPlaceholder": "E.g. the camera shows the release hook opened unexpectedly and the parcel fell off the drone...",
+        "photoLabel": "Camera snapshot or on-site photo (if any)"
+      }
+    },
+    "drones": {
+      "title": "Drone Management",
+      "description": "Delivery/pickup drone fleet tied to locker landing pads",
+      "add": "Add Drone",
+      "empty": "No drones yet",
+      "emptyFiltered": "No drones match the filter",
+      "status": {
+        "idle": "Ready",
+        "reserved": "Reserved for mission",
+        "charging": "Charging",
+        "inFlight": "In Flight",
+        "maintenance": "Maintenance",
+        "underMaintenance": "Under maintenance",
+        "fault": "Fault repair"
+      },
+      "filter": {
+        "reserved": "Reserved",
+        "fault": "Fault"
+      },
+      "stats": {
+        "total": "Total"
+      },
+      "toast": {
+        "busyTitle": "The drone is on a delivery",
+        "busyDescription": "Please finish the current delivery before putting the drone into maintenance.",
+        "reactivated": "Drone is back in service",
+        "maintenanceOn": "Drone put into maintenance",
+        "reactivateFailed": "Could not activate the drone",
+        "maintenanceFailed": "Could not change the maintenance status",
+        "created": "Drone {{code}} added",
+        "createFailed": "Could not create the drone",
+        "invalidData": "The drone data is invalid."
+      },
+      "card": {
+        "lockerFallback": "Locker #{{id}}",
+        "noLocker": "No locker assigned",
+        "assignee": "Assigned to: {{name}}",
+        "noTechnician": "No technician"
+      },
+      "form": {
+        "codeLabel": "Drone code *",
+        "codeRequired": "Enter the drone code.",
+        "homeLockerLabel": "Home locker (landing pad) *",
+        "lockersLoading": "Loading lockers…",
+        "noLandingPadLockers": "No lockers with a landing pad",
+        "selectLocker": "Select a locker with a landing pad…",
+        "lockerRequired": "Select a home locker.",
+        "noLandingPadHint": "No locker has a landing pad configured — a locker with a landing pad is required before adding a drone.",
+        "create": "Create"
+      },
+      "missionStatus": {
+        "awaitingLoading": "Awaiting loading",
+        "assigned": "Assigned",
+        "loading": "Loading",
+        "readyToLaunch": "Ready for takeoff",
+        "launching": "Taking off",
+        "departed": "Departed station",
+        "inFlight": "In flight",
+        "approaching": "Landing soon",
+        "arrived": "Landed",
+        "deposited": "Parcel delivered",
+        "readyForPickup": "Awaiting pickup",
+        "completed": "Completed",
+        "canceled": "Canceled",
+        "expired": "Expired",
+        "failed": "Failed",
+        "dropReported": "Parcel drop reported"
+      },
+      "reportStatus": {
+        "resolved": "Resolved",
+        "inProgress": "In progress",
+        "open": "Open"
+      },
+      "detail": {
+        "notFound": "Drone not found",
+        "backToList": "Back to Drone Management",
+        "title": "{{code}} Details",
+        "deviceId": "Device ID: #{{id}}",
+        "currentStatus": "Current status",
+        "batteryLevel": "Battery level",
+        "loadingData": "Loading data...",
+        "tech": {
+          "title": "Assigned Technician",
+          "assignedHint": "New incident reports for this drone go only to <b>{{name}}</b>.",
+          "unassignedHint": "Unassigned — new incident reports are sent to all drone technicians.",
+          "placeholder": "Select drone technician",
+          "noneOption": "Unassigned (notify all drone technicians)",
+          "locked": "Locked",
+          "fallbackName": "Technician #{{id}}",
+          "unassignedToast": "Drone technician unassigned",
+          "assignedToast": "Assigned {{name}}",
+          "saveFailed": "Could not save the assigned technician"
+        },
+        "station": {
+          "title": "Drone Station/Kiosk",
+          "currentLabel": "Current:",
+          "kiosk": "Kiosk #{{id}}",
+          "notAttached": "No station assigned",
+          "activeMissionHint": "The station cannot be changed while the drone is on a mission.",
+          "placeholder": "Select station/kiosk",
+          "movedToast": "Drone {{code}} moved to {{locker}}",
+          "moveFailed": "Could not change the station/kiosk",
+          "moveFailedHint": "Please check the drone's mission status."
+        },
+        "kpi": {
+          "totalFlights": "Total flights",
+          "completedFlights": "Completed flights",
+          "openReports": "Open reports",
+          "maintenanceCount": "Maintenance runs"
+        },
+        "info": {
+          "title": "Drone Information",
+          "code": "Drone code",
+          "station": "Station/Kiosk",
+          "lastCharged": "Last charged",
+          "updatedAt": "Updated at",
+          "faultReason": "Issue to resolve:"
+        },
+        "logs": {
+          "title": "Operation Log {{code}}",
+          "description": "Flights, repair reports and actions (assignment, station change, battery, decommissioning) recorded for this drone.",
+          "flightsTab": "Flight log ({{count}})",
+          "reportsTab": "Incidents & Repairs ({{count}})",
+          "operationsTab": "Actions ({{count}})",
+          "noFlights": "No flights recorded for this drone yet.",
+          "operationsLoadFailed": "Could not load the action log. Click Refresh to try again.",
+          "noOperations": "No actions recorded for this drone yet.",
+          "noReports": "This drone has never had an incident report."
+        },
+        "flightTable": {
+          "missionCode": "Mission",
+          "orderCode": "Order Code",
+          "route": "Flight Route",
+          "dispatch": "Dispatch",
+          "viewIncident": "View incident"
+        },
+        "reportTable": {
+          "code": "Report ID",
+          "category": "Category",
+          "technician": "Technician",
+          "description": "Incident Description"
+        },
+        "operationTable": {
+          "actor": "Performed By",
+          "content": "Details"
+        }
+      },
+      "actions": {
+        "errors": {
+          "codeDuplicate": "This drone code already exists.",
+          "activeMission": "The drone is reserved/flying for a mission — wait for the mission to end and try again.",
+          "validation": "Invalid data."
+        },
+        "renamed": "Drone code changed to {{code}}",
+        "batteryRecorded": "Battery level {{percent}}% recorded for {{code}}",
+        "decommissioned": "Drone {{code}} decommissioned",
+        "renameFailed": "Could not change the drone code",
+        "batteryFailed": "Could not update the battery level",
+        "decommissionFailed": "Could not decommission the drone",
+        "renameTitle": "Change drone code?",
+        "renameDescription": "Code <code>{{from}}</code> will change to <code>{{to}}</code>. The technician app and the flight device must use the new code afterwards.",
+        "rename": "Change Code",
+        "batteryTitle": "Record battery level?",
+        "batteryDescription": "Set the battery level of <b>{{code}}</b> to <b>{{percent}}%</b>. The action is recorded in the operation log.",
+        "batteryFullNote": "100% also records this moment as the last charge time.",
+        "updateBattery": "Update Battery",
+        "decommissionTitle": "Decommission {{code}}?",
+        "decommissionDescription": "The drone is hidden from the operations list, its assigned technician is removed and it is set to maintenance status. Logs and flight history are kept.",
+        "decommissionWarning": "The admin web cannot reactivate it yet — only decommission when the drone is truly no longer used.",
+        "decommission": "Decommission",
+        "decommissionButton": "Decommission Drone",
+        "retiredTitle": "Drone decommissioned",
+        "retiredDescription": "The drone no longer appears in the operations list; this page is kept for history lookup only.",
+        "title": "Admin Actions",
+        "activeMissionHint": "The drone is on a mission — only the battery can be recorded; code change and decommissioning are locked.",
+        "hint": "Every action requires confirmation and is recorded in the operation log.",
+        "batteryLabel": "Record battery level (0–100%)",
+        "batteryPlaceholder": "E.g. 80",
+        "batteryInvalid": "Enter a whole number from 0 to 100."
+      }
+    },
+    "droneIncidents": {
+      "title": "Drone Parcel Drop Incidents",
+      "description": "Track recovery dispatch, drone inspection, evidence and the resolution offered to the customer.",
+      "orderChip": "Order {{code}}",
+      "emptyForOrder": "No incident found for order {{code}} yet — it may still be being created; click Refresh in a few seconds.",
+      "empty": "No incidents in this group.",
+      "status": {
+        "reported": "Reported",
+        "evidencePending": "Awaiting evidence",
+        "investigating": "Investigating",
+        "recoveryInProgress": "Recovering",
+        "awaitingAdminReview": "Awaiting admin verification",
+        "resolutionProposed": "Resolution sent",
+        "awaitingCustomerResponse": "Awaiting customer response",
+        "resolutionInProgress": "Resolution in progress",
+        "disputed": "Review requested",
+        "resolved": "Resolved",
+        "closed": "Closed",
+        "manualInterventionRequired": "Manual intervention required"
+      },
+      "resolution": {
+        "freeRedelivery": "Free redelivery",
+        "redeliveryPartialCompensation": "Redelivery + partial compensation",
+        "compensationOnly": "Compensation only",
+        "manualResolution": "Manual resolution"
+      },
+      "errors": {
+        "resolutionContentInvalid": "The resolution type does not match the redelivery choice / compensation amount.",
+        "resolutionTypeInvalid": "This resolution type is not supported.",
+        "parcelNotAtHub": "Redelivery can only be proposed after the parcel is confirmed back at the hub.",
+        "freeRedeliveryDisabled": "The order's policy does not allow free redelivery.",
+        "incidentPolicyDisabled": "The incident compensation policy does not apply to this order.",
+        "compensationOverrideReasonRequired": "The compensation exceeds the policy amount — an override reason is required.",
+        "recoveryNotVerified": "The recovery result has not been verified.",
+        "parcelNotFound": "Only a found parcel can be handed over to the hub.",
+        "recoveryForbidden": "You are not allowed to confirm this handover."
+      },
+      "validation": {
+        "recoveryNotVerified": "Verify the recovery result before creating a resolution.",
+        "invalidAmount": "Enter a valid compensation amount (number ≥ 0).",
+        "freeRedeliveryNonZero": "Free redelivery comes without compensation — the amount must be 0.",
+        "partialNeedsAmount": "Redelivery + partial compensation requires an amount greater than 0.",
+        "compensationNeedsAmount": "Compensation only requires an amount greater than 0.",
+        "overSuggested": "The compensation exceeds the suggested {{amount}} — enter an override reason."
+      },
+      "stats": {
+        "open": "Open",
+        "recovering": "Recovering",
+        "review": "Awaiting Verification",
+        "closed": "Completed"
+      },
+      "columns": {
+        "code": "Incident Code",
+        "orderDrone": "Order / Drone",
+        "incident": "Incident",
+        "recovery": "Recovery",
+        "inspection": "Drone Inspection"
+      },
+      "detail": {
+        "title": "Incident Details",
+        "dropLocation": "Drop location",
+        "noGps": "No GPS",
+        "gpsSource": "GPS source",
+        "staleData": "stale data",
+        "online": "online",
+        "description": "Incident description",
+        "openMap": "Open drop location on map",
+        "evidence": "Evidence ({{count}})",
+        "noEvidence": "No evidence photos yet.",
+        "history": "Handling History",
+        "proposals": "Resolutions created ({{count}})",
+        "proposalVersion": "Version {{version}}",
+        "compensationPolicy": "Compensation: {{amount}} · Policy: {{policy}}",
+        "customerResponse": "Customer response: {{note}}"
+      },
+      "actions": {
+        "failed": "Action failed",
+        "recoveryTitle": "Recovery Dispatch",
+        "activeTechsOnly": "Only active locker technicians are shown.",
+        "selectTech": "Select locker technician",
+        "techFallback": "Technician #{{id}}",
+        "assign": "Assign",
+        "assigned": "Recovery assigned",
+        "verify": "Verify Result",
+        "verified": "Recovery result verified",
+        "atHub": "Parcel is back at the hub.",
+        "atHubAt": "Parcel returned to the hub at {{time}}.",
+        "confirmHub": "Confirm Back at Hub",
+        "confirmHubHint": "Confirm the parcel is back at the hub before proposing redelivery to the customer.",
+        "confirmHubTitle": "Confirm the parcel is back at the hub?",
+        "confirmHubDescription": "The parcel of order {{code}} will be recorded as handed over to the hub and the recovery step closed. Only then can a redelivery resolution be created for the customer.",
+        "hubConfirmed": "Parcel confirmed back at the hub",
+        "proposalTitle": "Customer Resolution",
+        "needsHub": "(parcel must be at hub)",
+        "amountPlaceholder": "Compensation amount (VND)",
+        "suggested": "Policy-suggested amount:",
+        "useSuggested": "Use this amount",
+        "overridePlaceholder": "Override reason (if above the policy amount)",
+        "createProposal": "Create New Resolution",
+        "proposalSent": "Resolution sent to the customer",
+        "compensationProcessed": "Compensation approval/payout request processed",
+        "approveCompensation": "Approve Compensation",
+        "retryPayout": "Retry Compensation Payout",
+        "payoutNote": "If the compensation payout gateway is not configured, the system keeps the request pending and records Integration Unavailable in the history; it never fakes a completed payment."
+      }
+    },
+    "knowledge": {
+      "page": {
+        "title": "Knowledge Base",
+        "description": "Documents the Q&A assistant answers from, user conversations and the retrieval quality evaluation set.",
+        "assistantSettings": "Assistant Settings"
+      },
+      "tabs": {
+        "documents": "Documents",
+        "conversations": "Conversations",
+        "eval": "Evaluation"
+      },
+      "alerts": {
+        "missingKeysTitle": "The server is missing model API keys",
+        "missingEmbedding": "Missing embedding key (<code>EMBEDDING_API_KEY</code>): documents stay in “Pending indexing” and evaluations can't run.",
+        "missingChat": "Missing Claude key (<code>ANTHROPIC_API_KEY</code>): users can't ask questions yet.",
+        "missingUnknown": "Without the embedding key, documents stay in “Pending indexing”; without the Claude key, users can't ask questions.",
+        "autoResume": "Once the keys are set, the system resumes automatically — no need to re-upload documents.",
+        "disabledTitle": "Assistant is turned off",
+        "disabled": "The app is hiding the assistant screen from users. Turn it back on in <link>Business Rules › Q&A Assistant</link>. You can still manage documents and run evaluations as usual."
+      },
+      "status": {
+        "pending": "Pending indexing",
+        "indexing": "Indexing",
+        "ready": "Ready",
+        "failed": "Failed"
+      },
+      "roles": {
+        "all": "All users"
+      },
+      "errors": {
+        "notFound": "Data not found (it may have been deleted).",
+        "validation": "The submitted data is invalid.",
+        "conflict": "The data is a duplicate or violates a constraint.",
+        "internal": "The server ran into an error while processing the request.",
+        "documentTooLarge": "Files can be at most 20 MB.",
+        "documentTypeUnsupported": "Only Markdown, TXT, HTML, PDF and DOCX are supported.",
+        "documentDuplicate": "This document is already in the knowledge base.",
+        "documentUnreadable": "The uploaded file couldn't be read.",
+        "roleInvalid": "Invalid role.",
+        "evalCaseInvalid": "Cases that don't have to be refused need an expected document.",
+        "assistantNotConfigured": "The Q&A assistant isn't configured on the server (missing model API key).",
+        "assistantUnavailable": "The model provider is having issues, try again later.",
+        "payloadTooLarge": "The file exceeds the server's 20 MB limit.",
+        "forbidden": "Your account doesn't have ADMIN permission for this action.",
+        "notSupported": "The server doesn't support this feature yet (assistant-service not deployed?).",
+        "unavailable": "The Q&A assistant isn't responding. Try again later.",
+        "network": "Couldn't reach the server. Check your network and try again.",
+        "timeout": "The server took too long to respond. Try again later.",
+        "generic": "Something went wrong.",
+        "genericSave": "Something went wrong while saving.",
+        "genericUpload": "Something went wrong while uploading.",
+        "genericRun": "Something went wrong while running the evaluation."
+      },
+      "documents": {
+        "pendingHint": "Documents stay in “Pending indexing” until the server has an embedding API key. Once it does, indexing resumes automatically — no need to re-upload.",
+        "deleted": "Deleted “{{title}}”",
+        "reindexQueued": "Queued “{{title}}” for re-indexing",
+        "deleteFailed": "Couldn't delete the document",
+        "reindexFailed": "Couldn't re-index",
+        "stats": {
+          "documents": "Documents",
+          "processing": "Processing"
+        },
+        "searchPlaceholder": "Search by title, file name…",
+        "searchAria": "Search documents",
+        "clearSearch": "Clear search",
+        "upload": "Upload Document",
+        "polling": "{{count}} document(s) pending or being indexed — the list refreshes every {{seconds}} seconds.",
+        "pendingAlert": "{{count}} document(s) pending indexing",
+        "loadFailedTitle": "Couldn't load the knowledge base",
+        "loadFailedMessage": "Couldn't load the document list.",
+        "columns": {
+          "document": "Document",
+          "roles": "Allowed Roles",
+          "chunks": "Chunks",
+          "size": "Size",
+          "indexedAt": "Indexed At"
+        },
+        "emptyLibrary": "The knowledge base has no documents yet. Upload documents so the assistant has something to answer from.",
+        "noMatch": "No documents match your search.",
+        "footer": "{{total}} chunks indexed in total. Documents being re-indexed are still answered from their old chunks until indexing finishes. Click a document title to view its content.",
+        "deleteTitle": "Delete document?",
+        "deleteDescriptionBefore": "Delete",
+        "deleteDescriptionAfter": "and all of its indexed chunks. The assistant will no longer use this document to answer.",
+        "deleteNote": "Evaluation cases pointing to this title will fail. This action can't be undone.",
+        "deleteAction": "Delete Document",
+        "reindexTitle": "Re-index document?",
+        "reindexDescriptionAfter": "will go back to “Pending indexing” and be chunked and embedded again from scratch (embedding costs apply).",
+        "reindexNote": "Meanwhile the assistant keeps answering from this document's old chunks. Use this when a document failed temporarily or after changing the embedding model.",
+        "reindexAction": "Re-index",
+        "failedNoDetail": "Indexing failed (no error details).",
+        "actions": {
+          "view": "View content",
+          "edit": "Edit title / roles",
+          "busy": "Pending/indexing"
+        }
+      },
+      "detail": {
+        "downloadFailed": "Couldn't download the original file",
+        "indexedAt": "Indexed {{date}}",
+        "rolesLabel": "Allowed roles:",
+        "download": "Download Original",
+        "chunksIntro": "The assistant only reads the chunks below — split by section, each up to about 2,000 characters, with each chunk repeating roughly the last 200 characters of the previous one. If a chunk is missing text or has typos, fix the original file and upload it again.",
+        "reindexing": "Re-indexing — the assistant keeps answering from these chunks until it finishes.",
+        "searchPlaceholder": "Search chunks…",
+        "searchAria": "Search chunks",
+        "loadFailed": "Couldn't load chunks",
+        "loadFailedMessage": "Couldn't load the document's chunks.",
+        "failedNoChunks": "Indexing failed, so there are no chunks yet.",
+        "failedNoChunksWithError": "Indexing failed, so there are no chunks yet: {{error}}",
+        "pendingNoChunks": "The document is pending or being indexed — no chunks yet.",
+        "noChunks": "The document has no chunks.",
+        "chunkCount": "{{shown}} chunk(s)",
+        "intro": "Introduction",
+        "chunkMeta": "Chunk {{position}} · #{{id}} · {{chars}} characters"
+      },
+      "edit": {
+        "updated": "Updated “{{title}}”",
+        "updateFailed": "Couldn't update the document",
+        "title": "Edit Document",
+        "titleLabel": "Title *",
+        "titleRequired": "Enter a document title.",
+        "titleHint": "If you change the title, evaluation cases pointing to the old title need to be updated too.",
+        "rolesLabel": "Who can use this document in Q&A",
+        "rolesHint": "Role changes take effect immediately, no re-indexing needed."
+      },
+      "upload": {
+        "unsupportedType": "Only Markdown (.md), TXT, HTML, PDF and DOCX are supported.",
+        "emptyFile": "The file is empty.",
+        "tooLarge": "The file ({{size}}) exceeds the 20 MB limit.",
+        "chooseFile": "Choose a document file.",
+        "uploaded": "Uploaded “{{title}}”",
+        "uploadedDesc": "The document is waiting to be indexed; the list updates automatically when it's done.",
+        "failed": "Couldn't upload the document",
+        "title": "Upload to the Knowledge Base",
+        "description": "Markdown, TXT, HTML, PDF or DOCX, up to 20 MB. The document is chunked and indexed in the background.",
+        "fileLabel": "Document file *",
+        "removeFile": "Remove file",
+        "dropzone": "Drag and drop a file here or click to choose",
+        "formats": ".md · .markdown · .txt · .html · .htm · .pdf · .docx — up to 20 MB",
+        "titleLabel": "Title",
+        "titlePlaceholder": "Defaults to the file name",
+        "titleHint": "The assistant cites sources by this title; the evaluation set also matches by title.",
+        "rolesHint": "“All users” = every signed-in account. Internal documents (technical procedures…) should only be open to the roles that need them.",
+        "submit": "Upload"
+      },
+      "eval": {
+        "runDone": "Evaluation finished: {{passed}}/{{total}} case(s) passed",
+        "runFailed": "Couldn't run the evaluation",
+        "caseDeleted": "Evaluation case deleted",
+        "caseDeleteFailed": "Couldn't delete the evaluation case",
+        "summary": "{{total}} evaluation case(s) · {{retrieval}} must hit a document · {{refusal}} must be refused. Re-run after adding/editing documents or changing the relevance threshold.",
+        "addCase": "Add Case",
+        "importJson": "Import JSON",
+        "runRetrieval": "Run Retrieval Evaluation",
+        "runGenerate": "Run with Answer Generation",
+        "runningGenerate": "Retrieving and calling Claude for each case — this may take a few minutes…",
+        "runningRetrieval": "Embedding questions and retrieving…",
+        "loadFailed": "Couldn't load the evaluation set",
+        "loadFailedMessage": "Couldn't load the evaluation set.",
+        "setTitle": "Evaluation Set",
+        "columns": {
+          "question": "Question",
+          "asker": "Asker",
+          "expected": "Expected"
+        },
+        "empty": "No evaluation cases yet. Add cases one by one or import a whole set as JSON.",
+        "mustRefuse": "Must refuse",
+        "orphanAria": "No document has this title",
+        "orphanTooltip": "The knowledge base has no document with this title — this case will always fail.",
+        "deleteCase": "Delete evaluation case",
+        "generateTitle": "Run evaluation with answer generation?",
+        "generateCost": "This action incurs real model costs.",
+        "generateDescription": "Besides embedding {{count}} question(s), each case with a chunk above the threshold calls Claude once — up to {{count}} call(s). Only use this when you need to check answer quality; to check retrieval, use “Run Retrieval Evaluation” (much cheaper).",
+        "generateAction": "Run Anyway (Paid)",
+        "deleteTitle": "Delete evaluation case?"
+      },
+      "report": {
+        "title": "Evaluation Results",
+        "generated": "Retrieval + answer generation",
+        "retrievalOnly": "Retrieval only",
+        "failedOnly": "Show failed only ({{count}})",
+        "passed": "Passed",
+        "failed": "Failed",
+        "retrievalHits": "Retrieval hits",
+        "refusalCorrect": "Correct refusals",
+        "minScore": "Current relevance threshold",
+        "hint": "Many retrieval misses → consider lowering the threshold or fixing the documents; must-refuse cases getting through → raise the threshold. Adjust the threshold in Business Rules › Q&A Assistant.",
+        "columns": {
+          "result": "Result",
+          "topScore": "Top Score",
+          "retrieved": "Retrieved Documents (≥ threshold)"
+        },
+        "noCases": "No evaluation cases yet.",
+        "noFailed": "No failed cases.",
+        "claudeAnswer": "Claude's answer",
+        "noChunks": "No chunks above the threshold"
+      },
+      "addCase": {
+        "questionRequired": "Enter a question.",
+        "questionTooLong": "Questions can be at most {{max}} characters.",
+        "expectedRequired": "Choose or enter the expected document.",
+        "added": "Evaluation case added",
+        "addFailed": "Couldn't add the evaluation case",
+        "title": "Add Evaluation Case",
+        "description": "Regular cases must retrieve the expected document; “must refuse” cases (out of scope, or internal documents this role can't read) must have no chunk above the threshold.",
+        "questionLabel": "Question *",
+        "questionPlaceholder": "E.g. How am I charged if I pick up my items late?",
+        "rolesLabel": "Asker's roles",
+        "rolesHint": "Only documents open to these roles (or “All users”) are searched. None selected = Customer.",
+        "mustRefuseHint": "Passes when no document chunk exceeds the relevance threshold.",
+        "expectedLabel": "Expected document *",
+        "expectedPlaceholder": "Choose a document from the library…",
+        "customTitle": "Enter another title…",
+        "customTitlePlaceholder": "Document title (case-insensitive match)",
+        "saveAndAdd": "Save and Add Another",
+        "add": "Add"
+      },
+      "import": {
+        "imported": "Imported {{count}} evaluation case(s)",
+        "importFailed": "Couldn't import the evaluation set",
+        "title": "Import Evaluation Cases from JSON",
+        "description": "Paste an array of objects <shape>{ question, roles?, expectedDocumentTitle?, mustRefuse }</shape>. <code>roles</code> defaults to CUSTOMER; cases that don't have to be refused require <code>expectedDocumentTitle</code>.",
+        "insertExample": "Insert Example",
+        "textareaAria": "JSON array of evaluation cases",
+        "errorsTitle": "{{count}} error(s) — fix them all before importing:",
+        "valid": "Valid: {{count}} case(s) ({{refusal}} must be refused).",
+        "submit": "Import",
+        "submitCount": "Import {{count}} case(s)",
+        "errors": {
+          "empty": "No JSON pasted yet.",
+          "invalidJson": "Invalid JSON: {{message}}",
+          "emptyArray": "The array is empty.",
+          "notObject": "Case #{{index}}: must be an object.",
+          "missingQuestion": "Case #{{index}}: missing \"question\".",
+          "questionTooLong": "Case #{{index}}: \"question\" is longer than {{max}} characters.",
+          "mustRefuseBoolean": "Case #{{index}}: \"mustRefuse\" must be true/false.",
+          "rolesArray": "Case #{{index}}: \"roles\" must be an array of strings.",
+          "rolesInvalid": "Case #{{index}}: invalid role(s) {{roles}}.",
+          "expectedString": "Case #{{index}}: \"expectedDocumentTitle\" must be a string.",
+          "expectedTooLong": "Case #{{index}}: \"expectedDocumentTitle\" is longer than {{max}} characters.",
+          "expectedRequired": "Case #{{index}}: cases that don't have to be refused need \"expectedDocumentTitle\"."
+        }
+      },
+      "conversations": {
+        "userIdInvalid": "User ID must be a positive integer.",
+        "filterPlaceholder": "Filter by user ID (userId)",
+        "filterAria": "Filter by user ID",
+        "clearFilter": "Clear filter #{{id}}",
+        "loadFailed": "Couldn't load conversations",
+        "loadFailedMessage": "Couldn't load the conversation list.",
+        "columns": {
+          "user": "User",
+          "title": "Title",
+          "messages": "Messages",
+          "startedAt": "Started",
+          "updatedAt": "Updated"
+        },
+        "noMorePage": "No more conversations on this page.",
+        "noUserConversations": "User #{{id}} has no conversations yet.",
+        "empty": "No conversations with the assistant yet.",
+        "untitled": "(untitled)",
+        "view": "View",
+        "pageInfo": "Page {{page}} · {{size}} conversations per page, most recently updated first."
+      },
+      "conversation": {
+        "titleFallback": "Conversation #{{id}}",
+        "user": "User",
+        "messageCount": "{{count}} message(s)",
+        "answerStats": "{{answers}} answer(s) · {{refused}} refused",
+        "updatedAt": "Updated {{date}}",
+        "loadFailed": "Couldn't load the conversation",
+        "loadFailedMessage": "Couldn't load the conversation.",
+        "noMessages": "This conversation has no messages yet.",
+        "refused": "Refused / not covered by documents",
+        "topScore": "Top relevance score {{score}}",
+        "sources": "{{count}} cited source(s)",
+        "sourceRef": "Document #{{documentId}} · chunk #{{chunkId}}"
+      }
+    },
+    "preferences": {
+      "businessSettingsHelp": "System prices, fees, time limits, SLAs and limits"
+    },
+    "maintenance": {
+      "schedules": {
+        "noAddress": "No address yet",
+        "header": {
+          "title": "Kiosk & Drone Preventive Maintenance Plans",
+          "description": "Set preventive inspection intervals, assign technicians and monitor station operating quality",
+          "kioskTab": "Kiosk ({{count}})",
+          "kioskTabBadge": "Main",
+          "droneTab": "Drone ({{count}})",
+          "droneTabBadge": "Fleet"
+        },
+        "kpi": {
+          "kioskTotal": "Kiosks with schedules",
+          "kioskTotalHint": "Preventive maintenance plans",
+          "dueToday": "Due today",
+          "kioskDueHint": "Technician on-site inspection needed",
+          "overdue": "Overdue inspections",
+          "kioskOverdueHint": "Needs urgent follow-up",
+          "onTimeRate": "On-time rate",
+          "kioskOnTimeHint": "SLA operating standard",
+          "droneTotal": "Drones with schedules",
+          "droneTotalHint": "Fleet maintenance plans",
+          "droneDueHint": "Drone technician inspection needed",
+          "droneOverdueHint": "Needs urgent dispatch",
+          "droneOnTimeHint": "Flight safety standard"
+        },
+        "labels": {
+          "baseLocation": "Site location:",
+          "techNumber": "Technician #{{id}}",
+          "droneTechNumber": "Drone technician #{{id}}",
+          "droneTech": "Drone technician",
+          "lockerNumber": "Locker #{{id}}",
+          "droneFleet": "✈ Drone fleet",
+          "kioskStation": "📦 Kiosk station",
+          "droneDevice": "Drone device",
+          "changeTech": "Change Technician",
+          "assignTech": "Assign Technician",
+          "everyDays": "Every {{days}} day(s)"
+        },
+        "priority": {
+          "normal": "Normal",
+          "high": "High",
+          "urgent": "Urgent"
+        },
+        "timeSlot": {
+          "morning": "Morning shift (08:00 - 11:30)",
+          "morningOffPeak": "Morning shift (08:00 - 11:30) · Off-peak",
+          "afternoon": "Afternoon shift (13:30 - 17:00)",
+          "evening": "Evening shift (18:00 - 21:00)",
+          "office": "Office hours (08:00 - 17:00)",
+          "flexible": "Flexible time slot",
+          "none": "— None —"
+        },
+        "form": {
+          "kioskTitle": "New Kiosk Periodic Inspection Plan",
+          "recommendedInterval": "Recommended interval: every 15–30 days",
+          "selectedAddress": "Selected station address:",
+          "addressAttachNote": "* The address will be attached to the technician assignment automatically",
+          "kioskDevice": "Kiosk device",
+          "selectKiosk": "— Select a kiosk —",
+          "planName": "Inspection plan name",
+          "kioskPlanPlaceholder": "E.g. Periodic check of locks, sensors & UPS power",
+          "technician": "Assigned technician",
+          "unassignedWaiting": "— Unassigned (awaiting pickup) —",
+          "intervalDays": "Repeat interval (days)",
+          "priority": "Priority",
+          "priorityNormalStation": "Normal (standard station)",
+          "priorityHighStation": "High (high-traffic station)",
+          "priorityUrgentStation": "Urgent (key station)",
+          "locationInBuilding": "Exact locker position in the building",
+          "locationPlaceholder": "E.g. Basement B1, Tower A lobby, next to the elevator",
+          "firstDueDate": "First inspection date",
+          "firstDueTime": "Scheduled start time",
+          "timeSlot": "Time slot / shift",
+          "checklistLabel": "Inspection criteria for the technician ({{count}} item(s) · one item per line):",
+          "checklistPlaceholder": "E.g.:\nCheck electronic locks of boxes #1–#9\nMeasure UPS supply voltage",
+          "quickToggle": "Click a template item to add/remove it:",
+          "sopLabel": "Technician instructions (SOP notes)",
+          "sopPlaceholder": "E.g. Carefully check the optical sensor of box 4, clean the QR reader with medical alcohol...",
+          "creating": "Creating schedule...",
+          "createKiosk": "Create Kiosk Plan",
+          "droneTitle": "New Drone Periodic Inspection Plan",
+          "droneWarning": "Creating a schedule puts the drone in <b>Under maintenance</b> status (no new flights) until the first inspection is recorded as PASSED. Drones on a mission (reserved / in flight) cannot be scheduled.",
+          "droneDevice": "Drone",
+          "selectDrone": "Select drone",
+          "notAssigned": "unassigned",
+          "dronePlanPlaceholder": "E.g. Propeller balancing + IMU calibration & battery check",
+          "startTime": "Start time",
+          "droneLocation": "Detailed location / landing pad",
+          "droneLocationPlaceholder": "E.g. 1st-floor landing pad, technical area",
+          "droneTimeSlot": "Inspection time slot",
+          "droneChecklist": "Drone safety criteria ({{count}} item(s))",
+          "droneChecklistPlaceholder": "One item per line: battery, propellers, GPS, IMU...",
+          "droneSop": "Drone technician instructions (SOP)",
+          "droneSopPlaceholder": "E.g. Remove the battery before checking propellers; record each cell's voltage and only allow flight when within spec",
+          "createDrone": "Create Drone Plan"
+        },
+        "filter": {
+          "searchPlaceholder": "Search by kiosk name, locker code, technician...",
+          "clear": "Clear",
+          "allTechnicians": "All technicians",
+          "allStatuses": "All statuses",
+          "overdue": "🚨 Overdue",
+          "due": "⏰ Due today",
+          "upcoming": "🟢 Upcoming"
+        },
+        "list": {
+          "loading": "Loading maintenance plans...",
+          "emptyKiosk": "No matching kiosk inspection plans found.",
+          "emptyDrone": "No inspection schedules for drones yet.",
+          "emptyHint": "Try clearing the filters or create a new periodic plan for a station.",
+          "dueBadge": "Due",
+          "lastResult": "Last result: {{result}}",
+          "pendingReportTooltip": "The due date only moves once this report is completed",
+          "pendingReport": "Awaiting report RPT-{{id}}",
+          "landingPadTooltip": "Landing pad taken from the drone's linked locker",
+          "landingPad": "Landing pad:",
+          "baseLocationTooltip": "Site location: {{address}}",
+          "location": "Location:",
+          "position": "Position:",
+          "dueAt": "Due:",
+          "shift": "⏱ Shift:",
+          "interval": "Interval: <b>{{days}}</b> day(s)",
+          "technician": "Technician:",
+          "changeTechTooltip": "Click to change the assigned technician",
+          "unassignedTooltip": "No technician assigned — click to assign now",
+          "assignNow": "Unassigned (Assign now)",
+          "lastDone": "Last done:",
+          "notInspected": "Not inspected yet",
+          "changeTechTitle": "Change assigned technician",
+          "assignTechTitle": "Assign a technician to this schedule",
+          "detailHistory": "Details & History",
+          "pendingInspectTooltip": "The previous inspection failed — complete report RPT-{{id}} first",
+          "recordInspection": "Record Inspection",
+          "editTooltip": "Edit inspection plan",
+          "deleteTooltip": "Delete inspection plan"
+        },
+        "remaining": {
+          "overdueDays": "Overdue by {{days}} day(s)",
+          "dueToday": "Due today",
+          "oneDayLeft": "1 day left",
+          "daysLeft": "{{days}} days left"
+        },
+        "inspect": {
+          "badge": "Acceptance record",
+          "title": "Record Periodic Inspection Result",
+          "description": "{{title}} · Every {{days}} day(s)",
+          "droneDevice": "Drone inspected:",
+          "kioskDevice": "Kiosk inspected:",
+          "dronePosition": "Drone location:",
+          "positionInBuilding": "Position in building:",
+          "timeSlot": "Time slot / shift:",
+          "inspectedAt": "Acceptance time:",
+          "technician": "Technician performing the inspection",
+          "selectTech": "— Select the on-duty technician —",
+          "checklistProgress": "Checklist ({{done}}/{{total}} items rated)",
+          "oneFailRule": "One failed item ⇒ the whole inspection fails",
+          "itemNotePlaceholder": "Note for this item (optional)",
+          "conclusion": "Conclusion:",
+          "unansweredLeft": "{{count}} item(s) not rated yet",
+          "result": "Inspection result",
+          "noChecklist": "This schedule has no checklist — choose an overall result.",
+          "pass": "✓ Passed",
+          "fail": "✗ Failed",
+          "note": "Inspection & on-site notes",
+          "notePlaceholder": "E.g. Cleaned the touch surface, tested opening/closing all 16 boxes — all responsive, UPS voltage at 12.8V...",
+          "photoUrls": "Evidence photo URLs (one image link per line)",
+          "droneFailNotice": "Failed ⇒ the drone switches to Error status and the system opens a drone incident report (if the drone has no open report). The next due date still moves by the interval.",
+          "kioskFailNotice": "Failed ⇒ the system automatically opens an incident report for the locker. The next due date only moves once the report is completed.",
+          "droneRouting": "The drone report goes to the technician assigned to this drone; if none is assigned, all drone technicians are notified.",
+          "routeSelectedTech": "The report is assigned to the technician selected above.",
+          "routeScheduleTech": "No performing technician selected — the report goes to the schedule's technician ({{name}}).",
+          "routeDefault": "No performing technician selected and the schedule has no assigned technician — the report is routed like a regular report (to the locker's technician, or all locker technicians are notified).",
+          "selectFaultBox": "Select the faulty box at the kiosk: (Optional)",
+          "clearFaultBox": "Clear box (report whole locker)",
+          "wholeKiosk": "Whole kiosk",
+          "noSpecificBox": "No specific box",
+          "doorOpen": "Open",
+          "doorClosed": "Closed",
+          "selectedBox": "Selected: Box #{{number}} ({{type}}) · {{status}}",
+          "doorOpenNow": "Door open",
+          "selectedBoxNotice": "The system will set box #{{number}} to FAULT and open an incident report linked directly to this box.",
+          "boxHint": "Select a box ⇒ it is set to Fault; if the box already has an open report, the result is merged into it. No box selected ⇒ locker-wide incident.",
+          "faultReasonPlaceholder": "Describe the fault to fix (optional — defaults to listing the failed items)",
+          "save": "Save Inspection Record"
+        },
+        "detail": {
+          "dueBadge": "Inspection due",
+          "description": "Preventive maintenance plan profile and the technicians' actual inspection log",
+          "device": "Device",
+          "codeDroneFleet": "Code: Drone Fleet",
+          "code": "Code: {{code}}",
+          "interval": "Interval",
+          "autoRepeat": "Repeats automatically",
+          "nextDue": "Next due",
+          "technician": "Assigned Technician",
+          "official": "Confirmed",
+          "needsAssignment": "Needs assignment",
+          "locationTitle": "Inspection Site & Station Position",
+          "googleMaps": "Directions in Google Maps",
+          "droneLinkedLocker": "Linked locker / drone landing pad:",
+          "kioskAddress": "Kiosk / branch address:",
+          "buildingStore": "Building / store:",
+          "droneLandingFromLocker": "Landing pad from linked locker:",
+          "lockerPositionInBuilding": "Locker position in building:",
+          "noLinkedLocker": "Linked locker not determined",
+          "noLocationNote": "No position note yet (e.g. main lobby, basement)",
+          "recommendedSlot": "Recommended time slot:",
+          "sop": "Procedure instructions (SOP):",
+          "checklistItems": "Standard items to inspect:",
+          "historyTitle": "Inspection history ({{count}} inspection(s))",
+          "lastAt": "Latest: {{date}}",
+          "loadingLogs": "Loading inspection log from the server...",
+          "noLogs": "No inspection records for this schedule yet. Click \"Record Inspection\" to create the first one.",
+          "unknownTech": "Unknown technician",
+          "autoReportOpened": "Incident report opened automatically:",
+          "droneIncidents": "Resolved drone incidents ({{count}})",
+          "loadingDroneHistory": "Loading drone incident history...",
+          "noDroneIncidents": "This drone has no resolved incident reports yet.",
+          "resolved": "Resolved",
+          "resolvedBy": "Handled by:",
+          "undetermined": "Not determined",
+          "deleteSchedule": "Delete Schedule",
+          "editSchedule": "Edit Schedule",
+          "inspectButton": "Record Inspection"
+        },
+        "assign": {
+          "droneTitle": "Assign Drone Technician",
+          "kioskTitle": "Assign Kiosk Technician",
+          "droneDesc": "Assign a drone technician to handle flight safety inspections; they receive the schedule in the mobile app.",
+          "kioskDesc": "Assign a technician to the kiosk's periodic inspections; they receive the task in the mobile app.",
+          "plan": "Inspection plan:",
+          "droneDevice": "Drone:",
+          "kioskStation": "Kiosk station:",
+          "workAddress": "Work address:",
+          "lockerPosition": "Locker position:",
+          "dueAndShift": "Due date & shift:",
+          "shiftInline": "(Shift: {{slot}})",
+          "interval": "Interval:",
+          "selectTech": "Select assigned technician:",
+          "unassignOption": "— Unassigned (remove technician) —",
+          "syncNote": "* Once assigned, the schedule syncs automatically to the technician's mobile app and profile.",
+          "save": "Save Assignment"
+        },
+        "edit": {
+          "title": "Edit Periodic Inspection Plan",
+          "changeTechHint": "Use the \"Change Technician\" button to change the assigned technician.",
+          "planName": "Plan name",
+          "intervalDays": "Interval (days)",
+          "nextDue": "Next due date",
+          "timeVn": "Time (Vietnam time)",
+          "lockerPosition": "Locker position",
+          "pendingNote": "This schedule is awaiting report RPT-{{id}}; the next due date moves automatically once the report is completed.",
+          "checklist": "Checklist ({{count}} item(s) · one item per line)",
+          "sop": "Instructions (SOP)"
+        },
+        "photo": {
+          "title": "Periodic inspection on-site evidence photo",
+          "enlargedAlt": "Enlarged photo"
+        },
+        "delete": {
+          "title": "Delete this maintenance plan?",
+          "description": "Are you sure you want to delete the periodic inspection plan \"{{title}}\"? The history of previous inspections will be kept for reference.",
+          "confirm": "Confirm Delete"
+        },
+        "toast": {
+          "missingKioskInfo": "Missing kiosk schedule information",
+          "missingKioskInfoDesc": "Please select a kiosk and enter an inspection plan name.",
+          "invalidChecklist": "Invalid checklist",
+          "invalidChecklistDesc": "One item per line — do not use ';' within an item.",
+          "createKioskSuccess": "Kiosk schedule created",
+          "createKioskSuccessDesc": "Set a {{days}}-day inspection interval for the station.",
+          "createKioskFailed": "Could not create kiosk schedule",
+          "checkInfoRetry": "Please check the information and try again.",
+          "missingDroneInfo": "Missing drone schedule information",
+          "missingDroneInfoDesc": "Please select a drone and enter the periodic inspection item.",
+          "createDroneSuccess": "Drone maintenance schedule created",
+          "createDroneSuccessDesc": "Recorded a {{days}}-day interval for {{code}}. The drone stays Under maintenance until the first inspection PASSES.",
+          "createDroneFailed": "Could not create drone schedule",
+          "checkInfo": "Please check the information.",
+          "checklistIncomplete": "Checklist not fully rated",
+          "checklistIncompleteDesc": "{{count}} item(s) still need Pass / Fail / N/A.",
+          "noOutcome": "No inspection result selected",
+          "noOutcomeDesc": "Choose Passed or Failed.",
+          "recordedFailed": "Recorded: FAILED — \"{{title}}\"",
+          "recordedFailedPendingDesc": "The fault was logged in incident report RPT-{{id}}. The due date stays the same and only moves once the report is completed.",
+          "recordedPassed": "Recorded: PASSED — \"{{title}}\"",
+          "nextDueDesc": "Next inspection due: {{date}}.",
+          "saveInspectionFailed": "Could not save the inspection result",
+          "unassigned": "Technician unassigned from this inspection schedule",
+          "assigned": "Assigned {{name}} successfully!",
+          "assignFailed": "Could not save the technician assignment",
+          "planNameRequired": "Plan name is required",
+          "intervalRange": "Interval must be between 1 and 365 days",
+          "invalidNextDue": "Invalid next inspection date/time",
+          "updated": "Inspection plan updated",
+          "updatedDesc": "\"{{title}}\" has been saved.",
+          "updateFailed": "Could not update the plan",
+          "actionFailed": "Action failed.",
+          "deleted": "Inspection plan deleted",
+          "deletedDesc": "Maintenance plan \"{{title}}\" has been removed.",
+          "deleteFailed": "Could not delete the schedule",
+          "deleteFailedDesc": "Please check your access rights or try again later."
+        }
+      },
+      "photos": {
+        "stage": {
+          "report": "On-site photos (reporter)",
+          "inspection": "Technician verification photos",
+          "progress": "Repair progress photos",
+          "resolution": "Acceptance photos"
+        },
+        "badge": {
+          "reporter": "Reporter",
+          "technicianVerified": "Technician check",
+          "repairing": "Repairing",
+          "acceptance": "Acceptance"
+        },
+        "duration": {
+          "minutes": "{{minutes}} min",
+          "hours": "{{hours}} h",
+          "hoursMinutes": "{{hours}} h {{minutes}} min"
+        },
+        "inspection": {
+          "legacyChecklist": "Checklist (legacy data):",
+          "status": {
+            "passed": "Passed",
+            "failed": "Failed",
+            "attention": "Needs monitoring (legacy data)",
+            "defectDetected": "Defect detected (legacy data)"
+          },
+          "item": {
+            "pass": "Pass",
+            "fail": "Fail",
+            "na": "N/A"
+          }
+        },
+        "userNumber": "User #{{id}}",
+        "gallery": {
+          "alt": "{{stage}} {{index}} — report RPT-{{id}}",
+          "uploadedBy": "Uploaded by: {{name}}",
+          "capturedAt": "Taken at {{time}}",
+          "uploadedAt": "Uploaded {{time}}",
+          "inDescription": "Photo attached in description",
+          "stageCount": "{{stage}} ({{count}} photo(s)):",
+          "compactTitle": "{{stage}} · Report RPT-{{id}} · {{title}}",
+          "noPhotos": "No photos yet",
+          "reportPhotos": "Report photos ({{count}})",
+          "stackedTitle": "{{stage}} · Incident report RPT-{{id}}",
+          "photoNumber": "Photo #{{index}}",
+          "sender": "Sent by:"
+        }
+      },
+      "page": {
+        "title": "Equipment Maintenance",
+        "description": "Technical operations center — monitor kiosk hardware, manage drone battery servicing & fleet",
+        "syncDevices": "Sync Devices",
+        "syncing": "Syncing technical data..."
+      },
+      "tabs": {
+        "kiosk": "Kiosk Maintenance ({{count}})",
+        "technicians": "Technicians ({{count}})",
+        "drone": "Drone Maintenance & Battery ({{count}})",
+        "schedules": "Schedules & Logs"
+      },
+      "status": {
+        "inProgress": "In Progress",
+        "resolved": "Completed",
+        "openAwaitingTech": "New · Awaiting technician",
+        "openAwaitingDroneTech": "New · Awaiting drone technician",
+        "openAwaitingTechUpper": "NEW · AWAITING TECHNICIAN",
+        "newlyReceived": "NEWLY RECEIVED",
+        "justCreated": "JUST REPORTED",
+        "overdueSla": "SLA Overdue"
+      },
+      "droneStatus": {
+        "idle": "Ready",
+        "reserved": "Reserved for mission",
+        "charging": "Charging",
+        "inFlight": "In flight",
+        "maintenance": "Under maintenance",
+        "fault": "Faulty"
+      },
+      "relativeTime": {
+        "justNow": "Just now",
+        "minutesAgo": "{{count}} min ago",
+        "hoursAgo": "{{count}} h ago",
+        "daysAgo": "{{count}} day(s) ago"
+      },
+      "specialty": {
+        "kiosk": "Kiosk technician (lockers)",
+        "drone": "Drone technician (fleet & battery)",
+        "droneFleet": "Drone technician (fleet)",
+        "kioskHardware": "Kiosk technician (lockers & hardware)",
+        "kioskShort": "Kiosk tech",
+        "droneShort": "Drone tech"
+      },
+      "techFallback": "Technician #{{id}}",
+      "technicianFallback": "Technician #{{id}}",
+      "techNameSuffix": "{{name}} (technician)",
+      "technicianLabel": "Technician: {{name}}",
+      "boxNumber": "Box #{{number}}",
+      "reportLabel": "Report RPT-{{id}} · {{title}}",
+      "uploadingPhotos": "Uploading photos...",
+      "processing": "Processing...",
+      "noPhone": "No phone number",
+      "labels": {
+        "device": "Device:",
+        "completedAt": "Completed at:",
+        "station": "Station: {{name}}"
+      },
+      "toast": {
+        "noLocation": "This device has no location coordinates yet",
+        "actionRecorded": "The action was recorded successfully.",
+        "processingError": "An error occurred while processing",
+        "showingTechIncidents": "Showing incidents assigned to {{name}}"
+      },
+      "routing": {
+        "awaitingLockerTech": "Awaiting locker technician",
+        "awaitingNamed": "Waiting for {{name}} to accept",
+        "allNotified": "Unassigned · all locker technicians notified"
+      },
+      "kpi": {
+        "openIncidents": "Open Incidents",
+        "needsAction": "Needs technical action",
+        "noIncidents": "No incidents",
+        "newReports": "New Reports",
+        "awaitingTech": "{{count}} report(s) awaiting a technician",
+        "allClaimed": "All accepted",
+        "techWorking": "Technicians are working on them",
+        "highCompletion": "High completion rate"
+      },
+      "overdueBanner": {
+        "kioskTitle": "Warning: {{count}} kiosk incident report(s) are past their SLA deadline",
+        "kioskDesc": "Prioritize dispatching technicians to handle them right away to keep kiosk stations running well.",
+        "droneTitle": "Warning: {{count}} drone incident report(s) are past their SLA deadline",
+        "droneDesc": "Prioritize dispatching technicians to handle them right away to keep the drone fleet operating safely.",
+        "viewOverdue": "View SLA-Overdue Reports"
+      },
+      "reports": {
+        "kioskTitle": "Incident Reports ({{count}})",
+        "droneTitle": "Drone Incident Reports ({{count}})",
+        "overdueCount": "{{count}} SLA overdue",
+        "kioskDesc": "The newest incident reports are automatically shown first so they can be handled promptly",
+        "droneDesc": "Dispatch drone technicians, track SLAs and keep complete repair records from the maintenance API",
+        "showing": "Showing {{shown}} / {{total}} reports",
+        "kioskSearch": "Search report ID (#1), title, kiosk, box, phone...",
+        "droneSearch": "Search report ID, drone, fault, technician, phone...",
+        "newBannerKiosk": "<b>{{count}} new incident report(s)</b> awaiting a technician — the newest reports are automatically shown first.",
+        "newBannerDrone": "<b>{{count}} new incident report(s)</b> awaiting a drone technician — the newest reports are automatically shown first.",
+        "onlyNew": "Show New Only",
+        "noMatchKiosk": "No incident reports match the current filters.",
+        "noMatchDrone": "No drone incident reports match the current filters.",
+        "noMatchHint": "Try a different keyword or reset the filters to see all reports.",
+        "blocksLocker": "Whole locker down",
+        "blocksLockerHint": "This report puts the whole locker into maintenance; it reopens automatically when the last blocking report is completed",
+        "fromSchedule": "From periodic inspection",
+        "fromScheduleHint": "Opened automatically from a FAILED periodic inspection (schedule #{{id}})",
+        "viewTechProfile": "View this technician's profile & activity",
+        "cellType": "Type {{type}}",
+        "flyingDevice": "Aerial device",
+        "assignTech": "Assign Technician",
+        "assignDroneTech": "Assign Drone Technician",
+        "changeTech": "Change Technician",
+        "complete": "Complete",
+        "techDone": "Technician finished",
+        "createDrone": "Create Drone Incident Report"
+      },
+      "filters": {
+        "resetFilters": "Reset Filters",
+        "resetAllFilters": "Reset All Filters",
+        "filterByTech": "Filter by technician",
+        "allTechnicians": "All technicians",
+        "unassignedNew": "Unassigned (New)",
+        "kioskStation": "Kiosk station",
+        "allKioskStations": "All kiosk stations",
+        "allTime": "All time",
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "sortNewest": "⚡ Newest first (default)",
+        "sortPriority": "🔥 Priority: new & urgent",
+        "sortSla": "⏰ Most urgent SLA",
+        "sortOldest": "📅 Oldest first",
+        "statusAll": "All ({{count}})",
+        "statusOpen": "New ({{count}})",
+        "statusInProgress": "In progress ({{count}})",
+        "statusOverdue": "SLA overdue ({{count}})",
+        "statusResolved": "Done ({{count}})",
+        "activeFilters": "Filtering:",
+        "keywordChip": "Keyword: \"{{query}}\"",
+        "timeChip": "Time: {{range}}",
+        "past7Days": "Past 7 days",
+        "past30Days": "Past 30 days",
+        "droneTech": "Drone technician",
+        "allDroneTechs": "All drone technicians",
+        "droneDevice": "Drone device",
+        "allDroneDevices": "All drone devices"
+      },
+      "heartbeat": {
+        "title": "Kiosk Device Health (Cabinet Heartbeat IoT)",
+        "description": "Real-time server connection signal from each kiosk station",
+        "empty": "No heartbeat signals from kiosks yet.",
+        "station": "Kiosk station #{{id}}",
+        "unlinked": "Not linked to a station",
+        "online": "Online"
+      },
+      "fleet": {
+        "title": "Drone Device Health ({{count}})",
+        "description": "Technical condition, battery, home station and assigned technician, synced from the fleet API",
+        "showing": "Showing {{shown}} / {{total}} drones",
+        "search": "Search drone code, station, technician or fault cause...",
+        "batteryLevel": "Battery level",
+        "allBattery": "All battery levels",
+        "lowBattery": "Low battery (below 20%)",
+        "mediumBattery": "Battery 20–49%",
+        "readyBattery": "Ready (50% and above)",
+        "attention": "Needs attention ({{count}})",
+        "faultCount": "Fault ({{count}})",
+        "noMatch": "No drones match the filters",
+        "landingPad": "Kiosk landing pad #{{id}}",
+        "noStation": "No station assigned",
+        "batteryLabel": "Battery:"
+      },
+      "history": {
+        "title": "Completed Maintenance & Incident History",
+        "descDrone": "Resolved drone incidents and every periodic drone inspection (with results)",
+        "descKiosk": "Resolved kiosk incidents and every periodic kiosk inspection (with results)",
+        "filterIncident": "Resolved incidents ({{count}})",
+        "filterSchedule": "Periodic inspections ({{count}})",
+        "empty": "No maintenance records stored for this category yet.",
+        "incidentResolved": "Resolved incident",
+        "droneMaintenance": "Drone maintenance",
+        "kioskInspection": "Kiosk inspection",
+        "openedReport": "Opened incident report RPT-{{id}}.",
+        "scheduleFallback": "Inspection schedule #{{id}}",
+        "owner": "Handled by:",
+        "record": "Record:"
+      },
+      "resolveDialog": {
+        "title": "Confirm completion of report RPT-{{id}}?",
+        "description": "Close report \"{{title}}\" as an administrator? The report moves to Completed and the related box / landing pad / locker returns to service, just as when a technician completes it.",
+        "success": "Report RPT-{{id}} completed",
+        "successWithPhotos": "The incident was closed with {{count}} acceptance photo(s).",
+        "successNoPhotos": "The technical incident was closed and logged.",
+        "defaultConfirm": "Confirm Completion",
+        "defaultErrorTitle": "Could not process the report",
+        "closeFailed": "An error occurred while closing the incident report.",
+        "noteLabel": "Acceptance note (optional)",
+        "notePlaceholder": "E.g. Replaced the lock latch, tested open/close 10 times without issues",
+        "photosLabel": "Acceptance photos (optional)"
+      },
+      "createDrone": {
+        "selectDroneError": "Please select the affected drone",
+        "titleDescRequired": "Please enter the incident title and description",
+        "createFailed": "Could not create the drone incident report",
+        "saveFailed": "An error occurred while saving the incident report.",
+        "intro": "This opens a new pending report and puts the drone into fault status so a drone technician can take it on.",
+        "droneLabel": "Affected drone",
+        "dronePlaceholder": "Select a drone",
+        "titleLabel": "Incident title",
+        "titlePlaceholder": "E.g. Drone lost GPS connection",
+        "descLabel": "Description and observed cause",
+        "descPlaceholder": "Describe the actual condition, when it was found and what the technician should check...",
+        "photosLabel": "On-site photos (optional)",
+        "photosHint": "Photos of the drone fault, battery, propellers or where it was found · up to 10 photos",
+        "creating": "Creating...",
+        "submit": "Create Incident Report",
+        "success": "Incident report created for drone {{code}}",
+        "successDesc": "The new report was sent to the drone technician queue for dispatch."
+      },
+      "droneDetail": {
+        "station": "Station/Kiosk",
+        "assignedTech": "Assigned technician",
+        "lastCharged": "Last charged",
+        "addedToFleet": "Added to fleet",
+        "lastUpdated": "Last updated",
+        "title": "Health Details · Drone {{code}}",
+        "opsInfo": "Operational info",
+        "opsInfoDesc": "Data synced from the fleet, for monitoring only.",
+        "batteryRecorded": "Recorded battery level",
+        "faultRecorded": "Recorded fault: ",
+        "maintenanceHistory": "Completed maintenance history",
+        "loadingHistory": "Loading maintenance history...",
+        "noMaintenance": "No completed maintenance recorded for this drone yet.",
+        "inspectionPassed": "Inspection passed",
+        "unknown": "Unknown",
+        "photosCount": "{{count}} acceptance photo(s)",
+        "resolvedIncidents": "Completed incidents",
+        "noResolved": "No completed incident reports for this drone yet."
+      },
+      "sla": {
+        "remaining": "{{time}} left",
+        "overdueBy": "Overdue {{time}}",
+        "normal": {
+          "title": "SLA Compliant (Normal)",
+          "badge": "SLA Compliant",
+          "desc": "The technician resolves incidents on time, with no overdue reports.",
+          "consequence": "Gets priority for periodic maintenance jobs and earns good performance points."
+        },
+        "warning": {
+          "title": "Level 1: SLA Time Warning",
+          "badge": "SLA Warning (Level 1)",
+          "desc": "The number of SLA-overdue incident reports has reached the warning threshold.",
+          "consequence": "The system automatically sends reminders and warnings in the mobile app."
+        },
+        "restricted": {
+          "title": "Level 2: New Job Restriction",
+          "badge": "Job Restriction (Level 2)",
+          "desc": "The number of SLA-overdue incident reports has reached the job restriction threshold.",
+          "consequence": "Temporarily cannot accept new maintenance jobs in the mobile app until existing jobs are completed."
+        },
+        "suspended": {
+          "title": "Level 3: Suspension Recommended",
+          "badge": "Suspended / Locked (Level 3)",
+          "desc": "The number of SLA-overdue reports has reached the suspension threshold, or the account is disabled.",
+          "consequence": "Job intake is suspended; the admin reclaims all incident reports to assign them to other staff."
+        }
+      },
+      "account": {
+        "active": "Active",
+        "suspendFailed": "Could not suspend the account"
+      },
+      "metrics": {
+        "inProgress": "In progress",
+        "done": "Done",
+        "slaLate": "SLA late"
+      },
+      "techDetail": {
+        "accountPaused": "The technician account is paused.",
+        "copied": "Copied {{label}}: {{value}}",
+        "phoneRequired": "Please enter a phone number",
+        "phoneUpdated": "Technician phone number updated",
+        "phoneUpdateFailed": "Could not update the phone number",
+        "reactivateSuccess": "Technician account reactivated successfully!",
+        "suspendSuccess": "Technician account suspended successfully!",
+        "nowActive": "Technician {{name}} is now Active.",
+        "nowPaused": "Technician {{name}} is now Paused.",
+        "reactivateFailed": "Could not reactivate the account",
+        "warningSent": "SLA warning sent to technician {{name}}",
+        "warningSentDesc": "The technician receives an in-app notification.",
+        "warningFailed": "Could not send the warning",
+        "unassigned": "Incident report RPT-{{id}} reclaimed",
+        "unassignedDesc": "The report was moved back to Unassigned so it can be given to someone else.",
+        "unassignFailed": "Could not reclaim the incident report",
+        "selectReportRequired": "Please select an incident report to assign!",
+        "assignedSuccess": "Incident RPT-{{id}} assigned to technician {{name}}",
+        "notFound": "Technician not found",
+        "notFoundDesc": "No staff record found with ID #{{id}}.",
+        "backToList": "Back to Maintenance",
+        "paused": "Paused",
+        "subtitle": "Kiosk & drone maintenance · Performance monitoring & SLA policy",
+        "refreshed": "Technician data refreshed",
+        "assignIncident": "Assign Incident",
+        "sendWarning": "Send SLA Warning",
+        "suspendTech": "Suspend Technician",
+        "reactivate": "Reactivate",
+        "totalAssigned": "Total Assigned",
+        "allTime": "All time",
+        "idleNow": "Currently free",
+        "openCount": "{{count}} open report(s)",
+        "completionRate": "Completion rate {{rate}}%",
+        "overdueSla": "SLA Overdue",
+        "overdueCount": "{{count}} SLA-overdue report(s)",
+        "noOverdue": "No overdue reports",
+        "profile": "Technician Profile",
+        "role": "Role: TECHNICIAN",
+        "copy": "Copy",
+        "phoneLabel": "Phone number:",
+        "editPhone": "Edit phone number",
+        "joinedAt": "Joined:",
+        "updating": "Not available yet",
+        "currentLoad": "Current workload:",
+        "readyForWork": "Ready for new jobs",
+        "highLoad": "High load ({{count}} job(s))",
+        "normalLoad": "Normal ({{count}} job(s))",
+        "slaPolicy": "SLA Policy & Violations",
+        "slaPolicyDesc": "Tracks compliance with maintenance service-level commitments",
+        "appliedPenalty": "Applied penalty: ",
+        "penaltyFramework": "Automatic penalty framework (3 levels):",
+        "level1": "Level 1:",
+        "level1Rule": "Overdue reports reach the <b>warning threshold</b>: automatic warning in the mobile app.",
+        "level2": "Level 2:",
+        "level2Rule": "Reaching the <b>restriction threshold</b>: taking new jobs is locked in the mobile app.",
+        "level3": "Level 3:",
+        "level3Rule": "Reaching the <b>suspension threshold</b>: suspension is recommended and reports are reclaimed for dispatch.",
+        "thresholdNote": "Report thresholds are configured by the admin in Settings; the current level is calculated by the server.",
+        "tabTickets": "Incident Reports ({{count}})",
+        "tabTimeline": "Activity History",
+        "tabDroneSchedules": "Periodic Drone Schedules",
+        "tabKioskSchedules": "Periodic Kiosk Schedules",
+        "tabReviews": "Reviews & CSAT ({{count}})",
+        "noTickets": "No incident reports match the filter",
+        "noTicketsDesc": "The technician has no maintenance jobs in this status.",
+        "overdueAfterExtension": "Overdue (after +{{hours}}h extension)",
+        "extended": "SLA extended (+{{hours}}h)",
+        "customerContent": "Customer report:",
+        "reporter": "Reported by: {{info}}",
+        "extendSla": "Extend SLA",
+        "reclaim": "Reclaim",
+        "createdAt": "Created: {{time}}",
+        "slaDue": "SLA due: {{time}}",
+        "timelineTitle": "Dispatch & Repair Log",
+        "timelineDesc": "Sequence of the technician's assignment, repair and acceptance events",
+        "timelineEmpty": "No activity recorded for this technician yet.",
+        "timelineResolved": "Completed incident report RPT-{{id}} · {{title}}",
+        "timelineInProgress": "Working on incident report RPT-{{id}} · {{title}}",
+        "csat": "Satisfaction Score (CSAT)",
+        "basedOnRatings": "Based on {{count}} rating(s) after completed repairs",
+        "loadingRatings": "Loading ratings...",
+        "noRatingsTech": "No ratings for this technician yet",
+        "recentRatings": "Recent Ratings",
+        "noComment": "No comment",
+        "noRatingsCustomer": "No customer ratings yet.",
+        "assignedDrones": "Drones Assigned for Periodic Inspection",
+        "assignedKiosks": "Kiosk Stations Assigned for Periodic Inspection",
+        "assignedDesc": "Preventive maintenance plans the admin assigned to this technician",
+        "noSchedules": "This technician has no periodic inspection schedules assigned yet.",
+        "overdueDays": "Overdue {{count}} day(s)",
+        "dueToday": "Due today",
+        "daysLeft": "{{days}} day(s) left",
+        "lastResult": "Last: {{result}}",
+        "pendingReport": "Pending report RPT-{{id}}",
+        "interval": "Interval: <b>{{count}}</b> day(s)",
+        "dueAt": "Due:",
+        "inspectionHistory": "Completed Inspection History ({{count}})",
+        "inspectionHistoryDesc": "Records and on-site photos of periodic inspections completed by this technician",
+        "noInspections": "No periodic inspections recorded from this technician yet.",
+        "incidentReport": "Incident report RPT-{{id}}",
+        "unassignTitle": "Reclaim incident report RPT-{{id}}?",
+        "unassignDesc": "The incident report will be taken back from technician {{name}} and moved to Unassigned so it can be given to another technician.",
+        "confirmReclaim": "Confirm Reclaim",
+        "assignTitle": "Assign New Incident",
+        "assignDesc": "Assign a {{type}} incident report to technician <b>{{name}}</b> (#{{id}})",
+        "assignPick": "Select a pending incident report:",
+        "noUnassigned": "There are no new {{type}} incident reports to assign.",
+        "phoneDialogTitle": "Update Technician Phone",
+        "phoneContact": "Contact phone number:",
+        "phonePlaceholder": "E.g. 0912345678",
+        "phoneHint": "Used by dispatchers and customers to get in touch about incidents."
+      },
+      "techTab": {
+        "unlockSuccess": "Technician account unlocked successfully",
+        "suspendSuccess": "Technician account suspended successfully",
+        "nowActive": "Technician {{name}} is now Active.",
+        "nowSuspended": "Technician {{name}} is now Suspended.",
+        "unlockFailed": "Could not unlock the account",
+        "totalTechs": "Total Technicians",
+        "kioskTechCount": "{{count}} kiosk tech(s)",
+        "droneTechCount": "{{count}} drone tech(s)",
+        "working": "Handling Incidents",
+        "workingDesc": "Currently on field repair jobs",
+        "slaWarnings": "SLA Violation Warnings",
+        "needsFollowUp": "Needs follow-up",
+        "noViolations": "0 progress violations",
+        "csat": "CSAT Quality Score",
+        "csatFrom": "From {{count}} customer rating(s)",
+        "noRatings": "No ratings yet",
+        "policyTitle": "Technician Quality Penalties (3 SLA Levels)",
+        "policyDesc": "The penalty level is calculated by the server from each technician's SLA-overdue reports; each level's threshold is configured by the admin in Settings.",
+        "level1": "🟡 Level 1: Reminder",
+        "level2": "🟠 Level 2: Job Hold",
+        "level3": "🔴 Level 3: Suspension",
+        "listTitle": "Technician Team ({{count}})",
+        "listDesc": "Track each staff member's status, workload and compliance",
+        "search": "Search by name, phone, email...",
+        "specialtyFilter": "Filter by specialty",
+        "allSpecialties": "All specialties ({{count}})",
+        "kioskSpecialty": "🔧 Kiosk techs - locker repair ({{count}})",
+        "droneSpecialty": "✈️ Drone techs - fleet ({{count}})",
+        "penaltyFilter": "Filter by penalty",
+        "allStatuses": "All statuses",
+        "warningOption": "🟡 SLA warning",
+        "restrictedOption": "🟠 Job intake restricted",
+        "suspendedOption": "🔴 Suspended / Locked",
+        "noMatch": "No technicians match the filters.",
+        "scheduleCount": "{{count}} periodic schedule(s)",
+        "recommendSuspend": "Suspension recommended",
+        "suspended": "Suspended",
+        "restricted": "Restricted",
+        "slaWarning": "SLA Warning",
+        "good": "In good standing",
+        "load": "Workload:",
+        "idle": "🟢 Free",
+        "highLoad": "🔴 High load ({{count}} job(s))",
+        "busy": "🔵 Working ({{count}} job(s))",
+        "assign": "Assign",
+        "suspendThis": "Suspend this technician",
+        "unlock": "Unlock technician"
+      },
+      "repairLog": {
+        "userFallback": "User #{{id}}",
+        "photoAlt": "Photo {{index}} of log #{{id}}",
+        "timeMeta": "Time: {{time}}",
+        "legacyMeta": "Photo attached in note · {{time}}",
+        "button": "Log",
+        "title": "Case File · RPT-{{id}} · {{title}}",
+        "detailTab": "Report Details",
+        "logsTab": "Technician Log ({{count}})",
+        "reportedContent": "Reported issue:",
+        "noDescription": "No detailed description of the incident.",
+        "userPhotos": "On-site photos sent by the user ({{count}}):",
+        "createdAt": "Report created:",
+        "assignedTech": "Assigned technician:",
+        "assignedAt": "Assigned at:",
+        "slaDue": "SLA deadline:",
+        "slaDefault": "Standard SLA 4h",
+        "overdueSuffix": " ⚠️ Overdue",
+        "duration": "Handling time:",
+        "reporter": "Reported by:",
+        "reporterIsTech": "Reporter is a technician",
+        "loading": "Loading log...",
+        "empty": "No log entries from the technician yet",
+        "emptyDesc": "Technicians record each repair step, part replacement and on-site evidence photos directly in the mobile app.",
+        "slaExtensionApproved": "SLA extension approved",
+        "progressPhotos": "Repair progress photos ({{count}}):",
+        "galleryTitle": "Log photos · {{title}}",
+        "readOnly": "Admin view · technicians update logs & evidence via the mobile app",
+        "steps": "{{count}} step(s)"
+      },
+      "extendSla": {
+        "reasons": {
+          "parts": "Waiting for replacement parts from the central warehouse",
+          "board": "Complex circuit board fault requiring in-depth testing",
+          "weather": "Bad weather prevents drone test flights",
+          "mechanical": "Severe mechanical jam requiring specialized tools",
+          "siteClosed": "Kiosk area temporarily closed for site repairs"
+        },
+        "presets": {
+          "hours2": "+2 hours",
+          "hours4": "+4 hours",
+          "hours8": "+8 hours",
+          "day1": "+1 day (24h)",
+          "days2": "+2 days (48h)"
+        },
+        "reasonRequired": "Please provide a reason for the SLA extension!",
+        "hoursInvalid": "Extension hours must be a whole number of 1 or more",
+        "success": "SLA extended (+{{hours}} h)",
+        "successNewDue": "New completion deadline for RPT-{{id}}: {{due}}.",
+        "successExtended": "Report RPT-{{id}} has been extended.",
+        "failed": "Could not extend the SLA",
+        "title": "Extend Incident Handling Time (SLA)",
+        "currentDue": "Current SLA deadline:",
+        "extendedBefore": "Previously extended:",
+        "newDue": "New deadline (estimated):",
+        "chooseExtension": "Choose how much time to add:",
+        "customPlaceholder": "Other hours",
+        "customAria": "Custom extension hours",
+        "customInvalid": "Enter a whole number of 1 hour or more.",
+        "commonReasons": "Common SLA extension reasons:",
+        "reasonPlaceholder": "Describe the circumstances or technical difficulties that require more time to complete...",
+        "serverNote": "The new deadline is calculated by the server (for overdue reports it counts from the time of extension) and recorded in the report's log.",
+        "confirm": "Confirm SLA Extension"
+      },
+      "assign": {
+        "selectRequired": "Please select a technician to assign!",
+        "success": "Report RPT-{{id}} assigned to technician {{name}}",
+        "successDesc": "A dispatch notification was sent to the technician's mobile app.",
+        "failed": "Could not assign the incident report",
+        "title": "Assign Technician to Incident",
+        "descDrone": "Give the drone incident report to a drone technician to take on and repair the aircraft",
+        "descKiosk": "Give the kiosk incident report to a technician to take on and fix on site",
+        "chooseTech": "Select the responsible technician:",
+        "placeholder": "-- Select an available technician --",
+        "suspendedTag": "[Suspended]",
+        "noEligible": "No suitable {{type}} technician yet.",
+        "confirm": "Confirm Assignment"
+      }
+    },
+    "payments": {
+      "title": "Payment Management",
+      "description": "Transactions, refunds and wallet movements — data comes directly from payment-service",
+      "viewRevenue": "View Revenue Analytics",
+      "matchCount": "{{total}} transaction(s) match the filters",
+      "tabs": {
+        "transactions": "Transactions",
+        "wallet": "Wallet Movements",
+        "withdrawals": "Withdrawal Requests"
+      },
+      "refunds": "Refunds",
+      "method": "Method",
+      "amount": "Amount",
+      "paidAt": "Collected at",
+      "optional": "(optional)",
+      "rejectionReason": "Rejection reason",
+      "actionsHeader": "Actions",
+      "review": {
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "approve": "Approve"
+      },
+      "bank": {
+        "bank": "Bank",
+        "none": "Not provided",
+        "accountNumber": "Account number",
+        "accountHolder": "Account holder"
+      },
+      "kind": {
+        "all": "Orders and top-ups",
+        "order": "Order payments only",
+        "topup": "Top-ups only"
+      },
+      "sort": {
+        "idDesc": "Transaction ID descending"
+      },
+      "filters": {
+        "searchPlaceholder": "Reference, description, transaction ID or order code…",
+        "kindPlaceholder": "Transaction type",
+        "dateHint": "The date range filters by transaction creation time. Leave it empty to see all time."
+      },
+      "stats": {
+        "compareWith": "Compared with {{from}} – {{to}}",
+        "loadFailed": "Couldn't load transaction statistics",
+        "total": "Total Transactions",
+        "totalValue": "Value {{amount}}",
+        "pending": "Pending",
+        "successRate": "Success Rate",
+        "successRateHint": "Successful transactions / total",
+        "refundCount": "{{total}} refund(s)",
+        "netCollected": "Net Order Collections",
+        "netCollectedHint": "Order collections minus refunds, excluding wallet top-ups",
+        "byStatus": "By status",
+        "byMethod": "By method",
+        "breakdownRow": "{{total}} txn · {{amount}}",
+        "breakdownCompleted": "Successful {{amount}}"
+      },
+      "table": {
+        "transaction": "Transaction",
+        "transactionId": "Transaction {{id}}",
+        "refundedAmount": "Refunded {{amount}}",
+        "openOrder": "Open Order",
+        "empty": "No transactions match the filters"
+      },
+      "detail": {
+        "title": "Transaction Details #{{id}}",
+        "description": "Collection, refund and wallet movement details related to this transaction.",
+        "loadFailed": "Couldn't load the transaction",
+        "statusUpdated": "Moved transaction {{ref}} to “{{status}}”",
+        "relatedOrder": "Related order",
+        "openOrder": "Open order",
+        "orderTotal": "Order total",
+        "orderCreatedAt": "Order created at",
+        "lockTopup": "Wallet top-ups can only be confirmed through the payment gateway. Changing the status manually doesn't credit or debit the wallet, so it can't be edited here.",
+        "lockTerminal": "The transaction is in a final status (“{{status}}”) and can't be changed manually. To pay the customer back, use the Refunds tab.",
+        "selectStatus": "Select status",
+        "saveStatus": "Save Status",
+        "referenceId": "Reference ID",
+        "gatewayTxnId": "Gateway transaction ID",
+        "content": "Content",
+        "refundsCount": "Refunds ({{count}})",
+        "noRefunds": "This transaction has no refunds yet.",
+        "reason": "Reason",
+        "refundTxnId": "Refund transaction ID",
+        "processedBy": "Processed by",
+        "refundNote": "Creating a refund doesn't automatically change the transaction status or the order's payment status.",
+        "walletCount": "Wallet movements ({{count}})",
+        "noWallet": "This transaction produced no wallet movements.",
+        "balanceAfter": "Balance after: {{amount}}",
+        "otherPayments": "Other transactions for the same order ({{count}})"
+      },
+      "refund": {
+        "dateHint": "The date range filters by refund request time.",
+        "count": "{{total}} refund(s).",
+        "empty": "No refunds yet",
+        "status": {
+          "completed": "Refunded"
+        },
+        "toast": {
+          "transferRefRequired": "Please enter the bank transaction ID / transfer order number!",
+          "approved": "Refund #{{id}} confirmed",
+          "approveFailed": "Couldn't approve the refund. Please try again!",
+          "reasonRequired": "Please enter a rejection reason!",
+          "rejected": "Refund #{{id}} rejected",
+          "rejectFailed": "Couldn't reject the request. Please try again!"
+        },
+        "table": {
+          "ticket": "Refund",
+          "paymentRef": "Txn #{{id}}",
+          "amount": "Refund amount",
+          "original": "Original: {{amount}}",
+          "account": "Refund Account",
+          "noAccount": "No account number",
+          "transferRef": "Ref: {{ref}}",
+          "rejectionReason": "Reason: {{reason}}",
+          "reason": "Refund Reason",
+          "processedAt": "Processed: {{time}}",
+          "approve": "Approve & Transfer"
+        },
+        "approve": {
+          "title": "Approve & Confirm Refund Transfer",
+          "description": "Please scan the VietQR code or transfer to the account below before confirming:",
+          "scanQr": "Scan the VietQR code with any banking app",
+          "transferContent": "Transfer note: {{content}}",
+          "missingBank": "The customer hasn't fully provided the bank code/account number. Please check again.",
+          "refundId": "Refund ID",
+          "transferRefLabel": "Bank transaction ID / transfer order no.",
+          "transferRefPlaceholder": "e.g. FT24100712345678 or the transfer reference",
+          "transferRefRequiredHint": "System policy requires this code before confirming the transfer.",
+          "warning": "This will mark the order as <b>REFUNDED</b> and notify the customer.",
+          "confirm": "Confirm Transfer Sent"
+        },
+        "reject": {
+          "title": "Reject Refund Request",
+          "description": "Please enter a rejection reason to notify the customer.",
+          "requestedAmount": "Requested amount",
+          "placeholder": "e.g. Incorrect account number, the order was already delivered successfully...",
+          "confirm": "Confirm Rejection"
+        },
+        "detail": {
+          "title": "Refund Details #{{id}}",
+          "receivingBank": "Receiving bank",
+          "transferRef": "Transfer transaction ID",
+          "originalReason": "Original refund reason"
+        }
+      },
+      "withdrawal": {
+        "searchPlaceholder": "Search code, name, account no., bank...",
+        "loading": "Loading withdrawal requests...",
+        "empty": "No withdrawal requests found",
+        "status": {
+          "completed": "Transferred"
+        },
+        "toast": {
+          "reasonRequired": "Please enter a rejection reason",
+          "approved": "Withdrawal request #{{ref}} approved",
+          "rejected": "Request #{{ref}} rejected and the amount returned to the customer's wallet",
+          "failed": "Couldn't process the withdrawal request. Please try again!"
+        },
+        "table": {
+          "requestId": "Request ID",
+          "beneficiary": "Beneficiary Account",
+          "amount": "Withdrawal amount",
+          "note": "Note / Reason",
+          "processedAt": "Reviewed: {{time}}",
+          "done": "Done"
+        },
+        "approveDialog": {
+          "title": "Confirm Withdrawal Approval",
+          "description": "Check the account details carefully and confirm that the actual transfer has been made:",
+          "warning": "This will mark the transaction as <b>TRANSFERRED</b> and cannot be undone.",
+          "confirm": "Confirm Transfer & Approve"
+        },
+        "rejectDialog": {
+          "title": "Reject Withdrawal Request",
+          "description": "When rejected, the system automatically returns the withdrawal amount to the customer's wallet.",
+          "refundToWallet": "Amount returned to wallet",
+          "placeholder": "e.g. Incorrect account holder, the bank declined the transaction...",
+          "warning": "{{amount}} will be credited back to the wallet immediately.",
+          "confirm": "Confirm Rejection & Refund to Wallet"
+        }
+      },
+      "wallet": {
+        "direction": "Direction",
+        "source": "Source",
+        "searchPlaceholder": "Reference or content…",
+        "count": "{{total}} wallet movement(s).",
+        "empty": "No wallet movements match the filters",
+        "table": {
+          "movement": "Movement",
+          "walletId": "Wallet #{{id}}",
+          "balance": "Balance {{amount}}",
+          "relatedOrder": "Related Order",
+          "reference": "Reference",
+          "timestamp": "Timestamp"
+        }
+      }
+    },
+    "revenue": {
+      "title": "Revenue Management",
+      "description": "Revenue is based on money actually collected from real orders; wallet top-ups are not counted as revenue.",
+      "reconcile": "Reconcile Transactions",
+      "invalidRange": "The date range is invalid, so no data could be loaded.",
+      "netAfterRefund": "Net After Refunds",
+      "refundedHint": "Refunded {{amount}}",
+      "columns": {
+        "revenue": "Revenue",
+        "net": "Net",
+        "share": "Share",
+        "paymentCount": "Payments",
+        "newOrders": "New Orders",
+        "paidOrders": "Paid Orders",
+        "lockerCount": "Lockers",
+        "boxCount": "Boxes"
+      },
+      "summary": {
+        "loadFailed": "Couldn't load the revenue overview",
+        "periodRevenue": "Revenue in Period",
+        "refundAmount": "Refund Amount",
+        "refundHint": "Refunds fully processed in the period",
+        "aov": "Average Order Value",
+        "aovHint": "Revenue divided by the number of paid orders",
+        "ordersHint": "Completed {{completed}} · canceled {{canceled}}",
+        "paymentCount": "{{total}} payment(s)"
+      },
+      "quick": {
+        "thisWeek": "This week",
+        "thisMonth": "This month",
+        "paidOrders": "{{total}} paid order(s)"
+      },
+      "tabs": {
+        "service": "By Service",
+        "method": "By Method",
+        "locker": "By Locker",
+        "store": "By Store",
+        "customer": "By Customer"
+      },
+      "chart": {
+        "title": "Daily Revenue",
+        "description": "Money collected each day (Vietnam calendar) and what remains after refunds. Period total: {{amount}}",
+        "revenue": "Amount Collected",
+        "axisMillion": "{{value}}M",
+        "axisThousand": "{{value}}K",
+        "showChart": "Show Chart",
+        "showTable": "Show Table",
+        "loadFailed": "Couldn't load daily revenue",
+        "empty": "No days in the selected range.",
+        "table": {
+          "date": "Date",
+          "collected": "Collected",
+          "paidOrders": "Paid Orders"
+        }
+      },
+      "method": {
+        "loadFailed": "Couldn't load revenue by method",
+        "empty": "No collections in the selected range",
+        "note": "Refunds are attributed to the method of the refunded transaction. Wallet top-ups are not revenue; the wallet only counts when a customer uses the balance to pay for an order."
+      },
+      "service": {
+        "loadFailed": "Couldn't load revenue by service",
+        "empty": "No revenue in the selected range.",
+        "share": "{{percent}} of total revenue",
+        "overtimeNote": "Overtime fees collected, separated from the order-type rows to avoid counting them twice. Refunds are always attributed to the order type, not to this row."
+      },
+      "store": {
+        "unassigned": "No store assigned",
+        "contact": "Contact",
+        "loadFailed": "Couldn't load revenue by store",
+        "lookupUnavailable": "Couldn't look up the store catalog: names may be empty and stores without revenue may be missing from the table.",
+        "empty": "No stores in the selected range"
+      },
+      "locker": {
+        "noLocker": "Orders without a locker",
+        "revenuePerBox": "Revenue / Box",
+        "loadFailed": "Couldn't load revenue by locker",
+        "lookupUnavailable": "Couldn't look up the locker or store catalog: locker names may be empty and lockers without revenue may be missing from the table.",
+        "empty": "No lockers in the selected range",
+        "note": "The table includes lockers without revenue. Box counts include inactive boxes."
+      },
+      "customer": {
+        "searchPlaceholder": "Name, email, phone number or customer ID…",
+        "count": "{{total}} customer(s) in the period",
+        "empty": "No customer activity in the selected range",
+        "note": "A customer appears if they created an order or made a payment in the period, so new orders can be 0 while money is still recorded.",
+        "sort": {
+          "totalSpent": "Highest spending",
+          "netSpent": "Highest net spending",
+          "orderCount": "Most orders",
+          "paidOrderCount": "Most paid orders",
+          "aov": "Highest average order value",
+          "lastOrder": "Recently ordered",
+          "lastPaid": "Recently paid"
+        },
+        "columns": {
+          "spent": "Spent",
+          "netSpent": "Net Spent",
+          "aov": "Avg. Order Value",
+          "paidOrders": "Paid Orders",
+          "lastOrder": "Last Order",
+          "lastPaid": "Last Payment"
+        }
+      },
+      "detail": {
+        "invalidId": "Invalid customer ID",
+        "back": "Back to Revenue Report",
+        "subtitle": "Revenue {{from}} – {{to}}",
+        "loadFailed": "Couldn't load the customer's revenue",
+        "ordersTitle": "Orders in Period ({{total}})",
+        "empty": "The customer has no orders in the selected range",
+        "note": "The list includes orders created in the period and orders with a payment in the period, so orders created earlier may appear. Only amounts paid by this customer are counted.",
+        "columns": {
+          "orderTotal": "Order Total",
+          "paidInRange": "Collected in Period",
+          "paidAllTime": "Collected All Time"
+        },
+        "stats": {
+          "spent": "Spent in Period",
+          "ordersCreated": "Orders Created in Period",
+          "paidOrders": "Paid Orders",
+          "firstOrder": "First Order",
+          "lastOrderHint": "Latest {{time}}"
+        }
+      }
     }
   },
   "partner": {
@@ -647,5 +4222,315 @@
   "pagination": {
     "previous": "Previous",
     "next": "Next"
+  },
+  "shared": {
+    "reportMeta": {
+      "orderStatus": {
+        "initialized": "Initialized",
+        "storing": "Storing",
+        "expired": "Expired",
+        "awaitingDispatch": "Awaiting dispatch",
+        "completed": "Completed",
+        "canceled": "Canceled",
+        "returned": "Returned (legacy)"
+      },
+      "orderType": {
+        "send": "Send parcel",
+        "rental": "Box rental",
+        "droneDelivery": "Drone delivery",
+        "storage": "Storage (legacy)"
+      },
+      "orderPaymentStatus": {
+        "unpaid": "Unpaid",
+        "paid": "Paid",
+        "refundPending": "Refund pending",
+        "refunded": "Refunded"
+      },
+      "deliveryStage": {
+        "awaitingDispatch": "Awaiting dispatch",
+        "accepted": "Trip accepted",
+        "launching": "Preparing for takeoff",
+        "departed": "Took off",
+        "enRoute": "In flight",
+        "approaching": "Approaching",
+        "arrived": "Arrived",
+        "readyForPickup": "Ready for pickup",
+        "canceled": "Canceled",
+        "failed": "Flight failed",
+        "completed": "Picked up",
+        "expired": "Pickup overdue",
+        "dropReported": "Parcel drop reported"
+      },
+      "paymentStatus": {
+        "pending": "Awaiting payment",
+        "completed": "Successful",
+        "failed": "Failed"
+      },
+      "paymentMethod": {
+        "cash": "Cash",
+        "wallet": "Lock.R Wallet",
+        "vnpay": "VNPay",
+        "momo": "MoMo",
+        "sepay": "SePay (bank transfer)",
+        "vnpayTopup": "Wallet top-up via VNPay",
+        "sepayTopup": "Wallet top-up via SePay"
+      },
+      "paymentKind": {
+        "order": "Order payment",
+        "topup": "Wallet top-up"
+      },
+      "refundStatus": {
+        "completed": "Refunded",
+        "pending": "Refund pending",
+        "rejected": "Rejected",
+        "failed": "Refund failed"
+      },
+      "walletType": {
+        "credit": "Credit",
+        "debit": "Debit"
+      },
+      "walletSource": {
+        "topup": "Wallet top-up",
+        "orderPayment": "Order payment",
+        "refund": "Refund",
+        "adjust": "Manual adjustment",
+        "withdraw": "Withdrawal"
+      },
+      "revenueService": {
+        "send": "Send parcel",
+        "rental": "Box rental",
+        "droneDelivery": "Drone delivery",
+        "overtimeFee": "Overtime fee",
+        "storage": "Storage (legacy)",
+        "other": "Other",
+        "unknown": "Unknown order"
+      }
+    },
+    "dateRange": {
+      "yesterday": "Yesterday",
+      "last7Days": "7 days",
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "from": "From date",
+      "to": "To date",
+      "allTime": "All time",
+      "incomplete": "Select both a start date and an end date.",
+      "reversed": "The end date must be on or after the start date.",
+      "tooLong": "The report range is limited to {{max}} days ({{count}} days selected)."
+    },
+    "multiSelect": {
+      "selectedCount": "{{count}} selected",
+      "clearAll": "Clear all"
+    },
+    "reportError": {
+      "title": "Could not load data",
+      "paymentDataUnavailable": "Could not get payment data (payment-service is not responding). Revenue figures cannot be shown yet.",
+      "invalidPage": "Invalid page number.",
+      "invalidPageSize": "Rows per page must be between 1 and 100.",
+      "invalidSort": "Invalid sort criteria.",
+      "invalidDate": "Invalid date.",
+      "invalidDateRange": "Invalid date range: the end date must be on or after the start date, and the range can be at most 366 days.",
+      "invalidKind": "Invalid transaction type.",
+      "notFound": "No data found.",
+      "validationError": "The submitted data is invalid.",
+      "internalError": "The server encountered an error while processing the request.",
+      "status401": "Your session has expired. Sign in again to view reports.",
+      "status403": "This account does not have ADMIN permission to view this report.",
+      "status503": "A dependent service is not responding. Try again later.",
+      "loadFailed": "Could not load data. Try again or check your connection.",
+      "fetchError": "Cannot reach the server. Check your network and try again.",
+      "parsingError": "The server returned unreadable data.",
+      "timeout": "The server took too long to respond. Try again later.",
+      "loadFailedShort": "Could not load data."
+    },
+    "statCard": {
+      "vsPreviousWithValue": "{{value}} vs previous period",
+      "vsPrevious": "vs previous period"
+    },
+    "media": {
+      "error": {
+        "storageDisabled": "Cloudinary image storage is not configured on the server",
+        "purposeInvalid": "Invalid image type",
+        "purposeForbidden": "This account is not allowed to upload this type of image",
+        "signatureInvalid": "The image signature is invalid or has expired, please upload the image again",
+        "ownerMismatch": "The image does not belong to the signed-in account",
+        "formatInvalid": "Unsupported image format",
+        "attachmentLimitExceeded": "The report has reached its maximum number of photos",
+        "attachmentStageInvalid": "Invalid photo stage",
+        "attachmentDeleteForbidden": "You are not allowed to delete this photo",
+        "reportNotInProgress": "The report is not in progress",
+        "reportAlreadyResolved": "The report is already resolved, photos cannot be changed",
+        "reportNotAssigned": "You are not assigned to this report",
+        "reportNotOwned": "You are not the owner of this report",
+        "resolutionPhotoRequired": "At least 1 acceptance photo is required before resolving the report",
+        "dataConflict": "This photo has already been attached",
+        "generic": "An error occurred while processing the image",
+        "fileFormat": "\"{{name}}\" has an unsupported format (accepted: {{formats}})",
+        "fileTooLarge": "\"{{name}}\" is too large ({{size}}, max {{max}})",
+        "readFailed": "Could not read the image",
+        "uploadCanceled": "Upload canceled",
+        "cloudinaryRejected": "Cloudinary rejected the image (HTTP {{status}})",
+        "cloudinaryNetwork": "Network error while uploading the image to Cloudinary"
+      },
+      "upload": {
+        "invalidSignature": "The server returned an invalid upload signature",
+        "signatureFailed": "Could not get an image upload signature",
+        "failedTitle": "Could not upload images",
+        "storageDisabledHint": "Contact the system administrator to set CLOUDINARY_URL for the services.",
+        "failed": "Upload failed",
+        "partialFailed": "Failed to upload {{failed}}/{{total}} image(s)"
+      },
+      "invalidImage": "Invalid image",
+      "updateFailed": "Could not update the image",
+      "uploadingPercent": "Uploading {{progress}}%",
+      "gallery": {
+        "timeTitle": "Time: {{time}}",
+        "viewPhoto": "View photo {{name}}",
+        "title": "Photos",
+        "description": "View the full-size photo. Use the left/right arrow keys to switch photos.",
+        "enlargedAlt": "Enlarged photo",
+        "previousPhoto": "Previous photo",
+        "nextPhoto": "Next photo",
+        "originalPhoto": "Original photo",
+        "deletePhoto": "Delete photo",
+        "deleteConfirmTitle": "Delete this photo?",
+        "deleteConfirmDescription": "The photo will be removed from the record and deleted from storage. This action cannot be undone."
+      },
+      "picker": {
+        "maxFiles": "You can select at most {{max}} photo(s)",
+        "someRejected": "Some photos were not added",
+        "groupLabel": "Select photos to attach",
+        "previewAlt": "Preview of {{name}}",
+        "imageFallback": "image",
+        "progressLabel": "Upload progress of {{name}}",
+        "uploaded": "Uploaded",
+        "errorLabel": "Error: {{error}}",
+        "removeLabel": "Remove photo {{name}}",
+        "dropzone": "Click to select, drag and drop, or paste (Ctrl+V) photos",
+        "defaultHint": "JPG, PNG, WebP, HEIC · max {{max}}/photo · {{count}} photo(s)",
+        "addPhoto": "Add photo",
+        "summary": "{{count}}/{{max}} photo(s) · Large photos are compressed automatically before upload"
+      }
+    },
+    "format": {
+      "percentPoints": "{{value}} pts"
+    },
+    "roles": {
+      "customer": "Customer",
+      "admin": "Administrator",
+      "lockerTechnician": "Locker technician",
+      "droneTechnician": "Drone technician",
+      "manager": "Manager",
+      "staff": "Staff",
+      "user": "User",
+      "moderator": "Moderator",
+      "partner": "Partner",
+      "partnerStaff": "Partner staff",
+      "superAdmin": "Super administrator"
+    },
+    "layout": {
+      "collapse": "Collapse",
+      "expand": "Expand"
+    },
+    "mock": {
+      "banner": "Using mock data. Change the .env configuration to turn it off."
+    },
+    "errorBoundary": {
+      "title": "Something went wrong",
+      "description": "The application ran into a problem. Please try again or go back to the home page.",
+      "details": "Error details:",
+      "reloadPage": "Reload page",
+      "goHome": "Go to home page"
+    },
+    "notificationDemo": {
+      "customTitle": "Custom notification",
+      "customDescription": "This is a custom notification with a smiley icon.",
+      "successTitle": "Success!",
+      "successDescription": "The action was completed successfully.",
+      "errorTitle": "Error!",
+      "errorDescription": "An error occurred while performing the action.",
+      "warningTitle": "Warning!",
+      "warningDescription": "Please review the information before continuing.",
+      "infoTitle": "Information",
+      "infoDescription": "This is an informational notification."
+    },
+    "loading": {
+      "page": "Loading data...",
+      "processing": "Processing..."
+    },
+    "resultError": {
+      "title": "Submission failed",
+      "subtitle": "Please review and correct the following information before resubmitting.",
+      "detailsTitle": "Your submission has the following errors:",
+      "notVerified": "Your account information has not been verified.",
+      "verifyNow": "Verify now →",
+      "notEligible": "Your account is not eligible to perform this action.",
+      "upgrade": "Upgrade account →",
+      "backHome": "Back to home page"
+    },
+    "errorState": {
+      "title": "An error occurred",
+      "message": "Could not load data. Please try again.",
+      "details": "Error details",
+      "networkTitle": "No connection",
+      "networkMessage": "Cannot connect to the server. Please check your internet connection.",
+      "emptyMessage": "There is no data to display yet."
+    },
+    "empty": {
+      "noInfo": "No information to display yet",
+      "noCars": "No cars match your criteria",
+      "searchAgain": "Search again",
+      "noBookings": "You have no booking history yet",
+      "bookNow": "Book now",
+      "noResultsFor": "No results found for \"{{term}}\"",
+      "tryOtherKeywords": "Try searching with different keywords",
+      "clearFilters": "Clear filters",
+      "noDataToShow": "No data to display"
+    },
+    "route": {
+      "checkingAccess": "Checking access..."
+    }
+  },
+  "errorPage": {
+    "routes": {
+      "home": "Home",
+      "register": "Sign Up",
+      "stores": "Stores",
+      "lockers": "Lockers",
+      "partnerDashboard": "Partner Dashboard"
+    },
+    "notFound": {
+      "autoRedirect": "Redirecting automatically...",
+      "redirectHint": "Found a similar URL, redirecting to the matching page",
+      "title": "Page not found",
+      "pathMissing": "The path <code>{{path}}</code> does not exist.",
+      "suggestionsTitle": "You may be looking for:",
+      "tipsTitle": "Tips:",
+      "tipCheckUrl": "Check the URL again",
+      "tipTypeInstead": "Type <code>{{short}}</code> instead of <code>{{full}}</code>",
+      "tipGoHome": "Go back to the home page and search again",
+      "quickLinks": "Quick links:"
+    },
+    "unauthorized": {
+      "title": "Access denied",
+      "description": "You do not have permission to access this page. Please sign in or contact an administrator to request access.",
+      "reasonsTitle": "Possible reasons:",
+      "reasonNotSignedIn": "You are not signed in",
+      "reasonSessionExpired": "Your session has expired",
+      "reasonNoPermission": "Your account does not have access",
+      "reasonRestricted": "This area is restricted",
+      "needHelp": "Need help?",
+      "contactSupport": "Contact support",
+      "helpCenter": "Help center"
+    },
+    "maintenance": {
+      "title": "System under maintenance",
+      "description": "We are upgrading the system to give you a better experience. Please come back in a few minutes.",
+      "scheduleTitle": "Planned maintenance window:",
+      "start": "🕐 Start: {{time}}",
+      "end": "🕑 End: {{time}}",
+      "contact": "If you have any questions, please contact:"
+    }
   }
 }

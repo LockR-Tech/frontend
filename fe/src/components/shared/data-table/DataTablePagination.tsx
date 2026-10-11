@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import type { Table } from "@tanstack/react-table";
+import { Trans, useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import {
@@ -21,6 +22,7 @@ export function DataTablePagination<TData>({
   className,
   totalRowsOverride,
 }: DataTablePaginationProps<TData>) {
+  const { t } = useTranslation();
   const pageIndex = table.getState().pagination.pageIndex;
   const pageCount = table.getPageCount();
   const totalRows = totalRowsOverride ?? table.getFilteredRowModel().rows.length;
@@ -69,7 +71,7 @@ export function DataTablePagination<TData>({
       )}
     >
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
-        <span>Hiển thị</span>
+        <span>{t("table.showing")}</span>
         <Select
           value={pageSize.toString()}
           onValueChange={(value) => table.setPageSize(Number(value))}
@@ -87,20 +89,23 @@ export function DataTablePagination<TData>({
         </Select>
         {visibleRows > 0 ? (
           <span className="text-muted-foreground">
-            <span className="font-medium text-foreground">
-              {pageIndex * pageSize + 1}
-            </span>
-            {" - "}
-            <span className="font-medium text-foreground">
-              {Math.min((pageIndex + 1) * pageSize, totalRows)}
-            </span>
-            {" của "}
-            <span className="font-medium text-foreground">{totalRows}</span>
+            <Trans
+              i18nKey="table.rangeOfTotal"
+              values={{
+                from: pageIndex * pageSize + 1,
+                to: Math.min((pageIndex + 1) * pageSize, totalRows),
+                total: totalRows,
+              }}
+              components={{ b: <span className="font-medium text-foreground" /> }}
+            />
           </span>
         ) : (
           <span className="text-muted-foreground">
-            Trang {pageIndex + 1} không có dữ liệu · tổng{" "}
-            <span className="font-medium text-foreground">{totalRows}</span>
+            <Trans
+              i18nKey="table.emptyPage"
+              values={{ page: pageIndex + 1, total: totalRows }}
+              components={{ b: <span className="font-medium text-foreground" /> }}
+            />
           </span>
         )}
       </div>

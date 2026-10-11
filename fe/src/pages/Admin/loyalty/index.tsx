@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -24,24 +25,24 @@ function fmtNum(n?: number | null, digits = 0) {
 
 const TIERS: LoyaltyTier[] = ["PLATINUM", "GOLD", "SILVER", "BRONZE"];
 
-const TIER_META: Record<LoyaltyTier, { label: string; cls: string; bar: string }> = {
+const TIER_META: Record<LoyaltyTier, { labelKey: string; cls: string; bar: string }> = {
   BRONZE: {
-    label: "Đồng",
+    labelKey: "admin.loyalty.tier.bronze",
     cls: "bg-orange-100 text-orange-700 border-orange-200",
     bar: "#ea580c",
   },
   SILVER: {
-    label: "Bạc",
+    labelKey: "admin.loyalty.tier.silver",
     cls: "bg-muted/50 text-foreground/80 border-border/50",
     bar: "#6b7280",
   },
   GOLD: {
-    label: "Vàng",
+    labelKey: "admin.loyalty.tier.gold",
     cls: "bg-yellow-100 text-yellow-700 border-yellow-200",
     bar: "#eab308",
   },
   PLATINUM: {
-    label: "Bạch kim",
+    labelKey: "admin.loyalty.tier.platinum",
     cls: "bg-indigo-100 text-indigo-700 border-indigo-200",
     bar: "#6366f1",
   },
@@ -120,6 +121,7 @@ function MetricRows({
 }
 
 export default function LoyaltyPage() {
+  const { t } = useTranslation();
   const { data, isLoading, isError, refetch } = useGetLoyaltyStatisticsQuery();
   const s = data?.data;
 
@@ -132,19 +134,19 @@ export default function LoyaltyPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Thống kê chương trình tích điểm"
-        description="Tổng quan thành viên và điểm thưởng từ loyalty-service"
+        title={t("admin.loyalty.title")}
+        description={t("admin.loyalty.description")}
       />
 
       {isError && (
         <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
           <AlertCircle size={18} className="text-red-600 shrink-0" />
-          <p className="text-sm text-red-700 flex-1">Không thể tải dữ liệu.</p>
+          <p className="text-sm text-red-700 flex-1">{t("admin.loyalty.loadFailed")}</p>
           <button
             onClick={refetch}
             className="flex items-center gap-1 text-sm text-red-700 font-medium hover:underline"
           >
-            <RotateCcw size={14} /> Thử lại
+            <RotateCcw size={14} /> {t("common.retry")}
           </button>
         </div>
       )}
@@ -153,7 +155,7 @@ export default function LoyaltyPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={Users}
-          label="Thành viên"
+          label={t("admin.loyalty.stats.members")}
           value={fmtNum(totalMembers)}
           iconCls="text-blue-600"
           bgCls="bg-blue-50"
@@ -161,7 +163,7 @@ export default function LoyaltyPage() {
         />
         <StatCard
           icon={UserPlus}
-          label="Thành viên mới tháng này"
+          label={t("admin.loyalty.stats.newThisMonth")}
           value={fmtNum(s?.newMembersThisMonth)}
           iconCls="text-emerald-600"
           bgCls="bg-emerald-50"
@@ -169,7 +171,7 @@ export default function LoyaltyPage() {
         />
         <StatCard
           icon={Activity}
-          label="Hoạt động 30 ngày"
+          label={t("admin.loyalty.stats.active30d")}
           value={fmtNum(s?.activeMembersLast30Days)}
           iconCls="text-green-600"
           bgCls="bg-green-50"
@@ -177,7 +179,7 @@ export default function LoyaltyPage() {
         />
         <StatCard
           icon={Coins}
-          label="Điểm đang lưu hành"
+          label={t("admin.loyalty.stats.outstanding")}
           value={fmtNum(s?.totalPointsOutstanding)}
           iconCls="text-yellow-600"
           bgCls="bg-yellow-50"
@@ -190,14 +192,14 @@ export default function LoyaltyPage() {
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Award size={16} className="text-yellow-500" /> Phân bổ hạng thành viên
+              <Award size={16} className="text-yellow-500" /> {t("admin.loyalty.tierDistribution")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {isLoading ? (
               [...Array(4)].map((_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)
             ) : !tiers ? (
-              <p className="text-sm text-muted-foreground text-center py-6">Chưa có dữ liệu</p>
+              <p className="text-sm text-muted-foreground text-center py-6">{t("common.noDataYet")}</p>
             ) : (
               TIERS.map((tier) => {
                 const count = Number(tiers[tier] ?? 0) || 0;
@@ -206,7 +208,7 @@ export default function LoyaltyPage() {
                 return (
                   <div key={tier} className="flex items-center gap-3">
                     <Badge className={`w-20 justify-center text-xs ${meta.cls}`}>
-                      {meta.label}
+                      {t(meta.labelKey)}
                     </Badge>
                     <div className="flex-1 bg-muted/50 rounded-full h-2">
                       <div
@@ -231,24 +233,30 @@ export default function LoyaltyPage() {
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Coins size={16} className="text-yellow-500" /> Số liệu điểm thưởng
+              <Coins size={16} className="text-yellow-500" /> {t("admin.loyalty.pointsMetrics")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <MetricRows
               loading={isLoading}
               rows={[
-                { label: "Tổng điểm đã phát", value: fmtNum(s?.pointsIssued) },
-                { label: "Tổng điểm đã dùng", value: fmtNum(s?.pointsRedeemed) },
+                { label: t("admin.loyalty.metrics.issued"), value: fmtNum(s?.pointsIssued) },
+                { label: t("admin.loyalty.metrics.redeemed"), value: fmtNum(s?.pointsRedeemed) },
                 {
-                  label: "Điểm TB / thành viên",
-                  value: s?.averagePoints != null ? `${fmtNum(s.averagePoints, 2)} điểm` : "—",
+                  label: t("admin.loyalty.metrics.average"),
+                  value:
+                    s?.averagePoints != null
+                      ? t("admin.loyalty.metrics.pointsValue", { value: fmtNum(s.averagePoints, 2) })
+                      : "—",
                 },
                 {
-                  label: "Điểm trung vị / thành viên",
-                  value: s?.medianPoints != null ? `${fmtNum(s.medianPoints, 2)} điểm` : "—",
+                  label: t("admin.loyalty.metrics.median"),
+                  value:
+                    s?.medianPoints != null
+                      ? t("admin.loyalty.metrics.pointsValue", { value: fmtNum(s.medianPoints, 2) })
+                      : "—",
                 },
-                { label: "Tổng giao dịch điểm", value: fmtNum(s?.transactions) },
+                { label: t("admin.loyalty.metrics.transactions"), value: fmtNum(s?.transactions) },
               ]}
             />
           </CardContent>
@@ -258,16 +266,16 @@ export default function LoyaltyPage() {
         <Card className="border-0 shadow-sm lg:col-span-2">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Star size={16} className="text-purple-500" /> Tháng này
+              <Star size={16} className="text-purple-500" /> {t("admin.loyalty.thisMonth")}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {isLoading
               ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)
               : [
-                  { label: "Điểm đã phát", value: fmtNum(s?.pointsIssuedThisMonth) },
-                  { label: "Điểm đã dùng", value: fmtNum(s?.pointsRedeemedThisMonth) },
-                  { label: "Thành viên mới", value: fmtNum(s?.newMembersThisMonth) },
+                  { label: t("admin.loyalty.month.issued"), value: fmtNum(s?.pointsIssuedThisMonth) },
+                  { label: t("admin.loyalty.month.redeemed"), value: fmtNum(s?.pointsRedeemedThisMonth) },
+                  { label: t("admin.loyalty.month.newMembers"), value: fmtNum(s?.newMembersThisMonth) },
                 ].map(({ label, value }) => (
                   <div key={label} className="text-center p-2 bg-muted/30 rounded-lg">
                     <p className="text-base font-bold text-foreground">{value}</p>
