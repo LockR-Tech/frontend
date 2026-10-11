@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import {
   Select,
@@ -35,9 +36,10 @@ export function StatusDropdown({
   options,
   value,
   onChange,
-  placeholder = "Trạng thái",
+  placeholder,
   className,
 }: StatusDropdownProps) {
+  const { t } = useTranslation();
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
@@ -57,7 +59,7 @@ export function StatusDropdown({
               )}
             />
           )}
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder ?? t("common.status")} />
           {selectedOption?.count !== undefined && selectedOption.count > 0 && (
             <span className="ml-1 text-xs text-muted-foreground">
               ({selectedOption.count})

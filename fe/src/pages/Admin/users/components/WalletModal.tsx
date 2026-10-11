@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Wallet, Loader2, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ const formatVnd = (n: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
 
 export function WalletModal({ open, onClose, userId, userName }: Props) {
+  const { t } = useTranslation();
   const { data, isLoading, refetch } = useGetUserWalletQuery(userId, { skip: !open });
   const [adjust, { isLoading: isAdjusting }] = useAdjustUserWalletMutation();
   const [amount, setAmount] = useState("");
@@ -38,18 +40,20 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
     setError(null);
     const value = Number(amount);
     if (!value || value <= 0) {
-      setError("Nhập số tiền hợp lệ (> 0).");
+      setError(t("admin.users.wallet.invalidAmount"));
       return;
     }
     try {
       await adjust({ userId, amount: sign * value, reason: reason || undefined }).unwrap();
-      toast.success(sign > 0 ? "Nạp tiền vào ví thành công" : "Trừ tiền ví thành công");
+      toast.success(
+        sign > 0 ? t("admin.users.wallet.topUpSuccess") : t("admin.users.wallet.deductSuccess"),
+      );
       setAmount("");
       setReason("");
       refetch();
     } catch (e: unknown) {
       const err = e as { data?: { message?: string } };
-      const msg = err?.data?.message ?? "Điều chỉnh số dư thất bại.";
+      const msg = err?.data?.message ?? t("admin.users.wallet.adjustFailed");
       setError(msg);
       toast.error(msg);
     }
@@ -61,13 +65,13 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Wallet size={18} className="text-muted-foreground" />
-            Ví của {userName || `user #${userId}`}
+            {t("admin.users.wallet.title", { name: userName || `user #${userId}` })}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-1">
           <div className="rounded-lg bg-secondary/50 border border-border p-4 text-center">
-            <p className="text-xs text-muted-foreground">Số dư hiện tại</p>
+            <p className="text-xs text-muted-foreground">{t("admin.users.wallet.currentBalance")}</p>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-0.5">
               {isLoading ? "..." : formatVnd(balance)}
             </p>
@@ -81,7 +85,7 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
 
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              Số tiền điều chỉnh
+              {t("admin.users.wallet.amount")}
             </label>
             <Input
               type="number"
@@ -93,10 +97,10 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              Lý do (tuỳ chọn)
+              {t("admin.users.wallet.reason")}
             </label>
             <Input
-              placeholder="Hoàn tiền / khuyến mãi / điều chỉnh..."
+              placeholder={t("admin.users.wallet.reasonPlaceholder")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
@@ -111,14 +115,14 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
             className="text-destructive hover:text-destructive"
           >
             {isAdjusting ? <Loader2 size={15} className="mr-2 animate-spin" /> : <Minus size={15} className="mr-2" />}
-            Trừ tiền
+            {t("admin.users.wallet.deduct")}
           </Button>
           <Button
             onClick={() => handleAdjust(1)}
             disabled={isAdjusting}
           >
             {isAdjusting ? <Loader2 size={15} className="mr-2 animate-spin" /> : <Plus size={15} className="mr-2" />}
-            Cộng tiền
+            {t("admin.users.wallet.add")}
           </Button>
         </DialogFooter>
       </DialogContent>

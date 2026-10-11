@@ -1,4 +1,5 @@
 import { Database, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { isMockEnabled } from "~/context/mock/mock-data-context";
 import { cn } from "~/lib/utils";
 
@@ -27,6 +28,7 @@ export function MockIndicator({ className }: MockIndicatorProps) {
 }
 
 export function MockBanner({ className }: MockIndicatorProps) {
+  const { t } = useTranslation();
   if (!isMockEnabled) return null;
 
   return (
@@ -39,7 +41,7 @@ export function MockBanner({ className }: MockIndicatorProps) {
     >
       <AlertCircle size={16} />
       <span>
-        Đang sử dụng dữ liệu giả (Mock Data). Cấu hình trong file .env để tắt.
+        {t("shared.mock.banner")}
       </span>
     </div>
   );

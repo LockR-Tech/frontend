@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Unlock, AlertTriangle } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -29,16 +30,17 @@ function ForceOpenModal({
   onClose,
   onConfirm,
 }: ForceOpenProps) {
+  const { t } = useTranslation();
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Unlock className="h-5 w-5 text-muted-foreground" />
-            Mở ngăn khẩn cấp
+            {t("admin.stores.boxSetting.forceOpenTitle")}
           </DialogTitle>
           <DialogDescription>
-            Hành động này sẽ được ghi lại trong nhật ký hệ thống.
+            {t("admin.stores.boxSetting.forceOpenDesc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
@@ -48,7 +50,7 @@ function ForceOpenModal({
             </div>
             <div>
               <p className="font-semibold text-foreground">
-                Ngăn #{box.boxNumber} — {lockerName}
+                {t("admin.stores.boxSetting.boxTitle", { number: box.boxNumber, locker: lockerName })}
               </p>
               {box.description && (
                 <p className="text-sm text-muted-foreground">{box.description}</p>
@@ -58,21 +60,20 @@ function ForceOpenModal({
           <div className="flex items-start gap-2.5 p-3 bg-secondary/30 rounded-lg border border-border/60">
             <AlertTriangle className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Lệnh mở tủ sẽ được gửi qua MQTT đến thiết bị. Đảm bảo có nhân viên
-              tại chỗ trước khi thực hiện.
+              {t("admin.stores.boxSetting.forceOpenWarning")}
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Hủy
+            {t("button.cancel")}
           </Button>
           <Button
             variant="destructive"
             onClick={onConfirm}
           >
             <Unlock className="mr-2 h-4 w-4" />
-            Xác nhận mở
+            {t("admin.stores.boxSetting.confirmOpen")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -89,10 +90,10 @@ interface Props {
 }
 
 const STATUS_OPTIONS = [
-  { value: BoxStatus.AVAILABLE, label: "● Trống" },
-  { value: BoxStatus.OCCUPIED, label: "● Có đồ" },
-  { value: BoxStatus.RESERVED, label: "● Đã đặt" },
-  { value: BoxStatus.MAINTENANCE, label: "● Bảo trì" },
+  { value: BoxStatus.AVAILABLE },
+  { value: BoxStatus.OCCUPIED },
+  { value: BoxStatus.RESERVED },
+  { value: BoxStatus.MAINTENANCE },
 ];
 
 export function BoxSettingModal({
@@ -101,6 +102,7 @@ export function BoxSettingModal({
   onClose,
   onRefresh,
 }: Props) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<string>(box.status);
   const [saving, setSaving] = useState(false);
   const [confirmForceOpen, setConfirmForceOpen] = useState(false);
@@ -118,7 +120,7 @@ export function BoxSettingModal({
       onRefresh();
       onClose();
     } catch (err) {
-      toast.error("Không thể cập nhật trạng thái ngăn", {
+      toast.error(t("admin.stores.boxSetting.statusUpdateFailed"), {
         description: err instanceof Error ? err.message : undefined,
       });
     } finally {
@@ -133,7 +135,7 @@ export function BoxSettingModal({
       onRefresh();
       onClose();
     } catch (err) {
-      toast.error("Không thể gửi lệnh mở tủ", {
+      toast.error(t("admin.stores.boxSetting.forceOpenFailed"), {
         description: err instanceof Error ? err.message : undefined,
       });
       setConfirmForceOpen(false);
@@ -151,7 +153,7 @@ export function BoxSettingModal({
               >
                 {box.boxNumber}
               </div>
-              Ngăn #{box.boxNumber} — {lockerName}
+              {t("admin.stores.boxSetting.boxTitle", { number: box.boxNumber, locker: lockerName })}
             </DialogTitle>
             {box.description && (
               <DialogDescription>{box.description}</DialogDescription>
@@ -163,16 +165,16 @@ export function BoxSettingModal({
               className={`rounded-lg border px-3 py-2.5 flex items-center gap-2 ${cfg.bg} ${cfg.border}`}
             >
               <span className={`text-xs font-semibold ${cfg.text}`}>
-                Trạng thái hiện tại:
+                {t("admin.stores.boxSetting.currentStatus")}
               </span>
               <span className={`text-sm font-bold ${cfg.text}`}>
-                {BOX_CFG[box.status]?.label ?? box.status}
+                {BOX_CFG[box.status] ? t(BOX_CFG[box.status].labelKey) : box.status}
               </span>
             </div>
 
             <div>
               <label className="text-xs text-muted-foreground mb-1.5 block font-medium">
-                Đổi trạng thái
+                {t("admin.stores.boxSetting.changeStatus")}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {STATUS_OPTIONS.map((opt) => {
@@ -188,7 +190,7 @@ export function BoxSettingModal({
                           : "bg-background border-border/50 text-muted-foreground hover:border-border/70"
                       }`}
                     >
-                      {optCfg.label}
+                      {t(optCfg.labelKey)}
                     </button>
                   );
                 })}
@@ -197,7 +199,7 @@ export function BoxSettingModal({
 
             {box.status === BoxStatus.OCCUPIED && (
               <div className="pt-2 border-t border-border/60">
-                <p className="text-xs text-muted-foreground mb-2">Thao tác khẩn cấp</p>
+                <p className="text-xs text-muted-foreground mb-2">{t("admin.stores.boxSetting.emergency")}</p>
                 <Button
                   variant="outline"
                   size="sm"
@@ -205,7 +207,7 @@ export function BoxSettingModal({
                   onClick={() => setConfirmForceOpen(true)}
                 >
                   <Unlock className="mr-2 h-3.5 w-3.5" />
-                  Mở ngăn khẩn cấp
+                  {t("admin.stores.boxSetting.forceOpenTitle")}
                 </Button>
               </div>
             )}
@@ -213,13 +215,13 @@ export function BoxSettingModal({
 
           <DialogFooter>
             <Button variant="outline" onClick={onClose}>
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               onClick={handleSaveStatus}
               disabled={saving}
             >
-              {saving ? "Đang lưu..." : "Lưu"}
+              {saving ? t("common.saving") : t("button.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

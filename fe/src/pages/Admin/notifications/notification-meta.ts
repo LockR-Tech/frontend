@@ -1,34 +1,38 @@
 import { NotificationType } from "~/types/admin/enums";
+import i18n from "~/utils/i18n";
 
 // Nhãn cho các loại thông báo backend thật sự gửi; loại lạ hiện nguyên mã.
-const TYPE_LABELS: Record<string, string> = {
-  [NotificationType.SYSTEM]: "Hệ thống",
-  [NotificationType.OPEN_PROMOTION_TAB]: "Khuyến mãi",
-  [NotificationType.ORDER_CREATED]: "Tạo đơn",
-  [NotificationType.ORDER_STATUS]: "Đổi trạng thái đơn",
-  [NotificationType.ORDER_PARCEL_READY]: "Hàng chờ nhận",
-  [NotificationType.ORDER_PARCEL_STORED]: "Đã gửi hàng vào tủ",
-  [NotificationType.ORDER_PICKUP_OVERDUE]: "Quá hạn lấy hàng",
-  [NotificationType.ORDER_EXPIRED]: "Chuyển kho do quá hạn",
-  [NotificationType.ORDER_RENTAL_EXTENDED]: "Gia hạn thuê ô",
-  [NotificationType.ORDER_RELOCATED]: "Chuyển sang ô mới",
-  [NotificationType.ORDER_DELEGATED]: "Uỷ quyền nhận hàng",
-  [NotificationType.ORDER_ESCROWED]: "Niêm phong về Hub",
-  [NotificationType.PAYMENT_COMPLETED]: "Thanh toán thành công",
-  [NotificationType.REFUND_COMPLETED]: "Đã hoàn tiền",
-  [NotificationType.REFUND_REJECTED]: "Từ chối hoàn tiền",
-  [NotificationType.DRONE_ORDER_CREATED]: "Đơn drone mới",
-  [NotificationType.DRONE_DELIVERY_STATUS_CHANGED]: "Trạng thái giao drone",
-  [NotificationType.DRONE_INCIDENT]: "Sự cố drone",
-  [NotificationType.DRONE_INCIDENT_RESOLUTION_PROPOSED]: "Đề xuất xử lý sự cố",
-  [NotificationType.DRONE_PARCEL_DROP_REPORTED]: "Báo rơi kiện hàng",
-  [NotificationType.DRONE_PARCEL_RECOVERY_ASSIGNED]: "Giao thu hồi kiện hàng",
-  [NotificationType.FEEDBACK_REPLY]: "Phản hồi góp ý",
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  [NotificationType.SYSTEM]: "admin.notifications.type.systemAlert",
+  [NotificationType.OPEN_PROMOTION_TAB]: "admin.notifications.type.promotion",
+  [NotificationType.ORDER_CREATED]: "admin.notifications.type.orderCreated",
+  [NotificationType.ORDER_STATUS]: "admin.notifications.type.orderStatus",
+  [NotificationType.ORDER_PARCEL_READY]: "admin.notifications.type.orderParcelReady",
+  [NotificationType.ORDER_PARCEL_STORED]: "admin.notifications.type.orderParcelStored",
+  [NotificationType.ORDER_PICKUP_OVERDUE]: "admin.notifications.type.orderPickupOverdue",
+  [NotificationType.ORDER_EXPIRED]: "admin.notifications.type.orderExpired",
+  [NotificationType.ORDER_RENTAL_EXTENDED]: "admin.notifications.type.orderRentalExtended",
+  [NotificationType.ORDER_RELOCATED]: "admin.notifications.type.orderRelocated",
+  [NotificationType.ORDER_DELEGATED]: "admin.notifications.type.orderDelegated",
+  [NotificationType.ORDER_ESCROWED]: "admin.notifications.type.orderEscrowed",
+  [NotificationType.PAYMENT_COMPLETED]: "admin.notifications.type.paymentCompleted",
+  [NotificationType.REFUND_COMPLETED]: "admin.notifications.type.refundCompleted",
+  [NotificationType.REFUND_REJECTED]: "admin.notifications.type.refundRejected",
+  [NotificationType.DRONE_ORDER_CREATED]: "admin.notifications.type.droneOrderCreated",
+  [NotificationType.DRONE_DELIVERY_STATUS_CHANGED]: "admin.notifications.type.droneDeliveryStatusChanged",
+  [NotificationType.DRONE_INCIDENT]: "admin.notifications.type.droneIncident",
+  [NotificationType.DRONE_INCIDENT_RESOLUTION_PROPOSED]:
+    "admin.notifications.type.droneIncidentResolutionProposed",
+  [NotificationType.DRONE_PARCEL_DROP_REPORTED]: "admin.notifications.type.droneParcelDropReported",
+  [NotificationType.DRONE_PARCEL_RECOVERY_ASSIGNED]:
+    "admin.notifications.type.droneParcelRecoveryAssigned",
+  [NotificationType.FEEDBACK_REPLY]: "admin.notifications.type.feedbackReply",
 };
 
 export function notificationTypeLabel(type: string | null | undefined): string {
   if (!type) return "—";
-  return TYPE_LABELS[type] ?? type;
+  const key = TYPE_LABEL_KEYS[type];
+  return key ? i18n.t(key) : type;
 }
 
 /** Nhóm màu theo tiền tố loại. */
@@ -47,13 +51,13 @@ export function notificationTypeStyle(type: string | null | undefined): string {
 export const COMPOSE_TYPE_OPTIONS = [
   {
     value: NotificationType.SYSTEM,
-    label: "Hệ thống",
-    hint: "Bấm vào mở chi tiết thông báo trên app.",
+    labelKey: "admin.notifications.type.systemAlert",
+    hintKey: "admin.notifications.composeHint.system",
   },
   {
     value: NotificationType.OPEN_PROMOTION_TAB,
-    label: "Khuyến mãi",
-    hint: "Bấm vào mở tab Khuyến mãi trên app.",
+    labelKey: "admin.notifications.type.promotion",
+    hintKey: "admin.notifications.composeHint.promotion",
   },
 ] as const;
 
@@ -61,7 +65,7 @@ export const COMPOSE_TYPE_OPTIONS = [
 export function notificationErrorMessage(err: unknown, fallback: string): string {
   const e = err as { data?: { message?: unknown }; status?: unknown } | undefined;
   if (typeof e?.data?.message === "string" && e.data.message.trim()) return e.data.message;
-  if (e?.status === "FETCH_ERROR") return "Không kết nối được máy chủ";
-  if (e?.status === 404 || e?.status === 405) return "Máy chủ chưa hỗ trợ thao tác này";
+  if (e?.status === "FETCH_ERROR") return i18n.t("common.serverUnreachable");
+  if (e?.status === 404 || e?.status === 405) return i18n.t("admin.notifications.error.unsupported");
   return fallback;
 }

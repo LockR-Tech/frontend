@@ -18,6 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -61,6 +62,7 @@ const toForm = (store: StoreRecord) => ({
 });
 
 export default function StoreDetailPage() {
+  const { t } = useTranslation();
   const { storeId } = useParams<{ storeId: string }>();
   const navigate = useNavigate();
   const { store, lockers, isLoading, refetch, revenueStats, revenueError } =
@@ -103,7 +105,7 @@ export default function StoreDetailPage() {
       setImageOverride(pickImageUrl(fresh?.data) ?? null);
     }
     setImageBroken(false);
-    toast.success("Đã cập nhật ảnh địa điểm");
+    toast.success(t("admin.stores.detail.imageUpdated"));
   };
 
   const handleRemoveStoreImage = async () => {
@@ -112,9 +114,9 @@ export default function StoreDetailPage() {
       await deleteStoreImage(Number(storeId)).unwrap();
       setImageOverride(null);
       setImageBroken(false);
-      toast.success("Đã xoá ảnh địa điểm");
+      toast.success(t("admin.stores.detail.imageRemoved"));
     } catch (err) {
-      toast.error("Không xoá được ảnh", { description: getMediaErrorMessage(err) });
+      toast.error(t("admin.stores.detail.imageRemoveFailed"), { description: getMediaErrorMessage(err) });
     } finally {
       setShowRemoveImage(false);
     }
@@ -147,7 +149,7 @@ export default function StoreDetailPage() {
     if (!store) return;
     if (!formData.name.trim()) {
       setShowConfirm(false);
-      toast.error("Tên địa điểm không được để trống");
+      toast.error(t("admin.stores.detail.nameRequired"));
       return;
     }
     setIsSaving(true);
@@ -169,11 +171,11 @@ export default function StoreDetailPage() {
       }).unwrap();
       setIsDirty(false);
       setShowConfirm(false);
-      toast.success("Đã cập nhật thông tin địa điểm");
+      toast.success(t("admin.stores.detail.updated"));
     } catch (error) {
       setShowConfirm(false);
-      toast.error("Không lưu được thông tin địa điểm", {
-        description: storeErrorMessage(error, "Vui lòng thử lại."),
+      toast.error(t("admin.stores.detail.saveFailed"), {
+        description: storeErrorMessage(error, t("common.pleaseRetry")),
       });
     } finally {
       setIsSaving(false);
@@ -185,11 +187,15 @@ export default function StoreDetailPage() {
     const nextStatus = isStoreActive(store) ? "INACTIVE" : "ACTIVE";
     try {
       await updateStoreStatus({ id: store.id, data: { status: nextStatus } }).unwrap();
-      toast.success(nextStatus === "ACTIVE" ? "Đã kích hoạt địa điểm" : "Đã ngừng hoạt động địa điểm");
+      toast.success(
+        nextStatus === "ACTIVE"
+          ? t("admin.stores.detail.activated")
+          : t("admin.stores.detail.deactivated"),
+      );
       setShowStatusConfirm(false);
     } catch (error) {
-      toast.error("Không đổi được trạng thái", {
-        description: storeErrorMessage(error, "Vui lòng thử lại."),
+      toast.error(t("admin.stores.detail.statusFailed"), {
+        description: storeErrorMessage(error, t("common.pleaseRetry")),
       });
     }
   };
@@ -212,10 +218,10 @@ export default function StoreDetailPage() {
     return (
       <div className="text-center py-12">
         <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground/70" />
-        <h3 className="mt-4 text-lg font-medium">Không tìm thấy địa điểm</h3>
+        <h3 className="mt-4 text-lg font-medium">{t("admin.stores.detail.notFound")}</h3>
         <Button onClick={() => navigate(-1)} className="mt-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại
+          {t("button.back")}
         </Button>
       </div>
     );
@@ -233,19 +239,19 @@ export default function StoreDetailPage() {
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận lưu thay đổi?</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.stores.detail.confirmSaveTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn lưu các thay đổi của địa điểm này không?
+              {t("admin.stores.detail.confirmSaveDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>{t("button.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleSave}
               disabled={isSaving}
               className="bg-primary text-primary-foreground hover:opacity-90"
             >
-              {isSaving ? "Đang lưu..." : "Lưu"}
+              {isSaving ? t("common.saving") : t("button.save")}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
@@ -259,16 +265,18 @@ export default function StoreDetailPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {active ? "Ngừng hoạt động địa điểm?" : "Kích hoạt lại địa điểm?"}
+              {active
+                ? t("admin.stores.detail.deactivateTitle")
+                : t("admin.stores.detail.reactivateTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {active
-                ? "Địa điểm sẽ chuyển sang trạng thái INACTIVE."
-                : "Địa điểm sẽ chuyển sang trạng thái ACTIVE."}
+                ? t("admin.stores.detail.toInactive")
+                : t("admin.stores.detail.toActive")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">
-            <AlertDialogCancel disabled={isTogglingStatus}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={isTogglingStatus}>{t("button.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -277,7 +285,11 @@ export default function StoreDetailPage() {
               disabled={isTogglingStatus}
               className={active ? "bg-rose-600 text-white hover:bg-rose-700" : undefined}
             >
-              {isTogglingStatus ? "Đang cập nhật..." : active ? "Ngừng hoạt động" : "Kích hoạt"}
+              {isTogglingStatus
+                ? t("admin.stores.detail.updating")
+                : active
+                  ? t("admin.stores.detail.deactivate")
+                  : t("dropdown.activate")}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
@@ -287,13 +299,13 @@ export default function StoreDetailPage() {
       <AlertDialog open={showRemoveImage} onOpenChange={setShowRemoveImage}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xoá ảnh địa điểm?</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.stores.detail.removeImageTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Ảnh hiện tại sẽ bị gỡ khỏi địa điểm và xoá khỏi kho lưu trữ ảnh.
+              {t("admin.stores.detail.removeImageDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">
-            <AlertDialogCancel disabled={isRemovingImage}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={isRemovingImage}>{t("button.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -302,7 +314,7 @@ export default function StoreDetailPage() {
               disabled={isRemovingImage}
               className="bg-rose-600 text-white hover:bg-rose-700"
             >
-              {isRemovingImage ? "Đang xoá..." : "Xoá ảnh"}
+              {isRemovingImage ? t("admin.stores.detail.removing") : t("common.removePhoto")}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
@@ -316,7 +328,9 @@ export default function StoreDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">{store.name}</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Mã địa điểm: #{store.id}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {t("admin.stores.detail.storeCode", { id: store.id })}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -329,7 +343,7 @@ export default function StoreDetailPage() {
                 disabled={isSaving}
               >
                 <X className="mr-1.5 h-3.5 w-3.5" />
-                Hủy
+                {t("button.cancel")}
               </Button>
               <Button
                 size="sm"
@@ -338,7 +352,7 @@ export default function StoreDetailPage() {
                 className="bg-primary text-primary-foreground hover:opacity-90 shadow-xs"
               >
                 <Save className="mr-1.5 h-3.5 w-3.5" />
-                {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
+                {isSaving ? t("common.saving") : t("common.saveChanges")}
               </Button>
             </>
           )}
@@ -350,7 +364,7 @@ export default function StoreDetailPage() {
                 : "bg-secondary text-muted-foreground border-border"
             }
           >
-            {active ? "Đang hoạt động" : "Ngừng hoạt động"}
+            {active ? t("admin.stores.detail.active") : t("admin.stores.detail.inactive")}
           </Badge>
           <Button
             variant="outline"
@@ -363,7 +377,7 @@ export default function StoreDetailPage() {
             ) : (
               <Power className="mr-1.5 h-3.5 w-3.5" />
             )}
-            {active ? "Ngừng hoạt động" : "Kích hoạt"}
+            {active ? t("admin.stores.detail.deactivate") : t("dropdown.activate")}
           </Button>
         </div>
       </div>
@@ -376,7 +390,7 @@ export default function StoreDetailPage() {
             {storeImage && !imageBroken ? (
               <img
                 src={storeImage}
-                alt={`Ảnh địa điểm ${store.name}`}
+                alt={t("admin.stores.detail.imageAlt", { name: store.name })}
                 className="w-full h-full object-cover absolute inset-0"
                 onError={() => setImageBroken(true)}
               />
@@ -384,7 +398,9 @@ export default function StoreDetailPage() {
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/70">
                 <ImageIcon className="h-10 w-10" aria-hidden />
                 <span className="text-xs">
-                  {storeImage ? "Không tải được ảnh" : "Chưa có ảnh địa điểm"}
+                  {storeImage
+                    ? t("admin.stores.detail.imageLoadFailed")
+                    : t("admin.stores.detail.noImage")}
                 </span>
               </div>
             )}
@@ -395,11 +411,11 @@ export default function StoreDetailPage() {
                   type="button"
                   onClick={() => setShowRemoveImage(true)}
                   disabled={isRemovingImage}
-                  aria-label="Xoá ảnh địa điểm"
+                  aria-label={t("admin.stores.detail.removeImageAria")}
                   className="flex items-center gap-1.5 bg-background/90 hover:bg-background text-rose-700 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border/40 shadow-xs backdrop-blur-xs transition-all disabled:opacity-60"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Xoá ảnh
+                  {t("common.removePhoto")}
                 </button>
               )}
               <ImageUploadButton
@@ -407,10 +423,10 @@ export default function StoreDetailPage() {
                 variant="outline"
                 size="sm"
                 className="h-auto gap-1.5 bg-background/90 hover:bg-background text-foreground text-xs font-medium px-2.5 py-1.5 rounded-lg border-border/40 shadow-xs backdrop-blur-xs"
-                errorTitle="Không đổi được ảnh địa điểm"
+                errorTitle={t("admin.stores.detail.changeImageFailed")}
                 onUploaded={handleStoreImageUploaded}
               >
-                Đổi ảnh
+                {t("common.changePhoto")}
               </ImageUploadButton>
             </div>
             <div className="absolute top-3 left-3">
@@ -421,7 +437,7 @@ export default function StoreDetailPage() {
                     : "bg-background/90 text-foreground border-border/40"
                 }`}
               >
-                {active ? "Đang hoạt động" : "Ngừng hoạt động"}
+                {active ? t("admin.stores.detail.active") : t("admin.stores.detail.inactive")}
               </span>
             </div>
           </div>
@@ -431,30 +447,30 @@ export default function StoreDetailPage() {
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                  Tên địa điểm
+                  {t("admin.stores.modal.name")}
                 </label>
                 <Input
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Nhập tên địa điểm"
+                  placeholder={t("admin.stores.detail.namePlaceholder")}
                   className="font-medium"
                 />
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> Địa chỉ
+                  <MapPin className="h-3 w-3" /> {t("common.address")}
                 </label>
                 <Input
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="Nhập địa chỉ"
+                  placeholder={t("admin.stores.detail.addressPlaceholder")}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                  <Phone className="h-3 w-3" /> Điện thoại
+                  <Phone className="h-3 w-3" /> {t("common.phoneShort")}
                 </label>
                 <Input
                   value={formData.contactPhone}
@@ -464,19 +480,19 @@ export default function StoreDetailPage() {
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                  Mô tả
+                  {t("common.description")}
                 </label>
                 <Input
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
-                  placeholder="Mô tả ngắn về địa điểm"
+                  placeholder={t("admin.stores.detail.descriptionPlaceholder")}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 pt-2 border-t">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                  Vĩ độ (Latitude)
+                  {t("admin.stores.form.latitude")}
                 </label>
                 <Input
                   type="number"
@@ -485,12 +501,12 @@ export default function StoreDetailPage() {
                   onChange={(e) =>
                     handleInputChange("latitude", e.target.value)
                   }
-                  placeholder="VD: 10.8412"
+                  placeholder={t("admin.stores.form.latPlaceholder")}
                 />
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                  Kinh độ (Longitude)
+                  {t("admin.stores.form.longitude")}
                 </label>
                 <Input
                   type="number"
@@ -499,7 +515,7 @@ export default function StoreDetailPage() {
                   onChange={(e) =>
                     handleInputChange("longitude", e.target.value)
                   }
-                  placeholder="VD: 106.8098"
+                  placeholder={t("admin.stores.form.lngPlaceholder")}
                 />
               </div>
             </div>
@@ -513,24 +529,24 @@ export default function StoreDetailPage() {
           {/* Stats */}
           <div className="p-5">
             <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-              <TrendingUp className="h-3.5 w-3.5" /> Thống kê
+              <TrendingUp className="h-3.5 w-3.5" /> {t("admin.stores.detail.stats")}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
                 <p className="text-xl font-bold text-foreground">
                   {lockersList.length}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">Tổng Kiosk</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("admin.stores.detail.totalKiosks")}</p>
               </div>
               <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
                 <p className="text-xl font-bold text-foreground">{totalBoxes}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Tổng box</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("admin.stores.detail.totalBoxes")}</p>
               </div>
               <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
                 <p className="text-xl font-bold text-foreground">
                   {availableBoxes}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">Box trống</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("admin.stores.detail.freeBoxes")}</p>
               </div>
               <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
                 <p className="text-xl font-bold text-foreground">
@@ -538,15 +554,15 @@ export default function StoreDetailPage() {
                 </p>
                 <p
                   className="text-xs text-muted-foreground mt-0.5"
-                  title={revenueError?.message ?? "Đơn tạo trong 12 tháng gần nhất"}
+                  title={revenueError?.message ?? t("admin.stores.detail.ordersHint")}
                 >
-                  Đơn hàng (12 tháng)
+                  {t("admin.stores.detail.orders12m")}
                 </p>
               </div>
             </div>
             <div className="mt-3">
               <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Tỉ lệ sử dụng</span>
+                <span>{t("admin.stores.detail.usageRate")}</span>
                 <span className="font-semibold text-foreground">
                   {totalBoxes > 0
                     ? Math.round(
@@ -570,23 +586,23 @@ export default function StoreDetailPage() {
           {/* History */}
           <div className="p-5">
             <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-              <Calendar className="h-3.5 w-3.5" /> Lịch sử
+              <Calendar className="h-3.5 w-3.5" /> {t("admin.stores.detail.history")}
             </p>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-muted-foreground/70">Ngày tạo</p>
+                <p className="text-xs text-muted-foreground/70">{t("common.createdAt")}</p>
                 <p className="text-sm font-semibold text-foreground/80 mt-0.5">
                   {formatDateTime(store.createdAt)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground/70">Cập nhật cuối</p>
+                <p className="text-xs text-muted-foreground/70">{t("admin.stores.detail.lastUpdated")}</p>
                 <p className="text-sm font-semibold text-foreground/80 mt-0.5">
                   {formatDateTime(store.updatedAt)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground/70">Mã địa điểm</p>
+                <p className="text-xs text-muted-foreground/70">{t("admin.stores.detail.storeCodeLabel")}</p>
                 <p className="text-sm font-mono font-semibold text-foreground/80 mt-0.5">
                   #{store.id}
                 </p>
@@ -601,7 +617,7 @@ export default function StoreDetailPage() {
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/60">
           <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground">
             <Package className="h-4 w-4 text-muted-foreground" />
-            Danh sách Kiosk
+            {t("admin.stores.detail.kioskList")}
             <Badge variant="secondary" className="ml-1 text-xs">
               {lockersList.length}
             </Badge>
@@ -614,7 +630,7 @@ export default function StoreDetailPage() {
               onClick={() => refetch?.()}
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1" />
-              Làm mới
+              {t("button.refresh")}
             </Button>
             <Button
               size="sm"
@@ -622,7 +638,7 @@ export default function StoreDetailPage() {
               onClick={() => setShowAddLocker(true)}
             >
               <Plus className="h-3.5 w-3.5 mr-1" />
-              Thêm Kiosk
+              {t("admin.stores.detail.addKiosk")}
             </Button>
           </div>
         </div>
@@ -630,14 +646,14 @@ export default function StoreDetailPage() {
           {lockersList.length === 0 ? (
             <div className="py-10 text-center text-muted-foreground">
               <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">Chưa có Kiosk nào tại địa điểm này</p>
+              <p className="text-sm">{t("admin.stores.detail.noKiosks")}</p>
               <Button
                 size="sm"
                 className="mt-3"
                 onClick={() => setShowAddLocker(true)}
               >
                 <Plus className="h-3.5 w-3.5 mr-1" />
-                Thêm Kiosk đầu tiên
+                {t("admin.stores.detail.addFirstKiosk")}
               </Button>
             </div>
           ) : (

@@ -95,7 +95,8 @@ export function CreateNotificationModal({
     }
   };
 
-  const typeHint = COMPOSE_TYPE_OPTIONS.find((o) => o.value === formData.type)?.hint;
+  const typeHintKey = COMPOSE_TYPE_OPTIONS.find((o) => o.value === formData.type)?.hintKey;
+  const typeHint = typeHintKey ? t(typeHintKey) : undefined;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -120,7 +121,7 @@ export function CreateNotificationModal({
               <SelectContent>
                 {COMPOSE_TYPE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -147,7 +148,9 @@ export function CreateNotificationModal({
                 <p
                   className={`text-xs ${recipientName ? "text-muted-foreground" : "text-amber-600"}`}
                 >
-                  {recipientName ? `Người nhận: ${recipientName}` : "Không tìm thấy người dùng này"}
+                  {recipientName
+                    ? t("admin.notifications.create.recipientName", { name: recipientName })
+                    : t("admin.notifications.create.recipientNotFound")}
                 </p>
               )}
             </div>

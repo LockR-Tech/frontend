@@ -28,6 +28,7 @@ import {
   useUpdateFeedbackStatusMutation,
   useReplyToFeedbackMutation,
 } from "~/stores/apis/admin";
+import { useTranslation } from "react-i18next";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 // Chuỗi backend không kèm múi giờ = UTC, phải qua formatDateTime mới ra giờ VN.
@@ -35,9 +36,9 @@ function fmtDate(d: string) {
   return formatDateTime(d);
 }
 
-function errorMessage(err: unknown): string {
+function errorMessage(err: unknown, fallback: string): string {
   const data = (err as { data?: { message?: string } } | undefined)?.data;
-  return data?.message || "Đã xảy ra lỗi, vui lòng thử lại.";
+  return data?.message || fallback;
 }
 
 function StarRow({ rating, size = 16 }: { rating: number; size?: number }) {
@@ -98,6 +99,7 @@ function LoadingSkeleton() {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function FeedbackDetailPage() {
+  const { t } = useTranslation();
   const { feedbackId } = useParams<{ feedbackId: string }>();
   const navigate = useNavigate();
   const id = Number(feedbackId);
@@ -124,13 +126,13 @@ export default function FeedbackDetailPage() {
           <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft size={16} />
           </Button>
-          <h1 className="text-xl font-bold">Chi tiết phản hồi</h1>
+          <h1 className="text-xl font-bold">{t("admin.feedback.detail.title")}</h1>
         </div>
         <div className="flex flex-col items-center gap-4 py-16">
           <AlertCircle size={44} className="text-muted-foreground/50" />
-          <p className="text-muted-foreground">Không tìm thấy phản hồi.</p>
+          <p className="text-muted-foreground">{t("admin.feedback.detail.notFound")}</p>
           <Button variant="outline" size="sm" onClick={refetch}>
-            Thử lại
+            {t("common.retry")}
           </Button>
         </div>
       </div>
@@ -144,24 +146,28 @@ export default function FeedbackDetailPage() {
         id,
         data: { status: !isResolved ? "RESOLVED" : "PENDING" },
       }).unwrap();
-      toast.success(!isResolved ? "Đã đánh dấu đã xử lý" : "Đã mở lại phản hồi");
+      toast.success(
+        !isResolved ? t("admin.feedback.detail.markedResolved") : t("admin.feedback.detail.reopened"),
+      );
     } catch (err) {
-      toast.error("Không cập nhật được trạng thái", { description: errorMessage(err) });
+      toast.error(t("admin.feedback.detail.statusUpdateFailed"), {
+        description: errorMessage(err, t("admin.feedback.detail.genericError")),
+      });
     }
   }
 
   async function handleReply() {
     if (!replyText.trim()) {
-      setReplyError("Vui lòng nhập nội dung phản hồi.");
+      setReplyError(t("admin.feedback.detail.replyRequired"));
       return;
     }
     setReplyError("");
     try {
       await replyFeedback({ id, data: { reply: replyText.trim() } }).unwrap();
       setReplyText("");
-      toast.success("Đã gửi phản hồi tới khách hàng");
+      toast.success(t("admin.feedback.detail.replySent"));
     } catch (err) {
-      setReplyError(errorMessage(err));
+      setReplyError(errorMessage(err, t("admin.feedback.detail.genericError")));
     }
   }
 
@@ -182,10 +188,10 @@ export default function FeedbackDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Chi tiết phản hồi #{fb.id}
+              {t("admin.feedback.detail.titleWithId", { id: fb.id })}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Tạo lúc {fmtDate(fb.createdAt)}
+              {t("admin.feedback.detail.createdAt", { date: fmtDate(fb.createdAt) })}
             </p>
           </div>
         </div>
@@ -199,7 +205,7 @@ export default function FeedbackDetailPage() {
                 : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 text-xs px-2.5 py-0.5"
             }
           >
-            {isResolved ? "Đã xử lý" : "Chờ xử lý"}
+            {isResolved ? t("admin.feedback.status.resolved") : t("admin.feedback.status.pending")}
           </Badge>
           <Button
             variant="outline"
@@ -210,11 +216,11 @@ export default function FeedbackDetailPage() {
           >
             {isResolved ? (
               <>
-                <Clock size={13} /> Đánh dấu chờ xử lý
+                <Clock size={13} /> {t("admin.feedback.detail.markPending")}
               </>
             ) : (
               <>
-                <CheckCircle2 size={13} /> Đánh dấu đã xử lý
+                <CheckCircle2 size={13} /> {t("admin.feedback.detail.markResolved")}
               </>
             )}
           </Button>
@@ -229,7 +235,7 @@ export default function FeedbackDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Star size={16} className="text-foreground/70" />
-                Nội dung đánh giá
+                {t("admin.feedback.detail.ratingContent")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -241,17 +247,17 @@ export default function FeedbackDetailPage() {
                   <StarRow rating={fb.rating} size={18} />
                   <p className="text-xs text-muted-foreground mt-1">
                     {fb.rating >= 4
-                      ? "Rất hài lòng"
+                      ? t("admin.feedback.detail.sentiment.veryHappy")
                       : fb.rating === 3
-                        ? "Bình thường"
-                        : "Không hài lòng"}
+                        ? t("admin.feedback.detail.sentiment.neutral")
+                        : t("admin.feedback.detail.sentiment.unhappy")}
                   </p>
                 </div>
               </div>
 
               {fb.comment && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1.5">Nhận xét</p>
+                  <p className="text-xs text-muted-foreground mb-1.5">{t("admin.feedback.detail.comment")}</p>
                   <div className="bg-muted/30 border border-border/30 p-4 rounded-xl text-foreground leading-relaxed whitespace-pre-wrap text-sm">
                     {fb.comment}
                   </div>
@@ -264,7 +270,7 @@ export default function FeedbackDetailPage() {
                   <div className="flex items-center gap-2">
                     <ShoppingBag size={14} className="text-muted-foreground/70" />
                     <span className="text-sm text-muted-foreground">
-                      Đơn hàng liên quan:
+                      {t("admin.feedback.detail.relatedOrder")}
                     </span>
                     <Badge
                       variant="outline"
@@ -299,7 +305,7 @@ export default function FeedbackDetailPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
                   <MessageSquare size={16} />
-                  Phản hồi từ quản trị viên
+                  {t("admin.feedback.detail.adminReply")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -308,7 +314,7 @@ export default function FeedbackDetailPage() {
                 </div>
                 {fb.repliedAt && (
                   <p className="text-xs text-muted-foreground">
-                    Đã phản hồi lúc {fmtDate(fb.repliedAt)}
+                    {t("admin.feedback.detail.repliedAt", { date: fmtDate(fb.repliedAt) })}
                   </p>
                 )}
               </CardContent>
@@ -320,12 +326,12 @@ export default function FeedbackDetailPage() {
             <Card className="border-border bg-secondary/30 shadow-xs">
               <CardContent className="p-4 flex flex-wrap gap-6">
                 {fb.resolvedBy && (
-                  <LabelValue label="Giải quyết bởi">
+                  <LabelValue label={t("admin.feedback.detail.resolvedBy")}>
                     {fb.resolvedBy}
                   </LabelValue>
                 )}
                 {fb.resolvedAt && (
-                  <LabelValue label="Thời gian giải quyết">
+                  <LabelValue label={t("admin.feedback.detail.resolvedAt")}>
                     {fmtDate(fb.resolvedAt)}
                   </LabelValue>
                 )}
@@ -338,13 +344,13 @@ export default function FeedbackDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <MessageSquare size={16} className="text-muted-foreground" />
-                {fb.adminReply ? "Cập nhật phản hồi" : "Thêm phản hồi"}
+                {fb.adminReply ? t("admin.feedback.detail.updateReply") : t("admin.feedback.detail.addReply")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Textarea
                 rows={4}
-                placeholder="Nhập nội dung phản hồi cho khách hàng..."
+                placeholder={t("admin.feedback.detail.replyPlaceholder")}
                 value={replyText}
                 onChange={(e) => {
                   setReplyText(e.target.value);
@@ -363,7 +369,7 @@ export default function FeedbackDetailPage() {
                   className="gap-2 bg-primary text-primary-foreground hover:opacity-90 shadow-xs"
                 >
                   <MessageSquare size={14} />
-                  {replying ? "Đang gửi..." : "Gửi phản hồi"}
+                  {replying ? t("admin.feedback.detail.sending") : t("admin.feedback.detail.sendReply")}
                 </Button>
               </div>
             </CardContent>
@@ -377,7 +383,7 @@ export default function FeedbackDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <User size={16} />
-                Thông tin khách hàng
+                {t("admin.feedback.detail.customerInfo")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -388,8 +394,8 @@ export default function FeedbackDetailPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold text-foreground">{fb.userName || "Khách hàng"}</p>
-                  <p className="text-xs text-muted-foreground">Mã KH #{fb.userId}</p>
+                  <p className="font-semibold text-foreground">{fb.userName || t("common.customer")}</p>
+                  <p className="text-xs text-muted-foreground">{t("admin.feedback.detail.customerId", { id: fb.userId })}</p>
                 </div>
               </div>
 
@@ -421,20 +427,20 @@ export default function FeedbackDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Calendar size={16} />
-                Lịch sử
+                {t("admin.feedback.detail.history")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ol className="relative border-l border-border ml-2 space-y-5">
                 <li className="ml-4">
                   <div className="absolute -left-1 mt-1.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-background" />
-                  <p className="text-xs text-muted-foreground">Tạo đánh giá</p>
+                  <p className="text-xs text-muted-foreground">{t("admin.feedback.detail.timeline.created")}</p>
                   <p className="text-sm font-medium">{fmtDate(fb.createdAt)}</p>
                 </li>
                 {fb.repliedAt && (
                   <li className="ml-4">
                     <div className="absolute -left-1 mt-1.5 w-2.5 h-2.5 rounded-full bg-muted-foreground ring-4 ring-background" />
-                    <p className="text-xs text-muted-foreground">Admin phản hồi</p>
+                    <p className="text-xs text-muted-foreground">{t("admin.feedback.detail.timeline.adminReplied")}</p>
                     <p className="text-sm font-medium">
                       {fmtDate(fb.repliedAt)}
                     </p>
@@ -443,7 +449,7 @@ export default function FeedbackDetailPage() {
                 {fb.resolvedAt && (
                   <li className="ml-4">
                     <div className="absolute -left-1 mt-1.5 w-2.5 h-2.5 rounded-full bg-foreground ring-4 ring-background" />
-                    <p className="text-xs text-muted-foreground">Đã giải quyết</p>
+                    <p className="text-xs text-muted-foreground">{t("admin.feedback.detail.timeline.resolved")}</p>
                     <p className="text-sm font-medium">
                       {fmtDate(fb.resolvedAt)}
                     </p>
@@ -452,7 +458,7 @@ export default function FeedbackDetailPage() {
                 {fb.updatedAt !== fb.createdAt && (
                   <li className="ml-4">
                     <div className="absolute -left-1 mt-1.5 w-2.5 h-2.5 rounded-full bg-border ring-4 ring-background" />
-                    <p className="text-xs text-muted-foreground">Cập nhật gần nhất</p>
+                    <p className="text-xs text-muted-foreground">{t("admin.feedback.detail.timeline.lastUpdated")}</p>
                     <p className="text-sm font-medium">
                       {fmtDate(fb.updatedAt)}
                     </p>

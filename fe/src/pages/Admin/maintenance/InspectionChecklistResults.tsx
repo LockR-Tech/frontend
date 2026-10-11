@@ -1,16 +1,18 @@
+import { useTranslation } from "react-i18next";
 import { Badge } from "~/components/ui/badge";
 import { INSPECTION_ITEM_META, parseChecklistResults } from "./maintenancePhotos";
 
 /// Biên bản checklist của một lần kiểm tra định kỳ: bản ghi mới là JSON từng mục
 /// (PASS/FAIL/NA + ghi chú), bản ghi cũ là văn bản tự do — hiển thị được cả hai.
 export function InspectionChecklistResults({ raw }: { raw?: string | null }) {
+  const { t } = useTranslation();
   const parsed = parseChecklistResults(raw);
   if (!parsed) return null;
 
   if (parsed.kind === "text") {
     return (
       <p className="text-[11px] text-muted-foreground bg-muted/30 p-2 rounded-md">
-        <span className="font-semibold text-foreground">Checklist (dữ liệu cũ): </span>
+        <span className="font-semibold text-foreground">{t("admin.maintenance.photos.inspection.legacyChecklist")} </span>
         {parsed.text}
       </p>
     );

@@ -7,6 +7,7 @@ import {
   Clock,
   Archive,
 } from "lucide-react";
+import { Trans, useTranslation } from "react-i18next";
 import type { DashboardOverviewResponse } from "~/types/admin/dashboard";
 
 interface OverviewSectionProps {
@@ -16,28 +17,29 @@ interface OverviewSectionProps {
 }
 
 export function OverviewSection({ data, activeLockers }: OverviewSectionProps) {
+  const { t } = useTranslation();
   const totalBoxes = data.availableBoxes + data.occupiedBoxes;
   const utilization =
     totalBoxes > 0 ? Math.round((data.occupiedBoxes / totalBoxes) * 100) : 0;
 
   const metrics = [
     {
-      label: "Người dùng",
+      label: t("admin.sidebar.users"),
       value: data.totalUsers,
       icon: Users,
     },
     {
-      label: "Địa điểm",
+      label: t("admin.sidebar.stores"),
       value: data.totalStores,
       icon: Store,
     },
     {
-      label: "Tổng số Kiosk",
+      label: t("admin.dashboard.overview.totalKiosks"),
       value: data.totalLockers,
       icon: Boxes,
     },
     {
-      label: "Kiosk đang hoạt động",
+      label: t("admin.dashboard.overview.activeKiosks"),
       value: activeLockers ?? "—",
       icon: Power,
     },
@@ -47,10 +49,10 @@ export function OverviewSection({ data, activeLockers }: OverviewSectionProps) {
     <Card className="card-hover border border-border bg-card h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-          Tổng quan hệ thống
+          {t("admin.dashboard.overview.title")}
         </CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
-          Trạng thái hạ tầng Kiosk và năng lực phục vụ
+          {t("admin.dashboard.overview.description")}
         </CardDescription>
       </CardHeader>
 
@@ -60,7 +62,7 @@ export function OverviewSection({ data, activeLockers }: OverviewSectionProps) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
               <Archive size={14} className="text-muted-foreground" />
-              Tỷ lệ lấp đầy Kiosk
+              {t("admin.dashboard.overview.occupancyRate")}
             </span>
             <span className="text-xs font-bold text-foreground">
               {utilization}%
@@ -75,9 +77,27 @@ export function OverviewSection({ data, activeLockers }: OverviewSectionProps) {
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
-            <span>Khả dụng: <strong className="text-foreground font-semibold">{data.availableBoxes}</strong></span>
-            <span>Đang dùng: <strong className="text-foreground font-semibold">{data.occupiedBoxes}</strong></span>
-            <span>Tổng: <strong className="text-foreground font-semibold">{totalBoxes}</strong></span>
+            <span>
+              <Trans
+                i18nKey="admin.dashboard.overview.available"
+                values={{ value: data.availableBoxes }}
+                components={{ b: <strong className="text-foreground font-semibold" /> }}
+              />
+            </span>
+            <span>
+              <Trans
+                i18nKey="admin.dashboard.overview.inUse"
+                values={{ value: data.occupiedBoxes }}
+                components={{ b: <strong className="text-foreground font-semibold" /> }}
+              />
+            </span>
+            <span>
+              <Trans
+                i18nKey="admin.dashboard.overview.total"
+                values={{ value: totalBoxes }}
+                components={{ b: <strong className="text-foreground font-semibold" /> }}
+              />
+            </span>
           </div>
         </div>
 
@@ -111,10 +131,10 @@ export function OverviewSection({ data, activeLockers }: OverviewSectionProps) {
           <div className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/40 border border-border/50 text-xs">
             <span className="flex items-center gap-2 text-muted-foreground">
               <Clock size={14} className="text-muted-foreground" />
-              Đơn chờ xử lý
+              {t("admin.dashboard.overview.pendingOrders")}
             </span>
             <span className="font-semibold text-foreground px-2 py-0.5 rounded bg-card border border-border text-[11px]">
-              {data.pendingOrders} đơn
+              {t("admin.dashboard.chart.ordersValue", { value: data.pendingOrders })}
             </span>
           </div>
         </div>

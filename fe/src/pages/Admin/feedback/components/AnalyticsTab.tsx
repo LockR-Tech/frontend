@@ -10,46 +10,71 @@ import {
 } from "~/stores/apis/admin";
 import type { FeedbackTrendDTO } from "~/types/admin/feedback";
 import { StarRow, ErrorBanner } from "./shared";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 type Period = "day" | "week" | "month";
 
-const PERIOD_LABEL: Record<Period, string> = {
-  day: "14 ngày",
-  week: "12 tuần",
-  month: "12 tháng",
+// Message key cho tiêu đề biểu đồ theo khoảng thời gian.
+const PERIOD_TITLE_KEY: Record<Period, string> = {
+  day: "admin.feedback.analytics.trendTitle.day",
+  week: "admin.feedback.analytics.trendTitle.week",
+  month: "admin.feedback.analytics.trendTitle.month",
+};
+
+const PERIOD_BUTTON_KEY: Record<Period, string> = {
+  day: "admin.feedback.analytics.period.day",
+  week: "admin.feedback.analytics.period.week",
+  month: "admin.feedback.analytics.period.month",
 };
 
 // Loại khiếu nại do khách nhập tự do — chỉ dịch các giá trị đã biết.
-const COMPLAINT_LABEL: Record<string, string> = { OTHER: "Khác" };
+const COMPLAINT_LABEL_KEY: Record<string, string> = {
+  OTHER: "admin.feedback.analytics.complaint.other",
+};
 
 /** `date` là ngày (yyyy-MM-dd) theo giờ Việt Nam do backend gom sẵn. */
-function trendLabel(date: string, period: Period) {
+function trendLabel(date: string, period: Period, t: TFunction) {
   const [y, m, d] = date.split("-");
   if (period === "month") return `${m}/${y}`;
-  return period === "week" ? `T.${d}/${m}` : `${d}/${m}`;
+  return period === "week"
+    ? t("admin.feedback.analytics.weekLabel", { date: `${d}/${m}` })
+    : `${d}/${m}`;
 }
 
 function TrendBars({ trends, period }: { trends: FeedbackTrendDTO[]; period: Period }) {
-  const max = Math.max(1, ...trends.map((t) => t.count));
-  if (trends.every((t) => t.count === 0)) {
-    return <p className="py-8 text-center text-xs text-muted-foreground">Chưa có đánh giá trong khoảng này</p>;
+  const { t } = useTranslation();
+  const max = Math.max(1, ...trends.map((tr) => tr.count));
+  if (trends.every((tr) => tr.count === 0)) {
+    return <p className="py-8 text-center text-xs text-muted-foreground">{t("admin.feedback.analytics.noTrend")}</p>;
   }
   return (
     <div className="flex h-40 items-end gap-1.5">
-      {trends.map((t) => (
+      {trends.map((tr) => (
         <div
-          key={t.date}
+          key={tr.date}
           className="flex min-w-0 flex-1 flex-col items-center gap-1"
-          title={`${trendLabel(t.date, period)}: ${t.count} đánh giá${t.count ? ` · TB ${t.avgRating.toFixed(1)}★` : ""}`}
+          title={
+            tr.count
+              ? t("admin.feedback.analytics.barTitleAvg", {
+                  label: trendLabel(tr.date, period, t),
+                  count: tr.count,
+                  avg: tr.avgRating.toFixed(1),
+                })
+              : t("admin.feedback.analytics.barTitle", {
+                  label: trendLabel(tr.date, period, t),
+                  count: tr.count,
+                })
+          }
         >
-          <span className="text-[10px] text-muted-foreground">{t.count || ""}</span>
+          <span className="text-[10px] text-muted-foreground">{tr.count || ""}</span>
           <div className="flex w-full flex-1 items-end">
             <div
               className="w-full rounded-t bg-primary/80"
-              style={{ height: `${(t.count / max) * 100}%`, minHeight: t.count ? 4 : 0 }}
+              style={{ height: `${(tr.count / max) * 100}%`, minHeight: tr.count ? 4 : 0 }}
             />
           </div>
-          <span className="truncate text-[10px] text-muted-foreground">{trendLabel(t.date, period)}</span>
+          <span className="truncate text-[10px] text-muted-foreground">{trendLabel(tr.date, period, t)}</span>
         </div>
       ))}
     </div>
@@ -57,6 +82,7 @@ function TrendBars({ trends, period }: { trends: FeedbackTrendDTO[]; period: Per
 }
 
 export function AnalyticsTab() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<Period>("month");
 
   const {
@@ -94,7 +120,7 @@ export function AnalyticsTab() {
       <Card className="border border-border">
         <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
           <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <TrendingUp size={15} className="text-muted-foreground" /> Số lượt đánh giá {PERIOD_LABEL[period]} gần nhất
+            <TrendingUp size={15} className="text-muted-foreground" /> {t(PERIOD_TITLE_KEY[period])}
           </CardTitle>
           <div className="flex gap-2">
             {(["day", "week", "month"] as const).map((p) => (
@@ -105,7 +131,7 @@ export function AnalyticsTab() {
                 onClick={() => setPeriod(p)}
                 className="h-8 text-xs"
               >
-                {p === "day" ? "Theo ngày" : p === "week" ? "Theo tuần" : "Theo tháng"}
+                {t(PERIOD_BUTTON_KEY[p])}
               </Button>
             ))}
           </div>
@@ -124,7 +150,7 @@ export function AnalyticsTab() {
         <Card className="border border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <Star size={15} className="text-muted-foreground" /> Tổng quan đánh giá
+              <Star size={15} className="text-muted-foreground" /> {t("admin.feedback.analytics.overview")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -138,7 +164,7 @@ export function AnalyticsTab() {
               <>
                 <div className="flex items-center justify-between p-3 bg-secondary/50 border border-border/60 rounded-xl">
                   <span className="text-xs text-muted-foreground font-medium">
-                    Điểm đánh giá trung bình
+                    {t("admin.feedback.analytics.averageRating")}
                   </span>
                   <div className="flex items-center gap-2">
                     <StarRow
@@ -152,9 +178,9 @@ export function AnalyticsTab() {
 
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: "Hôm nay", value: analytics?.feedbackToday },
-                    { label: "Tuần này", value: analytics?.feedbackThisWeek },
-                    { label: "Tháng này", value: analytics?.feedbackThisMonth },
+                    { label: t("common.today"), value: analytics?.feedbackToday },
+                    { label: t("admin.feedback.analytics.thisWeek"), value: analytics?.feedbackThisWeek },
+                    { label: t("admin.feedback.analytics.thisMonth"), value: analytics?.feedbackThisMonth },
                   ].map(({ label, value }) => (
                     <div
                       key={label}
@@ -196,7 +222,7 @@ export function AnalyticsTab() {
 
                 {analytics?.unresolvedCount !== undefined && (
                   <div className="flex items-center justify-between p-2.5 bg-secondary/40 border border-border/60 rounded-lg">
-                    <span className="text-xs text-muted-foreground font-medium">Phản hồi chờ xử lý</span>
+                    <span className="text-xs text-muted-foreground font-medium">{t("admin.feedback.analytics.pendingFeedback")}</span>
                     <span className="font-bold text-sm text-foreground">
                       {analytics.unresolvedCount.toLocaleString("vi-VN")}
                     </span>
@@ -211,7 +237,7 @@ export function AnalyticsTab() {
         <Card className="border border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <ThumbsUp size={15} className="text-muted-foreground" /> Chỉ số hài lòng
+              <ThumbsUp size={15} className="text-muted-foreground" /> {t("admin.feedback.analytics.satisfaction")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -230,7 +256,7 @@ export function AnalyticsTab() {
                         "—"}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Điểm hài lòng (0-100)
+                      {t("admin.feedback.analytics.satisfactionScore")}
                     </p>
                   </div>
                   <div className="p-4 bg-secondary/40 border border-border/60 rounded-xl text-center">
@@ -239,9 +265,9 @@ export function AnalyticsTab() {
                     </p>
                     <p
                       className="text-xs text-muted-foreground mt-1"
-                      title="Trên thang 5 sao: % đánh giá 5 sao trừ % đánh giá 1–3 sao (−100 đến 100)"
+                      title={t("admin.feedback.analytics.npsHint")}
                     >
-                      Chỉ số NPS (thang 5 sao)
+                      {t("admin.feedback.analytics.nps")}
                     </p>
                   </div>
                 </div>
@@ -249,7 +275,7 @@ export function AnalyticsTab() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-secondary/30 border border-border/50 rounded-lg">
                     <p className="text-xs text-muted-foreground font-medium">
-                      Tích cực (4-5★)
+                      {t("admin.feedback.analytics.positive")}
                     </p>
                     <p className="text-xl font-bold text-foreground mt-1">
                       {satisfaction?.positivePercentage ?? "—"}%
@@ -257,7 +283,7 @@ export function AnalyticsTab() {
                   </div>
                   <div className="p-3 bg-secondary/30 border border-border/50 rounded-lg">
                     <p className="text-xs text-muted-foreground font-medium">
-                      Tiêu cực (1-2★)
+                      {t("admin.feedback.analytics.negative")}
                     </p>
                     <p className="text-xl font-bold text-foreground mt-1">
                       {satisfaction?.negativePercentage ?? "—"}%
@@ -268,11 +294,16 @@ export function AnalyticsTab() {
                 {satisfaction?.mostCommonComplaint && (
                   <div className="p-3 bg-secondary/40 border border-border/60 rounded-lg">
                     <p className="text-xs text-muted-foreground font-medium">
-                      Khiếu nại phổ biến nhất
+                      {t("admin.feedback.analytics.topComplaint")}
                     </p>
                     <p className="text-xs font-semibold text-foreground mt-1">
-                      {COMPLAINT_LABEL[satisfaction.mostCommonComplaint] ?? satisfaction.mostCommonComplaint}
-                      <span className="font-normal text-muted-foreground"> · 90 ngày qua</span>
+                      {COMPLAINT_LABEL_KEY[satisfaction.mostCommonComplaint]
+                        ? t(COMPLAINT_LABEL_KEY[satisfaction.mostCommonComplaint])
+                        : satisfaction.mostCommonComplaint}
+                      <span className="font-normal text-muted-foreground">
+                        {" · "}
+                        {t("admin.feedback.analytics.last90Days")}
+                      </span>
                     </p>
                   </div>
                 )}
@@ -280,7 +311,7 @@ export function AnalyticsTab() {
                 {satisfaction?.topServiceQuality && (
                   <div className="p-3 bg-secondary/40 border border-border/60 rounded-lg">
                     <p className="text-xs text-muted-foreground font-medium">
-                      Dịch vụ được đánh giá cao nhất
+                      {t("admin.feedback.analytics.topService")}
                     </p>
                     <p className="text-xs font-semibold text-foreground mt-1">
                       {orderTypeMeta(satisfaction.topServiceQuality).label}
@@ -292,7 +323,7 @@ export function AnalyticsTab() {
                   0 && (
                   <div className="pt-1">
                     <p className="text-xs text-muted-foreground font-medium mb-2">
-                      Điểm theo dịch vụ
+                      {t("admin.feedback.analytics.scoreByService")}
                     </p>
                     <div className="space-y-2">
                       {Object.entries(satisfaction!.departmentScores).map(

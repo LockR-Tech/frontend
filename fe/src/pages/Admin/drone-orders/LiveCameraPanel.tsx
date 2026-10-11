@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
+import { useTranslation } from "react-i18next";
 import { Battery, Camera, Loader2, MapPin, Radio, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -15,16 +16,18 @@ import {
 
 type PlayerState = DroneCameraMetadata["status"];
 
+// Giá trị là khoá i18n; dịch lúc render.
 const stateLabel: Record<PlayerState, string> = {
-  CONNECTING: "Đang kết nối",
-  LIVE: "Trực tiếp",
-  RECONNECTING: "Đang kết nối lại",
-  OFFLINE: "Mất kết nối",
-  UNAVAILABLE: "Chưa tích hợp camera",
-  ERROR: "Lỗi luồng camera",
+  CONNECTING: "admin.droneOrders.camera.state.connecting",
+  LIVE: "admin.droneOrders.camera.state.live",
+  RECONNECTING: "admin.droneOrders.camera.state.reconnecting",
+  OFFLINE: "common.disconnected",
+  UNAVAILABLE: "admin.droneOrders.camera.state.unavailable",
+  ERROR: "admin.droneOrders.camera.state.error",
 };
 
 export function LiveCameraPanel({ order }: { order: DroneOrderTracking }) {
+  const { t } = useTranslation();
   const { data, isLoading, refetch } = useGetDroneCameraQuery(order.orderId, {
     pollingInterval: 10_000,
   });
@@ -36,14 +39,14 @@ export function LiveCameraPanel({ order }: { order: DroneOrderTracking }) {
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
         <div>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Camera className="h-4 w-4" /> Giám sát camera trực tiếp
+            <Camera className="h-4 w-4" /> {t("admin.droneOrders.camera.title")}
           </CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">
-            Dữ liệu thật từ drone; hệ thống không tạo ảnh hoặc trạng thái giả khi camera mất kết nối.
+            {t("admin.droneOrders.camera.subtitle")}
           </p>
         </div>
         <Button variant="destructive" size="sm" onClick={() => setReportOpen(true)}>
-          <TriangleAlert className="mr-2 h-4 w-4" /> Báo rơi kiện
+          <TriangleAlert className="mr-2 h-4 w-4" /> {t("admin.droneOrders.camera.reportDrop")}
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -66,6 +69,7 @@ export function LiveCameraPanel({ order }: { order: DroneOrderTracking }) {
 }
 
 function CameraPlayer({ camera, onRetry }: { camera: DroneCameraMetadata; onRetry: () => void }) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playerState, setPlayerState] = useState<PlayerState>(camera.status);
 
@@ -120,22 +124,22 @@ function CameraPlayer({ camera, onRetry }: { camera: DroneCameraMetadata; onRetr
         {unavailable ? (
           <div className="max-w-md p-6 text-center text-sm text-slate-300">
             <Camera className="mx-auto mb-3 h-9 w-9 opacity-50" />
-            Chưa có camera gateway cho {camera.droneCode}. Vẫn có thể báo sự cố thủ công và đính kèm ảnh thật.
-            <Button variant="outline" size="sm" className="mt-4" onClick={onRetry}>Thử kết nối lại</Button>
+            {t("admin.droneOrders.camera.noGateway", { drone: camera.droneCode })}
+            <Button variant="outline" size="sm" className="mt-4" onClick={onRetry}>{t("admin.droneOrders.camera.reconnect")}</Button>
           </div>
         ) : (
           <video ref={videoRef} controls muted playsInline className="max-h-[420px] w-full bg-black" />
         )}
         <span className="absolute left-3 top-3 rounded-full bg-black/70 px-2.5 py-1 text-xs font-medium text-white">
-          <Radio className="mr-1 inline h-3 w-3 text-red-400" /> {stateLabel[playerState]}
+          <Radio className="mr-1 inline h-3 w-3 text-red-400" /> {t(stateLabel[playerState])}
         </span>
       </div>
       <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-5">
         <Telemetry label="Drone" value={camera.droneCode} />
-        <Telemetry label="Pin" value={camera.batteryPercent == null || camera.batteryPercent < 0 ? "Không có dữ liệu" : `${camera.batteryPercent}%`} icon={<Battery />} />
-        <Telemetry label="Chế độ bay" value={camera.flightMode || "Không có dữ liệu"} />
-        <Telemetry label="GPS" value={camera.latitude && camera.longitude ? `${camera.latitude.toFixed(5)}, ${camera.longitude.toFixed(5)}` : "Không có dữ liệu"} icon={<MapPin />} />
-        <Telemetry label="Telemetry" value={camera.telemetryLive ? "Trực tuyến" : "Cũ / mất kết nối"} />
+        <Telemetry label={t("admin.droneOrders.camera.battery")} value={camera.batteryPercent == null || camera.batteryPercent < 0 ? t("common.noData") : `${camera.batteryPercent}%`} icon={<Battery />} />
+        <Telemetry label={t("admin.droneOrders.camera.flightMode")} value={camera.flightMode || t("common.noData")} />
+        <Telemetry label="GPS" value={camera.latitude && camera.longitude ? `${camera.latitude.toFixed(5)}, ${camera.longitude.toFixed(5)}` : t("common.noData")} icon={<MapPin />} />
+        <Telemetry label="Telemetry" value={camera.telemetryLive ? t("admin.droneOrders.camera.online") : t("admin.droneOrders.camera.stale")} />
       </div>
     </>
   );
@@ -161,6 +165,7 @@ function ReportDropDialog({
   order: DroneOrderTracking;
   camera?: DroneCameraMetadata;
 }) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [report, { isLoading }] = useReportDroppedParcelMutation();
@@ -168,7 +173,7 @@ function ReportDropDialog({
 
   const submit = async () => {
     if (!reason.trim()) {
-      toast.error("Vui lòng nhập lý do và tình huống quan sát được");
+      toast.error(t("admin.droneOrders.reportDrop.reasonRequired"));
       return;
     }
     try {
@@ -185,8 +190,8 @@ function ReportDropDialog({
           snapshotCapturedAt: uploaded ? new Date().toISOString() : undefined,
         },
       }).unwrap();
-      toast.success("Đã tạo sự cố rơi kiện", {
-        description: "Đơn đã dừng giao; hệ thống đang điều phối kiểm tra drone và thu hồi kiện.",
+      toast.success(t("admin.droneOrders.reportDrop.success"), {
+        description: t("admin.droneOrders.reportDrop.successHint"),
       });
       setReason("");
       setFile(null);
@@ -194,36 +199,36 @@ function ReportDropDialog({
       onOpenChange(false);
     } catch (error) {
       const message = (error as { data?: { message?: string } })?.data?.message;
-      toast.error("Không thể báo rơi kiện", { description: message || "Vui lòng kiểm tra trạng thái chuyến bay và thử lại." });
+      toast.error(t("admin.droneOrders.reportDrop.failed"), { description: message || t("admin.droneOrders.reportDrop.failedHint") });
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
-        <DialogHeader><DialogTitle>Xác nhận báo rơi kiện</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("admin.droneOrders.reportDrop.title")}</DialogTitle></DialogHeader>
         <div className="space-y-4 text-sm">
           <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3">
-            <Telemetry label="Đơn hàng" value={order.orderCode} />
-            <Telemetry label="Drone" value={order.droneCode || "Chưa xác định"} />
-            <Telemetry label="Chặng hiện tại" value={order.deliveryStage || "Không xác định"} />
-            <Telemetry label="GPS" value={camera?.telemetryLive && camera.latitude && camera.longitude ? `${camera.latitude.toFixed(5)}, ${camera.longitude.toFixed(5)}` : "Không có GPS trực tuyến"} />
+            <Telemetry label={t("common.order")} value={order.orderCode} />
+            <Telemetry label="Drone" value={order.droneCode || t("admin.droneOrders.undetermined")} />
+            <Telemetry label={t("admin.droneOrders.map.currentStage")} value={order.deliveryStage || t("admin.droneOrders.reportDrop.unknown")} />
+            <Telemetry label="GPS" value={camera?.telemetryLive && camera.latitude && camera.longitude ? `${camera.latitude.toFixed(5)}, ${camera.longitude.toFixed(5)}` : t("admin.droneOrders.reportDrop.noLiveGps")} />
           </div>
           <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900">
-            Xác nhận sẽ dừng luồng giao hiện tại và ngăn đơn được đánh dấu đã giao. RTL chỉ được yêu cầu khi telemetry và điều kiện an toàn hợp lệ.
+            {t("admin.droneOrders.reportDrop.warning")}
           </p>
           <label className="block">
-            <span className="mb-1.5 block font-medium">Lý do / mô tả quan sát *</span>
-            <textarea value={reason} onChange={(event) => setReason(event.target.value)} maxLength={1000} rows={4} className="w-full rounded-md border bg-background px-3 py-2 outline-none focus:ring-2 focus:ring-primary" placeholder="Ví dụ: camera cho thấy móc giữ mở ngoài ý muốn và kiện rơi khỏi drone..." />
+            <span className="mb-1.5 block font-medium">{t("admin.droneOrders.reportDrop.reasonLabel")}</span>
+            <textarea value={reason} onChange={(event) => setReason(event.target.value)} maxLength={1000} rows={4} className="w-full rounded-md border bg-background px-3 py-2 outline-none focus:ring-2 focus:ring-primary" placeholder={t("admin.droneOrders.reportDrop.reasonPlaceholder")} />
           </label>
           <label className="block">
-            <span className="mb-1.5 block font-medium">Ảnh camera hoặc ảnh hiện trường (nếu có)</span>
+            <span className="mb-1.5 block font-medium">{t("admin.droneOrders.reportDrop.photoLabel")}</span>
             <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="block w-full text-sm" />
           </label>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isUploading}>Hủy</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isUploading}>{t("button.cancel")}</Button>
             <Button variant="destructive" onClick={submit} disabled={isLoading || isUploading}>
-              {(isLoading || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Xác nhận báo rơi kiện
+              {(isLoading || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {t("admin.droneOrders.reportDrop.title")}
             </Button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   useGetAllPartnersQuery,
   useApprovePartnerMutation,
@@ -29,6 +30,7 @@ const mapPartnerToTable = (partner: PartnerResponse) => ({
 });
 
 export function usePartners() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<PartnerStatusFilter>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
@@ -100,32 +102,32 @@ export function usePartners() {
   const handleApprove = useCallback(async (partnerId: number) => {
     try {
       await approvePartner(partnerId).unwrap();
-      toast.success("Đã phê duyệt đối tác thành công!");
+      toast.success(t("admin.partners.toast.approved"));
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Không thể phê duyệt đối tác");
+      toast.error(error?.data?.message || t("admin.partners.toast.approveFailed"));
     }
-  }, [approvePartner, refetch]);
+  }, [approvePartner, refetch, t]);
 
   const handleReject = useCallback(async (partnerId: number) => {
     try {
       await rejectPartner({ partnerId, reason: "Không đáp ứng yêu cầu" }).unwrap();
-      toast.success("Đã từ chối đối tác!");
+      toast.success(t("admin.partners.toast.rejected"));
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Không thể từ chối đối tác");
+      toast.error(error?.data?.message || t("admin.partners.toast.rejectFailed"));
     }
-  }, [rejectPartner, refetch]);
+  }, [rejectPartner, refetch, t]);
 
   const handleSuspend = useCallback(async (partnerId: number) => {
     try {
       await suspendPartner(partnerId).unwrap();
-      toast.success("Đã đình chỉ đối tác!");
+      toast.success(t("admin.partners.toast.suspended"));
       refetch();
     } catch (error: any) {
-      toast.error(error?.data?.message || "Không thể đình chỉ đối tác");
+      toast.error(error?.data?.message || t("admin.partners.toast.suspendFailed"));
     }
-  }, [suspendPartner, refetch]);
+  }, [suspendPartner, refetch, t]);
 
   // Clear all filters
   const clearFilters = () => {

@@ -10,6 +10,7 @@ import {
   useTriggerReleaseOverdueMutation,
 } from "./schedulerExtraApi";
 import { jobI18nKey, type SchedulerJobKey } from "../jobs";
+import i18n from "~/utils/i18n";
 
 export interface JobResult {
   jobName: string;
@@ -25,7 +26,7 @@ const num = (v: unknown) => (typeof v === "number" ? v : Number(v ?? 0) || 0);
 function errorMessage(error: unknown, fallback: string): string {
   const e = error as { data?: { message?: unknown }; status?: unknown } | undefined;
   if (typeof e?.data?.message === "string" && e.data.message.trim()) return e.data.message;
-  if (e?.status === "FETCH_ERROR") return "Không kết nối được máy chủ";
+  if (e?.status === "FETCH_ERROR") return i18n.t("common.serverUnreachable");
   return fallback;
 }
 

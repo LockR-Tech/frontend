@@ -1,4 +1,5 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import { cn } from "~/lib/utils";
@@ -38,6 +39,7 @@ export function ReportStatCard({
   className,
   valueClassName,
 }: ReportStatCardProps) {
+  const { t } = useTranslation();
   const direction = changeDirection(changePct);
   const showChange = changePct !== undefined || changeLabel !== undefined;
 
@@ -83,14 +85,14 @@ export function ReportStatCard({
           >
             {direction === "unknown" ? (
               <span className="text-muted-foreground font-normal">
-                {changeLabel ?? EMPTY_VALUE} so với kỳ trước
+                {t("shared.statCard.vsPreviousWithValue", { value: changeLabel ?? EMPTY_VALUE })}
               </span>
             ) : (
               <>
                 <ChangeIcon className="w-3.5 h-3.5 shrink-0" />
                 <span>{changeLabel ?? formatPercentChange(changePct)}</span>
                 <span className="text-[11px] font-normal text-muted-foreground">
-                  so với kỳ trước
+                  {t("shared.statCard.vsPrevious")}
                 </span>
               </>
             )}

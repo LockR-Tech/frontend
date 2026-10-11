@@ -4,6 +4,7 @@
 // Thời gian có giờ:phút:giây dùng `formatDateTime` ở `./datetime`. File này lo phần còn lại.
 
 import { APP_TIME_ZONE } from "./datetime";
+import i18n from "~/utils/i18n";
 
 /** Giá trị hiển thị khi không có số liệu. */
 export const EMPTY_VALUE = "—";
@@ -53,7 +54,9 @@ export function formatPercentPoints(value: number | null | undefined): string {
   const points = toNumber(value);
   if (points === null) return EMPTY_VALUE;
   const sign = points > 0 ? "+" : points < 0 ? "−" : "";
-  return `${sign}${numberFormatter.format(Math.abs(round2(points)))} điểm`;
+  return i18n.t("shared.format.percentPoints", {
+    value: `${sign}${numberFormatter.format(Math.abs(round2(points)))}`,
+  });
 }
 
 /** Hướng của một mức thay đổi, để chọn màu và mũi tên. */
@@ -127,6 +130,17 @@ export function formatDayShort(day: string | null | undefined): string {
   if (!day || day.length < 10) return EMPTY_VALUE;
   const [, month, date] = day.slice(0, 10).split("-");
   return `${date}/${month}`;
+}
+
+/**
+ * Tên tháng (1–12) theo ngôn ngữ giao diện cho nhãn biểu đồ, ví dụ `Mar` / `March`.
+ * Tiếng Việt không dùng hàm này (giữ kiểu `T3` / `Tháng 3` qua khoá i18n).
+ */
+export function monthName(month: number, lang: string, style: "short" | "long" = "short"): string {
+  const locale = lang === "ja" ? "ja-JP" : lang === "vi" ? "vi-VN" : "en-US";
+  return new Intl.DateTimeFormat(locale, { month: style, timeZone: "UTC" }).format(
+    new Date(Date.UTC(2000, month - 1, 1)),
+  );
 }
 
 /** Số ngày của khoảng (tính cả hai đầu), dùng để kiểm giới hạn 366 ngày trước khi gọi API. */

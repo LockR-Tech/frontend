@@ -5,6 +5,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { paymentMethodMeta } from "~/components/shared/reporting";
 import { formatPercent } from "~/lib/report-format";
 import type { RevenueByMethodItem } from "~/types/admin/reporting";
+import { useTranslation } from "react-i18next";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
 interface PaymentMethodChartProps {
@@ -30,6 +31,7 @@ function formatVND(val: number) {
 
 // /api/admin/revenue/by-method — tiền thực thu theo phương thức trong năm đang chọn.
 export function PaymentMethodChart({ items, year, isLoading, error, onRetry }: PaymentMethodChartProps) {
+  const { t } = useTranslation();
   const chartData = (items ?? [])
     .filter((item) => Number(item.revenue) > 0)
     .map((item, index) => ({
@@ -53,10 +55,10 @@ export function PaymentMethodChart({ items, year, isLoading, error, onRetry }: P
     <Card className="border border-border bg-card shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-          Cơ cấu thanh toán
+          {t("admin.dashboard.paymentMethod.title")}
         </CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
-          Tiền thực thu theo phương thức — năm {year}
+          {t("admin.dashboard.paymentMethod.description", { year })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -79,7 +81,7 @@ export function PaymentMethodChart({ items, year, isLoading, error, onRetry }: P
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => [formatVND(Number(value)), "Thực thu"]}
+                    formatter={(value) => [formatVND(Number(value)), t("admin.dashboard.chart.collected")]}
                     contentStyle={{
                       backgroundColor: "var(--popover)",
                       borderColor: "var(--border)",
@@ -91,9 +93,11 @@ export function PaymentMethodChart({ items, year, isLoading, error, onRetry }: P
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[11px] text-muted-foreground font-medium">Tổng cộng</span>
+                <span className="text-[11px] text-muted-foreground font-medium">{t("admin.dashboard.chart.total")}</span>
                 <span className="text-sm font-bold text-foreground">
-                  {total >= 1_000_000 ? `${(total / 1_000_000).toFixed(1)} tr` : formatVND(total)}
+                  {total >= 1_000_000
+                    ? t("admin.dashboard.format.millionShort", { value: (total / 1_000_000).toFixed(1) })
+                    : formatVND(total)}
                 </span>
               </div>
             </div>

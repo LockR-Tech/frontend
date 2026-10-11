@@ -31,6 +31,7 @@ import {
   type AssistantMessageView,
 } from "~/stores/apis/admin/knowledge";
 import { formatScore, getKnowledgeErrorMessage } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 interface ConversationDetailSheetProps {
   open: boolean;
@@ -45,6 +46,7 @@ export function ConversationDetailSheet({
   conversationId,
   onClose,
 }: ConversationDetailSheetProps) {
+  const { t } = useTranslation();
   // `currentData` (không phải `data`) để đổi hội thoại không hiện tạm nội dung hội thoại trước.
   const { currentData, error, isFetching, refetch } = useGetAssistantConversationQuery(
     conversationId ?? 0,
@@ -60,14 +62,15 @@ export function ConversationDetailSheet({
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
         <SheetHeader className="space-y-1 border-b border-border/60 px-5 pb-4 pt-5 pr-12 text-left">
           <SheetTitle className="text-base">
-            {detail?.conversation.title?.trim() || `Hội thoại #${conversationId ?? ""}`}
+            {detail?.conversation.title?.trim() ||
+              t("admin.knowledge.conversation.titleFallback", { id: conversationId ?? "" })}
           </SheetTitle>
           <SheetDescription asChild>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               {detail ? (
                 <>
                   <span>
-                    Người dùng{" "}
+                    {t("admin.knowledge.conversation.user")}{" "}
                     <Link
                       to={`/admin/users/${detail.conversation.userId}`}
                       className="font-medium text-primary hover:underline"
@@ -75,11 +78,18 @@ export function ConversationDetailSheet({
                       #{detail.conversation.userId}
                     </Link>
                   </span>
-                  <span>{messages.length} tin nhắn</span>
+                  <span>{t("admin.knowledge.conversation.messageCount", { count: messages.length })}</span>
                   <span>
-                    {answers.length} câu trả lời · {refusedCount} từ chối
+                    {t("admin.knowledge.conversation.answerStats", {
+                      answers: answers.length,
+                      refused: refusedCount,
+                    })}
                   </span>
-                  <span>Cập nhật {formatDateTime(detail.conversation.updatedAt)}</span>
+                  <span>
+                    {t("admin.knowledge.conversation.updatedAt", {
+                      date: formatDateTime(detail.conversation.updatedAt),
+                    })}
+                  </span>
                   <button
                     type="button"
                     onClick={() => refetch()}
@@ -87,11 +97,11 @@ export function ConversationDetailSheet({
                     className="inline-flex items-center gap-1 font-medium text-primary hover:underline disabled:opacity-50"
                   >
                     <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
-                    Làm mới
+                    {t("button.refresh")}
                   </button>
                 </>
               ) : (
-                <span>Đang tải…</span>
+                <span>{t("common.loadingEllipsis")}</span>
               )}
             </div>
           </SheetDescription>
@@ -105,13 +115,13 @@ export function ConversationDetailSheet({
           ) : error ? (
             <ErrorState
               variant="inline"
-              title="Không tải được hội thoại"
-              message={getKnowledgeErrorMessage(error, "Không tải được hội thoại.")}
+              title={t("admin.knowledge.conversation.loadFailed")}
+              message={getKnowledgeErrorMessage(error, t("admin.knowledge.conversation.loadFailedMessage"))}
               onRetry={() => refetch()}
             />
           ) : messages.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted-foreground">
-              Hội thoại chưa có tin nhắn.
+              {t("admin.knowledge.conversation.noMessages")}
             </p>
           ) : (
             messages.map((message) => <MessageBubble key={message.id} message={message} />)
@@ -123,6 +133,7 @@ export function ConversationDetailSheet({
 }
 
 function MessageBubble({ message }: { message: AssistantMessageView }) {
+  const { t } = useTranslation();
   const isUser = message.role === "USER";
   const sources = message.sources ?? [];
 
@@ -160,12 +171,12 @@ function MessageBubble({ message }: { message: AssistantMessageView }) {
           {!isUser && message.refused && (
             <Badge variant="outline" className="gap-1 border-amber-300 bg-amber-50 text-amber-800">
               <ShieldX className="h-3 w-3" />
-              Từ chối / tài liệu chưa đề cập
+              {t("admin.knowledge.conversation.refused")}
             </Badge>
           )}
           {!isUser && message.topScore != null && (
             <Badge variant="outline" className="font-medium text-foreground">
-              Điểm liên quan cao nhất {formatScore(message.topScore)}
+              {t("admin.knowledge.conversation.topScore", { score: formatScore(message.topScore) })}
             </Badge>
           )}
         </div>
@@ -177,12 +188,13 @@ function MessageBubble({ message }: { message: AssistantMessageView }) {
 }
 
 function SourcesList({ sources }: { sources: NonNullable<AssistantMessageView["sources"]> }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="text-left">
       <CollapsibleTrigger className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
-        {sources.length} nguồn trích dẫn
+        {t("admin.knowledge.conversation.sources", { count: sources.length })}
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-2 space-y-2">
         {sources.map((source, index) => (
@@ -206,7 +218,10 @@ function SourcesList({ sources }: { sources: NonNullable<AssistantMessageView["s
               </blockquote>
             )}
             <p className="mt-1.5 font-mono text-[10px] text-muted-foreground/80">
-              Tài liệu #{source.documentId} · đoạn #{source.chunkId}
+              {t("admin.knowledge.conversation.sourceRef", {
+                documentId: source.documentId,
+                chunkId: source.chunkId,
+              })}
             </p>
           </div>
         ))}

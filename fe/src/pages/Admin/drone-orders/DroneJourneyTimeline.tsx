@@ -1,4 +1,5 @@
 import { Check, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { deliveryStageMeta } from "~/components/shared/reporting";
 import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
 import type { DroneOrderTracking } from "~/stores/apis/admin/droneOrders";
@@ -23,6 +24,7 @@ interface Detail {
  * nhận lấy hàng) — thay cho khối "Mốc thời gian" riêng trước đây.
  */
 export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
+  const { t } = useTranslation();
   const times = stageTimes(order);
   const failed = FAILURE_STATUSES.has(order.status);
   const completed = order.status === "COMPLETED";
@@ -42,17 +44,17 @@ export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
 
   const code = pickupCodeEvent(order);
   const details: Partial<Record<string, Detail[]>> = {
-    AWAITING_DISPATCH: [{ label: "Thanh toán", at: order.paidAt }],
+    AWAITING_DISPATCH: [{ label: t("common.payment"), at: order.paidAt }],
     ACCEPTED: [
-      { label: "Nạp hàng lên drone", at: order.loadedAt },
-      { label: "Sẵn sàng phóng", at: order.readyToLaunchAt },
+      { label: t("admin.droneOrders.timeline.loaded"), at: order.loadedAt },
+      { label: t("admin.droneOrders.missionStatus.readyToLaunch"), at: order.readyToLaunchAt },
     ],
   };
   if (times.has("READY_FOR_PICKUP") || completed) {
     details.READY_FOR_PICKUP = [
-      { label: "Gửi mã cho người nhận", at: code?.occurredAt ?? null, note: code?.note },
-      { label: "Hạn nhận hàng", at: order.pickupDeadline },
-      { label: "Người nhận lấy hàng", at: order.completedAt },
+      { label: t("admin.droneOrders.timeline.codeSent"), at: code?.occurredAt ?? null, note: code?.note },
+      { label: t("admin.droneOrders.timeline.pickupDeadline"), at: order.pickupDeadline },
+      { label: t("admin.droneOrders.timeline.pickedUp"), at: order.completedAt },
     ];
   }
 
@@ -116,12 +118,12 @@ export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
                 <div className="mt-1 flex flex-wrap gap-1.5">
                   {since !== null && (
                     <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                      Chuyển sau {durationLabel(since)}
+                      {t("admin.droneOrders.timeline.transitionAfter", { duration: durationLabel(since) })}
                     </span>
                   )}
                   {ongoing !== null && (
                     <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700">
-                      Đã ở chặng này {durationLabel(ongoing)}
+                      {t("admin.droneOrders.timeline.inStageFor", { duration: durationLabel(ongoing) })}
                     </span>
                   )}
                 </div>
@@ -134,7 +136,7 @@ export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
                     <span
                       className={`font-mono ${value ? "font-semibold" : "text-muted-foreground"}`}
                     >
-                      {value ? formatDateTime(value) : "Chưa diễn ra"}
+                      {value ? formatDateTime(value) : t("admin.droneOrders.timeline.notYet")}
                     </span>
                     {detail.note && (
                       <p className="text-[11px] text-muted-foreground">{detail.note}</p>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowDownUp, Eye, Search } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -28,13 +29,13 @@ const columnHelper = createColumnHelper<CustomerRevenue>();
 
 /** Các trường backend cho phép sắp xếp (§ 3.8). */
 const SORT_OPTIONS = [
-  { value: "totalSpent,desc", label: "Chi nhiều nhất" },
-  { value: "netSpent,desc", label: "Thực chi nhiều nhất" },
-  { value: "orderCount,desc", label: "Nhiều đơn nhất" },
-  { value: "paidOrderCount,desc", label: "Nhiều đơn đã trả nhất" },
-  { value: "averageOrderValue,desc", label: "Giá trị đơn trung bình cao" },
-  { value: "lastOrderAt,desc", label: "Đặt đơn gần đây" },
-  { value: "lastPaidAt,desc", label: "Thanh toán gần đây" },
+  { value: "totalSpent,desc", labelKey: "admin.revenue.customer.sort.totalSpent" },
+  { value: "netSpent,desc", labelKey: "admin.revenue.customer.sort.netSpent" },
+  { value: "orderCount,desc", labelKey: "admin.revenue.customer.sort.orderCount" },
+  { value: "paidOrderCount,desc", labelKey: "admin.revenue.customer.sort.paidOrderCount" },
+  { value: "averageOrderValue,desc", labelKey: "admin.revenue.customer.sort.aov" },
+  { value: "lastOrderAt,desc", labelKey: "admin.revenue.customer.sort.lastOrder" },
+  { value: "lastPaidAt,desc", labelKey: "admin.revenue.customer.sort.lastPaid" },
 ];
 
 /**
@@ -42,6 +43,7 @@ const SORT_OPTIONS = [
  * HOẶC có lần thu tiền trong kỳ — nên `orderCount` có thể bằng 0 mà vẫn có tiền.
  */
 export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
@@ -85,7 +87,7 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
 
   const columns = [
     columnHelper.accessor("fullName", {
-      header: "Khách hàng",
+      header: t("common.customer"),
       cell: ({ row }) => {
         const customer = row.original;
         return (
@@ -95,7 +97,7 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
             className="text-left min-w-0 hover:underline"
           >
             <p className="text-sm font-medium truncate">
-              {customer.fullName || "Chưa tra được tên khách"}
+              {customer.fullName || t("admin.orders.lookup.customerName")}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer.phoneNumber || customer.email || EMPTY_VALUE}
@@ -105,35 +107,35 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
       },
     }),
     columnHelper.accessor("totalSpent", {
-      header: "Đã chi",
+      header: t("admin.revenue.customer.columns.spent"),
       cell: ({ row }) => (
         <span className="font-semibold">{formatCurrency(row.original.totalSpent)}</span>
       ),
     }),
     columnHelper.accessor("refundAmount", {
-      header: "Hoàn tiền",
+      header: t("admin.payments.refunds"),
       cell: ({ row }) => formatCurrency(row.original.refundAmount),
     }),
     columnHelper.accessor("netSpent", {
-      header: "Thực chi",
+      header: t("admin.revenue.customer.columns.netSpent"),
       cell: ({ row }) => (
         <span className="font-medium">{formatCurrency(row.original.netSpent)}</span>
       ),
     }),
     columnHelper.accessor("averageOrderValue", {
-      header: "Giá trị đơn TB",
+      header: t("admin.revenue.customer.columns.aov"),
       cell: ({ row }) => formatCurrency(row.original.averageOrderValue),
     }),
     columnHelper.accessor("orderCount", {
-      header: "Đơn tạo mới",
+      header: t("admin.revenue.columns.newOrders"),
       cell: ({ row }) => formatNumber(row.original.orderCount),
     }),
     columnHelper.accessor("paidOrderCount", {
-      header: "Đơn đã trả",
+      header: t("admin.revenue.customer.columns.paidOrders"),
       cell: ({ row }) => formatNumber(row.original.paidOrderCount),
     }),
     columnHelper.accessor("lastOrderAt", {
-      header: "Đơn gần nhất",
+      header: t("admin.revenue.customer.columns.lastOrder"),
       cell: ({ row }) => (
         <p className="font-mono text-xs whitespace-nowrap">
           {row.original.lastOrderAt
@@ -143,7 +145,7 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
       ),
     }),
     columnHelper.accessor("lastPaidAt", {
-      header: "Thu gần nhất",
+      header: t("admin.revenue.customer.columns.lastPaid"),
       cell: ({ row }) => (
         <p className="font-mono text-xs whitespace-nowrap text-muted-foreground">
           {row.original.lastPaidAt
@@ -163,7 +165,7 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
           onClick={() => openCustomer(row.original.userId)}
         >
           <Eye className="h-3.5 w-3.5 mr-1.5" />
-          Chi tiết
+          {t("button.detail")}
         </Button>
       ),
     }),
@@ -178,7 +180,7 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
-            placeholder="Tên, email, số điện thoại hoặc mã khách…"
+            placeholder={t("admin.revenue.customer.searchPlaceholder")}
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
             className="pl-9 h-9"
@@ -193,20 +195,22 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
         >
           <SelectTrigger className="h-9 w-[220px]">
             <ArrowDownUp className="h-3.5 w-3.5 opacity-60 shrink-0" />
-            <SelectValue placeholder="Sắp xếp" />
+            <SelectValue placeholder={t("common.sort")} />
           </SelectTrigger>
           <SelectContent>
             {SORT_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <p className="text-[11px] text-muted-foreground ml-auto">
           {isFetching
-            ? "Đang tải…"
-            : `${formatNumber(pageData?.totalElements ?? 0)} khách trong kỳ`}
+            ? t("common.loadingEllipsis")
+            : t("admin.revenue.customer.count", {
+                total: formatNumber(pageData?.totalElements ?? 0),
+              })}
         </p>
       </div>
 
@@ -216,7 +220,7 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
         columns={columns}
         data={pageData?.content ?? []}
         isLoading={isLoading}
-        emptyMessage="Chưa có khách hàng nào phát sinh trong khoảng đã chọn"
+        emptyMessage={t("admin.revenue.customer.empty")}
         serverPagination={{
           pageIndex: page,
           pageSize,
@@ -231,8 +235,7 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
       />
 
       <p className="text-[11px] text-muted-foreground">
-        Khách có mặt nếu tạo đơn trong kỳ hoặc có lần thu tiền trong kỳ, nên số đơn tạo
-        mới có thể bằng 0 mà vẫn ghi nhận tiền.
+        {t("admin.revenue.customer.note")}
       </p>
     </div>
   );

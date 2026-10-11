@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Camera, ChevronLeft, ChevronRight, ExternalLink, Loader2, Trash2 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
@@ -60,6 +61,7 @@ export function PhotoGallery({
   className,
   thumbClassName,
 }: PhotoGalleryProps) {
+  const { t } = useTranslation();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<GalleryPhoto | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -110,12 +112,16 @@ export function PhotoGallery({
                 "relative w-16 h-16 rounded-md overflow-hidden border border-border/80 hover:border-foreground/50 transition-all group shrink-0 cursor-pointer shadow-2xs bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 thumbClassName,
               )}
-              title={photo.caption ?? photo.alt ?? (photo.time ? `Thời gian: ${photo.time}` : undefined)}
-              aria-label={`Xem ảnh ${photo.alt ?? idx + 1}`}
+              title={
+                photo.caption ??
+                photo.alt ??
+                (photo.time ? t("shared.media.gallery.timeTitle", { time: photo.time }) : undefined)
+              }
+              aria-label={t("shared.media.gallery.viewPhoto", { name: photo.alt ?? idx + 1 })}
             >
               <img
                 src={photo.thumbnailUrl || photo.url}
-                alt={photo.alt ?? `Ảnh ${idx + 1}`}
+                alt={photo.alt ?? t("common.photoNumber", { index: idx + 1 })}
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
               />
@@ -148,7 +154,7 @@ export function PhotoGallery({
           <DialogHeader className="pb-2 border-b pr-8">
             <DialogTitle className="text-sm font-semibold flex items-center gap-2">
               <Camera className="w-4 h-4 text-indigo-600" aria-hidden />
-              {title ?? "Hình ảnh"}
+              {title ?? t("shared.media.gallery.title")}
               {photos.length > 1 && openIndex != null && (
                 <span className="text-xs font-normal text-muted-foreground">
                   ({openIndex + 1}/{photos.length})
@@ -156,7 +162,7 @@ export function PhotoGallery({
               )}
             </DialogTitle>
             <DialogDescription className="sr-only">
-              Xem ảnh kích thước lớn. Dùng phím mũi tên trái/phải để chuyển ảnh.
+              {t("shared.media.gallery.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -164,7 +170,7 @@ export function PhotoGallery({
             <div className="relative rounded-lg overflow-hidden border border-border/80 bg-black/95 flex items-center justify-center min-h-[280px] max-h-[70vh]">
               <img
                 src={current.url}
-                alt={current.alt ?? current.caption ?? "Ảnh phóng to"}
+                alt={current.alt ?? current.caption ?? t("shared.media.gallery.enlargedAlt")}
                 className="max-h-[68vh] w-auto max-w-full object-contain"
               />
               {photos.length > 1 && (
@@ -175,7 +181,7 @@ export function PhotoGallery({
                     variant="secondary"
                     className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full opacity-80 hover:opacity-100"
                     onClick={() => step(-1)}
-                    aria-label="Ảnh trước"
+                    aria-label={t("shared.media.gallery.previousPhoto")}
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
@@ -185,7 +191,7 @@ export function PhotoGallery({
                     variant="secondary"
                     className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full opacity-80 hover:opacity-100"
                     onClick={() => step(1)}
-                    aria-label="Ảnh sau"
+                    aria-label={t("shared.media.gallery.nextPhoto")}
                   >
                     <ChevronRight className="w-4 h-4" />
                   </Button>
@@ -203,7 +209,7 @@ export function PhotoGallery({
               <div className="flex items-center gap-2 shrink-0">
                 <Button variant="outline" size="sm" className="h-8 text-xs gap-1" asChild>
                   <a href={current.url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-3.5 h-3.5" /> Ảnh gốc
+                    <ExternalLink className="w-3.5 h-3.5" /> {t("shared.media.gallery.originalPhoto")}
                   </a>
                 </Button>
                 {onDelete && current.deletable !== false && (
@@ -213,7 +219,7 @@ export function PhotoGallery({
                     className="h-8 text-xs gap-1 border-rose-300 text-rose-700 hover:bg-rose-50"
                     onClick={() => setConfirmDelete(current)}
                   >
-                    <Trash2 className="w-3.5 h-3.5" /> Xoá ảnh
+                    <Trash2 className="w-3.5 h-3.5" /> {t("shared.media.gallery.deletePhoto")}
                   </Button>
                 )}
               </div>
@@ -225,13 +231,13 @@ export function PhotoGallery({
       <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && !deleting && setConfirmDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xoá ảnh này?</AlertDialogTitle>
+            <AlertDialogTitle>{t("shared.media.gallery.deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Ảnh sẽ bị gỡ khỏi hồ sơ và xoá khỏi kho lưu trữ. Không thể hoàn tác thao tác này.
+              {t("shared.media.gallery.deleteConfirmDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>{t("button.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-rose-600 hover:bg-rose-700 text-white"
               disabled={deleting}
@@ -241,7 +247,7 @@ export function PhotoGallery({
               }}
             >
               {deleting && <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />}
-              Xoá ảnh
+              {t("shared.media.gallery.deletePhoto")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

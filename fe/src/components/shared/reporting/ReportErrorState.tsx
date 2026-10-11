@@ -1,6 +1,7 @@
 import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { toReportError } from "~/lib/report-error";
@@ -21,9 +22,10 @@ interface ReportErrorStateProps {
 export function ReportErrorState({
   error,
   onRetry,
-  title = "Không tải được dữ liệu",
+  title,
   className,
 }: ReportErrorStateProps) {
+  const { t } = useTranslation();
   const detail = toReportError(error);
   if (!detail) return null;
 
@@ -36,7 +38,7 @@ export function ReportErrorState({
     >
       <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-sm font-semibold text-foreground">{title ?? t("shared.reportError.title")}</p>
         <p className="text-sm text-muted-foreground mt-0.5">{detail.message}</p>
         {(detail.code || detail.status) && (
           <p className="text-[11px] text-muted-foreground/80 mt-1 font-mono">
@@ -47,7 +49,7 @@ export function ReportErrorState({
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry} className="shrink-0">
           <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-          Thử lại
+          {t("common.retry")}
         </Button>
       )}
     </div>

@@ -58,7 +58,7 @@ export function Sidebar({
   const displayName = userName !== "Admin" ? userName : (user?.fullName || userName);
   // Không bịa email: tài khoản chưa có email thì ẩn dòng này
   const displayEmail = user?.email?.trim() || null;
-  const displayRole = Array.isArray(user?.role) ? user.role.join(", ") : (user?.role || "Quản trị viên");
+  const displayRole = Array.isArray(user?.role) ? user.role.join(", ") : (user?.role || t("shared.roles.admin"));
 
   // Tự động đóng sidebar mobile khi chuyển trang
   useEffect(() => {
@@ -168,7 +168,7 @@ export function Sidebar({
                 "p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
                 !isExpanded && "mx-auto",
               )}
-              aria-label={isExpanded ? "Thu gọn" : "Mở rộng"}
+              aria-label={isExpanded ? t("shared.layout.collapse") : t("shared.layout.expand")}
             >
               {isExpanded ? (
                 <ChevronLeft size={16} />

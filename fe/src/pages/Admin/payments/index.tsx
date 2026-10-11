@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, TrendingUp } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
 import { Button } from "~/components/ui/button";
@@ -41,6 +42,7 @@ export default function PaymentsPage() {
     hasActiveFilters,
     clearFilters,
   } = usePayments();
+  const { t } = useTranslation();
 
   const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
 
@@ -48,13 +50,13 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <PageHeader
-          title="Quản lý thanh toán"
-          description="Giao dịch, hoàn tiền và biến động ví — số liệu lấy trực tiếp từ payment-service"
+          title={t("admin.payments.title")}
+          description={t("admin.payments.description")}
         />
         <Link to="/admin/revenue">
           <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
             <TrendingUp className="w-3.5 h-3.5" />
-            Xem phân tích doanh thu
+            {t("admin.payments.viewRevenue")}
             <ArrowRight className="w-3.5 h-3.5" />
           </Button>
         </Link>
@@ -74,16 +76,16 @@ export default function PaymentsPage() {
           <Tabs defaultValue="payments">
             <TabsList className="mb-4">
               <TabsTrigger value="payments" className="text-xs px-4">
-                Giao dịch
+                {t("admin.payments.tabs.transactions")}
               </TabsTrigger>
               <TabsTrigger value="refunds" className="text-xs px-4">
-                Hoàn tiền
+                {t("admin.payments.refunds")}
               </TabsTrigger>
               <TabsTrigger value="wallet" className="text-xs px-4">
-                Biến động ví
+                {t("admin.payments.tabs.wallet")}
               </TabsTrigger>
               <TabsTrigger value="withdrawals" className="text-xs px-4">
-                Yêu cầu rút tiền
+                {t("admin.payments.tabs.withdrawals")}
               </TabsTrigger>
             </TabsList>
 
@@ -103,8 +105,10 @@ export default function PaymentsPage() {
 
               <p className="text-xs text-muted-foreground">
                 {isFetching
-                  ? "Đang tải…"
-                  : `${formatNumber(totalElements)} giao dịch khớp bộ lọc`}
+                  ? t("common.loadingEllipsis")
+                  : t("admin.payments.matchCount", {
+                      total: formatNumber(totalElements),
+                    })}
               </p>
 
               {error && <ReportErrorState error={error} onRetry={refetch} />}

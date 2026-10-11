@@ -10,11 +10,13 @@ import { ConversationsTab } from "./ConversationsTab";
 import { DocumentsTab } from "./DocumentsTab";
 import { EvalTab } from "./EvalTab";
 import type { EvalRun } from "./knowledge-utils";
+import { Trans, useTranslation } from "react-i18next";
 
+// `labelKey` là message key, dịch lúc render.
 const TABS = [
-  { value: "documents", label: "Tài liệu", icon: FileText },
-  { value: "conversations", label: "Hội thoại", icon: MessagesSquare },
-  { value: "eval", label: "Đánh giá", icon: FlaskConical },
+  { value: "documents", labelKey: "admin.knowledge.tabs.documents", icon: FileText },
+  { value: "conversations", labelKey: "admin.knowledge.tabs.conversations", icon: MessagesSquare },
+  { value: "eval", labelKey: "admin.knowledge.tabs.eval", icon: FlaskConical },
 ] as const;
 
 type TabValue = (typeof TABS)[number]["value"];
@@ -31,6 +33,7 @@ const SETTINGS_PATH = "/admin/settings?tab=assistant";
  * trang Cấu hình nghiệp vụ, scope `assistant`.
  */
 export default function KnowledgePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -59,11 +62,11 @@ export default function KnowledgePage() {
     <TooltipProvider delayDuration={200}>
       <div className="space-y-5 pb-6">
         <PageHeader
-          title="Kho tri thức"
-          description="Tài liệu làm căn cứ cho trợ lý hỏi đáp, hội thoại của người dùng và bộ đánh giá chất lượng truy xuất."
+          title={t("admin.knowledge.page.title")}
+          description={t("admin.knowledge.page.description")}
           className="mb-0"
           action={{
-            label: "Cấu hình trợ lý",
+            label: t("admin.knowledge.page.assistantSettings"),
             onClick: () => navigate(SETTINGS_PATH),
             icon: Settings2,
           }}
@@ -72,31 +75,36 @@ export default function KnowledgePage() {
         {status?.configured === false && (
           <Alert className="border-amber-300 bg-amber-50 text-amber-900">
             <TriangleAlert className="h-4 w-4" />
-            <AlertTitle className="text-sm">Máy chủ chưa cấu hình đủ khoá API mô hình</AlertTitle>
+            <AlertTitle className="text-sm">{t("admin.knowledge.alerts.missingKeysTitle")}</AlertTitle>
             <AlertDescription className="text-xs">
               {status.embeddingConfigured === false && (
-                <>Thiếu khoá nhúng (<code>EMBEDDING_API_KEY</code>): tài liệu nằm ở “Chờ đánh chỉ mục” và không chạy được đánh giá. </>
+                <>
+                  <Trans i18nKey="admin.knowledge.alerts.missingEmbedding" components={{ code: <code /> }} />{" "}
+                </>
               )}
               {status.chatConfigured === false && (
-                <>Thiếu khoá Claude (<code>ANTHROPIC_API_KEY</code>): người dùng chưa hỏi được. </>
+                <>
+                  <Trans i18nKey="admin.knowledge.alerts.missingChat" components={{ code: <code /> }} />{" "}
+                </>
               )}
               {status.embeddingConfigured === undefined && status.chatConfigured === undefined && (
-                <>Thiếu khoá nhúng thì tài liệu nằm ở “Chờ đánh chỉ mục”; thiếu khoá Claude thì người dùng chưa hỏi được. </>
+                <>{t("admin.knowledge.alerts.missingUnknown")} </>
               )}
-              Có khoá là hệ thống tự chạy tiếp, không cần tải lại tài liệu.
+              {t("admin.knowledge.alerts.autoResume")}
             </AlertDescription>
           </Alert>
         )}
         {status?.enabled === false && (
           <Alert className="bg-muted/30">
             <PowerOff className="h-4 w-4" />
-            <AlertTitle className="text-sm">Trợ lý đang tắt</AlertTitle>
+            <AlertTitle className="text-sm">{t("admin.knowledge.alerts.disabledTitle")}</AlertTitle>
             <AlertDescription className="text-xs">
-              App đang ẩn màn hình trợ lý với người dùng. Bật lại ở{" "}
-              <Link to={SETTINGS_PATH} className="font-medium text-primary hover:underline">
-                Cấu hình nghiệp vụ › Trợ lý hỏi đáp
-              </Link>
-              . Vẫn quản lý tài liệu và chạy đánh giá được bình thường.
+              <Trans
+                i18nKey="admin.knowledge.alerts.disabled"
+                components={{
+                  link: <Link to={SETTINGS_PATH} className="font-medium text-primary hover:underline" />,
+                }}
+              />
             </AlertDescription>
           </Alert>
         )}
@@ -113,7 +121,7 @@ export default function KnowledgePage() {
                     className="gap-2 rounded-lg px-3 py-2 text-xs sm:text-sm"
                   >
                     <Icon className="h-4 w-4" />
-                    {tab.label}
+                    {t(tab.labelKey)}
                   </TabsTrigger>
                 );
               })}

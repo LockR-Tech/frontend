@@ -1,4 +1,5 @@
 import { CalendarRange } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
@@ -25,17 +26,17 @@ interface DateRangeFilterProps {
   className?: string;
 }
 
-function presets(): { label: string; range: DateRangeValue }[] {
+function presets(): { labelKey: string; range: DateRangeValue }[] {
   const today = vietnamToday();
   const yesterday = shiftDay(today, -1);
   return [
-    { label: "Hôm nay", range: { from: today, to: today } },
-    { label: "Hôm qua", range: { from: yesterday, to: yesterday } },
-    { label: "7 ngày", range: { from: shiftDay(today, -6), to: today } },
-    { label: "Tuần này", range: { from: startOfWeek(today), to: today } },
-    { label: "Tháng này", range: { from: startOfMonth(today), to: today } },
+    { labelKey: "common.today", range: { from: today, to: today } },
+    { labelKey: "shared.dateRange.yesterday", range: { from: yesterday, to: yesterday } },
+    { labelKey: "shared.dateRange.last7Days", range: { from: shiftDay(today, -6), to: today } },
+    { labelKey: "shared.dateRange.thisWeek", range: { from: startOfWeek(today), to: today } },
+    { labelKey: "shared.dateRange.thisMonth", range: { from: startOfMonth(today), to: today } },
     {
-      label: "Tháng trước",
+      labelKey: "shared.dateRange.lastMonth",
       range: (() => {
         const firstOfThisMonth = startOfMonth(today);
         const lastOfPrevMonth = shiftDay(firstOfThisMonth, -1);
@@ -57,6 +58,7 @@ export function DateRangeFilter({
   allowEmpty = false,
   className,
 }: DateRangeFilterProps) {
+  const { t } = useTranslation();
   const today = vietnamToday();
   const partial = !value.from || !value.to;
   const length = partial ? 0 : dayCount(value.from, value.to);
@@ -91,7 +93,7 @@ export function DateRangeFilter({
           max={value.to || today}
           onChange={(e) => handleFrom(e.target.value)}
           className="h-9 w-[150px]"
-          aria-label="Từ ngày"
+          aria-label={t("shared.dateRange.from")}
         />
         <span className="text-muted-foreground text-sm">→</span>
         <Input
@@ -100,12 +102,12 @@ export function DateRangeFilter({
           min={value.from}
           onChange={(e) => handleTo(e.target.value)}
           className="h-9 w-[150px]"
-          aria-label="Đến ngày"
+          aria-label={t("shared.dateRange.to")}
         />
         {!hidePresets &&
           presets().map((preset) => (
             <Button
-              key={preset.label}
+              key={preset.labelKey}
               type="button"
               variant={
                 preset.range.from === value.from && preset.range.to === value.to
@@ -116,7 +118,7 @@ export function DateRangeFilter({
               className="h-9 text-xs"
               onClick={() => onChange(preset.range)}
             >
-              {preset.label}
+              {t(preset.labelKey)}
             </Button>
           ))}
         {allowEmpty && (value.from || value.to) && (
@@ -127,7 +129,7 @@ export function DateRangeFilter({
             className="h-9 text-xs text-muted-foreground"
             onClick={() => onChange({ from: "", to: "" })}
           >
-            Mọi thời điểm
+            {t("shared.dateRange.allTime")}
           </Button>
         )}
       </div>
@@ -135,10 +137,10 @@ export function DateRangeFilter({
       {(tooLong || reversed || incomplete) && (
         <p className="text-xs text-destructive">
           {incomplete
-            ? "Chọn đủ cả ngày bắt đầu và ngày kết thúc."
+            ? t("shared.dateRange.incomplete")
             : reversed
-              ? "Ngày kết thúc phải từ ngày bắt đầu trở đi."
-              : `Khoảng báo cáo tối đa ${MAX_REPORT_DAYS} ngày (đang chọn ${length} ngày).`}
+              ? t("shared.dateRange.reversed")
+              : t("shared.dateRange.tooLong", { max: MAX_REPORT_DAYS, count: length })}
         </p>
       )}
     </div>

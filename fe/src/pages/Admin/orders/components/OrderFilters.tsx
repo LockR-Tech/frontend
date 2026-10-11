@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowDownUp, Search } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import {
@@ -31,31 +32,16 @@ interface OrderFiltersProps {
   onDateRangeChange: (range: { from: string; to: string }) => void;
 }
 
-const STATUS_OPTIONS = ADMIN_ORDER_STATUSES.map((value) => ({
-  value,
-  label: orderStatusMeta(value).label,
-}));
-
-const TYPE_OPTIONS = ADMIN_ORDER_TYPES.map((value) => ({
-  value,
-  label: orderTypeMeta(value).label,
-}));
-
-const PAYMENT_STATUS_OPTIONS = ADMIN_ORDER_PAYMENT_STATUSES.map((value) => ({
-  value,
-  label: orderPaymentStatusMeta(value).label,
-}));
-
 /** Các trường backend cho phép sắp xếp (§ 1.1 của hợp đồng API). */
 const SORT_OPTIONS = [
-  { value: "createdAt,desc", label: "Mới tạo trước" },
-  { value: "createdAt,asc", label: "Cũ tạo trước" },
-  { value: "updatedAt,desc", label: "Vừa cập nhật" },
-  { value: "totalPrice,desc", label: "Tiền cao → thấp" },
-  { value: "totalPrice,asc", label: "Tiền thấp → cao" },
-  { value: "paidAt,desc", label: "Vừa thanh toán" },
-  { value: "completedAt,desc", label: "Vừa hoàn thành" },
-  { value: "id,desc", label: "Mã đơn giảm dần" },
+  { value: "createdAt,desc", labelKey: "admin.orders.sort.createdDesc" },
+  { value: "createdAt,asc", labelKey: "admin.orders.sort.createdAsc" },
+  { value: "updatedAt,desc", labelKey: "admin.orders.sort.updatedDesc" },
+  { value: "totalPrice,desc", labelKey: "admin.orders.sort.amountDesc" },
+  { value: "totalPrice,asc", labelKey: "admin.orders.sort.amountAsc" },
+  { value: "paidAt,desc", labelKey: "admin.orders.sort.paidDesc" },
+  { value: "completedAt,desc", labelKey: "admin.orders.sort.completedDesc" },
+  { value: "id,desc", labelKey: "admin.orders.sort.idDesc" },
 ];
 
 export function OrderFilters({
@@ -63,6 +49,20 @@ export function OrderFilters({
   onFilterChange,
   onDateRangeChange,
 }: OrderFiltersProps) {
+  const { t } = useTranslation();
+  // Nhãn enum dựng mỗi lần render để đổi theo ngôn ngữ đang chọn.
+  const statusOptions = ADMIN_ORDER_STATUSES.map((value) => ({
+    value,
+    label: orderStatusMeta(value).label,
+  }));
+  const typeOptions = ADMIN_ORDER_TYPES.map((value) => ({
+    value,
+    label: orderTypeMeta(value).label,
+  }));
+  const paymentStatusOptions = ADMIN_ORDER_PAYMENT_STATUSES.map((value) => ({
+    value,
+    label: orderPaymentStatusMeta(value).label,
+  }));
   // Ô tìm kiếm gõ tới đâu hiện tới đó, nhưng chỉ gọi API sau khi ngừng gõ.
   const [searchDraft, setSearchDraft] = useState(filters.q);
 
@@ -85,7 +85,7 @@ export function OrderFilters({
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
-            placeholder="Mã đơn, số điện thoại, tên người nhận…"
+            placeholder={t("admin.orders.filters.searchPlaceholder")}
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
             className="pl-9 h-9"
@@ -93,20 +93,20 @@ export function OrderFilters({
         </div>
 
         <MultiSelectFilter
-          label="Trạng thái"
-          options={STATUS_OPTIONS}
+          label={t("common.status")}
+          options={statusOptions}
           value={filters.status}
           onChange={(value) => onFilterChange("status", value)}
         />
         <MultiSelectFilter
-          label="Loại đơn"
-          options={TYPE_OPTIONS}
+          label={t("admin.orders.fields.orderType")}
+          options={typeOptions}
           value={filters.type}
           onChange={(value) => onFilterChange("type", value)}
         />
         <MultiSelectFilter
-          label="Thanh toán"
-          options={PAYMENT_STATUS_OPTIONS}
+          label={t("common.payment")}
+          options={paymentStatusOptions}
           value={filters.paymentStatus}
           onChange={(value) => onFilterChange("paymentStatus", value)}
         />
@@ -117,12 +117,12 @@ export function OrderFilters({
         >
           <SelectTrigger className="h-9 w-[180px]">
             <ArrowDownUp className="h-3.5 w-3.5 opacity-60 shrink-0" />
-            <SelectValue placeholder="Sắp xếp" />
+            <SelectValue placeholder={t("common.sort")} />
           </SelectTrigger>
           <SelectContent>
             {SORT_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -135,7 +135,7 @@ export function OrderFilters({
         allowEmpty
       />
       <p className="text-[11px] text-muted-foreground">
-        Khoảng ngày lọc theo thời điểm tạo đơn. Bỏ trống để xem mọi thời điểm.
+        {t("admin.orders.filters.dateHint")}
       </p>
     </div>
   );

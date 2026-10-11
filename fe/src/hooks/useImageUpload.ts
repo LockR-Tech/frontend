@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   useCreateUploadSignaturesMutation,
   type MediaPurpose,
@@ -13,8 +14,8 @@ import {
 } from "~/lib/cloudinary-upload";
 import {
   getMediaErrorMessage,
+  getMediaStorageDisabledMessage,
   isMediaStorageDisabled,
-  MEDIA_STORAGE_DISABLED_MESSAGE,
 } from "~/lib/media";
 
 export type UploadStatus = "queued" | "uploading" | "done" | "error";
@@ -66,6 +67,7 @@ async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T
  * Ảnh đã upload thành công được nhớ theo `File`, nên bấm gửi lại chỉ upload các ảnh còn lỗi.
  */
 export function useImageUpload(purpose: MediaPurpose, options: { concurrency?: number } = {}) {
+  const { t } = useTranslation();
   const concurrency = options.concurrency ?? 3;
   const [createSignatures] = useCreateUploadSignaturesMutation();
   const [items, setItems] = useState<UploadProgressItem[]>([]);
@@ -120,7 +122,7 @@ export function useImageUpload(purpose: MediaPurpose, options: { concurrency?: n
             const res = await createSignatures({ purpose, count: chunk.length }).unwrap();
             const data = res.data;
             if (!data?.uploadUrl || !data.uploads || data.uploads.length < chunk.length) {
-              throw new Error("Máy chủ trả về chữ ký upload không hợp lệ");
+              throw new Error(t("shared.media.upload.invalidSignature"));
             }
             chunk.forEach((entry, idx) =>
               tasks.push({
@@ -132,11 +134,11 @@ export function useImageUpload(purpose: MediaPurpose, options: { concurrency?: n
               }),
             );
           } catch (err) {
-            const message = getMediaErrorMessage(err, "Không xin được chữ ký upload ảnh");
+            const message = getMediaErrorMessage(err, t("shared.media.upload.signatureFailed"));
             chunk.forEach((entry) => patchItem(entry.file, { status: "error", error: message }));
-            toast.error(isMediaStorageDisabled(err) ? MEDIA_STORAGE_DISABLED_MESSAGE : "Không thể tải ảnh lên", {
+            toast.error(isMediaStorageDisabled(err) ? getMediaStorageDisabledMessage() : t("shared.media.upload.failedTitle"), {
               description: isMediaStorageDisabled(err)
-                ? "Liên hệ quản trị hệ thống để đặt CLOUDINARY_URL cho các service."
+                ? t("shared.media.upload.storageDisabledHint")
                 : message,
             });
             throw new ImageUploadError(message);
@@ -166,16 +168,16 @@ export function useImageUpload(purpose: MediaPurpose, options: { concurrency?: n
             cache.set(task.file, media);
             patchItem(task.file, { status: "done", progress: 100 });
           } catch (err) {
-            fail(task.file, err instanceof Error ? err.message : "Upload thất bại");
+            fail(task.file, err instanceof Error ? err.message : t("shared.media.upload.failed"));
           }
         });
 
         if (controller.signal.aborted) {
-          throw new ImageUploadError("Đã huỷ upload");
+          throw new ImageUploadError(t("shared.media.error.uploadCanceled"));
         }
 
         if (errors.length > 0) {
-          toast.error(`Không tải lên được ${errors.length}/${files.length} ảnh`, {
+          toast.error(t("shared.media.upload.partialFailed", { failed: errors.length, total: files.length }), {
             description: errors[0],
           });
           throw new ImageUploadError(errors[0]);
@@ -187,7 +189,7 @@ export function useImageUpload(purpose: MediaPurpose, options: { concurrency?: n
         setIsUploading(false);
       }
     },
-    [concurrency, createSignatures, patchItem, purpose],
+    [concurrency, createSignatures, patchItem, purpose, t],
   );
 
   const cancel = useCallback(() => abortRef.current?.abort(), []);

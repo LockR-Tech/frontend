@@ -31,6 +31,8 @@ import {
   isUnsupportedScopeError,
   settingLabel,
 } from "./setting-utils";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 const ALL_KEYS = "__all__";
 const AUDIT_LIMIT = 100;
@@ -52,6 +54,7 @@ export function AuditHistorySheet({
   onFilterKeyChange,
   onOpenChange,
 }: AuditHistorySheetProps) {
+  const { t } = useTranslation();
   const settingsQuery = useGetBusinessSettingsQuery(scope, { skip: !open });
   const auditsQuery = useGetBusinessSettingAuditsQuery(
     { scope, key: filterKey ?? undefined, limit: AUDIT_LIMIT },
@@ -80,10 +83,10 @@ export function AuditHistorySheet({
         <SheetHeader className="space-y-1 border-b border-border/60 px-5 pb-4 pt-5 pr-12 text-left">
           <SheetTitle className="flex items-center gap-2 text-base">
             <History className="h-4 w-4" />
-            Lịch sử thay đổi
+            {t("admin.settings.panel.history")}
           </SheetTitle>
           <SheetDescription className="text-xs">
-            Nhóm “{scopeTitle}” · {AUDIT_LIMIT} thay đổi gần nhất, mới nhất ở trên.
+            {t("admin.settings.audit.description", { scope: scopeTitle, limit: AUDIT_LIMIT })}
           </SheetDescription>
         </SheetHeader>
 
@@ -92,11 +95,11 @@ export function AuditHistorySheet({
             value={filterKey ?? ALL_KEYS}
             onValueChange={(v) => onFilterKeyChange(v === ALL_KEYS ? null : v)}
           >
-            <SelectTrigger className="h-9 min-w-0 flex-1 text-sm" aria-label="Lọc theo quy tắc">
-              <SelectValue placeholder="Tất cả quy tắc" />
+            <SelectTrigger className="h-9 min-w-0 flex-1 text-sm" aria-label={t("admin.settings.audit.filterAria")}>
+              <SelectValue placeholder={t("admin.settings.audit.allRules")} />
             </SelectTrigger>
             <SelectContent className="max-h-80">
-              <SelectItem value={ALL_KEYS}>Tất cả quy tắc</SelectItem>
+              <SelectItem value={ALL_KEYS}>{t("admin.settings.audit.allRules")}</SelectItem>
               {filterKey && !settingsByKey.has(filterKey) && (
                 <SelectItem value={filterKey}>{filterKey}</SelectItem>
               )}
@@ -113,7 +116,7 @@ export function AuditHistorySheet({
             className="h-9 w-9 shrink-0"
             onClick={() => refetch()}
             disabled={isFetching}
-            aria-label="Làm mới lịch sử"
+            aria-label={t("admin.settings.audit.refreshAria")}
           >
             <RefreshCw className={isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
           </Button>
@@ -126,29 +129,29 @@ export function AuditHistorySheet({
             isUnsupportedScopeError(error) ? (
               <EmptyMessage
                 icon={<PlugZap className="h-7 w-7 text-muted-foreground/60" />}
-                title="Service chưa hỗ trợ cấu hình"
-                message="Service của nhóm này chưa triển khai lịch sử thay đổi."
+                title={t("admin.settings.panel.unsupportedTitle")}
+                message={t("admin.settings.audit.unsupportedMessage")}
               />
             ) : (
               <div className="space-y-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
-                <p className="font-medium text-destructive">Không tải được lịch sử</p>
+                <p className="font-medium text-destructive">{t("admin.settings.audit.loadFailed")}</p>
                 <p className="text-muted-foreground">
-                  {getApiErrorMessage(error, "Đã có lỗi xảy ra. Vui lòng thử lại.")}
+                  {getApiErrorMessage(error, t("admin.settings.audit.loadFailedMessage"))}
                 </p>
                 <Button size="sm" variant="outline" onClick={() => refetch()}>
                   <RefreshCw className="h-4 w-4" />
-                  Thử lại
+                  {t("common.retry")}
                 </Button>
               </div>
             )
           ) : audits.length === 0 ? (
             <EmptyMessage
               icon={<History className="h-7 w-7 text-muted-foreground/60" />}
-              title="Chưa có thay đổi nào"
+              title={t("admin.settings.audit.emptyTitle")}
               message={
                 filterKey
-                  ? "Quy tắc này chưa từng được chỉnh sửa."
-                  : "Các quy tắc trong nhóm này vẫn đang dùng giá trị ban đầu."
+                  ? t("admin.settings.audit.emptyRule")
+                  : t("admin.settings.audit.emptyGroup")
               }
             />
           ) : (
@@ -169,13 +172,19 @@ export function AuditHistorySheet({
   );
 }
 
-function auditValue(setting: SettingView | undefined, raw: string | null): string {
+function auditValue(setting: SettingView | undefined, raw: string | null, t: TFunction): string {
   if (raw === null) {
     return setting?.defaultValue != null
-      ? `Mặc định (${formatSettingValue(setting, setting.defaultValue)})`
-      : "Mặc định";
+      ? t("admin.settings.audit.defaultWithValue", {
+          value: formatSettingValue(setting, setting.defaultValue),
+        })
+      : t("admin.settings.audit.default");
   }
-  return setting ? formatSettingValue(setting, raw) : raw === "" ? "(để trống)" : raw;
+  return setting
+    ? formatSettingValue(setting, raw)
+    : raw === ""
+      ? t("admin.settings.value.empty")
+      : raw;
 }
 
 function AuditItem({
@@ -187,6 +196,7 @@ function AuditItem({
   setting: SettingView | undefined;
   onFilter?: () => void;
 }) {
+  const { t } = useTranslation();
   const isReset = audit.newValue === null;
   return (
     <li className="rounded-lg border border-border/60 bg-card p-3">
@@ -197,7 +207,7 @@ function AuditItem({
               type="button"
               onClick={onFilter}
               className="text-left text-sm font-medium text-foreground hover:underline"
-              title="Chỉ xem lịch sử của quy tắc này"
+              title={t("admin.settings.audit.filterThisRule")}
             >
               {setting ? settingLabel(setting) : audit.key}
             </button>
@@ -213,18 +223,18 @@ function AuditItem({
             variant="outline"
             className="shrink-0 border-slate-300 bg-slate-50 text-[11px] font-medium text-slate-700 dark:border-slate-500/40 dark:bg-slate-500/10 dark:text-slate-300"
           >
-            Khôi phục mặc định
+            {t("admin.settings.audit.resetBadge")}
           </Badge>
         )}
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
         <span className="rounded-md bg-muted px-2 py-0.5 text-muted-foreground">
-          {auditValue(setting, audit.oldValue)}
+          {auditValue(setting, audit.oldValue, t)}
         </span>
         <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="rounded-md bg-primary/10 px-2 py-0.5 font-medium text-foreground">
-          {auditValue(setting, audit.newValue)}
+          {auditValue(setting, audit.newValue, t)}
         </span>
       </div>
 
@@ -235,7 +245,9 @@ function AuditItem({
         </span>
         <span className="inline-flex items-center gap-1">
           <UserRound className="h-3 w-3" />
-          {audit.actorUserId != null ? `Người dùng #${audit.actorUserId}` : "Hệ thống"}
+          {audit.actorUserId != null
+            ? t("admin.settings.audit.actorUser", { id: audit.actorUserId })
+            : t("common.system")}
         </span>
       </div>
     </li>
@@ -261,8 +273,9 @@ function EmptyMessage({
 }
 
 function AuditSkeleton() {
+  const { t } = useTranslation();
   return (
-    <div className="space-y-3" aria-busy="true" aria-label="Đang tải lịch sử">
+    <div className="space-y-3" aria-busy="true" aria-label={t("admin.settings.audit.loadingAria")}>
       {[0, 1, 2, 3].map((i) => (
         <div key={i} className="space-y-2 rounded-lg border border-border/60 p-3">
           <Skeleton className="h-4 w-44" />

@@ -2,6 +2,10 @@ import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
+import { monthName } from "~/lib/report-format";
+import { currentLanguage } from "~/utils/i18n";
 import type { UserGrowthPoint } from "../hooks/dashboardExtraApi";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
@@ -12,17 +16,23 @@ interface UserGrowthChartProps {
   onRetry?: () => void;
 }
 
-/** "2026-03" → "T3/26" */
-const monthLabel = (month: string) => {
+/** "2026-03" → "T3/26" (tiếng Việt) / "Mar '26" (tiếng Anh) */
+const monthLabel = (month: string, t: TFunction, lang: string) => {
   const [year, m] = month.split("-");
-  return m ? `T${Number(m)}/${year.slice(2)}` : month;
+  if (!m) return month;
+  return t("admin.dashboard.userGrowth.monthTick", {
+    month: lang === "vi" ? String(Number(m)) : monthName(Number(m), lang),
+    year: year.slice(2),
+  });
 };
 
 // GET /api/admin/users/growth?months=12 — số tài khoản đăng ký mới mỗi tháng.
 export function UserGrowthChart({ points, isLoading, error, onRetry }: UserGrowthChartProps) {
+  const { t, i18n } = useTranslation();
+  const lang = currentLanguage(i18n);
   const data = [...(points ?? [])]
     .sort((a, b) => a.month.localeCompare(b.month))
-    .map((p) => ({ month: monthLabel(p.month), newUsers: Number(p.newUsers) || 0 }));
+    .map((p) => ({ month: monthLabel(p.month, t, lang), newUsers: Number(p.newUsers) || 0 }));
   const total = data.reduce((sum, d) => sum + d.newUsers, 0);
   const hasData = data.length > 0 && total > 0;
 
@@ -31,16 +41,18 @@ export function UserGrowthChart({ points, isLoading, error, onRetry }: UserGrowt
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-            Tăng trưởng khách hàng mới
+            {t("admin.dashboard.userGrowth.title")}
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
-            Số tài khoản đăng ký mới mỗi tháng (12 tháng gần nhất)
+            {t("admin.dashboard.userGrowth.description")}
           </CardDescription>
         </div>
         {hasData && (
           <div className="text-right text-xs">
-            <p className="text-muted-foreground">Tổng 12 tháng</p>
-            <p className="font-semibold text-foreground">{total.toLocaleString("vi-VN")} người</p>
+            <p className="text-muted-foreground">{t("admin.dashboard.userGrowth.total12Months")}</p>
+            <p className="font-semibold text-foreground">
+              {t("admin.dashboard.userGrowth.peopleValue", { value: total.toLocaleString("vi-VN") })}
+            </p>
           </div>
         )}
       </CardHeader>
@@ -67,7 +79,10 @@ export function UserGrowthChart({ points, isLoading, error, onRetry }: UserGrowt
                 <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-[11px] fill-muted-foreground" />
                 <YAxis allowDecimals={false} tickLine={false} axisLine={false} className="text-[11px] fill-muted-foreground" />
                 <Tooltip
-                  formatter={(val) => [`${Number(val).toLocaleString("vi-VN")} người`, "Đăng ký mới"]}
+                  formatter={(val) => [
+                    t("admin.dashboard.userGrowth.peopleValue", { value: Number(val).toLocaleString("vi-VN") }),
+                    t("admin.dashboard.userGrowth.newSignups"),
+                  ]}
                   contentStyle={{
                     backgroundColor: "var(--popover)",
                     borderColor: "var(--border)",

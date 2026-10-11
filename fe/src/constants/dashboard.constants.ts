@@ -1,4 +1,5 @@
 import type { Recommendation } from "~/types/dashboard.types";
+import i18n from "~/utils/i18n";
 
 export type DashboardRecommendation = Recommendation & {
   /** Route admin thật mà thẻ mở ra. */
@@ -6,29 +7,46 @@ export type DashboardRecommendation = Recommendation & {
 };
 
 // Lối tắt tới các trang quản trị có sẵn (routes-config.tsx).
+// `title`/`description` là getter: dịch lúc đọc để theo ngôn ngữ hiện tại.
 export const dashboardRecommendations: DashboardRecommendation[] = [
   {
     id: "maintenance",
-    title: "Bảo trì thiết bị",
-    description: "Phiếu sự cố, lịch kiểm tra định kỳ và kỹ thuật viên",
+    get title() {
+      return i18n.t("admin.sidebar.maintenance");
+    },
+    get description() {
+      return i18n.t("admin.dashboard.recommendations.maintenanceDescription");
+    },
     href: "/admin/maintenance",
   },
   {
     id: "view-analysis",
-    title: "Báo cáo doanh thu",
-    description: "Doanh thu thực thu theo ngày, dịch vụ, cửa hàng và khách hàng",
+    get title() {
+      return i18n.t("admin.dashboard.recommendations.revenueTitle");
+    },
+    get description() {
+      return i18n.t("admin.dashboard.recommendations.revenueDescription");
+    },
     href: "/admin/revenue",
   },
   {
     id: "loyalty",
-    title: "Khách hàng thân thiết",
-    description: "Thống kê thành viên và điểm thưởng",
+    get title() {
+      return i18n.t("admin.sidebar.loyalty");
+    },
+    get description() {
+      return i18n.t("admin.dashboard.recommendations.loyaltyDescription");
+    },
     href: "/admin/loyalty",
   },
   {
     id: "campaign",
-    title: "Khuyến mãi",
-    description: "Tạo và quản lý mã khuyến mãi",
+    get title() {
+      return i18n.t("admin.sidebar.promotions");
+    },
+    get description() {
+      return i18n.t("admin.dashboard.recommendations.promotionsDescription");
+    },
     href: "/admin/promotions",
   },
 ];

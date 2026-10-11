@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   useGetAllStoresQuery,
   useDeleteStoreMutation,
@@ -10,6 +11,7 @@ import {
 } from "@/stores/apis/admin/stores";
 import { extractList } from "~/lib/extract-list";
 import { useStoreRevenue } from "./useStoreRevenue";
+import i18n from "~/utils/i18n";
 
 export type StoreStatus = "ALL" | "ACTIVE" | "INACTIVE";
 
@@ -17,7 +19,7 @@ export type StoreStatus = "ALL" | "ACTIVE" | "INACTIVE";
 export function storeErrorMessage(err: unknown, fallback: string): string {
   const e = err as { data?: { message?: unknown }; status?: unknown } | undefined;
   if (typeof e?.data?.message === "string" && e.data.message.trim()) return e.data.message;
-  if (e?.status === "FETCH_ERROR") return "Không kết nối được máy chủ";
+  if (e?.status === "FETCH_ERROR") return i18n.t("common.serverUnreachable");
   return fallback;
 }
 
@@ -25,6 +27,7 @@ export function storeErrorMessage(err: unknown, fallback: string): string {
 const ALL_STORES_ARGS = { page: 0, size: 1000 };
 
 export function useStores() {
+  const { t } = useTranslation();
   const [status, setStatusState] = useState<StoreStatus>("ALL");
   const [searchQuery, setSearchQueryState] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
@@ -114,11 +117,11 @@ export function useStores() {
     if (!deleteTarget) return;
     try {
       await deleteStore(deleteTarget.id).unwrap();
-      toast.success("Đã xoá cửa hàng");
+      toast.success(t("admin.stores.toast.deleted"));
       setDeleteTarget(null);
     } catch (err) {
-      toast.error("Không xoá được cửa hàng", {
-        description: storeErrorMessage(err, "Máy chủ từ chối yêu cầu xoá."),
+      toast.error(t("admin.stores.toast.deleteFailed"), {
+        description: storeErrorMessage(err, t("admin.stores.toast.deleteRejected")),
       });
     }
   };
@@ -129,10 +132,14 @@ export function useStores() {
     setStatusPendingIds((prev) => new Set(prev).add(store.id));
     try {
       await updateStoreStatus({ id: store.id, data: { status: nextStatus } }).unwrap();
-      toast.success(nextStatus === "ACTIVE" ? "Đã kích hoạt cửa hàng" : "Đã ngừng hoạt động cửa hàng");
+      toast.success(
+        nextStatus === "ACTIVE"
+          ? t("admin.stores.toast.activated")
+          : t("admin.stores.toast.deactivated"),
+      );
     } catch (err) {
-      toast.error("Không đổi được trạng thái cửa hàng", {
-        description: storeErrorMessage(err, "Vui lòng thử lại."),
+      toast.error(t("admin.stores.toast.statusFailed"), {
+        description: storeErrorMessage(err, t("common.pleaseRetry")),
       });
     } finally {
       setStatusPendingIds((prev) => {

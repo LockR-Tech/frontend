@@ -19,6 +19,7 @@ import {
   splitList,
   validateListItem,
 } from "./setting-utils";
+import { useTranslation } from "react-i18next";
 
 interface SettingInputProps {
   id: string;
@@ -33,6 +34,7 @@ const invalidClass = "border-destructive focus-visible:ring-destructive";
 
 /** Ô nhập theo `type` của quy tắc; `allowedValues` không rỗng -> chọn từ danh sách. */
 export function SettingInput({ id, setting, value, invalid, disabled, onChange }: SettingInputProps) {
+  const { t } = useTranslation();
   const allowed = allowedValuesOf(setting);
 
   if (setting.type === "BOOLEAN") {
@@ -46,7 +48,7 @@ export function SettingInput({ id, setting, value, invalid, disabled, onChange }
           onCheckedChange={(next) => onChange(next ? "true" : "false")}
         />
         <span className={cn("text-sm", checked ? "font-medium text-foreground" : "text-muted-foreground")}>
-          {checked ? "Đang bật" : "Đang tắt"}
+          {checked ? t("admin.settings.input.on") : t("admin.settings.input.off")}
         </span>
       </div>
     );
@@ -77,7 +79,7 @@ export function SettingInput({ id, setting, value, invalid, disabled, onChange }
         autoComplete="off"
         spellCheck={false}
         aria-invalid={invalid}
-        placeholder={setting.type === "STRING" ? "(để trống)" : undefined}
+        placeholder={setting.type === "STRING" ? t("admin.settings.value.empty") : undefined}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
           numeric && "tabular-nums",
@@ -111,6 +113,7 @@ function AllowedSelect({
   disabled?: boolean;
   onChange: (raw: string) => void;
 }) {
+  const { t } = useTranslation();
   // Radix Select không nhận value rỗng -> dùng giá trị thay thế.
   const toOption = (v: string) => (v === "" ? EMPTY_SELECT_VALUE : v);
   const normalized = normalizeValue(setting, value);
@@ -123,7 +126,11 @@ function AllowedSelect({
       onValueChange={(v) => onChange(v === EMPTY_SELECT_VALUE ? "" : v)}
     >
       <SelectTrigger id={id} aria-invalid={invalid} className={cn(invalid && invalidClass)}>
-        <SelectValue placeholder={value ? `${value} (không hợp lệ)` : "Chọn giá trị"} />
+        <SelectValue
+          placeholder={
+            value ? t("admin.settings.input.invalidValue", { value }) : t("admin.settings.input.chooseValue")
+          }
+        />
       </SelectTrigger>
       <SelectContent>
         {allowed.map((option) => (
@@ -151,6 +158,8 @@ function AllowedListPicker({
   disabled?: boolean;
   onChange: (raw: string) => void;
 }) {
+  // Nhãn lựa chọn (Bật/Tắt, "(để trống)") dịch trong formatSettingValue — đăng ký để render lại khi đổi ngôn ngữ.
+  useTranslation();
   const selected = new Set(splitList(value).map((item) => normalizeValue(setting, item)));
 
   const toggle = (option: string) => {
@@ -209,6 +218,7 @@ function IntegerListEditor({
   disabled?: boolean;
   onChange: (raw: string) => void;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const items = splitList(value);
 
@@ -265,7 +275,7 @@ function IntegerListEditor({
               disabled={disabled}
               onClick={() => removeAt(index)}
               className="-mr-0.5 rounded-sm p-0.5 opacity-60 hover:bg-background/60 hover:opacity-100"
-              aria-label={`Xoá ${item}`}
+              aria-label={t("admin.settings.input.removeItem", { item })}
             >
               <X className="h-3 w-3" />
             </button>
@@ -279,7 +289,7 @@ function IntegerListEditor({
         inputMode="numeric"
         autoComplete="off"
         aria-invalid={invalid}
-        placeholder={items.length > 0 ? "Thêm…" : "Nhập số rồi Enter"}
+        placeholder={items.length > 0 ? t("admin.settings.input.addMore") : t("admin.settings.input.typeNumberEnter")}
         onChange={(e) => {
           const next = e.target.value;
           if (/[,;\s]/.test(next)) commit(next);

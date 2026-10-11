@@ -1,4 +1,5 @@
 import { Plus, RefreshCw, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
@@ -28,6 +29,7 @@ export function TableToolbar({
   canClearFilters,
   className,
 }: TableToolbarProps) {
+  const { t } = useTranslation();
   const CreateIcon = createButton?.icon || Plus;
 
   return (
@@ -42,7 +44,7 @@ export function TableToolbar({
           className="h-9 text-xs border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
         >
           <X size={14} className="mr-1.5" />
-          Xóa lọc
+          {t("table.clearFilters")}
         </Button>
       )}
 
@@ -56,7 +58,7 @@ export function TableToolbar({
           className="h-9 text-xs border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
         >
           <RefreshCw size={14} className={cn("mr-1.5", isRefreshing && "animate-spin")} />
-          Tải lại
+          {t("button.reload")}
         </Button>
       )}
 

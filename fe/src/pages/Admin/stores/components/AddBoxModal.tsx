@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -30,10 +31,10 @@ interface Props {
 
 // Cỡ ô locker-service nhận (SIZE_ORDER); bỏ trống thì backend lưu MEDIUM.
 const SIZE_OPTIONS = [
-  { value: "SMALL", label: "Nhỏ (S)" },
-  { value: "MEDIUM", label: "Vừa (M)" },
-  { value: "LARGE", label: "Lớn (L)" },
-  { value: "XL", label: "Rất lớn (XL)" },
+  { value: "SMALL", labelKey: "admin.stores.addBox.size.small" },
+  { value: "MEDIUM", labelKey: "admin.stores.addBox.size.medium" },
+  { value: "LARGE", labelKey: "admin.stores.addBox.size.large" },
+  { value: "XL", labelKey: "admin.stores.addBox.size.xl" },
 ];
 
 export function AddBoxModal({
@@ -42,6 +43,7 @@ export function AddBoxModal({
   onClose,
   onCreated,
 }: Props) {
+  const { t } = useTranslation();
   const [boxNumber, setBoxNumber] = useState(defaultBoxNumber);
   const [touched, setTouched] = useState(false);
   const [size, setSize] = useState("MEDIUM");
@@ -62,11 +64,11 @@ export function AddBoxModal({
         boxNumber,
         size,
       });
-      toast.success(`Đã thêm ngăn #${boxNumber}`);
+      toast.success(t("admin.stores.addBox.added", { number: boxNumber }));
       onCreated();
       onClose();
     } catch (err) {
-      toast.error("Không thể thêm ngăn tủ", {
+      toast.error(t("admin.stores.addBox.addFailed"), {
         description: err instanceof Error ? err.message : undefined,
       });
     } finally {
@@ -80,16 +82,16 @@ export function AddBoxModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Thêm ngăn tủ
+            {t("admin.stores.addBox.title")}
           </DialogTitle>
           <DialogDescription>
-            Ngăn mới sẽ được thêm vào tủ này ngay sau khi tạo.
+            {t("admin.stores.addBox.desc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">
-              Số ngăn <span className="text-red-500">*</span>
+              {t("admin.stores.addBox.boxNumber")} <span className="text-red-500">*</span>
             </label>
             <Input
               type="number"
@@ -103,7 +105,7 @@ export function AddBoxModal({
           </div>
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">
-              Kích cỡ
+              {t("admin.stores.addBox.sizeLabel")}
             </label>
             <Select value={size} onValueChange={setSize}>
               <SelectTrigger>
@@ -112,7 +114,7 @@ export function AddBoxModal({
               <SelectContent>
                 {SIZE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -121,13 +123,13 @@ export function AddBoxModal({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
-            Hủy
+            {t("button.cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={saving || !boxNumber || boxNumber < 1}
           >
-            {saving ? "Đang thêm..." : "Thêm ngăn"}
+            {saving ? t("admin.stores.addBox.adding") : t("admin.stores.addBox.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,5 @@
 import { AlertTriangle, RotateCcw, Save } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { PageHeader } from "~/components/shared/page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -17,6 +18,7 @@ import { useServices } from "./hooks/useServices";
 /// và quy tắc nằm ở `system_settings` của order-service. Nên trang này sửa quy tắc và
 /// xem hiệu quả, chứ không thêm/xoá dịch vụ.
 export default function ServicesPage() {
+  const { t } = useTranslation();
   const {
     range,
     setRange,
@@ -42,22 +44,22 @@ export default function ServicesPage() {
   return (
     <div className="space-y-6 pb-24">
       <PageHeader
-        title="Quản lý dịch vụ"
-        description="Giá, quy tắc và hiệu quả của ba dịch vụ đang bán — thay đổi có hiệu lực cho đơn tạo sau khi lưu"
+        title={t("admin.services.title")}
+        description={t("admin.services.description")}
       />
 
       {settingsError && (
         <ReportErrorState
           error={settingsError}
           onRetry={refetch}
-          title="Không tải được quy tắc dịch vụ"
+          title={t("admin.services.rulesLoadFailed")}
         />
       )}
 
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <DateRangeFilter value={range} onChange={setRange} />
         <p className="text-[11px] text-muted-foreground shrink-0">
-          Tổng doanh thu trong kỳ: {formatCurrency(totalRevenue)}
+          {t("admin.services.totalRevenue", { amount: formatCurrency(totalRevenue) })}
         </p>
       </div>
 
@@ -65,7 +67,7 @@ export default function ServicesPage() {
         <ReportErrorState
           error={revenueError}
           onRetry={refetch}
-          title="Không tải được hiệu quả dịch vụ"
+          title={t("admin.services.revenueLoadFailed")}
         />
       )}
 
@@ -90,10 +92,10 @@ export default function ServicesPage() {
           <CardContent className="p-5 space-y-4">
             <div>
               <h2 className="text-base font-bold text-foreground leading-tight">
-                Quy tắc chung
+                {t("admin.services.sharedRules")}
               </h2>
               <p className="text-[11px] text-muted-foreground">
-                Áp dụng cho cả ba dịch vụ
+                {t("admin.services.sharedRulesHint")}
               </p>
             </div>
             <RuleGroup
@@ -109,14 +111,13 @@ export default function ServicesPage() {
             {overtimeRevenue && (
               <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Phí quá hạn đã thu trong kỳ
+                  {t("admin.services.overtimeCollected")}
                 </p>
                 <p className="text-lg font-bold text-foreground mt-1">
                   {formatCurrency(overtimeRevenue.revenue)}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Không nằm trong doanh thu của ba dịch vụ trên — backend tách riêng để
-                  không đếm hai lần.
+                  {t("admin.services.overtimeHint")}
                 </p>
               </div>
             )}
@@ -131,19 +132,19 @@ export default function ServicesPage() {
             {hasInvalid && (
               <span className="text-xs text-destructive flex items-center gap-1.5 mr-auto">
                 <AlertTriangle className="h-3.5 w-3.5" />
-                Còn giá trị không hợp lệ
+                {t("admin.services.invalidValues")}
               </span>
             )}
             <span className="text-xs text-muted-foreground">
-              {dirtyCount} thay đổi chưa lưu
+              {t("admin.services.unsavedCount", { count: dirtyCount })}
             </span>
             <Button variant="outline" size="sm" onClick={resetDrafts} disabled={isSaving}>
               <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Bỏ thay đổi
+              {t("admin.services.discard")}
             </Button>
             <Button size="sm" onClick={save} disabled={isSaving || hasInvalid}>
               <Save className="mr-1.5 h-3.5 w-3.5" />
-              {isSaving ? "Đang lưu…" : "Lưu thay đổi"}
+              {isSaving ? t("admin.services.saving") : t("common.saveChanges")}
             </Button>
           </div>
         </div>

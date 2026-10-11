@@ -24,12 +24,14 @@ import { ScopeSettingsPanel } from "./ScopeSettingsPanel";
 import { AuditHistorySheet } from "./AuditHistorySheet";
 import { collectChanges, type DraftMap, type ScopeDrafts } from "./setting-utils";
 import { useUnsavedChangesGuard } from "./useUnsavedChangesGuard";
+import { useTranslation } from "react-i18next";
 
 /**
  * Cấu hình quy tắc nghiệp vụ (ADR-0005): giá, phí, thời hạn, SLA, giới hạn… của từng
  * service. Mọi quy tắc, nhóm, kiểu dữ liệu và ràng buộc đều lấy từ API theo scope.
  */
 export default function BusinessSettingsPage() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
   const activeScope: SettingScope = isSettingScope(tabParam) ? tabParam : DEFAULT_SCOPE;
@@ -98,8 +100,8 @@ export default function BusinessSettingsPage() {
     <TooltipProvider delayDuration={200}>
       <div className="space-y-5 pb-6">
         <PageHeader
-          title="Cấu hình quy tắc nghiệp vụ"
-          description="Giá, phí, thời hạn, SLA và giới hạn của từng service. Mọi thay đổi được kiểm tra và ghi lịch sử."
+          title={t("admin.settings.business.title")}
+          description={t("admin.settings.business.description")}
           className="mb-0"
         />
 
@@ -130,8 +132,8 @@ export default function BusinessSettingsPage() {
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Tìm theo tên, key, mô tả…"
-                  aria-label="Tìm quy tắc trong nhóm đang xem"
+                  placeholder={t("admin.settings.business.searchPlaceholder")}
+                  aria-label={t("admin.settings.business.searchAria")}
                   className="h-9 pl-9 pr-8"
                 />
                 {search && (
@@ -139,7 +141,7 @@ export default function BusinessSettingsPage() {
                     type="button"
                     onClick={() => setSearch("")}
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground"
-                    aria-label="Xoá tìm kiếm"
+                    aria-label={t("admin.settings.business.clearSearch")}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -178,19 +180,22 @@ export default function BusinessSettingsPage() {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Rời trang khi còn thay đổi chưa lưu?</AlertDialogTitle>
+              <AlertDialogTitle>{t("admin.settings.business.leave.title")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Nhóm {draftScopes.length > 0 ? `“${draftScopes.join("”, “")}”` : "đang sửa"} còn
-                thay đổi chưa lưu. Rời trang sẽ bỏ toàn bộ các thay đổi này.
+                {draftScopes.length > 0
+                  ? t("admin.settings.business.leave.descriptionGroups", {
+                      groups: `“${draftScopes.join("”, “")}”`,
+                    })
+                  : t("admin.settings.business.leave.descriptionCurrent")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Ở lại</AlertDialogCancel>
+              <AlertDialogCancel>{t("admin.settings.business.leave.stay")}</AlertDialogCancel>
               <Button
                 className="bg-rose-600 text-white hover:bg-rose-700"
                 onClick={leaveGuard.proceed}
               >
-                Rời trang, bỏ thay đổi
+                {t("admin.settings.business.leave.confirm")}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -202,6 +207,7 @@ export default function BusinessSettingsPage() {
 
 /** Số thay đổi chưa lưu của một tab (chỉ đọc cache khi tab đó có bản nháp). */
 function TabDirtyBadge({ scope, drafts }: { scope: SettingScope; drafts: DraftMap | undefined }) {
+  const { t } = useTranslation();
   const hasDrafts = !!drafts && Object.keys(drafts).length > 0;
   const { data } = useGetBusinessSettingsQuery(scope, { skip: !hasDrafts });
   const count = useMemo(() => {
@@ -214,7 +220,7 @@ function TabDirtyBadge({ scope, drafts }: { scope: SettingScope; drafts: DraftMa
   return (
     <span
       className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-semibold text-white"
-      aria-label={`${count} thay đổi chưa lưu`}
+      aria-label={t("admin.settings.panel.unsavedCount", { count })}
     >
       {count}
     </span>

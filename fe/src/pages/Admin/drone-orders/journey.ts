@@ -1,4 +1,5 @@
 import { parseBackendDateTime } from "~/lib/datetime";
+import i18n from "~/utils/i18n";
 import type { DroneJourneyEvent, DroneOrderTracking } from "~/stores/apis/admin/droneOrders";
 
 // Phép tính dùng chung cho timeline và bản đồ hành trình drone — khớp logic màn
@@ -45,17 +46,30 @@ export function sentAt(order: DroneOrderTracking): Date | null {
   return stageTimes(order).get("DEPARTED") ?? parseBackendDateTime(order.launchingAt);
 }
 
-/** `45 giây`, `3 phút 20 giây`, `1 giờ 5 phút`, `2 ngày 3 giờ`. */
+/** `45 giây`, `3 phút 20 giây`, `1 giờ 5 phút`, `2 ngày 3 giờ` (theo ngôn ngữ đang chọn). */
 export function durationLabel(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
   const days = Math.floor(total / 86400);
   const hours = Math.floor((total % 86400) / 3600);
   const minutes = Math.floor((total % 3600) / 60);
   const seconds = total % 60;
-  if (days > 0) return hours ? `${days} ngày ${hours} giờ` : `${days} ngày`;
-  if (hours > 0) return minutes ? `${hours} giờ ${minutes} phút` : `${hours} giờ`;
-  if (minutes > 0) return seconds ? `${minutes} phút ${seconds} giây` : `${minutes} phút`;
-  return `${seconds} giây`;
+  const t = i18n.t.bind(i18n);
+  if (days > 0) {
+    return hours
+      ? t("admin.droneOrders.duration.daysHours", { days, hours })
+      : t("admin.droneOrders.duration.days", { days });
+  }
+  if (hours > 0) {
+    return minutes
+      ? t("admin.droneOrders.duration.hoursMinutes", { hours, minutes })
+      : t("admin.droneOrders.duration.hours", { hours });
+  }
+  if (minutes > 0) {
+    return seconds
+      ? t("admin.droneOrders.duration.minutesSeconds", { minutes, seconds })
+      : t("admin.droneOrders.duration.minutes", { minutes });
+  }
+  return t("admin.droneOrders.duration.seconds", { seconds });
 }
 
 /** Khoảng cách đường chim bay, km (haversine). */

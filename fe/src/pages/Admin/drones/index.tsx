@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Plane,
   Plus,
@@ -37,23 +38,24 @@ import {
 } from "~/stores/apis/admin/drones";
 import { useGetLockerStatsQuery } from "~/stores/apis/admin/lockerOps";
 
+// Giá trị là khoá i18n; dịch lúc render.
 const STATUS_LABELS: Record<string, string> = {
-  IDLE: "Sẵn sàng",
-  RESERVED: "Đã giữ cho nhiệm vụ",
-  CHARGING: "Đang sạc",
-  IN_FLIGHT: "Đang bay",
-  MAINTENANCE: "Bảo trì",
-  FAULT: "Đang sửa lỗi",
+  IDLE: "admin.drones.status.idle",
+  RESERVED: "admin.drones.status.reserved",
+  CHARGING: "admin.drones.status.charging",
+  IN_FLIGHT: "admin.drones.status.inFlight",
+  MAINTENANCE: "admin.drones.status.maintenance",
+  FAULT: "admin.drones.status.fault",
 };
 
-const STATUS_FILTERS: { value: string | null; label: string }[] = [
-  { value: null, label: "Tất cả" },
-  { value: "IDLE", label: "Sẵn sàng" },
-  { value: "CHARGING", label: "Đang sạc" },
-  { value: "RESERVED", label: "Đã giữ" },
-  { value: "IN_FLIGHT", label: "Đang bay" },
-  { value: "MAINTENANCE", label: "Bảo trì" },
-  { value: "FAULT", label: "Lỗi" },
+const STATUS_FILTERS: { value: string | null; labelKey: string }[] = [
+  { value: null, labelKey: "common.all" },
+  { value: "IDLE", labelKey: "admin.drones.status.idle" },
+  { value: "CHARGING", labelKey: "admin.drones.status.charging" },
+  { value: "RESERVED", labelKey: "admin.drones.filter.reserved" },
+  { value: "IN_FLIGHT", labelKey: "admin.drones.status.inFlight" },
+  { value: "MAINTENANCE", labelKey: "admin.drones.status.maintenance" },
+  { value: "FAULT", labelKey: "admin.drones.filter.fault" },
 ];
 
 const STATUS_BADGE: Record<string, string> = {
@@ -81,6 +83,7 @@ function batteryColor(pct: number): string {
 }
 
 export default function DronesPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data, isLoading, isFetching, refetch } = useGetDronesQuery();
   const lockersQuery = useGetLockerStatsQuery();
@@ -127,9 +130,8 @@ export default function DronesPage() {
   const toggleMaintenance = async (drone: (typeof drones)[number]) => {
     const maintenanceEnabled = drone.status === "MAINTENANCE";
     if (["RESERVED", "IN_FLIGHT"].includes(drone.status)) {
-      toast.warning("Drone đang thực hiện đơn giao hàng", {
-        description:
-          "Vui lòng hoàn tất đơn giao hiện tại trước khi chuyển drone sang bảo trì.",
+      toast.warning(t("admin.drones.toast.busyTitle"), {
+        description: t("admin.drones.toast.busyDescription"),
       });
       return;
     }
@@ -140,14 +142,14 @@ export default function DronesPage() {
       }).unwrap();
       toast.success(
         maintenanceEnabled
-          ? "Drone đã hoạt động lại"
-          : "Đã chuyển drone sang bảo trì",
+          ? t("admin.drones.toast.reactivated")
+          : t("admin.drones.toast.maintenanceOn"),
       );
     } catch {
       toast.error(
         maintenanceEnabled
-          ? "Không kích hoạt được drone"
-          : "Không chuyển được trạng thái bảo trì",
+          ? t("admin.drones.toast.reactivateFailed")
+          : t("admin.drones.toast.maintenanceFailed"),
       );
     }
   };
@@ -155,8 +157,8 @@ export default function DronesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quản lý Drone"
-        description="Đội drone giao/nhận gắn với bãi đáp của tủ"
+        title={t("admin.drones.title")}
+        description={t("admin.drones.description")}
       />
 
       <Card className="border-border/70 shadow-sm">
@@ -164,22 +166,22 @@ export default function DronesPage() {
           <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
             <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 xl:max-w-2xl">
               <StatCard
-                label="Tổng"
+                label={t("admin.drones.stats.total")}
                 value={counts.total}
                 color="text-primary"
               />
               <StatCard
-                label="Sẵn sàng"
+                label={t("admin.drones.status.idle")}
                 value={counts.idle}
                 color="text-emerald-600"
               />
               <StatCard
-                label="Đang sạc"
+                label={t("admin.drones.status.charging")}
                 value={counts.charging}
                 color="text-amber-600"
               />
               <StatCard
-                label="Lỗi"
+                label={t("admin.drones.filter.fault")}
                 value={counts.fault}
                 color="text-rose-600"
               />
@@ -189,10 +191,10 @@ export default function DronesPage() {
                 <RefreshCw
                   className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
                 />
-                Làm mới
+                {t("button.refresh")}
               </Button>
               <Button size="sm" onClick={openCreate}>
-                <Plus className="mr-2 h-4 w-4" /> Thêm drone
+                <Plus className="mr-2 h-4 w-4" /> {t("admin.drones.add")}
               </Button>
             </div>
           </div>
@@ -205,7 +207,7 @@ export default function DronesPage() {
                 : counts.total;
               return (
                 <button
-                  key={filter.label}
+                  key={filter.labelKey}
                   type="button"
                   aria-pressed={active}
                   onClick={() => setStatusFilter(filter.value)}
@@ -215,7 +217,7 @@ export default function DronesPage() {
                       : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-muted/50 hover:text-foreground"
                   }`}
                 >
-                  <span>{filter.label}</span>
+                  <span>{t(filter.labelKey)}</span>
                   <span
                     className={`inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
                       active
@@ -242,8 +244,8 @@ export default function DronesPage() {
           <CardContent className="py-16 text-center text-sm text-muted-foreground">
             <Plane className="mx-auto mb-3 h-8 w-8 opacity-40" />
             {drones.length === 0
-              ? "Chưa có drone nào"
-              : "Không có drone khớp bộ lọc"}
+              ? t("admin.drones.empty")
+              : t("admin.drones.emptyFiltered")}
           </CardContent>
         </Card>
       ) : (
@@ -267,13 +269,15 @@ export default function DronesPage() {
                         "bg-muted text-muted-foreground"
                       }
                     >
-                      {STATUS_LABELS[d.status] ?? d.status}
+                      {STATUS_LABELS[d.status] ? t(STATUS_LABELS[d.status]) : d.status}
                     </Badge>
                   </div>
 
                   <p className="text-sm text-muted-foreground">
                     {d.lockerName ??
-                      (d.lockerId ? `Tủ #${d.lockerId}` : "Chưa gắn tủ")}
+                      (d.lockerId
+                        ? t("admin.drones.card.lockerFallback", { id: d.lockerId })
+                        : t("admin.drones.card.noLocker"))}
                   </p>
 
                   <div className="flex items-center gap-2">
@@ -296,8 +300,9 @@ export default function DronesPage() {
                   )}
 
                   <p className="text-xs text-muted-foreground">
-                    Phụ trách:{" "}
-                    {d.assignedTechnicianName ?? "Chưa có kỹ thuật viên"}
+                    {t("admin.drones.card.assignee", {
+                      name: d.assignedTechnicianName ?? t("admin.drones.card.noTechnician"),
+                    })}
                   </p>
 
                   <div className="flex flex-wrap gap-2 pt-1">
@@ -310,7 +315,7 @@ export default function DronesPage() {
                         })
                       }
                     >
-                      Chi tiết
+                      {t("button.detail")}
                     </Button>
                     <Button
                       size="sm"
@@ -330,7 +335,9 @@ export default function DronesPage() {
                       ) : (
                         <Wrench className="mr-1 h-3.5 w-3.5" />
                       )}
-                      {d.status === "MAINTENANCE" ? "Kích hoạt" : "Bảo trì"}
+                      {d.status === "MAINTENANCE"
+                        ? t("dropdown.activate")
+                        : t("dropdown.maintenance")}
                     </Button>
                   </div>
                 </CardContent>
@@ -349,11 +356,11 @@ export default function DronesPage() {
         onSubmit={async ({ lockerId, code }) => {
           try {
             await createDrone({ lockerId, code }).unwrap();
-            toast.success(`Đã thêm drone ${code}`);
+            toast.success(t("admin.drones.toast.created", { code }));
             setFormOpen(false);
           } catch (error) {
-            toast.error("Không tạo được drone", {
-              description: apiErrorMessage(error, "Dữ liệu drone chưa hợp lệ."),
+            toast.error(t("admin.drones.toast.createFailed"), {
+              description: apiErrorMessage(error, t("admin.drones.toast.invalidData")),
             });
           }
         }}
@@ -399,6 +406,7 @@ function DroneFormDialog({
   isSaving: boolean;
   onSubmit: (v: { lockerId: number; code: string }) => void;
 }) {
+  const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [lockerId, setLockerId] = useState<string>("");
   const [touched, setTouched] = useState(false);
@@ -421,22 +429,22 @@ function DroneFormDialog({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Thêm drone</DialogTitle>
+          <DialogTitle>{t("admin.drones.add")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-1">
           <div>
-            <Label className="mb-1.5 block text-xs">Mã drone *</Label>
+            <Label className="mb-1.5 block text-xs">{t("admin.drones.form.codeLabel")}</Label>
             <Input
               placeholder="DRONE-01"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
             />
             {touched && !code.trim() && (
-              <p className="mt-1 text-xs text-red-600">Nhập mã drone.</p>
+              <p className="mt-1 text-xs text-red-600">{t("admin.drones.form.codeRequired")}</p>
             )}
           </div>
           <div>
-            <Label className="mb-1.5 block text-xs">Tủ gốc (bãi đáp) *</Label>
+            <Label className="mb-1.5 block text-xs">{t("admin.drones.form.homeLockerLabel")}</Label>
             <Select
               value={lockerId}
               onValueChange={setLockerId}
@@ -446,10 +454,10 @@ function DroneFormDialog({
                 <SelectValue
                   placeholder={
                     lockersLoading
-                      ? "Đang tải danh sách tủ…"
+                      ? t("admin.drones.form.lockersLoading")
                       : lockers.length === 0
-                        ? "Chưa có tủ nào có bãi đáp"
-                        : "Chọn tủ có bãi đáp…"
+                        ? t("admin.drones.form.noLandingPadLockers")
+                        : t("admin.drones.form.selectLocker")
                   }
                 />
               </SelectTrigger>
@@ -462,22 +470,22 @@ function DroneFormDialog({
               </SelectContent>
             </Select>
             {touched && !lockerId && (
-              <p className="mt-1 text-xs text-red-600">Chọn tủ gốc.</p>
+              <p className="mt-1 text-xs text-red-600">{t("admin.drones.form.lockerRequired")}</p>
             )}
             {!lockersLoading && lockers.length === 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
-                Chưa có tủ nào được cấu hình bãi đáp — cần có tủ có bãi đáp trước khi thêm drone.
+                {t("admin.drones.form.noLandingPadHint")}
               </p>
             )}
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Huỷ
+            {t("common.cancel")}
           </Button>
           <Button onClick={submit} disabled={isSaving}>
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Tạo
+            {t("admin.drones.form.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertCircle, XCircle, Wifi, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from './button';
 import { Alert, AlertDescription, AlertTitle } from './alert';
 import { ServerErrorCard, ServerErrorInline } from './server-error-card';
@@ -16,14 +17,17 @@ interface ErrorStateProps {
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
-  title = 'Đã có lỗi xảy ra',
-  message = 'Không thể tải dữ liệu. Vui lòng thử lại.',
+  title: titleProp,
+  message: messageProp,
   error,
   onRetry,
   className,
   variant = 'default',
   onClose,
 }) => {
+  const { t } = useTranslation();
+  const title = titleProp ?? t('shared.errorState.title');
+  const message = messageProp ?? t('shared.errorState.message');
   // Use ServerErrorCard for server errors
   if (variant === 'server') {
     return (
@@ -48,7 +52,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           {onRetry && (
             <Button variant="outline" size="sm" onClick={onRetry}>
               <RefreshCw className="h-3 w-3 mr-2" />
-              Thử lại
+              {t('common.retry')}
             </Button>
           )}
         </AlertDescription>
@@ -66,7 +70,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
             <p className="text-sm text-muted-foreground">{message}</p>
             {error && (
               <details className="text-xs text-muted-foreground">
-                <summary className="cursor-pointer hover:underline">Chi tiết lỗi</summary>
+                <summary className="cursor-pointer hover:underline">{t('shared.errorState.details')}</summary>
                 <pre className="mt-2 p-2 bg-background rounded border overflow-x-auto">
                   {error.message}
                 </pre>
@@ -75,7 +79,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
             {onRetry && (
               <Button variant="destructive" size="sm" onClick={onRetry}>
                 <RefreshCw className="h-3 w-3 mr-2" />
-                Thử lại
+                {t('common.retry')}
               </Button>
             )}
           </div>
@@ -97,7 +101,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         {error && (
           <details className="text-sm text-muted-foreground text-left">
             <summary className="cursor-pointer hover:underline inline-block">
-              Chi tiết lỗi
+              {t('shared.errorState.details')}
             </summary>
             <pre className="mt-2 p-4 bg-muted rounded-md overflow-x-auto text-xs">
               {error.message}
@@ -108,7 +112,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         {onRetry && (
           <Button onClick={onRetry} className="mt-4">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Thử lại
+            {t('common.retry')}
           </Button>
         )}
       </div>
@@ -122,6 +126,7 @@ interface NetworkErrorProps {
 }
 
 export const NetworkError: React.FC<NetworkErrorProps> = ({ onRetry, className }) => {
+  const { t } = useTranslation();
   return (
     <div className={cn('flex min-h-[400px] items-center justify-center', className)}>
       <div className="text-center space-y-4 max-w-md">
@@ -129,15 +134,15 @@ export const NetworkError: React.FC<NetworkErrorProps> = ({ onRetry, className }
           <Wifi className="h-16 w-16 text-muted-foreground" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold tracking-tight">Không có kết nối</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">{t('shared.errorState.networkTitle')}</h2>
           <p className="text-muted-foreground">
-            Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối internet của bạn.
+            {t('shared.errorState.networkMessage')}
           </p>
         </div>
         {onRetry && (
           <Button onClick={onRetry} className="mt-4">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Thử lại
+            {t('common.retry')}
           </Button>
         )}
       </div>
@@ -157,19 +162,20 @@ interface EmptyDataProps {
 }
 
 export const EmptyData: React.FC<EmptyDataProps> = ({
-  title = 'Không có dữ liệu',
-  message = 'Chưa có dữ liệu để hiển thị.',
+  title,
+  message,
   icon,
   action,
   className,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className={cn('flex min-h-[400px] items-center justify-center', className)}>
       <div className="text-center space-y-4 max-w-md">
         {icon && <div className="flex justify-center">{icon}</div>}
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-          <p className="text-muted-foreground text-sm">{message}</p>
+          <h2 className="text-xl font-semibold tracking-tight">{title ?? t('common.noData')}</h2>
+          <p className="text-muted-foreground text-sm">{message ?? t('shared.errorState.emptyMessage')}</p>
         </div>
         {action && (
           <Button onClick={action.onClick} className="mt-4">

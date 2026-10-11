@@ -1,6 +1,9 @@
 import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
+import i18n from "~/utils/i18n";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -107,14 +110,20 @@ const DRONE_STATUS_BADGE: Record<string, string> = {
   FAULT: "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 font-semibold",
 };
 
-const DRONE_STATUS_LABELS: Record<string, string> = {
-  IDLE: "Sẵn sàng",
-  RESERVED: "Đã giữ cho nhiệm vụ",
-  CHARGING: "Đang sạc",
-  IN_FLIGHT: "Đang bay",
-  MAINTENANCE: "Đang bảo dưỡng",
-  FAULT: "Gặp sự cố",
+// Lưu khoá i18n; dịch lúc render bằng t()
+const DRONE_STATUS_LABEL_KEYS: Record<string, string> = {
+  IDLE: "admin.maintenance.droneStatus.idle",
+  RESERVED: "admin.maintenance.droneStatus.reserved",
+  CHARGING: "admin.maintenance.droneStatus.charging",
+  IN_FLIGHT: "admin.maintenance.droneStatus.inFlight",
+  MAINTENANCE: "admin.maintenance.droneStatus.maintenance",
+  FAULT: "admin.maintenance.droneStatus.fault",
 };
+
+function droneStatusLabel(t: TFunction, status: string): string {
+  const key = DRONE_STATUS_LABEL_KEYS[status];
+  return key ? t(key) : status;
+}
 
 // Cùng cửa sổ backend dùng cho bộ điều khiển tủ: quá 150 s không thấy heartbeat ⇒ mất kết nối
 const HEARTBEAT_ONLINE_WINDOW_MS = 150_000;
@@ -141,25 +150,25 @@ function openDirections(location: LocationPayload) {
         : null;
 
   if (!url) {
-    toast.error("Thiết bị này chưa có tọa độ vị trí");
+    toast.error(i18n.t("admin.maintenance.toast.noLocation"));
     return;
   }
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function getRelativeAge(dateStr?: string | null): string {
+function getRelativeAge(t: TFunction, dateStr?: string | null): string {
   if (!dateStr) return "";
   const createdAt = parseBackendDateTime(dateStr);
   if (!createdAt) return "";
   const diffMs = Date.now() - createdAt.getTime();
-  if (diffMs < 0) return "Vừa xong";
+  if (diffMs < 0) return t("admin.maintenance.relativeTime.justNow");
   const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "Vừa xong";
-  if (diffMins < 60) return `${diffMins} phút trước`;
+  if (diffMins < 1) return t("admin.maintenance.relativeTime.justNow");
+  if (diffMins < 60) return t("admin.maintenance.relativeTime.minutesAgo", { count: diffMins });
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours} giờ trước`;
+  if (diffHours < 24) return t("admin.maintenance.relativeTime.hoursAgo", { count: diffHours });
   const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays} ngày trước`;
+  return t("admin.maintenance.relativeTime.daysAgo", { count: diffDays });
 }
 
 function timestampOf(value?: string | null): number {
@@ -168,6 +177,7 @@ function timestampOf(value?: string | null): number {
 
 export default function MaintenanceAdminPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   // Kiosk operations queries — kích hoạt tự động đồng bộ (polling) để phiếu mới luôn lập tức xuất hiện
   const faults = useGetFaultCellsQuery();
   const reports = useGetMaintenanceReportsQuery(undefined, { pollingInterval: 15000 });
@@ -274,11 +284,13 @@ export default function MaintenanceAdminPage() {
           roles.includes("LOCKER_TECHNICIAN") ||
           roles.includes("ROLE_LOCKER_TECHNICIAN");
         const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
-        const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay & Pin)";
+        const specialtyLabel = isKiosk
+          ? t("admin.maintenance.specialty.kiosk")
+          : t("admin.maintenance.specialty.drone");
 
         return {
           id: u.id,
-          fullName: u.fullName || u.name || `KTV #${u.id}`,
+          fullName: u.fullName || u.name || t("admin.maintenance.techFallback", { id: u.id }),
           email: u.email || "",
           phoneNumber: u.phoneNumber || "",
           status: (u.status || "ACTIVE").toUpperCase(),
@@ -289,12 +301,12 @@ export default function MaintenanceAdminPage() {
           specialtyLabel,
         };
       });
-  }, [usersQuery.data]);
+  }, [usersQuery.data, t]);
 
   const techniciansMap = useMemo(() => {
     const map: Record<number, TechnicianSummary> = {};
-    for (const t of technicians) {
-      map[t.id] = t;
+    for (const tech of technicians) {
+      map[tech.id] = tech;
     }
     return map;
   }, [technicians]);
@@ -329,9 +341,9 @@ export default function MaintenanceAdminPage() {
       const name = u.fullName || u.name;
       if (u.id != null && name) map[u.id] = name;
     }
-    for (const t of technicians) map[t.id] = `${t.fullName} (KTV)`;
+    for (const tech of technicians) map[tech.id] = t("admin.maintenance.techNameSuffix", { name: tech.fullName });
     return map;
-  }, [usersQuery.data, technicians]);
+  }, [usersQuery.data, technicians, t]);
 
   const act = async (
     id: number,
@@ -343,13 +355,13 @@ export default function MaintenanceAdminPage() {
     try {
       await fn();
       if (typeof ok === "string") {
-        toast.success(ok, { description: "Thao tác đã được hệ thống ghi nhận thành công." });
+        toast.success(ok, { description: t("admin.maintenance.toast.actionRecorded") });
       } else {
         toast.success(ok.title, { description: ok.description });
       }
     } catch (err: any) {
       const errorMsg =
-        err?.data?.message || err?.message || (typeof fail === "string" ? fail : fail.description) || "Đã xảy ra lỗi trong quá trình xử lý";
+        err?.data?.message || err?.message || (typeof fail === "string" ? fail : fail.description) || t("admin.maintenance.toast.processingError");
       if (typeof fail === "string") {
         toast.error(fail, { description: errorMsg });
       } else {
@@ -570,11 +582,14 @@ export default function MaintenanceAdminPage() {
   // Phiếu OPEN chưa ai nhận: chờ KTV phụ trách tủ (routedToUserId) hoặc đã báo mọi KTV tủ (null).
   // undefined = backend cũ chưa trả trường định tuyến.
   const routingLabel = (r: LockerReportResponse): string => {
-    if (r.routedToUserId === undefined) return "Chưa phân công";
+    if (r.routedToUserId === undefined) return t("common.unassigned");
     // Phiếu tạo trước khi có định tuyến cũng không có routedToUserId ⇒ ghi trung tính.
-    if (r.routedToUserId === null) return "Chờ KTV tủ nhận";
-    const name = techniciansMap[r.routedToUserId]?.fullName ?? userNames[r.routedToUserId] ?? `KTV #${r.routedToUserId}`;
-    return `Đang chờ ${name} nhận`;
+    if (r.routedToUserId === null) return t("admin.maintenance.routing.awaitingLockerTech");
+    const name =
+      techniciansMap[r.routedToUserId]?.fullName ??
+      userNames[r.routedToUserId] ??
+      t("admin.maintenance.techFallback", { id: r.routedToUserId });
+    return t("admin.maintenance.routing.awaitingNamed", { name });
   };
 
   const refetchAll = () => {
@@ -584,15 +599,15 @@ export default function MaintenanceAdminPage() {
     dronesQuery.refetch();
     usersQuery.refetch();
     allReportsQuery.refetch();
-    toast.info("Đang đồng bộ dữ liệu kỹ thuật...");
+    toast.info(t("admin.maintenance.page.syncing"));
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageHeader
-          title="Bảo trì thiết bị"
-          description="Trung tâm điều hành kỹ thuật — Giám sát phần cứng Kiosk, quản lý bảo dưỡng pin & đội bay Drone"
+          title={t("admin.maintenance.page.title")}
+          description={t("admin.maintenance.page.description")}
         />
         <Button
           variant="outline"
@@ -601,7 +616,7 @@ export default function MaintenanceAdminPage() {
           onClick={refetchAll}
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          Đồng bộ thiết bị
+          {t("admin.maintenance.page.syncDevices")}
         </Button>
       </div>
 
@@ -612,28 +627,28 @@ export default function MaintenanceAdminPage() {
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <Boxes className="w-4 h-4 text-orange-600" />
-            Bảo trì Kiosk ({openReports + inProgressReports})
+            {t("admin.maintenance.tabs.kiosk", { count: openReports + inProgressReports })}
           </TabsTrigger>
           <TabsTrigger
             value="technicians"
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <Users className="w-4 h-4 text-indigo-600" />
-            Đội ngũ KTV ({technicians.length})
+            {t("admin.maintenance.tabs.technicians", { count: technicians.length })}
           </TabsTrigger>
           <TabsTrigger
             value="drone"
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <Plane className="w-4 h-4 text-blue-600" />
-            Bảo trì & Pin Drone ({droneOpenReports + droneInProgressReports})
+            {t("admin.maintenance.tabs.drone", { count: droneOpenReports + droneInProgressReports })}
           </TabsTrigger>
           <TabsTrigger
             value="schedules"
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <CalendarClock className="w-4 h-4 text-emerald-600" />
-            Lịch bảo trì & Nhật ký
+            {t("admin.maintenance.tabs.schedules")}
           </TabsTrigger>
         </TabsList>
 
@@ -644,7 +659,7 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Sự cố đang mở</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.kpi.openIncidents")}</p>
                   <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-200/60 flex items-center justify-center text-rose-600">
                     <AlertTriangle className="w-4 h-4" />
                   </div>
@@ -654,7 +669,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-rose-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>{openReports + inProgressReports > 0 ? "Cần xử lý kỹ thuật" : "Không có sự cố"}</span>
+                  <span>{openReports + inProgressReports > 0 ? t("admin.maintenance.kpi.needsAction") : t("admin.maintenance.kpi.noIncidents")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -662,7 +677,7 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Phiếu mới mở</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.kpi.newReports")}</p>
                   <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600">
                     <Clock className="w-4 h-4" />
                   </div>
@@ -672,7 +687,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-amber-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>{openReports > 0 ? `${openReports} phiếu chờ KTV nhận` : "Đã tiếp nhận hết"}</span>
+                  <span>{openReports > 0 ? t("admin.maintenance.kpi.awaitingTech", { count: openReports }) : t("admin.maintenance.kpi.allClaimed")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -680,7 +695,7 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Đang xử lý</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.status.inProgress")}</p>
                   <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-600">
                     <Wrench className="w-4 h-4" />
                   </div>
@@ -690,7 +705,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-blue-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>Kỹ thuật viên đang xử lý</span>
+                  <span>{t("admin.maintenance.kpi.techWorking")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -698,7 +713,7 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Đã hoàn tất</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.status.resolved")}</p>
                   <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600">
                     <CheckCircle className="w-4 h-4" />
                   </div>
@@ -708,7 +723,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-emerald-600">
                   <ArrowDownRight className="w-3 h-3" />
-                  <span>Tỷ lệ hoàn thành cao</span>
+                  <span>{t("admin.maintenance.kpi.highCompletion")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -724,10 +739,10 @@ export default function MaintenanceAdminPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-sm text-amber-900">
-                      Cảnh báo: Có {overdueReports} phiếu sự cố Kiosk đang quá hạn xử lý (SLA)
+                      {t("admin.maintenance.overdueBanner.kioskTitle", { count: overdueReports })}
                     </h4>
                     <p className="text-xs text-amber-700 mt-0.5">
-                      Cần ưu tiên điều phối kỹ thuật viên tiếp nhận và xử lý ngay để đảm bảo chất lượng vận hành trạm Kiosk.
+                      {t("admin.maintenance.overdueBanner.kioskDesc")}
                     </p>
                   </div>
                 </div>
@@ -737,7 +752,7 @@ export default function MaintenanceAdminPage() {
                   className="h-8 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 bg-white"
                   onClick={() => setReportFilter("OVERDUE")}
                 >
-                  Xem phiếu quá hạn SLA
+                  {t("admin.maintenance.overdueBanner.viewOverdue")}
                 </Button>
               </CardContent>
             </Card>
@@ -750,20 +765,20 @@ export default function MaintenanceAdminPage() {
                 <div>
                   <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <Wrench className="w-4 h-4 text-orange-500" />
-                    Phiếu xử lý sự cố ({kioskReportList.length})
+                    {t("admin.maintenance.reports.kioskTitle", { count: kioskReportList.length })}
                     {overdueReports > 0 && (
                       <Badge variant="outline" className="ml-1 bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
-                        {overdueReports} quá hạn SLA
+                        {t("admin.maintenance.reports.overdueCount", { count: overdueReports })}
                       </Badge>
                     )}
                   </CardTitle>
                   <CardDescription className="text-xs mt-0.5">
-                    Hệ thống tự động ưu tiên các phiếu sự cố mới nhất lên đầu danh sách để xử lý kịp thời
+                    {t("admin.maintenance.reports.kioskDesc")}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs font-mono font-medium bg-muted">
-                    Hiển thị {filteredReports.length} / {kioskReportList.length} phiếu
+                    {t("admin.maintenance.reports.showing", { shown: filteredReports.length, total: kioskReportList.length })}
                   </Badge>
                   {hasActiveFilters && (
                     <Button
@@ -773,7 +788,7 @@ export default function MaintenanceAdminPage() {
                       className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      Đặt lại bộ lọc
+                      {t("admin.maintenance.filters.resetFilters")}
                     </Button>
                   )}
                 </div>
@@ -787,7 +802,7 @@ export default function MaintenanceAdminPage() {
                   <div className="relative md:col-span-4">
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder="Tìm mã phiếu (#1), tiêu đề, kiosk, ô, SĐT..."
+                      placeholder={t("admin.maintenance.reports.kioskSearch")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-8 pr-7 h-8 text-xs bg-background"
@@ -807,14 +822,14 @@ export default function MaintenanceAdminPage() {
                   <div className="md:col-span-2">
                     <Select value={selectedTechFilter} onValueChange={setSelectedTechFilter}>
                       <SelectTrigger className="w-full h-8 text-xs bg-background">
-                        <SelectValue placeholder="Lọc theo KTV" />
+                        <SelectValue placeholder={t("admin.maintenance.filters.filterByTech")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL">Tất cả Kỹ thuật viên</SelectItem>
-                        <SelectItem value="UNASSIGNED">Chưa phân công (Mới)</SelectItem>
-                        {technicians.map((t) => (
-                          <SelectItem key={t.id} value={String(t.id)}>
-                            {t.fullName} (#{t.id})
+                        <SelectItem value="ALL">{t("admin.maintenance.filters.allTechnicians")}</SelectItem>
+                        <SelectItem value="UNASSIGNED">{t("admin.maintenance.filters.unassignedNew")}</SelectItem>
+                        {technicians.map((tech) => (
+                          <SelectItem key={tech.id} value={String(tech.id)}>
+                            {tech.fullName} (#{tech.id})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -825,10 +840,10 @@ export default function MaintenanceAdminPage() {
                   <div className="md:col-span-2">
                     <Select value={selectedLockerFilter} onValueChange={setSelectedLockerFilter}>
                       <SelectTrigger className="w-full h-8 text-xs bg-background">
-                        <SelectValue placeholder="Trạm Kiosk" />
+                        <SelectValue placeholder={t("admin.maintenance.filters.kioskStation")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL">Tất cả trạm Kiosk</SelectItem>
+                        <SelectItem value="ALL">{t("admin.maintenance.filters.allKioskStations")}</SelectItem>
                         {availableLockers.map((lk) => (
                           <SelectItem key={lk.id} value={String(lk.id)}>
                             {lk.name} {lk.code ? `(${lk.code})` : ""}
@@ -842,13 +857,13 @@ export default function MaintenanceAdminPage() {
                   <div className="md:col-span-2">
                     <Select value={dateFilter} onValueChange={setDateFilter}>
                       <SelectTrigger className="w-full h-8 text-xs bg-background">
-                        <SelectValue placeholder="Thời gian" />
+                        <SelectValue placeholder={t("common.time")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL">Tất cả thời gian</SelectItem>
-                        <SelectItem value="TODAY">Hôm nay</SelectItem>
-                        <SelectItem value="7_DAYS">7 ngày gần nhất</SelectItem>
-                        <SelectItem value="30_DAYS">30 ngày gần nhất</SelectItem>
+                        <SelectItem value="ALL">{t("admin.maintenance.filters.allTime")}</SelectItem>
+                        <SelectItem value="TODAY">{t("common.today")}</SelectItem>
+                        <SelectItem value="7_DAYS">{t("admin.maintenance.filters.last7Days")}</SelectItem>
+                        <SelectItem value="30_DAYS">{t("admin.maintenance.filters.last30Days")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -857,13 +872,13 @@ export default function MaintenanceAdminPage() {
                   <div className="md:col-span-2">
                     <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
                       <SelectTrigger className="w-full h-8 text-xs bg-background font-medium border-primary/40 text-primary">
-                        <SelectValue placeholder="Sắp xếp" />
+                        <SelectValue placeholder={t("common.sort")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="NEWEST_FIRST">⚡ Mới nhất lên đầu (Mặc định)</SelectItem>
-                        <SelectItem value="PRIORITY_NEW">🔥 Ưu tiên: Mới & Khẩn cấp</SelectItem>
-                        <SelectItem value="SLA_URGENT">⏰ Hạn SLA gấp nhất</SelectItem>
-                        <SelectItem value="OLDEST_FIRST">📅 Cũ nhất trước</SelectItem>
+                        <SelectItem value="NEWEST_FIRST">{t("admin.maintenance.filters.sortNewest")}</SelectItem>
+                        <SelectItem value="PRIORITY_NEW">{t("admin.maintenance.filters.sortPriority")}</SelectItem>
+                        <SelectItem value="SLA_URGENT">{t("admin.maintenance.filters.sortSla")}</SelectItem>
+                        <SelectItem value="OLDEST_FIRST">{t("admin.maintenance.filters.sortOldest")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -873,11 +888,11 @@ export default function MaintenanceAdminPage() {
                 <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
                   <div className="flex gap-1.5 flex-wrap">
                     {[
-                      { id: "ALL", label: `Tất cả (${kioskReportList.length})` },
-                      { id: "OPEN", label: `Mới mở (${openReports})`, isNewPulse: openReports > 0 },
-                      { id: "IN_PROGRESS", label: `Đang làm (${inProgressReports})` },
-                      { id: "OVERDUE", label: `Quá hạn SLA (${overdueReports})`, isDanger: overdueReports > 0 },
-                      { id: "RESOLVED", label: `Đã xong (${resolvedReports})` },
+                      { id: "ALL", label: t("admin.maintenance.filters.statusAll", { count: kioskReportList.length }) },
+                      { id: "OPEN", label: t("admin.maintenance.filters.statusOpen", { count: openReports }), isNewPulse: openReports > 0 },
+                      { id: "IN_PROGRESS", label: t("admin.maintenance.filters.statusInProgress", { count: inProgressReports }) },
+                      { id: "OVERDUE", label: t("admin.maintenance.filters.statusOverdue", { count: overdueReports }), isDanger: overdueReports > 0 },
+                      { id: "RESOLVED", label: t("admin.maintenance.filters.statusResolved", { count: resolvedReports }) },
                     ].map(({ id: st, label, isNewPulse, isDanger }) => (
                       <Button
                         key={st}
@@ -912,30 +927,36 @@ export default function MaintenanceAdminPage() {
                   {/* Active Filter summary tags */}
                   {hasActiveFilters && (
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
-                      <span>Đang lọc:</span>
+                      <span>{t("admin.maintenance.filters.activeFilters")}</span>
                       {searchQuery && (
                         <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">
-                          Từ khóa: &quot;{searchQuery}&quot;
+                          {t("admin.maintenance.filters.keywordChip", { query: searchQuery })}
                           <X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setSearchQuery("")} />
                         </Badge>
                       )}
                       {selectedTechFilter !== "ALL" && (
                         <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">
                           {selectedTechFilter === "UNASSIGNED"
-                            ? "Chưa phân công"
-                            : `KTV: ${techniciansMap[Number(selectedTechFilter)]?.fullName ?? selectedTechFilter}`}
+                            ? t("common.unassigned")
+                            : t("admin.maintenance.technicianLabel", { name: techniciansMap[Number(selectedTechFilter)]?.fullName ?? selectedTechFilter })}
                           <X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setSelectedTechFilter("ALL")} />
                         </Badge>
                       )}
                       {selectedLockerFilter !== "ALL" && (
                         <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">
-                          Trạm: {availableLockers.find((l) => String(l.id) === selectedLockerFilter)?.name ?? selectedLockerFilter}
+                          {t("admin.maintenance.labels.station", { name: availableLockers.find((l) => String(l.id) === selectedLockerFilter)?.name ?? selectedLockerFilter })}
                           <X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setSelectedLockerFilter("ALL")} />
                         </Badge>
                       )}
                       {dateFilter !== "ALL" && (
                         <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">
-                          Thời gian: {dateFilter === "TODAY" ? "Hôm nay" : dateFilter === "7_DAYS" ? "7 ngày qua" : "30 ngày qua"}
+                          {t("admin.maintenance.filters.timeChip", {
+                            range: dateFilter === "TODAY"
+                              ? t("common.today")
+                              : dateFilter === "7_DAYS"
+                                ? t("admin.maintenance.filters.past7Days")
+                                : t("admin.maintenance.filters.past30Days"),
+                          })}
                           <X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDateFilter("ALL")} />
                         </Badge>
                       )}
@@ -955,7 +976,11 @@ export default function MaintenanceAdminPage() {
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
                       </span>
                       <p className="text-xs font-medium text-amber-900 dark:text-amber-200">
-                        <span className="font-bold">{openCount} phiếu sự cố mới</span> đang chờ KTV nhận — các phiếu mới nhất đã được tự động hiển thị lên đầu.
+                        <Trans
+                          i18nKey="admin.maintenance.reports.newBannerKiosk"
+                          values={{ count: openCount }}
+                          components={{ b: <span className="font-bold" /> }}
+                        />
                       </p>
                     </div>
                     {reportFilter !== "OPEN" && (
@@ -965,7 +990,7 @@ export default function MaintenanceAdminPage() {
                         onClick={() => setReportFilter("OPEN")}
                         className="h-7 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300"
                       >
-                        Chỉ xem phiếu mới
+                        {t("admin.maintenance.reports.onlyNew")}
                       </Button>
                     )}
                   </div>
@@ -974,8 +999,8 @@ export default function MaintenanceAdminPage() {
 
               {filteredReports.length === 0 ? (
                 <div className="py-12 text-center space-y-2">
-                  <p className="text-sm font-medium text-foreground">Không có phiếu sự cố nào phù hợp với bộ lọc hiện tại.</p>
-                  <p className="text-xs text-muted-foreground">Thử tìm kiếm với từ khóa khác hoặc đặt lại bộ lọc để xem toàn bộ danh sách phiếu.</p>
+                  <p className="text-sm font-medium text-foreground">{t("admin.maintenance.reports.noMatchKiosk")}</p>
+                  <p className="text-xs text-muted-foreground">{t("admin.maintenance.reports.noMatchHint")}</p>
                   {hasActiveFilters && (
                     <Button
                       variant="outline"
@@ -984,7 +1009,7 @@ export default function MaintenanceAdminPage() {
                       className="h-8 text-xs gap-1 mt-2"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      Đặt lại tất cả bộ lọc
+                      {t("admin.maintenance.filters.resetAllFilters")}
                     </Button>
                   )}
                 </div>
@@ -1019,40 +1044,40 @@ export default function MaintenanceAdminPage() {
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                                 </span>
-                                MỚI MỞ · CHỜ KTV NHẬN
+                                {t("admin.maintenance.status.openAwaitingTechUpper")}
                               </Badge>
                             ) : (
                               <Badge variant="outline" className={`text-xs ${REPORT_BADGE[r.status] ?? ""}`}>
-                                {r.status === "IN_PROGRESS" ? "Đang xử lý" : r.status === "RESOLVED" ? "Đã hoàn tất" : r.status}
+                                {r.status === "IN_PROGRESS" ? t("admin.maintenance.status.inProgress") : r.status === "RESOLVED" ? t("admin.maintenance.status.resolved") : r.status}
                               </Badge>
                             )}
                             {isRecent && !isNew && (
                               <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold text-[11px] shadow-xs flex items-center gap-1 px-2 py-0.5">
                                 <Sparkles className="w-3 h-3 text-emerald-600" />
-                                VỪA PHÁT SINH
+                                {t("admin.maintenance.status.justCreated")}
                               </Badge>
                             )}
                             {r.blocksLocker && r.status !== "RESOLVED" && (
                               <Badge
                                 variant="outline"
                                 className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs"
-                                title="Phiếu đưa cả tủ vào bảo trì; tủ tự mở lại khi phiếu chặn cuối cùng được hoàn tất"
+                                title={t("admin.maintenance.reports.blocksLockerHint")}
                               >
-                                Ngưng cả tủ
+                                {t("admin.maintenance.reports.blocksLocker")}
                               </Badge>
                             )}
                             {r.scheduleId != null && (
                               <Badge
                                 variant="outline"
                                 className="bg-sky-50 text-sky-800 border-sky-300 font-medium text-xs"
-                                title={`Tự mở từ lần kiểm tra định kỳ KHÔNG ĐẠT (lịch #${r.scheduleId})`}
+                                title={t("admin.maintenance.reports.fromScheduleHint", { id: r.scheduleId })}
                               >
-                                Từ kiểm tra định kỳ
+                                {t("admin.maintenance.reports.fromSchedule")}
                               </Badge>
                             )}
                             {r.overdue && (
                               <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
-                                Quá hạn SLA
+                                {t("admin.maintenance.status.overdueSla")}
                               </Badge>
                             )}
                             <SlaCountdownBadge
@@ -1067,11 +1092,11 @@ export default function MaintenanceAdminPage() {
                               type="button"
                               onClick={() => navigate(`/admin/maintenance/technicians/${r.assignedToUserId}`)}
                               className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200 transition-colors cursor-pointer"
-                              title="Xem chi tiết hồ sơ & hoạt động của KTV này"
+                              title={t("admin.maintenance.reports.viewTechProfile")}
                             >
                               <UserCheck className="w-3 h-3 text-indigo-700" />
                               <span>
-                                KTV: {assignedTech?.fullName ?? userNames[r.assignedToUserId] ?? `#${r.assignedToUserId}`}
+                                {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[r.assignedToUserId] ?? `#${r.assignedToUserId}` })}
                               </span>
                               {assignedTech?.phoneNumber && (
                                 <span className="text-[10px] text-indigo-600 font-mono">
@@ -1087,12 +1112,16 @@ export default function MaintenanceAdminPage() {
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
                           <span className="text-foreground">{cleanDescription(r.description) || r.description}</span> · <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
-                          {r.boxNumber ? ` · Ô #${r.boxNumber}` : r.boxId ? ` · Ô #${r.boxId}` : ""}{" "}
-                          {r.cellType ? `· Loại ${r.cellType} ` : ""}
-                          · Tạo lúc: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>{" "}
+                          {r.boxNumber
+                            ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxNumber })}`
+                            : r.boxId
+                              ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxId })}`
+                              : ""}{" "}
+                          {r.cellType ? `· ${t("admin.maintenance.reports.cellType", { type: r.cellType })} ` : ""}
+                          · {t("common.createdAtTime")}: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>{" "}
                           {r.createdAt && (
                             <span className="text-[11px] text-muted-foreground font-medium">
-                              ({getRelativeAge(r.createdAt)})
+                              ({getRelativeAge(t, r.createdAt)})
                             </span>
                           )}
                         </p>
@@ -1129,7 +1158,7 @@ export default function MaintenanceAdminPage() {
                             className="h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-semibold hover:shadow-indigo-200"
                             onClick={() => setAssigningReport(r)}
                           >
-                            <Boxes className="w-3.5 h-3.5" /> Phân công KTV
+                            <Boxes className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.assignTech")}
                           </Button>
                         )}
 
@@ -1140,7 +1169,7 @@ export default function MaintenanceAdminPage() {
                             className="h-8 text-xs gap-1 border-slate-300 text-slate-700 hover:bg-slate-50"
                             onClick={() => setAssigningReport(r)}
                           >
-                            <UserCheck className="w-3.5 h-3.5" /> Đổi KTV
+                            <UserCheck className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.changeTech")}
                           </Button>
                         )}
 
@@ -1152,13 +1181,13 @@ export default function MaintenanceAdminPage() {
                             onClick={() => setResolvingReport(r)}
                             disabled={pending === r.id}
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn tất
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.complete")}
                           </Button>
                         )}
 
                         {r.status === "RESOLVED" && (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-800">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> KTV đã xử lý xong
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.techDone")}
                           </span>
                         )}
                       </div>
@@ -1175,15 +1204,15 @@ export default function MaintenanceAdminPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Wifi className="w-4 h-4 text-emerald-600" />
-                Sức khỏe thiết bị Kiosk (Cabinet Heartbeat IoT)
+                {t("admin.maintenance.heartbeat.title")}
               </CardTitle>
               <CardDescription className="text-xs">
-                Tín hiệu kết nối máy chủ của từng trạm Kiosk thời gian thực
+                {t("admin.maintenance.heartbeat.description")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {deviceList.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">Chưa có tín hiệu heartbeat nào từ Kiosk.</p>
+                <p className="text-sm text-muted-foreground py-6 text-center">{t("admin.maintenance.heartbeat.empty")}</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {deviceList.map((d) => {
@@ -1209,7 +1238,7 @@ export default function MaintenanceAdminPage() {
                           <div>
                             <p className="font-semibold text-sm text-foreground">{d.deviceId}</p>
                             <p className="text-xs text-muted-foreground">
-                              {d.lockerId ? `Trạm Kiosk #${d.lockerId}` : "Chưa liên kết trạm"}
+                              {d.lockerId ? t("admin.maintenance.heartbeat.station", { id: d.lockerId }) : t("admin.maintenance.heartbeat.unlinked")}
                             </p>
                           </div>
                         </div>
@@ -1222,7 +1251,7 @@ export default function MaintenanceAdminPage() {
                                 : "bg-rose-50 text-rose-700 border-rose-200 text-xs"
                             }
                           >
-                            {online ? "Trực tuyến" : "Mất kết nối"}
+                            {online ? t("admin.maintenance.heartbeat.online") : t("common.disconnected")}
                           </Badge>
                           <p className="text-[11px] text-muted-foreground mt-1 font-mono">
                             {formatDateTime(d.lastSeenAt)}
@@ -1244,7 +1273,7 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Sự cố đang mở</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.kpi.openIncidents")}</p>
                   <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-200/60 flex items-center justify-center text-rose-600">
                     <AlertTriangle className="w-4 h-4" />
                   </div>
@@ -1254,7 +1283,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-rose-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>{droneOpenReports + droneInProgressReports > 0 ? "Cần xử lý kỹ thuật" : "Không có sự cố"}</span>
+                  <span>{droneOpenReports + droneInProgressReports > 0 ? t("admin.maintenance.kpi.needsAction") : t("admin.maintenance.kpi.noIncidents")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -1262,7 +1291,7 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Phiếu mới mở</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.kpi.newReports")}</p>
                   <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600">
                     <Clock className="w-4 h-4" />
                   </div>
@@ -1272,7 +1301,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-amber-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>{droneOpenReports > 0 ? `${droneOpenReports} phiếu chờ KTV nhận` : "Đã tiếp nhận hết"}</span>
+                  <span>{droneOpenReports > 0 ? t("admin.maintenance.kpi.awaitingTech", { count: droneOpenReports }) : t("admin.maintenance.kpi.allClaimed")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -1280,7 +1309,7 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Đang xử lý</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.status.inProgress")}</p>
                   <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-600">
                     <Wrench className="w-4 h-4" />
                   </div>
@@ -1290,7 +1319,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-blue-600">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>Kỹ thuật viên đang xử lý</span>
+                  <span>{t("admin.maintenance.kpi.techWorking")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -1298,7 +1327,7 @@ export default function MaintenanceAdminPage() {
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground font-medium">Đã hoàn tất</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.status.resolved")}</p>
                   <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600">
                     <CheckCircle className="w-4 h-4" />
                   </div>
@@ -1308,7 +1337,7 @@ export default function MaintenanceAdminPage() {
                 </p>
                 <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-emerald-600">
                   <ArrowDownRight className="w-3 h-3" />
-                  <span>Tỷ lệ hoàn thành cao</span>
+                  <span>{t("admin.maintenance.kpi.highCompletion")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -1324,10 +1353,10 @@ export default function MaintenanceAdminPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-sm text-amber-900">
-                      Cảnh báo: Có {droneOverdueReports} phiếu sự cố Drone đang quá hạn xử lý (SLA)
+                      {t("admin.maintenance.overdueBanner.droneTitle", { count: droneOverdueReports })}
                     </h4>
                     <p className="text-xs text-amber-700 mt-0.5">
-                      Cần ưu tiên điều phối kỹ thuật viên tiếp nhận và xử lý ngay để đảm bảo an toàn vận hành đội bay Drone.
+                      {t("admin.maintenance.overdueBanner.droneDesc")}
                     </p>
                   </div>
                 </div>
@@ -1337,7 +1366,7 @@ export default function MaintenanceAdminPage() {
                   className="h-8 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 bg-white"
                   onClick={() => setDroneReportFilter("OVERDUE")}
                 >
-                  Xem phiếu quá hạn SLA
+                  {t("admin.maintenance.overdueBanner.viewOverdue")}
                 </Button>
               </CardContent>
             </Card>
@@ -1350,15 +1379,15 @@ export default function MaintenanceAdminPage() {
                 <div>
                   <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <Wrench className="w-4 h-4 text-blue-600" />
-                    Phiếu xử lý sự cố Drone ({droneReportList.length})
+                    {t("admin.maintenance.reports.droneTitle", { count: droneReportList.length })}
                     {droneOverdueReports > 0 && (
                       <Badge variant="outline" className="ml-1 bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
-                        {droneOverdueReports} quá hạn SLA
+                        {t("admin.maintenance.reports.overdueCount", { count: droneOverdueReports })}
                       </Badge>
                     )}
                   </CardTitle>
                   <CardDescription className="text-xs mt-0.5">
-                    Điều phối KTV Drone, theo dõi SLA và lưu đầy đủ hồ sơ xử lý kỹ thuật từ API bảo trì
+                    {t("admin.maintenance.reports.droneDesc")}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1368,14 +1397,14 @@ export default function MaintenanceAdminPage() {
                     onClick={() => setCreatingDroneReport(true)}
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Tạo báo cáo sự cố Drone
+                    {t("admin.maintenance.reports.createDrone")}
                   </Button>
                   <Badge variant="secondary" className="text-xs font-mono font-medium bg-muted">
-                    Hiển thị {filteredDroneReports.length} / {droneReportList.length} phiếu
+                    {t("admin.maintenance.reports.showing", { shown: filteredDroneReports.length, total: droneReportList.length })}
                   </Badge>
                   {hasDroneReportFilters && (
                     <Button variant="ghost" size="sm" onClick={resetDroneReportFilters} className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1">
-                      <RotateCcw className="w-3.5 h-3.5" /> Đặt lại bộ lọc
+                      <RotateCcw className="w-3.5 h-3.5" /> {t("admin.maintenance.filters.resetFilters")}
                     </Button>
                   )}
                 </div>
@@ -1386,7 +1415,7 @@ export default function MaintenanceAdminPage() {
                   <div className="relative md:col-span-4">
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder="Tìm mã phiếu, drone, lỗi, KTV, SĐT..."
+                      placeholder={t("admin.maintenance.reports.droneSearch")}
                       value={droneSearchQuery}
                       onChange={(e) => setDroneSearchQuery(e.target.value)}
                       className="pl-8 pr-7 h-8 text-xs bg-background"
@@ -1399,21 +1428,21 @@ export default function MaintenanceAdminPage() {
                   </div>
                   <div className="md:col-span-2">
                     <Select value={droneTechFilter} onValueChange={setDroneTechFilter}>
-                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder="KTV Drone" /></SelectTrigger>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder={t("admin.maintenance.filters.droneTech")} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL">Tất cả KTV Drone</SelectItem>
-                        <SelectItem value="UNASSIGNED">Chưa phân công</SelectItem>
-                        {technicians.filter((t) => t.specialty === "DRONE").map((t) => (
-                          <SelectItem key={t.id} value={String(t.id)}>{t.fullName} (#{t.id})</SelectItem>
+                        <SelectItem value="ALL">{t("admin.maintenance.filters.allDroneTechs")}</SelectItem>
+                        <SelectItem value="UNASSIGNED">{t("common.unassigned")}</SelectItem>
+                        {technicians.filter((tech) => tech.specialty === "DRONE").map((tech) => (
+                          <SelectItem key={tech.id} value={String(tech.id)}>{tech.fullName} (#{tech.id})</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="md:col-span-2">
                     <Select value={droneUnitFilter} onValueChange={setDroneUnitFilter}>
-                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder="Thiết bị Drone" /></SelectTrigger>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder={t("admin.maintenance.filters.droneDevice")} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL">Tất cả thiết bị Drone</SelectItem>
+                        <SelectItem value="ALL">{t("admin.maintenance.filters.allDroneDevices")}</SelectItem>
                         {availableDrones.map((drone) => (
                           <SelectItem key={drone.id} value={drone.code}>{drone.code}</SelectItem>
                         ))}
@@ -1422,12 +1451,12 @@ export default function MaintenanceAdminPage() {
                   </div>
                   <div className="md:col-span-2">
                     <Select value={droneDateFilter} onValueChange={setDroneDateFilter}>
-                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder="Thời gian" /></SelectTrigger>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder={t("common.time")} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL">Tất cả thời gian</SelectItem>
-                        <SelectItem value="TODAY">Hôm nay</SelectItem>
-                        <SelectItem value="7_DAYS">7 ngày gần nhất</SelectItem>
-                        <SelectItem value="30_DAYS">30 ngày gần nhất</SelectItem>
+                        <SelectItem value="ALL">{t("admin.maintenance.filters.allTime")}</SelectItem>
+                        <SelectItem value="TODAY">{t("common.today")}</SelectItem>
+                        <SelectItem value="7_DAYS">{t("admin.maintenance.filters.last7Days")}</SelectItem>
+                        <SelectItem value="30_DAYS">{t("admin.maintenance.filters.last30Days")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1435,10 +1464,10 @@ export default function MaintenanceAdminPage() {
                     <Select value={droneReportSort} onValueChange={(value: "NEWEST_FIRST" | "PRIORITY_NEW" | "SLA_URGENT" | "OLDEST_FIRST") => setDroneReportSort(value)}>
                       <SelectTrigger className="w-full h-8 text-xs bg-background font-medium border-primary/40 text-primary"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="NEWEST_FIRST">⚡ Mới nhất lên đầu (Mặc định)</SelectItem>
-                        <SelectItem value="PRIORITY_NEW">🔥 Ưu tiên: Mới & Khẩn cấp</SelectItem>
-                        <SelectItem value="SLA_URGENT">⏰ Hạn SLA gấp nhất</SelectItem>
-                        <SelectItem value="OLDEST_FIRST">📅 Cũ nhất trước</SelectItem>
+                        <SelectItem value="NEWEST_FIRST">{t("admin.maintenance.filters.sortNewest")}</SelectItem>
+                        <SelectItem value="PRIORITY_NEW">{t("admin.maintenance.filters.sortPriority")}</SelectItem>
+                        <SelectItem value="SLA_URGENT">{t("admin.maintenance.filters.sortSla")}</SelectItem>
+                        <SelectItem value="OLDEST_FIRST">{t("admin.maintenance.filters.sortOldest")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1446,11 +1475,11 @@ export default function MaintenanceAdminPage() {
                 <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
                 <div className="flex gap-1.5 flex-wrap">
                   {[
-                    { id: "ALL", label: `Tất cả (${droneReportList.length})` },
-                    { id: "OPEN", label: `Mới mở (${droneOpenReports})`, isNewPulse: droneOpenReports > 0 },
-                    { id: "IN_PROGRESS", label: `Đang làm (${droneInProgressReports})` },
-                    { id: "OVERDUE", label: `Quá hạn SLA (${droneOverdueReports})`, isDanger: droneOverdueReports > 0 },
-                    { id: "RESOLVED", label: `Đã xong (${droneResolvedReports})` },
+                    { id: "ALL", label: t("admin.maintenance.filters.statusAll", { count: droneReportList.length }) },
+                    { id: "OPEN", label: t("admin.maintenance.filters.statusOpen", { count: droneOpenReports }), isNewPulse: droneOpenReports > 0 },
+                    { id: "IN_PROGRESS", label: t("admin.maintenance.filters.statusInProgress", { count: droneInProgressReports }) },
+                    { id: "OVERDUE", label: t("admin.maintenance.filters.statusOverdue", { count: droneOverdueReports }), isDanger: droneOverdueReports > 0 },
+                    { id: "RESOLVED", label: t("admin.maintenance.filters.statusResolved", { count: droneResolvedReports }) },
                   ].map(({ id: status, label, isNewPulse, isDanger }) => (
                     <Button
                       key={status}
@@ -1483,11 +1512,11 @@ export default function MaintenanceAdminPage() {
                 </div>
                 {hasDroneReportFilters && (
                   <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap">
-                    <span>Đang lọc:</span>
-                    {droneSearchQuery && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">Từ khóa: &quot;{droneSearchQuery}&quot;<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneSearchQuery("")} /></Badge>}
-                    {droneTechFilter !== "ALL" && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">{droneTechFilter === "UNASSIGNED" ? "Chưa phân công" : `KTV: ${techniciansMap[Number(droneTechFilter)]?.fullName ?? droneTechFilter}`}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneTechFilter("ALL")} /></Badge>}
+                    <span>{t("admin.maintenance.filters.activeFilters")}</span>
+                    {droneSearchQuery && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">{t("admin.maintenance.filters.keywordChip", { query: droneSearchQuery })}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneSearchQuery("")} /></Badge>}
+                    {droneTechFilter !== "ALL" && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">{droneTechFilter === "UNASSIGNED" ? t("common.unassigned") : t("admin.maintenance.technicianLabel", { name: techniciansMap[Number(droneTechFilter)]?.fullName ?? droneTechFilter })}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneTechFilter("ALL")} /></Badge>}
                     {droneUnitFilter !== "ALL" && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">Drone: {droneUnitFilter}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneUnitFilter("ALL")} /></Badge>}
-                    {droneDateFilter !== "ALL" && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">Thời gian: {droneDateFilter === "TODAY" ? "Hôm nay" : droneDateFilter === "7_DAYS" ? "7 ngày qua" : "30 ngày qua"}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneDateFilter("ALL")} /></Badge>}
+                    {droneDateFilter !== "ALL" && <Badge variant="outline" className="bg-muted/80 gap-1 text-[11px] font-normal py-0">{t("admin.maintenance.filters.timeChip", { range: droneDateFilter === "TODAY" ? t("common.today") : droneDateFilter === "7_DAYS" ? t("admin.maintenance.filters.past7Days") : t("admin.maintenance.filters.past30Days") })}<X className="w-3 h-3 cursor-pointer hover:text-foreground" onClick={() => setDroneDateFilter("ALL")} /></Badge>}
                   </div>
                 )}
                 </div>
@@ -1504,12 +1533,16 @@ export default function MaintenanceAdminPage() {
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
                       </span>
                       <p className="text-xs font-medium text-amber-900 dark:text-amber-200">
-                        <span className="font-bold">{openCount} phiếu sự cố mới</span> đang chờ KTV Drone nhận — các phiếu mới nhất đã được tự động hiển thị lên đầu.
+                        <Trans
+                          i18nKey="admin.maintenance.reports.newBannerDrone"
+                          values={{ count: openCount }}
+                          components={{ b: <span className="font-bold" /> }}
+                        />
                       </p>
                     </div>
                     {droneReportFilter !== "OPEN" && (
                       <Button size="sm" variant="outline" onClick={() => setDroneReportFilter("OPEN")} className="h-7 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300">
-                        Chỉ xem phiếu mới
+                        {t("admin.maintenance.reports.onlyNew")}
                       </Button>
                     )}
                   </div>
@@ -1517,12 +1550,12 @@ export default function MaintenanceAdminPage() {
               })()}
               {filteredDroneReports.length === 0 ? (
                 <div className="py-12 text-center space-y-2">
-                  <p className="text-sm font-medium text-foreground">Không có phiếu sự cố Drone nào phù hợp với bộ lọc hiện tại.</p>
-                  <p className="text-xs text-muted-foreground">Thử tìm kiếm với từ khóa khác hoặc đặt lại bộ lọc để xem toàn bộ danh sách phiếu.</p>
+                  <p className="text-sm font-medium text-foreground">{t("admin.maintenance.reports.noMatchDrone")}</p>
+                  <p className="text-xs text-muted-foreground">{t("admin.maintenance.reports.noMatchHint")}</p>
                   {hasDroneReportFilters && (
                     <Button variant="outline" size="sm" onClick={resetDroneReportFilters} className="h-8 text-xs gap-1 mt-2">
                       <RotateCcw className="w-3.5 h-3.5" />
-                      Đặt lại tất cả bộ lọc
+                      {t("admin.maintenance.filters.resetAllFilters")}
                     </Button>
                   )}
                 </div>
@@ -1538,20 +1571,26 @@ export default function MaintenanceAdminPage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-sm text-foreground">RPT-{report.id} · {report.title}</p>
                             <Badge variant="outline" className={`text-xs ${REPORT_BADGE[report.status] ?? ""}`}>
-                              {report.status === "OPEN" ? "Mới mở · Chờ KTV Drone" : report.status === "IN_PROGRESS" ? "Đang xử lý" : report.status === "RESOLVED" ? "Đã hoàn tất" : report.status}
+                              {report.status === "OPEN"
+                                ? t("admin.maintenance.status.openAwaitingDroneTech")
+                                : report.status === "IN_PROGRESS"
+                                  ? t("admin.maintenance.status.inProgress")
+                                  : report.status === "RESOLVED"
+                                    ? t("admin.maintenance.status.resolved")
+                                    : report.status}
                             </Badge>
-                            {report.overdue && <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">Quá hạn SLA</Badge>}
+                            {report.overdue && <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">{t("admin.maintenance.status.overdueSla")}</Badge>}
                             <SlaCountdownBadge slaDueAt={report.slaDueAt} createdAt={report.createdAt} slaHours={report.slaHours ?? 4} status={report.status} />
                             {report.assignedToUserId ? (
                               <button type="button" onClick={() => navigate(`/admin/maintenance/technicians/${report.assignedToUserId}`)} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200">
-                                <UserCheck className="w-3 h-3" /> KTV: {assignedTech?.fullName ?? userNames[report.assignedToUserId] ?? `#${report.assignedToUserId}`}
+                                <UserCheck className="w-3 h-3" /> {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[report.assignedToUserId] ?? `#${report.assignedToUserId}` })}
                               </button>
                             ) : null}
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             <span className="text-foreground">{cleanDescription(report.description) || report.description}</span>
-                            {" · "}<span className="font-medium text-foreground">{droneCode ? `Drone ${droneCode}` : report.lockerName ?? "Thiết bị bay"}</span>
-                            {" · "}Tạo lúc: <span className="text-foreground font-mono">{formatDateTime(report.createdAt)}</span> ({getRelativeAge(report.createdAt)})
+                            {" · "}<span className="font-medium text-foreground">{droneCode ? `Drone ${droneCode}` : report.lockerName ?? t("admin.maintenance.reports.flyingDevice")}</span>
+                            {" · "}{t("common.createdAtTime")}: <span className="text-foreground font-mono">{formatDateTime(report.createdAt)}</span> ({getRelativeAge(t, report.createdAt)})
                           </p>
                           {(report.reporterName || report.reporterPhone) && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{[report.reporterName, report.reporterPhone].filter(Boolean).join(" · ")}</p>}
                           <ReportPhotoGroups report={report} variant="compact" userNames={userNames} />
@@ -1560,7 +1599,7 @@ export default function MaintenanceAdminPage() {
                           <RepairLogDialog reportId={report.id} title={`RPT-${report.id} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
                           {(report.status === "OPEN" || report.status === "IN_PROGRESS") && (
                             <Button size="sm" variant={report.status === "OPEN" ? "default" : "outline"} className="h-8 text-xs gap-1.5" onClick={() => setAssigningReport(report)}>
-                              <UserCheck className="w-3.5 h-3.5" /> {report.status === "OPEN" ? "Phân công KTV Drone" : "Đổi KTV"}
+                              <UserCheck className="w-3.5 h-3.5" /> {report.status === "OPEN" ? t("admin.maintenance.reports.assignDroneTech") : t("admin.maintenance.reports.changeTech")}
                             </Button>
                           )}
                           {(report.status === "OPEN" || report.status === "IN_PROGRESS") && (
@@ -1571,10 +1610,10 @@ export default function MaintenanceAdminPage() {
                               onClick={() => setResolvingReport(report)}
                               disabled={pending === report.id}
                             >
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn tất
+                              <CheckCircle2 className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.complete")}
                             </Button>
                           )}
-                          {report.status === "RESOLVED" && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5" /> KTV đã xử lý xong</span>}
+                          {report.status === "RESOLVED" && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.techDone")}</span>}
                         </div>
                       </div>
                     );
@@ -1591,14 +1630,14 @@ export default function MaintenanceAdminPage() {
                 <div>
                   <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <Plane className="w-4 h-4 text-blue-600" />
-                    Sức khỏe thiết bị Drone ({droneList.length})
+                    {t("admin.maintenance.fleet.title", { count: droneList.length })}
                   </CardTitle>
                   <CardDescription className="text-xs mt-0.5">
-                    Tình trạng kỹ thuật, pin, trạm hoạt động và KTV phụ trách được đồng bộ từ API đội bay
+                    {t("admin.maintenance.fleet.description")}
                   </CardDescription>
                 </div>
                 <Badge variant="secondary" className="text-xs font-mono font-medium bg-muted">
-                  Hiển thị {filteredDrones.length} / {droneList.length} drone
+                  {t("admin.maintenance.fleet.showing", { shown: filteredDrones.length, total: droneList.length })}
                 </Badge>
               </div>
               <div className="mt-4 pt-3 border-t border-border/40 space-y-3">
@@ -1606,7 +1645,7 @@ export default function MaintenanceAdminPage() {
                   <div className="relative md:col-span-8">
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder="Tìm mã drone, trạm, KTV hoặc nguyên nhân lỗi..."
+                      placeholder={t("admin.maintenance.fleet.search")}
                       value={droneFleetSearch}
                       onChange={(e) => setDroneFleetSearch(e.target.value)}
                       className="pl-8 pr-7 h-8 text-xs bg-background"
@@ -1619,26 +1658,26 @@ export default function MaintenanceAdminPage() {
                   </div>
                   <div className="md:col-span-4">
                     <Select value={droneBatteryFilter} onValueChange={(value: "ALL" | "LOW" | "MEDIUM" | "READY") => setDroneBatteryFilter(value)}>
-                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder="Mức pin" /></SelectTrigger>
+                      <SelectTrigger className="w-full h-8 text-xs bg-background"><SelectValue placeholder={t("admin.maintenance.fleet.batteryLevel")} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ALL">Tất cả mức pin</SelectItem>
-                        <SelectItem value="LOW">Pin yếu dưới 20%</SelectItem>
-                        <SelectItem value="MEDIUM">Pin 20–49%</SelectItem>
-                        <SelectItem value="READY">Pin sẵn sàng từ 50%</SelectItem>
+                        <SelectItem value="ALL">{t("admin.maintenance.fleet.allBattery")}</SelectItem>
+                        <SelectItem value="LOW">{t("admin.maintenance.fleet.lowBattery")}</SelectItem>
+                        <SelectItem value="MEDIUM">{t("admin.maintenance.fleet.mediumBattery")}</SelectItem>
+                        <SelectItem value="READY">{t("admin.maintenance.fleet.readyBattery")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { id: "ALL", label: `Tất cả (${droneList.length})` },
-                    { id: "ATTENTION", label: `Cần can thiệp (${droneFaults + droneLowBattery})` },
-                    { id: "IDLE", label: `Sẵn sàng (${droneList.filter((d) => d.status === "IDLE").length})` },
-                    { id: "RESERVED", label: `Đã giữ cho nhiệm vụ (${droneList.filter((d) => d.status === "RESERVED").length})` },
-                    { id: "IN_FLIGHT", label: `Đang bay (${droneList.filter((d) => d.status === "IN_FLIGHT").length})` },
-                    { id: "CHARGING", label: `Đang sạc (${droneList.filter((d) => d.status === "CHARGING").length})` },
-                    { id: "MAINTENANCE", label: `Đang bảo dưỡng (${droneList.filter((d) => d.status === "MAINTENANCE").length})` },
-                    { id: "FAULT", label: `Sự cố (${droneList.filter((d) => d.status === "FAULT").length})` },
+                    { id: "ALL", label: t("admin.maintenance.filters.statusAll", { count: droneList.length }) },
+                    { id: "ATTENTION", label: t("admin.maintenance.fleet.attention", { count: droneFaults + droneLowBattery }) },
+                    { id: "IDLE", label: `${droneStatusLabel(t, "IDLE")} (${droneList.filter((d) => d.status === "IDLE").length})` },
+                    { id: "RESERVED", label: `${droneStatusLabel(t, "RESERVED")} (${droneList.filter((d) => d.status === "RESERVED").length})` },
+                    { id: "IN_FLIGHT", label: `${droneStatusLabel(t, "IN_FLIGHT")} (${droneList.filter((d) => d.status === "IN_FLIGHT").length})` },
+                    { id: "CHARGING", label: `${droneStatusLabel(t, "CHARGING")} (${droneList.filter((d) => d.status === "CHARGING").length})` },
+                    { id: "MAINTENANCE", label: `${droneStatusLabel(t, "MAINTENANCE")} (${droneList.filter((d) => d.status === "MAINTENANCE").length})` },
+                    { id: "FAULT", label: t("admin.maintenance.fleet.faultCount", { count: droneList.filter((d) => d.status === "FAULT").length }) },
                   ].map((f) => (
                     <Button
                       key={f.id}
@@ -1659,7 +1698,7 @@ export default function MaintenanceAdminPage() {
               {filteredDrones.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground">
                   <Plane className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                  <p className="text-sm font-medium">Không tìm thấy drone nào phù hợp bộ lọc</p>
+                  <p className="text-sm font-medium">{t("admin.maintenance.fleet.noMatch")}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1688,7 +1727,7 @@ export default function MaintenanceAdminPage() {
                               <div>
                                 <span className="font-bold text-sm text-foreground">{d.code}</span>
                                 <p className="text-[11px] text-muted-foreground">
-                                  {d.lockerName ?? (d.lockerId ? `Bãi đáp Kiosk #${d.lockerId}` : "Chưa gắn trạm")}
+                                  {d.lockerName ?? (d.lockerId ? t("admin.maintenance.fleet.landingPad", { id: d.lockerId }) : t("admin.maintenance.fleet.noStation"))}
                                 </p>
                               </div>
                             </div>
@@ -1696,7 +1735,7 @@ export default function MaintenanceAdminPage() {
                               variant="outline"
                               className={`text-xs ${DRONE_STATUS_BADGE[d.status] ?? "bg-slate-50 text-slate-700"}`}
                             >
-                              {DRONE_STATUS_LABELS[d.status] ?? d.status}
+                              {droneStatusLabel(t, d.status)}
                             </Badge>
                           </div>
 
@@ -1704,7 +1743,7 @@ export default function MaintenanceAdminPage() {
                           <div className="space-y-1.5 pt-1">
                             <div className="flex items-center justify-between text-xs">
                               <span className="flex items-center gap-1.5 text-muted-foreground">
-                                <BatteryCharging className="w-3.5 h-3.5 text-foreground" /> Mức pin:
+                                <BatteryCharging className="w-3.5 h-3.5 text-foreground" /> {t("admin.maintenance.fleet.batteryLabel")}
                               </span>
                               <span className="font-semibold text-foreground font-mono">{battery}%</span>
                             </div>
@@ -1731,7 +1770,7 @@ export default function MaintenanceAdminPage() {
                               className="h-7 w-full text-xs gap-1"
                               onClick={() => setViewingDrone(d)}
                             >
-                              <History className="w-3 h-3" /> Xem chi tiết
+                              <History className="w-3 h-3" /> {t("dropdown.viewDetail")}
                             </Button>
                           </div>
                         </CardContent>
@@ -1786,17 +1825,17 @@ export default function MaintenanceAdminPage() {
                 type: "INCIDENT",
                 title: `RPT-${r.id} · ${r.title}`,
                 target: showDroneHistory
-                  ? `Drone: ${(r as any).droneCode ?? r.title ?? "Thiết bị bay"}`
-                  : `${r.lockerName ?? `Kiosk #${r.lockerId}`}${r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}`,
+                  ? `Drone: ${(r as any).droneCode ?? r.title ?? t("admin.maintenance.reports.flyingDevice")}`
+                  : `${r.lockerName ?? `Kiosk #${r.lockerId}`}${r.boxNumber ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxNumber })}` : ""}`,
                 completedAt: formatDateTime(rawDate),
                 completedRawDate: rawDate,
                 // Người được giao phiếu, không có thì người đóng phiếu — không suy từ người báo
                 technician: (() => {
                   const techId = r.assignedToUserId ?? r.resolvedByUserId;
-                  return techId ? userNames[techId] ?? `Kỹ thuật viên #${techId}` : "—";
+                  return techId ? userNames[techId] ?? t("admin.maintenance.technicianFallback", { id: techId }) : "—";
                 })(),
-                badgeText: "Sự cố đã xử lý",
-                resultLabel: "Đã hoàn tất",
+                badgeText: t("admin.maintenance.history.incidentResolved"),
+                resultLabel: t("admin.maintenance.status.resolved"),
                 resultClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
                 detailNote: cleanDescription(r.description) || r.description,
                 originalReport: r,
@@ -1809,19 +1848,21 @@ export default function MaintenanceAdminPage() {
               const meta = INSPECTION_STATUS_META[log.status];
               const noteParts = [
                 log.note?.trim(),
-                log.createdReportId ? `Đã mở phiếu sự cố RPT-${log.createdReportId}.` : null,
+                log.createdReportId ? t("admin.maintenance.history.openedReport", { id: log.createdReportId }) : null,
               ].filter(Boolean);
               historyItems.push({
                 id: `inspection-${log.id}`,
                 type: "SCHEDULE",
-                title: scheduleTitles.get(log.scheduleId) ?? `Lịch kiểm tra #${log.scheduleId}`,
+                title: scheduleTitles.get(log.scheduleId) ?? t("admin.maintenance.history.scheduleFallback", { id: log.scheduleId }),
                 target: isDrone
                   ? `Drone: ${log.droneCode ?? `#${log.droneUnitId}`}`
-                  : `Trạm: ${log.lockerName ?? (log.lockerId ? `Kiosk #${log.lockerId}` : "Kiosk")}${log.lockerCode ? ` (${log.lockerCode})` : ""}`,
+                  : t("admin.maintenance.labels.station", {
+                      name: `${log.lockerName ?? (log.lockerId ? `Kiosk #${log.lockerId}` : "Kiosk")}${log.lockerCode ? ` (${log.lockerCode})` : ""}`,
+                    }),
                 completedAt: formatDateTime(log.createdAt),
                 completedRawDate: log.createdAt,
-                technician: log.technicianName ?? (log.technicianId ? userNames[log.technicianId] ?? `Kỹ thuật viên #${log.technicianId}` : "—"),
-                badgeText: isDrone ? "Bảo trì Drone" : "Kiểm tra Kiosk",
+                technician: log.technicianName ?? (log.technicianId ? userNames[log.technicianId] ?? t("admin.maintenance.technicianFallback", { id: log.technicianId }) : "—"),
+                badgeText: isDrone ? t("admin.maintenance.history.droneMaintenance") : t("admin.maintenance.history.kioskInspection"),
                 resultLabel: meta?.label ?? log.status,
                 resultClass: meta?.cls ?? "bg-slate-50 text-slate-700 border-slate-200",
                 detailNote: noteParts.length > 0 ? noteParts.join(" ") : undefined,
@@ -1849,12 +1890,12 @@ export default function MaintenanceAdminPage() {
                     <div>
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <History className="w-4 h-4 text-emerald-600" />
-                        Lịch sử hoàn tất bảo trì & xử lý sự cố thiết bị
+                        {t("admin.maintenance.history.title")}
                       </CardTitle>
                       <CardDescription className="text-xs">
                         {showDroneHistory
-                          ? "Hồ sơ sự cố Drone đã xử lý và từng lần kiểm tra định kỳ Drone (kèm kết quả)"
-                          : "Hồ sơ sự cố Kiosk đã xử lý và từng lần kiểm tra định kỳ Kiosk (kèm kết quả)"}
+                          ? t("admin.maintenance.history.descDrone")
+                          : t("admin.maintenance.history.descKiosk")}
                       </CardDescription>
                     </div>
 
@@ -1888,7 +1929,7 @@ export default function MaintenanceAdminPage() {
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
-                        Tất cả ({historyItems.length})
+                        {t("admin.maintenance.filters.statusAll", { count: historyItems.length })}
                       </button>
                       <button
                         type="button"
@@ -1899,7 +1940,7 @@ export default function MaintenanceAdminPage() {
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
-                        Sự cố đã xử lý ({resolvedIncidentList.length})
+                        {t("admin.maintenance.history.filterIncident", { count: resolvedIncidentList.length })}
                       </button>
                       <button
                         type="button"
@@ -1910,7 +1951,7 @@ export default function MaintenanceAdminPage() {
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
-                        Kiểm tra định kỳ ({completedInspectionList.length})
+                        {t("admin.maintenance.history.filterSchedule", { count: completedInspectionList.length })}
                       </button>
                       </div>
                     </div>
@@ -1919,7 +1960,7 @@ export default function MaintenanceAdminPage() {
                 <CardContent>
                   {filteredHistory.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-6 text-center">
-                      Chưa có hồ sơ bảo trì nào được lưu trữ cho mục này.
+                      {t("admin.maintenance.history.empty")}
                     </p>
                   ) : (
                     <div className="divide-y divide-border/60">
@@ -1946,13 +1987,13 @@ export default function MaintenanceAdminPage() {
                               </Badge>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Thiết bị: <span className="font-medium text-foreground">{item.target}</span>
-                              {" · "}Thời gian hoàn tất: <span className="text-foreground font-mono font-medium">{item.completedAt}</span>
-                              {" · "}Phụ trách: <span className="text-foreground font-medium">{item.technician}</span>
+                              {t("admin.maintenance.labels.device")} <span className="font-medium text-foreground">{item.target}</span>
+                              {" · "}{t("admin.maintenance.labels.completedAt")} <span className="text-foreground font-mono font-medium">{item.completedAt}</span>
+                              {" · "}{t("admin.maintenance.history.owner")} <span className="text-foreground font-medium">{item.technician}</span>
                             </p>
                             {item.detailNote && (
                               <p className="text-xs text-muted-foreground/90 italic">
-                                Biên bản: {item.detailNote}
+                                {t("admin.maintenance.history.record")} {item.detailNote}
                               </p>
                             )}
                           </div>
@@ -1973,7 +2014,7 @@ export default function MaintenanceAdminPage() {
         <TabsContent value="technicians" className="space-y-6">
           <TechniciansTab
             onAssignToTech={(techId, specialty) => {
-              const name = techniciansMap[techId]?.fullName ?? `KTV #${techId}`;
+              const name = techniciansMap[techId]?.fullName ?? t("admin.maintenance.techFallback", { id: techId });
               // KTV Drone chỉ nhận phiếu Drone ⇒ mở tab Drone với bộ lọc KTV Drone
               if (specialty === "DRONE") {
                 setDroneTechFilter(String(techId));
@@ -1982,7 +2023,7 @@ export default function MaintenanceAdminPage() {
                 setSelectedTechFilter(String(techId));
                 setActiveTab("kiosk");
               }
-              toast.info(`Đang hiển thị các sự cố phân công cho ${name}`);
+              toast.info(t("admin.maintenance.toast.showingTechIncidents", { name }));
             }}
           />
         </TabsContent>
@@ -2004,10 +2045,10 @@ export default function MaintenanceAdminPage() {
       <ResolveReportDialog
         open={!!resolvingReport}
         onOpenChange={(open) => !open && setResolvingReport(null)}
-        title={resolvingReport ? `Xác nhận hoàn tất xử lý phiếu RPT-${resolvingReport.id}?` : ""}
+        title={resolvingReport ? t("admin.maintenance.resolveDialog.title", { id: resolvingReport.id }) : ""}
         description={
           resolvingReport
-            ? `Đóng phiếu "${resolvingReport.title}" với tư cách quản trị viên? Phiếu chuyển sang Đã hoàn tất; ô tủ / bãi đáp / tủ liên quan được trả về hoạt động như khi KTV hoàn tất.`
+            ? t("admin.maintenance.resolveDialog.description", { title: resolvingReport.title })
             : undefined
         }
         onSubmit={async ({ note, attachments }) => {
@@ -2017,10 +2058,10 @@ export default function MaintenanceAdminPage() {
           try {
             // Lỗi được ResolveReportDialog hiển thị và giữ hộp thoại mở
             await resolveAdmin({ reportId: id, note, attachments }).unwrap();
-            toast.success(`Phiếu RPT-${id} đã hoàn tất`, {
+            toast.success(t("admin.maintenance.resolveDialog.success", { id }), {
               description: attachments?.length
-                ? `Sự cố đã được đóng hồ sơ kèm ${attachments.length} ảnh nghiệm thu.`
-                : "Sự cố kỹ thuật đã được đóng hồ sơ và lưu nhật ký.",
+                ? t("admin.maintenance.resolveDialog.successWithPhotos", { count: attachments.length })
+                : t("admin.maintenance.resolveDialog.successNoPhotos"),
             });
             faults.refetch();
           } finally {
@@ -2048,8 +2089,8 @@ export default function MaintenanceAdminPage() {
               setDroneUnitFilter("ALL");
               setDroneDateFilter("ALL");
               setDroneReportSort("NEWEST_FIRST");
-              toast.success(`Đã tạo báo cáo sự cố cho Drone ${drone.code}`, {
-                description: "Phiếu mới đã được chuyển đến hàng đợi KTV Drone để điều phối.",
+              toast.success(t("admin.maintenance.createDrone.success", { code: drone.code }), {
+                description: t("admin.maintenance.createDrone.successDesc"),
               });
               setCreatingDroneReport(false);
             } catch (err: any) {
@@ -2073,6 +2114,7 @@ function CreateDroneIncidentDialog({
   onClose: () => void;
   onSubmit: (data: { drone: DroneResponse; title: string; description: string; attachments?: ReportAttachmentRequest[] }) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [droneId, setDroneId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -2084,11 +2126,11 @@ function CreateDroneIncidentDialog({
   const submit = async () => {
     const drone = drones.find((item) => String(item.id) === droneId);
     if (!drone) {
-      toast.error("Vui lòng chọn Drone gặp sự cố");
+      toast.error(t("admin.maintenance.createDrone.selectDroneError"));
       return;
     }
     if (!title.trim() || !description.trim()) {
-      toast.error("Vui lòng nhập tiêu đề và mô tả sự cố");
+      toast.error(t("admin.maintenance.createDrone.titleDescRequired"));
       return;
     }
 
@@ -2098,8 +2140,8 @@ function CreateDroneIncidentDialog({
       await onSubmit({ drone, title, description, attachments });
     } catch (error) {
       if (!isHandledUploadError(error)) {
-        toast.error("Không thể tạo báo cáo sự cố Drone", {
-          description: getMediaErrorMessage(error, "Có lỗi khi lưu phiếu sự cố trên hệ thống."),
+        toast.error(t("admin.maintenance.createDrone.createFailed"), {
+          description: getMediaErrorMessage(error, t("admin.maintenance.createDrone.saveFailed")),
         });
       }
     } finally {
@@ -2113,18 +2155,18 @@ function CreateDroneIncidentDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-rose-600" />
-            Tạo báo cáo sự cố Drone
+            {t("admin.maintenance.reports.createDrone")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <p className="text-xs text-muted-foreground">
-            Báo cáo sẽ mở phiếu mới ở trạng thái chờ xử lý và đưa Drone vào trạng thái sự cố để KTV Drone tiếp nhận.
+            {t("admin.maintenance.createDrone.intro")}
           </p>
           <div>
-            <Label className="mb-1.5 block text-xs font-medium">Drone gặp sự cố</Label>
+            <Label className="mb-1.5 block text-xs font-medium">{t("admin.maintenance.createDrone.droneLabel")}</Label>
             <Select value={droneId} onValueChange={setDroneId}>
-              <SelectTrigger><SelectValue placeholder="Chọn thiết bị Drone" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("admin.maintenance.createDrone.dronePlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {drones.map((drone) => (
                   <SelectItem key={drone.id} value={String(drone.id)}>
@@ -2135,36 +2177,40 @@ function CreateDroneIncidentDialog({
             </Select>
           </div>
           <div>
-            <Label className="mb-1.5 block text-xs font-medium">Tiêu đề sự cố</Label>
-            <Input placeholder="VD: Drone mất kết nối GPS" value={title} onChange={(event) => setTitle(event.target.value)} />
+            <Label className="mb-1.5 block text-xs font-medium">{t("admin.maintenance.createDrone.titleLabel")}</Label>
+            <Input placeholder={t("admin.maintenance.createDrone.titlePlaceholder")} value={title} onChange={(event) => setTitle(event.target.value)} />
           </div>
           <div>
-            <Label className="mb-1.5 block text-xs font-medium">Mô tả và nguyên nhân ghi nhận</Label>
+            <Label className="mb-1.5 block text-xs font-medium">{t("admin.maintenance.createDrone.descLabel")}</Label>
             <textarea
               className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="Mô tả tình trạng thực tế, thời điểm phát hiện và hạng mục cần KTV kiểm tra..."
+              placeholder={t("admin.maintenance.createDrone.descPlaceholder")}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Ảnh hiện trường (tuỳ chọn)</Label>
+            <Label className="text-xs font-medium">{t("admin.maintenance.createDrone.photosLabel")}</Label>
             <PhotoPicker
               value={files}
               onChange={setFiles}
               maxFiles={10}
               disabled={busy}
               uploadItems={items}
-              hint="Ảnh lỗi Drone, pin, cánh quạt hoặc vị trí phát hiện · tối đa 10 ảnh"
+              hint={t("admin.maintenance.createDrone.photosHint")}
             />
           </div>
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} disabled={busy}>Hủy</Button>
+          <Button variant="outline" onClick={onClose} disabled={busy}>{t("button.cancel")}</Button>
           <Button onClick={submit} disabled={busy || drones.length === 0} className="bg-rose-600 hover:bg-rose-700 text-white">
             {busy && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
-            {isUploading ? "Đang tải ảnh..." : submitting ? "Đang tạo..." : "Tạo báo cáo sự cố"}
+            {isUploading
+              ? t("admin.maintenance.uploadingPhotos")
+              : submitting
+                ? t("admin.maintenance.createDrone.creating")
+                : t("admin.maintenance.createDrone.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -2174,15 +2220,16 @@ function CreateDroneIncidentDialog({
 
 // Chi tiết sức khỏe Drone chỉ đọc; mọi cập nhật được thực hiện ở quy trình kỹ thuật riêng.
 function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose: () => void }) {
+  const { t } = useTranslation();
   const historyQuery = useGetDroneMaintenanceHistoryQuery(drone.id);
   const history = historyQuery.data?.data;
   const battery = drone.batteryPercent ?? 0;
   const details = [
-    ["Trạm/Kiosk", drone.lockerName ?? (drone.lockerId ? `Kiosk #${drone.lockerId}` : "Chưa gắn trạm")],
-    ["KTV phụ trách", drone.assignedTechnicianName ?? "Chưa phân công"],
-    ["Lần sạc gần nhất", drone.lastChargedAt ? formatDateTime(drone.lastChargedAt) : "Chưa có dữ liệu"],
-    ["Thêm vào đội bay", drone.createdAt ? formatDateTime(drone.createdAt) : "Chưa có dữ liệu"],
-    ["Cập nhật gần nhất", drone.updatedAt ? formatDateTime(drone.updatedAt) : "Chưa có dữ liệu"],
+    [t("admin.maintenance.droneDetail.station"), drone.lockerName ?? (drone.lockerId ? `Kiosk #${drone.lockerId}` : t("admin.maintenance.fleet.noStation"))],
+    [t("admin.maintenance.droneDetail.assignedTech"), drone.assignedTechnicianName ?? t("common.unassigned")],
+    [t("admin.maintenance.droneDetail.lastCharged"), drone.lastChargedAt ? formatDateTime(drone.lastChargedAt) : t("common.noDataYet")],
+    [t("admin.maintenance.droneDetail.addedToFleet"), drone.createdAt ? formatDateTime(drone.createdAt) : t("common.noDataYet")],
+    [t("admin.maintenance.droneDetail.lastUpdated"), drone.updatedAt ? formatDateTime(drone.updatedAt) : t("common.noDataYet")],
   ];
 
   return (
@@ -2191,7 +2238,7 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Plane className="w-5 h-5 text-blue-600" />
-            Chi tiết sức khỏe · Drone {drone.code}
+            {t("admin.maintenance.droneDetail.title", { code: drone.code })}
           </DialogTitle>
         </DialogHeader>
 
@@ -2199,16 +2246,16 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
           <section className="rounded-lg border bg-muted/20 p-4 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-semibold">Thông tin vận hành</p>
-                <p className="text-xs text-muted-foreground">Dữ liệu đồng bộ từ đội bay, chỉ dùng để theo dõi.</p>
+                <p className="text-sm font-semibold">{t("admin.maintenance.droneDetail.opsInfo")}</p>
+                <p className="text-xs text-muted-foreground">{t("admin.maintenance.droneDetail.opsInfoDesc")}</p>
               </div>
               <Badge variant="outline" className={DRONE_STATUS_BADGE[drone.status] ?? "bg-slate-50 text-slate-700"}>
-                {DRONE_STATUS_LABELS[drone.status] ?? drone.status}
+                {droneStatusLabel(t, drone.status)}
               </Badge>
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5 text-muted-foreground"><BatteryCharging className="w-3.5 h-3.5" /> Mức pin ghi nhận</span>
+                <span className="flex items-center gap-1.5 text-muted-foreground"><BatteryCharging className="w-3.5 h-3.5" /> {t("admin.maintenance.droneDetail.batteryRecorded")}</span>
                 <span className="font-mono font-semibold">{battery}%</span>
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-muted">
@@ -2226,25 +2273,25 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
             </div>
             {drone.faultReason && (
               <div className="rounded-md border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800">
-                <span className="font-semibold">Ghi nhận sự cố: </span>{drone.faultReason}
+                <span className="font-semibold">{t("admin.maintenance.droneDetail.faultRecorded")}</span>{drone.faultReason}
               </div>
             )}
           </section>
 
           <section className="space-y-2">
-            <div className="flex items-center gap-2"><Wrench className="w-4 h-4 text-blue-600" /><h3 className="text-sm font-semibold">Lịch sử bảo trì hoàn tất</h3></div>
+            <div className="flex items-center gap-2"><Wrench className="w-4 h-4 text-blue-600" /><h3 className="text-sm font-semibold">{t("admin.maintenance.droneDetail.maintenanceHistory")}</h3></div>
             {historyQuery.isLoading ? (
-              <div className="py-5 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto mb-2 h-4 w-4 animate-spin" />Đang tải lịch sử bảo trì...</div>
+              <div className="py-5 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto mb-2 h-4 w-4 animate-spin" />{t("admin.maintenance.droneDetail.loadingHistory")}</div>
             ) : !history?.completedMaintenance.length ? (
-              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Chưa có lần bảo trì hoàn tất được ghi nhận cho drone này.</p>
+              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">{t("admin.maintenance.droneDetail.noMaintenance")}</p>
             ) : (
               <div className="space-y-2">
                 {history.completedMaintenance.map((log) => (
                   <div key={log.id} className="rounded-md border p-3 text-xs">
-                    <div className="flex items-start justify-between gap-3"><span className="font-semibold">{log.status === "PASSED" ? "Kiểm tra đạt" : log.status}</span><span className="shrink-0 text-muted-foreground">{formatDateTime(log.createdAt)}</span></div>
-                    <p className="mt-1 text-muted-foreground">KTV: {log.technicianName ?? "Chưa xác định"}</p>
+                    <div className="flex items-start justify-between gap-3"><span className="font-semibold">{log.status === "PASSED" ? t("admin.maintenance.droneDetail.inspectionPassed") : log.status}</span><span className="shrink-0 text-muted-foreground">{formatDateTime(log.createdAt)}</span></div>
+                    <p className="mt-1 text-muted-foreground">{t("admin.maintenance.technicianLabel", { name: log.technicianName ?? t("admin.maintenance.droneDetail.unknown") })}</p>
                     {log.note && <p className="mt-1.5 whitespace-pre-wrap">{log.note}</p>}
-                    {!!log.photoUrls?.length && <p className="mt-1 text-muted-foreground">Có {log.photoUrls.length} ảnh nghiệm thu</p>}
+                    {!!log.photoUrls?.length && <p className="mt-1 text-muted-foreground">{t("admin.maintenance.droneDetail.photosCount", { count: log.photoUrls.length })}</p>}
                   </div>
                 ))}
               </div>
@@ -2252,14 +2299,14 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
           </section>
 
           <section className="space-y-2">
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600" /><h3 className="text-sm font-semibold">Sự cố đã hoàn tất</h3></div>
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600" /><h3 className="text-sm font-semibold">{t("admin.maintenance.droneDetail.resolvedIncidents")}</h3></div>
             {historyQuery.isLoading ? null : !history?.resolvedIncidents.length ? (
-              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Chưa có phiếu sự cố nào đã hoàn tất cho drone này.</p>
+              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">{t("admin.maintenance.droneDetail.noResolved")}</p>
             ) : (
               <div className="space-y-2">
                 {history.resolvedIncidents.map((report) => (
                   <div key={report.id} className="rounded-md border p-3 text-xs">
-                    <div className="flex items-start justify-between gap-3"><span className="font-semibold">#{report.id} · {report.title}</span><span className="shrink-0 text-muted-foreground">{report.resolvedAt ? formatDateTime(report.resolvedAt) : "Đã hoàn tất"}</span></div>
+                    <div className="flex items-start justify-between gap-3"><span className="font-semibold">#{report.id} · {report.title}</span><span className="shrink-0 text-muted-foreground">{report.resolvedAt ? formatDateTime(report.resolvedAt) : t("admin.maintenance.status.resolved")}</span></div>
                     {report.description && <p className="mt-1.5 text-muted-foreground whitespace-pre-wrap">{cleanDescription(report.description)}</p>}
                   </div>
                 ))}
@@ -2269,7 +2316,7 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Đóng</Button>
+          <Button variant="outline" onClick={onClose}>{t("button.close")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

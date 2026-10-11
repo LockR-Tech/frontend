@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
@@ -79,7 +79,7 @@ export default function StoresPage() {
 
           {storeRevenue.error && (
             <p className="text-xs text-muted-foreground mb-3">
-              Không tải được số tủ/số đơn theo cửa hàng: {storeRevenue.error.message}
+              {t("admin.stores.revenueLoadFailed", { message: storeRevenue.error.message })}
             </p>
           )}
 
@@ -117,24 +117,24 @@ export default function StoresPage() {
       <ConfirmActionDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Xoá cửa hàng?"
+        title={t("admin.stores.delete.title")}
         description={
           <>
             <p>
-              Cửa hàng{" "}
-              <span className="font-semibold text-foreground">{deleteTarget?.name}</span> sẽ bị
-              xoá vĩnh viễn.
+              <Trans
+                i18nKey="admin.stores.delete.desc"
+                values={{ name: deleteTarget?.name }}
+                components={{ b: <span className="font-semibold text-foreground" /> }}
+              />
             </p>
             <p>
-              Các tủ (Kiosk) đang gắn với cửa hàng này phải được chuyển sang cửa hàng khác
-              trước khi xoá
               {deleteStats && deleteStats.lockerCount > 0
-                ? ` — hiện còn ${deleteStats.lockerCount} tủ đang gắn.`
-                : "."}
+                ? t("admin.stores.delete.lockersHintCount", { count: deleteStats.lockerCount })
+                : t("admin.stores.delete.lockersHint")}
             </p>
           </>
         }
-        actionLabel="Xoá cửa hàng"
+        actionLabel={t("admin.stores.delete.action")}
         destructive
         loading={isDeleting}
         onConfirm={() => void confirmDelete()}

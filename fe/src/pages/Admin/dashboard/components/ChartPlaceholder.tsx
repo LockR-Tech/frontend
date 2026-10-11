@@ -1,6 +1,7 @@
 import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { BarChart3 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "~/components/ui/skeleton";
 import { ReportErrorState } from "~/components/shared/reporting";
 import { cn } from "~/lib/utils";
@@ -24,13 +25,14 @@ export function ChartPlaceholder({
   onRetry,
   className = "h-52",
 }: ChartPlaceholderProps) {
+  const { t } = useTranslation();
   if (isLoading) return <Skeleton className={cn("w-full rounded-lg", className)} />;
   if (error) {
     return (
       <ReportErrorState
         error={error}
         onRetry={onRetry}
-        title="Không tải được dữ liệu biểu đồ"
+        title={t("admin.dashboard.chart.loadFailed")}
         className="my-2"
       />
     );
@@ -44,7 +46,7 @@ export function ChartPlaceholder({
         )}
       >
         <BarChart3 className="h-8 w-8 opacity-40" />
-        <p className="text-sm">Chưa có dữ liệu</p>
+        <p className="text-sm">{t("common.noDataYet")}</p>
       </div>
     );
   }

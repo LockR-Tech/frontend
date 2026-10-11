@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   User,
@@ -94,48 +95,50 @@ export interface TechnicianSummary {
   specialtyLabel?: string;
 }
 
+// Nhãn lưu dưới dạng khoá i18n; dịch lúc render bằng t()
 const SLA_CONFIG = {
   NORMAL: {
     tier: 0,
-    title: "Đạt chuẩn SLA (Bình thường)",
-    badgeLabel: "Đạt chuẩn SLA",
+    titleKey: "admin.maintenance.sla.normal.title",
+    badgeLabelKey: "admin.maintenance.sla.normal.badge",
     badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700",
     icon: CheckCircle2,
-    desc: "Kỹ thuật viên xử lý sự cố đúng hạn quy định, không có phiếu trễ hạn.",
-    consequence: "Được ưu tiên giao các ca bảo trì định kỳ và ghi nhận điểm thi đua tốt.",
+    descKey: "admin.maintenance.sla.normal.desc",
+    consequenceKey: "admin.maintenance.sla.normal.consequence",
   },
   WARNING: {
     tier: 1,
-    title: "Cấp 1: Cảnh báo thời gian SLA",
-    badgeLabel: "Cảnh báo SLA (Mức 1)",
+    titleKey: "admin.maintenance.sla.warning.title",
+    badgeLabelKey: "admin.maintenance.sla.warning.badge",
     badgeClass: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700",
     icon: AlertTriangle,
-    desc: "Số phiếu sự cố quá hạn SLA đã chạm ngưỡng cảnh báo.",
-    consequence: "Hệ thống tự động gửi thông báo nhắc việc và cảnh báo trên Mobile App.",
+    descKey: "admin.maintenance.sla.warning.desc",
+    consequenceKey: "admin.maintenance.sla.warning.consequence",
   },
   RESTRICTED: {
     tier: 2,
-    title: "Cấp 2: Giới hạn nhận việc mới",
-    badgeLabel: "Hạn chế nhận việc (Mức 2)",
+    titleKey: "admin.maintenance.sla.restricted.title",
+    badgeLabelKey: "admin.maintenance.sla.restricted.badge",
     badgeClass: "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-700",
     icon: AlertOctagon,
-    desc: "Số phiếu sự cố quá hạn SLA đã chạm ngưỡng hạn chế nhận việc.",
-    consequence: "Tạm thời không thể nhận thêm ca bảo trì mới trên Mobile App cho đến khi hoàn thành các việc cũ.",
+    descKey: "admin.maintenance.sla.restricted.desc",
+    consequenceKey: "admin.maintenance.sla.restricted.consequence",
   },
   SUSPENDED: {
     tier: 3,
-    title: "Cấp 3: Đề xuất đình chỉ công tác",
-    badgeLabel: "Đình chỉ / Khóa (Mức 3)",
+    titleKey: "admin.maintenance.sla.suspended.title",
+    badgeLabelKey: "admin.maintenance.sla.suspended.badge",
     badgeClass: "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700",
     icon: Ban,
-    desc: "Số phiếu quá hạn SLA đã chạm ngưỡng đình chỉ, hoặc tài khoản đang bị vô hiệu hóa.",
-    consequence: "Đình chỉ nhận việc, admin thu hồi toàn bộ phiếu sự cố để phân công nhân sự khác.",
+    descKey: "admin.maintenance.sla.suspended.desc",
+    consequenceKey: "admin.maintenance.sla.suspended.consequence",
   },
 };
 
 export default function TechnicianDetailPage() {
   const { technicianId } = useParams<{ technicianId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const techId = Number(technicianId);
 
   const [activeTab, setActiveTab] = useState("tickets");
@@ -243,7 +246,9 @@ export default function TechnicianDetailPage() {
       roles.includes("LOCKER_TECHNICIAN") ||
       roles.includes("ROLE_LOCKER_TECHNICIAN");
     const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
-    const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay)";
+    const specialtyLabel = isKiosk
+      ? t("admin.maintenance.specialty.kiosk")
+      : t("admin.maintenance.specialty.droneFleet");
 
     // SĐT chỉ lấy từ hồ sơ user-service — không bao giờ lấy SĐT người báo trong phiếu
     const resolvedPhoneNumber = singleUser?.phoneNumber || userFromList?.phoneNumber || "";
@@ -258,7 +263,7 @@ export default function TechnicianDetailPage() {
 
     return {
       id: techId,
-      fullName: (singleUser as any)?.fullName || singleUser?.name || userFromList?.name || (userFromList as any)?.fullName || `Kỹ thuật viên #${techId}`,
+      fullName: (singleUser as any)?.fullName || singleUser?.name || userFromList?.name || (userFromList as any)?.fullName || t("admin.maintenance.technicianFallback", { id: techId }),
       email: singleUser?.email || userFromList?.email || "",
       phoneNumber: resolvedPhoneNumber,
       enabled: singleUser?.enabled ?? userFromList?.enabled ?? true,
@@ -269,7 +274,7 @@ export default function TechnicianDetailPage() {
       specialtyLabel,
       createdAt: resolvedCreatedAt,
     };
-  }, [singleUser, userFromList, techId, earliestReportDate]);
+  }, [singleUser, userFromList, techId, earliestReportDate, t]);
 
   // Unassigned or open reports available for assignment
   const unassignedReports = useMemo(() => {
@@ -299,8 +304,8 @@ export default function TechnicianDetailPage() {
   const slaConfig = SLA_CONFIG[penaltyKey] ?? SLA_CONFIG.NORMAL;
   const SlaIcon = slaConfig.icon;
   const penaltyDesc = !technician?.enabled
-    ? "Tài khoản kỹ thuật viên đang bị tạm dừng."
-    : perf?.penaltyReason || slaConfig.desc;
+    ? t("admin.maintenance.techDetail.accountPaused")
+    : perf?.penaltyReason || t(slaConfig.descKey);
 
   // Filtered tickets
   const filteredReports = useMemo(() => {
@@ -313,14 +318,14 @@ export default function TechnicianDetailPage() {
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(`Đã sao chép ${label}: ${text}`);
+    toast.success(t("admin.maintenance.techDetail.copied", { label, value: text }));
   };
 
   const handleSavePhone = async () => {
     if (!technician) return;
     const cleanPhone = phoneInput.trim();
     if (!cleanPhone) {
-      toast.error("Vui lòng nhập số điện thoại");
+      toast.error(t("admin.maintenance.techDetail.phoneRequired"));
       return;
     }
     // user-service ghi đè status (thiếu ⇒ ACTIVE) nên gửi kèm trạng thái hiện tại; chỉ đổi SĐT
@@ -332,10 +337,10 @@ export default function TechnicianDetailPage() {
       await updateUser({ id: techId, data: payload }).unwrap();
       setEditPhoneOpen(false);
       refetchAllUsers();
-      toast.success("Đã cập nhật số điện thoại kỹ thuật viên");
+      toast.success(t("admin.maintenance.techDetail.phoneUpdated"));
     } catch (err: any) {
-      toast.error("Không cập nhật được số điện thoại", {
-        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      toast.error(t("admin.maintenance.techDetail.phoneUpdateFailed"), {
+        description: err?.data?.message || err?.message || t("common.pleaseRetry"),
       });
     }
   };
@@ -343,19 +348,29 @@ export default function TechnicianDetailPage() {
   const handleToggleStatus = async () => {
     if (!technician) return;
     const newEnabled = !technician.enabled;
-    const actionText = newEnabled ? "Kích hoạt lại" : "Đình chỉ";
     try {
       await updateStatus({
         id: technician.id,
         data: { status: newEnabled ? "ACTIVE" : "INACTIVE" },
       }).unwrap();
-      toast.success(`${actionText} tài khoản kỹ thuật viên thành công!`, {
-        description: `KTV ${technician.fullName} hiện ở trạng thái ${newEnabled ? "Đang hoạt động" : "Đã tạm dừng"}.`,
-      });
+      toast.success(
+        newEnabled
+          ? t("admin.maintenance.techDetail.reactivateSuccess")
+          : t("admin.maintenance.techDetail.suspendSuccess"),
+        {
+          description: newEnabled
+            ? t("admin.maintenance.techDetail.nowActive", { name: technician.fullName })
+            : t("admin.maintenance.techDetail.nowPaused", { name: technician.fullName }),
+        },
+      );
       refetchPerf();
       refetchAllUsers();
     } catch {
-      toast.error(`Không thể ${actionText.toLowerCase()} tài khoản`);
+      toast.error(
+        newEnabled
+          ? t("admin.maintenance.techDetail.reactivateFailed")
+          : t("admin.maintenance.account.suspendFailed"),
+      );
     }
   };
 
@@ -369,11 +384,11 @@ export default function TechnicianDetailPage() {
           + "tiếp tục trễ hạn có thể bị hạn chế nhận việc.",
         type: "SLA_WARNING",
       }).unwrap();
-      toast.success(`Đã gửi cảnh cáo SLA tới KTV ${technician.fullName}`, {
-        description: "KTV nhận thông báo trong ứng dụng.",
+      toast.success(t("admin.maintenance.techDetail.warningSent", { name: technician.fullName }), {
+        description: t("admin.maintenance.techDetail.warningSentDesc"),
       });
     } catch (err: any) {
-      toast.error("Không gửi được cảnh cáo", { description: err?.data?.message || err?.message });
+      toast.error(t("admin.maintenance.techDetail.warningFailed"), { description: err?.data?.message || err?.message });
     }
   };
 
@@ -381,14 +396,14 @@ export default function TechnicianDetailPage() {
     if (!unassignTargetId) return;
     try {
       await unassign(unassignTargetId).unwrap();
-      toast.success(`Đã thu hồi phiếu sự cố RPT-${unassignTargetId}`, {
-        description: "Phiếu đã được chuyển về trạng thái Chưa phân công để giao nhân sự khác.",
+      toast.success(t("admin.maintenance.techDetail.unassigned", { id: unassignTargetId }), {
+        description: t("admin.maintenance.techDetail.unassignedDesc"),
       });
       refetchReports();
       refetchPerf();
     } catch (err: any) {
-      toast.error("Không thể thu hồi phân công phiếu sự cố", {
-        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      toast.error(t("admin.maintenance.techDetail.unassignFailed"), {
+        description: err?.data?.message || err?.message || t("common.pleaseRetry"),
       });
     } finally {
       setUnassignTargetId(null);
@@ -397,7 +412,7 @@ export default function TechnicianDetailPage() {
 
   const handleAssignSelectedTicket = async () => {
     if (!selectedReportToAssign || !technician) {
-      toast.error("Vui lòng chọn phiếu sự cố để phân công!");
+      toast.error(t("admin.maintenance.techDetail.selectReportRequired"));
       return;
     }
     try {
@@ -405,15 +420,15 @@ export default function TechnicianDetailPage() {
         reportId: selectedReportToAssign,
         technicianId: technician.id,
       }).unwrap();
-      toast.success(`Đã phân công sự cố RPT-${selectedReportToAssign} cho KTV ${technician.fullName}`);
+      toast.success(t("admin.maintenance.techDetail.assignedSuccess", { id: selectedReportToAssign, name: technician.fullName }));
       setAssignDialogOpen(false);
       setSelectedReportToAssign(null);
       refetchReports();
       refetchPerf();
     } catch (err: any) {
       const errMsg = err?.data?.message || err?.message;
-      toast.error("Không thể phân công phiếu sự cố", {
-        description: errMsg || "Vui lòng thử lại.",
+      toast.error(t("admin.maintenance.assign.failed"), {
+        description: errMsg || t("common.pleaseRetry"),
       });
     }
   };
@@ -445,14 +460,14 @@ export default function TechnicianDetailPage() {
           <User className="w-6 h-6" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Không tìm thấy kỹ thuật viên</h3>
+          <h3 className="text-lg font-semibold text-foreground">{t("admin.maintenance.techDetail.notFound")}</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Không tìm thấy thông tin nhân sự với ID #{technicianId}.
+            {t("admin.maintenance.techDetail.notFoundDesc", { id: technicianId })}
           </p>
         </div>
         <Button variant="outline" onClick={() => navigate("/admin/maintenance")} className="gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Quay lại danh sách bảo trì
+          {t("admin.maintenance.techDetail.backToList")}
         </Button>
       </div>
     );
@@ -477,7 +492,7 @@ export default function TechnicianDetailPage() {
             size="icon"
             className="h-9 w-9 shrink-0"
             onClick={() => navigate("/admin/maintenance")}
-            title="Quay lại danh sách bảo trì"
+            title={t("admin.maintenance.techDetail.backToList")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -494,25 +509,25 @@ export default function TechnicianDetailPage() {
                     : "bg-rose-100 text-rose-800 border-rose-300 font-semibold dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700"
                 }
               >
-                {technician.enabled ? "Đang hoạt động" : "Đã tạm dừng"}
+                {technician.enabled ? t("admin.maintenance.account.active") : t("admin.maintenance.techDetail.paused")}
               </Badge>
               <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300 font-semibold text-xs dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-700">
-                KTV #{technician.id}
+                {t("admin.maintenance.techFallback", { id: technician.id })}
               </Badge>
               {technician.specialty === "KIOSK" ? (
                 <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300 font-semibold text-xs gap-1 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-700">
                   <Wrench className="w-3 h-3 text-sky-700 dark:text-sky-300" />
-                  KTV Kiosk (Tủ & Phần cứng)
+                  {t("admin.maintenance.specialty.kioskHardware")}
                 </Badge>
               ) : (
                 <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300 font-semibold text-xs gap-1 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-700">
                   <Plane className="w-3 h-3 text-purple-700 dark:text-purple-300" />
-                  KTV Drone (Đội bay & Pin)
+                  {t("admin.maintenance.specialty.drone")}
                 </Badge>
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Bảo trì Kiosk & Drone · Giám sát hiệu suất vận hành & Quy chế SLA
+              {t("admin.maintenance.techDetail.subtitle")}
             </p>
           </div>
         </div>
@@ -527,11 +542,11 @@ export default function TechnicianDetailPage() {
               refetchPerf();
               refetchReports();
               refetchAllUsers();
-              toast.success("Đã làm mới dữ liệu KTV");
+              toast.success(t("admin.maintenance.techDetail.refreshed"));
             }}
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Làm mới
+            {t("button.refresh")}
           </Button>
 
           {technician.enabled && penaltyKey !== "SUSPENDED" && (
@@ -541,7 +556,7 @@ export default function TechnicianDetailPage() {
               onClick={() => setAssignDialogOpen(true)}
             >
               <Plus className="w-3.5 h-3.5" />
-              Giao việc sự cố
+              {t("admin.maintenance.techDetail.assignIncident")}
             </Button>
           )}
 
@@ -553,7 +568,7 @@ export default function TechnicianDetailPage() {
               onClick={handleSendWarning}
             >
               <Send className="w-3.5 h-3.5" />
-              Gửi cảnh cáo SLA
+              {t("admin.maintenance.techDetail.sendWarning")}
             </Button>
           )}
 
@@ -571,12 +586,12 @@ export default function TechnicianDetailPage() {
             {technician.enabled ? (
               <>
                 <Ban className="w-3.5 h-3.5" />
-                Đình chỉ KTV
+                {t("admin.maintenance.techDetail.suspendTech")}
               </>
             ) : (
               <>
                 <Unlock className="w-3.5 h-3.5" />
-                Kích hoạt lại
+                {t("admin.maintenance.techDetail.reactivate")}
               </>
             )}
           </Button>
@@ -591,13 +606,13 @@ export default function TechnicianDetailPage() {
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">Tổng ca phụ trách</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techDetail.totalAssigned")}</p>
               <div className="w-8 h-8 rounded-md bg-slate-100 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:text-slate-300 flex items-center justify-center">
                 <Boxes className="w-4 h-4" />
               </div>
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">{totalCount}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">Từ trước đến nay</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{t("admin.maintenance.techDetail.allTime")}</p>
           </CardContent>
         </Card>
 
@@ -605,14 +620,16 @@ export default function TechnicianDetailPage() {
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">Đang xử lý</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.status.inProgress")}</p>
               <div className="w-8 h-8 rounded-md bg-blue-100 border border-blue-300 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 flex items-center justify-center">
                 <Clock className="w-4 h-4" />
               </div>
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">{inProgressCount}</p>
             <p className="text-[11px] text-blue-700 dark:text-blue-300 font-medium mt-1">
-              {inProgressCount === 0 ? "Hiện đang rảnh" : `${inProgressCount} phiếu đang mở`}
+              {inProgressCount === 0
+                ? t("admin.maintenance.techDetail.idleNow")
+                : t("admin.maintenance.techDetail.openCount", { count: inProgressCount })}
             </p>
           </CardContent>
         </Card>
@@ -621,14 +638,14 @@ export default function TechnicianDetailPage() {
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">Đã hoàn tất</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.status.resolved")}</p>
               <div className="w-8 h-8 rounded-md bg-emerald-100 border border-emerald-300 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center justify-center">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">{resolvedCount}</p>
             <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium mt-1">
-              Tỷ lệ hoàn thành {completionRate}%
+              {t("admin.maintenance.techDetail.completionRate", { rate: completionRate })}
             </p>
           </CardContent>
         </Card>
@@ -637,7 +654,7 @@ export default function TechnicianDetailPage() {
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">Trễ hạn SLA</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techDetail.overdueSla")}</p>
               <div
                 className={`w-8 h-8 rounded-md border flex items-center justify-center ${
                   overdueCount > 0
@@ -656,7 +673,9 @@ export default function TechnicianDetailPage() {
               {overdueCount}
             </p>
             <p className={`text-[11px] mt-1 ${overdueCount > 0 ? "text-rose-700 font-medium" : "text-muted-foreground"}`}>
-              {overdueCount > 0 ? `${overdueCount} phiếu quá hạn SLA` : "Không có phiếu trễ"}
+              {overdueCount > 0
+                ? t("admin.maintenance.techDetail.overdueCount", { count: overdueCount })
+                : t("admin.maintenance.techDetail.noOverdue")}
             </p>
           </CardContent>
         </Card>
@@ -673,7 +692,7 @@ export default function TechnicianDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground" />
-                Hồ sơ kỹ thuật viên
+                {t("admin.maintenance.techDetail.profile")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -688,7 +707,7 @@ export default function TechnicianDetailPage() {
                   <h3 className="font-semibold text-sm text-foreground">{technician.fullName}</h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <Badge variant="outline" className="bg-muted/50 text-[10px] text-muted-foreground px-1.5 py-0">
-                      Vai trò: TECHNICIAN
+                      {t("admin.maintenance.techDetail.role")}
                     </Badge>
                   </div>
                 </div>
@@ -707,8 +726,8 @@ export default function TechnicianDetailPage() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6"
-                        onClick={() => handleCopy(technician.email, "Email")}
-                        title="Sao chép"
+                        onClick={() => handleCopy(technician.email, t("common.email"))}
+                        title={t("admin.maintenance.techDetail.copy")}
                       >
                         <Copy className="w-3 h-3 text-muted-foreground" />
                       </Button>
@@ -718,14 +737,14 @@ export default function TechnicianDetailPage() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-muted-foreground" /> Số điện thoại:
+                    <Phone className="w-3.5 h-3.5 text-muted-foreground" /> {t("admin.maintenance.techDetail.phoneLabel")}
                   </span>
                   <div className="flex items-center gap-1">
                     <span className="font-medium text-foreground">
                       {technician.phoneNumber ? (
                         technician.phoneNumber
                       ) : (
-                        <span className="text-muted-foreground italic">Chưa có SĐT</span>
+                        <span className="text-muted-foreground italic">{t("admin.maintenance.noPhone")}</span>
                       )}
                     </span>
                     {technician.phoneNumber && (
@@ -733,8 +752,8 @@ export default function TechnicianDetailPage() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6"
-                        onClick={() => handleCopy(technician.phoneNumber!, "Số điện thoại")}
-                        title="Sao chép"
+                        onClick={() => handleCopy(technician.phoneNumber!, t("common.phone"))}
+                        title={t("admin.maintenance.techDetail.copy")}
                       >
                         <Copy className="w-3 h-3 text-muted-foreground" />
                       </Button>
@@ -747,7 +766,7 @@ export default function TechnicianDetailPage() {
                         setPhoneInput(technician.phoneNumber || "");
                         setEditPhoneOpen(true);
                       }}
-                      title="Chỉnh sửa số điện thoại"
+                      title={t("admin.maintenance.techDetail.editPhone")}
                     >
                       <Pencil className="w-3 h-3" />
                     </Button>
@@ -756,21 +775,21 @@ export default function TechnicianDetailPage() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-muted-foreground" /> Ngày gia nhập:
+                    <Calendar className="w-3.5 h-3.5 text-muted-foreground" /> {t("admin.maintenance.techDetail.joinedAt")}
                   </span>
                   <span className="font-medium text-foreground font-mono">
-                    {technician.createdAt ? formatDateOnly(technician.createdAt) : "Đang cập nhật"}
+                    {technician.createdAt ? formatDateOnly(technician.createdAt) : t("admin.maintenance.techDetail.updating")}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-muted-foreground">Tình trạng tải hiện tại:</span>
+                  <span className="text-muted-foreground">{t("admin.maintenance.techDetail.currentLoad")}</span>
                   <span className="font-medium text-foreground">
                     {inProgressCount === 0
-                      ? "Đang sẵn sàng nhận việc"
+                      ? t("admin.maintenance.techDetail.readyForWork")
                       : inProgressCount >= 3
-                      ? `Tải cao (${inProgressCount} việc)`
-                      : `Bình thường (${inProgressCount} việc)`}
+                      ? t("admin.maintenance.techDetail.highLoad", { count: inProgressCount })
+                      : t("admin.maintenance.techDetail.normalLoad", { count: inProgressCount })}
                   </span>
                 </div>
               </div>
@@ -783,15 +802,15 @@ export default function TechnicianDetailPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-muted-foreground" />
-                  Quy chế SLA & Vi phạm
+                  {t("admin.maintenance.techDetail.slaPolicy")}
                 </CardTitle>
                 <Badge variant="outline" className={`text-xs ${slaConfig.badgeClass}`}>
                   <SlaIcon className="w-3 h-3 mr-1" />
-                  {slaConfig.badgeLabel}
+                  {t(slaConfig.badgeLabelKey)}
                 </Badge>
               </div>
               <CardDescription className="text-xs mt-1">
-                Theo dõi tuân thủ cam kết chất lượng dịch vụ bảo dưỡng
+                {t("admin.maintenance.techDetail.slaPolicyDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-xs">
@@ -799,39 +818,39 @@ export default function TechnicianDetailPage() {
               <div className="p-3 rounded-lg bg-muted/40 border border-border/60 space-y-1.5">
                 <div className="flex items-center gap-2 font-medium text-foreground">
                   <SlaIcon className="w-4 h-4 text-muted-foreground" />
-                  <span>{slaConfig.title}</span>
+                  <span>{t(slaConfig.titleKey)}</span>
                 </div>
                 <p className="text-muted-foreground">{penaltyDesc}</p>
                 <p className="text-muted-foreground pt-1 border-t border-border/40 text-[11px]">
-                  <strong className="text-foreground">Chế tài áp dụng: </strong>
-                  {slaConfig.consequence}
+                  <strong className="text-foreground">{t("admin.maintenance.techDetail.appliedPenalty")}</strong>
+                  {t(slaConfig.consequenceKey)}
                 </p>
               </div>
 
               {/* 3-tier rules overview */}
               <div className="space-y-2">
-                <p className="font-semibold text-foreground text-xs">Khung chế tài tự động (3 Mức):</p>
+                <p className="font-semibold text-foreground text-xs">{t("admin.maintenance.techDetail.penaltyFramework")}</p>
                 <div className="space-y-1.5 text-[11px]">
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
-                    <span className="font-bold text-muted-foreground shrink-0">Mức 1:</span>
+                    <span className="font-bold text-muted-foreground shrink-0">{t("admin.maintenance.techDetail.level1")}</span>
                     <span className="text-muted-foreground">
-                      Số phiếu trễ hạn chạm <strong>ngưỡng cảnh báo</strong>: Cảnh báo tự động trên Mobile App.
+                      <Trans i18nKey="admin.maintenance.techDetail.level1Rule" components={{ b: <strong /> }} />
                     </span>
                   </div>
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
-                    <span className="font-bold text-muted-foreground shrink-0">Mức 2:</span>
+                    <span className="font-bold text-muted-foreground shrink-0">{t("admin.maintenance.techDetail.level2")}</span>
                     <span className="text-muted-foreground">
-                      Chạm <strong>ngưỡng hạn chế</strong>: Khóa quyền nhận việc mới trên Mobile App.
+                      <Trans i18nKey="admin.maintenance.techDetail.level2Rule" components={{ b: <strong /> }} />
                     </span>
                   </div>
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
-                    <span className="font-bold text-muted-foreground shrink-0">Mức 3:</span>
+                    <span className="font-bold text-muted-foreground shrink-0">{t("admin.maintenance.techDetail.level3")}</span>
                     <span className="text-muted-foreground">
-                      Chạm <strong>ngưỡng đình chỉ</strong>: Đề xuất đình chỉ công tác, thu hồi phiếu về điều phối.
+                      <Trans i18nKey="admin.maintenance.techDetail.level3Rule" components={{ b: <strong /> }} />
                     </span>
                   </div>
                   <p className="text-muted-foreground italic">
-                    Ngưỡng số phiếu do admin cấu hình trong Cài đặt; mức hiện tại do máy chủ tính.
+                    {t("admin.maintenance.techDetail.thresholdNote")}
                   </p>
                 </div>
               </div>
@@ -849,28 +868,30 @@ export default function TechnicianDetailPage() {
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
                 >
                   <Wrench className="w-3.5 h-3.5 text-muted-foreground" />
-                  Phiếu sự cố ({techReports.length})
+                  {t("admin.maintenance.techDetail.tabTickets", { count: techReports.length })}
                 </TabsTrigger>
                 <TabsTrigger
                   value="timeline"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
                 >
                   <History className="w-3.5 h-3.5 text-muted-foreground" />
-                  Lịch sử hoạt động
+                  {t("admin.maintenance.techDetail.tabTimeline")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="schedules"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
                 >
                   <CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />
-                  {technician.specialty === "DRONE" ? "Lịch Drone định kỳ" : "Lịch Kiosk định kỳ"} ({assignedSchedules.length})
+                  {technician.specialty === "DRONE"
+                    ? t("admin.maintenance.techDetail.tabDroneSchedules")
+                    : t("admin.maintenance.techDetail.tabKioskSchedules")} ({assignedSchedules.length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
                 >
                   <Star className="w-3.5 h-3.5 text-muted-foreground" />
-                  Đánh giá & CSAT ({perf?.ratingCount ?? 0})
+                  {t("admin.maintenance.techDetail.tabReviews", { count: perf?.ratingCount ?? 0 })}
                 </TabsTrigger>
               </TabsList>
 
@@ -878,10 +899,10 @@ export default function TechnicianDetailPage() {
               {activeTab === "tickets" && (
                 <div className="flex items-center gap-1">
                   {[
-                    { key: "ALL", label: "Tất cả" },
-                    { key: "IN_PROGRESS", label: "Đang làm" },
-                    { key: "RESOLVED", label: "Đã xong" },
-                    { key: "OVERDUE", label: "Trễ SLA" },
+                    { key: "ALL", label: t("common.all") },
+                    { key: "IN_PROGRESS", label: t("admin.maintenance.metrics.inProgress") },
+                    { key: "RESOLVED", label: t("admin.maintenance.metrics.done") },
+                    { key: "OVERDUE", label: t("admin.maintenance.metrics.slaLate") },
                   ].map((f) => (
                     <Button
                       key={f.key}
@@ -907,9 +928,9 @@ export default function TechnicianDetailPage() {
                 <Card className="border border-border/70 shadow-xs">
                   <CardContent className="py-12 text-center text-muted-foreground">
                     <Wrench className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                    <p className="text-sm font-medium">Không có phiếu sự cố nào phù hợp bộ lọc</p>
+                    <p className="text-sm font-medium">{t("admin.maintenance.techDetail.noTickets")}</p>
                     <p className="text-xs mt-0.5">
-                      Kỹ thuật viên hiện không có ca bảo trì nào ở trạng thái này.
+                      {t("admin.maintenance.techDetail.noTicketsDesc")}
                     </p>
                   </CardContent>
                 </Card>
@@ -953,7 +974,7 @@ export default function TechnicianDetailPage() {
                                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                                       <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                                     </span>
-                                    MỚI TIẾP NHẬN
+                                    {t("admin.maintenance.status.newlyReceived")}
                                   </Badge>
                                 ) : (
                                   <Badge
@@ -964,7 +985,7 @@ export default function TechnicianDetailPage() {
                                         : "bg-blue-100 text-blue-800 border-blue-300 font-medium text-xs dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700"
                                     }
                                   >
-                                    {isDone ? "Đã hoàn tất" : "Đang xử lý"}
+                                    {isDone ? t("admin.maintenance.status.resolved") : t("admin.maintenance.status.inProgress")}
                                   </Badge>
                                 )}
                                 <SlaCountdownBadge
@@ -978,7 +999,7 @@ export default function TechnicianDetailPage() {
                                     variant="outline"
                                     className="bg-rose-100 text-rose-800 border-rose-300 text-xs font-semibold dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700"
                                   >
-                                    Quá hạn SLA
+                                    {t("admin.maintenance.status.overdueSla")}
                                   </Badge>
                                 )}
                                 {isOverdue && isExtended && (
@@ -986,7 +1007,7 @@ export default function TechnicianDetailPage() {
                                     variant="outline"
                                     className="bg-rose-100 text-rose-800 border-rose-300 text-xs font-semibold dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700"
                                   >
-                                    Quá hạn (sau gia hạn +{extHours}h)
+                                    {t("admin.maintenance.techDetail.overdueAfterExtension", { hours: extHours })}
                                   </Badge>
                                 )}
                                 {!isOverdue && isExtended && (
@@ -994,14 +1015,14 @@ export default function TechnicianDetailPage() {
                                     variant="outline"
                                     className="bg-amber-100 text-amber-800 border-amber-300 text-xs dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 font-medium"
                                   >
-                                    Đã gia hạn SLA (+{extHours}h)
+                                    {t("admin.maintenance.techDetail.extended", { hours: extHours })}
                                   </Badge>
                                 )}
                               </div>
                               {/* User report content */}
                               {report.description && (
                                 <div className="space-y-0.5">
-                                  <p className="text-[10px] font-semibold text-muted-foreground">Nội dung khách hàng:</p>
+                                  <p className="text-[10px] font-semibold text-muted-foreground">{t("admin.maintenance.techDetail.customerContent")}</p>
                                   <p className="text-xs text-foreground bg-muted/30 px-2.5 py-1.5 rounded border border-border/50 leading-relaxed">{cleanDescription(report.description) || report.description}</p>
                                 </div>
                               )}
@@ -1009,7 +1030,7 @@ export default function TechnicianDetailPage() {
                               {(report.reporterName || report.reporterPhone) && (
                                 <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                                   <Phone className="w-3 h-3" />
-                                  Người báo: {[report.reporterName, report.reporterPhone].filter(Boolean).join(" · ")}
+                                  {t("admin.maintenance.techDetail.reporter", { info: [report.reporterName, report.reporterPhone].filter(Boolean).join(" · ") })}
                                 </p>
                               )}
                             </div>
@@ -1029,7 +1050,7 @@ export default function TechnicianDetailPage() {
                                     className="h-8 text-xs border-amber-200 text-amber-700 hover:bg-amber-50 shrink-0 dark:border-amber-800 dark:text-amber-400"
                                     onClick={() => setExtendSlaReport(report)}
                                   >
-                                    <Clock className="w-3.5 h-3.5 mr-1" /> Gia hạn SLA
+                                    <Clock className="w-3.5 h-3.5 mr-1" /> {t("admin.maintenance.techDetail.extendSla")}
                                   </Button>
                                   <Button
                                     variant="outline"
@@ -1038,7 +1059,7 @@ export default function TechnicianDetailPage() {
                                     onClick={() => setUnassignTargetId(report.id)}
                                     disabled={isUnassigning}
                                   >
-                                    Thu hồi việc
+                                    {t("admin.maintenance.techDetail.reclaim")}
                                   </Button>
                                 </>
                               )}
@@ -1051,16 +1072,16 @@ export default function TechnicianDetailPage() {
                               <MapPin className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                               <span className="truncate">
                                 {report.lockerName ?? `Kiosk #${report.lockerId}`}
-                                {report.boxNumber ? ` · Ô #${report.boxNumber}` : ""}
+                                {report.boxNumber ? ` · ${t("admin.maintenance.boxNumber", { number: report.boxNumber })}` : ""}
                               </span>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span>Tạo: {formatDateTime(report.createdAt)}</span>
+                              <span>{t("admin.maintenance.techDetail.createdAt", { time: formatDateTime(report.createdAt) })}</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span>Hạn SLA: {formatDateTime(report.slaDueAt)}</span>
+                              <span>{t("admin.maintenance.techDetail.slaDue", { time: formatDateTime(report.slaDueAt) })}</span>
                             </div>
                           </div>
 
@@ -1079,16 +1100,16 @@ export default function TechnicianDetailPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
                     <History className="w-4 h-4 text-muted-foreground" />
-                    Nhật ký điều phối & xử lý kỹ thuật
+                    {t("admin.maintenance.techDetail.timelineTitle")}
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Trình tự các sự kiện phân công, xử lý và nghiệm thu của kỹ thuật viên
+                    {t("admin.maintenance.techDetail.timelineDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {techReports.length === 0 ? (
                     <p className="text-xs text-muted-foreground py-8 text-center">
-                      Chưa ghi nhận sự kiện hoạt động nào từ KTV này.
+                      {t("admin.maintenance.techDetail.timelineEmpty")}
                     </p>
                   ) : (
                     <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
@@ -1104,15 +1125,17 @@ export default function TechnicianDetailPage() {
                             <div className="space-y-1">
                               <div className="flex items-center justify-between gap-2">
                                 <span className="font-semibold text-xs text-foreground">
-                                  {isDone ? "Đã hoàn tất phiếu sự cố" : "Đang xử lý phiếu sự cố"} RPT-{r.id} · {r.title}
+                                  {isDone
+                                    ? t("admin.maintenance.techDetail.timelineResolved", { id: r.id, title: r.title })
+                                    : t("admin.maintenance.techDetail.timelineInProgress", { id: r.id, title: r.title })}
                                 </span>
                                 <span className="text-[11px] text-muted-foreground font-mono">
                                   {formatDateTime(r.resolvedAt || r.assignedAt || r.createdAt)}
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                Thiết bị: <span className="text-foreground font-medium">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
-                                {r.boxNumber ? ` · Ô #${r.boxNumber}` : ""}
+                                {t("admin.maintenance.labels.device")} <span className="text-foreground font-medium">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
+                                {r.boxNumber ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxNumber })}` : ""}
                               </p>
                               {r.description && (
                                 <p className="text-xs text-muted-foreground bg-muted/40 p-2 rounded-md border border-border/40 mt-1">
@@ -1134,7 +1157,7 @@ export default function TechnicianDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="border border-border/80 shadow-xs md:col-span-1">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold">Chỉ số hài lòng (CSAT)</CardTitle>
+                    <CardTitle className="text-sm font-semibold">{t("admin.maintenance.techDetail.csat")}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center py-4 space-y-2">
                     {perf && perf.ratingCount > 0 ? (
@@ -1156,14 +1179,16 @@ export default function TechnicianDetailPage() {
                           ))}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Dựa trên {perf.ratingCount} lượt đánh giá sau khi hoàn tất sửa chữa
+                          {t("admin.maintenance.techDetail.basedOnRatings", { count: perf.ratingCount })}
                         </p>
                       </>
                     ) : (
                       <>
                         <div className="text-3xl font-bold tracking-tight text-muted-foreground">—</div>
                         <p className="text-xs text-muted-foreground">
-                          {isLoadingPerf ? "Đang tải đánh giá..." : "Chưa có lượt đánh giá nào cho KTV này"}
+                          {isLoadingPerf
+                            ? t("admin.maintenance.techDetail.loadingRatings")
+                            : t("admin.maintenance.techDetail.noRatingsTech")}
                         </p>
                       </>
                     )}
@@ -1172,7 +1197,7 @@ export default function TechnicianDetailPage() {
 
                 <Card className="border border-border/80 shadow-xs md:col-span-2">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold">Ghi nhận đánh giá gần nhất</CardTitle>
+                    <CardTitle className="text-sm font-semibold">{t("admin.maintenance.techDetail.recentRatings")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {perf?.ratings && perf.ratings.length > 0 ? (
@@ -1193,12 +1218,14 @@ export default function TechnicianDetailPage() {
                               {formatDateTime(item.createdAt)}
                             </span>
                           </div>
-                          <p className="text-xs text-foreground font-medium">{item.comment || <span className="italic text-muted-foreground font-normal">Không có nhận xét</span>}</p>
+                          <p className="text-xs text-foreground font-medium">{item.comment || <span className="italic text-muted-foreground font-normal">{t("admin.maintenance.techDetail.noComment")}</span>}</p>
                         </div>
                       ))
                     ) : (
                       <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
-                        {isLoadingPerf ? "Đang tải đánh giá..." : "Chưa có đánh giá nào từ khách hàng."}
+                        {isLoadingPerf
+                          ? t("admin.maintenance.techDetail.loadingRatings")
+                          : t("admin.maintenance.techDetail.noRatingsCustomer")}
                       </div>
                     )}
                   </CardContent>
@@ -1216,11 +1243,11 @@ export default function TechnicianDetailPage() {
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <CalendarClock className="w-4 h-4 text-orange-600" />
                         {technician.specialty === "DRONE"
-                          ? "Drone được giao phụ trách kiểm tra định kỳ"
-                          : "Trạm Kiosk được giao phụ trách kiểm tra định kỳ"} ({assignedSchedules.length})
+                          ? t("admin.maintenance.techDetail.assignedDrones")
+                          : t("admin.maintenance.techDetail.assignedKiosks")} ({assignedSchedules.length})
                       </CardTitle>
                       <CardDescription className="text-xs">
-                        Kế hoạch bảo trì phòng ngừa do Admin phân công cho KTV này
+                        {t("admin.maintenance.techDetail.assignedDesc")}
                       </CardDescription>
                     </div>
                   </div>
@@ -1228,7 +1255,7 @@ export default function TechnicianDetailPage() {
                 <CardContent className="space-y-3">
                   {assignedSchedules.length === 0 ? (
                     <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
-                      Kỹ thuật viên này hiện chưa được phân công lịch kiểm tra định kỳ nào.
+                      {t("admin.maintenance.techDetail.noSchedules")}
                     </div>
                   ) : (
                     <div className="divide-y divide-border/60">
@@ -1246,25 +1273,25 @@ export default function TechnicianDetailPage() {
                                 <span className="font-semibold text-sm text-foreground">{s.title}</span>
                                 {isOverdue ? (
                                   <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-bold">
-                                    Quá hạn {Math.abs(diffDays!)} ngày
+                                    {t("admin.maintenance.techDetail.overdueDays", { count: Math.abs(diffDays!) })}
                                   </Badge>
                                 ) : isDue ? (
                                   <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
-                                    Đến hạn hôm nay
+                                    {t("admin.maintenance.techDetail.dueToday")}
                                   </Badge>
                                 ) : (
                                   <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-200">
-                                    Còn {diffDays} ngày
+                                    {t("admin.maintenance.techDetail.daysLeft", { days: diffDays ?? "" })}
                                   </Badge>
                                 )}
                                 {s.lastResult && (
                                   <Badge variant="outline" className={`text-[10px] ${INSPECTION_STATUS_META[s.lastResult]?.cls ?? ""}`}>
-                                    Lần gần nhất: {INSPECTION_STATUS_META[s.lastResult]?.label ?? s.lastResult}
+                                    {t("admin.maintenance.techDetail.lastResult", { result: INSPECTION_STATUS_META[s.lastResult]?.label ?? s.lastResult })}
                                   </Badge>
                                 )}
                                 {s.pendingReportId != null && (
                                   <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 font-semibold">
-                                    Chờ phiếu RPT-{s.pendingReportId}
+                                    {t("admin.maintenance.techDetail.pendingReport", { id: s.pendingReportId })}
                                   </Badge>
                                 )}
                               </div>
@@ -1276,9 +1303,15 @@ export default function TechnicianDetailPage() {
                                 </span>
                                 {s.address && <span>· {s.address}</span>}
                                 <span>·</span>
-                                <span>Chu kỳ: <strong>{s.intervalDays}</strong> ngày</span>
+                                <span>
+                                  <Trans
+                                    i18nKey="admin.maintenance.techDetail.interval"
+                                    values={{ count: s.intervalDays }}
+                                    components={{ b: <strong /> }}
+                                  />
+                                </span>
                                 <span>·</span>
-                                <span>Hạn tới: <span className="font-mono text-foreground font-medium">{s.nextDueAt ? formatDateTime(s.nextDueAt) : "—"}</span></span>
+                                <span>{t("admin.maintenance.techDetail.dueAt")} <span className="font-mono text-foreground font-medium">{s.nextDueAt ? formatDateTime(s.nextDueAt) : "—"}</span></span>
                               </p>
                               {(s.checklistItems?.length ?? 0) > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-1.5">
@@ -1303,16 +1336,16 @@ export default function TechnicianDetailPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
                     <History className="w-4 h-4 text-emerald-600" />
-                    Lịch sử các đợt kiểm định đã thực hiện ({technicianInspectionLogs.length})
+                    {t("admin.maintenance.techDetail.inspectionHistory", { count: technicianInspectionLogs.length })}
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Nhật ký biên bản và ảnh hiện trường các ca kiểm tra định kỳ do KTV này hoàn thành
+                    {t("admin.maintenance.techDetail.inspectionHistoryDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {technicianInspectionLogs.length === 0 ? (
                     <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
-                      Chưa có lượt kiểm tra định kỳ nào được ghi nhận từ kỹ thuật viên này.
+                      {t("admin.maintenance.techDetail.noInspections")}
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1330,7 +1363,7 @@ export default function TechnicianDetailPage() {
                               </Badge>
                               {log.createdReportId && (
                                 <Badge variant="outline" className="text-[10px] text-rose-600 border-rose-200">
-                                  Phiếu sự cố RPT-{log.createdReportId}
+                                  {t("admin.maintenance.techDetail.incidentReport", { id: log.createdReportId })}
                                 </Badge>
                               )}
                             </div>
@@ -1351,7 +1384,7 @@ export default function TechnicianDetailPage() {
                             <div className="flex items-center gap-2 flex-wrap pt-1">
                               {log.photoUrls.map((url, i) => (
                                 <div key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted cursor-pointer" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>
-                                  <img src={url} alt={`Ảnh ${i + 1}`} className="w-full h-full object-cover" />
+                                  <img src={url} alt={t("common.photoNumber", { index: i + 1 })} className="w-full h-full object-cover" />
                                 </div>
                               ))}
                             </div>
@@ -1376,21 +1409,21 @@ export default function TechnicianDetailPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-semibold">
-              Thu hồi phiếu sự cố RPT-{unassignTargetId}?
+              {t("admin.maintenance.techDetail.unassignTitle", { id: unassignTargetId })}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs">
-              Phiếu sự cố sẽ được thu hồi khỏi KTV {technician.fullName} và chuyển về trạng thái Chưa phân công để giao cho nhân viên kỹ thuật khác.
+              {t("admin.maintenance.techDetail.unassignDesc", { name: technician.fullName })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="text-xs">Hủy</AlertDialogCancel>
+            <AlertDialogCancel className="text-xs">{t("button.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmUnassign}
               disabled={isUnassigning}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs"
             >
               {isUnassigning ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : null}
-              Xác nhận thu hồi
+              {t("admin.maintenance.techDetail.confirmReclaim")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1400,18 +1433,25 @@ export default function TechnicianDetailPage() {
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold">Phân công sự cố mới</DialogTitle>
+            <DialogTitle className="text-base font-semibold">{t("admin.maintenance.techDetail.assignTitle")}</DialogTitle>
             <DialogDescription className="text-xs">
-              Chỉ định phiếu sự cố {technician.specialty === "DRONE" ? "Drone" : "Kiosk"} cho KTV <strong>{technician.fullName}</strong> (#
-              {technician.id})
+              <Trans
+                i18nKey="admin.maintenance.techDetail.assignDesc"
+                values={{
+                  type: technician.specialty === "DRONE" ? "Drone" : "Kiosk",
+                  name: technician.fullName,
+                  id: technician.id,
+                }}
+                components={{ b: <strong /> }}
+              />
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 py-2">
-            <p className="text-xs text-muted-foreground">Chọn một phiếu sự cố đang chờ xử lý trong hệ thống:</p>
+            <p className="text-xs text-muted-foreground">{t("admin.maintenance.techDetail.assignPick")}</p>
             {unassignedReports.length === 0 ? (
               <div className="py-6 text-center text-xs text-muted-foreground border rounded-lg bg-muted/20">
-                Hiện không có phiếu sự cố {technician.specialty === "DRONE" ? "Drone" : "Kiosk"} mới nào cần phân công.
+                {t("admin.maintenance.techDetail.noUnassigned", { type: technician.specialty === "DRONE" ? "Drone" : "Kiosk" })}
               </div>
             ) : (
               <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
@@ -1439,7 +1479,7 @@ export default function TechnicianDetailPage() {
                       <div className="flex items-center gap-1.5 mt-1 text-[11px] text-muted-foreground">
                         <MapPin className="w-3 h-3 text-muted-foreground" />
                         <span>{item.lockerName ?? `Kiosk #${item.lockerId}`}</span>
-                        {item.boxNumber ? ` · Ô #${item.boxNumber}` : ""}
+                        {item.boxNumber ? ` · ${t("admin.maintenance.boxNumber", { number: item.boxNumber })}` : ""}
                       </div>
                     </div>
                   );
@@ -1450,7 +1490,7 @@ export default function TechnicianDetailPage() {
 
           <DialogFooter className="gap-2">
             <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(false)} className="text-xs">
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               size="sm"
@@ -1459,7 +1499,7 @@ export default function TechnicianDetailPage() {
               className="text-xs bg-primary text-primary-foreground"
             >
               {isAssigning && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
-              Xác nhận phân công
+              {t("admin.maintenance.assign.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1472,7 +1512,7 @@ export default function TechnicianDetailPage() {
             <DialogHeader className="pb-3 border-b">
               <DialogTitle className="text-base font-bold flex items-center gap-2">
                 <Phone className="w-4 h-4 text-indigo-600" />
-                Cập nhật số điện thoại KTV
+                {t("admin.maintenance.techDetail.phoneDialogTitle")}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
                 {technician.fullName} (#{technician.id})
@@ -1480,22 +1520,22 @@ export default function TechnicianDetailPage() {
             </DialogHeader>
             <div className="space-y-3 py-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">Số điện thoại liên hệ:</label>
+                <label className="text-xs font-medium text-foreground">{t("admin.maintenance.techDetail.phoneContact")}</label>
                 <Input
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
-                  placeholder="VD: 0912345678"
+                  placeholder={t("admin.maintenance.techDetail.phonePlaceholder")}
                   className="h-9 text-xs"
                   autoFocus
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Số điện thoại dùng để điều phối viên và khách hàng liên hệ xử lý sự cố.
+                  {t("admin.maintenance.techDetail.phoneHint")}
                 </p>
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t">
               <Button variant="outline" size="sm" onClick={() => setEditPhoneOpen(false)} className="text-xs">
-                Hủy
+                {t("button.cancel")}
               </Button>
               <Button
                 size="sm"
@@ -1504,7 +1544,7 @@ export default function TechnicianDetailPage() {
                 className="text-xs bg-primary text-primary-foreground"
               >
                 {isUpdatingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
-                Lưu thay đổi
+                {t("common.saveChanges")}
               </Button>
             </DialogFooter>
           </DialogContent>

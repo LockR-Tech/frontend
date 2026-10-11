@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Input } from "~/components/ui/input";
 import { StatusDropdown } from "~/components/shared/status-tabs";
 import { PartnerStatus } from "~/types/admin/enums";
@@ -13,15 +14,15 @@ interface PartnerFiltersProps {
 }
 
 const options = [
-  { value: "ALL", label: "Tất cả" },
+  { value: "ALL", labelKey: "common.all" },
   {
     value: PartnerStatus.PENDING,
-    label: "Chờ duyệt",
+    labelKey: "admin.partners.status.pending",
     color: "yellow" as const,
   },
-  { value: PartnerStatus.APPROVED, label: "Đã duyệt", color: "green" as const },
-  { value: PartnerStatus.REJECTED, label: "Từ chối", color: "red" as const },
-  { value: PartnerStatus.SUSPENDED, label: "Đình chỉ", color: "gray" as const },
+  { value: PartnerStatus.APPROVED, labelKey: "admin.partners.status.approved", color: "green" as const },
+  { value: PartnerStatus.REJECTED, labelKey: "admin.partners.status.rejected", color: "red" as const },
+  { value: PartnerStatus.SUSPENDED, labelKey: "admin.partners.status.suspended", color: "gray" as const },
 ];
 
 export function PartnerFilters({
@@ -31,8 +32,10 @@ export function PartnerFilters({
   onSearchChange,
   statusCounts,
 }: PartnerFiltersProps) {
-  const optionsWithCounts = options.map((opt) => ({
+  const { t } = useTranslation();
+  const optionsWithCounts = options.map(({ labelKey, ...opt }) => ({
     ...opt,
+    label: t(labelKey),
     count: statusCounts[opt.value] || 0,
   }));
 
@@ -42,7 +45,7 @@ export function PartnerFilters({
         options={optionsWithCounts}
         value={status}
         onChange={(value) => onStatusChange(value as PartnerStatusFilter)}
-        placeholder="Trạng thái"
+        placeholder={t("common.status")}
       />
 
       <div className="relative w-full sm:w-72">
@@ -51,7 +54,7 @@ export function PartnerFilters({
           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
         />
         <Input
-          placeholder="Tìm kiếm đối tác..."
+          placeholder={t("admin.partners.searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 h-10"

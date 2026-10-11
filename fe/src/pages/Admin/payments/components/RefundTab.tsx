@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Trans, useTranslation } from "react-i18next";
 import { DataTable } from "~/components/shared/data-table";
 import {
   DateRangeFilter,
@@ -48,14 +49,15 @@ const columnHelper = createColumnHelper<AdminRefund>();
 const REQUIRE_TRANSFER_REF_KEY = "app.payment.refund-require-transfer-ref";
 
 const STATUS_TABS = [
-  { key: "ALL", label: "Tất cả" },
-  { key: "PENDING", label: "Chờ duyệt" },
-  { key: "COMPLETED", label: "Đã hoàn" },
-  { key: "REJECTED", label: "Từ chối" },
+  { key: "ALL", labelKey: "common.all" },
+  { key: "PENDING", labelKey: "admin.payments.review.pending" },
+  { key: "COMPLETED", labelKey: "admin.payments.refund.status.completed" },
+  { key: "REJECTED", labelKey: "admin.payments.review.rejected" },
 ] as const;
 
 /** Danh sách hoàn tiền của toàn hệ thống (`GET /api/admin/payments/refunds`, § 2.4). */
 export function RefundTab() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
@@ -120,7 +122,7 @@ export function RefundTab() {
   const handleApprove = async () => {
     if (!selectedRefund) return;
     if (transferRefMissing) {
-      toast.error("Vui lòng nhập mã giao dịch / UNC ngân hàng!");
+      toast.error(t("admin.payments.refund.toast.transferRefRequired"));
       return;
     }
     try {
@@ -128,18 +130,18 @@ export function RefundTab() {
         refundId: selectedRefund.id,
         bankTransferRef: bankTransferRef.trim() || undefined,
       }).unwrap();
-      toast.success(`Đã xác nhận hoàn tiền cho phiếu #${selectedRefund.id}`);
+      toast.success(t("admin.payments.refund.toast.approved", { id: selectedRefund.id }));
       handleCloseModal();
       refetch();
     } catch (err: any) {
-      toast.error(err?.data?.message || "Không thể duyệt hoàn tiền. Vui lòng thử lại!");
+      toast.error(err?.data?.message || t("admin.payments.refund.toast.approveFailed"));
     }
   };
 
   const handleReject = async () => {
     if (!selectedRefund) return;
     if (!rejectionReason.trim()) {
-      toast.error("Vui lòng nhập lý do từ chối!");
+      toast.error(t("admin.payments.refund.toast.reasonRequired"));
       return;
     }
     try {
@@ -147,11 +149,11 @@ export function RefundTab() {
         refundId: selectedRefund.id,
         rejectionReason: rejectionReason.trim(),
       }).unwrap();
-      toast.success(`Đã từ chối hoàn tiền cho phiếu #${selectedRefund.id}`);
+      toast.success(t("admin.payments.refund.toast.rejected", { id: selectedRefund.id }));
       handleCloseModal();
       refetch();
     } catch (err: any) {
-      toast.error(err?.data?.message || "Không thể từ chối yêu cầu. Vui lòng thử lại!");
+      toast.error(err?.data?.message || t("admin.payments.refund.toast.rejectFailed"));
     }
   };
 
@@ -172,24 +174,24 @@ export function RefundTab() {
 
   const columns = [
     columnHelper.accessor("id", {
-      header: "Phiếu hoàn",
+      header: t("admin.payments.refund.table.ticket"),
       cell: ({ row }) => (
         <div>
           <p className="font-mono font-semibold text-sm">#{row.original.id}</p>
           <p className="text-[11px] text-muted-foreground font-mono">
-            GD #{row.original.paymentId}
+            {t("admin.payments.refund.table.paymentRef", { id: row.original.paymentId })}
           </p>
         </div>
       ),
     }),
     columnHelper.accessor("customer", {
-      header: "Khách hàng",
+      header: t("common.customer"),
       cell: ({ row }) => {
         const { customer } = row.original;
         return (
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">
-              {customer?.fullName || "Chưa tra được tên"}
+              {customer?.fullName || t("admin.orders.lookup.name")}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer?.phoneNumber || EMPTY_VALUE}
@@ -199,7 +201,7 @@ export function RefundTab() {
       },
     }),
     columnHelper.accessor("orderId", {
-      header: "Đơn hàng",
+      header: t("common.order"),
       cell: ({ row }) => {
         const { order, orderId } = row.original;
         if (!orderId) return <span className="text-xs">{EMPTY_VALUE}</span>;
@@ -209,33 +211,35 @@ export function RefundTab() {
             onClick={() => navigate(`/admin/orders/${orderId}`)}
             className="font-mono text-xs text-primary hover:underline flex items-center gap-1"
           >
-            {order?.orderCode ?? `Đơn #${orderId}`}
+            {order?.orderCode ?? t("admin.orders.orderNumber", { id: orderId })}
             <ExternalLink className="h-3 w-3 inline opacity-60" />
           </button>
         );
       },
     }),
     columnHelper.accessor("amount", {
-      header: "Số tiền hoàn",
+      header: t("admin.payments.refund.table.amount"),
       cell: ({ row }) => (
         <div className="text-right">
           <p className="font-semibold text-sm text-emerald-600 dark:text-emerald-400">
             {formatCurrency(row.original.amount)}
           </p>
           <p className="text-[11px] text-muted-foreground">
-            Gốc: {formatCurrency(row.original.paymentAmount)}
+            {t("admin.payments.refund.table.original", {
+              amount: formatCurrency(row.original.paymentAmount),
+            })}
           </p>
         </div>
       ),
     }),
     columnHelper.accessor("accountNumber", {
-      header: "TK nhận hoàn tiền",
+      header: t("admin.payments.refund.table.account"),
       cell: ({ row }) => {
         const { bankName, bankCode, accountNumber, accountHolderName } = row.original;
         if (!accountNumber) {
           return (
             <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded">
-              Chưa có STK
+              {t("admin.payments.refund.table.noAccount")}
             </span>
           );
         }
@@ -258,25 +262,29 @@ export function RefundTab() {
       },
     }),
     columnHelper.accessor("status", {
-      header: "Trạng thái",
+      header: t("common.status"),
       cell: ({ row }) => (
         <div className="space-y-1">
           <MetaBadge meta={refundStatusMeta(row.original.status)} />
           {row.original.bankTransferRef && (
             <p className="text-[10px] text-muted-foreground font-mono">
-              Mã: {row.original.bankTransferRef}
+              {t("admin.payments.refund.table.transferRef", {
+                ref: row.original.bankTransferRef,
+              })}
             </p>
           )}
           {row.original.rejectionReason && (
             <p className="text-[11px] text-rose-600 max-w-[140px] truncate" title={row.original.rejectionReason}>
-              Lý do: {row.original.rejectionReason}
+              {t("admin.payments.refund.table.rejectionReason", {
+                reason: row.original.rejectionReason,
+              })}
             </p>
           )}
         </div>
       ),
     }),
     columnHelper.accessor("reason", {
-      header: "Lý do hoàn",
+      header: t("admin.payments.refund.table.reason"),
       cell: ({ row }) => (
         <p className="text-xs text-foreground/80 max-w-[180px] line-clamp-2" title={row.original.reason ?? ""}>
           {row.original.reason ?? EMPTY_VALUE}
@@ -284,7 +292,7 @@ export function RefundTab() {
       ),
     }),
     columnHelper.accessor("requestedAt", {
-      header: "Thời gian",
+      header: t("common.time"),
       cell: ({ row }) => (
         <div className="whitespace-nowrap font-mono text-xs">
           <div className="flex items-center gap-1 text-foreground/80">
@@ -293,7 +301,9 @@ export function RefundTab() {
           </div>
           {row.original.processedAt && (
             <p className="text-[11px] text-muted-foreground">
-              Xử lý: {formatDateTime(row.original.processedAt)}
+              {t("admin.payments.refund.table.processedAt", {
+                time: formatDateTime(row.original.processedAt),
+              })}
             </p>
           )}
         </div>
@@ -301,7 +311,9 @@ export function RefundTab() {
     }),
     columnHelper.display({
       id: "actions",
-      header: () => <span className="text-right block">Hành động</span>,
+      header: () => (
+        <span className="text-right block">{t("admin.payments.actionsHeader")}</span>
+      ),
       cell: ({ row }) => {
         const item = row.original;
         if (item.status === "PENDING") {
@@ -315,7 +327,7 @@ export function RefundTab() {
                 onClick={() => handleOpenAction(item, "APPROVE")}
               >
                 <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                Duyệt & CK
+                {t("admin.payments.refund.table.approve")}
               </Button>
               <Button
                 type="button"
@@ -325,7 +337,7 @@ export function RefundTab() {
                 onClick={() => handleOpenAction(item, "REJECT")}
               >
                 <XCircle className="h-3.5 w-3.5 mr-1" />
-                Từ chối
+                {t("dropdown.reject")}
               </Button>
             </div>
           );
@@ -339,7 +351,7 @@ export function RefundTab() {
               className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
               onClick={() => handleOpenAction(item, "DETAIL")}
             >
-              Chi tiết
+              {t("button.detail")}
             </Button>
           </div>
         );
@@ -363,7 +375,7 @@ export function RefundTab() {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           ))}
         </div>
@@ -372,10 +384,12 @@ export function RefundTab() {
       </div>
 
       <p className="text-[11px] text-muted-foreground">
-        Khoảng ngày lọc theo thời điểm yêu cầu hoàn.{" "}
+        {t("admin.payments.refund.dateHint")}{" "}
         {isFetching
-          ? "Đang tải…"
-          : `${formatNumber(pageData?.totalElements ?? 0)} phiếu hoàn.`}
+          ? t("common.loadingEllipsis")
+          : t("admin.payments.refund.count", {
+              total: formatNumber(pageData?.totalElements ?? 0),
+            })}
       </p>
 
       {error && <ReportErrorState error={error} onRetry={refetch} />}
@@ -384,7 +398,7 @@ export function RefundTab() {
         columns={columns}
         data={refunds}
         isLoading={isLoading}
-        emptyMessage="Chưa có phiếu hoàn tiền nào"
+        emptyMessage={t("admin.payments.refund.empty")}
         serverPagination={{
           pageIndex: page,
           pageSize,
@@ -407,10 +421,10 @@ export function RefundTab() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-emerald-600">
               <CheckCircle2 className="h-5 w-5" />
-              Duyệt & Xác nhận chuyển khoản hoàn tiền
+              {t("admin.payments.refund.approve.title")}
             </DialogTitle>
             <DialogDescription>
-              Vui lòng quét mã VietQR hoặc chuyển khoản đến số tài khoản dưới đây trước khi xác nhận:
+              {t("admin.payments.refund.approve.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -421,7 +435,7 @@ export function RefundTab() {
                 <div className="flex flex-col items-center justify-center p-3 bg-muted/30 border rounded-lg">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
                     <QrCode className="h-4 w-4" />
-                    <span>Quét mã VietQR bằng app ngân hàng bất kỳ</span>
+                    <span>{t("admin.payments.refund.approve.scanQr")}</span>
                   </div>
                   <img
                     src={getVietQrUrl(selectedRefund)!}
@@ -429,44 +443,46 @@ export function RefundTab() {
                     className="w-48 h-auto object-contain rounded-md shadow-sm border bg-white"
                   />
                   <p className="text-[11px] text-muted-foreground mt-1.5 font-mono">
-                    Nội dung: HOANTIEN {selectedRefund.order?.orderCode || selectedRefund.id}
+                    {t("admin.payments.refund.approve.transferContent", {
+                      content: `HOANTIEN ${selectedRefund.order?.orderCode || selectedRefund.id}`,
+                    })}
                   </p>
                 </div>
               ) : (
                 <div className="p-3 rounded-lg bg-amber-50 text-amber-800 text-xs flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
-                  <span>Khách hàng chưa cập nhật mã ngân hàng/STK đầy đủ. Vui lòng kiểm tra lại.</span>
+                  <span>{t("admin.payments.refund.approve.missingBank")}</span>
                 </div>
               )}
 
               {/* Thông tin tài khoản */}
               <div className="bg-muted/60 p-3 rounded-lg space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Mã phiếu hoàn:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.refund.approve.refundId")}:</span>
                   <span className="font-mono font-semibold">#{selectedRefund.id}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Số tiền hoàn:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.refund.table.amount")}:</span>
                   <span className="font-mono font-bold text-sm text-emerald-600">
                     {formatCurrency(selectedRefund.amount)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ngân hàng:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.bank.bank")}:</span>
                   <span className="font-semibold text-foreground">
-                    {selectedRefund.bankName || selectedRefund.bankCode || "Chưa có"}
+                    {selectedRefund.bankName || selectedRefund.bankCode || t("admin.payments.bank.none")}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Số tài khoản:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.bank.accountNumber")}:</span>
                   <span className="font-mono font-bold text-foreground">
-                    {selectedRefund.accountNumber || "Chưa có"}
+                    {selectedRefund.accountNumber || t("admin.payments.bank.none")}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Chủ tài khoản:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.bank.accountHolder")}:</span>
                   <span className="font-semibold uppercase tracking-wide text-foreground">
-                    {selectedRefund.accountHolderName || "Chưa có"}
+                    {selectedRefund.accountHolderName || t("admin.payments.bank.none")}
                   </span>
                 </div>
               </div>
@@ -474,23 +490,23 @@ export function RefundTab() {
               {/* Mã tham chiếu chuyển khoản */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">
-                  Mã giao dịch / UNC ngân hàng{" "}
+                  {t("admin.payments.refund.approve.transferRefLabel")}{" "}
                   {transferRefRequired ? (
                     <span className="text-rose-500">*</span>
                   ) : (
-                    "(tuỳ chọn)"
+                    t("admin.payments.optional")
                   )}
                   :
                 </label>
                 <Input
-                  placeholder="Ví dụ: FT24100712345678 hoặc mã tham chiếu chuyển tiền"
+                  placeholder={t("admin.payments.refund.approve.transferRefPlaceholder")}
                   value={bankTransferRef}
                   onChange={(e) => setBankTransferRef(e.target.value)}
                   className="text-xs font-mono"
                 />
                 {transferRefRequired && (
                   <p className="text-[11px] text-muted-foreground">
-                    Quy định hệ thống bắt buộc nhập mã này trước khi xác nhận đã chuyển tiền.
+                    {t("admin.payments.refund.approve.transferRefRequiredHint")}
                   </p>
                 )}
               </div>
@@ -498,7 +514,10 @@ export function RefundTab() {
               <div className="flex items-start gap-2 p-2.5 rounded-md bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                 <span>
-                  Hành động này sẽ cập nhật đơn hàng thành <strong>ĐÃ HOÀN TIỀN</strong> và gửi thông báo cho khách hàng.
+                  <Trans
+                    i18nKey="admin.payments.refund.approve.warning"
+                    components={{ b: <strong /> }}
+                  />
                 </span>
               </div>
             </div>
@@ -511,7 +530,7 @@ export function RefundTab() {
               onClick={handleCloseModal}
               disabled={isApproving}
             >
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               type="button"
@@ -520,7 +539,7 @@ export function RefundTab() {
               disabled={isApproving || transferRefMissing}
             >
               {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Xác nhận đã chuyển tiền
+              {t("admin.payments.refund.approve.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -535,10 +554,10 @@ export function RefundTab() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-rose-600">
               <XCircle className="h-5 w-5" />
-              Từ chối yêu cầu hoàn tiền
+              {t("admin.payments.refund.reject.title")}
             </DialogTitle>
             <DialogDescription>
-              Vui lòng nhập lý do từ chối để thông báo cho khách hàng.
+              {t("admin.payments.refund.reject.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -546,11 +565,11 @@ export function RefundTab() {
             <div className="space-y-3 py-1">
               <div className="bg-muted/60 p-3 rounded-lg space-y-1.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Phiếu hoàn:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.refund.table.ticket")}:</span>
                   <span className="font-mono font-semibold">#{selectedRefund.id}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Số tiền yêu cầu:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.refund.reject.requestedAmount")}:</span>
                   <span className="font-mono font-bold text-rose-600">
                     {formatCurrency(selectedRefund.amount)}
                   </span>
@@ -559,10 +578,10 @@ export function RefundTab() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">
-                  Lý do từ chối <span className="text-rose-500">*</span>:
+                  {t("admin.payments.rejectionReason")} <span className="text-rose-500">*</span>:
                 </label>
                 <Textarea
-                  placeholder="Ví dụ: Sai thông tin số tài khoản, đơn hàng đã được giao nhận thành công..."
+                  placeholder={t("admin.payments.refund.reject.placeholder")}
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   rows={3}
@@ -579,7 +598,7 @@ export function RefundTab() {
               onClick={handleCloseModal}
               disabled={isRejecting}
             >
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               type="button"
@@ -588,7 +607,7 @@ export function RefundTab() {
               disabled={isRejecting}
             >
               {isRejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Xác nhận từ chối
+              {t("admin.payments.refund.reject.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -601,43 +620,45 @@ export function RefundTab() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Chi tiết phiếu hoàn #{selectedRefund?.id}</DialogTitle>
+            <DialogTitle>
+              {t("admin.payments.refund.detail.title", { id: selectedRefund?.id ?? "" })}
+            </DialogTitle>
           </DialogHeader>
 
           {selectedRefund && (
             <div className="space-y-3 py-1 text-xs">
               <div className="bg-muted/60 p-3 rounded-lg space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Trạng thái:</span>
+                  <span className="text-muted-foreground">{t("common.status")}:</span>
                   <MetaBadge meta={refundStatusMeta(selectedRefund.status)} />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Số tiền hoàn:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.refund.table.amount")}:</span>
                   <span className="font-mono font-bold text-sm text-foreground">
                     {formatCurrency(selectedRefund.amount)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ngân hàng nhận:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.refund.detail.receivingBank")}:</span>
                   <span className="font-semibold text-foreground">
                     {selectedRefund.bankName} ({selectedRefund.bankCode})
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Số tài khoản:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.bank.accountNumber")}:</span>
                   <span className="font-mono font-bold text-foreground">
                     {selectedRefund.accountNumber || EMPTY_VALUE}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Chủ tài khoản:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.bank.accountHolder")}:</span>
                   <span className="font-semibold uppercase text-foreground">
                     {selectedRefund.accountHolderName || EMPTY_VALUE}
                   </span>
                 </div>
                 {selectedRefund.bankTransferRef && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Mã GD chuyển tiền:</span>
+                    <span className="text-muted-foreground">{t("admin.payments.refund.detail.transferRef")}:</span>
                     <span className="font-mono font-bold text-emerald-600">
                       {selectedRefund.bankTransferRef}
                     </span>
@@ -645,14 +666,14 @@ export function RefundTab() {
                 )}
                 {selectedRefund.rejectionReason && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Lý do từ chối:</span>
+                    <span className="text-muted-foreground">{t("admin.payments.rejectionReason")}:</span>
                     <span className="text-rose-600 font-medium">
                       {selectedRefund.rejectionReason}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Lý do hoàn gốc:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.refund.detail.originalReason")}:</span>
                   <span className="text-foreground">{selectedRefund.reason || EMPTY_VALUE}</span>
                 </div>
               </div>
@@ -661,7 +682,7 @@ export function RefundTab() {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCloseModal}>
-              Đóng
+              {t("button.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

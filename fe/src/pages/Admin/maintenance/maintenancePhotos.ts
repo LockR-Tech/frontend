@@ -5,6 +5,7 @@ import type {
 } from "~/stores/apis/admin/lockerOps";
 import type { AttachmentStage, ReportAttachmentResponse } from "~/stores/apis/media";
 import { APP_TIME_ZONE, parseBackendDateTime } from "~/lib/datetime";
+import i18n from "~/utils/i18n";
 
 /// View model ảnh phiếu sự cố: ảnh thật từ `report.attachments` hoặc URL legacy trong mô tả.
 export interface ReportPhoto {
@@ -24,11 +25,12 @@ export interface ReportPhoto {
 // Thứ tự nghiệp vụ: người báo → KTV tới xác nhận → trong khi sửa → nghiệm thu
 export const ATTACHMENT_STAGES: AttachmentStage[] = ["REPORT", "INSPECTION", "PROGRESS", "RESOLUTION"];
 
+// Getter ⇒ nhãn dịch theo ngôn ngữ hiện tại mỗi lần đọc (không đóng băng lúc import)
 export const STAGE_LABELS: Record<AttachmentStage, string> = {
-  REPORT: "Ảnh hiện trường (người báo)",
-  INSPECTION: "Ảnh xác nhận của KTV",
-  PROGRESS: "Ảnh trong quá trình sửa",
-  RESOLUTION: "Ảnh nghiệm thu",
+  get REPORT() { return i18n.t("admin.maintenance.photos.stage.report"); },
+  get INSPECTION() { return i18n.t("admin.maintenance.photos.stage.inspection"); },
+  get PROGRESS() { return i18n.t("admin.maintenance.photos.stage.progress"); },
+  get RESOLUTION() { return i18n.t("admin.maintenance.photos.stage.resolution"); },
 };
 
 export const extractPhotoList = (text?: string): string[] => {
@@ -102,8 +104,10 @@ export const calculateDurationText = (startStr?: string | null, endStr?: string 
   const totalMinutes = Math.floor(diffMs / (1000 * 60));
   const hours = Math.floor(totalMinutes / 60);
   const mins = totalMinutes % 60;
-  if (hours === 0) return `${mins} phút`;
-  return `${hours} giờ ${mins > 0 ? `${mins} phút` : ""}`;
+  if (hours === 0) return i18n.t("admin.maintenance.photos.duration.minutes", { minutes: mins });
+  return mins > 0
+    ? i18n.t("admin.maintenance.photos.duration.hoursMinutes", { hours, minutes: mins })
+    : i18n.t("admin.maintenance.photos.duration.hours", { hours });
 };
 
 /** Phát hiện phiếu sự cố liên quan đến Drone để loại khỏi tab Bảo trì Kiosk / KTV Kiosk.
@@ -129,16 +133,41 @@ export function isDroneReport(r: LockerReportResponse): boolean {
 
 /** Nhãn trạng thái biên bản kiểm tra; ATTENTION/DEFECT_DETECTED chỉ còn ở dữ liệu cũ. */
 export const INSPECTION_STATUS_META: Record<string, { label: string; cls: string; failed: boolean }> = {
-  PASSED: { label: "Đạt", cls: "bg-emerald-50 text-emerald-700 border-emerald-200", failed: false },
-  FAILED: { label: "Không đạt", cls: "bg-rose-50 text-rose-700 border-rose-200", failed: true },
-  ATTENTION: { label: "Cần theo dõi (dữ liệu cũ)", cls: "bg-amber-50 text-amber-700 border-amber-200", failed: false },
-  DEFECT_DETECTED: { label: "Phát hiện lỗi (dữ liệu cũ)", cls: "bg-rose-50 text-rose-700 border-rose-200", failed: true },
+  PASSED: {
+    get label() { return i18n.t("admin.maintenance.photos.inspection.status.passed"); },
+    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    failed: false,
+  },
+  FAILED: {
+    get label() { return i18n.t("admin.maintenance.photos.inspection.status.failed"); },
+    cls: "bg-rose-50 text-rose-700 border-rose-200",
+    failed: true,
+  },
+  ATTENTION: {
+    get label() { return i18n.t("admin.maintenance.photos.inspection.status.attention"); },
+    cls: "bg-amber-50 text-amber-700 border-amber-200",
+    failed: false,
+  },
+  DEFECT_DETECTED: {
+    get label() { return i18n.t("admin.maintenance.photos.inspection.status.defectDetected"); },
+    cls: "bg-rose-50 text-rose-700 border-rose-200",
+    failed: true,
+  },
 };
 
 export const INSPECTION_ITEM_META: Record<InspectionItemVerdict, { label: string; cls: string }> = {
-  PASS: { label: "Đạt", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  FAIL: { label: "Không đạt", cls: "bg-rose-50 text-rose-700 border-rose-200" },
-  NA: { label: "Không áp dụng", cls: "bg-slate-50 text-slate-600 border-slate-200" },
+  PASS: {
+    get label() { return i18n.t("admin.maintenance.photos.inspection.item.pass"); },
+    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  FAIL: {
+    get label() { return i18n.t("admin.maintenance.photos.inspection.item.fail"); },
+    cls: "bg-rose-50 text-rose-700 border-rose-200",
+  },
+  NA: {
+    get label() { return i18n.t("admin.maintenance.photos.inspection.item.na"); },
+    cls: "bg-slate-50 text-slate-600 border-slate-200",
+  },
 };
 
 /** `checklistResults` của biên bản: JSON các mục (bản ghi mới) hoặc văn bản tự do (bản ghi cũ). */

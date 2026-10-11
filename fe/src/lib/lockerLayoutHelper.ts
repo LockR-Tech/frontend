@@ -1,4 +1,5 @@
 import type { CellResponse } from "~/stores/apis/admin/lockerOps";
+import i18n from "~/utils/i18n";
 
 /**
  * Helper chuẩn hoá và đồng bộ sơ đồ tủ vật lý, phân loại ô và trạng thái cửa/hệ thống
@@ -69,9 +70,9 @@ export function getCellTypeLabel(cell: {
   colIndex?: number | null;
   isDrone?: boolean;
 }): string {
-  if (isDroneCell(cell)) return "Drone (Nóc tủ)";
-  if (isXlCell(cell)) return "Vali (XL - Cột 1)";
-  return "Tiêu chuẩn (Vừa)";
+  if (isDroneCell(cell)) return i18n.t("admin.lockers.cellType.drone");
+  if (isXlCell(cell)) return i18n.t("admin.lockers.cellType.xl");
+  return i18n.t("admin.lockers.cellType.standard");
 }
 
 /**
@@ -88,18 +89,18 @@ export function getCellStatusLabel(cell: {
   const drone = isDroneCell(cell);
   switch (st) {
     case "AVAILABLE":
-      return drone ? "Nhận Drone" : "Sẵn sàng";
+      return drone ? i18n.t("admin.lockers.boxStatus.droneReady") : i18n.t("admin.lockers.boxStatus.available");
     case "OCCUPIED":
     case "IN_USE":
-      return "Đang dùng";
+      return i18n.t("admin.lockers.boxStatus.occupied");
     case "RESERVED":
-      return "Đã đặt";
+      return i18n.t("admin.lockers.boxStatus.reserved");
     case "FAULT":
-      return "Hỏng";
+      return i18n.t("admin.lockers.boxStatus.fault");
     case "CLEANING":
-      return "Bảo trì";
+      return i18n.t("admin.lockers.boxStatus.cleaning");
     case "OUT_OF_SERVICE":
-      return "Tạm ngưng";
+      return i18n.t("admin.lockers.boxStatus.suspended");
     default:
       return st;
   }

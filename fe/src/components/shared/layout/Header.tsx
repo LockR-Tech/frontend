@@ -417,9 +417,9 @@ export function Header({ className }: HeaderProps) {
   const ThemeIcon = currentTheme.icon;
 
   const themeLabels: Record<string, string> = {
-    light: t("header.themeLight") || "Sáng",
-    dark: t("header.themeDark") || "Tối",
-    system: t("header.themeSystem") || "Hệ thống",
+    light: t("header.themeLight"),
+    dark: t("header.themeDark"),
+    system: t("header.themeSystem"),
   };
 
   const handleChangeLanguage = (code: string) => {

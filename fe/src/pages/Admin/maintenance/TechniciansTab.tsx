@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Users,
   Search,
@@ -67,6 +68,7 @@ function TechnicianPerformanceSync({
 
 export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [penaltyFilter, setPenaltyFilter] = useState("ALL");
   const [specialtyFilter, setSpecialtyFilter] = useState<"ALL" | "KIOSK" | "DRONE">("ALL");
@@ -119,11 +121,13 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
           roles.includes("LOCKER_TECHNICIAN") ||
           roles.includes("ROLE_LOCKER_TECHNICIAN");
         const specialty: "KIOSK" | "DRONE" = isKiosk ? "KIOSK" : "DRONE";
-        const specialtyLabel = isKiosk ? "KTV Kiosk (Tủ Kiosk)" : "KTV Drone (Đội bay & Pin)";
+        const specialtyLabel = isKiosk
+          ? t("admin.maintenance.specialty.kiosk")
+          : t("admin.maintenance.specialty.drone");
 
         return {
           id: u.id,
-          fullName: u.fullName || u.name || `KTV #${u.id}`,
+          fullName: u.fullName || u.name || t("admin.maintenance.techFallback", { id: u.id }),
           email: u.email || "",
           phoneNumber: u.phoneNumber || "",
           status: (u.status || "ACTIVE").toUpperCase(),
@@ -134,7 +138,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
           specialtyLabel,
         };
       });
-  }, [usersData]);
+  }, [usersData, t]);
 
   // Khối lượng việc + mức chế tài: lấy từ endpoint hiệu suất của server (ngưỡng admin cấu hình).
   // Khi hiệu suất KTV chưa tải xong thì đếm tạm từ danh sách phiếu (cờ `overdue` do server tính).
@@ -222,18 +226,28 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
   const handleToggleStatus = async (tech: TechnicianSummary) => {
     const newEnabled = !tech.enabled;
-    const actionText = newEnabled ? "Mở khóa" : "Đình chỉ";
     try {
       await updateStatus({
         id: tech.id,
         data: { status: newEnabled ? "ACTIVE" : "INACTIVE" },
       }).unwrap();
-      toast.success(`${actionText} tài khoản KTV thành công`, {
-        description: `KTV ${tech.fullName} hiện đang ở trạng thái ${newEnabled ? "Hoạt động" : "Đã đình chỉ"}.`,
-      });
+      toast.success(
+        newEnabled
+          ? t("admin.maintenance.techTab.unlockSuccess")
+          : t("admin.maintenance.techTab.suspendSuccess"),
+        {
+          description: newEnabled
+            ? t("admin.maintenance.techTab.nowActive", { name: tech.fullName })
+            : t("admin.maintenance.techTab.nowSuspended", { name: tech.fullName }),
+        },
+      );
       refetchUsers();
     } catch {
-      toast.error(`Không thể ${actionText.toLowerCase()} tài khoản`);
+      toast.error(
+        newEnabled
+          ? t("admin.maintenance.techTab.unlockFailed")
+          : t("admin.maintenance.account.suspendFailed"),
+      );
     }
   };
 
@@ -252,16 +266,16 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">Tổng Kỹ thuật viên</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techTab.totalTechs")}</p>
               <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-200/60 flex items-center justify-center text-indigo-600">
                 <Users className="w-4 h-4" />
               </div>
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1">{totalTechs}</p>
             <div className="text-[11px] font-medium flex items-center gap-1.5 mt-1 text-slate-600">
-              <span className="text-sky-700 font-semibold">{kioskTechs} KTV Kiosk</span>
+              <span className="text-sky-700 font-semibold">{t("admin.maintenance.techTab.kioskTechCount", { count: kioskTechs })}</span>
               <span>·</span>
-              <span className="text-purple-700 font-semibold">{droneTechs} KTV Drone</span>
+              <span className="text-purple-700 font-semibold">{t("admin.maintenance.techTab.droneTechCount", { count: droneTechs })}</span>
             </div>
           </CardContent>
         </Card>
@@ -269,14 +283,14 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">Đang xử lý sự cố</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techTab.working")}</p>
               <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-600">
                 <Wrench className="w-4 h-4" />
               </div>
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1">{workingTechs}</p>
             <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-blue-600">
-              <span>Đang có ca sửa chữa ngoài hiện trường</span>
+              <span>{t("admin.maintenance.techTab.workingDesc")}</span>
             </div>
           </CardContent>
         </Card>
@@ -284,14 +298,14 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">Cảnh báo vi phạm SLA</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techTab.slaWarnings")}</p>
               <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600">
                 <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1">{warningTechs}</p>
             <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-amber-600">
-              <span>{warningTechs > 0 ? "Cần đôn đốc tiến độ" : "0 vi phạm tiến độ"}</span>
+              <span>{warningTechs > 0 ? t("admin.maintenance.techTab.needsFollowUp") : t("admin.maintenance.techTab.noViolations")}</span>
             </div>
           </CardContent>
         </Card>
@@ -299,7 +313,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">Chỉ số chất lượng CSAT</p>
+              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techTab.csat")}</p>
               <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-600">
                 <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
               </div>
@@ -309,7 +323,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
             </p>
             <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-emerald-600">
               <ShieldCheck className="w-3 h-3" />
-              <span>{csat ? `Từ ${csat.count} lượt đánh giá của khách hàng` : "Chưa có lượt đánh giá"}</span>
+              <span>{csat ? t("admin.maintenance.techTab.csatFrom", { count: csat.count }) : t("admin.maintenance.techTab.noRatings")}</span>
             </div>
           </CardContent>
         </Card>
@@ -324,22 +338,22 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
             </div>
             <div>
               <h4 className="font-semibold text-sm text-indigo-950">
-                Chế tài Quản lý Chất lượng Kỹ thuật viên (3 Cấp độ SLA)
+                {t("admin.maintenance.techTab.policyTitle")}
               </h4>
               <p className="text-xs text-indigo-800/80 mt-0.5">
-                Mức chế tài do máy chủ tính theo số phiếu trễ hạn SLA của từng KTV; ngưỡng mỗi mức do admin cấu hình trong Cài đặt.
+                {t("admin.maintenance.techTab.policyDesc")}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="bg-amber-100/70 text-amber-800 border-amber-300 text-xs">
-              🟡 Cấp 1: Nhắc nhở
+              {t("admin.maintenance.techTab.level1")}
             </Badge>
             <Badge variant="outline" className="bg-orange-100/70 text-orange-800 border-orange-300 text-xs">
-              🟠 Cấp 2: Tạm ngưng việc
+              {t("admin.maintenance.techTab.level2")}
             </Badge>
             <Badge variant="outline" className="bg-rose-100/70 text-rose-800 border-rose-300 text-xs">
-              🔴 Cấp 3: Đình chỉ
+              {t("admin.maintenance.techTab.level3")}
             </Badge>
           </div>
         </CardContent>
@@ -352,17 +366,17 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
             <div>
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Users className="w-4 h-4 text-indigo-600" />
-                Danh sách Đội ngũ Kỹ thuật viên ({filteredTechs.length})
+                {t("admin.maintenance.techTab.listTitle", { count: filteredTechs.length })}
               </CardTitle>
               <CardDescription className="text-xs mt-0.5">
-                Theo dõi tình trạng hoạt động, khối lượng công việc và mức độ tuân thủ của từng nhân sự
+                {t("admin.maintenance.techTab.listDesc")}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative w-64">
                 <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
-                  placeholder="Tìm theo tên, SĐT, email..."
+                  placeholder={t("admin.maintenance.techTab.search")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8 h-8 text-xs bg-background"
@@ -371,25 +385,25 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
               <Select value={specialtyFilter} onValueChange={(val: any) => setSpecialtyFilter(val)}>
                 <SelectTrigger className="w-48 h-8 text-xs bg-background">
-                  <SelectValue placeholder="Lọc chuyên môn" />
+                  <SelectValue placeholder={t("admin.maintenance.techTab.specialtyFilter")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tất cả chuyên môn ({totalTechs})</SelectItem>
-                  <SelectItem value="KIOSK">🔧 KTV Kiosk - Sửa tủ ({kioskTechs})</SelectItem>
-                  <SelectItem value="DRONE">✈️ KTV Drone - Đội bay ({droneTechs})</SelectItem>
+                  <SelectItem value="ALL">{t("admin.maintenance.techTab.allSpecialties", { count: totalTechs })}</SelectItem>
+                  <SelectItem value="KIOSK">{t("admin.maintenance.techTab.kioskSpecialty", { count: kioskTechs })}</SelectItem>
+                  <SelectItem value="DRONE">{t("admin.maintenance.techTab.droneSpecialty", { count: droneTechs })}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={penaltyFilter} onValueChange={setPenaltyFilter}>
                 <SelectTrigger className="w-44 h-8 text-xs bg-background">
-                  <SelectValue placeholder="Lọc theo chế tài" />
+                  <SelectValue placeholder={t("admin.maintenance.techTab.penaltyFilter")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
-                  <SelectItem value="WARNING">🟡 Cảnh báo SLA</SelectItem>
-                  <SelectItem value="RESTRICTED">🟠 Bị hạn chế nhận việc</SelectItem>
-                  <SelectItem value="SUSPENDED">🔴 Đã đình chỉ / Khóa</SelectItem>
+                  <SelectItem value="ALL">{t("admin.maintenance.techTab.allStatuses")}</SelectItem>
+                  <SelectItem value="ACTIVE">{t("admin.maintenance.account.active")}</SelectItem>
+                  <SelectItem value="WARNING">{t("admin.maintenance.techTab.warningOption")}</SelectItem>
+                  <SelectItem value="RESTRICTED">{t("admin.maintenance.techTab.restrictedOption")}</SelectItem>
+                  <SelectItem value="SUSPENDED">{t("admin.maintenance.techTab.suspendedOption")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -401,7 +415,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
             <div className="text-center py-12 border border-dashed rounded-xl bg-muted/20">
               <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50" />
               <p className="text-sm text-muted-foreground font-medium">
-                Không tìm thấy kỹ thuật viên nào phù hợp bộ lọc.
+                {t("admin.maintenance.techTab.noMatch")}
               </p>
             </div>
           ) : (
@@ -462,7 +476,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                               </div>
                               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                                 <Phone className="w-3 h-3 text-muted-foreground" />
-                                {tech.phoneNumber || "Chưa có SĐT"}
+                                {tech.phoneNumber || t("admin.maintenance.noPhone")}
                               </p>
                               {/* Specialty Badge */}
                               <div className="mt-1 flex items-center gap-1.5 flex-wrap">
@@ -472,7 +486,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                                     className="bg-sky-50 text-sky-800 border-sky-300 text-[10px] font-semibold flex items-center gap-1 px-1.5 py-0.5"
                                   >
                                     <Wrench className="w-2.5 h-2.5 text-sky-600" />
-                                    KTV Kiosk (Tủ Kiosk)
+                                    {t("admin.maintenance.specialty.kiosk")}
                                   </Badge>
                                 ) : (
                                   <Badge
@@ -480,7 +494,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                                     className="bg-purple-50 text-purple-800 border-purple-300 text-[10px] font-semibold flex items-center gap-1 px-1.5 py-0.5"
                                   >
                                     <Plane className="w-2.5 h-2.5 text-purple-600" />
-                                    KTV Drone (Đội bay)
+                                    {t("admin.maintenance.specialty.droneFleet")}
                                   </Badge>
                                 )}
                                 {getAssignedCount(tech.id) > 0 && (
@@ -489,7 +503,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                                     className="bg-blue-50 text-blue-800 border-blue-200 text-[10px] font-medium flex items-center gap-1 px-1.5 py-0.5"
                                   >
                                     <Calendar className="w-2.5 h-2.5 text-blue-600" />
-                                    {getAssignedCount(tech.id)} lịch định kỳ
+                                    {t("admin.maintenance.techTab.scheduleCount", { count: getAssignedCount(tech.id) })}
                                   </Badge>
                                 )}
                               </div>
@@ -510,12 +524,12 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                             }
                           >
                             {isSuspended
-                              ? (tech.enabled ? "Đề xuất đình chỉ" : "Đã đình chỉ")
+                              ? (tech.enabled ? t("admin.maintenance.techTab.recommendSuspend") : t("admin.maintenance.techTab.suspended"))
                               : isRestricted
-                              ? "Hạn chế việc"
+                              ? t("admin.maintenance.techTab.restricted")
                               : isWarning
-                              ? "Cảnh báo SLA"
-                              : "Hoạt động tốt"}
+                              ? t("admin.maintenance.techTab.slaWarning")
+                              : t("admin.maintenance.techTab.good")}
                           </Badge>
                         </div>
 
@@ -529,32 +543,32 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
                         {/* Workload Status Pill */}
                         <div className="mt-3 p-2 rounded-lg bg-muted/40 border border-border/50 text-xs flex items-center justify-between">
-                          <span className="text-muted-foreground">Tình trạng tải:</span>
+                          <span className="text-muted-foreground">{t("admin.maintenance.techTab.load")}</span>
                           <span className="font-medium text-foreground">
                             {metrics.inProgress === 0
-                              ? "🟢 Đang rảnh rỗi"
+                              ? t("admin.maintenance.techTab.idle")
                               : metrics.inProgress >= 3
-                              ? `🔴 Đang tải cao (${metrics.inProgress} việc)`
-                              : `🔵 Đang xử lý (${metrics.inProgress} việc)`}
+                              ? t("admin.maintenance.techTab.highLoad", { count: metrics.inProgress })
+                              : t("admin.maintenance.techTab.busy", { count: metrics.inProgress })}
                           </span>
                         </div>
 
                         {/* Metrics summary */}
                         <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t text-center">
                           <div>
-                            <span className="text-[10px] text-muted-foreground block">Đang làm</span>
+                            <span className="text-[10px] text-muted-foreground block">{t("admin.maintenance.metrics.inProgress")}</span>
                             <span className="text-xs font-bold text-blue-600 block mt-0.5">
                               {metrics.inProgress}
                             </span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-muted-foreground block">Đã xong</span>
+                            <span className="text-[10px] text-muted-foreground block">{t("admin.maintenance.metrics.done")}</span>
                             <span className="text-xs font-bold text-emerald-600 block mt-0.5">
                               {metrics.resolved}
                             </span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-muted-foreground block">Trễ SLA</span>
+                            <span className="text-[10px] text-muted-foreground block">{t("admin.maintenance.metrics.slaLate")}</span>
                             <span
                               className={`text-xs font-bold block mt-0.5 ${
                                 metrics.overdue > 0 ? "text-rose-600" : "text-slate-400"
@@ -575,7 +589,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                           onClick={() => openDetail(tech)}
                         >
                           <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-                          Xem chi tiết
+                          {t("dropdown.viewDetail")}
                         </Button>
 
                         {onAssignToTech && tech.enabled && !isSuspended && (
@@ -586,7 +600,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                             onClick={() => onAssignToTech(tech.id, tech.specialty ?? "KIOSK")}
                           >
                             <Boxes className="w-3.5 h-3.5" />
-                            Giao việc
+                            {t("admin.maintenance.techTab.assign")}
                           </Button>
                         )}
 
@@ -600,7 +614,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                           }`}
                           onClick={() => handleToggleStatus(tech)}
                           disabled={isUpdatingStatus}
-                          title={tech.enabled ? "Đình chỉ KTV này" : "Mở khóa KTV"}
+                          title={tech.enabled ? t("admin.maintenance.techTab.suspendThis") : t("admin.maintenance.techTab.unlock")}
                         >
                           {tech.enabled ? <Ban className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
                         </Button>

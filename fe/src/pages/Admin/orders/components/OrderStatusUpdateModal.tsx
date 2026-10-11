@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -31,15 +32,14 @@ interface OrderStatusUpdateModalProps {
   onUpdated?: () => void;
 }
 
-/** Ghi chú cho từng trạng thái, theo đúng nghiệp vụ tủ Lock.R. */
+/** Khoá message ghi chú cho từng trạng thái, theo đúng nghiệp vụ tủ Lock.R. */
 const STATUS_HINTS: Record<string, string> = {
-  INITIALIZED: "Đơn vừa tạo, khách chưa bỏ hàng vào tủ.",
-  STORING: "Hàng đang nằm trong ô, người nhận chưa lấy.",
-  EXPIRED:
-    "Quá hạn lấy hàng. Khác với lúc hệ thống tự chuyển, đổi tay sang trạng thái này KHÔNG giải phóng ô đang giữ.",
-  AWAITING_DISPATCH: "Chờ điều phối drone cho chặng giao.",
-  COMPLETED: "Đã giao xong. Thao tác này giải phóng ô đang giữ.",
-  CANCELED: "Huỷ đơn. Thao tác này giải phóng ô đang giữ.",
+  INITIALIZED: "admin.orders.statusModal.hint.initialized",
+  STORING: "admin.orders.statusModal.hint.storing",
+  EXPIRED: "admin.orders.statusModal.hint.expired",
+  AWAITING_DISPATCH: "admin.orders.statusModal.hint.awaitingDispatch",
+  COMPLETED: "admin.orders.statusModal.hint.completed",
+  CANCELED: "admin.orders.statusModal.hint.canceled",
 };
 
 /** Trạng thái backend giải phóng ô khi chuyển sang (OrderService.updateStatus) — cần nhắc trước khi bấm. */
@@ -53,6 +53,7 @@ export function OrderStatusUpdateModal({
   onClose,
   onUpdated,
 }: OrderStatusUpdateModalProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [updateStatus, { isLoading: saving }] =
     useUpdateAdminOrderStatusMutation();
@@ -75,7 +76,7 @@ export function OrderStatusUpdateModal({
     const parsedBoxId =
       usesReceiveBox && receiveBoxId.trim() ? Number(receiveBoxId.trim()) : undefined;
     if (parsedBoxId !== undefined && !Number.isInteger(parsedBoxId)) {
-      toast.error("Mã ô nhận phải là số nguyên");
+      toast.error(t("admin.orders.statusModal.receiveBoxInvalid"));
       return;
     }
 
@@ -88,14 +89,17 @@ export function OrderStatusUpdateModal({
         ...(parsedBoxId !== undefined ? { receiveBoxId: parsedBoxId } : {}),
       }).unwrap();
       toast.success(
-        `Đã chuyển đơn ${order.orderCode ?? "chưa có mã"} sang “${orderStatusMeta(selected).label}”`,
+        t("admin.orders.statusModal.updated", {
+          code: order.orderCode ?? t("admin.orders.noCodeInline"),
+          status: orderStatusMeta(selected).label,
+        }),
       );
       onUpdated?.();
       onClose();
     } catch (error) {
       toast.error(
         toReportError(error as Parameters<typeof toReportError>[0])?.message ??
-          "Không cập nhật được trạng thái",
+          t("admin.orders.statusModal.updateFailed"),
       );
     }
   };
@@ -106,29 +110,30 @@ export function OrderStatusUpdateModal({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Cập nhật trạng thái đơn</DialogTitle>
+          <DialogTitle>{t("admin.orders.statusModal.title")}</DialogTitle>
           <DialogDescription>
-            {order.orderCode ?? "Đơn chưa có mã"} — thay đổi được ghi vào lịch sử
-            trạng thái kèm tên người thao tác.
+            {t("admin.orders.statusModal.description", {
+              code: order.orderCode ?? t("admin.orders.noCode"),
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <Label>Trạng thái hiện tại</Label>
+            <Label>{t("admin.orders.statusModal.currentStatus")}</Label>
             <div>
               <MetaBadge meta={orderStatusMeta(order.status)} />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="new-status">Trạng thái mới</Label>
+            <Label htmlFor="new-status">{t("admin.orders.statusModal.newStatus")}</Label>
             <Select
               value={selected}
               onValueChange={(value) => setSelected(value as AdminOrderStatus)}
             >
               <SelectTrigger id="new-status">
-                <SelectValue placeholder="Chọn trạng thái mới" />
+                <SelectValue placeholder={t("admin.orders.statusModal.newStatusPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {ADMIN_ORDER_STATUSES.map((status) => (
@@ -138,25 +143,28 @@ export function OrderStatusUpdateModal({
                     disabled={status === order.status}
                   >
                     {orderStatusMeta(status).label}
-                    {status === order.status && " (hiện tại)"}
+                    {status === order.status &&
+                      ` ${t("admin.orders.statusModal.currentTag")}`}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {selected && STATUS_HINTS[selected] && (
               <p className="text-xs text-muted-foreground">
-                {STATUS_HINTS[selected]}
+                {t(STATUS_HINTS[selected])}
               </p>
             )}
           </div>
 
           {usesReceiveBox && (
             <div className="space-y-1.5">
-              <Label htmlFor="receive-box">Mã ô nhận (tuỳ chọn)</Label>
+              <Label htmlFor="receive-box">
+                {t("admin.orders.statusModal.receiveBox")}
+              </Label>
               <Input
                 id="receive-box"
                 inputMode="numeric"
-                placeholder="Để trống nếu không gán ô nhận"
+                placeholder={t("admin.orders.statusModal.receiveBoxPlaceholder")}
                 value={receiveBoxId}
                 onChange={(e) => setReceiveBoxId(e.target.value)}
               />
@@ -165,17 +173,17 @@ export function OrderStatusUpdateModal({
 
           {releasesBox && (
             <p className="text-xs text-amber-600 dark:text-amber-400">
-              Trạng thái này giải phóng ô đang giữ của đơn.
+              {t("admin.orders.statusModal.releasesBox")}
             </p>
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
-            Đóng
+            {t("button.close")}
           </Button>
           <Button onClick={handleSubmit} disabled={!selected || saving}>
-            {saving ? "Đang lưu…" : "Cập nhật"}
+            {saving ? t("admin.orders.saving") : t("common.update")}
           </Button>
         </DialogFooter>
       </DialogContent>

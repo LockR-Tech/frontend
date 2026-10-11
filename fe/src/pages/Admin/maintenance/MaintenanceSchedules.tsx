@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import {
   CalendarClock,
   Check,
@@ -102,14 +103,13 @@ const daysUntil = (value?: string | null): number | null => {
   return target ? Math.ceil((target.getTime() - Date.now()) / DAY_MS) : null;
 };
 
-const NO_ADDRESS = "Chưa có địa chỉ";
-
+// `value` gửi lên API (giữ nguyên); `labelKey` là khoá i18n, dịch lúc render
 const TIME_SLOT_OPTIONS = [
-  { value: "08:00 - 11:30", label: "Ca sáng (08:00 - 11:30)" },
-  { value: "13:30 - 17:00", label: "Ca chiều (13:30 - 17:00)" },
-  { value: "18:00 - 21:00", label: "Ca tối (18:00 - 21:00)" },
-  { value: "08:00 - 17:00", label: "Giờ hành chính (08:00 - 17:00)" },
-  { value: "Khung giờ linh hoạt", label: "Khung giờ linh hoạt" },
+  { value: "08:00 - 11:30", labelKey: "admin.maintenance.schedules.timeSlot.morning" },
+  { value: "13:30 - 17:00", labelKey: "admin.maintenance.schedules.timeSlot.afternoon" },
+  { value: "18:00 - 21:00", labelKey: "admin.maintenance.schedules.timeSlot.evening" },
+  { value: "08:00 - 17:00", labelKey: "admin.maintenance.schedules.timeSlot.office" },
+  { value: "Khung giờ linh hoạt", labelKey: "admin.maintenance.schedules.timeSlot.flexible" },
 ];
 
 const INSPECTION_VERDICTS: InspectionItemVerdict[] = ["PASS", "FAIL", "NA"];
@@ -142,6 +142,11 @@ const DEFAULT_DRONE_CHECKLIST = [
 ];
 
 export function MaintenanceSchedules() {
+  const { t } = useTranslation();
+  const noAddress = t("admin.maintenance.schedules.noAddress");
+  // "Khung giờ linh hoạt" được lưu nguyên văn lên API — chỉ dịch lúc hiển thị
+  const displayTimeSlot = (slot: string) =>
+    slot === "Khung giờ linh hoạt" ? t("admin.maintenance.schedules.timeSlot.flexible") : slot;
   const { data, isLoading } = useGetMaintenanceSchedulesQuery();
   const { data: statsData } = useGetLockerStatsQuery();
   const { data: allLockersData } = useGetAllLockersQuery({ page: 0, size: 200 });
@@ -459,15 +464,15 @@ export function MaintenanceSchedules() {
   const create = async () => {
     if (subTab === "kiosk") {
       if (!lockerId || !title.trim()) {
-        toast.error("Thiếu thông tin lịch Kiosk", {
-          description: "Vui lòng chọn thiết bị Kiosk và nhập tên kế hoạch kiểm tra.",
+        toast.error(t("admin.maintenance.schedules.toast.missingKioskInfo"), {
+          description: t("admin.maintenance.schedules.toast.missingKioskInfoDesc"),
         });
         return;
       }
 
       if (checklistLines.some((line) => line.includes(";"))) {
-        toast.error("Checklist không hợp lệ", {
-          description: "Mỗi dòng là một mục — không dùng dấu ';' trong một mục.",
+        toast.error(t("admin.maintenance.schedules.toast.invalidChecklist"), {
+          description: t("admin.maintenance.schedules.toast.invalidChecklistDesc"),
         });
         return;
       }
@@ -490,12 +495,12 @@ export function MaintenanceSchedules() {
             scheduledTimeSlot: scheduledTimeSlot || undefined,
           }).unwrap(),
         {
-          title: "Tạo lịch Kiosk thành công",
-          desc: `Đã thiết lập chu kỳ kiểm tra ${intervalDays} ngày cho trạm.`,
+          title: t("admin.maintenance.schedules.toast.createKioskSuccess"),
+          desc: t("admin.maintenance.schedules.toast.createKioskSuccessDesc", { days: intervalDays }),
         },
         {
-          title: "Không tạo được lịch Kiosk",
-          desc: "Vui lòng kiểm tra lại thông tin và thử lại.",
+          title: t("admin.maintenance.schedules.toast.createKioskFailed"),
+          desc: t("admin.maintenance.schedules.toast.checkInfoRetry"),
         },
       );
       // Lỗi ⇒ giữ nguyên form để sửa và gửi lại
@@ -515,14 +520,14 @@ export function MaintenanceSchedules() {
     } else {
       const drone = drones.find((d) => String(d.id) === selectedDroneId);
       if (!drone || !droneTitle.trim()) {
-        toast.error("Thiếu thông tin lịch Drone", {
-          description: "Vui lòng chọn drone và nhập hạng mục kiểm tra định kỳ.",
+        toast.error(t("admin.maintenance.schedules.toast.missingDroneInfo"), {
+          description: t("admin.maintenance.schedules.toast.missingDroneInfoDesc"),
         });
         return;
       }
       if (droneChecklistLines.some((line) => line.includes(";"))) {
-        toast.error("Checklist không hợp lệ", {
-          description: "Mỗi dòng là một mục — không dùng dấu ';' trong một mục.",
+        toast.error(t("admin.maintenance.schedules.toast.invalidChecklist"), {
+          description: t("admin.maintenance.schedules.toast.invalidChecklistDesc"),
         });
         return;
       }
@@ -541,12 +546,12 @@ export function MaintenanceSchedules() {
             scheduledTimeSlot: droneScheduledTimeSlot || undefined,
           }).unwrap(),
         {
-          title: "Tạo lịch bảo dưỡng Drone thành công",
-          desc: `Đã ghi nhận chu kỳ ${droneIntervalDays} ngày cho ${drone.code}. Drone chuyển sang Đang bảo dưỡng cho tới khi lần kiểm tra đầu tiên ĐẠT.`,
+          title: t("admin.maintenance.schedules.toast.createDroneSuccess"),
+          desc: t("admin.maintenance.schedules.toast.createDroneSuccessDesc", { days: droneIntervalDays, code: drone.code }),
         },
         {
-          title: "Không tạo được lịch Drone",
-          desc: "Vui lòng kiểm tra lại thông tin.",
+          title: t("admin.maintenance.schedules.toast.createDroneFailed"),
+          desc: t("admin.maintenance.schedules.toast.checkInfo"),
         },
       );
       // Lỗi ⇒ giữ nguyên form để sửa và gửi lại
@@ -585,13 +590,13 @@ export function MaintenanceSchedules() {
   const submitInspection = async () => {
     if (!inspectingSchedule) return;
     if (inspectHasChecklist && inspectUnanswered > 0) {
-      toast.error("Chưa đánh giá đủ checklist", {
-        description: `Còn ${inspectUnanswered} mục chưa chọn Đạt / Không đạt / Không áp dụng.`,
+      toast.error(t("admin.maintenance.schedules.toast.checklistIncomplete"), {
+        description: t("admin.maintenance.schedules.toast.checklistIncompleteDesc", { count: inspectUnanswered }),
       });
       return;
     }
     if (!inspectOutcome) {
-      toast.error("Chưa chọn kết quả kiểm tra", { description: "Chọn Đạt hoặc Không đạt." });
+      toast.error(t("admin.maintenance.schedules.toast.noOutcome"), { description: t("admin.maintenance.schedules.toast.noOutcomeDesc") });
       return;
     }
     const photoList = inspectPhotos
@@ -603,7 +608,7 @@ export function MaintenanceSchedules() {
     const payload: CompleteScheduleRequest = {
       technicianId: inspectTechId ? Number(inspectTechId) : undefined,
       technicianName: inspectTechId
-        ? [...technicians, ...droneTechnicians].find((t) => t.id === Number(inspectTechId))?.fullName
+        ? [...technicians, ...droneTechnicians].find((tech) => tech.id === Number(inspectTechId))?.fullName
         : undefined,
       // Có checklist ⇒ gửi từng mục, server tự suy kết quả; không có ⇒ gửi status cũ
       ...(inspectHasChecklist
@@ -625,21 +630,23 @@ export function MaintenanceSchedules() {
       const res = await completeSchedule({ id: inspectingSchedule.id, data: payload }).unwrap();
       const updated = res.data;
       if (updated?.lastResult === "FAILED" && updated.pendingReportId) {
-        toast.warning(`Đã ghi nhận: KHÔNG ĐẠT — "${inspectingSchedule.title}"`, {
+        toast.warning(t("admin.maintenance.schedules.toast.recordedFailed", { title: inspectingSchedule.title }), {
           // Ô đã có phiếu mở ⇒ server gộp vào phiếu đó thay vì mở phiếu mới
-          description: `Lỗi được ghi vào phiếu sự cố RPT-${updated.pendingReportId}. Hạn kiểm tra giữ nguyên, chỉ dời khi phiếu được hoàn tất.`,
+          description: t("admin.maintenance.schedules.toast.recordedFailedPendingDesc", { id: updated.pendingReportId }),
         });
       } else {
         toast.success(
-          `Đã ghi nhận: ${updated?.lastResult === "FAILED" ? "KHÔNG ĐẠT" : "ĐẠT"} — "${inspectingSchedule.title}"`,
-          { description: `Hạn kiểm tra kế tiếp: ${formatDateTime(updated?.nextDueAt)}.` },
+          updated?.lastResult === "FAILED"
+            ? t("admin.maintenance.schedules.toast.recordedFailed", { title: inspectingSchedule.title })
+            : t("admin.maintenance.schedules.toast.recordedPassed", { title: inspectingSchedule.title }),
+          { description: t("admin.maintenance.schedules.toast.nextDueDesc", { date: formatDateTime(updated?.nextDueAt) }) },
         );
       }
       setInspectingSchedule(null);
     } catch (err: any) {
       // Giữ hộp thoại để sửa (CHECKLIST_INCOMPLETE, FAULT_BOX_NOT_IN_LOCKER, SCHEDULE_PENDING_REPORT…)
-      toast.error("Không thể lưu kết quả kiểm tra", {
-        description: err?.data?.message || err?.message || "Vui lòng kiểm tra lại thông tin.",
+      toast.error(t("admin.maintenance.schedules.toast.saveInspectionFailed"), {
+        description: err?.data?.message || err?.message || t("admin.maintenance.schedules.toast.checkInfo"),
       });
     }
   };
@@ -653,7 +660,8 @@ export function MaintenanceSchedules() {
     if (!assigningSchedule) return;
     const techId = selectedTechToAssign === "" ? null : Number(selectedTechToAssign);
     const techName = techId
-      ? [...technicians, ...droneTechnicians].find((t) => t.id === techId)?.fullName ?? `KTV #${techId}`
+      ? [...technicians, ...droneTechnicians].find((tech) => tech.id === techId)?.fullName ??
+        t("admin.maintenance.schedules.labels.techNumber", { id: techId })
       : null;
 
     try {
@@ -663,14 +671,14 @@ export function MaintenanceSchedules() {
       }).unwrap();
       toast.success(
         techId === null
-          ? "Đã hủy phân công KTV cho lịch kiểm tra này"
-          : `Đã phân công ${techName} thành công!`
+          ? t("admin.maintenance.schedules.toast.unassigned")
+          : t("admin.maintenance.schedules.toast.assigned", { name: techName })
       );
       setAssigningSchedule(null);
     } catch (err: any) {
       // Giữ hộp thoại mở để chọn lại (VD TECHNICIAN_ROLE_REQUIRED: lịch drone cần KTV drone)
-      toast.error("Không lưu được phân công KTV", {
-        description: err?.data?.message || err?.message || "Vui lòng thử lại.",
+      toast.error(t("admin.maintenance.schedules.toast.assignFailed"), {
+        description: err?.data?.message || err?.message || t("common.pleaseRetry"),
       });
     }
   };
@@ -696,17 +704,17 @@ export function MaintenanceSchedules() {
     if (!editingSchedule) return;
     const title = editForm.title.trim();
     if (!title) {
-      toast.error("Tên kế hoạch không được để trống");
+      toast.error(t("admin.maintenance.schedules.toast.planNameRequired"));
       return;
     }
     if (!Number.isInteger(editForm.intervalDays) || editForm.intervalDays < 1 || editForm.intervalDays > 365) {
-      toast.error("Chu kỳ phải từ 1 đến 365 ngày");
+      toast.error(t("admin.maintenance.schedules.toast.intervalRange"));
       return;
     }
     const lines = parseChecklistLines(editForm.checklistText);
     if (lines.some((line) => line.includes(";"))) {
-      toast.error("Checklist không hợp lệ", {
-        description: "Mỗi dòng là một mục — không dùng dấu ';' trong một mục.",
+      toast.error(t("admin.maintenance.schedules.toast.invalidChecklist"), {
+        description: t("admin.maintenance.schedules.toast.invalidChecklistDesc"),
       });
       return;
     }
@@ -716,7 +724,7 @@ export function MaintenanceSchedules() {
       (editForm.dueDate !== editOriginalDue?.date || editForm.dueTime !== editOriginalDue?.time);
     const firstDueDate = dueChanged ? vnWallClockToBackendUtc(editForm.dueDate, editForm.dueTime) : undefined;
     if (dueChanged && !firstDueDate) {
-      toast.error("Ngày giờ kiểm tra kế tiếp không hợp lệ");
+      toast.error(t("admin.maintenance.schedules.toast.invalidNextDue"));
       return;
     }
 
@@ -734,12 +742,12 @@ export function MaintenanceSchedules() {
           ...(firstDueDate ? { firstDueDate } : {}),
         },
       }).unwrap();
-      toast.success("Đã cập nhật kế hoạch kiểm tra", { description: `"${title}" đã được lưu.` });
+      toast.success(t("admin.maintenance.schedules.toast.updated"), { description: t("admin.maintenance.schedules.toast.updatedDesc", { title }) });
       setEditingSchedule(null);
     } catch (err: any) {
       // Giữ hộp thoại để sửa lại
-      toast.error("Không cập nhật được kế hoạch", {
-        description: err?.data?.message || err?.message || "Vui lòng kiểm tra lại thông tin.",
+      toast.error(t("admin.maintenance.schedules.toast.updateFailed"), {
+        description: err?.data?.message || err?.message || t("admin.maintenance.schedules.toast.checkInfo"),
       });
     }
   };
@@ -755,7 +763,7 @@ export function MaintenanceSchedules() {
       return res;
     } catch (err: any) {
       toast.error(fail.title, {
-        description: err?.data?.message || err?.message || fail.desc || "Thao tác thất bại.",
+        description: err?.data?.message || err?.message || fail.desc || t("admin.maintenance.schedules.toast.actionFailed"),
       });
       return null;
     }
@@ -767,25 +775,25 @@ export function MaintenanceSchedules() {
 
     if (diffDays < 0) {
       return {
-        text: `Quá hạn ${Math.abs(diffDays)} ngày`,
+        text: t("admin.maintenance.schedules.remaining.overdueDays", { days: Math.abs(diffDays) }),
         isOverdue: true,
         days: diffDays,
       };
     } else if (diffDays === 0) {
       return {
-        text: "Đến hạn hôm nay",
+        text: t("admin.maintenance.schedules.remaining.dueToday"),
         isOverdue: true,
         days: 0,
       };
     } else if (diffDays === 1) {
       return {
-        text: "Còn 1 ngày nữa",
+        text: t("admin.maintenance.schedules.remaining.oneDayLeft"),
         isOverdue: false,
         days: 1,
       };
     } else {
       return {
-        text: `Còn ${diffDays} ngày nữa`,
+        text: t("admin.maintenance.schedules.remaining.daysLeft", { days: diffDays }),
         isOverdue: false,
         days: diffDays,
       };
@@ -795,11 +803,11 @@ export function MaintenanceSchedules() {
   const getPriorityBadge = (p?: string | null) => {
     switch (p) {
       case "URGENT":
-        return <Badge className="bg-rose-100 text-rose-800 border-rose-300 text-[10px]">Khẩn cấp</Badge>;
+        return <Badge className="bg-rose-100 text-rose-800 border-rose-300 text-[10px]">{t("admin.maintenance.schedules.priority.urgent")}</Badge>;
       case "HIGH":
-        return <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">Ưu tiên cao</Badge>;
+        return <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">{t("admin.maintenance.schedules.priority.high")}</Badge>;
       default:
-        return <Badge variant="outline" className="text-[10px] text-muted-foreground">Bình thường</Badge>;
+        return <Badge variant="outline" className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.priority.normal")}</Badge>;
     }
   };
 
@@ -841,10 +849,10 @@ export function MaintenanceSchedules() {
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <CalendarClock className="w-4 h-4 text-emerald-600" />
-              Kế hoạch bảo trì định kỳ Kiosk & Drone (Preventive Maintenance)
+              {t("admin.maintenance.schedules.header.title")}
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
-              Thiết lập chu kỳ kiểm tra phòng ngừa, phân công KTV và giám sát chất lượng vận hành trạm
+              {t("admin.maintenance.schedules.header.description")}
             </CardDescription>
           </div>
 
@@ -860,9 +868,9 @@ export function MaintenanceSchedules() {
               }`}
             >
               <Boxes className="w-3.5 h-3.5 text-orange-500" />
-              <span>Phần Kiosk ({kioskSchedules.length})</span>
+              <span>{t("admin.maintenance.schedules.header.kioskTab", { count: kioskSchedules.length })}</span>
               <Badge variant="outline" className="text-[9px] px-1 py-0 bg-orange-50 text-orange-700 border-orange-200">
-                Chính
+                {t("admin.maintenance.schedules.header.kioskTabBadge")}
               </Badge>
             </button>
             <button
@@ -875,9 +883,9 @@ export function MaintenanceSchedules() {
               }`}
             >
               <Plane className="w-3.5 h-3.5 text-blue-500" />
-              <span>Phần Drone ({droneSchedules.length})</span>
+              <span>{t("admin.maintenance.schedules.header.droneTab", { count: droneSchedules.length })}</span>
               <Badge variant="outline" className="text-[9px] px-1 py-0 bg-blue-50 text-blue-700 border-blue-200">
-                Đội bay
+                {t("admin.maintenance.schedules.header.droneTabBadge")}
               </Badge>
             </button>
           </div>
@@ -889,30 +897,30 @@ export function MaintenanceSchedules() {
         {subTab === "kiosk" && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-muted/30 border border-border/60 text-xs">
             <div className="p-2.5 rounded-lg bg-background border border-border/60">
-              <span className="text-muted-foreground block font-medium">Tổng Kiosk có lịch</span>
+              <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.kpi.kioskTotal")}</span>
               <span className="text-lg font-bold text-foreground mt-0.5 block">{kioskStats.total}</span>
-              <span className="text-[10px] text-muted-foreground">Kế hoạch bảo trì phòng ngừa</span>
+              <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.kpi.kioskTotalHint")}</span>
             </div>
             <div className="p-2.5 rounded-lg bg-background border border-border/60">
               <span className="text-muted-foreground block font-medium flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-amber-600" /> Đến hạn hôm nay
+                <Clock className="w-3.5 h-3.5 text-amber-600" /> {t("admin.maintenance.schedules.kpi.dueToday")}
               </span>
               <span className="text-lg font-bold text-amber-600 mt-0.5 block">{kioskStats.dueCount}</span>
-              <span className="text-[10px] text-muted-foreground">Cần KTV có mặt kiểm tra</span>
+              <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.kpi.kioskDueHint")}</span>
             </div>
             <div className="p-2.5 rounded-lg bg-background border border-border/60">
               <span className="text-muted-foreground block font-medium flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Quá hạn kiểm định
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> {t("admin.maintenance.schedules.kpi.overdue")}
               </span>
               <span className="text-lg font-bold text-rose-600 mt-0.5 block">{kioskStats.overdueCount}</span>
-              <span className="text-[10px] text-muted-foreground">Cần đôn đốc xử lý gấp</span>
+              <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.kpi.kioskOverdueHint")}</span>
             </div>
             <div className="p-2.5 rounded-lg bg-background border border-border/60">
               <span className="text-muted-foreground block font-medium flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Tỷ lệ đúng hạn
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> {t("admin.maintenance.schedules.kpi.onTimeRate")}
               </span>
               <span className="text-lg font-bold text-emerald-600 mt-0.5 block">{kioskStats.complianceRate}%</span>
-              <span className="text-[10px] text-muted-foreground">Chuẩn vận hành SLA</span>
+              <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.kpi.kioskOnTimeHint")}</span>
             </div>
           </div>
         )}
@@ -922,9 +930,9 @@ export function MaintenanceSchedules() {
           <div className="p-3.5 rounded-xl bg-orange-50/40 border border-orange-200/70 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-orange-950 flex items-center gap-1.5">
-                <Plus className="w-4 h-4 text-orange-600" /> Thiết lập Kế hoạch Kiểm tra định kỳ Kiosk mới
+                <Plus className="w-4 h-4 text-orange-600" /> {t("admin.maintenance.schedules.form.kioskTitle")}
               </span>
-              <span className="text-[11px] text-orange-800">Chu kỳ khuyến nghị: 15 – 30 ngày/lần</span>
+              <span className="text-[11px] text-orange-800">{t("admin.maintenance.schedules.form.recommendedInterval")}</span>
             </div>
 
             {/* Preview thông tin địa chỉ Kiosk khi được chọn */}
@@ -935,9 +943,9 @@ export function MaintenanceSchedules() {
                   <div className="p-2.5 rounded-lg bg-emerald-50/90 border border-emerald-200 text-xs flex items-center justify-between gap-2 text-emerald-950 flex-wrap">
                     <div className="flex items-center gap-2 flex-wrap">
                       <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span className="font-semibold">Địa chỉ trạm đã chọn:</span>
+                      <span className="font-semibold">{t("admin.maintenance.schedules.form.selectedAddress")}</span>
                       <span className="text-emerald-900 font-medium">
-                        {targetLocker?.address || NO_ADDRESS}
+                        {targetLocker?.address || noAddress}
                       </span>
                       {targetLocker?.storeName && (
                         <Badge variant="outline" className="text-[10px] bg-white text-emerald-800 border-emerald-300">
@@ -946,7 +954,7 @@ export function MaintenanceSchedules() {
                       )}
                     </div>
                     <span className="text-[11px] text-emerald-700 italic">
-                      * Địa chỉ sẽ được tự động đính kèm vào phiếu phân công KTV
+                      {t("admin.maintenance.schedules.form.addressAttachNote")}
                     </span>
                   </div>
                 );
@@ -957,14 +965,14 @@ export function MaintenanceSchedules() {
               {/* Chọn Kiosk */}
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold">
-                  Thiết bị Kiosk <span className="text-rose-500">*</span>
+                  {t("admin.maintenance.schedules.form.kioskDevice")} <span className="text-rose-500">*</span>
                 </label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80 font-medium"
                   value={lockerId}
                   onChange={(e) => setLockerId(e.target.value ? Number(e.target.value) : "")}
                 >
-                  <option value="">— Chọn thiết bị Kiosk —</option>
+                  <option value="">{t("admin.maintenance.schedules.form.selectKiosk")}</option>
                   {(allLockers.length > 0 ? allLockers : lockers).map((l: any) => {
                     const id = l.id ?? l.lockerId;
                     const addr = l.address || "";
@@ -979,8 +987,8 @@ export function MaintenanceSchedules() {
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-teal-50 border border-teal-200 text-xs text-teal-900 mt-0.5">
                     <MapPin className="w-3.5 h-3.5 text-teal-600 shrink-0" />
                     <span>
-                      <strong>Địa điểm cơ sở:</strong>{" "}
-                      {lockerMap.get(Number(lockerId))?.address || NO_ADDRESS}
+                      <strong>{t("admin.maintenance.schedules.labels.baseLocation")}</strong>{" "}
+                      {lockerMap.get(Number(lockerId))?.address || noAddress}
                       {lockerMap.get(Number(lockerId))?.storeName ? ` · ${lockerMap.get(Number(lockerId))?.storeName}` : ""}
                     </span>
                   </div>
@@ -990,12 +998,12 @@ export function MaintenanceSchedules() {
               {/* Tên Kế hoạch */}
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold">
-                  Tên kế hoạch kiểm tra <span className="text-rose-500">*</span>
+                  {t("admin.maintenance.schedules.form.planName")} <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="VD: Kiểm tra định kỳ ổ khóa, cảm biến & nguồn UPS"
+                  placeholder={t("admin.maintenance.schedules.form.kioskPlanPlaceholder")}
                   className="h-9 text-xs"
                 />
               </div>
@@ -1003,17 +1011,17 @@ export function MaintenanceSchedules() {
               {/* KTV Phụ Trách */}
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold">
-                  Kỹ thuật viên phụ trách
+                  {t("admin.maintenance.schedules.form.technician")}
                 </label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={assignedTechnicianId}
                   onChange={(e) => setAssignedTechnicianId(e.target.value ? Number(e.target.value) : "")}
                 >
-                  <option value="">— Chưa phân công (Chờ nhận) —</option>
-                  {technicians.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.fullName} (KTV #{t.id})
+                  <option value="">{t("admin.maintenance.schedules.form.unassignedWaiting")}</option>
+                  {technicians.map((tech) => (
+                    <option key={tech.id} value={tech.id}>
+                      {tech.fullName} ({t("admin.maintenance.schedules.labels.techNumber", { id: tech.id })})
                     </option>
                   ))}
                 </select>
@@ -1022,7 +1030,7 @@ export function MaintenanceSchedules() {
               {/* Chu kỳ ngày */}
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold">
-                  Chu kỳ lặp lại (ngày) <span className="text-rose-500">*</span>
+                  {t("admin.maintenance.schedules.form.intervalDays")} <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   type="number"
@@ -1036,15 +1044,15 @@ export function MaintenanceSchedules() {
 
               {/* Mức độ ưu tiên */}
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] text-muted-foreground font-semibold">Mức độ ưu tiên</label>
+                <label className="text-[11px] text-muted-foreground font-semibold">{t("admin.maintenance.schedules.form.priority")}</label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as any)}
                 >
-                  <option value="NORMAL">Bình thường (Trạm tiêu chuẩn)</option>
-                  <option value="HIGH">Ưu tiên cao (Trạm lưu lượng lớn)</option>
-                  <option value="URGENT">Khẩn cấp (Trạm trọng điểm)</option>
+                  <option value="NORMAL">{t("admin.maintenance.schedules.form.priorityNormalStation")}</option>
+                  <option value="HIGH">{t("admin.maintenance.schedules.form.priorityHighStation")}</option>
+                  <option value="URGENT">{t("admin.maintenance.schedules.form.priorityUrgentStation")}</option>
                 </select>
               </div>
 
@@ -1052,12 +1060,12 @@ export function MaintenanceSchedules() {
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-emerald-600" />
-                  Vị trí đặt tủ cụ thể trong toà nhà
+                  {t("admin.maintenance.schedules.form.locationInBuilding")}
                 </label>
                 <Input
                   value={locationNote}
                   onChange={(e) => setLocationNote(e.target.value)}
-                  placeholder="VD: Tầng hầm B1, sảnh tháp A, cạnh thang máy"
+                  placeholder={t("admin.maintenance.schedules.form.locationPlaceholder")}
                   className="h-9 text-xs"
                 />
               </div>
@@ -1066,7 +1074,7 @@ export function MaintenanceSchedules() {
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-blue-600" />
-                  Ngày kiểm tra đầu tiên
+                  {t("admin.maintenance.schedules.form.firstDueDate")}
                 </label>
                 <Input
                   type="date"
@@ -1080,7 +1088,7 @@ export function MaintenanceSchedules() {
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1">
                   <Clock className="w-3 h-3 text-blue-600" />
-                  Giờ hẹn bắt đầu cụ thể
+                  {t("admin.maintenance.schedules.form.firstDueTime")}
                 </label>
                 <Input
                   type="time"
@@ -1094,18 +1102,18 @@ export function MaintenanceSchedules() {
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1">
                   <Hourglass className="w-3 h-3 text-amber-600" />
-                  Khung giờ / Ca kiểm tra
+                  {t("admin.maintenance.schedules.form.timeSlot")}
                 </label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={scheduledTimeSlot}
                   onChange={(e) => setScheduledTimeSlot(e.target.value)}
                 >
-                  <option value="08:00 - 11:30">Ca sáng (08:00 - 11:30) · Giờ thấp điểm</option>
-                  <option value="13:30 - 17:00">Ca chiều (13:30 - 17:00)</option>
-                  <option value="18:00 - 21:00">Ca tối (18:00 - 21:00)</option>
-                  <option value="08:00 - 17:00">Giờ hành chính (08:00 - 17:00)</option>
-                  <option value="Khung giờ linh hoạt">Khung giờ linh hoạt</option>
+                  <option value="08:00 - 11:30">{t("admin.maintenance.schedules.timeSlot.morningOffPeak")}</option>
+                  <option value="13:30 - 17:00">{t("admin.maintenance.schedules.timeSlot.afternoon")}</option>
+                  <option value="18:00 - 21:00">{t("admin.maintenance.schedules.timeSlot.evening")}</option>
+                  <option value="08:00 - 17:00">{t("admin.maintenance.schedules.timeSlot.office")}</option>
+                  <option value="Khung giờ linh hoạt">{t("admin.maintenance.schedules.timeSlot.flexible")}</option>
                 </select>
               </div>
             </div>
@@ -1114,16 +1122,16 @@ export function MaintenanceSchedules() {
             <div className="space-y-1.5 pt-1">
               <label className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1">
                 <CheckSquare className="w-3.5 h-3.5 text-orange-600" />
-                Bộ tiêu chí kiểm định KTV cần thực hiện ({checklistLines.length} mục · mỗi dòng một mục):
+                {t("admin.maintenance.schedules.form.checklistLabel", { count: checklistLines.length })}
               </label>
               <Textarea
                 rows={Math.min(8, Math.max(3, checklistLines.length + 1))}
                 value={checklistText}
                 onChange={(e) => setChecklistText(e.target.value)}
-                placeholder={"VD:\nKiểm tra khóa điện tử ô #1–#9\nĐo điện áp nguồn UPS"}
+                placeholder={t("admin.maintenance.schedules.form.checklistPlaceholder")}
                 className="text-xs bg-background"
               />
-              <p className="text-[10px] text-muted-foreground">Bấm mục mẫu để thêm/bỏ nhanh:</p>
+              <p className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.form.quickToggle")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {DEFAULT_KIOSK_CHECKLIST.map((item) => {
                   const isChecked = checklistLines.includes(item);
@@ -1149,12 +1157,12 @@ export function MaintenanceSchedules() {
             {/* Hướng dẫn chi tiết SOP */}
             <div className="flex flex-col gap-1">
               <label className="text-[11px] text-muted-foreground font-semibold">
-                Hướng dẫn nghiệp vụ cho KTV (Ghi chú SOP)
+                {t("admin.maintenance.schedules.form.sopLabel")}
               </label>
               <Input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="VD: Kiểm tra kỹ cảm biến quang ngăn số 4, vệ sinh đầu đọc QR bằng cồn y tế..."
+                placeholder={t("admin.maintenance.schedules.form.sopPlaceholder")}
                 className="h-9 text-xs"
               />
             </div>
@@ -1165,7 +1173,7 @@ export function MaintenanceSchedules() {
                 disabled={creating}
                 className="h-9 text-xs bg-orange-600 hover:bg-orange-700 text-white gap-1.5"
               >
-                <Plus className="w-4 h-4" /> {creating ? "Đang tạo lịch..." : "Thiết lập Kế hoạch Kiosk"}
+                <Plus className="w-4 h-4" /> {creating ? t("admin.maintenance.schedules.form.creating") : t("admin.maintenance.schedules.form.createKiosk")}
               </Button>
             </div>
           </div>
@@ -1176,73 +1184,72 @@ export function MaintenanceSchedules() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-blue-50/40 border border-blue-200/80 text-xs">
               <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
-                <span className="text-blue-900/70 block font-medium">Tổng Drone có lịch</span>
+                <span className="text-blue-900/70 block font-medium">{t("admin.maintenance.schedules.kpi.droneTotal")}</span>
                 <span className="text-lg font-bold text-blue-950 mt-0.5 block">{droneStats.total}</span>
-                <span className="text-[10px] text-muted-foreground">Kế hoạch bảo trì đội bay</span>
+                <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.kpi.droneTotalHint")}</span>
               </div>
               <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
                 <span className="text-blue-900/70 block font-medium flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-blue-600" /> Đến hạn hôm nay
+                  <Clock className="w-3.5 h-3.5 text-blue-600" /> {t("admin.maintenance.schedules.kpi.dueToday")}
                 </span>
                 <span className="text-lg font-bold text-blue-600 mt-0.5 block">{droneStats.dueCount}</span>
-                <span className="text-[10px] text-muted-foreground">Cần KTV Drone kiểm tra</span>
+                <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.kpi.droneDueHint")}</span>
               </div>
               <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
                 <span className="text-blue-900/70 block font-medium flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Quá hạn kiểm định
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> {t("admin.maintenance.schedules.kpi.overdue")}
                 </span>
                 <span className="text-lg font-bold text-rose-600 mt-0.5 block">{droneStats.overdueCount}</span>
-                <span className="text-[10px] text-muted-foreground">Cần điều phối xử lý gấp</span>
+                <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.kpi.droneOverdueHint")}</span>
               </div>
               <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
                 <span className="text-blue-900/70 block font-medium flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Tỷ lệ đúng hạn
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> {t("admin.maintenance.schedules.kpi.onTimeRate")}
                 </span>
                 <span className="text-lg font-bold text-emerald-600 mt-0.5 block">{droneStats.complianceRate}%</span>
-                <span className="text-[10px] text-muted-foreground">Chuẩn an toàn bay</span>
+                <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.kpi.droneOnTimeHint")}</span>
               </div>
             </div>
 
             <div className="flex flex-wrap items-end gap-2 p-3 rounded-lg bg-blue-50/40 border border-blue-200/80">
               <div className="w-full flex items-center justify-between gap-3 pb-1 border-b border-blue-200/80">
                 <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
-                  <Plane className="w-4 h-4 text-blue-600" /> Thiết lập Kế hoạch Kiểm tra định kỳ Drone mới
+                  <Plane className="w-4 h-4 text-blue-600" /> {t("admin.maintenance.schedules.form.droneTitle")}
                 </span>
-                <span className="text-[11px] text-blue-800">Chu kỳ khuyến nghị: 15 – 30 ngày/lần</span>
+                <span className="text-[11px] text-blue-800">{t("admin.maintenance.schedules.form.recommendedInterval")}</span>
               </div>
               <div className="w-full p-2 rounded-md bg-amber-50 border border-amber-300 text-[11px] text-amber-900 flex items-start gap-1.5 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
                 <span>
-                  Tạo lịch sẽ đưa Drone vào trạng thái <strong>Đang bảo dưỡng</strong> (ngừng nhận chuyến bay) cho tới khi
-                  lần kiểm tra đầu tiên được ghi nhận ĐẠT. Drone đang có nhiệm vụ (đã giữ / đang bay) không tạo lịch được.
+                  <Trans i18nKey="admin.maintenance.schedules.form.droneWarning" components={{ b: <strong /> }} />
                 </span>
               </div>
               <div className="flex flex-col gap-1 w-36">
-                <label className="text-xs text-blue-950 font-medium">Thiết bị Drone <span className="text-rose-500">*</span></label>
+                <label className="text-xs text-blue-950 font-medium">{t("admin.maintenance.schedules.form.droneDevice")} <span className="text-rose-500">*</span></label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={selectedDroneId}
                   onChange={(e) => setSelectedDroneId(e.target.value)}
                 >
-                  <option value="">Chọn drone</option>
+                  <option value="">{t("admin.maintenance.schedules.form.selectDrone")}</option>
                   {drones.map((d) => (
                     <option key={d.id} value={String(d.id)}>
-                      {d.code} ({d.status}) - 📍 {d.lockerName ?? `Tủ #${d.lockerId ?? "chưa gán"}`}
+                      {d.code} ({d.status}) - 📍 {d.lockerName ?? t("admin.maintenance.schedules.labels.lockerNumber", { id: d.lockerId ?? t("admin.maintenance.schedules.form.notAssigned") })}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-48">
-                <label className="text-xs text-blue-950 font-medium">Tên kế hoạch kiểm tra <span className="text-rose-500">*</span></label>
+                <label className="text-xs text-blue-950 font-medium">{t("admin.maintenance.schedules.form.planName")} <span className="text-rose-500">*</span></label>
                 <Input
                   value={droneTitle}
                   onChange={(e) => setDroneTitle(e.target.value)}
-                  placeholder="VD: Cân bằng cánh + hiệu chuẩn IMU & kiểm tra pin sạc"
+                  placeholder={t("admin.maintenance.schedules.form.dronePlanPlaceholder")}
                   className="h-9 text-xs"
                 />
               </div>
               <div className="flex flex-col gap-1 w-36">
-                <label className="text-xs text-blue-950 font-medium">Chu kỳ lặp lại (ngày) <span className="text-rose-500">*</span></label>
+                <label className="text-xs text-blue-950 font-medium">{t("admin.maintenance.schedules.form.intervalDays")} <span className="text-rose-500">*</span></label>
                 <Input
                   type="number"
                   min={1}
@@ -1253,33 +1260,33 @@ export function MaintenanceSchedules() {
                 />
               </div>
               <div className="flex flex-col gap-1 min-w-44">
-                <label className="text-xs text-blue-950 font-medium">Kỹ thuật viên phụ trách</label>
+                <label className="text-xs text-blue-950 font-medium">{t("admin.maintenance.schedules.form.technician")}</label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={droneAssignedTechnicianId}
                   onChange={(e) => setDroneAssignedTechnicianId(e.target.value ? Number(e.target.value) : "")}
                 >
-                  <option value="">Chưa phân công</option>
-                  {droneTechnicians.map((t: any) => (
-                    <option key={t.id} value={t.id}>{t.fullName || t.name || `KTV Drone #${t.id}`}</option>
+                  <option value="">{t("common.unassigned")}</option>
+                  {droneTechnicians.map((tech: any) => (
+                    <option key={tech.id} value={tech.id}>{tech.fullName || tech.name || t("admin.maintenance.schedules.labels.droneTechNumber", { id: tech.id })}</option>
                   ))}
                 </select>
               </div>
               <div className="flex flex-col gap-1 w-36">
-                <label className="text-xs text-muted-foreground font-medium">Mức độ ưu tiên</label>
+                <label className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.schedules.form.priority")}</label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={dronePriority}
                   onChange={(e) => setDronePriority(e.target.value as "NORMAL" | "HIGH" | "URGENT")}
                 >
-                  <option value="NORMAL">Bình thường</option>
-                  <option value="HIGH">Ưu tiên cao</option>
-                  <option value="URGENT">Khẩn cấp</option>
+                  <option value="NORMAL">{t("admin.maintenance.schedules.priority.normal")}</option>
+                  <option value="HIGH">{t("admin.maintenance.schedules.priority.high")}</option>
+                  <option value="URGENT">{t("admin.maintenance.schedules.priority.urgent")}</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1 w-36">
                 <label className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-blue-600" /> Ngày kiểm tra đầu tiên
+                  <Calendar className="w-3 h-3 text-blue-600" /> {t("admin.maintenance.schedules.form.firstDueDate")}
                 </label>
                 <Input
                   type="date"
@@ -1290,7 +1297,7 @@ export function MaintenanceSchedules() {
               </div>
               <div className="flex flex-col gap-1 w-32">
                 <label className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-blue-600" /> Giờ bắt đầu
+                  <Clock className="w-3 h-3 text-blue-600" /> {t("admin.maintenance.schedules.form.startTime")}
                 </label>
                 <Input
                   type="time"
@@ -1301,42 +1308,42 @@ export function MaintenanceSchedules() {
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-52">
                 <label className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-blue-600" /> Vị trí chi tiết / bãi đáp
+                  <MapPin className="w-3 h-3 text-blue-600" /> {t("admin.maintenance.schedules.form.droneLocation")}
                 </label>
                 <Input
                   value={droneLocationNote}
                   onChange={(e) => setDroneLocationNote(e.target.value)}
-                  placeholder="VD: Bãi đáp tầng 1, khu kỹ thuật"
+                  placeholder={t("admin.maintenance.schedules.form.droneLocationPlaceholder")}
                   className="h-9 text-xs"
                 />
               </div>
               <div className="flex flex-col gap-1 w-44">
-                <label className="text-xs text-muted-foreground font-medium">Khung giờ kiểm tra</label>
+                <label className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.schedules.form.droneTimeSlot")}</label>
                 <select
                   className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                   value={droneScheduledTimeSlot}
                   onChange={(e) => setDroneScheduledTimeSlot(e.target.value)}
                 >
-                  <option value="08:00 - 11:30">Ca sáng (08:00 - 11:30)</option>
-                  <option value="13:30 - 17:00">Ca chiều (13:30 - 17:00)</option>
-                  <option value="18:00 - 21:00">Ca tối (18:00 - 21:00)</option>
-                  <option value="08:00 - 17:00">Giờ hành chính (08:00 - 17:00)</option>
-                  <option value="Khung giờ linh hoạt">Khung giờ linh hoạt</option>
+                  <option value="08:00 - 11:30">{t("admin.maintenance.schedules.timeSlot.morning")}</option>
+                  <option value="13:30 - 17:00">{t("admin.maintenance.schedules.timeSlot.afternoon")}</option>
+                  <option value="18:00 - 21:00">{t("admin.maintenance.schedules.timeSlot.evening")}</option>
+                  <option value="08:00 - 17:00">{t("admin.maintenance.schedules.timeSlot.office")}</option>
+                  <option value="Khung giờ linh hoạt">{t("admin.maintenance.schedules.timeSlot.flexible")}</option>
                 </select>
               </div>
               <div className="w-full flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                   <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
-                  Bộ tiêu chí an toàn Drone ({droneChecklistLines.length} mục)
+                  {t("admin.maintenance.schedules.form.droneChecklist", { count: droneChecklistLines.length })}
                 </label>
                 <textarea
                   rows={5}
                   value={droneChecklistText}
                   onChange={(e) => setDroneChecklistText(e.target.value)}
                   className="w-full rounded-md border px-2.5 py-2 text-xs bg-background border-border/80 resize-y"
-                  placeholder="Mỗi dòng là một hạng mục: pin, cánh quạt, GPS, IMU..."
+                  placeholder={t("admin.maintenance.schedules.form.droneChecklistPlaceholder")}
                 />
-                <p className="text-[10px] text-muted-foreground">Bấm mục mẫu để thêm/bỏ nhanh:</p>
+                <p className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.form.quickToggle")}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {DEFAULT_DRONE_CHECKLIST.map((item) => {
                     const isChecked = droneChecklistLines.includes(item);
@@ -1359,17 +1366,17 @@ export function MaintenanceSchedules() {
               </div>
               <div className="w-full flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground font-medium">
-                  Hướng dẫn nghiệp vụ cho KTV Drone (SOP)
+                  {t("admin.maintenance.schedules.form.droneSop")}
                 </label>
                 <Input
                   value={droneDescription}
                   onChange={(e) => setDroneDescription(e.target.value)}
-                  placeholder="VD: Tháo pin trước khi kiểm tra cánh; ghi nhận điện áp từng cell và chỉ cho phép bay khi đạt chuẩn"
+                  placeholder={t("admin.maintenance.schedules.form.droneSopPlaceholder")}
                   className="h-9 text-xs"
                 />
               </div>
               <Button onClick={create} disabled={creating} className="ml-auto h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5">
-                <Plus className="w-4 h-4" /> {creating ? "Đang tạo lịch..." : "Thiết lập Kế hoạch Drone"}
+                <Plus className="w-4 h-4" /> {creating ? t("admin.maintenance.schedules.form.creating") : t("admin.maintenance.schedules.form.createDrone")}
               </Button>
             </div>
           </div>
@@ -1384,13 +1391,13 @@ export function MaintenanceSchedules() {
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Tìm theo tên Kiosk, mã tủ, KTV phụ trách..."
+                  placeholder={t("admin.maintenance.schedules.filter.searchPlaceholder")}
                   className="h-8 pl-8 text-xs bg-background"
                 />
               </div>
               {searchQuery && (
                 <Button variant="ghost" size="sm" onClick={() => setSearchQuery("")} className="h-8 text-xs px-2">
-                  Xóa
+                  {t("admin.maintenance.schedules.filter.clear")}
                 </Button>
               )}
             </div>
@@ -1404,7 +1411,7 @@ export function MaintenanceSchedules() {
                   onChange={(e) => setFilterTechnician(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
                   className="h-8 rounded-md border px-2 text-xs bg-background border-border/80"
                 >
-                  <option value="ALL">Tất cả KTV phụ trách</option>
+                  <option value="ALL">{t("admin.maintenance.schedules.filter.allTechnicians")}</option>
                   {technicians.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.fullName}
@@ -1420,10 +1427,10 @@ export function MaintenanceSchedules() {
                   onChange={(e) => setFilterStatus(e.target.value as any)}
                   className="h-8 rounded-md border px-2 text-xs bg-background border-border/80"
                 >
-                  <option value="ALL">Tất cả trạng thái</option>
-                  <option value="OVERDUE">🚨 Quá hạn kiểm định</option>
-                  <option value="DUE">⏰ Đến hạn hôm nay</option>
-                  <option value="UPCOMING">🟢 Sắp tới bình thường</option>
+                  <option value="ALL">{t("admin.maintenance.schedules.filter.allStatuses")}</option>
+                  <option value="OVERDUE">{t("admin.maintenance.schedules.filter.overdue")}</option>
+                  <option value="DUE">{t("admin.maintenance.schedules.filter.due")}</option>
+                  <option value="UPCOMING">{t("admin.maintenance.schedules.filter.upcoming")}</option>
                 </select>
               </div>
             </div>
@@ -1432,17 +1439,17 @@ export function MaintenanceSchedules() {
 
         {/* DANH SÁCH CÁC KẾ HOẠCH BẢO TRÌ */}
         {isLoading ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">Đang tải kế hoạch bảo trì...</p>
+          <p className="text-sm text-muted-foreground py-6 text-center">{t("admin.maintenance.schedules.list.loading")}</p>
         ) : activeSchedules.length === 0 ? (
           <div className="py-8 text-center space-y-1.5">
             <CalendarClock className="w-8 h-8 text-muted-foreground/40 mx-auto" />
             <p className="text-sm font-medium text-foreground">
               {subTab === "kiosk"
-                ? "Không tìm thấy kế hoạch kiểm tra Kiosk nào phù hợp."
-                : "Chưa có lịch kiểm tra nào cho thiết bị Drone."}
+                ? t("admin.maintenance.schedules.list.emptyKiosk")
+                : t("admin.maintenance.schedules.list.emptyDrone")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Thử xóa bộ lọc hoặc tạo mới kế hoạch định kỳ cho trạm.
+              {t("admin.maintenance.schedules.list.emptyHint")}
             </p>
           </div>
         ) : (
@@ -1467,7 +1474,7 @@ export function MaintenanceSchedules() {
 
                       {s.due && (
                         <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-xs font-semibold" variant="outline">
-                          Đến hạn
+                          {t("admin.maintenance.schedules.list.dueBadge")}
                         </Badge>
                       )}
                       {remInfo && (
@@ -1485,25 +1492,25 @@ export function MaintenanceSchedules() {
                       )}
                       {isDroneSchedule(s) ? (
                         <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-medium" variant="outline">
-                          ✈ Đội bay Drone
+                          {t("admin.maintenance.schedules.labels.droneFleet")}
                         </Badge>
                       ) : (
                         <Badge className="bg-orange-50 text-orange-700 border-orange-200 text-[10px] font-medium" variant="outline">
-                          📦 Trạm Kiosk
+                          {t("admin.maintenance.schedules.labels.kioskStation")}
                         </Badge>
                       )}
                       {s.lastResult && (
                         <Badge variant="outline" className={`text-[10px] font-semibold ${INSPECTION_STATUS_META[s.lastResult]?.cls ?? ""}`}>
-                          Lần gần nhất: {INSPECTION_STATUS_META[s.lastResult]?.label ?? s.lastResult}
+                          {t("admin.maintenance.schedules.list.lastResult", { result: INSPECTION_STATUS_META[s.lastResult]?.label ?? s.lastResult })}
                         </Badge>
                       )}
                       {s.pendingReportId != null && (
                         <Badge
                           variant="outline"
                           className="text-[10px] font-semibold bg-rose-50 text-rose-700 border-rose-200"
-                          title="Hạn kiểm tra chỉ dời khi phiếu này được hoàn tất"
+                          title={t("admin.maintenance.schedules.list.pendingReportTooltip")}
                         >
-                          Chờ phiếu RPT-{s.pendingReportId}
+                          {t("admin.maintenance.schedules.list.pendingReport", { id: s.pendingReportId })}
                         </Badge>
                       )}
                     </div>
@@ -1513,19 +1520,19 @@ export function MaintenanceSchedules() {
                       <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
                         <Boxes className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         {isDroneSchedule(s)
-                          ? (s.droneCode ? `Drone ${s.droneCode}` : "Thiết bị Drone")
+                          ? (s.droneCode ? `Drone ${s.droneCode}` : t("admin.maintenance.schedules.labels.droneDevice"))
                           : `${s.lockerName ?? `Kiosk #${s.lockerId}`}${s.lockerCode ? ` (${s.lockerCode})` : ""}`}
                       </span>
 
                       {isDroneSchedule(s) && (s.lockerName || s.lockerCode || s.address) && (
                         <span
                           className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-900 bg-indigo-50 px-2.5 py-1 rounded border border-indigo-300"
-                          title="Bãi đáp được lấy từ tủ liên kết của Drone"
+                          title={t("admin.maintenance.schedules.list.landingPadTooltip")}
                         >
                           <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                          <span className="text-indigo-700">Bãi đáp:</span>
+                          <span className="text-indigo-700">{t("admin.maintenance.schedules.list.landingPad")}</span>
                           <strong>
-                            {s.lockerName ?? `Tủ #${s.lockerId}`}
+                            {s.lockerName ?? t("admin.maintenance.schedules.labels.lockerNumber", { id: s.lockerId })}
                             {s.lockerCode ? ` (${s.lockerCode})` : ""}
                           </strong>
                         </span>
@@ -1535,11 +1542,11 @@ export function MaintenanceSchedules() {
                       {(!isDroneSchedule(s) || Boolean(s.address)) && (
                         <span
                           className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-900 bg-teal-50 px-2.5 py-1 rounded border border-teal-300 shadow-sm"
-                          title={`Địa điểm cơ sở: ${s.address || NO_ADDRESS}`}
+                          title={t("admin.maintenance.schedules.list.baseLocationTooltip", { address: s.address || noAddress })}
                         >
                           <MapPin className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                          <span className="text-teal-700 font-medium">Địa điểm:</span>
-                          <strong className={s.address ? "" : "italic font-medium text-muted-foreground"}>{s.address || NO_ADDRESS}</strong>
+                          <span className="text-teal-700 font-medium">{t("admin.maintenance.schedules.list.location")}</span>
+                          <strong className={s.address ? "" : "italic font-medium text-muted-foreground"}>{s.address || noAddress}</strong>
                         </span>
                       )}
 
@@ -1553,7 +1560,7 @@ export function MaintenanceSchedules() {
                       {s.locationNote && (
                         <span className="text-xs font-medium text-indigo-900 bg-indigo-50 px-2.5 py-1 rounded border border-indigo-200 flex items-center gap-1.5" title={s.locationNote}>
                           <Navigation className="w-3 h-3 text-indigo-600 shrink-0" />
-                          <span className="text-indigo-700">Vị trí:</span>
+                          <span className="text-indigo-700">{t("admin.maintenance.schedules.list.position")}</span>
                           <strong>{s.locationNote}</strong>
                         </span>
                       )}
@@ -1563,7 +1570,7 @@ export function MaintenanceSchedules() {
                     <div className="text-xs text-muted-foreground mt-1.5 flex items-center gap-2 flex-wrap">
                       <span className="inline-flex items-center gap-1 font-medium text-blue-950 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-200">
                         <Clock className="w-3 h-3 text-blue-600 shrink-0" />
-                        <span>Hạn kiểm tra:</span>
+                        <span>{t("admin.maintenance.schedules.list.dueAt")}</span>
                         <span className="font-mono font-bold text-foreground">
                           {formatDateTime(s.nextDueAt)}
                         </span>
@@ -1571,36 +1578,38 @@ export function MaintenanceSchedules() {
 
                       {s.scheduledTimeSlot && (
                         <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
-                          <span>⏱ Ca:</span>
-                          <strong>{s.scheduledTimeSlot}</strong>
+                          <span>{t("admin.maintenance.schedules.list.shift")}</span>
+                          <strong>{displayTimeSlot(s.scheduledTimeSlot)}</strong>
                         </span>
                       )}
 
                       <span>·</span>
-                      <span>Chu kỳ: <strong>{s.intervalDays}</strong> ngày</span>
+                      <span>
+                        <Trans i18nKey="admin.maintenance.schedules.list.interval" values={{ days: s.intervalDays }} components={{ b: <strong /> }} />
+                      </span>
 
                       <span>·</span>
                       <span className="inline-flex items-center gap-1.5">
-                        KTV phụ trách:{" "}
+                        {t("admin.maintenance.schedules.list.technician")}{" "}
                         {s.assignedTechnicianId ? (
                           <button
                             type="button"
                             onClick={() => handleOpenAssignModal(s)}
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 cursor-pointer transition-colors"
-                            title="Bấm để đổi KTV phụ trách"
+                            title={t("admin.maintenance.schedules.list.changeTechTooltip")}
                           >
                             <UserCheck className="w-3 h-3 text-blue-600" />
-                            {s.assignedTechnicianName ?? `KTV #${s.assignedTechnicianId}`}
+                            {s.assignedTechnicianName ?? t("admin.maintenance.schedules.labels.techNumber", { id: s.assignedTechnicianId })}
                           </button>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleOpenAssignModal(s)}
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 cursor-pointer transition-colors animate-pulse"
-                            title="Chưa gán kỹ thuật viên — Bấm để gán ngay"
+                            title={t("admin.maintenance.schedules.list.unassignedTooltip")}
                           >
                             <UserPlus className="w-3 h-3 text-amber-600" />
-                            Chưa gán (Gán ngay)
+                            {t("admin.maintenance.schedules.list.assignNow")}
                           </button>
                         )}
                       </span>
@@ -1609,7 +1618,7 @@ export function MaintenanceSchedules() {
                         <>
                           <span>·</span>
                           <span className="text-[11px]">
-                            Lần trước: <span className="font-medium text-muted-foreground">Chưa kiểm tra</span>
+                            {t("admin.maintenance.schedules.list.lastDone")} <span className="font-medium text-muted-foreground">{t("admin.maintenance.schedules.list.notInspected")}</span>
                           </span>
                         </>
                       )}
@@ -1617,7 +1626,7 @@ export function MaintenanceSchedules() {
                         <>
                           <span>·</span>
                           <span className="text-[11px]">
-                            Tạo lúc: <span className="font-mono">{formatDateTime(s.createdAt)}</span>
+                            {t("common.createdAtTime")}: <span className="font-mono">{formatDateTime(s.createdAt)}</span>
                           </span>
                         </>
                       )}
@@ -1625,7 +1634,7 @@ export function MaintenanceSchedules() {
                         <>
                           <span>·</span>
                           <span className="text-[11px]">
-                            Lần trước: <span className="font-mono">{formatDateTime(s.lastDoneAt)}</span>
+                            {t("admin.maintenance.schedules.list.lastDone")} <span className="font-mono">{formatDateTime(s.lastDoneAt)}</span>
                           </span>
                         </>
                       )}
@@ -1642,10 +1651,10 @@ export function MaintenanceSchedules() {
                           : "border-border text-foreground hover:bg-muted/80"
                       }`}
                       onClick={() => handleOpenAssignModal(s)}
-                      title={s.assignedTechnicianId ? "Thay đổi KTV phụ trách" : "Gán KTV phụ trách cho lịch này"}
+                      title={s.assignedTechnicianId ? t("admin.maintenance.schedules.list.changeTechTitle") : t("admin.maintenance.schedules.list.assignTechTitle")}
                     >
                       <UserCheck className="w-3.5 h-3.5 mr-0.5 text-amber-600" />
-                      {s.assignedTechnicianId ? "Đổi KTV" : "Gán KTV"}
+                      {s.assignedTechnicianId ? t("admin.maintenance.schedules.labels.changeTech") : t("admin.maintenance.schedules.labels.assignTech")}
                     </Button>
 
                     <Button
@@ -1654,7 +1663,7 @@ export function MaintenanceSchedules() {
                       className="border-border text-foreground hover:bg-muted/80 h-8 text-xs gap-1 cursor-pointer"
                       onClick={() => setSelectedSchedule(s)}
                     >
-                      <Info className="w-3.5 h-3.5 mr-0.5 text-blue-600" /> Chi tiết & Lịch sử
+                      <Info className="w-3.5 h-3.5 mr-0.5 text-blue-600" /> {t("admin.maintenance.schedules.list.detailHistory")}
                     </Button>
 
                     <Button
@@ -1665,11 +1674,11 @@ export function MaintenanceSchedules() {
                       disabled={s.pendingReportId != null}
                       title={
                         s.pendingReportId != null
-                          ? `Lần kiểm tra trước chưa đạt — hoàn tất phiếu RPT-${s.pendingReportId} trước`
+                          ? t("admin.maintenance.schedules.list.pendingInspectTooltip", { id: s.pendingReportId })
                           : undefined
                       }
                     >
-                      <Check className="w-3.5 h-3.5 mr-1" /> Ghi nhận kiểm tra
+                      <Check className="w-3.5 h-3.5 mr-1" /> {t("admin.maintenance.schedules.list.recordInspection")}
                     </Button>
 
                     <Button
@@ -1677,7 +1686,7 @@ export function MaintenanceSchedules() {
                       variant="outline"
                       className="h-8 text-xs border-border text-foreground hover:bg-muted/80 cursor-pointer"
                       onClick={() => openEditModal(s)}
-                      title="Sửa kế hoạch kiểm tra"
+                      title={t("admin.maintenance.schedules.list.editTooltip")}
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
@@ -1687,7 +1696,7 @@ export function MaintenanceSchedules() {
                       variant="outline"
                       className="h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 cursor-pointer"
                       onClick={() => setDeleteConfirm({ id: s.id, title: s.title })}
-                      title="Xóa kế hoạch kiểm tra"
+                      title={t("admin.maintenance.schedules.list.deleteTooltip")}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -1707,7 +1716,7 @@ export function MaintenanceSchedules() {
               <DialogHeader>
                 <div className="flex items-center gap-2 mb-1">
                   <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
-                    Biên bản nghiệm thu
+                    {t("admin.maintenance.schedules.inspect.badge")}
                   </Badge>
                   {(inspectingSchedule.lockerName || inspectingSchedule.droneCode) && (
                     <Badge variant="outline" className="text-xs">
@@ -1718,10 +1727,10 @@ export function MaintenanceSchedules() {
                   )}
                 </div>
                 <DialogTitle className="text-base font-bold text-foreground">
-                  Ghi nhận kết quả kiểm tra định kỳ
+                  {t("admin.maintenance.schedules.inspect.title")}
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  {inspectingSchedule.title} · Chu kỳ {inspectingSchedule.intervalDays} ngày
+                  {t("admin.maintenance.schedules.inspect.description", { title: inspectingSchedule.title, days: inspectingSchedule.intervalDays })}
                 </DialogDescription>
               </DialogHeader>
 
@@ -1735,7 +1744,7 @@ export function MaintenanceSchedules() {
                       ) : (
                         <Boxes className="w-3.5 h-3.5 text-emerald-600" />
                       )}
-                      {isDroneSchedule(inspectingSchedule) ? "Thiết bị Drone kiểm tra:" : "Thiết bị Kiosk kiểm tra:"}
+                      {isDroneSchedule(inspectingSchedule) ? t("admin.maintenance.schedules.inspect.droneDevice") : t("admin.maintenance.schedules.inspect.kioskDevice")}
                     </span>
                     <span className="font-semibold text-foreground text-right">
                       {isDroneSchedule(inspectingSchedule)
@@ -1747,10 +1756,10 @@ export function MaintenanceSchedules() {
                   {!isDroneSchedule(inspectingSchedule) && <div className="flex items-center justify-between">
                     <span className="text-muted-foreground font-medium flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-teal-600" />
-                      Địa điểm cơ sở:
+                      {t("admin.maintenance.schedules.labels.baseLocation")}
                     </span>
                     <span className="font-bold text-teal-900 text-right">
-                      {inspectingSchedule.address || NO_ADDRESS}
+                      {inspectingSchedule.address || noAddress}
                     </span>
                   </div>}
 
@@ -1759,10 +1768,10 @@ export function MaintenanceSchedules() {
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground font-medium flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5 text-indigo-600" />
-                          Vị trí Drone:
+                          {t("admin.maintenance.schedules.inspect.dronePosition")}
                         </span>
                         <span className="font-bold text-indigo-900 text-right">
-                          {inspectingSchedule.lockerName ?? `Tủ #${inspectingSchedule.lockerId}`}
+                          {inspectingSchedule.lockerName ?? t("admin.maintenance.schedules.labels.lockerNumber", { id: inspectingSchedule.lockerId })}
                           {inspectingSchedule.lockerCode ? ` (${inspectingSchedule.lockerCode})` : ""}
                           {inspectingSchedule.address ? ` · ${inspectingSchedule.address}` : ""}
                         </span>
@@ -1773,7 +1782,7 @@ export function MaintenanceSchedules() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground font-medium flex items-center gap-1">
                         <Navigation className="w-3.5 h-3.5 text-indigo-600" />
-                        Vị trí trong toà nhà:
+                        {t("admin.maintenance.schedules.inspect.positionInBuilding")}
                       </span>
                       <span className="font-semibold text-foreground text-right">
                         {inspectingSchedule.locationNote}
@@ -1785,10 +1794,10 @@ export function MaintenanceSchedules() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground font-medium flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-amber-600" />
-                        Khung giờ / Ca kiểm tra:
+                        {t("admin.maintenance.schedules.inspect.timeSlot")}
                       </span>
                       <span className="font-semibold text-amber-900 text-right">
-                        {inspectingSchedule.scheduledTimeSlot}
+                        {displayTimeSlot(inspectingSchedule.scheduledTimeSlot)}
                       </span>
                     </div>
                   )}
@@ -1796,7 +1805,7 @@ export function MaintenanceSchedules() {
                   <div className="flex items-center justify-between pt-1 border-t border-border/60 text-[11px]">
                     <span className="text-muted-foreground flex items-center gap-1">
                       <Clock className="w-3 h-3 text-blue-600" />
-                      Mốc thời gian nghiệm thu:
+                      {t("admin.maintenance.schedules.inspect.inspectedAt")}
                     </span>
                     <span className="font-mono font-bold text-foreground">
                       {formatDateTime(new Date())}
@@ -1806,16 +1815,16 @@ export function MaintenanceSchedules() {
 
                 {/* Chọn KTV thực hiện */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-foreground">Kỹ thuật viên thực hiện ca kiểm tra</label>
+                  <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.technician")}</label>
                   <select
                     className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                     value={inspectTechId}
                     onChange={(e) => setInspectTechId(e.target.value ? Number(e.target.value) : "")}
                   >
-                    <option value="">— Chọn KTV thực hiện ca trực —</option>
-                    {(isDroneSchedule(inspectingSchedule) ? droneTechnicians : technicians).map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.fullName} (KTV #{t.id})
+                    <option value="">{t("admin.maintenance.schedules.inspect.selectTech")}</option>
+                    {(isDroneSchedule(inspectingSchedule) ? droneTechnicians : technicians).map((tech) => (
+                      <option key={tech.id} value={tech.id}>
+                        {tech.fullName} ({t("admin.maintenance.schedules.labels.techNumber", { id: tech.id })})
                       </option>
                     ))}
                   </select>
@@ -1826,10 +1835,13 @@ export function MaintenanceSchedules() {
                   <div className="space-y-1.5 p-3 rounded-lg bg-muted/30 border border-border/60">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span className="font-semibold text-foreground">
-                        Checklist ({inspectChecklist.length - inspectUnanswered}/{inspectChecklist.length} mục đã chấm)
+                        {t("admin.maintenance.schedules.inspect.checklistProgress", {
+                          done: inspectChecklist.length - inspectUnanswered,
+                          total: inspectChecklist.length,
+                        })}
                       </span>
                       <span className="text-[10px] text-muted-foreground">
-                        Một mục Không đạt ⇒ cả lần kiểm tra Không đạt
+                        {t("admin.maintenance.schedules.inspect.oneFailRule")}
                       </span>
                     </div>
                     <div className="divide-y divide-border/50">
@@ -1867,7 +1879,7 @@ export function MaintenanceSchedules() {
                             <Input
                               value={current?.note ?? ""}
                               onChange={(e) => setInspectItem(label, { note: e.target.value })}
-                              placeholder="Ghi chú cho mục này (tuỳ chọn)"
+                              placeholder={t("admin.maintenance.schedules.inspect.itemNotePlaceholder")}
                               className="h-7 text-[11px] bg-background"
                             />
                           </div>
@@ -1875,22 +1887,22 @@ export function MaintenanceSchedules() {
                       })}
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t border-border/60">
-                      <span className="font-semibold text-foreground">Kết luận:</span>
+                      <span className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.conclusion")}</span>
                       {inspectOutcome ? (
                         <Badge variant="outline" className={`text-xs font-semibold ${INSPECTION_STATUS_META[inspectOutcome].cls}`}>
                           {INSPECTION_STATUS_META[inspectOutcome].label}
                         </Badge>
                       ) : (
                         <span className="text-[11px] text-muted-foreground">
-                          Còn {inspectUnanswered} mục chưa chấm
+                          {t("admin.maintenance.schedules.inspect.unansweredLeft", { count: inspectUnanswered })}
                         </span>
                       )}
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1">
-                    <label className="font-semibold text-foreground">Kết quả kiểm tra</label>
-                    <p className="text-[11px] text-muted-foreground">Lịch này chưa có checklist — chọn kết luận chung.</p>
+                    <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.result")}</label>
+                    <p className="text-[11px] text-muted-foreground">{t("admin.maintenance.schedules.inspect.noChecklist")}</p>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
@@ -1901,7 +1913,7 @@ export function MaintenanceSchedules() {
                             : "bg-background text-muted-foreground hover:border-border"
                         }`}
                       >
-                        ✓ Đạt
+                        {t("admin.maintenance.schedules.inspect.pass")}
                       </button>
                       <button
                         type="button"
@@ -1912,7 +1924,7 @@ export function MaintenanceSchedules() {
                             : "bg-background text-muted-foreground hover:border-border"
                         }`}
                       >
-                        ✗ Không đạt
+                        {t("admin.maintenance.schedules.inspect.fail")}
                       </button>
                     </div>
                   </div>
@@ -1920,19 +1932,19 @@ export function MaintenanceSchedules() {
 
                 {/* Ghi chú biên bản */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-foreground">Ghi chú biên bản kiểm tra & hiện trường</label>
+                  <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.note")}</label>
                   <textarea
                     rows={3}
                     value={inspectNote}
                     onChange={(e) => setInspectNote(e.target.value)}
-                    placeholder="VD: Đã lau chùi sạch sẽ bề mặt cảm ứng, thử nghiệm đóng mở 16 ô đều nhạy, kiểm tra điện áp UPS đạt 12.8V..."
+                    placeholder={t("admin.maintenance.schedules.inspect.notePlaceholder")}
                     className="w-full rounded-md border p-2 text-xs bg-background border-border/80 focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
                 {/* Ảnh chụp hiện trường */}
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-foreground">URL Ảnh minh chứng (Mỗi dòng 1 đường dẫn link ảnh)</label>
+                  <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.photoUrls")}</label>
                   <textarea
                     rows={2}
                     value={inspectPhotos}
@@ -1948,23 +1960,27 @@ export function MaintenanceSchedules() {
                   <div className="p-3 rounded-lg bg-rose-50/70 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-900 space-y-2">
                     <p className="text-rose-900 dark:text-rose-200 font-semibold">
                       {isDroneSchedule(inspectingSchedule)
-                        ? "Không đạt ⇒ Drone chuyển sang trạng thái Lỗi và hệ thống mở phiếu sự cố Drone (nếu Drone chưa có phiếu đang mở). Hạn kiểm tra kế tiếp vẫn được dời theo chu kỳ."
-                        : "Không đạt ⇒ hệ thống tự mở phiếu sự cố cho tủ. Hạn kiểm tra kế tiếp chỉ dời khi phiếu được hoàn tất."}
+                        ? t("admin.maintenance.schedules.inspect.droneFailNotice")
+                        : t("admin.maintenance.schedules.inspect.kioskFailNotice")}
                     </p>
                     <p className="text-[11px] text-rose-700 dark:text-rose-300">
                       {isDroneSchedule(inspectingSchedule)
-                        ? "Phiếu Drone được gửi tới KTV đang phụ trách Drone này; Drone chưa có KTV phụ trách thì báo chung cho đội KTV Drone."
+                        ? t("admin.maintenance.schedules.inspect.droneRouting")
                         : inspectTechId
-                          ? "Phiếu được giao cho KTV thực hiện đã chọn ở trên."
+                          ? t("admin.maintenance.schedules.inspect.routeSelectedTech")
                           : inspectingSchedule.assignedTechnicianId
-                            ? `Chưa chọn KTV thực hiện — phiếu giao cho KTV phụ trách lịch (${inspectingSchedule.assignedTechnicianName ?? `KTV #${inspectingSchedule.assignedTechnicianId}`}).`
-                            : "Chưa chọn KTV thực hiện và lịch chưa có KTV phụ trách — phiếu được định tuyến như phiếu thường (KTV phụ trách tủ hoặc báo chung cho các KTV tủ)."}
+                            ? t("admin.maintenance.schedules.inspect.routeScheduleTech", {
+                                name:
+                                  inspectingSchedule.assignedTechnicianName ??
+                                  t("admin.maintenance.schedules.labels.techNumber", { id: inspectingSchedule.assignedTechnicianId }),
+                              })
+                            : t("admin.maintenance.schedules.inspect.routeDefault")}
                     </p>
                     {inspectLockerId != null && (
                       <div className="flex flex-col gap-2 pt-1">
                         <div className="flex items-center justify-between">
                           <label className="text-[11px] font-semibold text-rose-900 dark:text-rose-200">
-                            Chọn ô gặp sự cố tại Kiosk: (Tuỳ chọn)
+                            {t("admin.maintenance.schedules.inspect.selectFaultBox")}
                           </label>
                           {faultBoxId !== "" && (
                             <button
@@ -1972,7 +1988,7 @@ export function MaintenanceSchedules() {
                               onClick={() => setFaultBoxId("")}
                               className="text-[10px] text-muted-foreground hover:text-foreground underline cursor-pointer"
                             >
-                              Bỏ chọn ô (báo cả tủ)
+                              {t("admin.maintenance.schedules.inspect.clearFaultBox")}
                             </button>
                           )}
                         </div>
@@ -1988,8 +2004,8 @@ export function MaintenanceSchedules() {
                                 : "bg-muted/30 border-border hover:bg-muted/60 text-muted-foreground"
                             }`}
                           >
-                            <span className="text-[11px] font-bold">Cả trạm Kiosk</span>
-                            <span className="text-[9px] mt-1 text-muted-foreground">Không gán ô riêng</span>
+                            <span className="text-[11px] font-bold">{t("admin.maintenance.schedules.inspect.wholeKiosk")}</span>
+                            <span className="text-[9px] mt-1 text-muted-foreground">{t("admin.maintenance.schedules.inspect.noSpecificBox")}</span>
                           </button>
 
                           {inspectCells.map((c) => {
@@ -2034,10 +2050,10 @@ export function MaintenanceSchedules() {
                                   <span className="truncate text-muted-foreground">{statusLabel}</span>
                                   {doorOpen ? (
                                     <span className="text-amber-700 font-bold flex items-center gap-0.5">
-                                      <DoorOpen className="w-2.5 h-2.5 animate-pulse" /> Mở
+                                      <DoorOpen className="w-2.5 h-2.5 animate-pulse" /> {t("admin.maintenance.schedules.inspect.doorOpen")}
                                     </span>
                                   ) : (
-                                    <span className="text-slate-400">Đóng</span>
+                                    <span className="text-slate-400">{t("admin.maintenance.schedules.inspect.doorClosed")}</span>
                                   )}
                                 </div>
                               </button>
@@ -2054,18 +2070,22 @@ export function MaintenanceSchedules() {
                               <div className="p-2 rounded-md bg-rose-50/90 border border-rose-200 text-rose-900 dark:bg-rose-950/60 dark:border-rose-800 dark:text-rose-200 text-[11px] space-y-0.5">
                                 <p className="font-semibold flex items-center gap-1">
                                   <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                                  Đã chọn: Ô #{selectedCell.boxNumber} ({getCellTypeLabel(selectedCell)}) · {getCellStatusLabel(selectedCell)}
-                                  {isDoorOpen(selectedCell) && " · Cửa đang mở"}
+                                  {t("admin.maintenance.schedules.inspect.selectedBox", {
+                                    number: selectedCell.boxNumber,
+                                    type: getCellTypeLabel(selectedCell),
+                                    status: getCellStatusLabel(selectedCell),
+                                  })}
+                                  {isDoorOpen(selectedCell) && ` · ${t("admin.maintenance.schedules.inspect.doorOpenNow")}`}
                                 </p>
                                 <p className="text-[10px] text-rose-700 dark:text-rose-300">
-                                  Hệ thống sẽ chuyển ô #{selectedCell.boxNumber} sang trạng thái HỎNG và mở phiếu sự cố gán trực tiếp với ô này.
+                                  {t("admin.maintenance.schedules.inspect.selectedBoxNotice", { number: selectedCell.boxNumber })}
                                 </p>
                               </div>
                             );
                           })()
                         ) : (
                           <p className="text-[10px] text-rose-700 dark:text-rose-300">
-                            Chọn ô ⇒ ô chuyển sang Hỏng; ô đã có phiếu đang mở thì kết quả được gộp vào phiếu đó. Không chọn ô ⇒ sự cố cấp toàn bộ tủ.
+                            {t("admin.maintenance.schedules.inspect.boxHint")}
                           </p>
                         )}
                       </div>
@@ -2074,7 +2094,7 @@ export function MaintenanceSchedules() {
                     <Input
                       value={faultReason}
                       onChange={(e) => setFaultReason(e.target.value)}
-                      placeholder="Mô tả lỗi cần khắc phục (tuỳ chọn — mặc định liệt kê các mục không đạt)"
+                      placeholder={t("admin.maintenance.schedules.inspect.faultReasonPlaceholder")}
                       className="h-8 text-xs bg-background"
                     />
                   </div>
@@ -2083,7 +2103,7 @@ export function MaintenanceSchedules() {
 
               <DialogFooter className="gap-2 sm:gap-0 mt-3 pt-3 border-t border-border">
                 <Button variant="outline" size="sm" onClick={() => setInspectingSchedule(null)} className="text-xs">
-                  Hủy bỏ
+                  {t("common.cancelAction")}
                 </Button>
                 <Button
                   size="sm"
@@ -2092,7 +2112,7 @@ export function MaintenanceSchedules() {
                   className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  {completing ? "Đang lưu..." : "Lưu biên bản kiểm tra"}
+                  {completing ? t("common.saving") : t("admin.maintenance.schedules.inspect.save")}
                 </Button>
               </DialogFooter>
             </>
@@ -2109,17 +2129,17 @@ export function MaintenanceSchedules() {
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   {selectedSchedule.due && (
                     <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-xs font-semibold" variant="outline">
-                      Đến hạn kiểm tra
+                      {t("admin.maintenance.schedules.detail.dueBadge")}
                     </Badge>
                   )}
                   {selectedSchedule.priority && getPriorityBadge(selectedSchedule.priority)}
                   {isDroneSchedule(selectedSchedule) ? (
                     <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-semibold" variant="outline">
-                      ✈ Đội bay Drone
+                      {t("admin.maintenance.schedules.labels.droneFleet")}
                     </Badge>
                   ) : (
                     <Badge className="bg-orange-50 text-orange-700 border-orange-200 text-xs font-semibold" variant="outline">
-                      📦 Trạm Kiosk
+                      {t("admin.maintenance.schedules.labels.kioskStation")}
                     </Badge>
                   )}
                   {getRemainingDaysInfo(selectedSchedule.nextDueAt) && (
@@ -2139,7 +2159,7 @@ export function MaintenanceSchedules() {
                   {selectedSchedule.title}
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Hồ sơ kế hoạch bảo trì phòng ngừa và nhật ký kiểm định thực tế của Kỹ thuật viên
+                  {t("admin.maintenance.schedules.detail.description")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -2147,27 +2167,27 @@ export function MaintenanceSchedules() {
                 {/* 4 THÔNG SỐ CỐT LÕI CỦA KẾ HOẠCH */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-muted/40 border border-border/70 text-xs">
                   <div>
-                    <span className="text-muted-foreground block font-medium">Thiết bị</span>
+                    <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.detail.device")}</span>
                     <span className="font-bold text-foreground mt-0.5 block truncate">
                       {isDroneSchedule(selectedSchedule)
-                        ? (selectedSchedule.droneCode ?? "Thiết bị Drone")
+                        ? (selectedSchedule.droneCode ?? t("admin.maintenance.schedules.labels.droneDevice"))
                         : (selectedSchedule.lockerName ?? `Kiosk #${selectedSchedule.lockerId}`)}
                     </span>
                     <span className="text-[10px] text-muted-foreground font-mono">
                       {isDroneSchedule(selectedSchedule)
-                        ? "Mã: Drone Fleet"
-                        : (selectedSchedule.lockerCode ? `Mã: ${selectedSchedule.lockerCode}` : "")}
+                        ? t("admin.maintenance.schedules.detail.codeDroneFleet")
+                        : (selectedSchedule.lockerCode ? t("admin.maintenance.schedules.detail.code", { code: selectedSchedule.lockerCode }) : "")}
                     </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block font-medium">Chu kỳ định kỳ</span>
+                    <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.detail.interval")}</span>
                     <span className="font-bold text-foreground mt-0.5 block">
-                      Mỗi {selectedSchedule.intervalDays} ngày
+                      {t("admin.maintenance.schedules.labels.everyDays", { days: selectedSchedule.intervalDays })}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">Lặp lại tự động</span>
+                    <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.detail.autoRepeat")}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block font-medium">Hạn kiểm tra tới</span>
+                    <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.detail.nextDue")}</span>
                     <span className="font-bold text-foreground mt-0.5 block font-mono text-[11px]">
                       {formatDateTime(selectedSchedule.nextDueAt)}
                     </span>
@@ -2177,7 +2197,7 @@ export function MaintenanceSchedules() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground block font-medium">KTV Phụ trách</span>
+                      <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.detail.technician")}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -2187,14 +2207,17 @@ export function MaintenanceSchedules() {
                         }}
                         className="text-[10px] text-blue-600 hover:underline cursor-pointer font-medium"
                       >
-                        {selectedSchedule.assignedTechnicianId ? "Đổi KTV" : "+ Gán KTV"}
+                        {selectedSchedule.assignedTechnicianId ? t("admin.maintenance.schedules.labels.changeTech") : `+ ${t("admin.maintenance.schedules.labels.assignTech")}`}
                       </button>
                     </div>
                     <span className="font-bold text-foreground mt-0.5 block truncate">
-                      {selectedSchedule.assignedTechnicianName ?? (selectedSchedule.assignedTechnicianId ? `KTV #${selectedSchedule.assignedTechnicianId}` : "Chưa phân công")}
+                      {selectedSchedule.assignedTechnicianName ??
+                        (selectedSchedule.assignedTechnicianId
+                          ? t("admin.maintenance.schedules.labels.techNumber", { id: selectedSchedule.assignedTechnicianId })
+                          : t("common.unassigned"))}
                     </span>
                     <span className={`text-[10px] font-medium ${selectedSchedule.assignedTechnicianId ? "text-emerald-600" : "text-amber-600"}`}>
-                      {selectedSchedule.assignedTechnicianId ? "Chính thức" : "Cần phân công"}
+                      {selectedSchedule.assignedTechnicianId ? t("admin.maintenance.schedules.detail.official") : t("admin.maintenance.schedules.detail.needsAssignment")}
                     </span>
                   </div>
                 </div>
@@ -2204,7 +2227,7 @@ export function MaintenanceSchedules() {
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="font-bold text-foreground flex items-center gap-1.5 text-xs">
                       <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-                      Địa điểm & Vị trí đặt trạm kiểm tra
+                      {t("admin.maintenance.schedules.detail.locationTitle")}
                     </span>
                     {(selectedSchedule.address || lockerMap.get(selectedSchedule.lockerId)?.address) && (
                       <a
@@ -2215,7 +2238,7 @@ export function MaintenanceSchedules() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline cursor-pointer"
                       >
-                        <ExternalLink className="w-3 h-3" /> Chỉ đường Google Maps
+                        <ExternalLink className="w-3 h-3" /> {t("admin.maintenance.schedules.detail.googleMaps")}
                       </a>
                     )}
                   </div>
@@ -2224,14 +2247,14 @@ export function MaintenanceSchedules() {
                     <div className="p-2.5 rounded-lg bg-background border border-border/60 space-y-1">
                       <span className="text-muted-foreground text-[11px] font-medium flex items-center gap-1">
                         <Building2 className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                        {isDroneSchedule(selectedSchedule) ? "Tủ liên kết / Bãi đáp Drone:" : "Địa chỉ Kiosk / Chi nhánh:"}
+                        {isDroneSchedule(selectedSchedule) ? t("admin.maintenance.schedules.detail.droneLinkedLocker") : t("admin.maintenance.schedules.detail.kioskAddress")}
                       </span>
                       <span className="font-semibold text-foreground block text-xs">
-                        {selectedSchedule.address || lockerMap.get(selectedSchedule.lockerId)?.address || NO_ADDRESS}
+                        {selectedSchedule.address || lockerMap.get(selectedSchedule.lockerId)?.address || noAddress}
                       </span>
                       {lockerMap.get(selectedSchedule.lockerId)?.storeName && (
                         <span className="text-[11px] text-muted-foreground block">
-                          Toà nhà / Cửa hàng: <strong>{lockerMap.get(selectedSchedule.lockerId)?.storeName}</strong>
+                          {t("admin.maintenance.schedules.detail.buildingStore")} <strong>{lockerMap.get(selectedSchedule.lockerId)?.storeName}</strong>
                         </span>
                       )}
                     </div>
@@ -2239,20 +2262,20 @@ export function MaintenanceSchedules() {
                     <div className="p-2.5 rounded-lg bg-background border border-border/60 space-y-1">
                       <span className="text-muted-foreground text-[11px] font-medium flex items-center gap-1">
                         <Navigation className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                        {isDroneSchedule(selectedSchedule) ? "Vị trí bãi đáp lấy từ tủ liên kết:" : "Vị trí đặt tủ trong toà nhà:"}
+                        {isDroneSchedule(selectedSchedule) ? t("admin.maintenance.schedules.detail.droneLandingFromLocker") : t("admin.maintenance.schedules.detail.lockerPositionInBuilding")}
                       </span>
                       <span className="font-semibold text-foreground block text-xs">
                         {isDroneSchedule(selectedSchedule)
                           ? (selectedSchedule.lockerName
                             ? `${selectedSchedule.lockerName}${selectedSchedule.lockerCode ? ` (${selectedSchedule.lockerCode})` : ""}`
-                            : "Chưa xác định tủ liên kết")
-                          : (selectedSchedule.locationNote || "Chưa có ghi chú vị trí (VD: Sảnh chính, tầng hầm)")}
+                            : t("admin.maintenance.schedules.detail.noLinkedLocker"))
+                          : (selectedSchedule.locationNote || t("admin.maintenance.schedules.detail.noLocationNote"))}
                       </span>
                       {selectedSchedule.scheduledTimeSlot && (
                         <div className="pt-0.5">
                           <span className="inline-flex items-center gap-1 text-[11px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300 font-medium">
                             <Clock className="w-3 h-3 text-amber-600 shrink-0" />
-                            Khung giờ khuyến nghị: <strong>{selectedSchedule.scheduledTimeSlot}</strong>
+                            {t("admin.maintenance.schedules.detail.recommendedSlot")} <strong>{displayTimeSlot(selectedSchedule.scheduledTimeSlot)}</strong>
                           </span>
                         </div>
                       )}
@@ -2266,7 +2289,7 @@ export function MaintenanceSchedules() {
                     {selectedSchedule.description && (
                       <div>
                         <span className="text-muted-foreground font-semibold block text-[11px]">
-                          Hướng dẫn quy trình (SOP):
+                          {t("admin.maintenance.schedules.detail.sop")}
                         </span>
                         <p className="text-foreground mt-0.5">{selectedSchedule.description}</p>
                       </div>
@@ -2274,7 +2297,7 @@ export function MaintenanceSchedules() {
                     {(selectedSchedule.checklistItems?.length ?? 0) > 0 && (
                       <div>
                         <span className="text-muted-foreground font-semibold block text-[11px] mb-1">
-                          Các hạng mục tiêu chuẩn cần kiểm tra:
+                          {t("admin.maintenance.schedules.detail.checklistItems")}
                         </span>
                         <div className="flex flex-wrap gap-1">
                           {selectedSchedule.checklistItems!.map((chk, idx) => (
@@ -2296,22 +2319,22 @@ export function MaintenanceSchedules() {
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-blue-600" />
-                      Lịch sử nghiệm thu thực tế ({inspectionLogs.length} lần kiểm tra)
+                      {t("admin.maintenance.schedules.detail.historyTitle", { count: inspectionLogs.length })}
                     </h4>
                     {inspectionLogs.length > 0 && (
                       <span className="text-[10px] text-muted-foreground">
-                        Lần gần nhất: {formatDateTime(inspectionLogs[0].createdAt)}
+                        {t("admin.maintenance.schedules.detail.lastAt", { date: formatDateTime(inspectionLogs[0].createdAt) })}
                       </span>
                     )}
                   </div>
 
                   {isLoadingLogs ? (
                     <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-xl">
-                      Đang tải nhật ký kiểm định từ máy chủ...
+                      {t("admin.maintenance.schedules.detail.loadingLogs")}
                     </div>
                   ) : inspectionLogs.length === 0 ? (
                     <div className="py-8 text-center text-xs text-muted-foreground border border-dashed rounded-xl bg-muted/10">
-                      Chưa có biên bản kiểm tra thực tế nào cho lịch này. Nhấp &quot;Nghiệm thu kiểm tra&quot; để tạo đợt đầu tiên.
+                      {t("admin.maintenance.schedules.detail.noLogs")}
                     </div>
                   ) : (
                     <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
@@ -2328,7 +2351,10 @@ export function MaintenanceSchedules() {
                                   {statusMeta?.label ?? log.status}
                                 </Badge>
                                 <span className="font-semibold text-foreground">
-                                  {log.technicianName ?? (log.technicianId ? `KTV #${log.technicianId}` : "Chưa rõ KTV")}
+                                  {log.technicianName ??
+                                    (log.technicianId
+                                      ? t("admin.maintenance.schedules.labels.techNumber", { id: log.technicianId })
+                                      : t("admin.maintenance.schedules.detail.unknownTech"))}
                                 </span>
                               </div>
                               <span className="text-[11px] font-mono text-muted-foreground">
@@ -2346,7 +2372,7 @@ export function MaintenanceSchedules() {
 
                             {log.createdReportId && (
                               <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] flex items-center justify-between">
-                                <span>Đã tự động mở phiếu sự cố: <strong>RPT-{log.createdReportId}</strong></span>
+                                <span>{t("admin.maintenance.schedules.detail.autoReportOpened")} <strong>RPT-{log.createdReportId}</strong></span>
                               </div>
                             )}
 
@@ -2361,7 +2387,7 @@ export function MaintenanceSchedules() {
                                   >
                                     <img
                                       src={photo}
-                                      alt={`Ảnh ${idx + 1}`}
+                                      alt={t("common.photoNumber", { index: idx + 1 })}
                                       className="w-full h-full object-cover"
                                     />
                                     <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -2383,16 +2409,16 @@ export function MaintenanceSchedules() {
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                         <Wrench className="w-3.5 h-3.5 text-blue-600" />
-                        Sự cố Drone đã xử lý ({droneHistory?.resolvedIncidents.length ?? 0})
+                        {t("admin.maintenance.schedules.detail.droneIncidents", { count: droneHistory?.resolvedIncidents.length ?? 0 })}
                       </h4>
                     </div>
                     {isLoadingDroneHistory ? (
                       <div className="py-5 text-center text-xs text-muted-foreground border border-dashed rounded-xl">
-                        Đang tải lịch sử sự cố Drone...
+                        {t("admin.maintenance.schedules.detail.loadingDroneHistory")}
                       </div>
                     ) : !droneHistory?.resolvedIncidents.length ? (
                       <div className="py-5 text-center text-xs text-muted-foreground border border-dashed rounded-xl bg-muted/10">
-                        Drone này chưa có phiếu sự cố nào đã xử lý.
+                        {t("admin.maintenance.schedules.detail.noDroneIncidents")}
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
@@ -2402,7 +2428,7 @@ export function MaintenanceSchedules() {
                               <div>
                                 <span className="font-semibold text-foreground">RPT-{report.id} · {report.title}</span>
                                 <Badge variant="outline" className="ml-2 text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
-                                  Đã xử lý
+                                  {t("admin.maintenance.schedules.detail.resolved")}
                                 </Badge>
                               </div>
                               <span className="text-[11px] font-mono text-muted-foreground">
@@ -2413,8 +2439,10 @@ export function MaintenanceSchedules() {
                               <p className="text-muted-foreground leading-relaxed">{report.description}</p>
                             )}
                             <p className="text-[11px] text-muted-foreground">
-                              KTV xử lý: <strong className="text-foreground">
-                                {report.assignedToUserId ? `KTV #${report.assignedToUserId}` : "Chưa xác định"}
+                              {t("admin.maintenance.schedules.detail.resolvedBy")} <strong className="text-foreground">
+                                {report.assignedToUserId
+                                  ? t("admin.maintenance.schedules.labels.techNumber", { id: report.assignedToUserId })
+                                  : t("admin.maintenance.schedules.detail.undetermined")}
                               </strong>
                             </p>
                           </div>
@@ -2436,11 +2464,11 @@ export function MaintenanceSchedules() {
                       setSelectedSchedule(null);
                     }}
                   >
-                    <Trash2 className="w-3.5 h-3.5 mr-1" /> Xóa lịch
+                    <Trash2 className="w-3.5 h-3.5 mr-1" /> {t("admin.maintenance.schedules.detail.deleteSchedule")}
                   </Button>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="text-xs" onClick={() => setSelectedSchedule(null)}>
-                      Đóng
+                      {t("button.close")}
                     </Button>
                     <Button
                       size="sm"
@@ -2452,7 +2480,7 @@ export function MaintenanceSchedules() {
                         openEditModal(target);
                       }}
                     >
-                      <Pencil className="w-3.5 h-3.5 mr-1" /> Sửa lịch
+                      <Pencil className="w-3.5 h-3.5 mr-1" /> {t("admin.maintenance.schedules.detail.editSchedule")}
                     </Button>
                     <Button
                       size="sm"
@@ -2465,7 +2493,7 @@ export function MaintenanceSchedules() {
                       }}
                     >
                       <UserCheck className="w-3.5 h-3.5 mr-1 text-amber-600" />
-                      {selectedSchedule.assignedTechnicianId ? "Đổi KTV" : "Gán KTV"}
+                      {selectedSchedule.assignedTechnicianId ? t("admin.maintenance.schedules.labels.changeTech") : t("admin.maintenance.schedules.labels.assignTech")}
                     </Button>
                     <Button
                       size="sm"
@@ -2478,11 +2506,11 @@ export function MaintenanceSchedules() {
                       disabled={selectedSchedule.pendingReportId != null}
                       title={
                         selectedSchedule.pendingReportId != null
-                          ? `Lần kiểm tra trước chưa đạt — hoàn tất phiếu RPT-${selectedSchedule.pendingReportId} trước`
+                          ? t("admin.maintenance.schedules.list.pendingInspectTooltip", { id: selectedSchedule.pendingReportId })
                           : undefined
                       }
                     >
-                      <Check className="w-3.5 h-3.5 mr-1" /> Nghiệm thu kiểm tra
+                      <Check className="w-3.5 h-3.5 mr-1" /> {t("admin.maintenance.schedules.detail.inspectButton")}
                     </Button>
                   </div>
                 </div>
@@ -2499,13 +2527,13 @@ export function MaintenanceSchedules() {
             <DialogTitle className="text-base font-semibold flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-amber-600" />
               {assigningSchedule && isDroneSchedule(assigningSchedule)
-                ? "Phân công Kỹ thuật viên Drone"
-                : "Phân công Kỹ thuật viên Kiosk"}
+                ? t("admin.maintenance.schedules.assign.droneTitle")
+                : t("admin.maintenance.schedules.assign.kioskTitle")}
             </DialogTitle>
             <DialogDescription className="text-xs">
               {assigningSchedule && isDroneSchedule(assigningSchedule)
-                ? "Chỉ định KTV Drone phụ trách kiểm tra an toàn bay và nhận lịch trên ứng dụng di động."
-                : "Chỉ định KTV phụ trách kiểm tra định kỳ cho trạm Kiosk để KTV nhận việc trên ứng dụng di động."}
+                ? t("admin.maintenance.schedules.assign.droneDesc")
+                : t("admin.maintenance.schedules.assign.kioskDesc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -2513,12 +2541,12 @@ export function MaintenanceSchedules() {
             <div className="space-y-4 py-2 text-xs">
               <div className="p-3 rounded-lg bg-muted/40 border border-border/70 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-medium">Kế hoạch kiểm tra:</span>
+                  <span className="text-muted-foreground font-medium">{t("admin.maintenance.schedules.assign.plan")}</span>
                   <span className="font-semibold text-foreground text-right">{assigningSchedule.title}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground font-medium">
-                    {isDroneSchedule(assigningSchedule) ? "Thiết bị Drone:" : "Trạm Kiosk:"}
+                    {isDroneSchedule(assigningSchedule) ? t("admin.maintenance.schedules.assign.droneDevice") : t("admin.maintenance.schedules.assign.kioskStation")}
                   </span>
                   <span className="font-semibold text-foreground">
                     {isDroneSchedule(assigningSchedule)
@@ -2529,7 +2557,7 @@ export function MaintenanceSchedules() {
                 {(assigningSchedule.address || lockerMap.get(assigningSchedule.lockerId)?.address) && (
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-muted-foreground font-medium shrink-0 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-emerald-600" /> Địa chỉ công tác:
+                      <MapPin className="w-3 h-3 text-emerald-600" /> {t("admin.maintenance.schedules.assign.workAddress")}
                     </span>
                     <span className="text-foreground text-right font-medium text-[11px]">
                       {assigningSchedule.address || lockerMap.get(assigningSchedule.lockerId)?.address}
@@ -2538,44 +2566,50 @@ export function MaintenanceSchedules() {
                 )}
                 {assigningSchedule.locationNote && (
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground font-medium">Vị trí đặt tủ:</span>
+                    <span className="text-muted-foreground font-medium">{t("admin.maintenance.schedules.assign.lockerPosition")}</span>
                     <span className="font-semibold text-indigo-700 text-right">📌 {assigningSchedule.locationNote}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground font-medium flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-blue-600" /> Hạn & Ca thực hiện:
+                    <Clock className="w-3 h-3 text-blue-600" /> {t("admin.maintenance.schedules.assign.dueAndShift")}
                   </span>
                   <span className="text-foreground font-medium">
                     {formatDateTime(assigningSchedule.nextDueAt)}
-                    {assigningSchedule.scheduledTimeSlot ? ` (Ca: ${assigningSchedule.scheduledTimeSlot})` : ""}
+                    {assigningSchedule.scheduledTimeSlot
+                      ? ` ${t("admin.maintenance.schedules.assign.shiftInline", { slot: displayTimeSlot(assigningSchedule.scheduledTimeSlot) })}`
+                      : ""}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/60">
-                  <span>Chu kỳ định kỳ:</span>
-                  <span>Mỗi {assigningSchedule.intervalDays} ngày</span>
+                  <span>{t("admin.maintenance.schedules.assign.interval")}</span>
+                  <span>{t("admin.maintenance.schedules.labels.everyDays", { days: assigningSchedule.intervalDays })}</span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                   <Wrench className="w-3.5 h-3.5 text-orange-600" />
-                  Chọn Kỹ thuật viên phụ trách:
+                  {t("admin.maintenance.schedules.assign.selectTech")}
                 </label>
                 <select
                   className="w-full h-9 rounded-md border border-border/80 px-3 text-xs bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
                   value={selectedTechToAssign}
                   onChange={(e) => setSelectedTechToAssign(e.target.value ? Number(e.target.value) : "")}
                 >
-                  <option value="">— Chưa phân công (Bỏ gán KTV) —</option>
-                  {(isDroneSchedule(assigningSchedule) ? droneTechnicians : technicians).map((t: any) => (
-                    <option key={t.id} value={t.id}>
-                      {t.fullName || t.name || `KTV #${t.id}`} ({isDroneSchedule(assigningSchedule) ? "KTV Drone" : `KTV #${t.id}`}) {t.phoneNumber ? `· ${t.phoneNumber}` : ""}
+                  <option value="">{t("admin.maintenance.schedules.assign.unassignOption")}</option>
+                  {(isDroneSchedule(assigningSchedule) ? droneTechnicians : technicians).map((tech: any) => (
+                    <option key={tech.id} value={tech.id}>
+                      {tech.fullName || tech.name || t("admin.maintenance.schedules.labels.techNumber", { id: tech.id })} (
+                      {isDroneSchedule(assigningSchedule)
+                        ? t("admin.maintenance.schedules.labels.droneTech")
+                        : t("admin.maintenance.schedules.labels.techNumber", { id: tech.id })}
+                      ) {tech.phoneNumber ? `· ${tech.phoneNumber}` : ""}
                     </option>
                   ))}
                 </select>
                 <p className="text-[11px] text-muted-foreground italic">
-                  * Khi phân công, lịch kiểm tra sẽ tự động đồng bộ vào ứng dụng di động của KTV và hồ sơ kỹ thuật viên.
+                  {t("admin.maintenance.schedules.assign.syncNote")}
                 </p>
               </div>
             </div>
@@ -2590,7 +2624,7 @@ export function MaintenanceSchedules() {
               onClick={() => setAssigningSchedule(null)}
               disabled={isAssigningTech}
             >
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               type="button"
@@ -2599,7 +2633,7 @@ export function MaintenanceSchedules() {
               onClick={handleSaveTechnicianAssignment}
               disabled={isAssigningTech}
             >
-              {isAssigningTech ? "Đang lưu..." : "Lưu phân công"}
+              {isAssigningTech ? t("common.saving") : t("admin.maintenance.schedules.assign.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2611,13 +2645,13 @@ export function MaintenanceSchedules() {
           <DialogHeader>
             <DialogTitle className="text-base font-semibold flex items-center gap-2">
               <Pencil className="w-4 h-4 text-blue-600" />
-              Sửa kế hoạch kiểm tra định kỳ
+              {t("admin.maintenance.schedules.edit.title")}
             </DialogTitle>
             <DialogDescription className="text-xs">
               {editingSchedule && (isDroneSchedule(editingSchedule)
                 ? `Drone ${editingSchedule.droneCode ?? `#${editingSchedule.droneUnitId}`}`
                 : `${editingSchedule.lockerName ?? `Kiosk #${editingSchedule.lockerId}`}${editingSchedule.lockerCode ? ` (${editingSchedule.lockerCode})` : ""}`)}
-              {" · Đổi KTV phụ trách dùng nút \"Đổi KTV\"."}
+              {` · ${t("admin.maintenance.schedules.edit.changeTechHint")}`}
             </DialogDescription>
           </DialogHeader>
 
@@ -2625,7 +2659,7 @@ export function MaintenanceSchedules() {
             <div className="space-y-3 py-1 text-xs">
               <div className="flex flex-col gap-1">
                 <label className="font-semibold text-foreground">
-                  Tên kế hoạch <span className="text-rose-500">*</span>
+                  {t("admin.maintenance.schedules.edit.planName")} <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   value={editForm.title}
@@ -2637,7 +2671,7 @@ export function MaintenanceSchedules() {
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="flex flex-col gap-1">
                   <label className="font-semibold text-foreground">
-                    Chu kỳ (ngày) <span className="text-rose-500">*</span>
+                    {t("admin.maintenance.schedules.edit.intervalDays")} <span className="text-rose-500">*</span>
                   </label>
                   <Input
                     type="number"
@@ -2649,7 +2683,7 @@ export function MaintenanceSchedules() {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-foreground">Mức độ ưu tiên</label>
+                  <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.form.priority")}</label>
                   <select
                     className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                     value={editForm.priority}
@@ -2658,14 +2692,14 @@ export function MaintenanceSchedules() {
                     {!["NORMAL", "HIGH", "URGENT"].includes(editForm.priority) && (
                       <option value={editForm.priority}>{editForm.priority}</option>
                     )}
-                    <option value="NORMAL">Bình thường</option>
-                    <option value="HIGH">Ưu tiên cao</option>
-                    <option value="URGENT">Khẩn cấp</option>
+                    <option value="NORMAL">{t("admin.maintenance.schedules.priority.normal")}</option>
+                    <option value="HIGH">{t("admin.maintenance.schedules.priority.high")}</option>
+                    <option value="URGENT">{t("admin.maintenance.schedules.priority.urgent")}</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="font-semibold text-foreground flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-blue-600" /> Hạn kiểm tra kế tiếp
+                    <Calendar className="w-3 h-3 text-blue-600" /> {t("admin.maintenance.schedules.edit.nextDue")}
                   </label>
                   <Input
                     type="date"
@@ -2676,7 +2710,7 @@ export function MaintenanceSchedules() {
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="font-semibold text-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-blue-600" /> Giờ (giờ Việt Nam)
+                    <Clock className="w-3 h-3 text-blue-600" /> {t("admin.maintenance.schedules.edit.timeVn")}
                   </label>
                   <Input
                     type="time"
@@ -2686,25 +2720,25 @@ export function MaintenanceSchedules() {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="font-semibold text-foreground">Khung giờ / Ca kiểm tra</label>
+                  <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.form.timeSlot")}</label>
                   <select
                     className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
                     value={editForm.scheduledTimeSlot}
                     onChange={(e) => setEditForm((f) => ({ ...f, scheduledTimeSlot: e.target.value }))}
                   >
-                    <option value="">— Không chọn —</option>
+                    <option value="">{t("admin.maintenance.schedules.timeSlot.none")}</option>
                     {editForm.scheduledTimeSlot &&
                       !TIME_SLOT_OPTIONS.some((o) => o.value === editForm.scheduledTimeSlot) && (
                         <option value={editForm.scheduledTimeSlot}>{editForm.scheduledTimeSlot}</option>
                       )}
                     {TIME_SLOT_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                     ))}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="font-semibold text-foreground">
-                    {isDroneSchedule(editingSchedule) ? "Vị trí chi tiết / bãi đáp" : "Vị trí đặt tủ"}
+                    {isDroneSchedule(editingSchedule) ? t("admin.maintenance.schedules.form.droneLocation") : t("admin.maintenance.schedules.edit.lockerPosition")}
                   </label>
                   <Input
                     value={editForm.locationNote}
@@ -2715,13 +2749,13 @@ export function MaintenanceSchedules() {
               </div>
               {editingSchedule.pendingReportId != null && (
                 <p className="text-[11px] text-amber-700">
-                  Lịch đang chờ phiếu RPT-{editingSchedule.pendingReportId}; hạn kế tiếp sẽ tự dời khi phiếu được hoàn tất.
+                  {t("admin.maintenance.schedules.edit.pendingNote", { id: editingSchedule.pendingReportId })}
                 </p>
               )}
 
               <div className="flex flex-col gap-1">
                 <label className="font-semibold text-foreground">
-                  Checklist ({parseChecklistLines(editForm.checklistText).length} mục · mỗi dòng một mục)
+                  {t("admin.maintenance.schedules.edit.checklist", { count: parseChecklistLines(editForm.checklistText).length })}
                 </label>
                 <Textarea
                   rows={5}
@@ -2732,7 +2766,7 @@ export function MaintenanceSchedules() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="font-semibold text-foreground">Hướng dẫn nghiệp vụ (SOP)</label>
+                <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.edit.sop")}</label>
                 <Textarea
                   rows={2}
                   value={editForm.description}
@@ -2752,7 +2786,7 @@ export function MaintenanceSchedules() {
               onClick={() => setEditingSchedule(null)}
               disabled={updatingSchedule}
             >
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               type="button"
@@ -2761,7 +2795,7 @@ export function MaintenanceSchedules() {
               onClick={submitEdit}
               disabled={updatingSchedule || !editForm.title.trim()}
             >
-              {updatingSchedule ? "Đang lưu..." : "Lưu thay đổi"}
+              {updatingSchedule ? t("common.saving") : t("common.saveChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2772,12 +2806,12 @@ export function MaintenanceSchedules() {
         <DialogContent className="max-w-3xl p-2 bg-black/90 border-zinc-800 text-white">
           <DialogHeader className="p-2">
             <DialogTitle className="text-sm font-medium text-zinc-300">
-              Ảnh minh chứng hiện trường kiểm tra định kỳ
+              {t("admin.maintenance.schedules.photo.title")}
             </DialogTitle>
           </DialogHeader>
           {enlargedPhoto && (
             <div className="flex items-center justify-center max-h-[75vh] overflow-hidden rounded-lg">
-              <img src={enlargedPhoto} alt="Ảnh phóng to" className="max-h-[75vh] w-auto object-contain rounded-md" />
+              <img src={enlargedPhoto} alt={t("admin.maintenance.schedules.photo.enlargedAlt")} className="max-h-[75vh] w-auto object-contain rounded-md" />
             </div>
           )}
         </DialogContent>
@@ -2787,14 +2821,13 @@ export function MaintenanceSchedules() {
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa kế hoạch bảo trì?</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.maintenance.schedules.delete.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa kế hoạch kiểm tra định kỳ &quot;{deleteConfirm?.title}&quot;?
-              Lịch sử các đợt kiểm tra trước đó vẫn sẽ được lưu trữ để tra cứu.
+              {t("admin.maintenance.schedules.delete.description", { title: deleteConfirm?.title ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy bỏ</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancelAction")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-rose-600 hover:bg-rose-700 text-white"
               onClick={async () => {
@@ -2802,18 +2835,18 @@ export function MaintenanceSchedules() {
                 await act(
                   () => deleteSchedule(deleteConfirm.id).unwrap(),
                   {
-                    title: "Đã xóa kế hoạch kiểm tra",
-                    desc: `Kế hoạch bảo trì "${deleteConfirm.title}" đã được loại bỏ.`,
+                    title: t("admin.maintenance.schedules.toast.deleted"),
+                    desc: t("admin.maintenance.schedules.toast.deletedDesc", { title: deleteConfirm.title }),
                   },
                   {
-                    title: "Không thể xóa lịch",
-                    desc: "Vui lòng kiểm tra lại quyền truy cập hoặc thử lại sau.",
+                    title: t("admin.maintenance.schedules.toast.deleteFailed"),
+                    desc: t("admin.maintenance.schedules.toast.deleteFailedDesc"),
                   },
                 );
                 setDeleteConfirm(null);
               }}
             >
-              Xác nhận xóa
+              {t("admin.maintenance.schedules.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

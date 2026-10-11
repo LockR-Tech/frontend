@@ -178,7 +178,7 @@ export function NotificationTable({
                 className="text-xs text-red-600 focus:text-red-600"
               >
                 <Trash2 size={13} className="mr-2" />
-                Xóa
+                {t("admin.notifications.actions.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

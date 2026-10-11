@@ -78,27 +78,27 @@ export function CreateUserModal({ open, onClose }: Props) {
     // Backend đã bắt buộc email + họ tên + số điện thoại; kiểm tra tại chỗ để
     // báo ngay từng ô thay vì đợi lỗi từ server.
     const nextFieldErrors: Record<string, string> = {};
-    if (!form.firstName.trim()) nextFieldErrors.firstName = "Bắt buộc";
+    if (!form.firstName.trim()) nextFieldErrors.firstName = t("admin.users.create.required");
     if (!form.email.trim()) {
-      nextFieldErrors.email = "Bắt buộc";
+      nextFieldErrors.email = t("admin.users.create.required");
     } else if (!/^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$/.test(form.email.trim())) {
-      nextFieldErrors.email = "Email không hợp lệ";
+      nextFieldErrors.email = t("admin.users.create.invalidEmail");
     }
     if (!form.phoneNumber.trim()) {
-      nextFieldErrors.phoneNumber = "Bắt buộc";
+      nextFieldErrors.phoneNumber = t("admin.users.create.required");
     } else if (!/^0\d{8,10}$/.test(form.phoneNumber.trim())) {
-      nextFieldErrors.phoneNumber = "Số điện thoại không hợp lệ";
+      nextFieldErrors.phoneNumber = t("admin.users.create.invalidPhone");
     }
     // Không có mật khẩu thì auth-service sinh chuỗi ngẫu nhiên và người dùng
     // không bao giờ đăng nhập được, nên bắt buộc luôn.
     if (!form.password) {
-      nextFieldErrors.password = "Bắt buộc";
+      nextFieldErrors.password = t("admin.users.create.required");
     } else if (form.password.length < 6) {
-      nextFieldErrors.password = "Tối thiểu 6 ký tự";
+      nextFieldErrors.password = t("admin.users.create.passwordMin");
     }
     setFieldErrors(nextFieldErrors);
     if (Object.keys(nextFieldErrors).length > 0) {
-      setError("Vui lòng điền đầy đủ các trường bắt buộc.");
+      setError(t("admin.users.create.fillRequired"));
       return;
     }
     // Omit empty optional fields so the backend stores NULL instead of "".
@@ -117,7 +117,7 @@ export function CreateUserModal({ open, onClose }: Props) {
     };
     try {
       await createUser(payload).unwrap();
-      toast.success(t("admin.users.createSuccess", "Tạo người dùng mới thành công"));
+      toast.success(t("admin.users.createSuccess"));
       setForm({ ...EMPTY_FORM });
       onClose();
     } catch (e: unknown) {
@@ -127,7 +127,7 @@ export function CreateUserModal({ open, onClose }: Props) {
       // nguyên văn. Bản cũ gộp mọi lỗi ràng buộc thành "email hoặc sđt đã tồn
       // tại", kể cả khi nguyên nhân là chuyện khác.
       const errorMsg =
-        msg || t("admin.users.createFailed", "Tạo người dùng thất bại.");
+        msg || t("admin.users.createFailed");
       if (/email/i.test(msg)) setFieldErrors({ email: errorMsg });
       else if (/điện thoại|phone/i.test(msg))
         setFieldErrors({ phoneNumber: errorMsg });
@@ -150,7 +150,7 @@ export function CreateUserModal({ open, onClose }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <UserPlus size={18} className="text-muted-foreground" />
-            Tạo người dùng mới
+            {t("admin.users.create.title")}
           </DialogTitle>
         </DialogHeader>
 
@@ -165,10 +165,10 @@ export function CreateUserModal({ open, onClose }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                Tên <span className="text-red-400">*</span>
+                {t("admin.users.create.firstName")} <span className="text-red-400">*</span>
               </label>
               <Input
-                placeholder="Tên"
+                placeholder={t("admin.users.create.firstName")}
                 value={form.firstName}
                 onChange={(e) => set("firstName", e.target.value)}
                 aria-invalid={!!fieldErrors.firstName}
@@ -177,10 +177,10 @@ export function CreateUserModal({ open, onClose }: Props) {
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                Họ
+                {t("admin.users.create.lastName")}
               </label>
               <Input
-                placeholder="Họ"
+                placeholder={t("admin.users.create.lastName")}
                 value={form.lastName}
                 onChange={(e) => set("lastName", e.target.value)}
               />
@@ -205,12 +205,12 @@ export function CreateUserModal({ open, onClose }: Props) {
           {/* Password */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
-              Mật khẩu <span className="text-red-400">*</span>
+              {t("admin.users.create.password")} <span className="text-red-400">*</span>
             </label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="Tối thiểu 6 ký tự"
+                placeholder={t("admin.users.create.passwordMin")}
                 value={form.password}
                 onChange={(e) => set("password", e.target.value)}
                 className="pr-10"
@@ -230,7 +230,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           {/* Phone */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
-              Số điện thoại <span className="text-red-400">*</span>
+              {t("common.phone")} <span className="text-red-400">*</span>
             </label>
             <Input
               placeholder="0901234567"
@@ -244,7 +244,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           {/* Roles */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-2 block">
-              Vai trò
+              {t("admin.users.create.roles")}
             </label>
             <div className="flex flex-wrap gap-2">
               {ALL_ROLES.map((role) => {
@@ -271,10 +271,10 @@ export function CreateUserModal({ open, onClose }: Props) {
           <div className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg">
             <div>
               <p className="text-sm font-medium text-foreground/80">
-                Kích hoạt tài khoản
+                {t("admin.users.create.enableAccount")}
               </p>
               <p className="text-xs text-muted-foreground/70">
-                Tài khoản sẽ đăng nhập được ngay
+                {t("admin.users.create.enableAccountHint")}
               </p>
             </div>
             <Switch
@@ -286,7 +286,7 @@ export function CreateUserModal({ open, onClose }: Props) {
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-            Hủy
+            {t("button.cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -295,12 +295,12 @@ export function CreateUserModal({ open, onClose }: Props) {
             {isLoading ? (
               <>
                 <Loader2 size={15} className="animate-spin mr-2" />
-                Đang tạo...
+                {t("admin.users.create.creating")}
               </>
             ) : (
               <>
                 <UserPlus size={15} className="mr-2" />
-                Tạo người dùng
+                {t("admin.users.create.submit")}
               </>
             )}
           </Button>

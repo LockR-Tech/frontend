@@ -42,6 +42,7 @@ import type {
   WalletTransactionSource,
   WalletTransactionType,
 } from "~/types/admin/reporting";
+import i18n from "~/utils/i18n";
 
 export interface BadgeMeta {
   label: string;
@@ -61,179 +62,195 @@ const RED = "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20";
 const VIOLET =
   "bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/20";
 
+/** Bảng tĩnh lưu khoá i18n; nhãn được dịch lúc gọi `…Meta` để theo ngôn ngữ hiện tại. */
+interface MetaDef {
+  labelKey: string;
+  style: string;
+  icon: React.ElementType;
+}
+
 function fallback(value: string | null | undefined): BadgeMeta {
   return { label: value || "—", style: NEUTRAL, icon: Clock };
+}
+
+function resolveMeta(
+  table: Record<string, MetaDef>,
+  value: string | null | undefined,
+): BadgeMeta {
+  const def = table[value ?? ""];
+  if (!def) return fallback(value);
+  return { label: i18n.t(def.labelKey), style: def.style, icon: def.icon };
 }
 
 // ============================================
 // Đơn hàng
 // ============================================
 
-const ORDER_STATUS_META: Record<string, BadgeMeta> = {
-  INITIALIZED: { label: "Khởi tạo", style: MUTED, icon: Clock },
-  STORING: { label: "Đang giữ hàng", style: BLUE, icon: Box },
-  EXPIRED: { label: "Quá hạn", style: AMBER, icon: Timer },
-  AWAITING_DISPATCH: { label: "Chờ điều phối", style: VIOLET, icon: Plane },
-  COMPLETED: { label: "Hoàn thành", style: GREEN, icon: CheckCircle2 },
-  CANCELED: { label: "Đã huỷ", style: RED, icon: XCircle },
+const ORDER_STATUS_META: Record<string, MetaDef> = {
+  INITIALIZED: { labelKey: "shared.reportMeta.orderStatus.initialized", style: MUTED, icon: Clock },
+  STORING: { labelKey: "shared.reportMeta.orderStatus.storing", style: BLUE, icon: Box },
+  EXPIRED: { labelKey: "shared.reportMeta.orderStatus.expired", style: AMBER, icon: Timer },
+  AWAITING_DISPATCH: { labelKey: "shared.reportMeta.orderStatus.awaitingDispatch", style: VIOLET, icon: Plane },
+  COMPLETED: { labelKey: "shared.reportMeta.orderStatus.completed", style: GREEN, icon: CheckCircle2 },
+  CANCELED: { labelKey: "shared.reportMeta.orderStatus.canceled", style: RED, icon: XCircle },
   // Giá trị cũ còn sót trong dữ liệu lịch sử.
-  RETURNED: { label: "Đã trả (cũ)", style: NEUTRAL, icon: PackageCheck },
+  RETURNED: { labelKey: "shared.reportMeta.orderStatus.returned", style: NEUTRAL, icon: PackageCheck },
 };
 
 export function orderStatusMeta(
   status: AdminOrderStatus | string | null | undefined,
 ): BadgeMeta {
-  return ORDER_STATUS_META[status ?? ""] ?? fallback(status);
+  return resolveMeta(ORDER_STATUS_META, status);
 }
 
-const ORDER_TYPE_META: Record<string, BadgeMeta> = {
-  SEND: { label: "Gửi hàng", style: BLUE, icon: Package },
-  RENTAL: { label: "Thuê ô tủ", style: VIOLET, icon: Box },
-  DRONE_DELIVERY: { label: "Giao bằng drone", style: AMBER, icon: Plane },
-  STORAGE: { label: "Lưu trữ (cũ)", style: NEUTRAL, icon: Box },
+const ORDER_TYPE_META: Record<string, MetaDef> = {
+  SEND: { labelKey: "shared.reportMeta.orderType.send", style: BLUE, icon: Package },
+  RENTAL: { labelKey: "shared.reportMeta.orderType.rental", style: VIOLET, icon: Box },
+  DRONE_DELIVERY: { labelKey: "shared.reportMeta.orderType.droneDelivery", style: AMBER, icon: Plane },
+  STORAGE: { labelKey: "shared.reportMeta.orderType.storage", style: NEUTRAL, icon: Box },
 };
 
 export function orderTypeMeta(
   type: AdminOrderType | string | null | undefined,
 ): BadgeMeta {
-  return ORDER_TYPE_META[type ?? ""] ?? fallback(type);
+  return resolveMeta(ORDER_TYPE_META, type);
 }
 
-const ORDER_PAYMENT_STATUS_META: Record<string, BadgeMeta> = {
-  UNPAID: { label: "Chưa thanh toán", style: AMBER, icon: Hourglass },
-  PAID: { label: "Đã thanh toán", style: GREEN, icon: CheckCircle2 },
-  REFUND_PENDING: { label: "Chờ hoàn tiền", style: AMBER, icon: Clock },
-  REFUNDED: { label: "Đã hoàn tiền", style: VIOLET, icon: Undo2 },
+const ORDER_PAYMENT_STATUS_META: Record<string, MetaDef> = {
+  UNPAID: { labelKey: "shared.reportMeta.orderPaymentStatus.unpaid", style: AMBER, icon: Hourglass },
+  PAID: { labelKey: "shared.reportMeta.orderPaymentStatus.paid", style: GREEN, icon: CheckCircle2 },
+  REFUND_PENDING: { labelKey: "shared.reportMeta.orderPaymentStatus.refundPending", style: AMBER, icon: Clock },
+  REFUNDED: { labelKey: "shared.reportMeta.orderPaymentStatus.refunded", style: VIOLET, icon: Undo2 },
 };
 
 export function orderPaymentStatusMeta(
   status: AdminOrderPaymentStatus | string | null | undefined,
 ): BadgeMeta {
-  return ORDER_PAYMENT_STATUS_META[status ?? ""] ?? fallback(status);
+  return resolveMeta(ORDER_PAYMENT_STATUS_META, status);
 }
 
-const DELIVERY_STAGE_META: Record<string, BadgeMeta> = {
-  AWAITING_DISPATCH: { label: "Chờ điều phối", style: MUTED, icon: Hourglass },
-  ACCEPTED: { label: "Đã nhận chuyến", style: NEUTRAL, icon: CheckCircle2 },
-  LAUNCHING: { label: "Chuẩn bị cất cánh", style: BLUE, icon: Plane },
-  DEPARTED: { label: "Đã cất cánh", style: BLUE, icon: Plane },
-  EN_ROUTE: { label: "Đang bay", style: BLUE, icon: Plane },
-  APPROACHING: { label: "Sắp tới nơi", style: BLUE, icon: Plane },
-  ARRIVED: { label: "Đã tới nơi", style: GREEN, icon: CheckCircle2 },
-  READY_FOR_PICKUP: { label: "Sẵn sàng lấy hàng", style: GREEN, icon: PackageCheck },
+const DELIVERY_STAGE_META: Record<string, MetaDef> = {
+  AWAITING_DISPATCH: { labelKey: "shared.reportMeta.deliveryStage.awaitingDispatch", style: MUTED, icon: Hourglass },
+  ACCEPTED: { labelKey: "shared.reportMeta.deliveryStage.accepted", style: NEUTRAL, icon: CheckCircle2 },
+  LAUNCHING: { labelKey: "shared.reportMeta.deliveryStage.launching", style: BLUE, icon: Plane },
+  DEPARTED: { labelKey: "shared.reportMeta.deliveryStage.departed", style: BLUE, icon: Plane },
+  EN_ROUTE: { labelKey: "shared.reportMeta.deliveryStage.enRoute", style: BLUE, icon: Plane },
+  APPROACHING: { labelKey: "shared.reportMeta.deliveryStage.approaching", style: BLUE, icon: Plane },
+  ARRIVED: { labelKey: "shared.reportMeta.deliveryStage.arrived", style: GREEN, icon: CheckCircle2 },
+  READY_FOR_PICKUP: { labelKey: "shared.reportMeta.deliveryStage.readyForPickup", style: GREEN, icon: PackageCheck },
   // Chặng kết thúc — backend đặt deliveryStage theo trạng thái đơn khi đơn drone đóng.
-  CANCELED: { label: "Đã huỷ", style: RED, icon: XCircle },
+  CANCELED: { labelKey: "shared.reportMeta.deliveryStage.canceled", style: RED, icon: XCircle },
   // Chuyến bay không giao được hàng sau khi đã phóng; đơn đóng là CANCELED để hoàn tiền.
-  FAILED: { label: "Chuyến bay thất bại", style: RED, icon: XCircle },
-  COMPLETED: { label: "Đã nhận hàng", style: GREEN, icon: CheckCircle2 },
-  EXPIRED: { label: "Quá hạn nhận", style: AMBER, icon: Timer },
+  FAILED: { labelKey: "shared.reportMeta.deliveryStage.failed", style: RED, icon: XCircle },
+  COMPLETED: { labelKey: "shared.reportMeta.deliveryStage.completed", style: GREEN, icon: CheckCircle2 },
+  EXPIRED: { labelKey: "shared.reportMeta.deliveryStage.expired", style: AMBER, icon: Timer },
   // Kiện bị báo rơi giữa chặng bay — máy trạng thái giao hàng dừng, chờ xử lý sự cố.
-  DROP_REPORTED: { label: "Báo rơi kiện", style: RED, icon: AlertTriangle },
+  DROP_REPORTED: { labelKey: "shared.reportMeta.deliveryStage.dropReported", style: RED, icon: AlertTriangle },
 };
 
 export function deliveryStageMeta(
   stage: DroneDeliveryStage | string | null | undefined,
 ): BadgeMeta {
-  return DELIVERY_STAGE_META[stage ?? ""] ?? fallback(stage);
+  return resolveMeta(DELIVERY_STAGE_META, stage);
 }
 
 // ============================================
 // Thanh toán
 // ============================================
 
-const PAYMENT_STATUS_META: Record<string, BadgeMeta> = {
-  PENDING: { label: "Chờ thanh toán", style: AMBER, icon: Clock },
-  COMPLETED: { label: "Thành công", style: GREEN, icon: CheckCircle2 },
-  FAILED: { label: "Thất bại", style: RED, icon: XCircle },
+const PAYMENT_STATUS_META: Record<string, MetaDef> = {
+  PENDING: { labelKey: "shared.reportMeta.paymentStatus.pending", style: AMBER, icon: Clock },
+  COMPLETED: { labelKey: "shared.reportMeta.paymentStatus.completed", style: GREEN, icon: CheckCircle2 },
+  FAILED: { labelKey: "shared.reportMeta.paymentStatus.failed", style: RED, icon: XCircle },
 };
 
 export function paymentStatusMeta(
   status: AdminPaymentStatus | string | null | undefined,
 ): BadgeMeta {
-  return PAYMENT_STATUS_META[status ?? ""] ?? fallback(status);
+  return resolveMeta(PAYMENT_STATUS_META, status);
 }
 
-const PAYMENT_METHOD_META: Record<string, BadgeMeta> = {
-  CASH: { label: "Tiền mặt", style: NEUTRAL, icon: Banknote },
-  WALLET: { label: "Ví Lock.R", style: VIOLET, icon: Wallet },
-  VNPAY: { label: "VNPay", style: BLUE, icon: CreditCard },
-  MOMO: { label: "MoMo", style: VIOLET, icon: Smartphone },
-  SEPAY: { label: "SePay (chuyển khoản)", style: BLUE, icon: Landmark },
-  VNPAY_TOPUP: { label: "Nạp ví qua VNPay", style: AMBER, icon: PiggyBank },
-  SEPAY_TOPUP: { label: "Nạp ví qua SePay", style: AMBER, icon: PiggyBank },
+const PAYMENT_METHOD_META: Record<string, MetaDef> = {
+  CASH: { labelKey: "shared.reportMeta.paymentMethod.cash", style: NEUTRAL, icon: Banknote },
+  WALLET: { labelKey: "shared.reportMeta.paymentMethod.wallet", style: VIOLET, icon: Wallet },
+  VNPAY: { labelKey: "shared.reportMeta.paymentMethod.vnpay", style: BLUE, icon: CreditCard },
+  MOMO: { labelKey: "shared.reportMeta.paymentMethod.momo", style: VIOLET, icon: Smartphone },
+  SEPAY: { labelKey: "shared.reportMeta.paymentMethod.sepay", style: BLUE, icon: Landmark },
+  VNPAY_TOPUP: { labelKey: "shared.reportMeta.paymentMethod.vnpayTopup", style: AMBER, icon: PiggyBank },
+  SEPAY_TOPUP: { labelKey: "shared.reportMeta.paymentMethod.sepayTopup", style: AMBER, icon: PiggyBank },
 };
 
 export function paymentMethodMeta(
   method: AdminPaymentMethod | string | null | undefined,
 ): BadgeMeta {
-  return PAYMENT_METHOD_META[method ?? ""] ?? fallback(method);
+  return resolveMeta(PAYMENT_METHOD_META, method);
 }
 
-const PAYMENT_KIND_META: Record<string, BadgeMeta> = {
-  ORDER: { label: "Thu theo đơn", style: BLUE, icon: Package },
-  TOPUP: { label: "Nạp ví", style: AMBER, icon: PiggyBank },
+const PAYMENT_KIND_META: Record<string, MetaDef> = {
+  ORDER: { labelKey: "shared.reportMeta.paymentKind.order", style: BLUE, icon: Package },
+  TOPUP: { labelKey: "shared.reportMeta.paymentKind.topup", style: AMBER, icon: PiggyBank },
 };
 
 export function paymentKindMeta(
   kind: AdminPaymentKind | string | null | undefined,
 ): BadgeMeta {
-  return PAYMENT_KIND_META[kind ?? ""] ?? fallback(kind);
+  return resolveMeta(PAYMENT_KIND_META, kind);
 }
 
-const REFUND_STATUS_META: Record<string, BadgeMeta> = {
-  COMPLETED: { label: "Đã hoàn", style: GREEN, icon: Undo2 },
-  PENDING: { label: "Chờ hoàn", style: AMBER, icon: Clock },
-  REJECTED: { label: "Từ chối", style: RED, icon: XCircle },
-  FAILED: { label: "Hoàn thất bại", style: RED, icon: XCircle },
+const REFUND_STATUS_META: Record<string, MetaDef> = {
+  COMPLETED: { labelKey: "shared.reportMeta.refundStatus.completed", style: GREEN, icon: Undo2 },
+  PENDING: { labelKey: "shared.reportMeta.refundStatus.pending", style: AMBER, icon: Clock },
+  REJECTED: { labelKey: "shared.reportMeta.refundStatus.rejected", style: RED, icon: XCircle },
+  FAILED: { labelKey: "shared.reportMeta.refundStatus.failed", style: RED, icon: XCircle },
 };
 
 export function refundStatusMeta(
   status: AdminRefundStatus | string | null | undefined,
 ): BadgeMeta {
-  return REFUND_STATUS_META[status ?? ""] ?? fallback(status);
+  return resolveMeta(REFUND_STATUS_META, status);
 }
 
-const WALLET_TYPE_META: Record<string, BadgeMeta> = {
-  CREDIT: { label: "Cộng tiền", style: GREEN, icon: CheckCircle2 },
-  DEBIT: { label: "Trừ tiền", style: RED, icon: Ban },
+const WALLET_TYPE_META: Record<string, MetaDef> = {
+  CREDIT: { labelKey: "shared.reportMeta.walletType.credit", style: GREEN, icon: CheckCircle2 },
+  DEBIT: { labelKey: "shared.reportMeta.walletType.debit", style: RED, icon: Ban },
 };
 
 export function walletTypeMeta(
   type: WalletTransactionType | string | null | undefined,
 ): BadgeMeta {
-  return WALLET_TYPE_META[type ?? ""] ?? fallback(type);
+  return resolveMeta(WALLET_TYPE_META, type);
 }
 
-const WALLET_SOURCE_META: Record<string, BadgeMeta> = {
-  TOPUP: { label: "Nạp ví", style: AMBER, icon: PiggyBank },
-  ORDER_PAYMENT: { label: "Thanh toán đơn", style: BLUE, icon: Package },
-  REFUND: { label: "Hoàn tiền", style: VIOLET, icon: Undo2 },
-  ADJUST: { label: "Điều chỉnh tay", style: NEUTRAL, icon: RotateCcw },
-  WITHDRAW: { label: "Rút tiền", style: RED, icon: ArrowUpFromLine },
+const WALLET_SOURCE_META: Record<string, MetaDef> = {
+  TOPUP: { labelKey: "shared.reportMeta.walletSource.topup", style: AMBER, icon: PiggyBank },
+  ORDER_PAYMENT: { labelKey: "shared.reportMeta.walletSource.orderPayment", style: BLUE, icon: Package },
+  REFUND: { labelKey: "shared.reportMeta.walletSource.refund", style: VIOLET, icon: Undo2 },
+  ADJUST: { labelKey: "shared.reportMeta.walletSource.adjust", style: NEUTRAL, icon: RotateCcw },
+  WITHDRAW: { labelKey: "shared.reportMeta.walletSource.withdraw", style: RED, icon: ArrowUpFromLine },
 };
 
 export function walletSourceMeta(
   source: WalletTransactionSource | string | null | undefined,
 ): BadgeMeta {
-  return WALLET_SOURCE_META[source ?? ""] ?? fallback(source);
+  return resolveMeta(WALLET_SOURCE_META, source);
 }
 
 // ============================================
 // Doanh thu
 // ============================================
 
-const REVENUE_SERVICE_META: Record<string, BadgeMeta> = {
-  SEND: { label: "Gửi hàng", style: BLUE, icon: Package },
-  RENTAL: { label: "Thuê ô tủ", style: VIOLET, icon: Box },
-  DRONE_DELIVERY: { label: "Giao bằng drone", style: AMBER, icon: Plane },
-  OVERTIME_FEE: { label: "Phí quá hạn", style: RED, icon: AlertTriangle },
-  STORAGE: { label: "Lưu trữ (cũ)", style: NEUTRAL, icon: Box },
-  OTHER: { label: "Khác", style: NEUTRAL, icon: Box },
-  UNKNOWN: { label: "Không rõ đơn", style: MUTED, icon: AlertTriangle },
+const REVENUE_SERVICE_META: Record<string, MetaDef> = {
+  SEND: { labelKey: "shared.reportMeta.revenueService.send", style: BLUE, icon: Package },
+  RENTAL: { labelKey: "shared.reportMeta.revenueService.rental", style: VIOLET, icon: Box },
+  DRONE_DELIVERY: { labelKey: "shared.reportMeta.revenueService.droneDelivery", style: AMBER, icon: Plane },
+  OVERTIME_FEE: { labelKey: "shared.reportMeta.revenueService.overtimeFee", style: RED, icon: AlertTriangle },
+  STORAGE: { labelKey: "shared.reportMeta.revenueService.storage", style: NEUTRAL, icon: Box },
+  OTHER: { labelKey: "shared.reportMeta.revenueService.other", style: NEUTRAL, icon: Box },
+  UNKNOWN: { labelKey: "shared.reportMeta.revenueService.unknown", style: MUTED, icon: AlertTriangle },
 };
 
 export function revenueServiceMeta(
   serviceType: RevenueServiceType | string | null | undefined,
 ): BadgeMeta {
-  return REVENUE_SERVICE_META[serviceType ?? ""] ?? fallback(serviceType);
+  return resolveMeta(REVENUE_SERVICE_META, serviceType);
 }

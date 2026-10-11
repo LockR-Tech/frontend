@@ -100,16 +100,16 @@ export default function UserDetailPage() {
       url = pickImageUrl(fresh?.data);
     }
     setAvatarOverride(url ?? null);
-    toast.success("Đã cập nhật ảnh đại diện");
+    toast.success(t("admin.users.detail.avatarUpdated"));
   };
 
   const handleRemoveAvatar = async () => {
     try {
       await deleteUserAvatar(numUserId).unwrap();
       setAvatarOverride(null);
-      toast.success("Đã xoá ảnh đại diện");
+      toast.success(t("admin.users.detail.avatarRemoved"));
     } catch (err) {
-      toast.error("Không xoá được ảnh đại diện", { description: getMediaErrorMessage(err) });
+      toast.error(t("admin.users.detail.avatarRemoveFailed"), { description: getMediaErrorMessage(err) });
     } finally {
       setShowRemoveAvatar(false);
     }
@@ -135,7 +135,7 @@ export default function UserDetailPage() {
     if (!user) return;
     if (!formData.name.trim()) {
       setShowConfirm(false);
-      toast.error("Tên người dùng không được để trống");
+      toast.error(t("admin.users.detail.nameRequired"));
       return;
     }
     setShowConfirm(false);
@@ -152,7 +152,7 @@ export default function UserDetailPage() {
         body.phoneNumber = formData.phoneNumber.trim();
       }
       await updateUser({ id: Number(userId), data: body }).unwrap();
-      toast.success(t("admin.users.updateSuccess", "Cập nhật thông tin người dùng thành công"));
+      toast.success(t("admin.users.updateSuccess"));
       setIsDirty(false);
       navigate("/admin/users");
     } catch (error) {
@@ -163,7 +163,7 @@ export default function UserDetailPage() {
           : typeof e?.message === "string"
             ? e.message
             : undefined;
-      toast.error(t("admin.users.updateFailed", "Cập nhật người dùng thất bại"), {
+      toast.error(t("admin.users.updateFailed"), {
         description: detail,
       });
     } finally {
@@ -203,10 +203,10 @@ export default function UserDetailPage() {
     return (
       <div className="text-center py-12">
         <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground/70" />
-        <h3 className="mt-4 text-lg font-medium">Không tìm thấy người dùng</h3>
+        <h3 className="mt-4 text-lg font-medium">{t("admin.users.detail.notFound")}</h3>
         <Button onClick={() => navigate(-1)} className="mt-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại
+          {t("button.back")}
         </Button>
       </div>
     );
@@ -227,7 +227,7 @@ export default function UserDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Chi tiết người dùng</h1>
+            <h1 className="text-2xl font-bold">{t("admin.users.detail.title")}</h1>
             <p className="text-sm text-muted-foreground">ID: {user?.id}</p>
           </div>
         </div>
@@ -241,7 +241,7 @@ export default function UserDetailPage() {
                 disabled={isSaving}
               >
                 <X className="h-4 w-4" />
-                Hủy
+                {t("button.cancel")}
               </Button>
               <Button
                 onClick={() => setShowConfirm(true)}
@@ -249,7 +249,7 @@ export default function UserDetailPage() {
                 disabled={isSaving}
               >
                 <Save className="h-4 w-4" />
-                {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
+                {isSaving ? t("common.saving") : t("common.saveChanges")}
               </Button>
             </>
           )}
@@ -262,7 +262,7 @@ export default function UserDetailPage() {
                   : "bg-secondary text-muted-foreground border-border"
               }
             >
-              {user.enabled ? "Đang hoạt động" : "Đã khóa"}
+              {user.enabled ? t("admin.users.detail.enabled") : t("admin.users.detail.locked")}
             </Badge>
           )}
         </div>
@@ -276,14 +276,14 @@ export default function UserDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Thông tin cá nhân
+                {t("admin.users.detail.personalInfo")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-start gap-6">
                 <div className="flex flex-col items-center gap-2 flex-shrink-0">
                   <Avatar className="h-24 w-24 border-2 border-border shadow-xs">
-                    {avatarUrl && <AvatarImage src={avatarUrl} alt={`Ảnh đại diện ${formData.name}`} />}
+                    {avatarUrl && <AvatarImage src={avatarUrl} alt={t("admin.users.detail.avatarAlt", { name: formData.name })} />}
                     <AvatarFallback className="bg-secondary text-foreground text-lg font-bold border border-border">
                       {initials}
                     </AvatarFallback>
@@ -294,10 +294,10 @@ export default function UserDetailPage() {
                       variant="outline"
                       size="sm"
                       className="h-7 text-xs gap-1"
-                      errorTitle="Không đổi được ảnh đại diện"
+                      errorTitle={t("admin.users.detail.avatarChangeFailed")}
                       onUploaded={handleAvatarUploaded}
                     >
-                      Đổi ảnh
+                      {t("common.changePhoto")}
                     </ImageUploadButton>
                     {avatarUrl && (
                       <Button
@@ -309,7 +309,7 @@ export default function UserDetailPage() {
                         disabled={isRemovingAvatar}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                        Xoá ảnh
+                        {t("common.removePhoto")}
                       </Button>
                     )}
                   </div>
@@ -317,7 +317,7 @@ export default function UserDetailPage() {
                 <div className="flex-1 space-y-3">
                   <div>
                     <label className="text-sm text-muted-foreground mb-1 block">
-                      Tên người dùng
+                      {t("admin.users.detail.nameLabel")}
                     </label>
                     <Input
                       value={formData.name}
@@ -351,7 +351,7 @@ export default function UserDetailPage() {
                   />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Nhà cung cấp</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t("admin.users.detail.provider")}</p>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{user.provider ?? "—"}</Badge>
                   </div>
@@ -359,7 +359,7 @@ export default function UserDetailPage() {
                 <div>
                   <label className="text-sm text-muted-foreground mb-1 block">
                     <Phone className="inline h-4 w-4 mr-1" />
-                    Số điện thoại
+                    {t("common.phone")}
                   </label>
                   <Input
                     value={formData.phoneNumber}
@@ -367,21 +367,21 @@ export default function UserDetailPage() {
                       handleInputChange("phoneNumber", e.target.value)
                     }
                     type="tel"
-                    placeholder="Chưa có"
+                    placeholder={t("admin.users.detail.phonePlaceholder")}
                     className="font-medium"
                   />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">
-                    Email đã xác minh
+                    {t("admin.users.detail.emailVerified")}
                   </p>
                   <p className="font-medium">
                     {user.emailVerified == null ? (
                       <span className="text-muted-foreground">—</span>
                     ) : user.emailVerified ? (
-                      <span className="text-emerald-700 dark:text-emerald-400 font-medium">Đã xác minh</span>
+                      <span className="text-emerald-700 dark:text-emerald-400 font-medium">{t("admin.users.detail.verified")}</span>
                     ) : (
-                      <span className="text-muted-foreground">Chưa xác minh</span>
+                      <span className="text-muted-foreground">{t("admin.users.detail.notVerified")}</span>
                     )}
                   </p>
                 </div>
@@ -395,7 +395,7 @@ export default function UserDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <ShoppingBag className="h-5 w-5" />
-                  Đơn hàng
+                  {t("admin.users.detail.orders")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -407,7 +407,10 @@ export default function UserDetailPage() {
                       : formatNumber(revenue.data?.orderCount)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Đơn tạo từ {formatDayLabel(revenue.range.from)} đến {formatDayLabel(revenue.range.to)}
+                  {t("admin.users.detail.ordersRange", {
+                    from: formatDayLabel(revenue.range.from),
+                    to: formatDayLabel(revenue.range.to),
+                  })}
                 </p>
               </CardContent>
             </Card>
@@ -415,7 +418,7 @@ export default function UserDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <DollarSign className="h-5 w-5" />
-                  Tổng chi tiêu
+                  {t("admin.users.detail.totalSpent")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -427,13 +430,13 @@ export default function UserDetailPage() {
                       : formatCurrency(revenue.data?.totalSpent)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Tiền thực thu trong cùng khoảng
+                  {t("admin.users.detail.totalSpentHint")}
                 </p>
               </CardContent>
             </Card>
             {revenueError && (
               <p className="col-span-2 text-xs text-destructive -mt-3">
-                Không tải được số liệu đơn/chi tiêu: {revenueError.message}
+                {t("admin.users.detail.revenueLoadFailed", { message: revenueError.message })}
               </p>
             )}
           </div>
@@ -443,11 +446,11 @@ export default function UserDetailPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Thông tin tài khoản</CardTitle>
+              <CardTitle className="text-base">{t("admin.users.detail.accountInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground">Trạng thái</p>
+                <p className="text-sm text-muted-foreground">{t("common.status")}</p>
                 <div className="mt-2 flex items-center gap-2">
                   <span
                     className={`relative inline-flex rounded-full h-2 w-2 ${
@@ -455,12 +458,12 @@ export default function UserDetailPage() {
                     }`}
                   ></span>
                   <span className="font-medium text-sm">
-                    {user.enabled ? "Hoạt động" : "Đã khóa"}
+                    {user.enabled ? t("admin.users.status.active") : t("admin.users.detail.locked")}
                   </span>
                 </div>
               </div>
               <div className="border-t border-border/60 pt-4">
-                <p className="text-sm text-muted-foreground">ID người dùng</p>
+                <p className="text-sm text-muted-foreground">{t("admin.users.detail.userId")}</p>
                 <p className="font-mono text-sm font-medium mt-2 bg-secondary p-2 rounded-md border border-border/50">
                   {user.id}
                 </p>
@@ -470,13 +473,13 @@ export default function UserDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Lịch sử</CardTitle>
+              <CardTitle className="text-base">{t("admin.users.detail.history")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>Ngày tạo</span>
+                  <span>{t("common.createdAt")}</span>
                 </div>
                 <p className="font-medium text-sm mt-2">
                   {formatDateTime(user.createdAt)}
@@ -485,7 +488,7 @@ export default function UserDetailPage() {
               <div className="border-t border-border/60 pt-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>Cập nhật cuối cùng</span>
+                  <span>{t("admin.users.detail.lastUpdated")}</span>
                 </div>
                 <p className="font-medium text-sm mt-2">
                   {formatDateTime(user.updatedAt)}
@@ -503,20 +506,19 @@ export default function UserDetailPage() {
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận lưu thay đổi</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.users.detail.confirmSaveTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn lưu những thay đổi này không? Không thể
-              hoàn tác hành động này.
+              {t("admin.users.detail.confirmSaveDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="action-buttons flex gap-3">
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel>{t("button.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleSave}
               disabled={isSaving}
               className="bg-primary text-primary-foreground hover:opacity-90"
             >
-              {isSaving ? "Đang lưu..." : "Xác nhận lưu"}
+              {isSaving ? t("common.saving") : t("admin.users.detail.confirmSave")}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
@@ -526,13 +528,13 @@ export default function UserDetailPage() {
       <AlertDialog open={showRemoveAvatar} onOpenChange={setShowRemoveAvatar}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xoá ảnh đại diện?</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.users.detail.removeAvatarTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Ảnh đại diện hiện tại của người dùng sẽ bị gỡ và xoá khỏi kho lưu trữ ảnh.
+              {t("admin.users.detail.removeAvatarDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex gap-3 justify-end">
-            <AlertDialogCancel disabled={isRemovingAvatar}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={isRemovingAvatar}>{t("button.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -541,7 +543,7 @@ export default function UserDetailPage() {
               disabled={isRemovingAvatar}
               className="bg-rose-600 text-white hover:bg-rose-700"
             >
-              {isRemovingAvatar ? "Đang xoá..." : "Xoá ảnh"}
+              {isRemovingAvatar ? t("admin.users.detail.removing") : t("common.removePhoto")}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

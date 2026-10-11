@@ -10,6 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   QrCode,
   Printer,
@@ -38,11 +39,13 @@ export function BoxQrModal({
   cell,
   cells = [],
   lockerId,
-  lockerName = "Tủ đồ Lock.R",
+  lockerName,
   lockerCode = "CAB-01",
 }: BoxQrModalProps) {
+  const { t } = useTranslation();
   const [printMode, setPrintMode] = useState<"single" | "all">("single");
   const [copied, setCopied] = useState(false);
+  const displayLockerName = lockerName ?? t("admin.lockers.boxQr.defaultLockerName");
 
   if (!cell && cells.length === 0) return null;
 
@@ -77,7 +80,7 @@ export function BoxQrModal({
   const handleCopy = () => {
     navigator.clipboard.writeText(currentQrValue);
     setCopied(true);
-    toast.success("Đã sao chép nội dung mã QR vào clipboard!");
+    toast.success(t("admin.lockers.boxQr.copied"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -85,7 +88,7 @@ export function BoxQrModal({
     try {
       const svg = document.getElementById(`qr-svg-${c.id}`);
       if (!svg) {
-        toast.error("Không tìm thấy mã QR");
+        toast.error(t("admin.lockers.boxQr.notFound"));
         return;
       }
 
@@ -106,13 +109,13 @@ export function BoxQrModal({
           a.download = `QR-Tu-${lockerCode}-O-${c.boxNumber}.png`;
           a.href = canvas.toDataURL("image/png");
           a.click();
-          toast.success(`Đã tải ảnh mã QR ô #${c.boxNumber}`);
+          toast.success(t("admin.lockers.boxQr.downloaded", { number: c.boxNumber }));
         }
       };
 
       img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
     } catch (err) {
-      toast.error("Không thể tải ảnh QR");
+      toast.error(t("admin.lockers.boxQr.downloadFailed"));
     }
   };
 
@@ -127,7 +130,7 @@ export function BoxQrModal({
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2 text-base font-bold">
               <QrCode className="w-5 h-5 text-primary" />
-              Mã QR dán ô tủ #{currentCell.boxNumber}
+              {t("admin.lockers.boxQr.title", { number: currentCell.boxNumber })}
             </DialogTitle>
             <div className="inline-flex rounded-md border border-border p-0.5 text-xs mr-6">
               <button
@@ -139,7 +142,7 @@ export function BoxQrModal({
                 }`}
                 onClick={() => setPrintMode("single")}
               >
-                Ô #{currentCell.boxNumber}
+                {t("admin.lockers.boxLabel", { number: currentCell.boxNumber })}
               </button>
               <button
                 type="button"
@@ -150,12 +153,12 @@ export function BoxQrModal({
                 }`}
                 onClick={() => setPrintMode("all")}
               >
-                In cả tủ ({cells.length} ô)
+                {t("admin.lockers.boxQr.printAllTab", { count: cells.length })}
               </button>
             </div>
           </div>
           <DialogDescription className="text-xs">
-            In tem nhãn mã QR này để dán trực tiếp lên cánh cửa tủ vật lý. Kỹ thuật viên và người dùng có thể quét để kiểm thử hoặc thao tác.
+            {t("admin.lockers.boxQr.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -177,16 +180,16 @@ export function BoxQrModal({
                 </div>
                 <div className="text-right">
                   <span className="text-[11px] font-bold text-slate-700">{lockerCode}</span>
-                  <p className="text-[9px] text-slate-500">Tủ #{lockerId}</p>
+                  <p className="text-[9px] text-slate-500">{t("admin.lockers.boxQr.lockerNumber", { id: lockerId })}</p>
                 </div>
               </div>
 
               {/* Tên tủ & Số ô cực to */}
               <div className="space-y-0.5">
-                <p className="text-xs text-slate-600 font-medium">{lockerName}</p>
+                <p className="text-xs text-slate-600 font-medium">{displayLockerName}</p>
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-3xl font-black tracking-tight text-slate-950">
-                    Ô #{currentCell.boxNumber}
+                    {t("admin.lockers.boxLabel", { number: currentCell.boxNumber })}
                   </span>
                   {isDrone && (
                     <Badge className="bg-sky-600 text-white border-0 text-[10px] font-bold px-2 py-0.5">
@@ -195,7 +198,7 @@ export function BoxQrModal({
                   )}
                   {isXl && (
                     <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-2 py-0.5">
-                      VALI XL
+                      {t("admin.lockers.boxQr.xlBadge")}
                     </Badge>
                   )}
                 </div>
@@ -215,42 +218,42 @@ export function BoxQrModal({
               {/* Thông số kỹ thuật của ô */}
               <div className="w-full bg-slate-50 rounded-lg p-2.5 text-[11px] border border-slate-200 grid grid-cols-2 gap-2 text-left">
                 <div>
-                  <span className="text-slate-500 block text-[10px]">CÔNG NĂNG:</span>
+                  <span className="text-slate-500 block text-[10px]">{t("admin.lockers.boxQr.function")}</span>
                   <span className="font-bold text-slate-800">
                     {isDrone
-                      ? "Tiếp nhận Drone"
+                      ? t("admin.lockers.boxQr.functionDrone")
                       : isXl
-                      ? "Khoang Vali (XL)"
-                      : "Ô tiêu chuẩn đa năng"}
+                      ? t("admin.lockers.boxQr.functionXl")
+                      : t("admin.lockers.boxQr.functionStandard")}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[10px]">KÍCH CỠ:</span>
+                  <span className="text-slate-500 block text-[10px]">{t("admin.lockers.boxQr.size")}</span>
                   <span className="font-bold text-slate-800">
                     Size {currentCell.size || "M"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[10px]">VỊ TRÍ:</span>
+                  <span className="text-slate-500 block text-[10px]">{t("admin.lockers.boxQr.position")}</span>
                   <span className="font-semibold text-slate-700">
-                    Hàng {currentCell.rowIndex ?? 1} · Cột {currentCell.colIndex ?? 1}
+                    {t("admin.lockers.boxQr.positionValue", { row: currentCell.rowIndex ?? 1, col: currentCell.colIndex ?? 1 })}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[10px]">MÃ ĐỊNH DANH (ID):</span>
+                  <span className="text-slate-500 block text-[10px]">{t("admin.lockers.boxQr.identifier")}</span>
                   <span className="font-mono text-slate-700">BOX-{currentCell.id}</span>
                 </div>
               </div>
 
               <p className="text-[10px] text-slate-500 italic">
-                * Quét mã QR này bằng Ứng dụng Lock.R để thao tác hoặc kiểm tra ô tủ
+                {t("admin.lockers.boxQr.scanHint")}
               </p>
             </div>
 
             {/* Chi tiết dữ liệu chuỗi QR */}
             <div className="p-2.5 rounded-lg border bg-muted/30 text-[11px] space-y-1">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-muted-foreground">Payload mã QR (JSON):</span>
+                <span className="font-semibold text-muted-foreground">{t("admin.lockers.boxQr.payload")}</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -258,7 +261,7 @@ export function BoxQrModal({
                   onClick={handleCopy}
                 >
                   {copied ? <Check className="w-3 h-3 mr-1 text-emerald-600" /> : <Copy className="w-3 h-3 mr-1" />}
-                  {copied ? "Đã chép" : "Sao chép"}
+                  {copied ? t("admin.lockers.boxQr.copiedShort") : t("admin.lockers.boxQr.copy")}
                 </Button>
               </div>
               <pre className="font-mono text-[10px] p-2 bg-background rounded border overflow-x-auto text-muted-foreground">
@@ -272,9 +275,9 @@ export function BoxQrModal({
             <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-xs text-sky-900 dark:text-sky-200 flex items-start gap-2.5">
               <Sparkles className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">Chế độ in hàng loạt cả tủ ({cells.length} ô tủ)</p>
+                <p className="font-semibold">{t("admin.lockers.boxQr.batchTitle", { count: cells.length })}</p>
                 <p className="text-[11px] text-sky-800 dark:text-sky-300 mt-0.5">
-                  Bấm nút &quot;In toàn bộ nhãn&quot; bên dưới để in lưới tem nhãn cho tất cả các ô trong tủ #{lockerId}. Bạn có thể cắt ra và dán lên từng ô tủ thật để test.
+                  {t("admin.lockers.boxQr.batchDesc", { id: lockerId })}
                 </p>
               </div>
             </div>
@@ -299,7 +302,7 @@ export function BoxQrModal({
                   >
                     <div className="w-full flex items-center justify-between border-b pb-1 text-[10px] border-slate-200 font-bold">
                       <span>{lockerCode}</span>
-                      <span>Ô #{c.boxNumber}</span>
+                      <span>{t("admin.lockers.boxLabel", { number: c.boxNumber })}</span>
                     </div>
 
                     <div className="p-1 bg-white">
@@ -308,9 +311,9 @@ export function BoxQrModal({
 
                     <div className="w-full text-[10px] text-left bg-slate-50 p-1.5 rounded border border-slate-200 space-y-0.5">
                       <p className="font-bold truncate text-slate-800">
-                        {isCellDrone ? "Drone Pad" : c.cellType === "XL" ? "Vali (XL)" : "Tiêu chuẩn"} · Size {c.size || "M"}
+                        {isCellDrone ? "Drone Pad" : c.cellType === "XL" ? t("admin.lockers.boxQr.xlShort") : t("admin.lockers.boxQr.standardShort")} · Size {c.size || "M"}
                       </p>
-                      <p className="text-[9px] text-slate-500">ID: {c.id} · Hàng {c.rowIndex} Cột {c.colIndex}</p>
+                      <p className="text-[9px] text-slate-500">{t("admin.lockers.boxQr.cellMeta", { id: c.id, row: c.rowIndex, col: c.colIndex })}</p>
                     </div>
 
                     <Button
@@ -320,7 +323,7 @@ export function BoxQrModal({
                       className="h-6 w-full text-[10px] print:hidden"
                       onClick={() => handleDownloadPng(c)}
                     >
-                      <Download className="w-3 h-3 mr-1" /> Tải PNG
+                      <Download className="w-3 h-3 mr-1" /> {t("admin.lockers.boxQr.downloadPng")}
                     </Button>
                   </div>
                 );
@@ -339,7 +342,7 @@ export function BoxQrModal({
                 className="text-xs"
                 onClick={() => handleDownloadPng(currentCell)}
               >
-                <Download className="w-3.5 h-3.5 mr-1.5" /> Tải ảnh QR (PNG)
+                <Download className="w-3.5 h-3.5 mr-1.5" /> {t("admin.lockers.boxQr.downloadImage")}
               </Button>
             )}
           </div>
@@ -352,7 +355,7 @@ export function BoxQrModal({
               className="text-xs"
               onClick={() => onOpenChange(false)}
             >
-              Đóng
+              {t("button.close")}
             </Button>
             <Button
               type="button"
@@ -361,7 +364,7 @@ export function BoxQrModal({
               onClick={handlePrint}
             >
               <Printer className="w-3.5 h-3.5 mr-1.5" />
-              {printMode === "single" ? `In tem nhãn ô #${currentCell.boxNumber}` : `In tất cả ${cells.length} tem nhãn`}
+              {printMode === "single" ? t("admin.lockers.boxQr.printOne", { number: currentCell.boxNumber }) : t("admin.lockers.boxQr.printAll", { count: cells.length })}
             </Button>
           </div>
         </DialogFooter>

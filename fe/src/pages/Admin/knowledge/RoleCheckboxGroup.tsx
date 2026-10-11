@@ -1,6 +1,7 @@
 import { Checkbox } from "~/components/ui/checkbox";
 import { cn } from "~/lib/utils";
 import { knowledgeRoleLabel } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 interface RoleCheckboxGroupProps {
   /** Tiền tố id cho các checkbox (tránh trùng khi có nhiều nhóm trên trang). */
@@ -21,6 +22,8 @@ export function RoleCheckboxGroup({
   disabled,
   className,
 }: RoleCheckboxGroupProps) {
+  // Nhãn vai trò dịch trong knowledgeRoleLabel — đăng ký để render lại khi đổi ngôn ngữ.
+  useTranslation();
   return (
     <div className={cn("grid gap-2 sm:grid-cols-2", className)}>
       {options.map((role) => {

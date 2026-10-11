@@ -8,6 +8,7 @@ import {
   Bell,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 type NotificationType = "success" | "info" | "warning" | "error" | "custom";
 
@@ -86,41 +87,42 @@ export const useNotification = () => {
 
 // Demo component for testing notifications
 export function NotificationDemo() {
+  const { t } = useTranslation();
   const { openNotification, openSuccessNotification, openErrorNotification, openWarningNotification, openInfoNotification } = useNotification();
 
   const handleCustomNotification = () => {
     openNotification({
-      title: "Thông báo tùy chỉnh",
-      description: "Đây là nội dung thông báo tùy chỉnh với icon mặt cườii.",
+      title: t("shared.notificationDemo.customTitle"),
+      description: t("shared.notificationDemo.customDescription"),
       type: "custom",
     });
   };
 
   const handleSuccessNotification = () => {
     openSuccessNotification(
-      "Thành công!",
-      "Thao tác đã được thực hiện thành công."
+      t("shared.notificationDemo.successTitle"),
+      t("shared.notificationDemo.successDescription")
     );
   };
 
   const handleErrorNotification = () => {
     openErrorNotification(
-      "Lỗi!",
-      "Đã xảy ra lỗi trong quá trình thực hiện."
+      t("shared.notificationDemo.errorTitle"),
+      t("shared.notificationDemo.errorDescription")
     );
   };
 
   const handleWarningNotification = () => {
     openWarningNotification(
-      "Cảnh báo!",
-      "Vui lòng kiểm tra lại thông tin trước khi tiếp tục."
+      t("shared.notificationDemo.warningTitle"),
+      t("shared.notificationDemo.warningDescription")
     );
   };
 
   const handleInfoNotification = () => {
     openInfoNotification(
-      "Thông tin",
-      "Đây là thông báo mang tính chất thông tin."
+      t("shared.notificationDemo.infoTitle"),
+      t("shared.notificationDemo.infoDescription")
     );
   };
 

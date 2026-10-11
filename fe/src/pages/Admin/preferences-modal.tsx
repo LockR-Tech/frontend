@@ -14,6 +14,12 @@ import { useTranslation } from "react-i18next";
 import { ChevronRight, Globe, SunMoon, SlidersHorizontal, Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "~/context/theme-context";
 
+const THEME_TITLE_KEY = {
+  light: "header.themeLight",
+  system: "header.themeSystem",
+  dark: "header.themeDark",
+} as const;
+
 type PreferencesModalProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -71,7 +77,7 @@ export default function PreferencesModal({
                 <button
                   key={mode}
                   onClick={() => setTheme(mode)}
-                  title={mode}
+                  title={t(THEME_TITLE_KEY[mode])}
                   className={`p-1.5 rounded-md transition-colors ${
                     theme === mode
                       ? "bg-background text-foreground shadow-sm"
@@ -97,7 +103,7 @@ export default function PreferencesModal({
               <div>
                 <p className="text-sm font-medium">{t("admin.sidebar.businessSettings")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Giá, phí, thời hạn, SLA và giới hạn của hệ thống
+                  {t("admin.preferences.businessSettingsHelp")}
                 </p>
               </div>
             </div>

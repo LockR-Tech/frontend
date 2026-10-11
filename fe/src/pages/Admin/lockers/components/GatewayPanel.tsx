@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, Cpu, Loader2, RadioTower, RefreshCw, Unplug } from "lucide-react";
 import { toast } from "sonner";
+import { Trans, useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
+import i18n from "~/utils/i18n";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent } from "~/components/ui/card";
@@ -26,20 +29,22 @@ import {
 } from "~/stores/apis/admin/lockerOps";
 
 // Trạng thái lệnh setup gửi tới Pi — iot-service GatewayDevice.setupStatus (ADR-0008).
-const SETUP_STATUS: Record<string, { label: string; cls: string }> = {
-  NONE: { label: "Chưa setup", cls: "bg-secondary border-border text-muted-foreground" },
-  PENDING: { label: "Đã gửi lệnh, chờ Pi", cls: "bg-sky-500/10 border-sky-500/20 text-sky-700 dark:text-sky-400" },
-  RUNNING: { label: "Pi đang thử từng ô", cls: "bg-sky-500/10 border-sky-500/20 text-sky-700 dark:text-sky-400" },
-  COMPLETED: { label: "Sẵn sàng", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
-  PARTIAL: { label: "Một số ô lỗi", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
-  FAILED: { label: "Setup lỗi", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
-  CLEARED: { label: "Đã gỡ", cls: "bg-secondary border-border text-muted-foreground" },
+const SETUP_STATUS: Record<string, { labelKey: string; cls: string }> = {
+  NONE: { labelKey: "admin.lockers.gateway.setupStatus.none", cls: "bg-secondary border-border text-muted-foreground" },
+  PENDING: { labelKey: "admin.lockers.gateway.setupStatus.pending", cls: "bg-sky-500/10 border-sky-500/20 text-sky-700 dark:text-sky-400" },
+  RUNNING: { labelKey: "admin.lockers.gateway.setupStatus.running", cls: "bg-sky-500/10 border-sky-500/20 text-sky-700 dark:text-sky-400" },
+  COMPLETED: { labelKey: "admin.lockers.gateway.setupStatus.completed", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
+  PARTIAL: { labelKey: "admin.lockers.gateway.setupStatus.partial", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
+  FAILED: { labelKey: "admin.lockers.gateway.setupStatus.failed", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
+  CLEARED: { labelKey: "admin.lockers.gateway.setupStatus.cleared", cls: "bg-secondary border-border text-muted-foreground" },
 };
 
 const HARDWARE_LABEL: Record<string, string> = {
   gpio: "GPIO",
   rs485: "Arduino RS485",
-  simulation: "Giả lập",
+  get simulation() {
+    return i18n.t("admin.lockers.hardware.simulation");
+  },
 };
 
 function apiError(err: unknown, fallback: string): string {
@@ -47,11 +52,11 @@ function apiError(err: unknown, fallback: string): string {
   return e?.data?.message || e?.message || fallback;
 }
 
-function gatewayLabel(g: GatewayDeviceResponse): string {
-  const parts = [g.macAddress, g.online ? "online" : "mất kết nối"];
+function gatewayLabel(g: GatewayDeviceResponse, t: TFunction): string {
+  const parts = [g.macAddress, g.online ? "online" : t("admin.lockers.gateway.option.offline")];
   if (g.hardware) parts.push(HARDWARE_LABEL[g.hardware] ?? g.hardware);
-  if (g.availableSlots != null) parts.push(`${g.availableSlots} ô`);
-  if (g.reportedLockerId != null) parts.push(`đang báo tủ #${g.reportedLockerId}`);
+  if (g.availableSlots != null) parts.push(t("admin.lockers.table.boxCount", { count: g.availableSlots }));
+  if (g.reportedLockerId != null) parts.push(t("admin.lockers.gateway.option.reportingLocker", { id: g.reportedLockerId }));
   return parts.join(" · ");
 }
 
@@ -67,6 +72,7 @@ interface GatewayPanelProps {
  * Pi tự báo qua MQTT; gán ⇒ iot-service gửi sơ đồ ô, Pi (tuỳ chọn) mở thử từng ô.
  */
 export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayPanelProps) {
+  const { t } = useTranslation();
   // Poll 5 s: thấy Pi online/mất kết nối và tiến độ thử từng ô gần như ngay (danh sách rất nhỏ).
   const { data, isLoading, refetch, isFetching } = useGetGatewaysQuery(undefined, { pollingInterval: 5000 });
   const gateways = useMemo(() => data?.data ?? [], [data]);
@@ -94,13 +100,13 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
     if (!assignTarget) return;
     try {
       await assignGateway({ gatewayId: assignTarget.id, lockerId, testDoors }).unwrap();
-      toast.success("Đã gửi sơ đồ ô tới bộ điều khiển", {
-        description: testDoors ? "Pi đang mở thử lần lượt từng ô." : "Pi chỉ lưu sơ đồ, không mở ô nào.",
+      toast.success(t("admin.lockers.gateway.toast.assigned"), {
+        description: testDoors ? t("admin.lockers.gateway.toast.assignedTesting") : t("admin.lockers.gateway.toast.assignedNoTest"),
       });
       setAssignTarget(null);
       setChoice("");
     } catch (err) {
-      toast.error("Không gán được bộ điều khiển", { description: apiError(err, "Vui lòng thử lại.") });
+      toast.error(t("admin.lockers.gateway.toast.assignFailed"), { description: apiError(err, t("common.pleaseRetry")) });
     }
   };
 
@@ -108,20 +114,20 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
     if (!current) return;
     try {
       await unassignGateway(current.id).unwrap();
-      toast.success("Đã gỡ bộ điều khiển khỏi tủ");
+      toast.success(t("admin.lockers.gateway.toast.unassigned"));
       setConfirmUnassign(false);
     } catch (err) {
-      toast.error("Không gỡ được", { description: apiError(err, "Vui lòng thử lại.") });
+      toast.error(t("admin.lockers.gateway.toast.unassignFailed"), { description: apiError(err, t("common.pleaseRetry")) });
     }
   };
 
   const handleRediscover = async (g: GatewayDeviceResponse) => {
     try {
       await rediscoverGateway(g.id).unwrap();
-      toast.success("Đã yêu cầu Pi báo lại");
+      toast.success(t("admin.lockers.gateway.toast.rediscovered"));
       setTimeout(() => refetch(), 2000);
     } catch (err) {
-      toast.error("Không gửi được yêu cầu", { description: apiError(err, "Vui lòng thử lại.") });
+      toast.error(t("admin.lockers.gateway.toast.rediscoverFailed"), { description: apiError(err, t("common.pleaseRetry")) });
     }
   };
 
@@ -139,9 +145,9 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
               <Cpu className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold">Bộ điều khiển tủ</p>
+              <p className="text-sm font-semibold">{t("admin.lockers.gateway.title")}</p>
               {isLoading ? (
-                <p className="text-xs text-muted-foreground mt-0.5">Đang tải…</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("common.loadingEllipsis")}</p>
               ) : current ? (
                 <div className="mt-1 space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -155,12 +161,12 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
                       }
                     >
                       <RadioTower className="w-3 h-3 mr-1" />
-                      {current.online ? "Online" : "Mất kết nối"}
+                      {current.online ? "Online" : t("common.disconnected")}
                     </Badge>
                     {status && (
                       <Badge variant="outline" className={status.cls}>
                         {busy && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
-                        {status.label}
+                        {t(status.labelKey)}
                         {current.setupProgress ? ` · ${current.setupProgress}` : ""}
                       </Badge>
                     )}
@@ -168,9 +174,9 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
                   <p className="text-xs text-muted-foreground">
                     {[
                       current.hardware ? HARDWARE_LABEL[current.hardware] ?? current.hardware : null,
-                      current.availableSlots != null ? `${current.availableSlots} ô phần cứng` : null,
+                      current.availableSlots != null ? t("admin.lockers.gateway.hardwareSlots", { count: current.availableSlots }) : null,
                       current.firmwareVersion ? `firmware ${current.firmwareVersion}` : null,
-                      current.lastSeenAt ? `thấy lần cuối ${formatDateTime(current.lastSeenAt)}` : null,
+                      current.lastSeenAt ? t("admin.lockers.gateway.lastSeen", { time: formatDateTime(current.lastSeenAt) }) : null,
                     ]
                       .filter(Boolean)
                       .join(" · ")}
@@ -178,7 +184,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Chưa gắn bộ điều khiển — app và kiosk chưa mở được ô thật của tủ này.
+                  {t("admin.lockers.gateway.notAttached")}
                 </p>
               )}
             </div>
@@ -188,7 +194,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
             {current ? (
               <>
                 <Button size="sm" variant="outline" className="h-9" onClick={() => openAssign(current)} disabled={busy}>
-                  <RefreshCw className="w-4 h-4 mr-1.5" /> Gửi lại sơ đồ
+                  <RefreshCw className="w-4 h-4 mr-1.5" /> {t("admin.lockers.gateway.resend")}
                 </Button>
                 <Button
                   size="sm"
@@ -197,7 +203,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
                   onClick={() => handleRediscover(current)}
                   disabled={rediscovering}
                 >
-                  Yêu cầu báo lại
+                  {t("admin.lockers.gateway.rediscover")}
                 </Button>
                 <Button
                   size="sm"
@@ -205,19 +211,19 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
                   className="h-9 text-rose-600 hover:text-rose-700"
                   onClick={() => setConfirmUnassign(true)}
                 >
-                  <Unplug className="w-4 h-4 mr-1.5" /> Gỡ
+                  <Unplug className="w-4 h-4 mr-1.5" /> {t("admin.lockers.gateway.unassign")}
                 </Button>
               </>
             ) : (
               <>
                 <Select value={choice} onValueChange={setChoice} disabled={free.length === 0}>
                   <SelectTrigger className="w-full md:w-96 h-9 text-xs">
-                    <SelectValue placeholder={free.length ? "Chọn bộ điều khiển đã báo về" : "Chưa có Pi nào báo về"} />
+                    <SelectValue placeholder={free.length ? t("admin.lockers.gateway.selectPlaceholder") : t("admin.lockers.gateway.noneReported")} />
                   </SelectTrigger>
                   <SelectContent>
                     {free.map((g) => (
                       <SelectItem key={g.id} value={String(g.id)}>
-                        {gatewayLabel(g)}
+                        {gatewayLabel(g, t)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -228,7 +234,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
                   disabled={!choice}
                   onClick={() => openAssign(free.find((g) => String(g.id) === choice))}
                 >
-                  Gán vào tủ
+                  {t("admin.lockers.gateway.assign")}
                 </Button>
                 <Button size="sm" variant="ghost" className="h-9" onClick={() => refetch()} disabled={isFetching}>
                   <RefreshCw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />
@@ -240,8 +246,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
 
         {!isLoading && !current && free.length === 0 && (
           <p className="text-xs text-muted-foreground">
-            Pi tự báo về khi <code>main.py</code> chạy và kết nối được broker MQTT. Không thấy Pi thì kiểm tra dịch vụ{" "}
-            <code>lockr-controller</code> trên Pi và tài khoản MQTT của nó.
+            <Trans i18nKey="admin.lockers.gateway.noPiHint" components={{ code: <code /> }} />
           </p>
         )}
 
@@ -249,8 +254,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
           <div className="flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-lg p-2.5">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>
-              Pi đang báo phục vụ tủ #{current.reportedLockerId}, không phải tủ này. Bấm “Gửi lại sơ đồ”; nếu vẫn vậy,
-              kiểm tra tài khoản MQTT của Pi có quyền trên tủ #{lockerId}.
+              {t("admin.lockers.gateway.wrongLocker", { reported: current.reportedLockerId, id: lockerId })}
             </span>
           </div>
         )}
@@ -259,8 +263,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
           <div className="flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-lg p-2.5">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>
-              Tủ có ô số {highestBoxNumber} nhưng bộ điều khiển chỉ có {current?.availableSlots} ô — ô vượt quá sẽ không mở
-              được.
+              {t("admin.lockers.gateway.tooManyBoxes", { highest: highestBoxNumber, slots: current?.availableSlots })}
             </span>
           </div>
         )}
@@ -271,11 +274,11 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
 
         {failedSlots.length > 0 && (
           <div className="text-xs border border-border rounded-lg overflow-hidden">
-            <div className="px-3 py-1.5 bg-muted/40 font-medium">Ô thử không đạt</div>
+            <div className="px-3 py-1.5 bg-muted/40 font-medium">{t("admin.lockers.gateway.failedSlots")}</div>
             <ul className="divide-y divide-border">
               {failedSlots.map((l) => (
                 <li key={l.slotIndex} className="px-3 py-1.5 flex flex-wrap gap-x-3">
-                  <span className="font-semibold">Ô {l.slotIndex + 1}</span>
+                  <span className="font-semibold">{t("admin.lockers.gateway.slot", { number: l.slotIndex + 1 })}</span>
                   <span className="text-muted-foreground">{l.errorCode ?? l.testResult}</span>
                   {l.errorMessage && <span className="text-muted-foreground">{l.errorMessage}</span>}
                 </li>
@@ -288,10 +291,9 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
       <Dialog open={assignTarget != null} onOpenChange={(open) => !assigning && !open && setAssignTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Gán bộ điều khiển vào tủ #{lockerId}</DialogTitle>
+            <DialogTitle>{t("admin.lockers.gateway.assignTitle", { id: lockerId })}</DialogTitle>
             <DialogDescription>
-              {assignTarget?.macAddress} sẽ nhận sơ đồ {cellCount} ô: ô số N trên admin điều khiển khoá thứ N (relay IN
-              N) của Pi.
+              {t("admin.lockers.gateway.assignDesc", { mac: assignTarget?.macAddress ?? "", count: cellCount })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -299,28 +301,26 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
               <Checkbox id="gateway-test-doors" checked={testDoors} onCheckedChange={(v) => setTestDoors(v === true)} />
               <div className="space-y-1">
                 <Label htmlFor="gateway-test-doors" className="text-sm">
-                  Mở thử lần lượt từng ô
+                  {t("admin.lockers.gateway.testDoors")}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Mọi cửa sẽ bật ra lần lượt để kiểm khoá và cảm biến — chỉ làm khi tủ trống và có người đứng cạnh. Bỏ chọn
-                  nếu tủ đang có hàng: Pi chỉ lưu sơ đồ.
+                  {t("admin.lockers.gateway.testDoorsHint")}
                 </p>
               </div>
             </div>
             {tooManyBoxes(assignTarget) && (
               <p className="text-xs text-red-700 dark:text-red-400">
-                Tủ có ô số {highestBoxNumber} nhưng thiết bị chỉ có {assignTarget?.availableSlots} ô — iot-service sẽ từ
-                chối.
+                {t("admin.lockers.gateway.tooManyBoxesDevice", { highest: highestBoxNumber, slots: assignTarget?.availableSlots })}
               </p>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAssignTarget(null)} disabled={assigning}>
-              Huỷ
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleAssign} disabled={assigning}>
               {assigning && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
-              Gửi sơ đồ
+              {t("admin.lockers.gateway.send")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -329,14 +329,11 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
       <ConfirmActionDialog
         open={confirmUnassign}
         onOpenChange={setConfirmUnassign}
-        title="Gỡ bộ điều khiển khỏi tủ?"
+        title={t("admin.lockers.gateway.unassignTitle")}
         description={
-          <p>
-            Pi {current?.macAddress} sẽ xoá sơ đồ ô và thôi nhận lệnh của tủ #{lockerId}. App và kiosk sẽ không mở được ô
-            thật cho tới khi gán lại.
-          </p>
+          <p>{t("admin.lockers.gateway.unassignDesc", { mac: current?.macAddress ?? "", id: lockerId })}</p>
         }
-        actionLabel="Gỡ"
+        actionLabel={t("admin.lockers.gateway.unassign")}
         destructive
         loading={unassigning}
         onConfirm={handleUnassign}

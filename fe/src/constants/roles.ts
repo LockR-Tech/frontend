@@ -1,26 +1,29 @@
-// Nhãn tiếng Việt cho role. Định danh role là chuỗi SCREAMING_SNAKE do backend
+import i18n from "~/utils/i18n";
+
+// Khoá i18n cho nhãn role. Định danh role là chuỗi SCREAMING_SNAKE do backend
 // cấp (allowlist ở auth-service/…/AuthService.java); phần dưới chỉ lo hiển thị.
-export const ROLE_LABELS: Record<string, string> = {
-  CUSTOMER: "Khách hàng",
-  ADMIN: "Quản trị viên",
-  LOCKER_TECHNICIAN: "Kỹ thuật viên tủ",
-  DRONE_TECHNICIAN: "Kỹ thuật viên drone",
+export const ROLE_LABEL_KEYS: Record<string, string> = {
+  CUSTOMER: "shared.roles.customer",
+  ADMIN: "shared.roles.admin",
+  LOCKER_TECHNICIAN: "shared.roles.lockerTechnician",
+  DRONE_TECHNICIAN: "shared.roles.droneTechnician",
   // Tên cũ trước khi đổi — giữ để tài khoản chưa chạy migration V5 không hiện
   // ra chuỗi thô.
-  TECHNICIAN: "Kỹ thuật viên tủ",
-  MAINTENANCE: "Kỹ thuật viên drone",
+  TECHNICIAN: "shared.roles.lockerTechnician",
+  MAINTENANCE: "shared.roles.droneTechnician",
   // Role đã khai tử, chỉ còn trong dữ liệu seed cũ.
-  MANAGER: "Quản lý",
-  STAFF: "Nhân viên",
-  USER: "Người dùng",
-  MODERATOR: "Kiểm duyệt viên",
-  PARTNER: "Đối tác",
-  PARTNER_STAFF: "Nhân viên đối tác",
-  SUPER_ADMIN: "Quản trị cấp cao",
+  MANAGER: "shared.roles.manager",
+  STAFF: "shared.roles.staff",
+  USER: "shared.roles.user",
+  MODERATOR: "shared.roles.moderator",
+  PARTNER: "shared.roles.partner",
+  PARTNER_STAFF: "shared.roles.partnerStaff",
+  SUPER_ADMIN: "shared.roles.superAdmin",
 };
 
-/// Bỏ tiền tố `ROLE_` rồi tra nhãn; không có nhãn thì trả lại chính định danh.
+/// Bỏ tiền tố `ROLE_` rồi tra nhãn (theo ngôn ngữ hiện tại); không có nhãn thì trả lại chính định danh.
 export function getRoleLabel(role: string): string {
   const normalized = role.toUpperCase().replace(/^ROLE_/, "");
-  return ROLE_LABELS[normalized] ?? role;
+  const key = ROLE_LABEL_KEYS[normalized];
+  return key ? i18n.t(key) : role;
 }

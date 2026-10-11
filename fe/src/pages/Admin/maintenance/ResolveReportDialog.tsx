@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -31,8 +32,8 @@ export function ResolveReportDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Xác nhận hoàn tất",
-  errorTitle = "Không xử lý được phiếu",
+  confirmLabel,
+  errorTitle,
   onSubmit,
 }: {
   open: boolean;
@@ -44,6 +45,10 @@ export function ResolveReportDialog({
   /** Ném lỗi ⇒ dialog giữ nguyên và báo lỗi (ví dụ RESOLUTION_PHOTO_REQUIRED). */
   onSubmit: (payload: ResolveReportPayload) => Promise<void>;
 }) {
+  const { t } = useTranslation();
+  // Mặc định dịch theo ngôn ngữ hiện tại khi nơi gọi không truyền nhãn riêng
+  const confirmText = confirmLabel ?? t("admin.maintenance.resolveDialog.defaultConfirm");
+  const errorText = errorTitle ?? t("admin.maintenance.resolveDialog.defaultErrorTitle");
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -71,7 +76,7 @@ export function ResolveReportDialog({
       onOpenChange(false);
     } catch (err) {
       if (!isHandledUploadError(err)) {
-        toast.error(errorTitle, { description: getMediaErrorMessage(err, "Có lỗi khi đóng phiếu sự cố trên hệ thống.") });
+        toast.error(errorText, { description: getMediaErrorMessage(err, t("admin.maintenance.resolveDialog.closeFailed")) });
       }
     } finally {
       setSubmitting(false);
@@ -92,20 +97,20 @@ export function ResolveReportDialog({
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label className="text-xs font-medium" htmlFor="resolve-report-note">
-              Ghi chú nghiệm thu (tuỳ chọn)
+              {t("admin.maintenance.resolveDialog.noteLabel")}
             </Label>
             <Textarea
               id="resolve-report-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="VD: Đã thay chốt khoá, test đóng/mở 10 lần ổn định"
+              placeholder={t("admin.maintenance.resolveDialog.notePlaceholder")}
               rows={2}
               className="text-xs resize-none"
               disabled={busy}
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Ảnh nghiệm thu (tuỳ chọn)</Label>
+            <Label className="text-xs font-medium">{t("admin.maintenance.resolveDialog.photosLabel")}</Label>
             <PhotoPicker
               value={files}
               onChange={setFiles}
@@ -118,7 +123,7 @@ export function ResolveReportDialog({
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={busy}>
-            Hủy bỏ
+            {t("common.cancelAction")}
           </Button>
           <Button
             onClick={submit}
@@ -126,7 +131,11 @@ export function ResolveReportDialog({
             className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             {busy && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isUploading ? "Đang tải ảnh..." : submitting ? "Đang xử lý..." : confirmLabel}
+            {isUploading
+              ? t("admin.maintenance.uploadingPhotos")
+              : submitting
+                ? t("admin.maintenance.processing")
+                : confirmText}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Loader2, MapPin, Plane, RefreshCw, Route, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -45,24 +47,25 @@ const FINISHED_STATUSES = new Set(["COMPLETED", "CANCELED", "EXPIRED"]);
 
 type Scope = "active" | "finished" | "all";
 
-const SCOPES: { value: Scope; label: string }[] = [
-  { value: "active", label: "Đang thực hiện" },
-  { value: "finished", label: "Đã kết thúc" },
-  { value: "all", label: "Tất cả" },
+const SCOPES: { value: Scope; labelKey: string }[] = [
+  { value: "active", labelKey: "admin.droneOrders.scope.active" },
+  { value: "finished", labelKey: "admin.droneOrders.scope.finished" },
+  { value: "all", labelKey: "common.all" },
 ];
 
+// Giá trị là khoá i18n; dịch lúc render.
 const MISSION_STATUS_LABELS: Record<string, string> = {
-  AWAITING_LOADING: "Chờ nạp hàng",
-  READY_TO_LAUNCH: "Sẵn sàng phóng",
-  LAUNCHING: "Đang khởi phóng",
-  DEPARTED: "Đã rời trạm",
-  EN_ROUTE: "Đang bay",
-  APPROACHING: "Sắp tới tủ nhận",
-  ARRIVED: "Đã tới tủ nhận",
-  DEPOSITED: "Đã gửi hàng vào ô",
-  CANCELED: "Đã huỷ trước khi bay",
-  FAILED: "Chuyến bay thất bại",
-  DROP_REPORTED: "Báo rơi kiện — chuyển sang xử lý sự cố",
+  AWAITING_LOADING: "admin.droneOrders.missionStatus.awaitingLoading",
+  READY_TO_LAUNCH: "admin.droneOrders.missionStatus.readyToLaunch",
+  LAUNCHING: "admin.droneOrders.missionStatus.launching",
+  DEPARTED: "admin.droneOrders.missionStatus.departed",
+  EN_ROUTE: "admin.droneOrders.missionStatus.enRoute",
+  APPROACHING: "admin.droneOrders.missionStatus.approaching",
+  ARRIVED: "admin.droneOrders.missionStatus.arrived",
+  DEPOSITED: "admin.droneOrders.missionStatus.deposited",
+  CANCELED: "admin.droneOrders.missionStatus.canceled",
+  FAILED: "admin.droneOrders.missionStatus.failed",
+  DROP_REPORTED: "admin.droneOrders.missionStatus.dropReported",
 };
 
 /** Kiện bị báo rơi: máy trạng thái giao hàng dừng, việc tiếp theo nằm ở trang Sự cố rơi kiện. */
@@ -77,13 +80,13 @@ function incidentLink(order: DroneOrderTracking): string {
 /** Chặng drone đã phóng — chỉ ở các chặng này mới báo được chuyến bay thất bại. */
 const IN_FLIGHT_STAGES = new Set(["LAUNCHING", "DEPARTED", "EN_ROUTE", "APPROACHING", "ARRIVED"]);
 
-// Khớp DroneOrderMaintenanceService.cancelReasonLabel ở backend.
+// Khớp DroneOrderMaintenanceService.cancelReasonLabel ở backend. Giá trị là khoá i18n.
 const CANCEL_REASON_LABELS: Record<number, string> = {
-  1: "Thời tiết xấu",
-  2: "Drone lỗi",
-  3: "Bãi đáp không sẵn sàng",
-  4: "Lý do vận hành",
-  5: "Lý do khác",
+  1: "admin.droneOrders.cancelReason.badWeather",
+  2: "admin.droneOrders.cancelReason.droneFault",
+  3: "admin.droneOrders.cancelReason.landingPadUnavailable",
+  4: "admin.droneOrders.cancelReason.operational",
+  5: "admin.droneOrders.cancelReason.other",
 };
 
 function isFinished(order: DroneOrderTracking): boolean {
@@ -99,13 +102,14 @@ function needsAction(order: DroneOrderTracking): boolean {
   return !isFinished(order) || order.parcelReturnPending === true;
 }
 
+// Giá trị là khoá i18n; dịch lúc render.
 const PARCEL_CATEGORY_LABELS: Record<string, string> = {
-  DOCUMENT: "Tài liệu",
-  FOOD: "Đồ ăn",
-  CLOTHING: "Quần áo",
-  ELECTRONICS: "Điện tử",
-  COSMETICS: "Mỹ phẩm",
-  OTHER: "Khác",
+  DOCUMENT: "admin.droneOrders.parcelCategory.document",
+  FOOD: "admin.droneOrders.parcelCategory.food",
+  CLOTHING: "admin.droneOrders.parcelCategory.clothing",
+  ELECTRONICS: "admin.droneOrders.parcelCategory.electronics",
+  COSMETICS: "admin.droneOrders.parcelCategory.cosmetics",
+  OTHER: "admin.droneOrders.parcelCategory.other",
 };
 
 function parcelSize(order: DroneOrderTracking): string | null {
@@ -130,10 +134,16 @@ function stageMeta(order: DroneOrderTracking): BadgeMeta {
     : deliveryStageMeta(order.deliveryStage);
 }
 
-function lockerName(point: DroneLockerPoint | null, fallbackId: number | null): string {
+function lockerName(
+  point: DroneLockerPoint | null,
+  fallbackId: number | null,
+  t: TFunction,
+): string {
   if (point?.name && point.code) return `${point.name} (${point.code})`;
   if (point?.name || point?.code) return (point.name ?? point.code) as string;
-  return fallbackId ? "Chưa tra được tên tủ" : "Chưa xác định";
+  return fallbackId
+    ? t("admin.droneOrders.locker.nameNotFound")
+    : t("admin.droneOrders.undetermined");
 }
 
 function grams(value: number | null): string | null {
@@ -141,25 +151,26 @@ function grams(value: number | null): string | null {
   return `${value.toLocaleString("vi-VN")} g`;
 }
 
-function checklist(value: boolean | null): string {
-  if (value === null || value === undefined) return "Chưa kiểm";
-  return value ? "Đạt" : "Không đạt";
+function checklist(value: boolean | null, t: TFunction): string {
+  if (value === null || value === undefined) return t("admin.droneOrders.checklist.notChecked");
+  return value ? t("admin.droneOrders.checklist.passed") : t("admin.droneOrders.checklist.failed");
 }
 
-function journeyTitle(event: DroneJourneyEvent): string {
+function journeyTitle(event: DroneJourneyEvent, t: TFunction): string {
   // Xác nhận nạp hàng được ghi là ACCEPTED → ACCEPTED.
   if (event.fromStage === "ACCEPTED" && event.toStage === "ACCEPTED") {
-    return "Đã nạp hàng lên drone";
+    return t("admin.droneOrders.journey.loaded");
   }
-  if (isPickupCodeEvent(event)) return "Gửi mã nhận hàng cho người nhận";
+  if (isPickupCodeEvent(event)) return t("admin.droneOrders.journey.pickupCodeSent");
   if (!event.fromStage && event.toStage === "AWAITING_DISPATCH") {
-    return "Đơn drone được tạo";
+    return t("admin.droneOrders.journey.created");
   }
   if (FINISHED_STATUSES.has(event.toStage)) return orderStatusMeta(event.toStage).label;
   return deliveryStageMeta(event.toStage).label;
 }
 
 export default function DroneOrdersPage() {
+  const { t } = useTranslation();
   const [scope, setScope] = useState<Scope>("active");
   // "Đang thực hiện" chỉ xin nhiệm vụ đang chạy; hai nhóm còn lại cần cả lịch sử
   const { data, isLoading, isFetching, isError, refetch } = useGetAdminDroneOrderListQuery(
@@ -217,25 +228,25 @@ export default function DroneOrdersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Hành trình drone"
-        description="Theo dõi từng chuyến giao hàng bằng drone từ tủ gửi tới tủ nhận. Tự cập nhật mỗi 5 giây."
+        title={t("admin.droneOrders.title")}
+        description={t("admin.droneOrders.description")}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Đang thực hiện" value={counts.active} color="text-primary" />
-          <StatCard label="Chờ điều phối" value={counts.waiting} color="text-amber-700" />
-          <StatCard label="Đang bay" value={counts.inFlight} color="text-sky-700" />
+          <StatCard label={t("admin.droneOrders.scope.active")} value={counts.active} color="text-primary" />
+          <StatCard label={t("admin.droneOrders.stats.waiting")} value={counts.waiting} color="text-amber-700" />
+          <StatCard label={t("admin.droneOrders.stats.inFlight")} value={counts.inFlight} color="text-sky-700" />
           <StatCard
-            label="Đã kết thúc"
+            label={t("admin.droneOrders.scope.finished")}
             value={counts.finished ?? "—"}
             color="text-muted-foreground"
-            hint={counts.finished == null ? "Chọn nhóm Đã kết thúc hoặc Tất cả để xem" : undefined}
+            hint={counts.finished == null ? t("admin.droneOrders.stats.finishedHint") : undefined}
           />
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-          Làm mới
+          {t("button.refresh")}
         </Button>
       </div>
 
@@ -252,7 +263,7 @@ export default function DroneOrdersPage() {
                   : "border-border/50 bg-background text-muted-foreground hover:border-border/70"
               }`}
             >
-              {s.label}
+              {t(s.labelKey)}
             </button>
           );
         })}
@@ -265,10 +276,10 @@ export default function DroneOrdersPage() {
       ) : isError && orders.length === 0 ? (
         <Card className="border-0 shadow-sm">
           <CardContent className="py-16 text-center text-sm text-muted-foreground">
-            Không tải được danh sách hành trình drone.
+            {t("admin.droneOrders.list.loadFailed")}
             <div className="mt-3">
               <Button variant="outline" size="sm" onClick={() => refetch()}>
-                Thử lại
+                {t("common.retry")}
               </Button>
             </div>
           </CardContent>
@@ -278,8 +289,8 @@ export default function DroneOrdersPage() {
           <CardContent className="py-16 text-center text-sm text-muted-foreground">
             <Plane className="mx-auto mb-3 h-8 w-8 opacity-40" />
             {orders.length === 0
-              ? "Chưa có đơn giao drone nào"
-              : "Không có đơn nào trong nhóm này"}
+              ? t("admin.droneOrders.list.emptyAll")
+              : t("admin.droneOrders.list.emptyScope")}
           </CardContent>
         </Card>
       ) : (
@@ -288,14 +299,14 @@ export default function DroneOrdersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-xs text-muted-foreground">
-                  <th className="px-4 py-3 font-medium">Mã đơn</th>
-                  <th className="px-4 py-3 font-medium">Lộ trình</th>
-                  <th className="px-4 py-3 font-medium">Chặng</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.droneOrders.columns.orderCode")}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.droneOrders.columns.route")}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.droneOrders.columns.stage")}</th>
                   <th className="px-4 py-3 font-medium">Drone</th>
-                  <th className="px-4 py-3 font-medium">Điều phối viên</th>
-                  <th className="px-4 py-3 font-medium">Thanh toán</th>
-                  <th className="px-4 py-3 font-medium">Tạo đơn</th>
-                  <th className="px-4 py-3 font-medium">Cập nhật cuối</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.droneOrders.columns.dispatcher")}</th>
+                  <th className="px-4 py-3 font-medium">{t("common.payment")}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.droneOrders.columns.createdAt")}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.droneOrders.columns.updatedAt")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -310,11 +321,11 @@ export default function DroneOrdersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-medium">
-                        {lockerName(order.sourceLocker, order.sourceLockerId)}
+                        {lockerName(order.sourceLocker, order.sourceLockerId, t)}
                       </span>
                       <span className="mx-1.5 text-muted-foreground">→</span>
                       <span className="font-medium">
-                        {lockerName(order.destinationLocker, order.destinationLockerId)}
+                        {lockerName(order.destinationLocker, order.destinationLockerId, t)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -325,14 +336,16 @@ export default function DroneOrdersPage() {
                           onClick={(e) => e.stopPropagation()}
                           className="mt-1 block text-[11px] font-medium text-red-700 hover:underline"
                         >
-                          Xử lý sự cố rơi kiện →
+                          {t("admin.droneOrders.list.handleDropIncident")}
                         </Link>
                       )}
                     </td>
-                    <td className="px-4 py-3">{order.droneCode ?? "Chưa phân công"}</td>
+                    <td className="px-4 py-3">{order.droneCode ?? t("common.unassigned")}</td>
                     <td className="px-4 py-3">
                       {order.assignedByName ??
-                        (order.assignedByUserId ? "Đã tiếp nhận" : "Chưa tiếp nhận")}
+                        (order.assignedByUserId
+                          ? t("admin.droneOrders.list.accepted")
+                          : t("admin.droneOrders.list.notAccepted"))}
                     </td>
                     <td className="px-4 py-3">
                       <MetaBadge meta={orderPaymentStatusMeta(order.paymentStatus)} hideIcon />
@@ -384,6 +397,7 @@ function DroneOrderDialog({
   orderId: number | null;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useGetDroneOrderQuery(orderId ?? 0, {
     skip: orderId === null,
     pollingInterval: DETAIL_POLL_MS,
@@ -396,7 +410,7 @@ function DroneOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex flex-wrap items-center gap-2">
             <Route className="h-4 w-4" />
-            Hành trình đơn {order?.orderCode ?? ""}
+            {t("admin.droneOrders.detail.title", { code: order?.orderCode ?? "" })}
             {order && <MetaBadge meta={stageMeta(order)} />}
           </DialogTitle>
         </DialogHeader>
@@ -406,27 +420,26 @@ function DroneOrderDialog({
             {isLoading ? (
               <Loader2 className="mx-auto h-6 w-6 animate-spin" />
             ) : isError ? (
-              "Không tải được chi tiết hành trình."
+              t("admin.droneOrders.detail.loadFailed")
             ) : null}
           </div>
         ) : (
           <div className="space-y-6">
             <p className="text-xs text-muted-foreground">
-              Tự cập nhật mỗi 3 giây · cập nhật cuối {formatDateTime(order.updatedAt)}
+              {t("admin.droneOrders.detail.autoRefresh", { time: formatDateTime(order.updatedAt) })}
             </p>
 
             {isDropReported(order) && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
                 <span className="flex items-center gap-2">
                   <TriangleAlert className="h-4 w-4 shrink-0" />
-                  Kiện bị báo rơi giữa chặng bay — đơn dừng giao, thu hồi và phương án cho khách
-                  xử lý ở trang Sự cố rơi kiện.
+                  {t("admin.droneOrders.detail.dropReportedBanner")}
                 </span>
                 <Link
                   to={incidentLink(order)}
                   className="whitespace-nowrap font-medium underline-offset-2 hover:underline"
                 >
-                  Mở sự cố →
+                  {t("admin.droneOrders.detail.openIncident")}
                 </Link>
               </div>
             )}
@@ -434,23 +447,27 @@ function DroneOrderDialog({
             {order.status === "CANCELED" && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
                 {isFlightFailure(order)
-                  ? "Chuyến bay thất bại sau khi phóng — đội bay trả kiện cho người gửi"
-                  : "Đơn đã huỷ"}
+                  ? t("admin.droneOrders.detail.flightFailedBanner")
+                  : t("admin.droneOrders.detail.canceled")}
                 {order.cancelReason
-                  ? ` · ${CANCEL_REASON_LABELS[order.cancelReason] ?? `Lý do #${order.cancelReason}`}`
+                  ? ` · ${
+                      CANCEL_REASON_LABELS[order.cancelReason]
+                        ? t(CANCEL_REASON_LABELS[order.cancelReason])
+                        : t("admin.droneOrders.cancelReason.unknown", { code: order.cancelReason })
+                    }`
                   : ""}
                 {order.cancelNote ? ` · ${order.cancelNote}` : ""}
                 {order.paymentStatus === "REFUND_PENDING"
-                  ? " · Chờ hoàn tiền — duyệt và chuyển khoản ở trang Thanh toán › Hoàn tiền"
+                  ? ` · ${t("admin.droneOrders.detail.refundPending")}`
                   : order.paymentStatus === "REFUNDED"
-                    ? " · Đã chuyển khoản hoàn tiền cho người đặt"
+                    ? ` · ${t("admin.droneOrders.detail.refunded")}`
                     : order.paymentStatus === "PAID"
-                      ? " · CHƯA có yêu cầu hoàn tiền — cần xử lý tay ở trang Thanh toán"
+                      ? ` · ${t("admin.droneOrders.detail.refundMissing")}`
                       : ""}
               </div>
             )}
 
-            <Section title="Bản đồ theo dõi">
+            <Section title={t("admin.droneOrders.section.map")}>
               <DroneTrackingMap order={order} />
             </Section>
 
@@ -466,166 +483,193 @@ function DroneOrderDialog({
               <FlightFailureForm orderId={order.orderId} orderCode={order.orderCode} />
             )}
 
-            <Section title="Lộ trình · gửi và nhận">
+            <Section title={t("admin.droneOrders.section.route")}>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <LockerBlock
-                  label="Tủ gửi · Locker A"
+                  label={t("admin.droneOrders.lockerBlock.source")}
                   point={order.sourceLocker}
                   fallbackId={order.sourceLockerId}
                   extras={[
                     order.sourceBoxNumber !== null && order.sourceBoxNumber !== undefined
-                      ? `Kiện đang ở ô drone số ${order.sourceBoxNumber}`
+                      ? t("admin.droneOrders.lockerBlock.parcelInDroneBox", { number: order.sourceBoxNumber })
                       : null,
-                  ]}
-                  times={[{ label: "Gửi đi lúc", at: sentAt(order), empty: "Chưa gửi" }]}
-                />
-                <LockerBlock
-                  label="Tủ nhận · Locker B"
-                  point={order.destinationLocker}
-                  fallbackId={order.destinationLockerId}
-                  extras={[
-                    order.reservedBoxNumber !== null ? `Ô nhận số ${order.reservedBoxNumber}` : null,
                   ]}
                   times={[
                     {
-                      label: "Hàng vào tủ lúc",
+                      label: t("admin.droneOrders.lockerBlock.sentAt"),
+                      at: sentAt(order),
+                      empty: t("admin.droneOrders.lockerBlock.notSent"),
+                    },
+                  ]}
+                />
+                <LockerBlock
+                  label={t("admin.droneOrders.lockerBlock.destination")}
+                  point={order.destinationLocker}
+                  fallbackId={order.destinationLockerId}
+                  extras={[
+                    order.reservedBoxNumber !== null
+                      ? t("admin.droneOrders.lockerBlock.reservedBox", { number: order.reservedBoxNumber })
+                      : null,
+                  ]}
+                  times={[
+                    {
+                      label: t("admin.droneOrders.lockerBlock.arrivedAt"),
                       at: stageTimes(order).get("READY_FOR_PICKUP") ?? null,
-                      empty: "Chưa tới",
+                      empty: t("admin.droneOrders.lockerBlock.notArrived"),
                     },
                     {
-                      label: "Gửi mã cho người nhận lúc",
+                      label: t("admin.droneOrders.lockerBlock.codeSentAt"),
                       at: pickupCodeEvent(order)?.occurredAt ?? null,
-                      empty: "Chưa gửi",
+                      empty: t("admin.droneOrders.lockerBlock.notSent"),
                     },
-                    { label: "Người nhận lấy hàng lúc", at: order.completedAt, empty: "Chưa nhận" },
+                    {
+                      label: t("admin.droneOrders.lockerBlock.pickedUpAt"),
+                      at: order.completedAt,
+                      empty: t("admin.droneOrders.lockerBlock.notPickedUp"),
+                    },
                   ]}
                 />
               </div>
             </Section>
 
-            <Section title="Tiến trình giao hàng">
+            <Section title={t("admin.droneOrders.section.progress")}>
               <DroneJourneyTimeline order={order} />
             </Section>
 
-            <Section title="Đơn hàng">
+            <Section title={t("common.order")}>
               <Grid>
-                <LabelValue label="Mã đơn" mono>{order.orderCode}</LabelValue>
-                <LabelValue label="Trạng thái đơn">
+                <LabelValue label={t("admin.droneOrders.columns.orderCode")} mono>{order.orderCode}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.orderStatus")}>
                   <MetaBadge meta={orderStatusMeta(order.status)} />
                 </LabelValue>
-                <LabelValue label="Thanh toán">
+                <LabelValue label={t("common.payment")}>
                   <MetaBadge meta={orderPaymentStatusMeta(order.paymentStatus)} />
                 </LabelValue>
-                <LabelValue label="Phí giao drone">
+                <LabelValue label={t("admin.droneOrders.fields.droneFee")}>
                   {order.totalPrice !== null ? formatCurrency(order.totalPrice) : null}
                 </LabelValue>
-                <LabelValue label="Phương thức thanh toán">
+                <LabelValue label={t("admin.droneOrders.fields.paymentMethod")}>
                   {order.paymentMethod ? (
                     <MetaBadge meta={paymentMethodMeta(order.paymentMethod)} />
                   ) : null}
                 </LabelValue>
-                <LabelValue label="Mã thanh toán" mono>{order.paymentReference}</LabelValue>
-                <LabelValue label="Mã giao dịch" mono>{order.paymentTransactionId}</LabelValue>
-                <Time label="Thanh toán lúc" value={order.paidAt} />
-                <LabelValue label="Khối lượng khai báo">{grams(order.parcelWeightGrams)}</LabelValue>
-                <LabelValue label="Loại hàng">
+                <LabelValue label={t("admin.droneOrders.fields.paymentReference")} mono>{order.paymentReference}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.transactionId")} mono>{order.paymentTransactionId}</LabelValue>
+                <Time label={t("admin.droneOrders.fields.paidAt")} value={order.paidAt} />
+                <LabelValue label={t("admin.droneOrders.fields.declaredWeight")}>{grams(order.parcelWeightGrams)}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.parcelCategory")}>
                   {order.parcelCategory
-                    ? (PARCEL_CATEGORY_LABELS[order.parcelCategory] ?? order.parcelCategory)
+                    ? (PARCEL_CATEGORY_LABELS[order.parcelCategory]
+                        ? t(PARCEL_CATEGORY_LABELS[order.parcelCategory])
+                        : order.parcelCategory)
                     : null}
-                  {order.fragile ? " · DỄ VỠ" : ""}
+                  {order.fragile ? ` · ${t("admin.droneOrders.fields.fragile")}` : ""}
                 </LabelValue>
-                <LabelValue label="Kích thước kiện">{parcelSize(order)}</LabelValue>
-                <LabelValue label="Giá trị khai báo">
+                <LabelValue label={t("admin.droneOrders.fields.parcelSize")}>{parcelSize(order)}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.declaredValue")}>
                   {order.declaredValue != null ? formatCurrency(order.declaredValue) : null}
                 </LabelValue>
-                <LabelValue label="Bỏ kiện vào ô gửi lúc">
+                <LabelValue label={t("admin.droneOrders.fields.droppedAt")}>
                   {order.parcelDroppedAt
                     ? formatDateTime(order.parcelDroppedAt)
                     : order.status === "AWAITING_DISPATCH" && order.deliveryStage === "AWAITING_DISPATCH"
-                      ? "Người gửi chưa bỏ kiện"
+                      ? t("admin.droneOrders.fields.notDropped")
                       : null}
                 </LabelValue>
-                <LabelValue label="Quãng đường bay">{routeDistance(order.routeDistanceMeters)}</LabelValue>
-                <LabelValue label="Hình thức bay">
+                <LabelValue label={t("admin.droneOrders.fields.flightDistance")}>{routeDistance(order.routeDistanceMeters)}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.flightMode")}>
                   {order.fulfillmentMode === "DEMO"
-                    ? "Mô phỏng (DEMO)"
+                    ? t("admin.droneOrders.fields.modeDemo")
                     : order.fulfillmentMode === "STANDARD"
-                      ? "Drone thật"
+                      ? t("admin.droneOrders.fields.modeStandard")
                       : order.fulfillmentMode}
                 </LabelValue>
-                <LabelValue label="Mô tả kiện hàng" className="col-span-2 sm:col-span-3">
+                <LabelValue label={t("admin.droneOrders.fields.parcelDescription")} className="col-span-2 sm:col-span-3">
                   {order.description}
                 </LabelValue>
               </Grid>
             </Section>
 
-            <Section title="Người liên quan">
+            <Section title={t("admin.droneOrders.section.people")}>
               <Grid>
-                <LabelValue label="Người gửi">{order.customerName}</LabelValue>
-                <LabelValue label="SĐT người gửi" mono>{order.customerPhone}</LabelValue>
-                <LabelValue label="Người nhận">{order.receiverName}</LabelValue>
-                <LabelValue label="SĐT người nhận" mono>{order.receiverPhone}</LabelValue>
-                <LabelValue label="Điều phối viên">
+                <LabelValue label={t("admin.droneOrders.fields.sender")}>{order.customerName}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.senderPhone")} mono>{order.customerPhone}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.receiver")}>{order.receiverName}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.receiverPhone")} mono>{order.receiverPhone}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.columns.dispatcher")}>
                   {order.assignedByName ??
-                    (order.assignedByUserId ? "Đã tiếp nhận" : "Chưa tiếp nhận")}
+                    (order.assignedByUserId
+                      ? t("admin.droneOrders.list.accepted")
+                      : t("admin.droneOrders.list.notAccepted"))}
                 </LabelValue>
-                <LabelValue label="Người nạp hàng">
-                  {order.loadedByName ?? (order.loadedByUserId ? "Đã nạp" : "Chưa nạp hàng")}
+                <LabelValue label={t("admin.droneOrders.fields.loader")}>
+                  {order.loadedByName ??
+                    (order.loadedByUserId
+                      ? t("admin.droneOrders.fields.loaded")
+                      : t("admin.droneOrders.fields.notLoaded"))}
                 </LabelValue>
               </Grid>
             </Section>
 
-            <Section title="Nhiệm vụ bay & hồ sơ nạp hàng">
+            <Section title={t("admin.droneOrders.section.mission")}>
               <Grid>
-                <LabelValue label="Mã nhiệm vụ" mono>
-                  {order.missionId !== null ? `#${order.missionId}` : "Chưa khởi tạo"}
+                <LabelValue label={t("admin.droneOrders.fields.missionId")} mono>
+                  {order.missionId !== null
+                    ? `#${order.missionId}`
+                    : t("admin.droneOrders.fields.notInitialized")}
                 </LabelValue>
-                <LabelValue label="Drone">{order.droneCode ?? "Chưa phân công"}</LabelValue>
-                <LabelValue label="Trạng thái nhiệm vụ">
+                <LabelValue label="Drone">{order.droneCode ?? t("common.unassigned")}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.missionStatus")}>
                   {order.missionStatus
-                    ? (MISSION_STATUS_LABELS[order.missionStatus] ?? order.missionStatus)
-                    : "Chưa khởi tạo"}
+                    ? (MISSION_STATUS_LABELS[order.missionStatus]
+                        ? t(MISSION_STATUS_LABELS[order.missionStatus])
+                        : order.missionStatus)
+                    : t("admin.droneOrders.fields.notInitialized")}
                 </LabelValue>
-                <LabelValue label="Khối lượng thực tế">{grams(order.payloadWeightGrams)}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.actualWeight")}>{grams(order.payloadWeightGrams)}</LabelValue>
                 {order.weightSurcharge ? (
-                  <LabelValue label="Thu thêm do cân lệch">
+                  <LabelValue label={t("admin.droneOrders.fields.weightSurcharge")}>
                     {formatCurrency(order.weightSurcharge)}
-                    {order.amountDue ? " · khách chưa trả" : " · đã trả"}
+                    {order.amountDue
+                      ? ` · ${t("admin.droneOrders.fields.surchargeUnpaid")}`
+                      : ` · ${t("admin.droneOrders.fields.surchargePaid")}`}
                   </LabelValue>
                 ) : null}
-                <LabelValue label="Mã niêm phong" mono>{order.sealCode}</LabelValue>
-                <LabelValue label="Đúng kiện, đúng đơn">{checklist(order.parcelMatched)}</LabelValue>
-                <LabelValue label="Kiện đã cố định">{checklist(order.payloadSecured)}</LabelValue>
-                <LabelValue label="Khoang hàng đã khoá">
-                  {checklist(order.compartmentLocked)}
+                <LabelValue label={t("admin.droneOrders.fields.sealCode")} mono>{order.sealCode}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.parcelMatched")}>{checklist(order.parcelMatched, t)}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.payloadSecured")}>{checklist(order.payloadSecured, t)}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.compartmentLocked")}>
+                  {checklist(order.compartmentLocked, t)}
                 </LabelValue>
-                <LabelValue label="Ghi chú nạp hàng">{order.loadingNote}</LabelValue>
-                <LabelValue label="Pin lúc cất cánh">
+                <LabelValue label={t("admin.droneOrders.fields.loadingNote")}>{order.loadingNote}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.batteryAtLaunch")}>
                   {order.batteryPercentAtLaunch != null ? `${order.batteryPercentAtLaunch} %` : null}
                 </LabelValue>
-                <LabelValue label="Tới tủ nhận lúc">
+                <LabelValue label={t("admin.droneOrders.fields.landedAt")}>
                   {order.landedAt ? formatDateTime(order.landedAt) : null}
                 </LabelValue>
-                <LabelValue label="Hàng vào ô lúc">
+                <LabelValue label={t("admin.droneOrders.fields.depositedAt")}>
                   {order.depositedAt ? formatDateTime(order.depositedAt) : null}
                   {order.depositedAt
-                    ? ` · ${order.depositedByName ?? "hệ thống tự xác nhận"}`
+                    ? ` · ${order.depositedByName ?? t("admin.droneOrders.fields.autoConfirmed")}`
                     : ""}
                 </LabelValue>
                 {order.missionEndedAt ? (
-                  <LabelValue label="Nhiệm vụ kết thúc lúc">
+                  <LabelValue label={t("admin.droneOrders.fields.missionEndedAt")}>
                     {formatDateTime(order.missionEndedAt)}
                     {order.failedStage
-                      ? ` · hỏng ở chặng ${deliveryStageMeta(order.failedStage).label}`
+                      ? ` · ${t("admin.droneOrders.fields.failedAtStage", {
+                          stage: deliveryStageMeta(order.failedStage).label,
+                        })}`
                       : ""}
                   </LabelValue>
                 ) : null}
               </Grid>
             </Section>
 
-            <Section title="Nhật ký hành trình · mới nhất trước">
+            <Section title={t("admin.droneOrders.section.journeyLog")}>
               {order.journeyEvents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Chưa có mốc hành trình nào.</p>
+                <p className="text-sm text-muted-foreground">{t("admin.droneOrders.log.empty")}</p>
               ) : (
                 <ol className="space-y-3">
                   {order.journeyEvents.map((event, index) => (
@@ -635,10 +679,10 @@ function DroneOrderDialog({
                     >
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold">
-                          {journeyTitle(event)}
+                          {journeyTitle(event, t)}
                           {index === 0 && (
                             <span className="ml-2 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                              Mới nhất
+                              {t("admin.droneOrders.log.latest")}
                             </span>
                           )}
                         </p>
@@ -648,7 +692,7 @@ function DroneOrderDialog({
                         <p className="font-mono text-[11px] text-muted-foreground">
                           {formatDateTime(event.occurredAt)} ·{" "}
                           {event.actorName ??
-                            (event.actorUserId ? "Nhân viên Lock.R" : "Hệ thống")}
+                            (event.actorUserId ? t("admin.droneOrders.log.staff") : t("common.system"))}
                         </p>
                       </div>
                     </li>
@@ -665,53 +709,56 @@ function DroneOrderDialog({
 
 /** Kiện của đơn không giao được: đang ở đâu, và admin xác nhận đã trả cho người gửi. */
 function ParcelReturnPanel({ order }: { order: DroneOrderTracking }) {
+  const { t } = useTranslation();
   const [confirmReturn, { isLoading }] = useConfirmDroneParcelReturnMutation();
   const [note, setNote] = useState("");
 
   if (order.parcelReturnedAt) {
     return (
       <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-700">
-        Đã trả kiện cho người gửi lúc {formatDateTime(order.parcelReturnedAt)}
+        {t("admin.droneOrders.parcelReturn.returnedAt", { time: formatDateTime(order.parcelReturnedAt) })}
         {order.parcelReturnNote ? ` · ${order.parcelReturnNote}` : ""}
       </div>
     );
   }
 
   const submit = async () => {
-    if (!confirm(`Xác nhận kiện của đơn ${order.orderCode} đã về tay người gửi?`)) return;
+    if (!confirm(t("admin.droneOrders.parcelReturn.confirm", { code: order.orderCode }))) return;
     try {
       await confirmReturn({ orderId: order.orderId, note: note.trim() || undefined }).unwrap();
-      toast.success(`Đã ghi nhận trả kiện đơn ${order.orderCode}`);
+      toast.success(t("admin.droneOrders.parcelReturn.success", { code: order.orderCode }));
     } catch (error) {
       const message = (error as { data?: { message?: string } })?.data?.message;
-      toast.error("Không ghi nhận được việc trả kiện", {
-        description: message ?? "Vui lòng tải lại và thử lại.",
+      toast.error(t("admin.droneOrders.parcelReturn.failed"), {
+        description: message ?? t("admin.droneOrders.parcelReturn.failedHint"),
       });
     }
   };
 
   return (
-    <Section title="Kiện chờ trả cho người gửi">
+    <Section title={t("admin.droneOrders.section.parcelReturn")}>
       <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
         <p className="text-sm text-amber-800">
           {order.parcelHeldAt === "SOURCE_BOX"
-            ? `Kiện còn trong ô gửi${order.sourceBoxNumber ? ` số ${order.sourceBoxNumber}` : ""} — ô được giữ tới khi trả kiện.`
-            : "Kiện đang do đội bay giữ."}{" "}
-          Người gửi: {order.customerName ?? "—"}
+            ? order.sourceBoxNumber
+              ? t("admin.droneOrders.parcelReturn.inSourceBoxNumber", { number: order.sourceBoxNumber })
+              : t("admin.droneOrders.parcelReturn.inSourceBox")
+            : t("admin.droneOrders.parcelReturn.heldByFlightTeam")}{" "}
+          {t("admin.droneOrders.parcelReturn.sender", { name: order.customerName ?? "—" })}
           {order.customerPhone ? ` · ${order.customerPhone}` : ""}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <input
-            aria-label="Ghi chú trả kiện"
+            aria-label={t("admin.droneOrders.parcelReturn.noteLabel")}
             className="h-9 min-w-48 flex-1 rounded-md border bg-background px-2 text-sm"
             maxLength={500}
-            placeholder="Ghi chú (tuỳ chọn)"
+            placeholder={t("admin.droneOrders.notePlaceholderOptional")}
             value={note}
             onChange={(event) => setNote(event.target.value)}
           />
           <Button size="sm" disabled={isLoading} onClick={submit}>
             {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-            Xác nhận đã trả kiện
+            {t("admin.droneOrders.parcelReturn.confirmButton")}
           </Button>
         </div>
       </div>
@@ -724,6 +771,7 @@ function ParcelReturnPanel({ order }: { order: DroneOrderTracking }) {
  * đã nhận nhiệm vụ không còn thao tác được, để đơn không kẹt mãi ở chặng bay.
  */
 function FlightFailureForm({ orderId, orderCode }: { orderId: number; orderCode: string }) {
+  const { t } = useTranslation();
   const [failOrder, { isLoading }] = useFailDroneOrderMutation();
   const [reasonCode, setReasonCode] = useState(2);
   const [note, setNote] = useState("");
@@ -732,46 +780,45 @@ function FlightFailureForm({ orderId, orderCode }: { orderId: number; orderCode:
   const submit = async () => {
     const trimmed = note.trim();
     if (noteRequired && !trimmed) {
-      toast.error("Cần nhập ghi chú khi chọn Lý do khác");
+      toast.error(t("admin.droneOrders.flightFailure.noteRequired"));
       return;
     }
-    if (
-      !confirm(
-        `Báo chuyến bay của đơn ${orderCode} thất bại? Đơn sẽ đóng lại, khách được tạo yêu cầu hoàn tiền và drone chuyển sang trạng thái lỗi. Không hoàn tác được.`,
-      )
-    )
-      return;
+    if (!confirm(t("admin.droneOrders.flightFailure.confirm", { code: orderCode }))) return;
     try {
       await failOrder({ orderId, reasonCode, note: trimmed || undefined }).unwrap();
-      toast.success(`Đã báo chuyến bay đơn ${orderCode} thất bại`);
+      toast.success(t("admin.droneOrders.flightFailure.success", { code: orderCode }));
     } catch (error) {
       const message = (error as { data?: { message?: string } })?.data?.message;
-      toast.error("Không báo được chuyến bay thất bại", {
-        description: message ?? "Vui lòng tải lại và kiểm tra chặng hiện tại của đơn.",
+      toast.error(t("admin.droneOrders.flightFailure.failed"), {
+        description: message ?? t("admin.droneOrders.flightFailure.failedHint"),
       });
     }
   };
 
   return (
-    <Section title="Sự cố chuyến bay">
+    <Section title={t("admin.droneOrders.section.flightIncident")}>
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
         <select
-          aria-label="Lý do chuyến bay thất bại"
+          aria-label={t("admin.droneOrders.flightFailure.reasonLabel")}
           className="h-9 rounded-md border bg-background px-2 text-sm"
           value={reasonCode}
           onChange={(event) => setReasonCode(Number(event.target.value))}
         >
-          {Object.entries(CANCEL_REASON_LABELS).map(([code, label]) => (
+          {Object.entries(CANCEL_REASON_LABELS).map(([code, labelKey]) => (
             <option key={code} value={code}>
-              {label}
+              {t(labelKey)}
             </option>
           ))}
         </select>
         <input
-          aria-label="Ghi chú sự cố"
+          aria-label={t("admin.droneOrders.flightFailure.noteLabel")}
           className="h-9 min-w-48 flex-1 rounded-md border bg-background px-2 text-sm"
           maxLength={500}
-          placeholder={noteRequired ? "Ghi chú (bắt buộc)" : "Ghi chú (tuỳ chọn)"}
+          placeholder={
+            noteRequired
+              ? t("admin.droneOrders.flightFailure.notePlaceholderRequired")
+              : t("admin.droneOrders.notePlaceholderOptional")
+          }
           value={note}
           onChange={(event) => setNote(event.target.value)}
         />
@@ -781,7 +828,7 @@ function FlightFailureForm({ orderId, orderCode }: { orderId: number; orderCode:
           ) : (
             <TriangleAlert className="mr-1 h-4 w-4" />
           )}
-          Báo chuyến bay thất bại
+          {t("admin.droneOrders.flightFailure.submit")}
         </Button>
       </div>
     </Section>
@@ -824,6 +871,7 @@ function LockerBlock({
   extras?: (string | null)[];
   times?: { label: string; at: string | Date | null; empty: string }[];
 }) {
+  const { t } = useTranslation();
   // Có toạ độ thì mở chỉ đường theo toạ độ; không thì tìm theo địa chỉ.
   const mapUrl =
     point?.latitude != null && point?.longitude != null
@@ -835,7 +883,7 @@ function LockerBlock({
   return (
     <div className="rounded-lg border p-3">
       <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="text-sm font-semibold">{lockerName(point, fallbackId)}</p>
+      <p className="text-sm font-semibold">{lockerName(point, fallbackId, t)}</p>
       {point?.address && <p className="text-xs text-muted-foreground">{point.address}</p>}
       {extras
         .filter((extra): extra is string => Boolean(extra))
@@ -860,7 +908,7 @@ function LockerBlock({
           className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
         >
           <MapPin className="h-3.5 w-3.5" />
-          Xem trên bản đồ
+          {t("admin.droneOrders.lockerBlock.viewOnMap")}
         </a>
       )}
     </div>

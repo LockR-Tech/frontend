@@ -51,9 +51,10 @@ import {
   knowledgeRoleLabel,
   statusMeta,
 } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
-const PENDING_HINT =
-  "Tài liệu nằm ở “Chờ đánh chỉ mục” cho tới khi máy chủ có khoá API nhúng (embedding). Có khoá là tự chạy tiếp, không cần tải lại.";
+// Message key — dịch lúc render.
+const PENDING_HINT_KEY = "admin.knowledge.documents.pendingHint";
 
 type PendingAction =
   | { kind: "delete"; doc: KnowledgeDocument }
@@ -65,6 +66,7 @@ interface DocumentsTabProps {
 }
 
 export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
+  const { t } = useTranslation();
   const { data, error, isLoading, isFetching, refetch, polling } =
     useKnowledgeDocumentsWithPolling();
   const [reindex, reindexState] = useReindexKnowledgeDocumentMutation();
@@ -123,16 +125,21 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
     try {
       if (kind === "delete") {
         await remove(doc.id).unwrap();
-        toast.success(`Đã xoá “${doc.title}”`);
+        toast.success(t("admin.knowledge.documents.deleted", { title: doc.title }));
       } else {
         await reindex(doc.id).unwrap();
-        toast.success(`Đã đưa “${doc.title}” vào hàng đợi đánh chỉ mục lại`);
+        toast.success(t("admin.knowledge.documents.reindexQueued", { title: doc.title }));
       }
       setConfirmOpen(false);
     } catch (err) {
-      toast.error(kind === "delete" ? "Không xoá được tài liệu" : "Không đánh chỉ mục lại được", {
-        description: getKnowledgeErrorMessage(err, "Đã xảy ra lỗi."),
-      });
+      toast.error(
+        kind === "delete"
+          ? t("admin.knowledge.documents.deleteFailed")
+          : t("admin.knowledge.documents.reindexFailed"),
+        {
+          description: getKnowledgeErrorMessage(err, t("admin.knowledge.errors.generic")),
+        },
+      );
     }
   };
 
@@ -141,10 +148,14 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
       {/* Thống kê + thao tác */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile label="Tài liệu" value={counts.total} />
-          <StatTile label="Sẵn sàng" value={counts.ready} className="text-green-700" />
-          <StatTile label="Đang xử lý" value={counts.processing} className="text-blue-700" />
-          <StatTile label="Lỗi" value={counts.failed} className="text-red-700" />
+          <StatTile label={t("admin.knowledge.documents.stats.documents")} value={counts.total} />
+          <StatTile label={t("admin.knowledge.status.ready")} value={counts.ready} className="text-green-700" />
+          <StatTile
+            label={t("admin.knowledge.documents.stats.processing")}
+            value={counts.processing}
+            className="text-blue-700"
+          />
+          <StatTile label={t("admin.knowledge.status.failed")} value={counts.failed} className="text-red-700" />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
@@ -152,8 +163,8 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm theo tiêu đề, tên file…"
-              aria-label="Tìm tài liệu"
+              placeholder={t("admin.knowledge.documents.searchPlaceholder")}
+              aria-label={t("admin.knowledge.documents.searchAria")}
               className="h-9 pl-9 pr-8"
             />
             {search && (
@@ -161,7 +172,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
                 type="button"
                 onClick={() => setSearch("")}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground"
-                aria-label="Xoá tìm kiếm"
+                aria-label={t("admin.knowledge.documents.clearSearch")}
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -169,11 +180,11 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
           </div>
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-            Làm mới
+            {t("button.refresh")}
           </Button>
           <Button size="sm" onClick={() => setUploadOpen(true)}>
             <FileUp className="h-4 w-4" />
-            Tải tài liệu lên
+            {t("admin.knowledge.documents.upload")}
           </Button>
         </div>
       </div>
@@ -181,8 +192,10 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
       {polling && (
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Đang có {counts.processing} tài liệu chờ/đang đánh chỉ mục — danh sách tự làm mới mỗi{" "}
-          {KNOWLEDGE_POLL_MS / 1000} giây.
+          {t("admin.knowledge.documents.polling", {
+            count: counts.processing,
+            seconds: KNOWLEDGE_POLL_MS / 1000,
+          })}
         </p>
       )}
 
@@ -192,17 +205,17 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
         <Alert className="bg-muted/30">
           <Info className="h-4 w-4" />
           <AlertTitle className="text-sm">
-            {counts.pendingOnly} tài liệu đang chờ đánh chỉ mục
+            {t("admin.knowledge.documents.pendingAlert", { count: counts.pendingOnly })}
           </AlertTitle>
-          <AlertDescription className="text-xs">{PENDING_HINT}</AlertDescription>
+          <AlertDescription className="text-xs">{t(PENDING_HINT_KEY)}</AlertDescription>
         </Alert>
       )}
 
       {error ? (
         <ErrorState
           variant="inline"
-          title="Không tải được kho tri thức"
-          message={getKnowledgeErrorMessage(error, "Không tải được danh sách tài liệu.")}
+          title={t("admin.knowledge.documents.loadFailedTitle")}
+          message={getKnowledgeErrorMessage(error, t("admin.knowledge.documents.loadFailedMessage"))}
           onRetry={() => refetch()}
         />
       ) : (
@@ -210,13 +223,23 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
-                <TableHead className="min-w-[220px] font-semibold text-foreground">Tài liệu</TableHead>
-                <TableHead className="font-semibold text-foreground">Trạng thái</TableHead>
-                <TableHead className="min-w-[160px] font-semibold text-foreground">Vai trò được đọc</TableHead>
-                <TableHead className="text-right font-semibold text-foreground">Số đoạn</TableHead>
-                <TableHead className="text-right font-semibold text-foreground">Dung lượng</TableHead>
-                <TableHead className="font-semibold text-foreground">Đánh chỉ mục lúc</TableHead>
-                <TableHead className="w-[156px] text-right font-semibold text-foreground">Thao tác</TableHead>
+                <TableHead className="min-w-[220px] font-semibold text-foreground">
+                  {t("admin.knowledge.documents.columns.document")}
+                </TableHead>
+                <TableHead className="font-semibold text-foreground">{t("common.status")}</TableHead>
+                <TableHead className="min-w-[160px] font-semibold text-foreground">
+                  {t("admin.knowledge.documents.columns.roles")}
+                </TableHead>
+                <TableHead className="text-right font-semibold text-foreground">
+                  {t("admin.knowledge.documents.columns.chunks")}
+                </TableHead>
+                <TableHead className="text-right font-semibold text-foreground">
+                  {t("admin.knowledge.documents.columns.size")}
+                </TableHead>
+                <TableHead className="font-semibold text-foreground">
+                  {t("admin.knowledge.documents.columns.indexedAt")}
+                </TableHead>
+                <TableHead className="w-[156px] text-right font-semibold text-foreground">{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -233,8 +256,8 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
                   <TableCell colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
                     <FileText className="mx-auto mb-2 h-8 w-8 opacity-40" />
                     {documents.length === 0
-                      ? "Kho tri thức chưa có tài liệu nào. Tải tài liệu lên để trợ lý có căn cứ trả lời."
-                      : "Không có tài liệu khớp từ khoá."}
+                      ? t("admin.knowledge.documents.emptyLibrary")
+                      : t("admin.knowledge.documents.noMatch")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -256,8 +279,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
 
       {documents.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          Tổng {counts.chunks.toLocaleString("vi-VN")} đoạn đã đánh chỉ mục. Tài liệu đang đánh chỉ
-          mục lại vẫn được trả lời bằng các đoạn cũ cho tới khi xong. Bấm tên tài liệu để xem nội dung.
+          {t("admin.knowledge.documents.footer", { total: counts.chunks.toLocaleString("vi-VN") })}
         </p>
       )}
 
@@ -272,17 +294,18 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
       <ConfirmActionDialog
         open={confirmOpen && pending?.kind === "delete"}
         onOpenChange={setConfirmOpen}
-        title="Xoá tài liệu?"
+        title={t("admin.knowledge.documents.deleteTitle")}
         description={
           <>
             <p>
-              Xoá <span className="font-semibold text-foreground">“{pending?.doc.title}”</span> cùng
-              toàn bộ đoạn đã đánh chỉ mục. Trợ lý sẽ không dùng tài liệu này để trả lời nữa.
+              {t("admin.knowledge.documents.deleteDescriptionBefore")}{" "}
+              <span className="font-semibold text-foreground">“{pending?.doc.title}”</span>{" "}
+              {t("admin.knowledge.documents.deleteDescriptionAfter")}
             </p>
-            <p>Câu đánh giá đang trỏ tới tiêu đề này sẽ trượt. Thao tác không hoàn tác được.</p>
+            <p>{t("admin.knowledge.documents.deleteNote")}</p>
           </>
         }
-        actionLabel="Xoá tài liệu"
+        actionLabel={t("admin.knowledge.documents.deleteAction")}
         destructive
         loading={removeState.isLoading}
         onConfirm={confirmPending}
@@ -291,20 +314,17 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
       <ConfirmActionDialog
         open={confirmOpen && pending?.kind === "reindex"}
         onOpenChange={setConfirmOpen}
-        title="Đánh chỉ mục lại?"
+        title={t("admin.knowledge.documents.reindexTitle")}
         description={
           <>
             <p>
-              <span className="font-semibold text-foreground">“{pending?.doc.title}”</span> sẽ về
-              trạng thái “Chờ đánh chỉ mục” và được chia đoạn, nhúng lại từ đầu (tốn phí nhúng).
+              <span className="font-semibold text-foreground">“{pending?.doc.title}”</span>{" "}
+              {t("admin.knowledge.documents.reindexDescriptionAfter")}
             </p>
-            <p>
-              Trong lúc đó trợ lý vẫn trả lời bằng các đoạn cũ của tài liệu này. Dùng khi tài liệu bị
-              lỗi tạm thời hoặc sau khi đổi mô hình nhúng.
-            </p>
+            <p>{t("admin.knowledge.documents.reindexNote")}</p>
           </>
         }
-        actionLabel="Đánh chỉ mục lại"
+        actionLabel={t("admin.knowledge.documents.reindexAction")}
         loading={reindexState.isLoading}
         onConfirm={confirmPending}
       />
@@ -330,6 +350,7 @@ function StatTile({
 }
 
 function StatusBadge({ doc }: { doc: KnowledgeDocument }) {
+  const { t } = useTranslation();
   const meta = statusMeta(doc.status);
   const badge = (
     <Badge variant="outline" className={cn("gap-1 whitespace-nowrap", meta.className)}>
@@ -341,9 +362,9 @@ function StatusBadge({ doc }: { doc: KnowledgeDocument }) {
 
   const tip =
     doc.status === "FAILED"
-      ? doc.error || "Đánh chỉ mục thất bại (không có chi tiết lỗi)."
+      ? doc.error || t("admin.knowledge.documents.failedNoDetail")
       : doc.status === "PENDING"
-        ? PENDING_HINT
+        ? t(PENDING_HINT_KEY)
         : null;
   if (!tip) return badge;
 
@@ -372,6 +393,7 @@ function DocumentRow({
   onReindex: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const roles = doc.allowedRoles?.length ? doc.allowedRoles : ["ALL"];
   const busy = isIndexingInProgress(doc.status);
 
@@ -424,20 +446,28 @@ function DocumentRow({
       </TableCell>
       <TableCell>
         <div className="flex justify-end gap-1">
-          <IconAction label="Xem nội dung" onClick={onView}>
+          <IconAction label={t("admin.knowledge.documents.actions.view")} onClick={onView}>
             <Eye className="h-4 w-4" />
           </IconAction>
-          <IconAction label="Sửa tiêu đề / vai trò" onClick={onEdit}>
+          <IconAction label={t("admin.knowledge.documents.actions.edit")} onClick={onEdit}>
             <Pencil className="h-4 w-4" />
           </IconAction>
           <IconAction
-            label={busy ? "Đang chờ/đang đánh chỉ mục" : "Đánh chỉ mục lại"}
+            label={
+              busy
+                ? t("admin.knowledge.documents.actions.busy")
+                : t("admin.knowledge.documents.reindexAction")
+            }
             onClick={onReindex}
             disabled={busy}
           >
             <RotateCcw className="h-4 w-4" />
           </IconAction>
-          <IconAction label="Xoá tài liệu" onClick={onDelete} className="text-red-600 hover:text-red-700">
+          <IconAction
+            label={t("admin.knowledge.documents.deleteAction")}
+            onClick={onDelete}
+            className="text-red-600 hover:text-red-700"
+          >
             <Trash2 className="h-4 w-4" />
           </IconAction>
         </div>

@@ -289,7 +289,7 @@ export function PromotionTable({
                   ) : (
                     <PowerOff size={13} className="mr-2" />
                   )}
-                  {inactive ? "Áp dụng lại" : "Ngưng áp dụng"}
+                  {inactive ? t("admin.promotions.actions.reactivate") : t("admin.promotions.actions.deactivate")}
                 </DropdownMenuItem>
               )}
               {onDelete && (

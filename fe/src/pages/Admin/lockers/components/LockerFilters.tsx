@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Input } from "~/components/ui/input";
 import { StatusDropdown } from "~/components/shared/status-tabs";
 import { LockerStatus } from "~/types/admin/enums";
@@ -13,14 +14,14 @@ interface LockerFiltersProps {
 }
 
 const options = [
-  { value: "ALL", label: "Tất cả" },
-  { value: LockerStatus.ACTIVE, label: "Hoạt động", color: "green" as const },
+  { value: "ALL", labelKey: "common.all" },
+  { value: LockerStatus.ACTIVE, labelKey: "admin.lockers.status.active", color: "green" as const },
   {
     value: LockerStatus.MAINTENANCE,
-    label: "Bảo trì",
+    labelKey: "admin.lockers.status.maintenance",
     color: "yellow" as const,
   },
-  { value: LockerStatus.INACTIVE, label: "Vô hiệu", color: "gray" as const },
+  { value: LockerStatus.INACTIVE, labelKey: "admin.lockers.status.inactive", color: "gray" as const },
 ];
 
 export function LockerFilters({
@@ -30,8 +31,10 @@ export function LockerFilters({
   onSearchChange,
   statusCounts,
 }: LockerFiltersProps) {
-  const optionsWithCounts = options.map((opt) => ({
+  const { t } = useTranslation();
+  const optionsWithCounts = options.map(({ labelKey, ...opt }) => ({
     ...opt,
+    label: t(labelKey),
     count: statusCounts[opt.value] || 0,
   }));
 
@@ -41,7 +44,7 @@ export function LockerFilters({
         options={optionsWithCounts}
         value={status}
         onChange={(value) => onStatusChange(value as LockerStatusFilter)}
-        placeholder="Trạng thái"
+        placeholder={t("common.status")}
       />
 
       <div className="relative w-full sm:w-72">
@@ -50,7 +53,7 @@ export function LockerFilters({
           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
         />
         <Input
-          placeholder="Tìm kiếm tủ đồ..."
+          placeholder={t("admin.lockers.filters.searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 h-10"

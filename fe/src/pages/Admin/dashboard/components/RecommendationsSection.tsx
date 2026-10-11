@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Recommendation } from "~/types/dashboard.types";
 import { RecommendationCard } from "./RecommendationCard";
 
@@ -10,10 +11,11 @@ export function RecommendationsSection({
   recommendations,
   onRecommendationClick,
 }: RecommendationsSectionProps) {
+  const { t } = useTranslation();
   return (
     <div className="mt-8">
       <h2 className="text-lg font-semibold text-foreground mb-4">
-        Đề xuất cho bạn
+        {t("admin.dashboard.recommendations.title")}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {recommendations.map((rec) => (

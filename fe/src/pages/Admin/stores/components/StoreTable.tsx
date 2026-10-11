@@ -189,10 +189,15 @@ export function StoreTable({
           <div className="text-sm">
             <p>
               <span className="font-semibold text-foreground/80">{stats.lockerCount}</span>{" "}
-              <span className="text-xs text-muted-foreground/70">tủ</span>
-              <span className="text-xs text-muted-foreground/70"> · {stats.boxCount} ô</span>
+              <span className="text-xs text-muted-foreground/70">{t("admin.stores.table.lockersUnit")}</span>
+              <span className="text-xs text-muted-foreground/70">
+                {" · "}
+                {t("admin.stores.table.boxesCount", { count: stats.boxCount })}
+              </span>
             </p>
-            <p className="text-xs text-muted-foreground/70">{stats.orderCount} đơn / 12 tháng</p>
+            <p className="text-xs text-muted-foreground/70">
+              {t("admin.stores.table.ordersPerYear", { count: stats.orderCount })}
+            </p>
           </div>
         );
       },

@@ -25,6 +25,7 @@ import {
   toPayloadValue,
   type DraftMap,
 } from "./setting-utils";
+import { useTranslation } from "react-i18next";
 
 interface ScopeSettingsPanelProps {
   tab: ScopeTab;
@@ -46,6 +47,7 @@ export function ScopeSettingsPanel({
   onClearDrafts,
   onShowHistory,
 }: ScopeSettingsPanelProps) {
+  const { t } = useTranslation();
   const { scope } = tab;
   const { data, error, isLoading, isFetching, refetch } = useGetBusinessSettingsQuery(scope);
   const [updateSettings, { isLoading: saving }] = useUpdateBusinessSettingsMutation();
@@ -65,7 +67,10 @@ export function ScopeSettingsPanel({
     () => settings.filter((s) => matchesSearch(s, search)),
     [settings, search],
   );
-  const groups = useMemo(() => groupSettings(filtered), [filtered]);
+  const groups = useMemo(
+    () => groupSettings(filtered, t("admin.settings.groups.other")),
+    [filtered, t],
+  );
   const hiddenChanges = search.trim()
     ? changes.filter((c) => !filtered.includes(c.setting)).length
     : 0;
@@ -85,14 +90,14 @@ export function ScopeSettingsPanel({
       try {
         await resetSetting({ scope, key: setting.key }).unwrap();
         onRevertDraft(scope, setting.key);
-        toast.success(`Đã khôi phục mặc định: ${settingLabel(setting)}`);
+        toast.success(t("admin.settings.panel.resetSuccess", { label: settingLabel(setting) }));
       } catch (err) {
-        toast.error(getApiErrorMessage(err, "Không khôi phục được giá trị mặc định"));
+        toast.error(getApiErrorMessage(err, t("admin.settings.panel.resetFailed")));
       } finally {
         setResettingKey(null);
       }
     },
-    [onRevertDraft, resetSetting, scope],
+    [onRevertDraft, resetSetting, scope, t],
   );
 
   const handleSave = async () => {
@@ -104,10 +109,10 @@ export function ScopeSettingsPanel({
       await updateSettings({ scope, values }).unwrap();
       onClearDrafts(scope);
       setConfirmOpen(false);
-      toast.success(`Đã lưu ${changes.length} thay đổi cho “${tab.title}”`);
+      toast.success(t("admin.settings.panel.saveSuccess", { count: changes.length, scope: tab.title }));
     } catch (err) {
       setConfirmOpen(false);
-      toast.error(getApiErrorMessage(err, "Không lưu được thay đổi"));
+      toast.error(getApiErrorMessage(err, t("admin.settings.panel.saveFailed")));
     }
   };
 
@@ -126,7 +131,7 @@ export function ScopeSettingsPanel({
             <p className="text-xs text-muted-foreground">{tab.description}</p>
             {settings.length > 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
-                {settings.length} quy tắc · {overriddenCount} đã tuỳ chỉnh
+                {t("admin.settings.panel.summary", { rules: settings.length, overridden: overriddenCount })}
               </p>
             )}
           </div>
@@ -134,11 +139,11 @@ export function ScopeSettingsPanel({
         <div className="flex shrink-0 gap-2 self-start">
           <Button variant="outline" size="sm" onClick={() => onShowHistory(null)}>
             <History className="h-4 w-4" />
-            Lịch sử thay đổi
+            {t("admin.settings.panel.history")}
           </Button>
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-            Làm mới
+            {t("button.refresh")}
           </Button>
         </div>
       </div>
@@ -151,8 +156,8 @@ export function ScopeSettingsPanel({
         ) : (
           <ErrorState
             variant="card"
-            title="Không tải được cấu hình"
-            message={getApiErrorMessage(error, "Đã có lỗi khi tải quy tắc nghiệp vụ. Vui lòng thử lại.")}
+            title={t("admin.settings.panel.loadFailedTitle")}
+            message={getApiErrorMessage(error, t("admin.settings.panel.loadFailedMessage"))}
             onRetry={() => refetch()}
           />
         )
@@ -160,16 +165,18 @@ export function ScopeSettingsPanel({
         <Card className="border-dashed shadow-none">
           <CardContent className="flex flex-col items-center gap-2 py-14 text-center">
             <SlidersHorizontal className="h-8 w-8 text-muted-foreground/50" />
-            <p className="text-sm font-medium">Chưa có quy tắc nào</p>
-            <p className="text-xs text-muted-foreground">Service chưa khai báo quy tắc nghiệp vụ cho nhóm này.</p>
+            <p className="text-sm font-medium">{t("admin.settings.panel.emptyTitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("admin.settings.panel.emptyMessage")}</p>
           </CardContent>
         </Card>
       ) : groups.length === 0 ? (
         <Card className="border-dashed shadow-none">
           <CardContent className="flex flex-col items-center gap-2 py-14 text-center">
             <SearchX className="h-8 w-8 text-muted-foreground/50" />
-            <p className="text-sm font-medium">Không tìm thấy quy tắc phù hợp</p>
-            <p className="text-xs text-muted-foreground">Không có quy tắc nào khớp “{search.trim()}” trong nhóm này.</p>
+            <p className="text-sm font-medium">{t("admin.settings.panel.noMatchTitle")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("admin.settings.panel.noMatchMessage", { query: search.trim() })}
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -177,7 +184,9 @@ export function ScopeSettingsPanel({
           <Card key={group.name} className="overflow-hidden border-border/60">
             <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/40 px-4 py-2.5 sm:px-6">
               <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
-              <span className="text-xs text-muted-foreground">{group.items.length} quy tắc</span>
+              <span className="text-xs text-muted-foreground">
+                {t("admin.settings.panel.ruleCount", { count: group.items.length })}
+              </span>
             </div>
             <div className="divide-y divide-border/60">
               {group.items.map((setting) => (
@@ -206,23 +215,28 @@ export function ScopeSettingsPanel({
             className="mx-auto flex max-w-3xl flex-col gap-3 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/85 sm:flex-row sm:items-center sm:justify-between sm:px-4"
           >
             <div className="text-sm">
-              <span className="font-semibold text-foreground">{changes.length} thay đổi chưa lưu</span>
+              <span className="font-semibold text-foreground">
+                {t("admin.settings.panel.unsavedCount", { count: changes.length })}
+              </span>
               {invalidCount > 0 && (
-                <span className="text-destructive"> · {invalidCount} giá trị không hợp lệ</span>
+                <span className="text-destructive">
+                  {" · "}
+                  {t("admin.settings.panel.invalidCount", { count: invalidCount })}
+                </span>
               )}
               {hiddenChanges > 0 && (
                 <span className="block text-xs text-muted-foreground">
-                  {hiddenChanges} thay đổi đang bị ẩn bởi ô tìm kiếm
+                  {t("admin.settings.panel.hiddenCount", { count: hiddenChanges })}
                 </span>
               )}
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => onClearDrafts(scope)} disabled={saving}>
-                Huỷ
+                {t("common.cancel")}
               </Button>
               <Button size="sm" onClick={() => setConfirmOpen(true)} disabled={saving || invalidCount > 0}>
                 <Save className="h-4 w-4" />
-                Lưu thay đổi
+                {t("common.saveChanges")}
               </Button>
             </div>
           </div>
@@ -250,20 +264,20 @@ function UnsupportedScope({
   retrying: boolean;
   onRetry: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Card className="border-dashed shadow-none">
       <CardContent className="flex flex-col items-center gap-3 px-6 py-14 text-center">
         <div className="rounded-full bg-muted p-3">
           <PlugZap className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="text-base font-semibold text-foreground">Service chưa hỗ trợ cấu hình</h3>
+        <h3 className="text-base font-semibold text-foreground">{t("admin.settings.panel.unsupportedTitle")}</h3>
         <p className="max-w-md text-sm text-muted-foreground">
-          Service phụ trách nhóm “{title}” chưa triển khai API cấu hình quy tắc nghiệp vụ, nên
-          tạm thời chưa chỉnh được từ trang quản trị. Các nhóm khác vẫn dùng bình thường.
+          {t("admin.settings.panel.unsupportedMessage", { title })}
         </p>
         <Button variant="outline" size="sm" onClick={onRetry} disabled={retrying}>
           <RefreshCw className={retrying ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-          Kiểm tra lại
+          {t("admin.settings.panel.recheck")}
         </Button>
       </CardContent>
     </Card>
@@ -271,8 +285,9 @@ function UnsupportedScope({
 }
 
 function SettingsSkeleton() {
+  const { t } = useTranslation();
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Đang tải cấu hình">
+    <div className="space-y-4" aria-busy="true" aria-label={t("admin.settings.panel.loadingAria")}>
       {[0, 1].map((card) => (
         <Card key={card} className="overflow-hidden border-border/60">
           <div className="border-b border-border/60 bg-muted/40 px-4 py-3 sm:px-6">

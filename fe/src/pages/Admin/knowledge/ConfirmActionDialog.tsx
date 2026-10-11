@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import { useTranslation } from "react-i18next";
 
 interface ConfirmActionDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function ConfirmActionDialog({
   loading,
   onConfirm,
 }: ConfirmActionDialogProps) {
+  const { t } = useTranslation();
   return (
     <AlertDialog open={open} onOpenChange={(next) => !loading && onOpenChange(next)}>
       <AlertDialogContent>
@@ -44,7 +46,7 @@ export function ConfirmActionDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Huỷ</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{t("common.cancel")}</AlertDialogCancel>
           <Button
             onClick={onConfirm}
             disabled={loading}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -53,7 +54,7 @@ const STATUS_CONFIG: Record<
     text: string;
     border: string;
     icon: React.ElementType;
-    label: string;
+    labelKey: string;
   }
 > = {
   [PartnerStatus.APPROVED]: {
@@ -61,28 +62,28 @@ const STATUS_CONFIG: Record<
     text: "text-emerald-700 dark:text-emerald-400",
     border: "border-emerald-500/20",
     icon: CheckCircle,
-    label: "Đã phê duyệt",
+    labelKey: "admin.partners.detail.status.approved",
   },
   [PartnerStatus.PENDING]: {
     bg: "bg-amber-500/10",
     text: "text-amber-700 dark:text-amber-400",
     border: "border-amber-500/20",
     icon: Clock,
-    label: "Chờ duyệt",
+    labelKey: "admin.partners.status.pending",
   },
   [PartnerStatus.REJECTED]: {
     bg: "bg-destructive/10",
     text: "text-destructive",
     border: "border-destructive/20",
     icon: XCircle,
-    label: "Đã từ chối",
+    labelKey: "admin.partners.detail.status.rejected",
   },
   [PartnerStatus.SUSPENDED]: {
     bg: "bg-secondary",
     text: "text-muted-foreground",
     border: "border-border",
     icon: AlertCircle,
-    label: "Đã đình chỉ",
+    labelKey: "admin.partners.detail.status.suspended",
   },
 };
 
@@ -119,6 +120,7 @@ export function PartnerDetailModal({
   partnerId,
   onClose,
 }: PartnerDetailModalProps) {
+  const { t } = useTranslation();
   const open = partnerId !== null;
 
   const { data, isLoading, isError } = useGetPartnerByIdQuery(partnerId!, {
@@ -161,7 +163,7 @@ export function PartnerDetailModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Building2 size={18} className="text-purple-600" />
-            Chi tiết đối tác #{partnerId}
+            {t("admin.partners.detail.title", { id: partnerId })}
           </DialogTitle>
         </DialogHeader>
 
@@ -178,7 +180,7 @@ export function PartnerDetailModal({
         {isError && (
           <div className="flex flex-col items-center gap-3 py-10">
             <AlertTriangle size={36} className="text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">Không tìm thấy đối tác.</p>
+            <p className="text-sm text-muted-foreground">{t("admin.partners.detail.notFound")}</p>
           </div>
         )}
 
@@ -204,7 +206,7 @@ export function PartnerDetailModal({
                 className={`${statusCfg.bg} ${statusCfg.text} ${statusCfg.border} shrink-0 font-medium`}
               >
                 <StatusIcon size={13} className="mr-1.5" />
-                {statusCfg.label}
+                {t(statusCfg.labelKey)}
               </Badge>
             </div>
 
@@ -213,17 +215,17 @@ export function PartnerDetailModal({
               {[
                 {
                   icon: Store,
-                  label: "Địa điểm",
+                  label: t("admin.partners.detail.stores"),
                   value: partner.storeCount,
                 },
                 {
                   icon: Users,
-                  label: "Nhân viên",
+                  label: t("admin.partners.detail.staff"),
                   value: partner.staffCount,
                 },
                 {
                   icon: Percent,
-                  label: "Chia sẻ doanh thu",
+                  label: t("admin.partners.detail.revenueShare"),
                   value: `${partner.revenueSharePercent ?? 0}%`,
                 },
               ].map(({ icon: Icon, label, value }) => (
@@ -243,19 +245,19 @@ export function PartnerDetailModal({
             {/* Business info */}
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Thông tin doanh nghiệp
+                {t("admin.partners.detail.businessInfo")}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <LabelValue label="Tên doanh nghiệp" icon={Building2}>
+                <LabelValue label={t("admin.partners.detail.businessName")} icon={Building2}>
                   {partner.businessName}
                 </LabelValue>
-                <LabelValue label="Mã đăng ký kinh doanh" icon={Hash}>
+                <LabelValue label={t("admin.partners.detail.registrationNumber")} icon={Hash}>
                   {partner.businessRegistrationNumber || "—"}
                 </LabelValue>
-                <LabelValue label="Mã số thuế" icon={FileText}>
+                <LabelValue label={t("admin.partners.detail.taxId")} icon={FileText}>
                   {partner.taxId || "—"}
                 </LabelValue>
-                <LabelValue label="Địa chỉ" icon={MapPin}>
+                <LabelValue label={t("common.address")} icon={MapPin}>
                   {partner.businessAddress || "—"}
                 </LabelValue>
               </div>
@@ -266,16 +268,16 @@ export function PartnerDetailModal({
             {/* Contact info */}
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Thông tin liên hệ
+                {t("admin.partners.detail.contactInfo")}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <LabelValue label="Đại diện" icon={User}>
+                <LabelValue label={t("admin.partners.detail.representative")} icon={User}>
                   {partner.userName}
                 </LabelValue>
-                <LabelValue label="Điện thoại" icon={Phone}>
+                <LabelValue label={t("common.phoneShort")} icon={Phone}>
                   {partner.contactPhone || "—"}
                 </LabelValue>
-                <LabelValue label="Email liên hệ" icon={Mail}>
+                <LabelValue label={t("admin.partners.detail.contactEmail")} icon={Mail}>
                   {partner.contactEmail}
                 </LabelValue>
               </div>
@@ -286,20 +288,20 @@ export function PartnerDetailModal({
             {/* Meta */}
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Thông tin hệ thống
+                {t("admin.partners.detail.systemInfo")}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <LabelValue label="Ngày đăng ký" icon={Calendar}>
+                <LabelValue label={t("admin.partners.detail.registeredAt")} icon={Calendar}>
                   {fmtDate(partner.createdAt)}
                 </LabelValue>
                 {partner.approvedAt && (
-                  <LabelValue label="Ngày phê duyệt" icon={Calendar}>
+                  <LabelValue label={t("admin.partners.detail.approvedAt")} icon={Calendar}>
                     {fmtDate(partner.approvedAt)}
                   </LabelValue>
                 )}
                 {partner.rejectionReason && (
                   <div className="col-span-2">
-                    <LabelValue label="Lý do từ chối" icon={XCircle}>
+                    <LabelValue label={t("admin.partners.detail.rejectionReason")} icon={XCircle}>
                       <span className="text-red-600">
                         {partner.rejectionReason}
                       </span>
@@ -308,7 +310,7 @@ export function PartnerDetailModal({
                 )}
                 {partner.notes && (
                   <div className="col-span-2">
-                    <LabelValue label="Ghi chú" icon={FileText}>
+                    <LabelValue label={t("common.note")} icon={FileText}>
                       <span className="text-muted-foreground font-normal">
                         {partner.notes}
                       </span>
@@ -334,7 +336,7 @@ export function PartnerDetailModal({
                         onClick={handleReject}
                       >
                         <XCircle size={14} className="mr-1.5" />
-                        {rejecting ? "Đang từ chối…" : "Từ chối"}
+                        {rejecting ? t("admin.partners.detail.rejecting") : t("dropdown.reject")}
                       </Button>
                       <Button
                         size="sm"
@@ -342,7 +344,7 @@ export function PartnerDetailModal({
                         onClick={handleApprove}
                       >
                         <CheckCircle size={14} className="mr-1.5" />
-                        {approving ? "Đang phê duyệt…" : "Phê duyệt"}
+                        {approving ? t("admin.partners.detail.approving") : t("dropdown.approve")}
                       </Button>
                     </>
                   )}
@@ -355,7 +357,7 @@ export function PartnerDetailModal({
                       onClick={handleSuspend}
                     >
                       <AlertCircle size={14} className="mr-1.5" />
-                      {suspending ? "Đang đình chỉ…" : "Đình chỉ"}
+                      {suspending ? t("admin.partners.detail.suspending") : t("dropdown.suspend")}
                     </Button>
                   )}
                 </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { PromotionStatus } from "~/types/admin/enums";
 import { extractList } from "~/lib/extract-list";
 import {
@@ -20,6 +21,7 @@ export type PromotionStatusFilter = "ALL" | PromotionStatus;
 export type PromotionRow = AdminPromotion & { effectiveStatus: PromotionStatus };
 
 export function usePromotions() {
+  const { t } = useTranslation();
   const [statusFilter, setStatusFilterState] = useState<PromotionStatusFilter>("ALL");
   const [searchQuery, setSearchQueryState] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
@@ -130,7 +132,7 @@ export function usePromotions() {
     const target = deleteTarget;
     try {
       await deletePromotion(target.id).unwrap();
-      toast.success(`Đã xoá mã ${target.code}`);
+      toast.success(t("admin.promotions.toast.deleted", { code: target.code }));
       setDeleteTarget(null);
     } catch (err) {
       const { code, message } = promotionError(err);
@@ -139,7 +141,7 @@ export function usePromotions() {
         setDeactivateTarget(target);
         return;
       }
-      toast.error("Không xoá được khuyến mãi", { description: message || undefined });
+      toast.error(t("admin.promotions.toast.deleteFailed"), { description: message || undefined });
     }
   };
 
@@ -152,12 +154,12 @@ export function usePromotions() {
       }).unwrap();
       toast.success(
         status === "INACTIVE"
-          ? `Đã ngưng áp dụng mã ${promotion.code}`
-          : `Đã áp dụng lại mã ${promotion.code}`,
+          ? t("admin.promotions.toast.deactivated", { code: promotion.code })
+          : t("admin.promotions.toast.reactivated", { code: promotion.code }),
       );
       return true;
     } catch (err) {
-      toast.error("Không cập nhật được trạng thái", {
+      toast.error(t("admin.promotions.toast.statusFailed"), {
         description: promotionError(err).message || undefined,
       });
       return false;

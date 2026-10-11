@@ -30,11 +30,13 @@ import {
 } from "~/stores/apis/admin/knowledge";
 import { ConversationDetailSheet } from "./ConversationDetailSheet";
 import { getKnowledgeErrorMessage } from "./knowledge-utils";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 20;
 
 /** Hội thoại gần đây của mọi người dùng (mới cập nhật trước) để admin kiểm tra chất lượng trả lời. */
 export function ConversationsTab() {
+  const { t } = useTranslation();
   const [userIdInput, setUserIdInput] = useState("");
   const [userId, setUserId] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(0);
@@ -70,7 +72,7 @@ export function ConversationsTab() {
     }
     const parsed = Number(raw);
     if (!Number.isInteger(parsed) || parsed <= 0) {
-      setInputError("Mã người dùng phải là số nguyên dương.");
+      setInputError(t("admin.knowledge.conversations.userIdInvalid"));
       return;
     }
     setInputError(null);
@@ -96,34 +98,34 @@ export function ConversationsTab() {
                 value={userIdInput}
                 onChange={(e) => setUserIdInput(e.target.value)}
                 inputMode="numeric"
-                placeholder="Lọc theo mã người dùng (userId)"
-                aria-label="Lọc theo mã người dùng"
+                placeholder={t("admin.knowledge.conversations.filterPlaceholder")}
+                aria-label={t("admin.knowledge.conversations.filterAria")}
                 className="h-9 w-64 pl-9"
               />
             </div>
             {inputError && <p className="mt-1 text-xs text-red-600">{inputError}</p>}
           </div>
           <Button type="submit" variant="outline" size="sm">
-            Lọc
+            {t("button.filter")}
           </Button>
           {userId != null && (
             <Button type="button" variant="ghost" size="sm" onClick={clearFilter}>
               <X className="h-4 w-4" />
-              Bỏ lọc #{userId}
+              {t("admin.knowledge.conversations.clearFilter", { id: userId })}
             </Button>
           )}
         </form>
         <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-          Làm mới
+          {t("button.refresh")}
         </Button>
       </div>
 
       {error ? (
         <ErrorState
           variant="inline"
-          title="Không tải được hội thoại"
-          message={getKnowledgeErrorMessage(error, "Không tải được danh sách hội thoại.")}
+          title={t("admin.knowledge.conversations.loadFailed")}
+          message={getKnowledgeErrorMessage(error, t("admin.knowledge.conversations.loadFailedMessage"))}
           onRetry={() => refetch()}
         />
       ) : (
@@ -132,11 +134,21 @@ export function ConversationsTab() {
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
                 <TableHead className="w-20 font-semibold text-foreground">#</TableHead>
-                <TableHead className="font-semibold text-foreground">Người dùng</TableHead>
-                <TableHead className="min-w-[240px] font-semibold text-foreground">Tiêu đề</TableHead>
-                <TableHead className="text-right font-semibold text-foreground">Tin nhắn</TableHead>
-                <TableHead className="font-semibold text-foreground">Bắt đầu</TableHead>
-                <TableHead className="font-semibold text-foreground">Cập nhật</TableHead>
+                <TableHead className="font-semibold text-foreground">
+                  {t("admin.knowledge.conversations.columns.user")}
+                </TableHead>
+                <TableHead className="min-w-[240px] font-semibold text-foreground">
+                  {t("admin.knowledge.conversations.columns.title")}
+                </TableHead>
+                <TableHead className="text-right font-semibold text-foreground">
+                  {t("admin.knowledge.conversations.columns.messages")}
+                </TableHead>
+                <TableHead className="font-semibold text-foreground">
+                  {t("admin.knowledge.conversations.columns.startedAt")}
+                </TableHead>
+                <TableHead className="font-semibold text-foreground">
+                  {t("admin.knowledge.conversations.columns.updatedAt")}
+                </TableHead>
                 <TableHead className="w-20" />
               </TableRow>
             </TableHeader>
@@ -154,10 +166,10 @@ export function ConversationsTab() {
                   <TableCell colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
                     <MessagesSquare className="mx-auto mb-2 h-8 w-8 opacity-40" />
                     {page > 0
-                      ? "Không còn hội thoại ở trang này."
+                      ? t("admin.knowledge.conversations.noMorePage")
                       : userId != null
-                        ? `Người dùng #${userId} chưa có hội thoại nào.`
-                        : "Chưa có hội thoại nào với trợ lý."}
+                        ? t("admin.knowledge.conversations.noUserConversations", { id: userId })
+                        : t("admin.knowledge.conversations.empty")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -179,7 +191,11 @@ export function ConversationsTab() {
                     </TableCell>
                     <TableCell>
                       <p className="line-clamp-2 text-sm text-foreground">
-                        {c.title?.trim() || <span className="italic text-muted-foreground">(không tiêu đề)</span>}
+                        {c.title?.trim() || (
+                          <span className="italic text-muted-foreground">
+                            {t("admin.knowledge.conversations.untitled")}
+                          </span>
+                        )}
                       </p>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{c.messageCount}</TableCell>
@@ -200,7 +216,7 @@ export function ConversationsTab() {
                         }}
                       >
                         <Eye className="h-4 w-4" />
-                        Xem
+                        {t("admin.knowledge.conversations.view")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -213,7 +229,7 @@ export function ConversationsTab() {
 
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
-          Trang {page + 1} · {PAGE_SIZE} hội thoại mỗi trang, mới cập nhật trước.
+          {t("admin.knowledge.conversations.pageInfo", { page: page + 1, size: PAGE_SIZE })}
         </p>
         <div className="flex gap-2">
           <Button
@@ -223,7 +239,7 @@ export function ConversationsTab() {
             disabled={page === 0 || isFetching}
           >
             <ChevronLeft className="h-4 w-4" />
-            Trước
+            {t("pagination.previous")}
           </Button>
           <Button
             variant="outline"
@@ -231,7 +247,7 @@ export function ConversationsTab() {
             onClick={() => setPage((p) => p + 1)}
             disabled={!hasNext || isFetching}
           >
-            Sau
+            {t("pagination.next")}
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

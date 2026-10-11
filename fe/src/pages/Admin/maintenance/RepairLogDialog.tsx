@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   History,
   Camera,
@@ -46,6 +47,7 @@ export function RepairLogDialog({
   technicianName?: string;
   report?: LockerReportResponse;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"info" | "logs">("info");
@@ -65,9 +67,9 @@ export function RepairLogDialog({
 
   // Mỗi dòng nhật ký ghi đúng người thao tác (KTV, admin gia hạn SLA…), không gán hết cho KTV phụ trách
   const actorName = (actorUserId: number | null) => {
-    if (actorUserId == null) return "Hệ thống";
+    if (actorUserId == null) return t("common.system");
     const u = userList.find((x) => x.id === actorUserId);
-    return u?.fullName || u?.name || `Người dùng #${actorUserId}`;
+    return u?.fullName || u?.name || t("admin.maintenance.repairLog.userFallback", { id: actorUserId });
   };
 
   const reporterUser = eff?.userId ? userList.find((u) => u.id === eff.userId) : undefined;
@@ -89,15 +91,17 @@ export function RepairLogDialog({
   const effectiveTechnicianName =
     technicianName ??
     (assignedUser?.fullName || assignedUser?.name) ??
-    (eff?.assignedToUserId ? `KTV #${eff.assignedToUserId}` : undefined);
+    (eff?.assignedToUserId ? t("admin.maintenance.techFallback", { id: eff.assignedToUserId }) : undefined);
 
   // Phiếu OPEN chưa ai nhận: chờ KTV phụ trách tủ, hoặc đã báo mọi KTV tủ (routedToUserId = null)
   const routingText =
     eff?.status !== "OPEN" || eff?.routedToUserId === undefined
-      ? "Chưa phân công"
+      ? t("common.unassigned")
       : eff.routedToUserId === null
-        ? "Chưa phân công · đã báo mọi KTV tủ"
-        : `Đang chờ ${routedUser?.fullName || routedUser?.name || `KTV #${eff.routedToUserId}`} nhận`;
+        ? t("admin.maintenance.routing.allNotified")
+        : t("admin.maintenance.routing.awaitingNamed", {
+            name: routedUser?.fullName || routedUser?.name || t("admin.maintenance.techFallback", { id: eff.routedToUserId }),
+          });
 
   // Nhật ký cũ (trước khi có Cloudinary) dán link ảnh vào cuối ghi chú
   const extractImages = (content?: string | null) => {
@@ -117,21 +121,21 @@ export function RepairLogDialog({
         key: `att-${a.id}`,
         url: a.url,
         thumbnailUrl: a.thumbnailUrl,
-        alt: `Ảnh ${idx + 1} của nhật ký #${log.id}`,
+        alt: t("admin.maintenance.repairLog.photoAlt", { index: idx + 1, id: log.id }),
         caption: a.caption,
         time: formatDT(a.capturedAt || a.createdAt),
-        meta: `Thời gian: ${formatDT(a.capturedAt || a.createdAt)}`,
-        badge: `Ảnh ${idx + 1}`,
+        meta: t("admin.maintenance.repairLog.timeMeta", { time: formatDT(a.capturedAt || a.createdAt) }),
+        badge: t("common.photoNumber", { index: idx + 1 }),
         deletable: false,
       }));
     }
     return extractImages(log.note).map((url, idx) => ({
       key: `legacy-${log.id}-${idx}`,
       url,
-      alt: `Ảnh ${idx + 1} của nhật ký #${log.id}`,
+      alt: t("admin.maintenance.repairLog.photoAlt", { index: idx + 1, id: log.id }),
       time: formatDT(log.createdAt),
-      meta: `Ảnh đính kèm trong ghi chú · ${formatDT(log.createdAt)}`,
-      badge: `Ảnh ${idx + 1}`,
+      meta: t("admin.maintenance.repairLog.legacyMeta", { time: formatDT(log.createdAt) }),
+      badge: t("common.photoNumber", { index: idx + 1 }),
       deletable: false,
     }));
   };
@@ -140,7 +144,7 @@ export function RepairLogDialog({
     <>
       <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => setOpen(true)}>
         <FileText className="w-3.5 h-3.5 text-indigo-600" />
-        Nhật ký
+        {t("admin.maintenance.repairLog.button")}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -150,7 +154,7 @@ export function RepairLogDialog({
             <div className="flex items-center justify-between">
               <DialogTitle className="text-base font-semibold flex items-center gap-2">
                 <History className="w-4 h-4 text-indigo-600" />
-                Hồ sơ xử lý · RPT-{reportId} · {eff?.title ?? title}
+                {t("admin.maintenance.repairLog.title", { id: reportId, title: eff?.title ?? title })}
               </DialogTitle>
             </div>
             {/* Section switcher */}
@@ -165,7 +169,7 @@ export function RepairLogDialog({
                 }`}
               >
                 <FileText className="inline w-3 h-3 mr-1" />
-                Chi tiết phiếu
+                {t("admin.maintenance.repairLog.detailTab")}
               </button>
               <button
                 type="button"
@@ -177,7 +181,7 @@ export function RepairLogDialog({
                 }`}
               >
                 <History className="inline w-3 h-3 mr-1" />
-                Nhật ký KTV ({logs.length})
+                {t("admin.maintenance.repairLog.logsTab", { count: logs.length })}
               </button>
             </div>
           </DialogHeader>
@@ -197,30 +201,30 @@ export function RepairLogDialog({
                         </span>
                         {effectiveStatus === "RESOLVED" ? (
                           <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-semibold">
-                            Đã hoàn tất
+                            {t("admin.maintenance.status.resolved")}
                           </Badge>
                         ) : effectiveStatus === "IN_PROGRESS" ? (
                           <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 text-[10px] font-semibold">
-                            Đang xử lý
+                            {t("admin.maintenance.status.inProgress")}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] font-semibold">
-                            Mới mở · Chờ KTV nhận
+                            {t("admin.maintenance.status.openAwaitingTech")}
                           </Badge>
                         )}
                         {eff?.blocksLocker && eff.status !== "RESOLVED" && (
                           <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-[10px]">
-                            Ngưng cả tủ
+                            {t("admin.maintenance.reports.blocksLocker")}
                           </Badge>
                         )}
                         {eff?.scheduleId != null && (
                           <Badge variant="outline" className="bg-sky-50 text-sky-800 border-sky-300 font-medium text-[10px]">
-                            Từ kiểm tra định kỳ
+                            {t("admin.maintenance.reports.fromSchedule")}
                           </Badge>
                         )}
                         {eff?.overdue && (
                           <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-[10px]">
-                            Quá hạn SLA
+                            {t("admin.maintenance.status.overdueSla")}
                           </Badge>
                         )}
                       </div>
@@ -232,7 +236,7 @@ export function RepairLogDialog({
                         </span>
                         {eff?.boxNumber != null && (
                           <span className="text-foreground font-semibold">
-                            · Ô #{eff.boxNumber} {eff?.cellType ? `(${eff.cellType})` : ""}
+                            · {t("admin.maintenance.boxNumber", { number: eff.boxNumber })} {eff?.cellType ? `(${eff.cellType})` : ""}
                           </span>
                         )}
                       </p>
@@ -245,15 +249,15 @@ export function RepairLogDialog({
                   {/* User report content */}
                   <div className="space-y-1.5 pt-2 border-t border-border/50">
                     <span className="text-muted-foreground font-medium flex items-center gap-1">
-                      <User className="w-3.5 h-3.5" /> Nội dung sự cố báo cáo:
+                      <User className="w-3.5 h-3.5" /> {t("admin.maintenance.repairLog.reportedContent")}
                     </span>
                     <p className="text-foreground bg-muted/50 p-2.5 rounded-md border border-border/50 leading-relaxed">
-                      {eff?.description || "Không có mô tả chi tiết sự cố."}
+                      {eff?.description || t("admin.maintenance.repairLog.noDescription")}
                     </p>
                     {userPhotos.length > 0 && (
                       <div className="pt-1.5">
                         <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mb-1.5">
-                          <Camera className="w-3.5 h-3.5 text-amber-600" /> Ảnh hiện trường User gửi ({userPhotos.length} ảnh):
+                          <Camera className="w-3.5 h-3.5 text-amber-600" /> {t("admin.maintenance.repairLog.userPhotos", { count: userPhotos.length })}
                         </span>
                         <div className="flex flex-wrap gap-2">
                           {userPhotos.map((p, idx) => (
@@ -263,9 +267,9 @@ export function RepairLogDialog({
                               onClick={() => setPreviewImage(p.url)}
                               className="relative group w-16 h-16 rounded-lg overflow-hidden border border-border bg-slate-100 hover:opacity-90 transition-opacity"
                             >
-                              <img src={p.url} alt={p.caption || `Ảnh ${idx + 1}`} className="w-full h-full object-cover" />
+                              <img src={p.url} alt={p.caption || t("common.photoNumber", { index: idx + 1 })} className="w-full h-full object-cover" />
                               <span className="absolute bottom-0 inset-x-0 bg-black/70 text-white text-[8px] text-center px-0.5 truncate">
-                                {p.caption || `Ảnh ${idx + 1}`}
+                                {p.caption || t("common.photoNumber", { index: idx + 1 })}
                               </span>
                             </button>
                           ))}
@@ -277,11 +281,11 @@ export function RepairLogDialog({
                   {/* Timestamps & Personnel grid */}
                   <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-border/50">
                     <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian tạo phiếu:</p>
+                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> {t("admin.maintenance.repairLog.createdAt")}</p>
                       <p className="font-mono text-foreground font-medium">{formatDT(eff?.createdAt)}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> KTV phụ trách:</p>
+                      <p className="text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> {t("admin.maintenance.repairLog.assignedTech")}</p>
                       <p className="font-medium text-foreground">
                         {effectiveTechnicianName ? (
                           <span className="font-semibold text-indigo-700 dark:text-indigo-300">
@@ -293,27 +297,31 @@ export function RepairLogDialog({
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian phân công:</p>
+                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> {t("admin.maintenance.repairLog.assignedAt")}</p>
                       <p className="font-mono text-foreground font-medium">
-                        {effectiveAssignedAt ? formatDT(effectiveAssignedAt) : "Chưa phân công"}
+                        {effectiveAssignedAt ? formatDT(effectiveAssignedAt) : t("common.unassigned")}
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Hạn xử lý SLA:</p>
+                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> {t("admin.maintenance.repairLog.slaDue")}</p>
                       <p className={`font-mono font-semibold ${eff?.overdue ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>
-                        {eff?.slaDueAt ? formatDT(eff.slaDueAt) : "Quy chuẩn SLA 4h"}
-                        {eff?.overdue ? " ⚠️ Quá hạn" : ""}
+                        {eff?.slaDueAt ? formatDT(eff.slaDueAt) : t("admin.maintenance.repairLog.slaDefault")}
+                        {eff?.overdue ? t("admin.maintenance.repairLog.overdueSuffix") : ""}
                       </p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian hoàn tất:</p>
+                      <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> {t("admin.maintenance.labels.completedAt")}</p>
                       <p className={`font-mono font-medium ${eff?.resolvedAt ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
-                        {eff?.resolvedAt ? formatDT(eff.resolvedAt) : (effectiveStatus === "RESOLVED" ? "Đã hoàn tất" : "Đang xử lý")}
+                        {eff?.resolvedAt
+                          ? formatDT(eff.resolvedAt)
+                          : effectiveStatus === "RESOLVED"
+                            ? t("admin.maintenance.status.resolved")
+                            : t("admin.maintenance.status.inProgress")}
                       </p>
                     </div>
                     {eff?.resolvedAt && (effectiveAssignedAt || eff?.createdAt) && (
                       <div>
-                        <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Thời gian xử lý:</p>
+                        <p className="text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> {t("admin.maintenance.repairLog.duration")}</p>
                         <p className="font-bold text-foreground">
                           {calcDuration(effectiveAssignedAt || eff?.createdAt, eff.resolvedAt)}
                         </p>
@@ -324,13 +332,13 @@ export function RepairLogDialog({
                   {/* Reporter info */}
                   {(eff?.reporterName || eff?.reporterPhone) && (
                     <div className="pt-2 border-t border-border/50 flex items-center gap-2 text-[11px] flex-wrap">
-                      <span className="text-muted-foreground">Người báo cáo:</span>
+                      <span className="text-muted-foreground">{t("admin.maintenance.repairLog.reporter")}</span>
                       <span className="font-medium text-foreground">
                         {[eff?.reporterName, eff?.reporterPhone].filter(Boolean).join(" · ")}
                       </span>
                       {isReporterTech && (
                         <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] py-0 px-1.5 font-semibold">
-                          Người báo là KTV
+                          {t("admin.maintenance.repairLog.reporterIsTech")}
                         </Badge>
                       )}
                     </div>
@@ -344,13 +352,13 @@ export function RepairLogDialog({
               <>
                 <div className="space-y-3">
                   {isLoading ? (
-                    <p className="text-sm text-muted-foreground py-6 text-center">Đang tải nhật ký...</p>
+                    <p className="text-sm text-muted-foreground py-6 text-center">{t("admin.maintenance.repairLog.loading")}</p>
                   ) : logs.length === 0 ? (
                     <div className="py-10 text-center space-y-2">
                       <History className="w-8 h-8 text-muted-foreground/40 mx-auto" />
-                      <p className="text-sm font-semibold text-foreground">Chưa có nhật ký nào từ Kỹ thuật viên</p>
+                      <p className="text-sm font-semibold text-foreground">{t("admin.maintenance.repairLog.empty")}</p>
                       <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                        Kỹ thuật viên sẽ ghi nhận từng bước xử lý, thay thế linh kiện và chụp ảnh minh chứng hiện trường trực tiếp trên ứng dụng Mobile.
+                        {t("admin.maintenance.repairLog.emptyDesc")}
                       </p>
                     </div>
                   ) : (
@@ -389,7 +397,7 @@ export function RepairLogDialog({
                             <div className="flex items-center gap-1.5 pb-1 border-b border-amber-200/50">
                               <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 font-semibold text-[10px] gap-1 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700">
                                 <Clock className="w-3 h-3" />
-                                Phê duyệt gia hạn SLA
+                                {t("admin.maintenance.repairLog.slaExtensionApproved")}
                               </Badge>
                             </div>
                           )}
@@ -412,11 +420,11 @@ export function RepairLogDialog({
                             <div className="pt-2 border-t border-border/50">
                               <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mb-2">
                                 <Camera className="w-3.5 h-3.5 text-indigo-500" />
-                                Ảnh trong quá trình sửa ({images.length} ảnh):
+                                {t("admin.maintenance.repairLog.progressPhotos", { count: images.length })}
                               </span>
                               <PhotoGallery
                                 photos={images}
-                                title={`Ảnh nhật ký · ${title}`}
+                                title={t("admin.maintenance.repairLog.galleryTitle", { title })}
                                 thumbClassName="w-20 h-20 rounded-lg border-border bg-slate-100"
                               />
                             </div>
@@ -442,11 +450,11 @@ export function RepairLogDialog({
                 <div className="pt-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
                   <span className="flex items-center gap-1.5 italic">
                     <Shield className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                    Chế độ xem quản trị · KTV cập nhật nhật ký & minh chứng qua Mobile App
+                    {t("admin.maintenance.repairLog.readOnly")}
                   </span>
                   {logs.length > 0 && (
                     <Badge variant="outline" className="text-[10px] font-mono">
-                      {logs.length} bước xử lý
+                      {t("admin.maintenance.repairLog.steps", { count: logs.length })}
                     </Badge>
                   )}
                 </div>

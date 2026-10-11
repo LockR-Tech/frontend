@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Camera, CheckCircle2, Clock, ShieldCheck, Wrench } from "lucide-react";
 import { PhotoGallery, type GalleryPhoto } from "~/components/shared/media";
 import type { LockerReportResponse } from "~/stores/apis/admin/lockerOps";
@@ -21,37 +22,38 @@ const formatPhotoShortTime = (dateStr?: string | null) => {
 };
 
 // Màu giữ theo quy ước cũ của trang: người báo = rose, KTV = amber, đang sửa = blue, nghiệm thu = emerald
+// `badgeKey` là khoá i18n, dịch lúc render
 const STAGE_STYLE: Record<
   AttachmentStage,
-  { chip: string; heading: string; thumb: string; icon: typeof Camera; badge: string }
+  { chip: string; heading: string; thumb: string; icon: typeof Camera; badgeKey: string }
 > = {
   REPORT: {
     chip: "text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900/60",
     heading: "text-rose-700 dark:text-rose-300",
     thumb: "border-rose-300 dark:border-rose-800 hover:border-rose-500 ring-1 ring-rose-200/50",
     icon: Camera,
-    badge: "Người báo",
+    badgeKey: "admin.maintenance.photos.badge.reporter",
   },
   INSPECTION: {
     chip: "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-900/60",
     heading: "text-amber-700 dark:text-amber-300",
     thumb: "border-amber-300 dark:border-amber-800 hover:border-amber-500",
     icon: ShieldCheck,
-    badge: "KTV xác nhận",
+    badgeKey: "admin.maintenance.photos.badge.technicianVerified",
   },
   PROGRESS: {
     chip: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-900/60",
     heading: "text-blue-700 dark:text-blue-300",
     thumb: "border-blue-300 dark:border-blue-800 hover:border-blue-500",
     icon: Wrench,
-    badge: "Đang sửa",
+    badgeKey: "admin.maintenance.photos.badge.repairing",
   },
   RESOLUTION: {
     chip: "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-900/60",
     heading: "text-emerald-700 dark:text-emerald-300",
     thumb: "border-emerald-300 dark:border-emerald-700 hover:border-emerald-500 ring-1 ring-emerald-200/50",
     icon: CheckCircle2,
-    badge: "Nghiệm thu",
+    badgeKey: "admin.maintenance.photos.badge.acceptance",
   },
 };
 
@@ -71,6 +73,7 @@ export function ReportPhotoGroups({
   variant = "compact",
   userNames,
 }: ReportPhotoGroupsProps) {
+  const { t } = useTranslation();
   const groups = useMemo(() => groupReportPhotos(report), [report]);
   const total = ATTACHMENT_STAGES.reduce((sum, stage) => sum + groups[stage].length, 0);
 
@@ -79,7 +82,7 @@ export function ReportPhotoGroups({
     if (id == null) return undefined;
     if (userNames?.[id]) return userNames[id];
     if (id === report.userId && report.reporterName) return report.reporterName;
-    return `Người dùng #${id}`;
+    return t("admin.maintenance.photos.userNumber", { id });
   };
 
   const toGalleryPhotos = (stage: AttachmentStage, photos: ReportPhoto[]): GalleryPhoto[] =>
@@ -91,18 +94,21 @@ export function ReportPhotoGroups({
         key: photo.key,
         url: photo.url,
         thumbnailUrl: photo.thumbnailUrl,
-        alt: `${STAGE_LABELS[stage]} ${idx + 1} — phiếu RPT-${report.id}`,
+        alt: t("admin.maintenance.photos.gallery.alt", { stage: STAGE_LABELS[stage], index: idx + 1, id: report.id }),
         caption: photo.caption,
         time: timeShort,
         uploader,
         meta: [
-          uploader && `Người tải: ${uploader}`,
-          timeExact && (photo.capturedAt ? `Chụp lúc ${timeExact}` : `Tải lên ${timeExact}`),
-          photo.attachmentId == null && "Ảnh đính kèm trong mô tả",
+          uploader && t("admin.maintenance.photos.gallery.uploadedBy", { name: uploader }),
+          timeExact &&
+            (photo.capturedAt
+              ? t("admin.maintenance.photos.gallery.capturedAt", { time: timeExact })
+              : t("admin.maintenance.photos.gallery.uploadedAt", { time: timeExact })),
+          photo.attachmentId == null && t("admin.maintenance.photos.gallery.inDescription"),
         ]
           .filter(Boolean)
           .join(" · "),
-        badge: variant === "compact" ? STAGE_STYLE[stage].badge : undefined,
+        badge: variant === "compact" ? t(STAGE_STYLE[stage].badgeKey) : undefined,
         deletable: false,
       };
     });
@@ -120,16 +126,16 @@ export function ReportPhotoGroups({
                 className={`text-[11px] font-semibold flex items-center gap-1 shrink-0 px-2 py-0.5 rounded border shadow-2xs ${style.chip}`}
               >
                 <Icon className="w-3.5 h-3.5" aria-hidden />
-                {STAGE_LABELS[stage]} ({stagePhotos.length} ảnh):
+                {t("admin.maintenance.photos.gallery.stageCount", { stage: STAGE_LABELS[stage], count: stagePhotos.length })}
               </span>
               {stagePhotos.length > 0 ? (
                 <PhotoGallery
                   photos={toGalleryPhotos(stage, stagePhotos)}
-                  title={`${STAGE_LABELS[stage]} · Phiếu RPT-${report.id} · ${report.title}`}
+                  title={t("admin.maintenance.photos.gallery.compactTitle", { stage: STAGE_LABELS[stage], id: report.id, title: report.title })}
                   thumbClassName={`w-14 h-14 ${style.thumb}`}
                 />
               ) : (
-                <span className="text-[11px] text-muted-foreground italic">Chưa có ảnh</span>
+                <span className="text-[11px] text-muted-foreground italic">{t("admin.maintenance.photos.gallery.noPhotos")}</span>
               )}
             </div>
           );
@@ -143,7 +149,7 @@ export function ReportPhotoGroups({
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
           <Camera className="w-3.5 h-3.5 text-muted-foreground" aria-hidden />
-          Hình ảnh phiếu ({total} ảnh)
+          {t("admin.maintenance.photos.gallery.reportPhotos", { count: total })}
         </p>
       </div>
       {ATTACHMENT_STAGES.map((stage) => {
@@ -156,10 +162,10 @@ export function ReportPhotoGroups({
           <div key={stage} className="space-y-1.5">
             <p className={`text-xs font-semibold flex items-center gap-1.5 ${style.heading}`}>
               <Icon className="w-3.5 h-3.5" aria-hidden />
-              {STAGE_LABELS[stage]} ({stagePhotos.length} ảnh):
+              {t("admin.maintenance.photos.gallery.stageCount", { stage: STAGE_LABELS[stage], count: stagePhotos.length })}
             </p>
             {stagePhotos.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground italic pl-5">Chưa có ảnh</p>
+              <p className="text-[11px] text-muted-foreground italic pl-5">{t("admin.maintenance.photos.gallery.noPhotos")}</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {galleryItems.map((photo, pIdx) => {
@@ -172,16 +178,16 @@ export function ReportPhotoGroups({
                     >
                       <PhotoGallery
                         photos={[photo]}
-                        title={`${STAGE_LABELS[stage]} · Phiếu sự cố RPT-${report.id}`}
+                        title={t("admin.maintenance.photos.gallery.stackedTitle", { stage: STAGE_LABELS[stage], id: report.id })}
                         thumbClassName={`w-16 h-16 rounded-md shrink-0 shadow-xs ${style.thumb}`}
                       />
                       <div className="flex-1 min-w-0 text-xs space-y-1">
                         <div className="flex items-center justify-between gap-1">
                           <span className="text-[11px] font-semibold text-foreground">
-                            Ảnh #{pIdx + 1}
+                            {t("admin.maintenance.photos.gallery.photoNumber", { index: pIdx + 1 })}
                           </span>
                           <span className={`text-[9px] px-1.5 py-0.2 rounded border font-medium ${style.chip}`}>
-                            {style.badge}
+                            {t(style.badgeKey)}
                           </span>
                         </div>
                         <p className="text-[11px] text-foreground font-mono font-medium flex items-center gap-1 text-slate-700 dark:text-slate-200">
@@ -190,7 +196,8 @@ export function ReportPhotoGroups({
                         </p>
                         {photo.uploader && (
                           <p className="text-[10px] text-muted-foreground truncate">
-                            Người gửi: <span className="font-medium text-foreground">{photo.uploader}</span>
+                            {t("admin.maintenance.photos.gallery.sender")}{" "}
+                            <span className="font-medium text-foreground">{photo.uploader}</span>
                           </p>
                         )}
                         {photo.caption && (

@@ -57,7 +57,7 @@ export function SchedulerStatus() {
               <button
                 onClick={refetch}
                 className="text-muted-foreground/70 hover:text-foreground/80"
-                title={t("button.retry")}
+                title={t("common.retry")}
               >
                 <RotateCcw size={14} />
               </button>

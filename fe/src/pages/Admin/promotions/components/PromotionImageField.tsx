@@ -39,16 +39,16 @@ export function PromotionImageField({ promotion }: { promotion: AdminPromotion }
   const handleUploaded = async (media: MediaUpload) => {
     const res = await updateImage({ id: promotion.id, media }).unwrap();
     setOverride({ id: promotion.id, url: pickImageUrl(res?.data) ?? null });
-    toast.success(t("admin.promotions.modal.imageUpdated", "Đã cập nhật ảnh khuyến mãi"));
+    toast.success(t("admin.promotions.modal.imageUpdated"));
   };
 
   const handleRemove = async () => {
     try {
       await deleteImage(promotion.id).unwrap();
       setOverride({ id: promotion.id, url: null });
-      toast.success(t("admin.promotions.modal.imageRemoved", "Đã xoá ảnh khuyến mãi"));
+      toast.success(t("admin.promotions.modal.imageRemoved"));
     } catch (err) {
-      toast.error(t("admin.promotions.modal.imageRemoveFailed", "Không xoá được ảnh"), {
+      toast.error(t("admin.promotions.modal.imageRemoveFailed"), {
         description: getMediaErrorMessage(err),
       });
     } finally {
@@ -58,13 +58,13 @@ export function PromotionImageField({ promotion }: { promotion: AdminPromotion }
 
   return (
     <div className="space-y-1.5">
-      <Label>{t("admin.promotions.modal.image", "Ảnh khuyến mãi")}</Label>
+      <Label>{t("admin.promotions.modal.image")}</Label>
       <div className="flex flex-wrap items-center gap-3">
         <div className="aspect-video w-40 max-w-full rounded-md border border-border/60 bg-muted/40 overflow-hidden flex items-center justify-center">
           {imageUrl ? (
             <img
               src={imageUrl}
-              alt={t("admin.promotions.modal.imageAlt", "Ảnh khuyến mãi {{code}}", { code: promotion.code })}
+              alt={t("admin.promotions.modal.imageAlt", { code: promotion.code })}
               className="h-full w-full object-cover"
             />
           ) : (
@@ -77,12 +77,12 @@ export function PromotionImageField({ promotion }: { promotion: AdminPromotion }
             variant="outline"
             size="sm"
             className="h-8 text-xs gap-1.5"
-            errorTitle={t("admin.promotions.modal.imageUpdateFailed", "Không cập nhật được ảnh khuyến mãi")}
+            errorTitle={t("admin.promotions.modal.imageUpdateFailed")}
             onUploaded={handleUploaded}
           >
             {imageUrl
-              ? t("admin.promotions.modal.imageChange", "Đổi ảnh")
-              : t("admin.promotions.modal.imageAdd", "Thêm ảnh")}
+              ? t("admin.promotions.modal.imageChange")
+              : t("admin.promotions.modal.imageAdd")}
           </ImageUploadButton>
           {imageUrl && (
             <Button
@@ -94,11 +94,11 @@ export function PromotionImageField({ promotion }: { promotion: AdminPromotion }
               disabled={removing}
             >
               <Trash2 size={13} />
-              {t("admin.promotions.modal.imageRemove", "Xoá ảnh")}
+              {t("admin.promotions.modal.imageRemove")}
             </Button>
           )}
           <p className="text-xs text-muted-foreground/70">
-            {t("admin.promotions.modal.imageHint", "Ảnh được lưu ngay, không cần bấm Lưu")}
+            {t("admin.promotions.modal.imageHint")}
           </p>
         </div>
       </div>
@@ -107,13 +107,10 @@ export function PromotionImageField({ promotion }: { promotion: AdminPromotion }
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t("admin.promotions.modal.imageRemoveTitle", "Xoá ảnh khuyến mãi?")}
+              {t("admin.promotions.modal.imageRemoveTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t(
-                "admin.promotions.modal.imageRemoveDesc",
-                "Ảnh hiện tại sẽ bị gỡ khỏi khuyến mãi và xoá khỏi kho lưu trữ ảnh.",
-              )}
+              {t("admin.promotions.modal.imageRemoveDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -126,7 +123,7 @@ export function PromotionImageField({ promotion }: { promotion: AdminPromotion }
                 void handleRemove();
               }}
             >
-              {t("admin.promotions.modal.imageRemove", "Xoá ảnh")}
+              {t("admin.promotions.modal.imageRemove")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

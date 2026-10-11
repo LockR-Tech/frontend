@@ -230,16 +230,16 @@ export function LockerTable({
 
     // Chưa gán ⇒ phiếu sự cố mới của tủ báo mọi KTV tủ
     columnHelper.accessor("assignedTechnicianName", {
-      header: "KTV phụ trách",
+      header: t("admin.lockers.columns.technician"),
       cell: ({ row }) => {
         const { assignedTechnicianId, assignedTechnicianName } = row.original;
         return assignedTechnicianId != null ? (
           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
             <UserCheck size={14} className="text-indigo-600 flex-shrink-0" />
-            {assignedTechnicianName ?? `KTV #${assignedTechnicianId}`}
+            {assignedTechnicianName ?? t("admin.lockers.table.technicianId", { id: assignedTechnicianId })}
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground">Chưa phân công</span>
+          <span className="text-xs text-muted-foreground">{t("common.unassigned")}</span>
         );
       },
     }),
@@ -254,14 +254,14 @@ export function LockerTable({
         if (row.original.status !== LockerStatus.ACTIVE) {
           return (
             <div className="flex flex-col gap-0.5 w-32">
-              <span className="text-sm font-semibold text-foreground/80">{totalBoxes} ô</span>
+              <span className="text-sm font-semibold text-foreground/80">{t("admin.lockers.table.boxCount", { count: totalBoxes })}</span>
               <span className="text-xs text-muted-foreground">
                 {row.original.status === LockerStatus.MAINTENANCE
-                  ? "Đang bảo trì"
+                  ? t("admin.lockers.table.underMaintenance")
                   : row.original.status === LockerStatus.INACTIVE
-                    ? "Đã vô hiệu"
+                    ? t("admin.lockers.table.disabled")
                     : row.original.status || "—"}{" "}
-                · không nhận đơn
+                {t("admin.lockers.table.notAcceptingOrders")}
               </span>
             </div>
           );
@@ -285,8 +285,8 @@ export function LockerTable({
         return (
           <div className="flex flex-col gap-1.5 w-32">
             <span className="text-sm">
-              <span className={`font-semibold ${toneText}`}>{availableBoxes} trống</span>
-              <span className="text-muted-foreground"> / {totalBoxes} ô</span>
+              <span className={`font-semibold ${toneText}`}>{t("admin.lockers.table.availableCount", { count: availableBoxes })}</span>
+              <span className="text-muted-foreground"> / {t("admin.lockers.table.boxCount", { count: totalBoxes })}</span>
             </span>
             <div className="w-full h-1.5 bg-muted/50 rounded-full overflow-hidden">
               <div
@@ -325,7 +325,7 @@ export function LockerTable({
                   className="cursor-pointer"
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  Xem chi tiết
+                  {t("dropdown.viewDetail")}
                 </DropdownMenuItem>
                 {locker.status === LockerStatus.ACTIVE && (
                   <DropdownMenuItem
@@ -333,7 +333,7 @@ export function LockerTable({
                     className="cursor-pointer text-amber-600 focus:text-amber-600"
                   >
                     <Wrench className="mr-2 h-4 w-4" />
-                    Bảo trì
+                    {t("dropdown.maintenance")}
                   </DropdownMenuItem>
                 )}
                 {(locker.status === LockerStatus.INACTIVE ||
@@ -343,7 +343,7 @@ export function LockerTable({
                     className="cursor-pointer text-green-600 focus:text-green-600"
                   >
                     <Power className="mr-2 h-4 w-4" />
-                    Kích hoạt
+                    {t("dropdown.activate")}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>

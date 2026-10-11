@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from "react";
+import { Trans, useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { BatteryCharging, Loader2, PencilLine, PowerOff, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -26,16 +28,16 @@ import {
   useUpdateDroneMutation,
 } from "~/stores/apis/admin/drones";
 
-// Mã lỗi locker-service → thông báo tiếng Việt
+// Mã lỗi locker-service → khoá i18n của thông báo
 const ERROR_MESSAGES: Record<string, string> = {
-  DRONE_CODE_DUPLICATE: "Mã Drone này đã tồn tại.",
-  DRONE_ACTIVE_MISSION: "Drone đang giữ/bay cho một nhiệm vụ — chờ nhiệm vụ kết thúc rồi thử lại.",
-  VALIDATION_ERROR: "Dữ liệu không hợp lệ.",
+  DRONE_CODE_DUPLICATE: "admin.drones.actions.errors.codeDuplicate",
+  DRONE_ACTIVE_MISSION: "admin.drones.actions.errors.activeMission",
+  VALIDATION_ERROR: "admin.drones.actions.errors.validation",
 };
 
-function errorMessage(error: unknown, fallback: string) {
+function errorMessage(error: unknown, fallback: string, t: TFunction) {
   const data = (error as { data?: { code?: string; message?: string } })?.data;
-  return (data?.code && ERROR_MESSAGES[data.code]) || data?.message || fallback;
+  return (data?.code && ERROR_MESSAGES[data.code] && t(ERROR_MESSAGES[data.code])) || data?.message || fallback;
 }
 
 type PendingAction =
@@ -51,6 +53,7 @@ interface DroneAdminActionsProps {
 
 /** Thao tác quản trị trên một Drone: đổi mã, ghi nhận pin, ngừng hoạt động — đều qua hộp xác nhận. */
 export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsProps) {
+  const { t } = useTranslation();
   const [updateDrone, updateState] = useUpdateDroneMutation();
   const [updateBattery, batteryState] = useUpdateDroneBatteryMutation();
   const [decommission, decommissionState] = useDecommissionDroneMutation();
@@ -77,73 +80,78 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
       if (pending.kind === "rename") {
         await updateDrone({ id: drone.id, code: pending.code }).unwrap();
         setCodeDraft(null);
-        toast.success(`Đã đổi mã Drone thành ${pending.code}`);
+        toast.success(t("admin.drones.actions.renamed", { code: pending.code }));
       } else if (pending.kind === "battery") {
         await updateBattery({ id: drone.id, batteryPercent: pending.percent }).unwrap();
         setBatteryDraft("");
-        toast.success(`Đã ghi nhận mức pin ${pending.percent}% cho ${drone.code}`);
+        toast.success(t("admin.drones.actions.batteryRecorded", { percent: pending.percent, code: drone.code }));
       } else {
         await decommission(drone.id).unwrap();
-        toast.success(`Đã ngừng hoạt động Drone ${drone.code}`);
+        toast.success(t("admin.drones.actions.decommissioned", { code: drone.code }));
       }
       setPending(null);
     } catch (error) {
       const title =
         pending.kind === "rename"
-          ? "Không đổi được mã Drone"
+          ? t("admin.drones.actions.renameFailed")
           : pending.kind === "battery"
-            ? "Không cập nhật được mức pin"
-            : "Không ngừng hoạt động được Drone";
-      toast.error(title, { description: errorMessage(error, "Vui lòng thử lại.") });
+            ? t("admin.drones.actions.batteryFailed")
+            : t("admin.drones.actions.decommissionFailed");
+      toast.error(title, { description: errorMessage(error, t("common.pleaseRetry"), t) });
     }
   };
 
+  const strong = <span className="font-semibold text-foreground" />;
+  const mono = <span className="font-mono font-semibold text-foreground" />;
   const dialog: { title: string; description: ReactNode; action: string; destructive?: boolean } | null =
     pending == null
       ? null
       : pending.kind === "rename"
         ? {
-            title: "Đổi mã Drone?",
+            title: t("admin.drones.actions.renameTitle"),
             description: (
               <p>
-                Mã <span className="font-mono font-semibold text-foreground">{drone.code}</span> sẽ đổi thành{" "}
-                <span className="font-mono font-semibold text-foreground">{pending.code}</span>. Ứng dụng KTV và
-                thiết bị bay phải dùng mã mới sau khi đổi.
+                <Trans
+                  t={t}
+                  i18nKey="admin.drones.actions.renameDescription"
+                  values={{ from: drone.code, to: pending.code }}
+                  components={{ code: mono }}
+                />
               </p>
             ),
-            action: "Đổi mã",
+            action: t("admin.drones.actions.rename"),
           }
         : pending.kind === "battery"
           ? {
-              title: "Ghi nhận mức pin?",
+              title: t("admin.drones.actions.batteryTitle"),
               description: (
                 <>
                   <p>
-                    Đặt mức pin của <span className="font-semibold text-foreground">{drone.code}</span> thành{" "}
-                    <span className="font-semibold text-foreground">{pending.percent}%</span>. Thao tác được ghi
-                    vào nhật ký vận hành.
+                    <Trans
+                      t={t}
+                      i18nKey="admin.drones.actions.batteryDescription"
+                      values={{ code: drone.code, percent: pending.percent }}
+                      components={{ b: strong }}
+                    />
                   </p>
                   {pending.percent === 100 && (
-                    <p>Mức 100% đồng thời ghi nhận lần sạc gần nhất là thời điểm này.</p>
+                    <p>{t("admin.drones.actions.batteryFullNote")}</p>
                   )}
                 </>
               ),
-              action: "Cập nhật pin",
+              action: t("admin.drones.actions.updateBattery"),
             }
           : {
-              title: `Ngừng hoạt động ${drone.code}?`,
+              title: t("admin.drones.actions.decommissionTitle", { code: drone.code }),
               description: (
                 <>
-                  <p>
-                    Drone bị ẩn khỏi danh sách vận hành, gỡ KTV phụ trách và chuyển sang trạng thái bảo trì.
-                    Nhật ký và lịch sử chuyến bay vẫn được giữ.
-                  </p>
+                  <p>{t("admin.drones.actions.decommissionDescription")}</p>
                   <p className="font-medium text-rose-700">
-                    Web quản trị chưa có thao tác kích hoạt lại — chỉ ngừng khi Drone thực sự không còn dùng.
+                    {t("admin.drones.actions.decommissionWarning")}
                   </p>
                 </>
               ),
-              action: "Ngừng hoạt động",
+              action: t("admin.drones.actions.decommission"),
               destructive: true,
             };
 
@@ -153,9 +161,9 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
         <CardContent className="flex items-start gap-3 p-4 text-sm text-rose-800">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
-            <p className="font-semibold">Drone đã ngừng hoạt động</p>
+            <p className="font-semibold">{t("admin.drones.actions.retiredTitle")}</p>
             <p className="text-xs">
-              Drone không còn xuất hiện trong danh sách vận hành; trang này chỉ còn để tra cứu lịch sử.
+              {t("admin.drones.actions.retiredDescription")}
             </p>
           </div>
         </CardContent>
@@ -166,11 +174,11 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
   return (
     <Card className="border border-border/80 shadow-xs">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Thao tác quản trị</CardTitle>
+        <CardTitle className="text-base">{t("admin.drones.actions.title")}</CardTitle>
         <CardDescription className="text-xs">
           {activeMission
-            ? "Drone đang làm nhiệm vụ — chỉ ghi nhận pin được; đổi mã và ngừng hoạt động bị khoá."
-            : "Mọi thao tác đều cần xác nhận và được ghi vào nhật ký vận hành."}
+            ? t("admin.drones.actions.activeMissionHint")
+            : t("admin.drones.actions.hint")}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-3">
@@ -183,7 +191,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
         >
           <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground" htmlFor="drone-code">
             <PencilLine className="h-3.5 w-3.5" />
-            Mã Drone
+            {t("admin.drones.detail.info.code")}
           </label>
           <div className="flex gap-2">
             <Input
@@ -195,7 +203,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
               maxLength={50}
             />
             <Button type="submit" size="sm" className="h-9" disabled={!codeChanged || activeMission || busy}>
-              Đổi mã
+              {t("admin.drones.actions.rename")}
             </Button>
           </div>
         </form>
@@ -209,7 +217,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
         >
           <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground" htmlFor="drone-battery">
             <BatteryCharging className="h-3.5 w-3.5" />
-            Ghi nhận mức pin (0–100%)
+            {t("admin.drones.actions.batteryLabel")}
           </label>
           <div className="flex gap-2">
             <Input
@@ -219,25 +227,25 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
               min={0}
               max={100}
               step={1}
-              placeholder={drone.batteryPercent != null ? String(drone.batteryPercent) : "VD: 80"}
+              placeholder={drone.batteryPercent != null ? String(drone.batteryPercent) : t("admin.drones.actions.batteryPlaceholder")}
               value={batteryDraft}
               onChange={(e) => setBatteryDraft(e.target.value)}
               disabled={busy}
               className="h-9 text-xs"
             />
             <Button type="submit" size="sm" className="h-9" disabled={!batteryValid || busy}>
-              Cập nhật pin
+              {t("admin.drones.actions.updateBattery")}
             </Button>
           </div>
           {batteryDraft.trim() !== "" && !batteryValid && (
-            <p className="text-[11px] text-rose-600">Nhập số nguyên từ 0 đến 100.</p>
+            <p className="text-[11px] text-rose-600">{t("admin.drones.actions.batteryInvalid")}</p>
           )}
         </form>
 
         <div className="space-y-1.5">
           <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <PowerOff className="h-3.5 w-3.5" />
-            Ngừng hoạt động
+            {t("admin.drones.actions.decommission")}
           </p>
           <Button
             type="button"
@@ -247,7 +255,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
             disabled={activeMission || busy}
             onClick={() => setPending({ kind: "decommission" })}
           >
-            Ngừng hoạt động Drone
+            {t("admin.drones.actions.decommissionButton")}
           </Button>
         </div>
       </CardContent>
@@ -261,7 +269,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>Huỷ</AlertDialogCancel>
+            <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
             {/* Không dùng AlertDialogAction: nó tự đóng trước khi request xong */}
             <Button
               onClick={() => void confirm()}
