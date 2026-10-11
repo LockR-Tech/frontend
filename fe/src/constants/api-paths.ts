@@ -82,6 +82,8 @@ export const ADMIN_ENDPOINTS = {
   LOCKER_MAINTENANCE: (id: number) =>
     `${ROOT_URI.ADMIN}/lockers/${id}/maintenance`,
   LOCKER_BOXES: (id: number) => `${ROOT_URI.ADMIN}/lockers/${id}/boxes`,
+  LOCKER_BOXES_ALL: (id: number) => `${ROOT_URI.ADMIN}/lockers/${id}/boxes/all`,
+  LOCKERS_BATCH_DELETE: `${ROOT_URI.ADMIN}/lockers/batch-delete`,
   BOX_STATUS: (boxId: number) =>
     `${ROOT_URI.ADMIN}/lockers/boxes/${boxId}/status`,
 

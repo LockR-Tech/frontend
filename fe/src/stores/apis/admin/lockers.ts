@@ -28,6 +28,11 @@ const createBoxValidator = createValidator(CreateBoxRequestSchema);
 const updateLockerMaintenanceValidator = createValidator(UpdateLockerMaintenanceRequestSchema);
 const updateBoxStatusValidator = createValidator(UpdateBoxStatusRequestSchema);
 
+export interface BatchDeleteLockersRequest {
+  lockerIds?: number[];
+  deleteAll?: boolean;
+}
+
 export const lockerManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllLockers: builder.query<ApiResponse<Page<AdminLockerResponse>>, PageableRequest>({
@@ -132,6 +137,29 @@ export const lockerManagementApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [TAGS.LOCKERS],
     }),
+
+    deleteLockersBatch: builder.mutation<
+      ApiResponse<{ deletedCount: number }>,
+      BatchDeleteLockersRequest
+    >({
+      query: (body) => ({
+        url: ADMIN_ENDPOINTS.LOCKERS_BATCH_DELETE,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [TAGS.LOCKERS],
+    }),
+
+    deleteAllLockers: builder.mutation<
+      ApiResponse<{ deletedCount: number }>,
+      void
+    >({
+      query: () => ({
+        url: `${ADMIN_ENDPOINTS.LOCKERS}?all=true`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [TAGS.LOCKERS],
+    }),
   }),
 });
 
@@ -145,4 +173,6 @@ export const {
   useAddBoxToLockerMutation,
   useUpdateBoxStatusMutation,
   useDeleteLockerMutation,
+  useDeleteLockersBatchMutation,
+  useDeleteAllLockersMutation,
 } = lockerManagementApi;

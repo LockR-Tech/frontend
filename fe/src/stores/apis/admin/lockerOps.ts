@@ -378,6 +378,7 @@ export interface BatchCreateBoxesRequest {
 export interface BatchDeleteBoxesRequest {
   boxIds?: number[];
   boxNumbers?: number[];
+  deleteAll?: boolean;
 }
 
 const TAG = 'Lockers' as const;
@@ -650,6 +651,18 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    // Admin delete all boxes in locker (xóa tất cả các ô trong tủ)
+    deleteAllBoxes: builder.mutation<
+      ApiResponse<{ deletedCount: number }>,
+      number
+    >({
+      query: (lockerId) => ({
+        url: `/api/admin/lockers/${lockerId}/boxes/all`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [TAG],
+    }),
+
     // Access & audit logs for a locker
     getLockerAccessLogs: builder.query<ApiResponse<BoxAccessLogResponse[]>, number>({
       query: (lockerId) => `/api/admin/iot/lockers/${lockerId}/logs`,
@@ -914,6 +927,7 @@ export const {
   useDeleteBoxMutation,
   useDeleteBoxByNumberMutation,
   useDeleteBoxesBatchMutation,
+  useDeleteAllBoxesMutation,
   useGetLockerAccessLogsQuery,
   useGetReportLogsQuery,
   useAddReportLogMutation,
