@@ -18,6 +18,10 @@ export default function LockersPage() {
     statusCounts,
     handleMaintenance,
     handleActivate,
+    handleDeleteLocker,
+    handleDeleteBatchLockers,
+    handleDeleteAllLockers,
+    isDeleting,
     refetch,
     clearFilters,
     hasActiveFilters,
@@ -60,6 +64,10 @@ export default function LockersPage() {
             isLoading={isLoading}
             onMaintenance={handleMaintenance}
             onActivate={handleActivate}
+            onDelete={handleDeleteLocker}
+            onDeleteBatch={handleDeleteBatchLockers}
+            onDeleteAll={handleDeleteAllLockers}
+            isDeleting={isDeleting}
             page={page}
             pageSize={pageSize}
             totalPages={totalPages}

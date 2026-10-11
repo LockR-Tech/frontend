@@ -76,6 +76,8 @@ import {
   useAddBoxMutation,
   useAddBoxesBatchMutation,
   useDeleteBoxMutation,
+  useDeleteBoxesBatchMutation,
+  useDeleteAllBoxesMutation,
   useGetStaffLockerQuery,
   useAssignLockerTechnicianMutation,
   useGetAllAdminReportsQuery,
@@ -91,6 +93,7 @@ import { LockerLogsPanel } from "./components/LockerLogsPanel";
 import { EditBoxModal } from "./components/EditBoxModal";
 import { BoxQrModal } from "./components/BoxQrModal";
 import { KioskScreenModal } from "./components/KioskScreenModal";
+import { LockerAddBoxPreview } from "./components/LockerAddBoxPreview";
 
 // Nhãn trạng thái tủ — cùng câu chữ với admin.lockers.status (messages/vi.json)
 const LOCKER_STATUS_STYLE: Record<string, { labelKey: string; cls: string }> = {
@@ -425,41 +428,25 @@ function CellTile({
   );
 }
 
-/** Ô nằm ở cột Kiosk (cột 0: dưới màn hình 7 inch), gồm cả ô vali XL chưa có cột. */
+/** Ô nằm ở cột Kiosk (cột 1: hàng 2 trở xuống dưới màn hình 7 inch), hoặc cột 0 legacy */
 function isKioskColumnCell(cell: CellResponse) {
-  return cell.colIndex === 0 || (isXlCell(cell) && (cell.colIndex == null || cell.colIndex === 0));
+  return (cell.colIndex == null || cell.colIndex <= 1) && (cell.rowIndex == null || cell.rowIndex <= 1);
 }
 
-/** Hàng/cột nhỏ nhất của các ô ngoài cột Kiosk — dùng để dồn sơ đồ về góc trên-trái như kiosk. */
-interface GridOrigin {
-  minRow: number;
-  minCol: number;
-}
+function getBoxGridStyle(cell: CellResponse, maxRows: number) {
+  // Cột: nếu colIndex <= 0 hoặc null thì đưa về cột 1 (dưới màn hình Kiosk). Ngược lại là colIndex.
+  const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex : 1;
+  const row = cell.rowIndex ?? 1;
 
-function getGridOrigin(cells: CellResponse[]): GridOrigin {
-  const regular = cells.filter((c) => !isKioskColumnCell(c));
-  if (regular.length === 0) return { minRow: 1, minCol: 1 };
-  return {
-    minRow: Math.min(...regular.map((c) => c.rowIndex ?? 1)),
-    minCol: Math.min(...regular.map((c) => (c.colIndex != null && c.colIndex > 0 ? c.colIndex : 1))),
-  };
-}
-
-function getBoxGridStyle(cell: CellResponse, maxRows: number, origin: GridOrigin) {
-  // Ô vali XL ở cột 0 trạm Kiosk: khoang dọc lớn kéo dài trọn chiều cao dưới màn hình 7 inch (hàng 2 trở xuống)
-  if (isKioskColumnCell(cell)) {
+  // Ô vali XL ở cột 1 bắt đầu từ hàng 2: khoang dọc lớn kéo dài trọn chiều cao dưới màn hình 7 inch
+  if (isXlCell(cell) && col === 1 && row === 2) {
     return {
       gridColumn: "1",
       gridRow: `2 / span ${Math.max(1, maxRows - 1)}`,
     };
   }
 
-  // Các ô Tiêu chuẩn hoặc Drone: cột 1 CSS dành cho cột Kiosk / Vali XL, các cột ô khác từ cột 2.
-  // Trừ hàng/cột nhỏ nhất (giống KioskScreen của iot/ui) để sơ đồ nhập lệch, vd bắt đầu ở hàng 3
-  // cột 3, không để trống cả mảng lớn phía trên/bên trái.
-  const col = (cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex : 1) - origin.minCol + 2;
-  const row = (cell.rowIndex ?? 1) - origin.minRow + 1;
-
+  // Ô vali XL thông thường chiếm 2 hàng
   if (isXlCell(cell)) {
     return {
       gridColumn: `${col}`,
@@ -475,12 +462,11 @@ function getBoxGridStyle(cell: CellResponse, maxRows: number, origin: GridOrigin
 
 interface OverlapGroup {
   boxNumbers: number[];
-  /** Nhóm ở cột Kiosk — "Tự sắp xếp" không xử lý cột này. */
   kiosk: boolean;
 }
 
-/** Các nhóm ô bị vẽ chồng lên nhau: cùng ô lưới như getBoxGridStyle (vali XL chiếm 2 hàng). */
-function findOverlappingBoxes(cells: CellResponse[], origin: GridOrigin): OverlapGroup[] {
+/** Các nhóm ô bị vẽ chồng lên nhau: cùng ô lưới hoặc trùng Màn hình Kiosk (1, 1). */
+function findOverlappingBoxes(cells: CellResponse[]): OverlapGroup[] {
   const slots = new Map<string, number[]>();
   const put = (key: string, boxNumber: number) => {
     const list = slots.get(key);
@@ -488,21 +474,24 @@ function findOverlappingBoxes(cells: CellResponse[], origin: GridOrigin): Overla
     else slots.set(key, [boxNumber]);
   };
   for (const cell of cells) {
-    // Mọi ô cột Kiosk cùng vẽ vào một khoang dưới màn hình
-    if (isKioskColumnCell(cell)) {
-      put("kiosk", cell.boxNumber);
-      continue;
+    const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex : 1;
+    const row = cell.rowIndex ?? 1;
+    if (row === 1 && col === 1) {
+      put("kiosk_screen", cell.boxNumber);
     }
-    const col = (cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex : 1) - origin.minCol;
-    const row = (cell.rowIndex ?? 1) - origin.minRow;
     put(`${row}:${col}`, cell.boxNumber);
-    if (isXlCell(cell)) put(`${row + 1}:${col}`, cell.boxNumber);
+    if (isXlCell(cell)) {
+      put(`${row + 1}:${col}`, cell.boxNumber);
+    }
   }
   const groups = new Map<string, OverlapGroup>();
   for (const [key, list] of slots) {
     const boxNumbers = [...new Set(list)].sort((a, b) => a - b);
-    if (boxNumbers.length < 2) continue;
-    groups.set(boxNumbers.join(","), { boxNumbers, kiosk: key === "kiosk" });
+    if (key === "kiosk_screen") {
+      groups.set("kiosk_screen", { boxNumbers, kiosk: true });
+    } else if (boxNumbers.length >= 2) {
+      groups.set(boxNumbers.join(","), { boxNumbers, kiosk: false });
+    }
   }
   return [...groups.values()];
 }
@@ -526,7 +515,38 @@ export default function LockerLayoutPage() {
   const [addBox, { isLoading: isAddingBox }] = useAddBoxMutation();
   const [addBoxesBatch, { isLoading: isAddingBoxesBatch }] = useAddBoxesBatchMutation();
   const [deleteBox, { isLoading: isDeletingBox }] = useDeleteBoxMutation();
+  const [deleteBoxesBatch, { isLoading: isDeletingBatch }] = useDeleteBoxesBatchMutation();
+  const [showDeleteAllBoxesModal, setShowDeleteAllBoxesModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [pendingBox, setPendingBox] = useState<number | null>(null);
+
+  const handleDeleteAllBoxes = async () => {
+    if (!id || !cells.length) return;
+    setIsDeletingAll(true);
+    try {
+      const boxIds = cells.map((c) => c.id);
+      // Gọi batch-delete đã có sẵn trên backend
+      const res = await deleteBoxesBatch({ lockerId: id, data: { boxIds } }).unwrap();
+      const count = res?.data?.deletedCount ?? cells.length;
+      toast.success(t("admin.lockers.layout.deleteAllSuccess", { count }));
+      setShowDeleteAllBoxesModal(false);
+      refetch();
+    } catch (err: any) {
+      // Fallback: nếu batch-delete bị lỗi, xóa từng ô bằng deleteBox (đã có sẵn trên backend)
+      try {
+        await Promise.all(cells.map((c) => deleteBox(c.id).unwrap()));
+        toast.success(t("admin.lockers.layout.deleteAllSuccess", { count: cells.length }));
+        setShowDeleteAllBoxesModal(false);
+        refetch();
+      } catch (fallbackErr: any) {
+        toast.error(
+          fallbackErr?.data?.message || err?.data?.message || fallbackErr?.message || err?.message || t("admin.lockers.layout.deleteAllFailed", "Không thể xóa tất cả ô tủ")
+        );
+      }
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
 
   const { subscribe } = useWebSocket({ autoConnect: true });
 
@@ -696,43 +716,54 @@ export default function LockerLayoutPage() {
     return layout.cells;
   }, [layout]);
 
-  const gridOrigin = useMemo(() => getGridOrigin(cells), [cells]);
-  const overlapGroups = useMemo(() => findOverlappingBoxes(cells, gridOrigin), [cells, gridOrigin]);
+  const overlapGroups = useMemo(() => findOverlappingBoxes(cells), [cells]);
 
   const maxRows = useMemo(() => {
+    if (!cells.length) return 3;
     return Math.max(
       3,
-      ...cells
-        .filter((c) => !isKioskColumnCell(c))
-        .map((c) => (c.rowIndex ?? 1) - gridOrigin.minRow + (isXlCell(c) ? 2 : 1)),
+      ...cells.map((c) => (c.rowIndex ?? 1) + (isXlCell(c) ? 1 : 0)),
     );
-  }, [cells, gridOrigin]);
+  }, [cells]);
 
   const maxCols = useMemo(() => {
+    if (!cells.length) return 3;
     return Math.max(
       3,
-      ...cells.map((c) =>
-        isKioskColumnCell(c)
-          ? 1
-          : (c.colIndex != null && c.colIndex > 0 ? c.colIndex : 1) - gridOrigin.minCol + 2,
-      ),
+      ...cells.map((c) => (c.colIndex != null && c.colIndex > 0 ? c.colIndex : 1)),
     );
-  }, [cells, gridOrigin]);
-
-  // Vị trí gợi ý khi thêm ô: hàng ngay dưới ô cuối cùng, cột đầu tiên, giữ số cột hiện có.
-  const nextSlot = useMemo(() => {
-    const regular = cells.filter((c) => !isKioskColumnCell(c));
-    // Tính trên mọi ô, kể cả ô cột Kiosk (vd chỉ có vali XL #1) để không gợi ý số đã dùng
-    const boxNumber = cells.length ? Math.max(...cells.map((c) => c.boxNumber)) + 1 : 1;
-    if (regular.length === 0) return { row: 1, col: 1, colsPerRow: 4, boxNumber };
-    const cols = new Set(regular.map((c) => c.colIndex ?? 1));
-    return {
-      row: Math.max(...regular.map((c) => (c.rowIndex ?? 1) + (isXlCell(c) ? 2 : 1))),
-      col: Math.min(...cols),
-      colsPerRow: Math.max(1, Math.max(...cols) - Math.min(...cols) + 1),
-      boxNumber,
-    };
   }, [cells]);
+
+  // Vị trí gợi ý khi thêm ô: tìm ô trống đầu tiên (row-major), bỏ qua (1, 1) vì là Màn hình Kiosk
+  const nextSlot = useMemo(() => {
+    const boxNumber = cells.length ? Math.max(...cells.map((c) => c.boxNumber)) + 1 : 1;
+    const colsCount = Math.max(3, maxCols);
+    const rowsCount = Math.max(3, maxRows);
+
+    const occupied = new Set<string>();
+    occupied.add("1:1"); // Màn hình Kiosk cố định ở (1, 1)
+
+    cells.forEach((c) => {
+      const col = c.colIndex != null && c.colIndex > 0 ? c.colIndex : 1;
+      const row = c.rowIndex ?? 1;
+      occupied.add(`${row}:${col}`);
+      if (isXlCell(c)) {
+        occupied.add(`${row + 1}:${col}`);
+      }
+    });
+
+    // Tìm ô trống đầu tiên theo thứ tự đọc (row-major) để không bị khoảng trống
+    for (let r = 1; r <= rowsCount + 2; r++) {
+      const startC = r === 1 ? 2 : 1;
+      for (let c = startC; c <= colsCount; c++) {
+        if (!occupied.has(`${r}:${c}`)) {
+          return { row: r, col: c, colsPerRow: colsCount, boxNumber };
+        }
+      }
+    }
+
+    return { row: rowsCount + 1, col: 1, colsPerRow: colsCount, boxNumber };
+  }, [cells, maxCols, maxRows]);
 
   const openAddModal = () => {
     setNewRowIndex(nextSlot.row);
@@ -745,28 +776,36 @@ export default function LockerLayoutPage() {
     setShowAddModal(true);
   };
 
-  // Tự sắp xếp: xếp lại các ô ngoài cột Kiosk theo số ô, lần lượt từng hàng, bắt đầu hàng 1 cột 1.
+  // Tự sắp xếp: xếp lại các ô theo số ô, lần lượt từng hàng quanh Màn hình Kiosk (1, 1)
   const [arrangeOpen, setArrangeOpen] = useState(false);
   const [arrangeCols, setArrangeCols] = useState(3);
   const [arranging, setArranging] = useState(false);
   const arrangePlan = useMemo(() => {
-    const perRow = Math.max(1, Math.min(10, Number(arrangeCols) || 1));
-    const regular = cells
-      .filter((c) => !isKioskColumnCell(c))
-      .sort((a, b) => a.boxNumber - b.boxNumber);
+    const perRow = Math.max(2, Math.min(10, Number(arrangeCols) || 3));
+    const sorted = [...cells].sort((a, b) => a.boxNumber - b.boxNumber);
     const plan: { cell: CellResponse; rowIndex: number; colIndex: number }[] = [];
-    let row = 1;
-    for (let i = 0; i < regular.length; i += perRow) {
-      const chunk = regular.slice(i, i + perRow);
-      chunk.forEach((cell, j) => plan.push({ cell, rowIndex: row, colIndex: j + 1 }));
-      // Ô vali XL cao 2 hàng ⇒ hàng sau lùi xuống thêm một để không đè lên
-      row += chunk.some((c) => isXlCell(c)) ? 2 : 1;
+
+    // Màn hình Kiosk cố định ở (1, 1)
+    // Hàng 1: các ô bắt đầu từ Cột 2 đến perRow
+    // Hàng 2 trở đi: các ô xếp từ Cột 1 đến perRow
+    let curRow = 1;
+    let curCol = 2;
+
+    for (const cell of sorted) {
+      plan.push({ cell, rowIndex: curRow, colIndex: curCol });
+
+      curCol++;
+      if (curCol > perRow) {
+        curRow++;
+        curCol = 1;
+      }
     }
+
     return plan.filter((t) => t.cell.rowIndex !== t.rowIndex || t.cell.colIndex !== t.colIndex);
   }, [cells, arrangeCols]);
 
   const openArrange = () => {
-    setArrangeCols(Math.min(10, nextSlot.colsPerRow));
+    setArrangeCols(Math.max(3, maxCols));
     setArrangeOpen(true);
   };
 
@@ -824,14 +863,20 @@ export default function LockerLayoutPage() {
         toast.error(t("admin.lockers.boxNumberRequired"));
         return;
       }
+      const targetR = Number(newRowIndex);
+      const targetC = Number(newColIndex);
+      if (targetR === 1 && targetC === 1) {
+        toast.error("Vị trí Hàng 1, Cột 1 là Màn hình Kiosk cố định, vui lòng chọn vị trí khác!");
+        return;
+      }
       try {
         await addBox({
           lockerId: id,
           boxNumber: Number(newBoxNumber),
           cellType: newCellType,
           size: chosenSize,
-          rowIndex: Number(newRowIndex),
-          colIndex: Number(newColIndex),
+          rowIndex: targetR,
+          colIndex: targetC,
           status: "AVAILABLE",
         }).unwrap();
         toast.success(t("admin.lockers.layout.add.addedOne", { number: newBoxNumber }));
@@ -846,7 +891,6 @@ export default function LockerLayoutPage() {
         toast.error(t("admin.lockers.layout.add.listRequired"));
         return;
       }
-      // Cột 0 (cột Kiosk) là vị trí hợp lệ ⇒ không dùng `|| mặc định` (sẽ biến 0 thành giá trị khác)
       const startRow = Number(batchStartRow);
       const startCol = Number(batchStartCol);
       const colsPerRow = Number(batchColsPerRow);
@@ -854,7 +898,7 @@ export default function LockerLayoutPage() {
         toast.error(t("admin.lockers.layout.add.startRowMin"));
         return;
       }
-      if (!Number.isInteger(startCol) || startCol < 0) {
+      if (!Number.isInteger(startCol) || startCol < 1) {
         toast.error(t("admin.lockers.layout.add.startColMin"));
         return;
       }
@@ -868,6 +912,10 @@ export default function LockerLayoutPage() {
       let curRow = startRow;
       let curCol = startCol;
       const boxes = parsedBatchNumbers.map((num) => {
+        // Hàng 1 Cột 1 là Màn hình Kiosk cố định => Tự động chuyển sang Cột 2
+        if (curRow === 1 && curCol === 1) {
+          curCol = 2;
+        }
         const item = {
           boxNumber: num,
           cellType: newCellType,
@@ -877,9 +925,9 @@ export default function LockerLayoutPage() {
           status: "AVAILABLE",
         };
         curCol++;
-        // Hết số cột của hàng ⇒ quay về cột bắt đầu (không phải cột 1) ở hàng kế tiếp
+        // Hết số cột của hàng ⇒ quay về cột bắt đầu ở hàng kế tiếp
         if (curCol >= startCol + colsPerRow) {
-          curCol = startCol;
+          curCol = startCol === 1 && curRow + rowStep === 1 ? 2 : startCol;
           curRow += rowStep;
         }
         return item;
@@ -1129,13 +1177,21 @@ export default function LockerLayoutPage() {
           <Button
             variant="outline"
             onClick={openArrange}
-            disabled={cells.filter((c) => !isKioskColumnCell(c)).length === 0}
+            disabled={cells.length === 0}
             className="shadow-xs"
           >
             <LayoutGrid className="w-4 h-4 mr-1.5 text-primary" /> {t("admin.lockers.layout.autoArrange")}
           </Button>
           <Button onClick={openAddModal} className="bg-primary text-primary-foreground shadow-xs">
             <Plus className="w-4 h-4 mr-1.5" /> {t("admin.lockers.layout.addBox")}
+          </Button>
+          <Button
+            variant="outline"
+            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive shadow-xs font-semibold"
+            onClick={() => setShowDeleteAllBoxesModal(true)}
+            disabled={cells.length === 0 || isDeletingAll || isDeletingBatch || isDeletingBox}
+          >
+            <Trash2 className="w-4 h-4 mr-1.5" /> {t("admin.lockers.layout.deleteAllBoxes", "Xóa tất cả ô")}
           </Button>
           <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} /> {t("button.refresh")}
@@ -1313,11 +1369,11 @@ export default function LockerLayoutPage() {
           <div
             className="grid gap-3.5 p-5 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border-2 border-slate-300/90 dark:border-slate-700 shadow-inner"
             style={{
-              gridTemplateColumns: `minmax(180px, 1fr) repeat(${Math.max(1, maxCols - 1)}, minmax(200px, 1.25fr))`,
+              gridTemplateColumns: `repeat(${maxCols}, minmax(190px, 1fr))`,
               gridTemplateRows: `repeat(${maxRows}, minmax(135px, auto))`,
             }}
           >
-            {/* Màn hình cảm ứng 7 inch (Waveshare 1024x600 HDMI/Touch) đặt ở hàng 1 cột 1, ngay phía trên Ô #1 (Vali) */}
+            {/* Màn hình cảm ứng 7 inch (Waveshare 1024x600 HDMI/Touch) cố định ở hàng 1 cột 1 */}
             <div
               style={{ gridColumn: "1", gridRow: "1" }}
               className="flex flex-col h-full shadow-xs transition-all hover:shadow-md"
@@ -1400,7 +1456,7 @@ export default function LockerLayoutPage() {
             </div>
 
             {cells.map((cell) => {
-              const gridStyle = getBoxGridStyle(cell, maxRows, gridOrigin);
+              const gridStyle = getBoxGridStyle(cell, maxRows);
               return (
                 <div
                   key={cell.id}
@@ -1540,251 +1596,288 @@ export default function LockerLayoutPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Thêm ô tủ (Hỗ trợ tạo 1 ô hoặc tạo nhiều ô cùng lúc) */}
+      {/* Dialog: Thêm ô tủ (Hỗ trợ tạo 1 ô hoặc tạo nhiều ô cùng lúc kèm Xem trước sơ đồ trực quan như Word Table) */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="max-w-6xl w-[96vw] max-h-[92vh] overflow-y-auto p-4 sm:p-6">
           <form onSubmit={handleAddBox}>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+            <DialogHeader className="pb-2 border-b border-border/60">
+              <DialogTitle className="flex items-center gap-2 text-base font-bold">
                 <BoxIcon className="w-5 h-5 text-primary" /> {t("admin.lockers.layout.add.title")}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-xs">
                 {t("admin.lockers.layout.add.description", { locker: layout?.name })}
               </DialogDescription>
             </DialogHeader>
 
-            <Tabs value={addMode} onValueChange={(v) => setAddMode(v as any)} className="w-full mt-2">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="single" className="flex items-center gap-1.5 text-xs">
-                  <BoxIcon className="w-3.5 h-3.5" /> {t("admin.lockers.layout.add.tabSingle")}
-                </TabsTrigger>
-                <TabsTrigger value="batch" className="flex items-center gap-1.5 text-xs">
-                  <Layers className="w-3.5 h-3.5" /> {t("admin.lockers.layout.add.tabBatch")}
-                </TabsTrigger>
-              </TabsList>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-3">
+              {/* CỘT TRÁI (5/12 cols): Form nhập thông số */}
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
+                <Tabs value={addMode} onValueChange={(v) => setAddMode(v as any)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="single" className="flex items-center gap-1.5 text-xs">
+                      <BoxIcon className="w-3.5 h-3.5" /> {t("admin.lockers.layout.add.tabSingle")}
+                    </TabsTrigger>
+                    <TabsTrigger value="batch" className="flex items-center gap-1.5 text-xs">
+                      <Layers className="w-3.5 h-3.5" /> {t("admin.lockers.layout.add.tabBatch")}
+                    </TabsTrigger>
+                  </TabsList>
 
-              <div className="grid gap-4 py-4">
-                {addMode === "single" ? (
-                  <>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="boxNumber" className="text-right font-medium text-xs">
-                        {t("admin.lockers.layout.add.boxNumber")}
-                      </Label>
-                      <Input
-                        id="boxNumber"
-                        type="number"
-                        placeholder={t("admin.lockers.layout.add.boxNumberPlaceholder")}
-                        value={newBoxNumber}
-                        onChange={(e) => setNewBoxNumber(e.target.value ? Number(e.target.value) : "")}
-                        className="col-span-3"
-                        required={addMode === "single"}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="rowIndex" className="text-right font-medium text-xs">
-                        {t("admin.lockers.layout.add.row")}
-                      </Label>
-                      <Input
-                        id="rowIndex"
-                        type="number"
-                        min={1}
-                        max={10}
-                        value={newRowIndex}
-                        onChange={(e) => setNewRowIndex(Number(e.target.value))}
-                        className="col-span-3"
-                        required={addMode === "single"}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="colIndex" className="text-right font-medium text-xs">
-                        {t("admin.lockers.layout.add.col")}
-                      </Label>
-                      <Input
-                        id="colIndex"
-                        type="number"
-                        min={0}
-                        max={10}
-                        value={newColIndex}
-                        onChange={(e) => setNewColIndex(Number(e.target.value))}
-                        className="col-span-3"
-                        required={addMode === "single"}
-                      />
-                      <p className="text-[10px] text-muted-foreground col-span-3 col-start-2">
-                        {t("admin.lockers.layout.add.colHint")}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-center gap-5 p-1 bg-muted/30 rounded-lg border border-border/50 text-xs">
-                      <label className="flex items-center gap-2 cursor-pointer font-medium">
-                        <input
-                          type="radio"
-                          name="batchMethod"
-                          checked={batchMethod === "list"}
-                          onChange={() => setBatchMethod("list")}
-                          className="accent-primary"
-                        />
-                        {t("admin.lockers.layout.add.methodList")}
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer font-medium">
-                        <input
-                          type="radio"
-                          name="batchMethod"
-                          checked={batchMethod === "range"}
-                          onChange={() => setBatchMethod("range")}
-                          className="accent-primary"
-                        />
-                        {t("admin.lockers.layout.add.methodRange")}
-                      </label>
-                    </div>
-
-                    {batchMethod === "list" ? (
-                      <div className="grid grid-cols-4 items-start gap-4">
-                        <Label htmlFor="batchList" className="text-right font-medium text-xs pt-2">
-                          {t("admin.lockers.layout.add.list")}
-                        </Label>
-                        <div className="col-span-3 space-y-1.5">
+                  <div className="grid gap-3.5 py-3">
+                    {addMode === "single" ? (
+                      <>
+                        <div className="grid grid-cols-4 items-center gap-3">
+                          <Label htmlFor="boxNumber" className="text-right font-medium text-xs">
+                            {t("admin.lockers.layout.add.boxNumber")}
+                          </Label>
                           <Input
-                            id="batchList"
-                            placeholder={t("admin.lockers.layout.add.listPlaceholder")}
-                            value={batchNumbersText}
-                            onChange={(e) => setBatchNumbersText(e.target.value)}
-                          />
-                          <p className="text-[10px] text-muted-foreground">
-                            {t("admin.lockers.layout.add.listHint")}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right font-medium text-xs">{t("admin.lockers.layout.add.range")}</Label>
-                        <div className="col-span-3 grid grid-cols-2 gap-2">
-                          <div>
-                            <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.startNumber")}</span>
-                            <Input
-                              type="number"
-                              min={1}
-                              value={batchStartNumber}
-                              onChange={(e) => setBatchStartNumber(Number(e.target.value))}
-                            />
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.count")}</span>
-                            <Input
-                              type="number"
-                              min={1}
-                              max={50}
-                              value={batchCount}
-                              onChange={(e) => setBatchCount(Number(e.target.value))}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Preview box numbers */}
-                    {parsedBatchNumbers.length > 0 && (
-                      <div className="bg-muted/40 p-2.5 rounded-lg border border-border/60 text-xs">
-                        <div className="flex items-center justify-between mb-1.5 font-medium">
-                          <span>{t("admin.lockers.layout.add.willCreate", { count: parsedBatchNumbers.length })}</span>
-                          <span className="text-[10px] text-muted-foreground">{t("admin.lockers.layout.add.autoPlace")}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
-                          {parsedBatchNumbers.map((n) => (
-                            <Badge key={n} variant="secondary" className="text-[10px] px-1.5 py-0 font-semibold">
-                              #{n}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-4 items-center gap-4 pt-1">
-                      <Label className="text-right font-medium text-xs">{t("admin.lockers.layout.add.layout")}</Label>
-                      <div className="col-span-3 grid grid-cols-3 gap-2">
-                        <div>
-                          <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.startRow")}</span>
-                          <Input
+                            id="boxNumber"
                             type="number"
-                            min={1}
-                            value={batchStartRow}
-                            onChange={(e) => setBatchStartRow(Number(e.target.value))}
+                            placeholder={t("admin.lockers.layout.add.boxNumberPlaceholder")}
+                            value={newBoxNumber}
+                            onChange={(e) => setNewBoxNumber(e.target.value ? Number(e.target.value) : "")}
+                            className="col-span-3 text-xs h-9"
+                            required={addMode === "single"}
                           />
                         </div>
-                        <div>
-                          <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.startCol")}</span>
+                        <div className="grid grid-cols-4 items-center gap-3">
+                          <Label htmlFor="rowIndex" className="text-right font-medium text-xs">
+                            {t("admin.lockers.layout.add.row")}
+                          </Label>
                           <Input
-                            type="number"
-                            min={0}
-                            value={batchStartCol}
-                            onChange={(e) => setBatchStartCol(Number(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.colsPerRow")}</span>
-                          <Input
+                            id="rowIndex"
                             type="number"
                             min={1}
                             max={10}
-                            value={batchColsPerRow}
-                            onChange={(e) => setBatchColsPerRow(Number(e.target.value))}
+                            value={newRowIndex}
+                            onChange={(e) => setNewRowIndex(Number(e.target.value))}
+                            className="col-span-3 text-xs h-9"
+                            required={addMode === "single"}
                           />
                         </div>
-                      </div>
-                    </div>
-                  </>
-                )}
+                        <div className="grid grid-cols-4 items-center gap-3">
+                          <Label htmlFor="colIndex" className="text-right font-medium text-xs">
+                            {t("admin.lockers.layout.add.col")}
+                          </Label>
+                          <Input
+                            id="colIndex"
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={newColIndex}
+                            onChange={(e) => setNewColIndex(Number(e.target.value))}
+                            className="col-span-3 text-xs h-9"
+                            required={addMode === "single"}
+                          />
+                          <p className="text-[10px] text-muted-foreground col-span-3 col-start-2 leading-relaxed">
+                            {t("admin.lockers.layout.add.colHint")}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-center gap-5 p-1 bg-muted/30 rounded-lg border border-border/50 text-xs">
+                          <label className="flex items-center gap-2 cursor-pointer font-medium">
+                            <input
+                              type="radio"
+                              name="batchMethod"
+                              checked={batchMethod === "list"}
+                              onChange={() => setBatchMethod("list")}
+                              className="accent-primary"
+                            />
+                            {t("admin.lockers.layout.add.methodList")}
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer font-medium">
+                            <input
+                              type="radio"
+                              name="batchMethod"
+                              checked={batchMethod === "range"}
+                              onChange={() => setBatchMethod("range")}
+                              className="accent-primary"
+                            />
+                            {t("admin.lockers.layout.add.methodRange")}
+                          </label>
+                        </div>
 
-                {/* Common fields */}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="cellType" className="text-right font-medium text-xs">
-                    {t("admin.lockers.layout.add.cellType")}
-                  </Label>
-                  <Select value={newCellType} onValueChange={setNewCellType}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder={t("admin.lockers.layout.add.cellTypePlaceholder")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="STANDARD">{t("admin.lockers.boxType.standard")}</SelectItem>
-                      <SelectItem value="DRONE">{t("admin.lockers.boxType.drone")}</SelectItem>
-                      <SelectItem value="XL">{t("admin.lockers.boxType.xl")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="size" className="text-right font-medium text-xs">
-                    {t("admin.lockers.layout.add.size")}
-                  </Label>
-                  <Select value={newSize} onValueChange={setNewSize}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder={t("admin.lockers.layout.add.sizePlaceholder")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="S">{t("admin.lockers.boxSize.small")}</SelectItem>
-                      <SelectItem value="M">{t("admin.lockers.boxSize.medium")}</SelectItem>
-                      <SelectItem value="L">{t("admin.lockers.boxSize.large")}</SelectItem>
-                      <SelectItem value="XL">{t("admin.lockers.boxSize.xl")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                        {batchMethod === "list" ? (
+                          <div className="grid grid-cols-4 items-start gap-3">
+                            <Label htmlFor="batchList" className="text-right font-medium text-xs pt-2">
+                              {t("admin.lockers.layout.add.list")}
+                            </Label>
+                            <div className="col-span-3 space-y-1.5">
+                              <Input
+                                id="batchList"
+                                placeholder={t("admin.lockers.layout.add.listPlaceholder")}
+                                value={batchNumbersText}
+                                onChange={(e) => setBatchNumbersText(e.target.value)}
+                                className="text-xs h-9"
+                              />
+                              <p className="text-[10px] text-muted-foreground">
+                                {t("admin.lockers.layout.add.listHint")}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-4 items-center gap-3">
+                            <Label className="text-right font-medium text-xs">{t("admin.lockers.layout.add.range")}</Label>
+                            <div className="col-span-3 grid grid-cols-2 gap-2">
+                              <div>
+                                <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.startNumber")}</span>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  value={batchStartNumber}
+                                  onChange={(e) => setBatchStartNumber(Number(e.target.value))}
+                                  className="text-xs h-9"
+                                />
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.count")}</span>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={50}
+                                  value={batchCount}
+                                  onChange={(e) => setBatchCount(Number(e.target.value))}
+                                  className="text-xs h-9"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Preview box numbers */}
+                        {parsedBatchNumbers.length > 0 && (
+                          <div className="bg-muted/40 p-2.5 rounded-lg border border-border/60 text-xs">
+                            <div className="flex items-center justify-between mb-1.5 font-medium">
+                              <span>{t("admin.lockers.layout.add.willCreate", { count: parsedBatchNumbers.length })}</span>
+                              <span className="text-[10px] text-muted-foreground">{t("admin.lockers.layout.add.autoPlace")}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                              {parsedBatchNumbers.map((n) => (
+                                <Badge key={n} variant="secondary" className="text-[10px] px-1.5 py-0 font-semibold">
+                                  #{n}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-4 items-center gap-3 pt-1">
+                          <Label className="text-right font-medium text-xs">{t("admin.lockers.layout.add.layout")}</Label>
+                          <div className="col-span-3 grid grid-cols-3 gap-2">
+                            <div>
+                              <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.startRow")}</span>
+                              <Input
+                                type="number"
+                                min={1}
+                                value={batchStartRow}
+                                onChange={(e) => setBatchStartRow(Number(e.target.value))}
+                                className="text-xs h-9"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.startCol")}</span>
+                              <Input
+                                type="number"
+                                min={1}
+                                value={batchStartCol}
+                                onChange={(e) => setBatchStartCol(Number(e.target.value))}
+                                className="text-xs h-9"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-muted-foreground block mb-1">{t("admin.lockers.layout.add.colsPerRow")}</span>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={10}
+                                value={batchColsPerRow}
+                                onChange={(e) => setBatchColsPerRow(Number(e.target.value))}
+                                className="text-xs h-9"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Common fields */}
+                    <div className="grid grid-cols-4 items-center gap-3">
+                      <Label htmlFor="cellType" className="text-right font-medium text-xs">
+                        {t("admin.lockers.layout.add.cellType")}
+                      </Label>
+                      <Select value={newCellType} onValueChange={setNewCellType}>
+                        <SelectTrigger className="col-span-3 text-xs h-9">
+                          <SelectValue placeholder={t("admin.lockers.layout.add.cellTypePlaceholder")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="STANDARD">{t("admin.lockers.boxType.standard")}</SelectItem>
+                          <SelectItem value="DRONE">{t("admin.lockers.boxType.drone")}</SelectItem>
+                          <SelectItem value="XL">{t("admin.lockers.boxType.xl")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-3">
+                      <Label htmlFor="size" className="text-right font-medium text-xs">
+                        {t("admin.lockers.layout.add.size")}
+                      </Label>
+                      <Select value={newSize} onValueChange={setNewSize}>
+                        <SelectTrigger className="col-span-3 text-xs h-9">
+                          <SelectValue placeholder={t("admin.lockers.layout.add.sizePlaceholder")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="S">{t("admin.lockers.boxSize.small")}</SelectItem>
+                          <SelectItem value="M">{t("admin.lockers.boxSize.medium")}</SelectItem>
+                          <SelectItem value="L">{t("admin.lockers.boxSize.large")}</SelectItem>
+                          <SelectItem value="XL">{t("admin.lockers.boxSize.xl")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </Tabs>
+
+                <DialogFooter className="pt-2 border-t border-border/60">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setShowAddModal(false)}>
+                    {t("button.cancel")}
+                  </Button>
+                  <Button type="submit" size="sm" disabled={isAddingBox || isAddingBoxesBatch}>
+                    {isAddingBox || isAddingBoxesBatch
+                      ? t("admin.lockers.layout.add.adding")
+                      : addMode === "single"
+                      ? t("admin.lockers.layout.add.submitOne")
+                      : parsedBatchNumbers.length > 0
+                      ? t("admin.lockers.layout.add.submitMany", { count: parsedBatchNumbers.length })
+                      : t("admin.lockers.layout.addBox")}
+                  </Button>
+                </DialogFooter>
               </div>
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
-                  {t("button.cancel")}
-                </Button>
-                <Button type="submit" disabled={isAddingBox || isAddingBoxesBatch}>
-                  {isAddingBox || isAddingBoxesBatch
-                    ? t("admin.lockers.layout.add.adding")
-                    : addMode === "single"
-                    ? t("admin.lockers.layout.add.submitOne")
-                    : parsedBatchNumbers.length > 0
-                    ? t("admin.lockers.layout.add.submitMany", { count: parsedBatchNumbers.length })
-                    : t("admin.lockers.layout.addBox")}
-                </Button>
-              </DialogFooter>
-            </Tabs>
+              {/* CỘT PHẢI (7/12 cols): Phần xem trước trực quan như Word Table */}
+              <div className="lg:col-span-7 bg-muted/20 p-3.5 rounded-xl border border-border/70 flex flex-col justify-between">
+                <LockerAddBoxPreview
+                  cells={cells}
+                  mode={addMode}
+                  newBoxNumber={newBoxNumber}
+                  newRowIndex={newRowIndex}
+                  newColIndex={newColIndex}
+                  batchNumbers={parsedBatchNumbers}
+                  batchStartRow={batchStartRow}
+                  batchStartCol={batchStartCol}
+                  batchColsPerRow={batchColsPerRow}
+                  newCellType={newCellType}
+                  newSize={newSize}
+                  onSelectSlot={(r, c) => {
+                    if (addMode === "single") {
+                      setNewRowIndex(r);
+                      setNewColIndex(c);
+                    } else {
+                      setBatchStartRow(r);
+                      setBatchStartCol(c);
+                    }
+                  }}
+                />
+              </div>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
@@ -1857,6 +1950,61 @@ export default function LockerLayoutPage() {
         gatewayMac={currentGateway?.macAddress}
         lastSeenAt={currentGateway?.lastSeenAt}
       />
+
+      {/* 5) Modal xác nhận Xóa tất cả ô tủ */}
+      <Dialog open={showDeleteAllBoxesModal} onOpenChange={setShowDeleteAllBoxesModal}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              {t("admin.lockers.layout.deleteAllBoxesTitle", "Xác nhận xóa tất cả ô tủ?")}
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="space-y-2 pt-2 text-sm text-muted-foreground">
+                <p>
+                  {t(
+                    "admin.lockers.layout.deleteAllBoxesDesc",
+                    "Toàn bộ {{count}} ô tủ trong trạm này sẽ bị xóa. Thao tác này không thể hoàn tác.",
+                    { count: cells.length }
+                  )}
+                </p>
+                <div className="text-xs text-muted-foreground bg-muted/60 p-2.5 rounded-lg border">
+                  {t(
+                    "admin.lockers.layout.deleteAllBoxesWarning",
+                    "Lưu ý: Các ô đang chứa đồ hoặc đã được khách đặt chỗ (OCCUPIED / RESERVED) sẽ được bảo vệ và không bị xóa."
+                  )}
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteAllBoxesModal(false)}
+              disabled={isDeletingAll}
+            >
+              {t("button.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAllBoxes}
+              disabled={isDeletingAll}
+            >
+              {isDeletingAll ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  {t("common.deleting", "Đang xóa...")}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {t("admin.lockers.layout.deleteAllBoxesConfirm", "Xác nhận xóa tất cả")}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

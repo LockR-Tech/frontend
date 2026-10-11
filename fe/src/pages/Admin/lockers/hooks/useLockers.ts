@@ -7,6 +7,9 @@ import {
   useGetAllLockersQuery,
   useSetLockerMaintenanceMutation,
   useGetAllStoresQuery,
+  useDeleteLockerMutation,
+  useDeleteLockersBatchMutation,
+  useDeleteAllLockersMutation,
 } from "~/stores/apis/admin";
 import { extractList } from "~/lib/extract-list";
 import type { AdminLockerResponse } from "~/types";
@@ -110,6 +113,9 @@ export function useLockers() {
   const hasActiveFilters = status !== "ALL" || searchQuery !== "";
 
   const [setMaintenance] = useSetLockerMaintenanceMutation();
+  const [deleteLockerMutation, { isLoading: isDeletingSingle }] = useDeleteLockerMutation();
+  const [deleteLockersBatchMutation, { isLoading: isDeletingBatch }] = useDeleteLockersBatchMutation();
+  const [deleteAllLockersMutation, { isLoading: isDeletingAll }] = useDeleteAllLockersMutation();
 
   const handleMaintenance = async (lockerId: number) => {
     try {
@@ -131,9 +137,75 @@ export function useLockers() {
     }
   };
 
+  const handleDeleteLocker = async (lockerId: number) => {
+    try {
+      await deleteLockerMutation(lockerId).unwrap();
+      toast.success(t("admin.lockers.toast.deleteSuccess", "Đã xóa tủ thành công"));
+      refetch();
+      return true;
+    } catch (err: any) {
+      toast.error(
+        err?.data?.message || err?.message || t("admin.lockers.toast.deleteFailed", "Không thể xóa tủ")
+      );
+      return false;
+    }
+  };
+
+  const handleDeleteBatchLockers = async (lockerIds: number[]) => {
+    if (!lockerIds.length) return false;
+    try {
+      const res = await deleteLockersBatchMutation({ lockerIds }).unwrap();
+      const count = res.data?.deletedCount ?? lockerIds.length;
+      toast.success(t("admin.lockers.toast.deleteBatchSuccess", `Đã xóa thành công ${count} tủ!`));
+      refetch();
+      return true;
+    } catch {
+      // Fallback: nếu server chưa có batch-delete, xóa lần lượt từng tủ bằng deleteLockerMutation (đã có sẵn)
+      try {
+        await Promise.all(lockerIds.map((id) => deleteLockerMutation(id).unwrap()));
+        toast.success(t("admin.lockers.toast.deleteBatchSuccess", `Đã xóa thành công ${lockerIds.length} tủ!`));
+        refetch();
+        return true;
+      } catch (fallbackErr: any) {
+        toast.error(
+          fallbackErr?.data?.message || fallbackErr?.message || t("admin.lockers.toast.deleteBatchFailed", "Không thể xóa các tủ đã chọn")
+        );
+        return false;
+      }
+    }
+  };
+
+  const handleDeleteAllLockers = async () => {
+    if (!allLockers.length) return false;
+    try {
+      const res = await deleteAllLockersMutation().unwrap();
+      const count = res.data?.deletedCount ?? allLockers.length;
+      toast.success(t("admin.lockers.toast.deleteAllSuccess", `Đã xóa tất cả ${count} tủ thành công!`));
+      refetch();
+      return true;
+    } catch {
+      // Fallback: xóa toàn bộ tủ bằng deleteLockerMutation
+      try {
+        await Promise.all(allLockers.map((l) => deleteLockerMutation(l.id).unwrap()));
+        toast.success(t("admin.lockers.toast.deleteAllSuccess", `Đã xóa tất cả ${allLockers.length} tủ thành công!`));
+        refetch();
+        return true;
+      } catch (fallbackErr: any) {
+        toast.error(
+          fallbackErr?.data?.message || fallbackErr?.message || t("admin.lockers.toast.deleteAllFailed", "Không thể xóa tất cả tủ")
+        );
+        return false;
+      }
+    }
+  };
+
   return {
     handleMaintenance,
     handleActivate,
+    handleDeleteLocker,
+    handleDeleteBatchLockers,
+    handleDeleteAllLockers,
+    isDeleting: isDeletingSingle || isDeletingBatch || isDeletingAll,
     lockers: paginatedLockers,
     totalElements: filteredLockers.length,
     totalPages: Math.ceil(filteredLockers.length / pageSize),
