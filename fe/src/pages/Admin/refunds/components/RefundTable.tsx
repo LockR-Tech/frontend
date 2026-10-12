@@ -1158,7 +1158,7 @@ export function RefundTable({
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Khách hàng:</span>
                   <span className="font-medium text-foreground">
-                    {selectedRefund.customer?.fullName || EMPTY_VALUE} {selectedRefund.customer?.phone ? `(${selectedRefund.customer.phone})` : ""}
+                    {selectedRefund.customer?.fullName || EMPTY_VALUE} {selectedRefund.customer?.phoneNumber ? `(${selectedRefund.customer.phoneNumber})` : ""}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
