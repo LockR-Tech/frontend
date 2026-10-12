@@ -59,7 +59,7 @@ export default function RefundsPage() {
   const isStatsLoading =
     isPendingLoading || isCompletedLoading || isRejectedLoading || isTotalLoading;
 
-  const handleKpiStatusClick = (status: string) => {
+  const handleStatusChange = (status: string) => {
     setStatusFilter(status);
     if (status === "PENDING") {
       setActiveTab("pending");
@@ -152,7 +152,7 @@ export default function RefundsPage() {
         totalCount={totalCount}
         isLoading={isStatsLoading}
         activeStatus={statusFilter}
-        onStatusClick={handleKpiStatusClick}
+        onStatusClick={handleStatusChange}
       />
 
       {/* Bộ chọn Tab chính */}
@@ -208,8 +208,8 @@ export default function RefundsPage() {
               </div>
 
               <RefundTable
-                statusFilter="PENDING"
-                onStatusFilterChange={setStatusFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={handleStatusChange}
                 pendingCount={pendingCount}
               />
             </CardContent>
@@ -231,8 +231,8 @@ export default function RefundsPage() {
               </div>
 
               <RefundTable
-                statusFilter={statusFilter === "PENDING" ? "ALL" : statusFilter}
-                onStatusFilterChange={setStatusFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={handleStatusChange}
                 pendingCount={pendingCount}
               />
             </CardContent>
