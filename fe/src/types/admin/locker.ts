@@ -38,6 +38,7 @@ export interface CreateLockerRequest {
   latitude?: number | null;
   longitude?: number | null;
   storeId: number;
+  status?: string;
 }
 
 export interface CreateBoxRequest {

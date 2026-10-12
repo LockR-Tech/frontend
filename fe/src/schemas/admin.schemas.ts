@@ -188,7 +188,10 @@ export const CreateLockerRequestSchema = z.object({
   code: z.string().min(1, 'Code is required'),
   name: z.string().min(1, 'Name is required'),
   address: z.string().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
   storeId: z.number().int().positive('Store ID is required'),
+  status: z.string().optional(),
 });
 
 export const CreateBoxRequestSchema = z.object({
