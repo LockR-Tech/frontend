@@ -32,6 +32,7 @@ import {
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { formatDateTime as formatDT } from "~/lib/datetime";
 import { calculateDurationText as calcDuration, getUserPhotos } from "./maintenancePhotos";
+import { DroneOrdersByTicket } from "../drone-orders/HomePickupPanels";
 
 /// Nút "Nhật ký" + hộp thoại đầy đủ thông tin phiếu (Chế độ xem Quản trị viên - Read-only):
 /// - Chi tiết phiếu: Kiosk, ô tủ, nội dung khách báo, KTV phụ trách, các mốc thời gian SLA
@@ -187,6 +188,7 @@ export function RepairLogDialog({
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
+            {open && <DroneOrdersByTicket ticketId={reportId} />}
             {/* ── SECTION: Chi tiết phiếu ── */}
             {activeSection === "info" && (
               <div className="space-y-3">
