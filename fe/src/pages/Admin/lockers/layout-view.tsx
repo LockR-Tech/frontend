@@ -24,6 +24,8 @@ import {
   Trash2,
   Layers,
   LayoutGrid,
+  MapPin,
+  ExternalLink,
 } from "lucide-react";
 import {
   isXlCell,
@@ -94,6 +96,7 @@ import { EditBoxModal } from "./components/EditBoxModal";
 import { BoxQrModal } from "./components/BoxQrModal";
 import { KioskScreenModal } from "./components/KioskScreenModal";
 import { LockerAddBoxPreview } from "./components/LockerAddBoxPreview";
+import { LockerLocationModal } from "./components/LockerLocationModal";
 
 // Nhãn trạng thái tủ — cùng câu chữ với admin.lockers.status (messages/vi.json)
 const LOCKER_STATUS_STYLE: Record<string, { labelKey: string; cls: string }> = {
@@ -586,7 +589,7 @@ export default function LockerLayoutPage() {
   }, [subscribe, id, refetch, t]);
 
   // KTV phụ trách tủ: phiếu mới của tủ chỉ gửi cho người này; chưa gán ⇒ báo mọi KTV tủ
-  const { data: staffLockerData } = useGetStaffLockerQuery(id, { skip: !Number.isFinite(id) });
+  const { data: staffLockerData, refetch: refetchStaffLocker } = useGetStaffLockerQuery(id, { skip: !Number.isFinite(id) });
   const staffLocker = staffLockerData?.data;
   const [assignLockerTechnician, { isLoading: savingTechnician }] = useAssignLockerTechnicianMutation();
   const { data: usersData } = useGetAllUsersQuery(TECHNICIAN_USERS_QUERY);
@@ -687,6 +690,9 @@ export default function LockerLayoutPage() {
 
   // Modal State for 7-inch Touch Screen
   const [showScreenModal, setShowScreenModal] = useState(false);
+
+  // Modal State for Locker GPS Location Picker (Grab / Green SM style)
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   // Lấy trạng thái kết nối phần cứng thực tế của bộ điều khiển Kiosk (Gateway/Raspberry Pi)
   const { data: gatewaysData } = useGetGatewaysQuery(undefined, { pollingInterval: 5000 });
@@ -1164,6 +1170,14 @@ export default function LockerLayoutPage() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
+            onClick={() => setShowLocationModal(true)}
+            className="shadow-xs border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40"
+          >
+            <MapPin className="w-4 h-4 mr-1.5 text-sky-600 dark:text-sky-400" />
+            {staffLocker?.latitude != null && staffLocker?.longitude != null ? "Vị trí & Tọa độ" : "Ghim tọa độ tủ"}
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => {
               setSelectedQrCell(cells[0] || null);
               setShowQrModal(true);
@@ -1220,57 +1234,115 @@ export default function LockerLayoutPage() {
         </div>
       )}
 
-      <Card className="border border-border/80 shadow-xs">
-        <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-200/60 flex items-center justify-center text-indigo-600 shrink-0">
-              <UserCheck className="w-4 h-4" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Kỹ thuật viên phụ trách */}
+        <Card className="border border-border/80 shadow-xs">
+          <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 h-full">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-200/60 dark:bg-indigo-950/40 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                <UserCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{t("admin.lockers.columns.technician")}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {assignedTechId != null ? (
+                    <Trans
+                      i18nKey="admin.lockers.layout.tech.routedTo"
+                      values={{ name: assignedTechName }}
+                      components={{ b: <span className="font-semibold text-foreground" /> }}
+                    />
+                  ) : (
+                    t("admin.lockers.layout.tech.unassignedHint")
+                  )}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold">{t("admin.lockers.columns.technician")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {assignedTechId != null ? (
-                  <Trans
-                    i18nKey="admin.lockers.layout.tech.routedTo"
-                    values={{ name: assignedTechName }}
-                    components={{ b: <span className="font-semibold text-foreground" /> }}
-                  />
-                ) : (
-                  t("admin.lockers.layout.tech.unassignedHint")
-                )}
-              </p>
+            <div className="flex items-center gap-2">
+              <Select value={selectedTechValue} onValueChange={setTechChoice} disabled={!staffLocker || savingTechnician}>
+                <SelectTrigger className="w-full md:w-56 h-9 text-xs">
+                  <SelectValue placeholder={t("admin.lockers.layout.tech.selectPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_TECHNICIAN}>{t("admin.lockers.layout.tech.noneOption")}</SelectItem>
+                  {/* KTV đang gán có thể không nằm trong danh sách (VD tài khoản ADMIN) */}
+                  {assignedTechId != null && !lockerTechnicians.some((tech) => tech.id === assignedTechId) && (
+                    <SelectItem value={currentTechValue}>{assignedTechName}</SelectItem>
+                  )}
+                  {lockerTechnicians.map((tech) => (
+                    <SelectItem key={tech.id} value={String(tech.id)} disabled={!tech.active}>
+                      {tech.name} (#{tech.id}){tech.phone ? ` · ${tech.phone}` : ""}
+                      {!tech.active ? ` · ${t("admin.lockers.layout.tech.locked")}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                className="h-9 text-xs"
+                onClick={handleSaveTechnician}
+                disabled={!staffLocker || savingTechnician || selectedTechValue === currentTechValue}
+              >
+                {savingTechnician ? t("common.saving") : t("button.save")}
+              </Button>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={selectedTechValue} onValueChange={setTechChoice} disabled={!staffLocker || savingTechnician}>
-              <SelectTrigger className="w-full md:w-72 h-9 text-xs">
-                <SelectValue placeholder={t("admin.lockers.layout.tech.selectPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_TECHNICIAN}>{t("admin.lockers.layout.tech.noneOption")}</SelectItem>
-                {/* KTV đang gán có thể không nằm trong danh sách (VD tài khoản ADMIN) */}
-                {assignedTechId != null && !lockerTechnicians.some((tech) => tech.id === assignedTechId) && (
-                  <SelectItem value={currentTechValue}>{assignedTechName}</SelectItem>
+          </CardContent>
+        </Card>
+
+        {/* Vị trí & Tọa độ GPS của tủ */}
+        <Card className="border border-border/80 shadow-xs">
+          <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 h-full">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-sky-50 border border-sky-200/60 dark:bg-sky-950/40 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold">Vị trí & Tọa độ GPS tủ</p>
+                  {staffLocker?.latitude != null && staffLocker?.longitude != null ? (
+                    <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 text-[10px] px-1.5 py-0 font-medium">
+                      Đã định vị
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] px-1.5 py-0">
+                      Chưa có GPS
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-xs" title={staffLocker?.address || undefined}>
+                  {staffLocker?.address || "Chưa thiết lập địa chỉ cụ thể"}
+                </p>
+                {staffLocker?.latitude != null && staffLocker?.longitude != null && (
+                  <p className="text-[11px] font-mono text-sky-700 dark:text-sky-400 mt-0.5">
+                    {staffLocker.latitude.toFixed(6)}, {staffLocker.longitude.toFixed(6)}
+                  </p>
                 )}
-                {lockerTechnicians.map((tech) => (
-                  <SelectItem key={tech.id} value={String(tech.id)} disabled={!tech.active}>
-                    {tech.name} (#{tech.id}){tech.phone ? ` · ${tech.phone}` : ""}
-                    {!tech.active ? ` · ${t("admin.lockers.layout.tech.locked")}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              size="sm"
-              className="h-9"
-              onClick={handleSaveTechnician}
-              disabled={!staffLocker || savingTechnician || selectedTechValue === currentTechValue}
-            >
-              {savingTechnician ? t("common.saving") : t("button.save")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {staffLocker?.latitude != null && staffLocker?.longitude != null && (
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                  title="Mở Google Maps"
+                  onClick={() => window.open(`https://www.google.com/maps?q=${staffLocker.latitude},${staffLocker.longitude}`, "_blank")}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 text-xs gap-1.5 border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40"
+                onClick={() => setShowLocationModal(true)}
+              >
+                <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                {staffLocker?.latitude != null ? "Chỉnh sửa bản đồ" : "Chọn vị trí bản đồ"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <GatewayPanel
         lockerId={id}
@@ -2005,6 +2077,16 @@ export default function LockerLayoutPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 6) Modal chọn vị trí và toạ độ GPS chuẩn Grab / Xanh SM */}
+      {staffLocker && (
+        <LockerLocationModal
+          locker={staffLocker}
+          open={showLocationModal}
+          onOpenChange={setShowLocationModal}
+          onSuccess={() => refetchStaffLocker?.()}
+        />
+      )}
     </div>
   );
 }

@@ -415,6 +415,51 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    // Cập nhật vị trí và toạ độ GPS tủ (thử endpoint location trước, fallback về updateLocker)
+    updateLockerLocation: builder.mutation<
+      ApiResponse<StaffLockerResponse>,
+      { lockerId: number; latitude: number | null; longitude: number | null; address?: string }
+    >({
+      async queryFn(args, _queryApi, _extraOptions, baseQuery) {
+        const locRes = await baseQuery({
+          url: `/api/admin/lockers/${args.lockerId}/location`,
+          method: 'PUT',
+          body: {
+            latitude: args.latitude,
+            longitude: args.longitude,
+            address: args.address,
+          },
+        });
+        if (!locRes.error) {
+          return { data: locRes.data as ApiResponse<StaffLockerResponse> };
+        }
+
+        const currentRes = await baseQuery(`/api/admin/lockers/${args.lockerId}`);
+        if (currentRes.error) {
+          return { error: currentRes.error };
+        }
+        const currentLocker = (currentRes.data as any)?.data;
+        const updateRes = await baseQuery({
+          url: `/api/admin/lockers/${args.lockerId}`,
+          method: 'PUT',
+          body: {
+            storeId: currentLocker?.storeId ?? 1,
+            code: currentLocker?.code ?? '',
+            name: currentLocker?.name ?? '',
+            status: currentLocker?.status,
+            address: args.address ?? currentLocker?.address,
+            latitude: args.latitude,
+            longitude: args.longitude,
+          },
+        });
+        if (updateRes.error) {
+          return { error: updateRes.error };
+        }
+        return { data: updateRes.data as ApiResponse<StaffLockerResponse> };
+      },
+      invalidatesTags: (_r, _e, { lockerId }) => [{ type: TAG, id: lockerId }, TAG],
+    }),
+
     getFaultCells: builder.query<ApiResponse<FaultCellResponse[]>, void>({
       query: () => '/api/locker-technician/faults',
       providesTags: [TAG],
@@ -905,6 +950,7 @@ export const {
   useGetLockerLayoutQuery,
   useGetStaffLockerQuery,
   useAssignLockerTechnicianMutation,
+  useUpdateLockerLocationMutation,
   useGetFaultCellsQuery,
   useGetMaintenanceReportsQuery,
   useClaimReportMutation,
