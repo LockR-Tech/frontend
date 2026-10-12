@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { Loader2, MapPin, Plane, RefreshCw, Route, TriangleAlert } from "lucide-react";
@@ -27,7 +27,6 @@ import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency } from "~/lib/report-format";
 import {
   useConfirmDroneParcelReturnMutation,
-  useFailDroneOrderMutation,
   useGetDroneOrderQuery,
   type DroneJourneyEvent,
   type DroneLockerPoint,
@@ -38,6 +37,8 @@ import { useGetAdminDroneOrderListQuery } from "./droneOrderListApi";
 import { DroneTrackingMap } from "./DroneTrackingMap";
 import { LiveCameraPanel } from "./LiveCameraPanel";
 import { isPickupCodeEvent, pickupCodeEvent, sentAt, stageTimes } from "./journey";
+import { PickupPanel, IncidentBlockBanner, CloseAsFailedForm, FailurePanel } from "./HomePickupPanels";
+import { canCloseAsFailed } from "./homePickupRules";
 
 /** Danh sách hỏi lại server sau mỗi khoảng này để chặng mới tự hiện, không cần tải lại trang. */
 const LIST_POLL_MS = 5000;
@@ -171,6 +172,7 @@ function journeyTitle(event: DroneJourneyEvent, t: TFunction): string {
 
 export default function DroneOrdersPage() {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [scope, setScope] = useState<Scope>("active");
   // "Đang thực hiện" chỉ xin nhiệm vụ đang chạy; hai nhóm còn lại cần cả lịch sử
   const { data, isLoading, isFetching, isError, refetch } = useGetAdminDroneOrderListQuery(
@@ -198,7 +200,14 @@ export default function DroneOrdersPage() {
     };
   }, [subscribe, refetch]);
 
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const requestedId = Number(searchParams.get("orderId"));
+  const selectedId = Number.isSafeInteger(requestedId) && requestedId > 0 ? requestedId : null;
+  const setSelectedId = (id: number | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (id === null) next.delete("orderId");
+    else next.set("orderId", String(id));
+    setSearchParams(next);
+  };
 
   const orders = useMemo(() => data?.data ?? [], [data]);
   const counts = useMemo(
@@ -425,6 +434,9 @@ function DroneOrderDialog({
           </div>
         ) : (
           <div className="space-y-6">
+            <IncidentBlockBanner order={order} />
+            <FailurePanel order={order} />
+            <PickupPanel key={`pickup-${order.orderId}`} order={order} />
             <p className="text-xs text-muted-foreground">
               {t("admin.droneOrders.detail.autoRefresh", { time: formatDateTime(order.updatedAt) })}
             </p>
@@ -479,9 +491,7 @@ function DroneOrderDialog({
               <ParcelReturnPanel order={order} />
             )}
 
-            {!isFinished(order) && IN_FLIGHT_STAGES.has(order.deliveryStage ?? "") && (
-              <FlightFailureForm orderId={order.orderId} orderCode={order.orderCode} />
-            )}
+            {canCloseAsFailed(order) && <CloseAsFailedForm key={`${order.orderId}-${order.block?.reason ?? "manual"}`} order={order} />}
 
             <Section title={t("admin.droneOrders.section.route")}>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -592,10 +602,12 @@ function DroneOrderDialog({
 
             <Section title={t("admin.droneOrders.section.people")}>
               <Grid>
-                <LabelValue label={t("admin.droneOrders.fields.sender")}>{order.customerName}</LabelValue>
-                <LabelValue label={t("admin.droneOrders.fields.senderPhone")} mono>{order.customerPhone}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.sender")}>{order.sender?.name ?? order.customerName}</LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.senderPhone")} mono>{order.sender?.phone ?? order.customerPhone}</LabelValue>
+                <LabelValue label={t("common.email")}>{order.sender?.email}</LabelValue>
                 <LabelValue label={t("admin.droneOrders.fields.receiver")}>{order.receiverName}</LabelValue>
                 <LabelValue label={t("admin.droneOrders.fields.receiverPhone")} mono>{order.receiverPhone}</LabelValue>
+                <LabelValue label={t("common.email")}>{order.receiverEmail}</LabelValue>
                 <LabelValue label={t("admin.droneOrders.columns.dispatcher")}>
                   {order.assignedByName ??
                     (order.assignedByUserId
@@ -761,75 +773,6 @@ function ParcelReturnPanel({ order }: { order: DroneOrderTracking }) {
             {t("admin.droneOrders.parcelReturn.confirmButton")}
           </Button>
         </div>
-      </div>
-    </Section>
-  );
-}
-
-/**
- * Admin đóng một chuyến bay đã phóng mà không giao được hàng — dùng khi điều phối viên
- * đã nhận nhiệm vụ không còn thao tác được, để đơn không kẹt mãi ở chặng bay.
- */
-function FlightFailureForm({ orderId, orderCode }: { orderId: number; orderCode: string }) {
-  const { t } = useTranslation();
-  const [failOrder, { isLoading }] = useFailDroneOrderMutation();
-  const [reasonCode, setReasonCode] = useState(2);
-  const [note, setNote] = useState("");
-  const noteRequired = reasonCode === 5;
-
-  const submit = async () => {
-    const trimmed = note.trim();
-    if (noteRequired && !trimmed) {
-      toast.error(t("admin.droneOrders.flightFailure.noteRequired"));
-      return;
-    }
-    if (!confirm(t("admin.droneOrders.flightFailure.confirm", { code: orderCode }))) return;
-    try {
-      await failOrder({ orderId, reasonCode, note: trimmed || undefined }).unwrap();
-      toast.success(t("admin.droneOrders.flightFailure.success", { code: orderCode }));
-    } catch (error) {
-      const message = (error as { data?: { message?: string } })?.data?.message;
-      toast.error(t("admin.droneOrders.flightFailure.failed"), {
-        description: message ?? t("admin.droneOrders.flightFailure.failedHint"),
-      });
-    }
-  };
-
-  return (
-    <Section title={t("admin.droneOrders.section.flightIncident")}>
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
-        <select
-          aria-label={t("admin.droneOrders.flightFailure.reasonLabel")}
-          className="h-9 rounded-md border bg-background px-2 text-sm"
-          value={reasonCode}
-          onChange={(event) => setReasonCode(Number(event.target.value))}
-        >
-          {Object.entries(CANCEL_REASON_LABELS).map(([code, labelKey]) => (
-            <option key={code} value={code}>
-              {t(labelKey)}
-            </option>
-          ))}
-        </select>
-        <input
-          aria-label={t("admin.droneOrders.flightFailure.noteLabel")}
-          className="h-9 min-w-48 flex-1 rounded-md border bg-background px-2 text-sm"
-          maxLength={500}
-          placeholder={
-            noteRequired
-              ? t("admin.droneOrders.flightFailure.notePlaceholderRequired")
-              : t("admin.droneOrders.notePlaceholderOptional")
-          }
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-        />
-        <Button variant="destructive" size="sm" disabled={isLoading} onClick={submit}>
-          {isLoading ? (
-            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-          ) : (
-            <TriangleAlert className="mr-1 h-4 w-4" />
-          )}
-          {t("admin.droneOrders.flightFailure.submit")}
-        </Button>
       </div>
     </Section>
   );
