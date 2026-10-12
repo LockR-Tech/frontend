@@ -145,6 +145,7 @@
       "lockers": "Kiosk",
       "services": "Dịch vụ",
       "payments": "Thanh toán",
+      "refunds": "Hoàn tiền",
       "revenue": "Doanh thu",
       "loyalty": "Khách hàng thân thiết",
       "loyaltyProgram": "Tích điểm",
@@ -3986,6 +3987,23 @@
         }
       }
     },
+    "refunds": {
+      "title": "Quản lý hoàn tiền",
+      "description": "Theo dõi, xét duyệt và thực hiện chuyển khoản hoàn tiền cho khách hàng",
+      "viewPayments": "Quản lý thanh toán",
+      "pendingAlert": "Có {{count}} yêu cầu hoàn tiền đang chờ duyệt và thực hiện chuyển khoản",
+      "pendingAlertAction": "Xử lý ngay",
+      "stats": {
+        "pending": "Chờ xử lý",
+        "pendingSub": "Chờ admin duyệt & chuyển khoản",
+        "completed": "Đã hoàn tiền",
+        "completedSub": "Đã chuyển khoản thành công",
+        "rejected": "Đã từ chối",
+        "rejectedSub": "Yêu cầu bị từ chối",
+        "total": "Tổng yêu cầu",
+        "totalSub": "Tổng số lượt yêu cầu hoàn tiền"
+      }
+    },
     "revenue": {
       "title": "Quản lý doanh thu",
       "description": "Doanh thu tính theo tiền thực thu của đơn thật; tiền nạp ví không được tính là doanh thu.",
@@ -4110,6 +4128,22 @@
           "firstOrder": "Đơn đầu tiên",
           "lastOrderHint": "Gần nhất {{time}}"
         }
+      },
+      "actions": {
+        "header": "Hành động",
+        "viewOrders": "Xem đơn"
+      },
+      "ordersModal": {
+        "title": "Danh sách đơn hàng",
+        "openInOrders": "Mở trang Đơn hàng",
+        "openInPayments": "Mở trang Thanh toán",
+        "empty": "Không có đơn hàng nào khớp bộ lọc trong kỳ này",
+        "count": "{{total}} đơn hàng",
+        "targetMethod": "Phương thức thanh toán: {{name}}",
+        "targetLocker": "Tủ Kiosk: {{name}}",
+        "targetStore": "Cửa hàng: {{name}}",
+        "targetCustomer": "Khách hàng: {{name}}",
+        "targetService": "Dịch vụ: {{name}}"
       }
     }
   },

@@ -11,9 +11,14 @@ import { formatCurrency, formatNumber, formatPercent } from "~/lib/report-format
 import type { DateRangeValue } from "~/components/shared/reporting";
 import type { RevenueByMethodItem } from "~/types/admin/reporting";
 
+import { Eye } from "lucide-react";
+import { Button } from "~/components/ui/button";
+import type { RevenueOrdersTarget } from "./RevenueOrdersModal";
+
 interface MethodRevenueTabProps {
   range: DateRangeValue;
   skip: boolean;
+  onViewOrders?: (target: RevenueOrdersTarget) => void;
 }
 
 const columnHelper = createColumnHelper<RevenueByMethodItem>();
@@ -22,7 +27,7 @@ const columnHelper = createColumnHelper<RevenueByMethodItem>();
  * Doanh thu theo phương thức thanh toán (§ 3.5). Nạp ví (`VNPAY_TOPUP`) không xuất
  * hiện ở đây vì tiền nạp là tiền gửi, chỉ tính khi khách dùng ví trả cho một đơn.
  */
-export function MethodRevenueTab({ range, skip }: MethodRevenueTabProps) {
+export function MethodRevenueTab({ range, skip, onViewOrders }: MethodRevenueTabProps) {
   const { t } = useTranslation();
   const { data, isLoading, error, refetch } = useGetRevenueByMethodQuery(range, {
     skip,
@@ -60,6 +65,40 @@ export function MethodRevenueTab({ range, skip }: MethodRevenueTabProps) {
     columnHelper.accessor("paidOrderCount", {
       header: t("admin.revenue.columns.paidOrders"),
       cell: ({ row }) => formatNumber(row.original.paidOrderCount),
+    }),
+    columnHelper.display({
+      id: "actions",
+      header: () => (
+        <span className="text-right block">
+          {t("admin.revenue.actions.header", "Hành động")}
+        </span>
+      ),
+      cell: ({ row }) => {
+        const item = row.original;
+        const meta = paymentMethodMeta(item.method);
+        return (
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2.5 text-xs gap-1.5 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+              disabled={item.paidOrderCount === 0}
+              onClick={() =>
+                onViewOrders?.({
+                  type: "METHOD",
+                  method: item.method,
+                  label: meta.label,
+                  paidOrderCount: item.paidOrderCount,
+                })
+              }
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>{t("admin.revenue.actions.viewOrders", "Xem đơn")}</span>
+            </Button>
+          </div>
+        );
+      },
     }),
   ];
 

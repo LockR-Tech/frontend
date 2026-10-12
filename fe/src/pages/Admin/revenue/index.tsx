@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -30,10 +31,16 @@ import { MethodRevenueTab } from "./components/MethodRevenueTab";
 import { LockerRevenueTab } from "./components/LockerRevenueTab";
 import { StoreRevenueTab } from "./components/StoreRevenueTab";
 import { CustomerRevenueTab } from "./components/CustomerRevenueTab";
+import {
+  RevenueOrdersModal,
+  type RevenueOrdersTarget,
+} from "./components/RevenueOrdersModal";
 
 export default function RevenuePage() {
   const { t } = useTranslation();
   const { range, setRange, valid, skip } = useRevenueRange();
+  const [selectedTarget, setSelectedTarget] =
+    useState<RevenueOrdersTarget | null>(null);
 
   const {
     data: summaryData,
@@ -211,19 +218,39 @@ export default function RevenuePage() {
 
             {/* Mọi tab dùng chung một khoảng ngày để các con số cộng khớp nhau. */}
             <TabsContent value="service" className="mt-0">
-              <ServiceRevenueTab range={range} skip={skip} />
+              <ServiceRevenueTab
+                range={range}
+                skip={skip}
+                onViewOrders={setSelectedTarget}
+              />
             </TabsContent>
             <TabsContent value="method" className="mt-0">
-              <MethodRevenueTab range={range} skip={skip} />
+              <MethodRevenueTab
+                range={range}
+                skip={skip}
+                onViewOrders={setSelectedTarget}
+              />
             </TabsContent>
             <TabsContent value="locker" className="mt-0">
-              <LockerRevenueTab range={range} skip={skip} />
+              <LockerRevenueTab
+                range={range}
+                skip={skip}
+                onViewOrders={setSelectedTarget}
+              />
             </TabsContent>
             <TabsContent value="store" className="mt-0">
-              <StoreRevenueTab range={range} skip={skip} />
+              <StoreRevenueTab
+                range={range}
+                skip={skip}
+                onViewOrders={setSelectedTarget}
+              />
             </TabsContent>
             <TabsContent value="customer" className="mt-0">
-              <CustomerRevenueTab range={range} skip={skip} />
+              <CustomerRevenueTab
+                range={range}
+                skip={skip}
+                onViewOrders={setSelectedTarget}
+              />
             </TabsContent>
           </Tabs>
 
@@ -234,6 +261,12 @@ export default function RevenuePage() {
           )}
         </CardContent>
       </Card>
+
+      <RevenueOrdersModal
+        target={selectedTarget}
+        onClose={() => setSelectedTarget(null)}
+        range={range}
+      />
     </div>
   );
 }

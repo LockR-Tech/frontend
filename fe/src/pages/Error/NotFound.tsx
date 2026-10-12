@@ -23,6 +23,7 @@ const ROUTE_NAMES: Record<string, string> = {
   "/admin/lockers": "errorPage.routes.lockers",
   "/admin/services": "admin.sidebar.services",
   "/admin/payments": "admin.sidebar.payments",
+  "/admin/refunds": "admin.sidebar.refunds",
   "/admin/loyalty": "admin.sidebar.loyalty",
   "/admin/partners": "admin.sidebar.partners",
   "/admin/feedback": "admin.sidebar.feedback",

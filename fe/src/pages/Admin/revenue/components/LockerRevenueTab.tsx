@@ -1,6 +1,7 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Eye } from "lucide-react";
+import { Button } from "~/components/ui/button";
 import { DataTable } from "~/components/shared/data-table";
 import { ReportErrorState } from "~/components/shared/reporting";
 import { useGetRevenueByLockerQuery } from "~/stores/apis/admin/revenue";
@@ -12,10 +13,12 @@ import {
 } from "~/lib/report-format";
 import type { DateRangeValue } from "~/components/shared/reporting";
 import type { RevenueByLockerItem } from "~/types/admin/reporting";
+import type { RevenueOrdersTarget } from "./RevenueOrdersModal";
 
 interface LockerRevenueTabProps {
   range: DateRangeValue;
   skip: boolean;
+  onViewOrders?: (target: RevenueOrdersTarget) => void;
 }
 
 const columnHelper = createColumnHelper<RevenueByLockerItem>();
@@ -24,7 +27,7 @@ const columnHelper = createColumnHelper<RevenueByLockerItem>();
  * Doanh thu theo tủ (§ 3.6). Danh sách gồm CẢ tủ chưa phát sinh doanh thu, để thấy
  * ngay tủ nào đang không sinh tiền — đó là lý do bảng này không lọc bỏ dòng bằng 0.
  */
-export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
+export function LockerRevenueTab({ range, skip, onViewOrders }: LockerRevenueTabProps) {
   const { t } = useTranslation();
   const { data, isLoading, error, refetch } = useGetRevenueByLockerQuery(range, {
     skip,
@@ -93,6 +96,45 @@ export function LockerRevenueTab({ range, skip }: LockerRevenueTabProps) {
     columnHelper.accessor("paidOrderCount", {
       header: t("admin.revenue.columns.paidOrders"),
       cell: ({ row }) => formatNumber(row.original.paidOrderCount),
+    }),
+    columnHelper.display({
+      id: "actions",
+      header: () => (
+        <span className="text-right block">
+          {t("admin.revenue.actions.header", "Hành động")}
+        </span>
+      ),
+      cell: ({ row }) => {
+        const item = row.original;
+        const lockerName =
+          item.name ??
+          item.code ??
+          (item.lockerId === null
+            ? t("admin.revenue.locker.noLocker")
+            : `#${item.lockerId}`);
+        return (
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2.5 text-xs gap-1.5 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+              disabled={item.paidOrderCount === 0 && item.orderCount === 0}
+              onClick={() =>
+                onViewOrders?.({
+                  type: "LOCKER",
+                  lockerId: item.lockerId,
+                  label: lockerName,
+                  paidOrderCount: item.paidOrderCount,
+                })
+              }
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>{t("admin.revenue.actions.viewOrders", "Xem đơn")}</span>
+            </Button>
+          </div>
+        );
+      },
     }),
   ];
 

@@ -145,6 +145,7 @@
       "lockers": "Lockers",
       "services": "Services",
       "payments": "Payments",
+      "refunds": "Refunds",
       "revenue": "Revenue",
       "loyalty": "Loyalty",
       "loyaltyProgram": "Loyalty points",
@@ -3986,6 +3987,23 @@
         }
       }
     },
+    "refunds": {
+      "title": "Refund Management",
+      "description": "Track, review, approve and process customer refund requests",
+      "viewPayments": "Payment Management",
+      "pendingAlert": "There are {{count}} refund requests awaiting approval and transfer",
+      "pendingAlertAction": "Process now",
+      "stats": {
+        "pending": "Pending Review",
+        "pendingSub": "Awaiting approval & bank transfer",
+        "completed": "Completed",
+        "completedSub": "Successfully refunded",
+        "rejected": "Rejected",
+        "rejectedSub": "Declined requests",
+        "total": "Total Requests",
+        "totalSub": "Total refund tickets"
+      }
+    },
     "revenue": {
       "title": "Revenue Management",
       "description": "Revenue is based on money actually collected from real orders; wallet top-ups are not counted as revenue.",
@@ -4110,6 +4128,22 @@
           "firstOrder": "First Order",
           "lastOrderHint": "Latest {{time}}"
         }
+      },
+      "actions": {
+        "header": "Actions",
+        "viewOrders": "View Orders"
+      },
+      "ordersModal": {
+        "title": "Order List",
+        "openInOrders": "Open in Orders",
+        "openInPayments": "Open in Payments",
+        "empty": "No orders match the filter in this period",
+        "count": "{{total}} order(s)",
+        "targetMethod": "Payment Method: {{name}}",
+        "targetLocker": "Kiosk Locker: {{name}}",
+        "targetStore": "Store: {{name}}",
+        "targetCustomer": "Customer: {{name}}",
+        "targetService": "Service: {{name}}"
       }
     }
   },

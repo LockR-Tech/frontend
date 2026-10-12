@@ -103,8 +103,11 @@ export function useOrders() {
       ...(filters.from ? { from: filters.from } : {}),
       ...(filters.to ? { to: filters.to } : {}),
       ...(filters.q.trim() ? { q: filters.q.trim() } : {}),
+      ...(urlParams.get("lockerId") ? { lockerId: Number(urlParams.get("lockerId")) } : {}),
+      ...(urlParams.get("storeId") ? { storeId: Number(urlParams.get("storeId")) } : {}),
+      ...(urlParams.get("userId") ? { userId: Number(urlParams.get("userId")) } : {}),
     }),
-    [page, pageSize, filters],
+    [page, pageSize, filters, urlParams],
   );
 
   const { data, isLoading, isFetching, error, refetch } =

@@ -144,6 +144,8 @@ interface CloudinaryUploadJson {
   bytes?: number;
   width?: number;
   height?: number;
+  secure_url?: string;
+  url?: string;
   error?: { message?: string };
 }
 
@@ -205,6 +207,7 @@ export function uploadToCloudinary(
           bytes: Number(json.bytes ?? 0),
           width: Number(json.width ?? 0),
           height: Number(json.height ?? 0),
+          secureUrl: json.secure_url || json.url,
         });
         return;
       }

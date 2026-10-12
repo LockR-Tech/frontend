@@ -42,6 +42,7 @@ const StoresPage = lazy(() => import("../pages/Admin/stores"));
 const StoreDetailPage = lazy(() => import("../pages/Admin/stores/detail"));
 const ServicesPage = lazy(() => import("../pages/Admin/services"));
 const PaymentsPage = lazy(() => import("../pages/Admin/payments"));
+const RefundsPage = lazy(() => import("../pages/Admin/refunds"));
 const RevenuePage = lazy(() => import("../pages/Admin/revenue"));
 const RevenueDetailPage = lazy(() => import("../pages/Admin/revenue/detail"));
 const LoyaltyPage = lazy(() => import("../pages/Admin/loyalty"));
@@ -127,6 +128,11 @@ const routeAliases: RouteObject[] = [
   { path: "payments", element: <Navigate to="/admin/payments" replace /> },
   { path: "payment", element: <Navigate to="/admin/payments" replace /> },
   { path: "thanh-toan", element: <Navigate to="/admin/payments" replace /> },
+
+  // Refund aliases
+  { path: "refunds", element: <Navigate to="/admin/refunds" replace /> },
+  { path: "refund", element: <Navigate to="/admin/refunds" replace /> },
+  { path: "hoan-tien", element: <Navigate to="/admin/refunds" replace /> },
 
   // Scheduler aliases
   { path: "scheduler", element: <Navigate to="/admin/scheduler" replace /> },
@@ -280,6 +286,14 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <PaymentsPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "refunds",
+        element: (
+          <LazyWrapper>
+            <RefundsPage />
           </LazyWrapper>
         ),
       },

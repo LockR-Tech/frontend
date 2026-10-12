@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { Eye } from "lucide-react";
+import { Button } from "~/components/ui/button";
 import {
   MetaBadge,
   ReportErrorState,
@@ -13,17 +15,23 @@ import {
   formatPercent,
 } from "~/lib/report-format";
 import type { DateRangeValue } from "~/components/shared/reporting";
+import type { RevenueOrdersTarget } from "./RevenueOrdersModal";
 
 interface ServiceRevenueTabProps {
   range: DateRangeValue;
   skip: boolean;
+  onViewOrders?: (target: RevenueOrdersTarget) => void;
 }
 
 /**
  * Doanh thu theo loại dịch vụ (§ 3.4). Dòng `OVERTIME_FEE` không phải một loại đơn:
  * đó là phần phí quá hạn đã thu, backend tách khỏi dòng loại đơn để không đếm hai lần.
  */
-export function ServiceRevenueTab({ range, skip }: ServiceRevenueTabProps) {
+export function ServiceRevenueTab({
+  range,
+  skip,
+  onViewOrders,
+}: ServiceRevenueTabProps) {
   const { t } = useTranslation();
   const { data, isLoading, error, refetch } = useGetRevenueByServiceQuery(range, {
     skip,
@@ -73,7 +81,29 @@ export function ServiceRevenueTab({ range, skip }: ServiceRevenueTabProps) {
             className="rounded-xl border border-border bg-card p-4 space-y-3"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <MetaBadge meta={meta} />
+              <div className="flex items-center gap-2">
+                <MetaBadge meta={meta} />
+                {!isOvertime && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2.5 text-xs gap-1.5 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                    disabled={item.paidOrderCount === 0 && item.orderCount === 0}
+                    onClick={() =>
+                      onViewOrders?.({
+                        type: "SERVICE",
+                        serviceType: item.serviceType,
+                        label: meta.label,
+                        paidOrderCount: item.paidOrderCount,
+                      })
+                    }
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    <span>{t("admin.revenue.actions.viewOrders", "Xem đơn")}</span>
+                  </Button>
+                )}
+              </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-foreground leading-tight">
                   {formatCurrency(item.revenue)}

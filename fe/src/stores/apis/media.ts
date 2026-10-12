@@ -40,6 +40,7 @@ export interface MediaUpload {
   bytes: number;
   width: number;
   height: number;
+  secureUrl?: string;
 }
 
 export interface ReportAttachmentRequest extends MediaUpload {

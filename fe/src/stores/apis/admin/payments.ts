@@ -154,12 +154,12 @@ export const paymentManagementApi = baseApi.injectEndpoints({
     /** Duyệt hoàn tiền sau khi Admin đã chuyển khoản ngân hàng thủ công. */
     approveRefund: builder.mutation<
       ApiResponse<void>,
-      { refundId: number; bankTransferRef?: string }
+      { refundId: number; bankTransferRef?: string; proofImageUrl?: string }
     >({
-      query: ({ refundId, bankTransferRef }) => ({
+      query: ({ refundId, bankTransferRef, proofImageUrl }) => ({
         url: ADMIN_ENDPOINTS.REFUND_APPROVE(refundId),
         method: 'POST',
-        body: { bankTransferRef },
+        body: { bankTransferRef, proofImageUrl },
       }),
       // Duyệt/từ chối hoàn tiền đổi paymentStatus của đơn ⇒ làm mới cả trang đơn hàng
       invalidatesTags: [TAGS.REFUNDS, TAGS.PAYMENTS, TAGS.STATS, "Orders"],

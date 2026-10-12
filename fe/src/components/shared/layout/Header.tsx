@@ -67,6 +67,7 @@ const pathLabelKeys: Record<string, string> = {
   lockers: "admin.sidebar.lockers",
   services: "admin.sidebar.services",
   payments: "admin.sidebar.payments",
+  refunds: "admin.sidebar.refunds",
   loyalty: "admin.sidebar.loyaltyProgram",
   partners: "admin.sidebar.partners",
   feedback: "admin.sidebar.feedback",
@@ -289,6 +290,7 @@ function notificationRoute(n: Notification): string | null {
     return "/admin/maintenance";
   }
   if (refType === "LOCKER" && ref != null) return `/admin/lockers/${ref}`;
+  if (type.startsWith("REFUND")) return "/admin/refunds";
   if (type.startsWith("PAYMENT")) return "/admin/payments";
   if (type.startsWith("ORDER") && ref != null) return `/admin/orders/${ref}`;
   return null;
