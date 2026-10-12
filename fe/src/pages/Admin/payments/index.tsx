@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, RotateCcw, TrendingUp } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
@@ -18,6 +18,8 @@ import { usePayments } from "./hooks/usePayments";
 import { formatNumber } from "~/lib/report-format";
 
 export default function PaymentsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") ?? "payments";
   const {
     payments,
     isLoading,
@@ -80,7 +82,11 @@ export default function PaymentsPage() {
 
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6">
-          <Tabs defaultValue="payments">
+          <Tabs value={tab} onValueChange={value => {
+            const next = new URLSearchParams(searchParams);
+            next.set("tab", value);
+            setSearchParams(next);
+          }}>
             <TabsList className="mb-4">
               <TabsTrigger value="payments" className="text-xs px-4">
                 {t("admin.payments.tabs.transactions")}

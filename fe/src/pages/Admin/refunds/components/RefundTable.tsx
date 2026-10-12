@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CheckCircle2,
   XCircle,
@@ -119,6 +119,9 @@ export function RefundTable({
   const [internalStatus, setInternalStatus] = useState<string>("ALL");
   const [range, setRange] = useState({ from: "", to: "" });
 
+  const [searchParams] = useSearchParams();
+  const requestedOrderId = Number(searchParams.get("orderId"));
+  const orderId = Number.isSafeInteger(requestedOrderId) && requestedOrderId > 0 ? requestedOrderId : undefined;
   const statusFilter = controlledStatus ?? internalStatus;
 
   useEffect(() => {
@@ -146,6 +149,7 @@ export function RefundTable({
 
   const queryParams = useMemo(
     () => ({
+      orderId,
       page,
       size: pageSize,
       sort: "requestedAt,desc",
@@ -153,7 +157,7 @@ export function RefundTable({
       ...(range.from ? { from: range.from } : {}),
       ...(range.to ? { to: range.to } : {}),
     }),
-    [page, pageSize, statusFilter, range],
+    [page, pageSize, statusFilter, range, orderId],
   );
 
   const { data, isLoading, isFetching, error, refetch } = useGetAdminRefundsQuery(queryParams, {
