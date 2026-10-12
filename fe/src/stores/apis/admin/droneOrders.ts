@@ -26,6 +26,11 @@ export interface DroneJourneyEvent {
 }
 
 export interface DroneOrderTracking {
+  pickup?: DronePickupView | null;
+  sender?: { name: string | null; phone: string | null; email: string | null } | null;
+  receiverEmail?: string | null;
+  block?: DroneIncidentLink | null;
+  failure?: DroneIncidentLink | null;
   orderId: number;
   orderCode: string;
   userId: number;
@@ -117,6 +122,46 @@ export interface DroneOrderTracking {
   journeyEvents: DroneJourneyEvent[];
 }
 
+export interface DroneIncidentLink {
+  reason: string;
+  reasonLabel: string | null;
+  ticketId: number | null;
+  note: string | null;
+  at: string | null;
+  autoCloseAt: string | null;
+}
+
+export interface DronePickupView {
+  status: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  note: string | null;
+  distanceToSourceLockerMeters: number | null;
+  technicianId: number | null;
+  technicianName: string | null;
+  technicianPhone: string | null;
+  technicianDistanceMeters: number | null;
+  offeredAt: string | null;
+  offerExpiresAt: string | null;
+  acceptedAt: string | null;
+  pickedUpAt: string | null;
+  failureReason: string | null;
+  failureNote: string | null;
+  technicianNote: string | null;
+}
+
+export interface DroneTechnicianCandidate {
+  technicianId: number;
+  name: string | null;
+  phone: string | null;
+  onDuty: boolean;
+  busy: boolean;
+  locationFresh: boolean;
+  distanceMeters: number | null;
+  locationAt: string | null;
+}
+
 export interface DroneCameraMetadata {
   status: "CONNECTING" | "LIVE" | "RECONNECTING" | "OFFLINE" | "UNAVAILABLE" | "ERROR";
   integrationAvailable: boolean;
@@ -146,6 +191,21 @@ const TAG = "DroneOrders" as const;
 
 export const droneOrderApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getDronePickupCandidates: builder.query<ApiResponse<DroneTechnicianCandidate[]>, number>({
+      query: (id) => `/api/admin/drone-orders/${id}/pickup/candidates`,
+      providesTags: [TAG],
+    }),
+    assignDronePickup: builder.mutation<ApiResponse<DroneOrderTracking>, { orderId: number; technicianId: number }>({
+      query: ({ orderId, technicianId }) => ({
+        url: `/api/admin/drone-orders/${orderId}/pickup/assign`,
+        method: "POST", body: { technicianId },
+      }),
+      invalidatesTags: [TAG],
+    }),
+    getDroneOrdersByTicket: builder.query<ApiResponse<DroneOrderTracking[]>, number>({
+      query: (id) => `/api/admin/drone-orders/by-ticket/${id}`,
+      providesTags: [TAG],
+    }),
     // includeFinished=true (mặc định của backend): cả đơn đã hoàn tất/huỷ để xem lại.
     getDroneOrders: builder.query<ApiResponse<DroneOrderTracking[]>, void>({
       query: () => "/api/admin/drone-orders",
@@ -179,18 +239,18 @@ export const droneOrderApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Chuyến bay không giao được hàng sau khi đã phóng: đóng đơn, nhả ô nhận, drone
-    // chuyển FAULT và tạo yêu cầu hoàn tiền. reasonCode dùng chung bảng lý do huỷ.
+    // Giao không hoàn tất trước/sau phóng: nhả tài nguyên, tạo yêu cầu hoàn tiền.
+    // reason là mã nghiệp vụ; reasonCode chỉ dùng cho client cũ.
     failDroneOrder: builder.mutation<
       ApiResponse<unknown>,
-      { orderId: number; reasonCode: number; note?: string }
+      { orderId: number; reason?: string; reasonCode?: number; note?: string }
     >({
-      query: ({ orderId, reasonCode, note }) => ({
+      query: ({ orderId, reason, reasonCode, note }) => ({
         url: `/api/admin/drone-orders/${orderId}/fail`,
         method: "POST",
-        body: { reasonCode, ...(note ? { note } : {}) },
+        body: { ...(reason ? { reason } : { reasonCode }), ...(note ? { note } : {}) },
       }),
-      invalidatesTags: (_result, _error, { orderId }) => [TAG, { type: TAG, id: orderId }],
+      invalidatesTags: (_result, _error, { orderId }) => [TAG, { type: TAG, id: orderId }, "PaymentRefunds"],
     }),
 
     // Đơn không giao được: xác nhận kiện đã về tay người gửi (nhả ô gửi nếu còn giữ).
@@ -209,6 +269,9 @@ export const droneOrderApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetDronePickupCandidatesQuery,
+  useAssignDronePickupMutation,
+  useGetDroneOrdersByTicketQuery,
   useGetDroneOrdersQuery,
   useGetDroneOrderQuery,
   useGetDroneCameraQuery,

@@ -25,19 +25,20 @@ interface Detail {
  */
 export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
   const { t } = useTranslation();
+  const stages = order.pickup ? ["AWAITING_DISPATCH", "PICKUP_ASSIGNED", "PICKED_UP", ...TIMELINE_STAGES.slice(1)] : [...TIMELINE_STAGES];
   const times = stageTimes(order);
   const failed = FAILURE_STATUSES.has(order.status);
   const completed = order.status === "COMPLETED";
-  const stageIndex = TIMELINE_STAGES.indexOf(
+  const stageIndex = stages.indexOf(
     (order.deliveryStage ?? "") as (typeof TIMELINE_STAGES)[number],
   );
   // Đơn huỷ/quá hạn dừng ở chặng xa nhất thực sự đạt, không tô các chặng chưa xảy ra.
-  const reachedIndex = TIMELINE_STAGES.reduce(
+  const reachedIndex = stages.reduce(
     (max, stage, index) => (times.has(stage) ? index : max),
     0,
   );
   const active = completed
-    ? TIMELINE_STAGES.length
+    ? stages.length
     : failed
       ? reachedIndex
       : Math.max(stageIndex, 0);
@@ -61,7 +62,7 @@ export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
   let previous: Date | null = null;
   return (
     <ol className="relative">
-      {TIMELINE_STAGES.map((stage, index) => {
+      {stages.map((stage, index) => {
         const state =
           index < active ? "done" : index === active ? (failed ? "failed" : "current") : "pending";
         const at = state === "pending" ? null : (times.get(stage) ?? null);
@@ -73,7 +74,7 @@ export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
         if (at) previous = at;
         const meta = deliveryStageMeta(stage);
         const Icon = meta.icon;
-        const isLast = index === TIMELINE_STAGES.length - 1;
+        const isLast = index === stages.length - 1;
 
         return (
           <li key={stage} className="relative flex gap-3 pb-4 last:pb-0">
