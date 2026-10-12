@@ -2193,7 +2193,9 @@
         "mission": "Flight Mission & Loading Record",
         "journeyLog": "Journey Log · newest first",
         "parcelReturn": "Parcel Awaiting Return to Sender",
-        "flightIncident": "Flight Incident"
+        "flightIncident": "Flight Incident",
+        "pickup": "Home pickup",
+        "closeAsFailed": "Confirm unsuccessful delivery"
       },
       "lockerBlock": {
         "source": "Sending locker · Locker A",
@@ -2349,6 +2351,78 @@
         "reasonLabel": "Reason / observation *",
         "reasonPlaceholder": "E.g. the camera shows the release hook opened unexpectedly and the parcel fell off the drone...",
         "photoLabel": "Camera snapshot or on-site photo (if any)"
+      },
+      "pickup": {
+        "status": "Pickup status",
+        "address": "Pickup address",
+        "note": "Sender instructions",
+        "technicianNote": "Technician notes",
+        "openMap": "Open map",
+        "toSourceLocker": "Distance to source locker",
+        "technician": "Pickup technician",
+        "technicianDistance": "{{distance}} from pickup",
+        "acceptedAt": "Accepted at",
+        "pickedUpAt": "Collected at",
+        "offerExpiresAt": "Offer expires at",
+        "failure": "Pickup failure",
+        "assigned": "Pickup technician assigned",
+        "assignFailed": "Could not assign technician",
+        "assignHint": "{{onDuty}} technicians on duty · assign before collection",
+        "assignLabel": "Pickup technician",
+        "loadingCandidates": "Loading technicians…",
+        "noCandidates": "No available technicians on duty",
+        "chooseTechnician": "Choose technician",
+        "staleLocation": "Stale location",
+        "assign": "Assign technician",
+        "statusLabel": {
+          "AWAITING_PAYMENT": "Awaiting payment",
+          "SEARCHING": "Finding a technician",
+          "OFFERED": "Awaiting acceptance",
+          "ACCEPTED": "Job accepted",
+          "PICKED_UP": "Parcel collected",
+          "FAILED": "Pickup unsuccessful",
+          "CANCELED": "Pickup closed"
+        }
+      },
+      "incident": {
+        "blocked": "Order affected: {{reason}}",
+        "since": "since {{time}}",
+        "autoClose": "automatically closes at {{time}}",
+        "noAutoClose": "flight team must handle this",
+        "ticket": "Report RPT-{{id}}",
+        "affectedOrders": "Affected orders ({{count}})",
+        "failedBecause": "Unsuccessful delivery: {{reason}}",
+        "failureTitle": "Incident and refund",
+        "loadFailed": "Could not load affected orders · retry",
+        "refundLoadFailed": "Could not load refunds · retry",
+        "refund": "Refund request #{{id}}",
+        "openRefunds": "Open refunds for this order"
+      },
+      "closeAsFailed": {
+        "reasonLabel": "Failure reason",
+        "noteLabel": "Notes",
+        "noteRequired": "Enter notes for Other",
+        "notePlaceholderRequired": "Explain the reason",
+        "confirm": "Close order {{code}} as unsuccessful? Collected payments will receive a refund request; collected parcels must be returned to the sender’s home.",
+        "submit": "Confirm unsuccessful delivery",
+        "success": "Order {{code}} closed",
+        "failed": "Could not close order"
+      },
+      "failureReason": {
+        "WEATHER": "Flights suspended by weather or operations",
+        "DRONE_FAULT": "Drone fault",
+        "NO_DRONE_AVAILABLE": "No ready drone available",
+        "SOURCE_LOCKER_FAULT": "Source locker fault",
+        "DESTINATION_LOCKER_FAULT": "Destination locker fault",
+        "LANDING_PAD_FAULT": "Landing pad unavailable",
+        "NO_TECHNICIAN_AVAILABLE": "No technician accepted pickup",
+        "LAUNCH_OVERDUE": "Launch overdue after collection",
+        "PICKUP_CUSTOMER_ABSENT": "Sender unavailable",
+        "PICKUP_PARCEL_REJECTED": "Parcel does not match declaration",
+        "PICKUP_ADDRESS_NOT_FOUND": "Pickup address not found",
+        "FLIGHT_INCIDENT": "In-flight incident",
+        "OPERATIONAL": "Operational reason",
+        "OTHER": "Other"
       }
     },
     "drones": {
@@ -4316,10 +4390,12 @@
         "arrived": "Arrived",
         "readyForPickup": "Ready for pickup",
         "canceled": "Canceled",
-        "failed": "Flight failed",
+        "failed": "Unsuccessful delivery",
         "completed": "Picked up",
         "expired": "Pickup overdue",
-        "dropReported": "Parcel drop reported"
+        "dropReported": "Parcel drop reported",
+        "pickupAssigned": "Technician assigned for pickup",
+        "pickedUp": "Parcel collected at home"
       },
       "paymentStatus": {
         "pending": "Awaiting payment",

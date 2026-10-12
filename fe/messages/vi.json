@@ -2193,7 +2193,9 @@
         "mission": "Nhiệm vụ bay & hồ sơ nạp hàng",
         "journeyLog": "Nhật ký hành trình · mới nhất trước",
         "parcelReturn": "Kiện chờ trả cho người gửi",
-        "flightIncident": "Sự cố chuyến bay"
+        "flightIncident": "Sự cố chuyến bay",
+        "pickup": "Lấy hàng tận nhà",
+        "closeAsFailed": "Xác nhận giao không hoàn tất"
       },
       "lockerBlock": {
         "source": "Tủ gửi · Locker A",
@@ -2349,6 +2351,78 @@
         "reasonLabel": "Lý do / mô tả quan sát *",
         "reasonPlaceholder": "Ví dụ: camera cho thấy móc giữ mở ngoài ý muốn và kiện rơi khỏi drone...",
         "photoLabel": "Ảnh camera hoặc ảnh hiện trường (nếu có)"
+      },
+      "pickup": {
+        "status": "Trạng thái lấy hàng",
+        "address": "Địa chỉ lấy hàng",
+        "note": "Ghi chú người gửi",
+        "technicianNote": "Ghi chú KTV",
+        "openMap": "Mở bản đồ",
+        "toSourceLocker": "Khoảng cách tới tủ gửi",
+        "technician": "KTV lấy hàng",
+        "technicianDistance": "Cách điểm lấy {{distance}}",
+        "acceptedAt": "Nhận việc lúc",
+        "pickedUpAt": "Đã lấy hàng lúc",
+        "offerExpiresAt": "Hạn nhận lời mời",
+        "failure": "Lý do không lấy được",
+        "assigned": "Đã gán KTV lấy hàng",
+        "assignFailed": "Không gán được KTV",
+        "assignHint": "{{onDuty}} KTV đang trong ca · gán tay trước khi lấy hàng",
+        "assignLabel": "Chọn KTV lấy hàng",
+        "loadingCandidates": "Đang tải KTV…",
+        "noCandidates": "Chưa có KTV rảnh trong ca",
+        "chooseTechnician": "Chọn KTV",
+        "staleLocation": "Vị trí đã cũ",
+        "assign": "Gán KTV",
+        "statusLabel": {
+          "AWAITING_PAYMENT": "Chờ thanh toán",
+          "SEARCHING": "Đang tìm KTV",
+          "OFFERED": "Đang mời KTV",
+          "ACCEPTED": "KTV đã nhận việc",
+          "PICKED_UP": "Đã lấy hàng",
+          "FAILED": "Lấy hàng không thành công",
+          "CANCELED": "Việc lấy hàng đã đóng"
+        }
+      },
+      "incident": {
+        "blocked": "Đơn bị ảnh hưởng: {{reason}}",
+        "since": "từ {{time}}",
+        "autoClose": "tự kết thúc lúc {{time}}",
+        "noAutoClose": "cần đội bay xử lý",
+        "ticket": "Phiếu RPT-{{id}}",
+        "affectedOrders": "Đơn bị ảnh hưởng ({{count}})",
+        "failedBecause": "Giao không hoàn tất: {{reason}}",
+        "failureTitle": "Sự cố và hoàn tiền",
+        "loadFailed": "Không tải được đơn bị ảnh hưởng · thử lại",
+        "refundLoadFailed": "Không tải được yêu cầu hoàn tiền · thử lại",
+        "refund": "Yêu cầu hoàn #{{id}}",
+        "openRefunds": "Mở yêu cầu hoàn tiền của đơn"
+      },
+      "closeAsFailed": {
+        "reasonLabel": "Lý do giao không hoàn tất",
+        "noteLabel": "Ghi chú",
+        "noteRequired": "Nhập ghi chú cho lý do khác",
+        "notePlaceholderRequired": "Nêu rõ lý do",
+        "confirm": "Kết thúc đơn {{code}} là giao không hoàn tất? Hệ thống tạo yêu cầu hoàn khoản đã thu; kiện đã lấy sẽ chờ trả tận nhà.",
+        "submit": "Xác nhận giao không hoàn tất",
+        "success": "Đã kết thúc đơn {{code}}",
+        "failed": "Không thể kết thúc đơn"
+      },
+      "failureReason": {
+        "WEATHER": "Tạm dừng bay do thời tiết/lệnh điều hành",
+        "DRONE_FAULT": "Drone gặp sự cố",
+        "NO_DRONE_AVAILABLE": "Không còn drone sẵn sàng",
+        "SOURCE_LOCKER_FAULT": "Tủ gửi gặp sự cố",
+        "DESTINATION_LOCKER_FAULT": "Tủ nhận gặp sự cố",
+        "LANDING_PAD_FAULT": "Bãi đáp không sẵn sàng",
+        "NO_TECHNICIAN_AVAILABLE": "Không có KTV nhận lấy hàng",
+        "LAUNCH_OVERDUE": "Quá hạn phóng sau khi lấy hàng",
+        "PICKUP_CUSTOMER_ABSENT": "Không gặp người gửi",
+        "PICKUP_PARCEL_REJECTED": "Kiện không đúng khai báo",
+        "PICKUP_ADDRESS_NOT_FOUND": "Không tìm thấy địa chỉ",
+        "FLIGHT_INCIDENT": "Sự cố trong lúc bay",
+        "OPERATIONAL": "Lý do vận hành",
+        "OTHER": "Lý do khác"
       }
     },
     "drones": {
@@ -4316,10 +4390,12 @@
         "arrived": "Đã tới nơi",
         "readyForPickup": "Sẵn sàng lấy hàng",
         "canceled": "Đã huỷ",
-        "failed": "Chuyến bay thất bại",
+        "failed": "Giao không hoàn tất",
         "completed": "Đã nhận hàng",
         "expired": "Quá hạn nhận",
-        "dropReported": "Báo rơi kiện"
+        "dropReported": "Báo rơi kiện",
+        "pickupAssigned": "KTV đang đi lấy hàng",
+        "pickedUp": "Đã lấy hàng tại nhà"
       },
       "paymentStatus": {
         "pending": "Chờ thanh toán",

@@ -23,6 +23,7 @@ import {
   PiggyBank,
   Plane,
   RotateCcw,
+  Route,
   Smartphone,
   Timer,
   Undo2,
@@ -130,6 +131,8 @@ export function orderPaymentStatusMeta(
 }
 
 const DELIVERY_STAGE_META: Record<string, MetaDef> = {
+    PICKUP_ASSIGNED: { labelKey: "shared.reportMeta.deliveryStage.pickupAssigned", style: VIOLET, icon: Route },
+    PICKED_UP: { labelKey: "shared.reportMeta.deliveryStage.pickedUp", style: BLUE, icon: PackageCheck },
   AWAITING_DISPATCH: { labelKey: "shared.reportMeta.deliveryStage.awaitingDispatch", style: MUTED, icon: Hourglass },
   ACCEPTED: { labelKey: "shared.reportMeta.deliveryStage.accepted", style: NEUTRAL, icon: CheckCircle2 },
   LAUNCHING: { labelKey: "shared.reportMeta.deliveryStage.launching", style: BLUE, icon: Plane },
