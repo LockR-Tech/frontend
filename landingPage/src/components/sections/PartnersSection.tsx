@@ -29,8 +29,6 @@ const PartnersSection: React.FC = () => {
     "FPT Software",
     "Viettel",
     "VNPT",
-    "Momo",
-    "VNPay",
     "Grab",
     "Shopee",
     "Lazada",

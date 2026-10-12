@@ -78,7 +78,7 @@ export interface DroneOrderTracking {
   missionCreatedAt: string | null;
   missionUpdatedAt: string | null;
   paidAt: string | null;
-  /** Lần thanh toán thành công gần nhất: phương thức (WALLET, VNPAY, ...). */
+  /** Lần thanh toán thành công gần nhất: phương thức (WALLET, SEPAY, ...; đơn cũ có thể là VNPAY/MOMO). */
   paymentMethod: string | null;
   /** Mã tham chiếu Lock.R của giao dịch — nội dung chuyển khoản / mã gửi sang cổng. */
   paymentReference: string | null;

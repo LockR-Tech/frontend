@@ -173,14 +173,16 @@ export function paymentStatusMeta(
   return resolveMeta(PAYMENT_STATUS_META, status);
 }
 
-const PAYMENT_METHOD_META: Record<string, MetaDef> = {
+// Kiểu Record<AdminPaymentMethod, …> bắt buộc có nhãn cho cả phương thức đã ngừng.
+const PAYMENT_METHOD_META: Record<AdminPaymentMethod, MetaDef> = {
   CASH: { labelKey: "shared.reportMeta.paymentMethod.cash", style: NEUTRAL, icon: Banknote },
   WALLET: { labelKey: "shared.reportMeta.paymentMethod.wallet", style: VIOLET, icon: Wallet },
+  SEPAY: { labelKey: "shared.reportMeta.paymentMethod.sepay", style: BLUE, icon: Landmark },
+  SEPAY_TOPUP: { labelKey: "shared.reportMeta.paymentMethod.sepayTopup", style: AMBER, icon: PiggyBank },
+  // Đã ngừng (MoMo/VNPay) — chỉ còn ở giao dịch cũ; giữ nhãn để lịch sử hiển thị đúng.
   VNPAY: { labelKey: "shared.reportMeta.paymentMethod.vnpay", style: BLUE, icon: CreditCard },
   MOMO: { labelKey: "shared.reportMeta.paymentMethod.momo", style: VIOLET, icon: Smartphone },
-  SEPAY: { labelKey: "shared.reportMeta.paymentMethod.sepay", style: BLUE, icon: Landmark },
   VNPAY_TOPUP: { labelKey: "shared.reportMeta.paymentMethod.vnpayTopup", style: AMBER, icon: PiggyBank },
-  SEPAY_TOPUP: { labelKey: "shared.reportMeta.paymentMethod.sepayTopup", style: AMBER, icon: PiggyBank },
 };
 
 export function paymentMethodMeta(

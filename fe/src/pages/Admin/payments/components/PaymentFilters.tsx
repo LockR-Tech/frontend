@@ -18,6 +18,7 @@ import {
 import {
   ADMIN_PAYMENT_METHODS,
   ADMIN_PAYMENT_STATUSES,
+  LEGACY_ADMIN_PAYMENT_METHODS,
 } from "~/types/admin/reporting";
 import type { PaymentFilterState, PaymentKindFilter } from "../hooks/usePayments";
 
@@ -57,7 +58,12 @@ export function PaymentFilters({
     value,
     label: paymentStatusMeta(value).label,
   }));
-  const methodOptions = ADMIN_PAYMENT_METHODS.map((value) => ({
+  // MoMo/VNPay đã ngừng: không đưa vào lựa chọn. Chỉ hiện lại khi URL cũ đang lọc theo
+  // chúng, để có nhãn đúng và bỏ chọn được.
+  const methodOptions = [
+    ...ADMIN_PAYMENT_METHODS,
+    ...LEGACY_ADMIN_PAYMENT_METHODS.filter((value) => filters.method.includes(value)),
+  ].map((value) => ({
     value,
     label: paymentMethodMeta(value).label,
   }));

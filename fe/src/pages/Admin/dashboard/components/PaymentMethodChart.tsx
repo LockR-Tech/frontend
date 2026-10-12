@@ -18,12 +18,14 @@ interface PaymentMethodChartProps {
 
 const METHOD_COLORS: Record<string, string> = {
   WALLET: "#10B981",
+  SEPAY: "#0EA5E9",
+  CASH: "#F59E0B",
+  // Đã ngừng (MoMo/VNPay) — vẫn có thể có doanh thu cũ trong năm đang xem.
   VNPAY: "#2563EB",
   MOMO: "#EC4899",
-  CASH: "#F59E0B",
   VNPAY_TOPUP: "#8B5CF6",
 };
-const FALLBACK_COLORS = ["#0EA5E9", "#64748B", "#A855F7", "#F97316"];
+const FALLBACK_COLORS = ["#64748B", "#A855F7", "#F97316", "#14B8A6"];
 
 function formatVND(val: number) {
   return val.toLocaleString("vi-VN") + " đ";
