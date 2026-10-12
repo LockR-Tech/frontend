@@ -22,6 +22,7 @@ const pathMap: Record<string, string> = {
   lockers: "admin.sidebar.lockers",
   services: "admin.sidebar.services",
   payments: "admin.sidebar.payments",
+  refunds: "admin.sidebar.refunds",
   revenue: "admin.sidebar.revenue",
   maintenance: "admin.sidebar.maintenance",
   drones: "admin.sidebar.drones",

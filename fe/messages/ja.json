@@ -108,6 +108,7 @@
       "lockers": "ロッカー",
       "services": "サービス",
       "payments": "支払い",
+      "refunds": "返金",
       "revenue": "売上",
       "loyalty": "ロイヤルティ",
       "loyaltyProgram": "ポイントプログラム",
@@ -508,6 +509,23 @@
       "detail": "詳細",
       "create": "新規作成",
       "edit": "編集"
+    },
+    "refunds": {
+      "title": "返金管理",
+      "description": "顧客からの返金リクエストの確認、承認、処理",
+      "viewPayments": "決済管理",
+      "pendingAlert": "承認および送金待ちの返金リクエストが{{count}}件あります",
+      "pendingAlertAction": "今すぐ処理",
+      "stats": {
+        "pending": "承認待ち",
+        "pendingSub": "管理者の承認・送金待ち",
+        "completed": "完了",
+        "completedSub": "送金完了済み",
+        "rejected": "却下",
+        "rejectedSub": "却下されたリクエスト",
+        "total": "リクエスト総数",
+        "totalSub": "返金チケットの総数"
+      }
     }
   },
   "partner": {

@@ -22,6 +22,7 @@ import {
   BookOpen,
   Gift,
   Sparkles,
+  RotateCcw,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -90,6 +91,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: CreditCard,
     path: "/admin/payments",
     label: "admin.sidebar.payments",
+    permission: "view_payments",
+  },
+  {
+    icon: RotateCcw,
+    path: "/admin/refunds",
+    label: "admin.sidebar.refunds",
     permission: "view_payments",
   },
   {

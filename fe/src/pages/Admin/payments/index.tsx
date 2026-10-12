@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, TrendingUp } from "lucide-react";
+import { ArrowRight, RotateCcw, TrendingUp } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -12,7 +12,6 @@ import { PaymentTable } from "./components/PaymentTable";
 import { PaymentFilters } from "./components/PaymentFilters";
 import { PaymentStats } from "./components/PaymentStats";
 import { PaymentDetailModal } from "./components/PaymentDetailModal";
-import { RefundTab } from "./components/RefundTab";
 import { WalletTransactionTab } from "./components/WalletTransactionTab";
 import { WithdrawalTab } from "./components/WithdrawalTab";
 import { usePayments } from "./hooks/usePayments";
@@ -53,13 +52,21 @@ export default function PaymentsPage() {
           title={t("admin.payments.title")}
           description={t("admin.payments.description")}
         />
-        <Link to="/admin/revenue">
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5" />
-            {t("admin.payments.viewRevenue")}
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/admin/refunds">
+            <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
+              <RotateCcw className="w-3.5 h-3.5" />
+              {t("admin.sidebar.refunds", "Hoàn tiền")}
+            </Button>
+          </Link>
+          <Link to="/admin/revenue">
+            <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5" />
+              {t("admin.payments.viewRevenue")}
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <PaymentStats
@@ -77,9 +84,6 @@ export default function PaymentsPage() {
             <TabsList className="mb-4">
               <TabsTrigger value="payments" className="text-xs px-4">
                 {t("admin.payments.tabs.transactions")}
-              </TabsTrigger>
-              <TabsTrigger value="refunds" className="text-xs px-4">
-                {t("admin.payments.refunds")}
               </TabsTrigger>
               <TabsTrigger value="wallet" className="text-xs px-4">
                 {t("admin.payments.tabs.wallet")}
@@ -124,10 +128,6 @@ export default function PaymentsPage() {
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
               />
-            </TabsContent>
-
-            <TabsContent value="refunds" className="mt-0">
-              <RefundTab />
             </TabsContent>
 
             <TabsContent value="wallet" className="mt-0">

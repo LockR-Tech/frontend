@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowDownUp, Eye, Search } from "lucide-react";
+import { ArrowDownUp, ExternalLink, Eye, Search } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -19,10 +19,12 @@ import { formatDateTime } from "~/lib/datetime";
 import { EMPTY_VALUE, formatCurrency, formatNumber } from "~/lib/report-format";
 import type { DateRangeValue } from "~/components/shared/reporting";
 import type { CustomerRevenue } from "~/types/admin/reporting";
+import type { RevenueOrdersTarget } from "./RevenueOrdersModal";
 
 interface CustomerRevenueTabProps {
   range: DateRangeValue;
   skip: boolean;
+  onViewOrders?: (target: RevenueOrdersTarget) => void;
 }
 
 const columnHelper = createColumnHelper<CustomerRevenue>();
@@ -42,7 +44,11 @@ const SORT_OPTIONS = [
  * Bảng khách hàng theo doanh thu (§ 3.8). Một khách có mặt nếu tạo đơn trong kỳ
  * HOẶC có lần thu tiền trong kỳ — nên `orderCount` có thể bằng 0 mà vẫn có tiền.
  */
-export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
+export function CustomerRevenueTab({
+  range,
+  skip,
+  onViewOrders,
+}: CustomerRevenueTabProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -156,18 +162,46 @@ export function CustomerRevenueTab({ range, skip }: CustomerRevenueTabProps) {
     }),
     columnHelper.display({
       id: "actions",
-      header: "",
-      cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 text-xs"
-          onClick={() => openCustomer(row.original.userId)}
-        >
-          <Eye className="h-3.5 w-3.5 mr-1.5" />
-          {t("button.detail")}
-        </Button>
+      header: () => (
+        <span className="text-right block">
+          {t("admin.revenue.actions.header", "Hành động")}
+        </span>
       ),
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2.5 text-xs gap-1.5 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+              disabled={item.paidOrderCount === 0 && item.orderCount === 0}
+              onClick={() =>
+                onViewOrders?.({
+                  type: "CUSTOMER",
+                  userId: item.userId,
+                  label: item.fullName || t("admin.orders.lookup.customerName"),
+                  paidOrderCount: item.paidOrderCount,
+                })
+              }
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>{t("admin.revenue.actions.viewOrders", "Xem đơn")}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => openCustomer(item.userId)}
+              title={t("button.detail")}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        );
+      },
     }),
   ];
 

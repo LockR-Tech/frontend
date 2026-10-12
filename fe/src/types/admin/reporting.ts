@@ -374,6 +374,8 @@ export interface AdminRefund {
   accountHolderName?: string | null;
   rejectionReason?: string | null;
   bankTransferRef?: string | null;
+  proofImageUrl?: string | null;
+  customerAttachmentUrl?: string | null;
   order: AdminPaymentOrderBrief | null;
   customer: CustomerSummary | null;
   processedBy: CustomerSummary | null;
