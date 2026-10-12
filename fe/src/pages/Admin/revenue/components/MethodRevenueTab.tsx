@@ -24,7 +24,7 @@ interface MethodRevenueTabProps {
 const columnHelper = createColumnHelper<RevenueByMethodItem>();
 
 /**
- * Doanh thu theo phương thức thanh toán (§ 3.5). Nạp ví (`VNPAY_TOPUP`) không xuất
+ * Doanh thu theo phương thức thanh toán (§ 3.5). Nạp ví (`SEPAY_TOPUP`, `VNPAY_TOPUP` cũ) không xuất
  * hiện ở đây vì tiền nạp là tiền gửi, chỉ tính khi khách dùng ví trả cho một đơn.
  */
 export function MethodRevenueTab({ range, skip, onViewOrders }: MethodRevenueTabProps) {

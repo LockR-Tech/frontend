@@ -299,19 +299,25 @@ export const ADMIN_PAYMENT_STATUSES = ["PENDING", "COMPLETED", "FAILED"] as cons
 
 export type AdminPaymentStatus = (typeof ADMIN_PAYMENT_STATUSES)[number];
 
+/** Phương thức đang dùng — nguồn cho mọi danh sách lựa chọn (bộ lọc, form). */
 export const ADMIN_PAYMENT_METHODS = [
   "CASH",
   "WALLET",
-  "VNPAY",
-  "MOMO",
   "SEPAY",
-  "VNPAY_TOPUP",
   "SEPAY_TOPUP",
 ] as const;
 
-export type AdminPaymentMethod = (typeof ADMIN_PAYMENT_METHODS)[number];
+/**
+ * Đã ngừng (bỏ MoMo/VNPay): backend không nhận thanh toán mới bằng các phương thức này,
+ * nhưng giao dịch cũ vẫn mang giá trị đó. Chỉ giữ để hiển thị lịch sử — không đưa vào lựa chọn.
+ */
+export const LEGACY_ADMIN_PAYMENT_METHODS = ["VNPAY", "MOMO", "VNPAY_TOPUP"] as const;
 
-/** `TOPUP` = nạp ví (`VNPAY_TOPUP`, hoặc `orderId <= 0` như `SEPAY_TOPUP`). */
+export type AdminPaymentMethod =
+  | (typeof ADMIN_PAYMENT_METHODS)[number]
+  | (typeof LEGACY_ADMIN_PAYMENT_METHODS)[number];
+
+/** `TOPUP` = nạp ví (`VNPAY_TOPUP` cũ, hoặc `orderId <= 0` như `SEPAY_TOPUP`). */
 export type AdminPaymentKind = "ORDER" | "TOPUP";
 
 /** Tóm tắt đơn kèm theo giao dịch; `null` khi là giao dịch nạp ví. */

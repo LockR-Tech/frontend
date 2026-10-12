@@ -107,7 +107,7 @@ export function RefundRulesGuide() {
       refundRate: "100% Số tiền trừ trùng",
       conditions: [
         "Khách hàng bị trừ tiền 2 lần cho cùng một mã đơn hoặc dịch vụ phát sinh.",
-        "Ngân hàng/Ví đã trừ tiền nhưng cổng VNPay/SePay/MoMo phản hồi timeout hoặc lỗi mạng.",
+        "Ngân hàng đã trừ tiền nhưng cổng SePay phản hồi timeout hoặc lỗi mạng.",
       ],
       evidence: [
         "Sao kê giao dịch ngân hàng / biên lai trừ tiền có mã đối chiếu trùng khớp.",
