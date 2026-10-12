@@ -145,8 +145,8 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
   const [isReverseGeocoding, setIsReverseGeocoding] = useState<boolean>(false);
 
   const mapRef = useRef<L.Map | null>(null);
-  const reverseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const reverseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Click ra ngoài thì đóng dropdown tìm kiếm
