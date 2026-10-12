@@ -194,7 +194,7 @@ export function BoxQrModal({
         ctx.fillText(`Mã định danh: BOX-${c.id}`, 54, boxY + 74);
 
         ctx.textAlign = "right";
-        ctx.fillText(`Cửa: ${c.doorState || "CLOSED"}`, canvas.width - 54, boxY + 36);
+        ctx.fillText(`Cửa: ${c.doorOpen ? "OPEN" : "CLOSED"}`, canvas.width - 54, boxY + 36);
         ctx.fillText(`Trạng thái: ${c.status || "AVAILABLE"}`, canvas.width - 54, boxY + 74);
 
         // Chân trang hướng dẫn quét
@@ -560,7 +560,7 @@ export function BoxQrModal({
                       <div>
                         <span className="text-[11px] text-muted-foreground block">Trạng thái chốt:</span>
                         <div className="flex items-center gap-1 mt-0.5">
-                          {currentCell.doorState === "OPEN" ? (
+                          {currentCell.doorOpen ? (
                             <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] gap-1 font-semibold">
                               <Unlock className="w-3 h-3" /> Đang mở
                             </Badge>
