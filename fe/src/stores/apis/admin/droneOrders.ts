@@ -62,6 +62,9 @@ export interface DroneOrderTracking {
   droneCode: string | null;
   sourceLockerId: number | null;
   etaMinutes: number | null;
+  /** Current drone coordinates; null until telemetry is wired into the shared tracking response. */
+  currentLatitude: number | null;
+  currentLongitude: number | null;
   assignedByUserId: number | null;
   assignedByName: string | null;
   payloadWeightGrams: number | null;

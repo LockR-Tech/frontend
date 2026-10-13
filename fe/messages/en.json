@@ -2250,6 +2250,8 @@
         "compartmentLocked": "Cargo compartment locked",
         "loadingNote": "Loading note",
         "batteryAtLaunch": "Battery at takeoff",
+        "currentLatitude": "Current latitude",
+        "currentLongitude": "Current longitude",
         "landedAt": "Arrived at receiving locker at",
         "depositedAt": "Placed in box at",
         "autoConfirmed": "auto-confirmed by system",
