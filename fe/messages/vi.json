@@ -2250,6 +2250,8 @@
         "compartmentLocked": "Khoang hàng đã khoá",
         "loadingNote": "Ghi chú nạp hàng",
         "batteryAtLaunch": "Pin lúc cất cánh",
+        "currentLatitude": "Vĩ độ hiện tại",
+        "currentLongitude": "Kinh độ hiện tại",
         "landedAt": "Tới tủ nhận lúc",
         "depositedAt": "Hàng vào ô lúc",
         "autoConfirmed": "hệ thống tự xác nhận",

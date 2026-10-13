@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { Loader2, MapPin, Plane, RefreshCw, Route, TriangleAlert } from "lucide-react";
@@ -7,12 +7,6 @@ import { toast } from "sonner";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
 import { PageHeader } from "~/components/shared/page-header";
 import {
   LabelValue,
@@ -172,7 +166,8 @@ function journeyTitle(event: DroneJourneyEvent, t: TFunction): string {
 
 export default function DroneOrdersPage() {
   const { t } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [scope, setScope] = useState<Scope>("active");
   // "Đang thực hiện" chỉ xin nhiệm vụ đang chạy; hai nhóm còn lại cần cả lịch sử
   const { data, isLoading, isFetching, isError, refetch } = useGetAdminDroneOrderListQuery(
@@ -200,14 +195,12 @@ export default function DroneOrdersPage() {
     };
   }, [subscribe, refetch]);
 
-  const requestedId = Number(searchParams.get("orderId"));
-  const selectedId = Number.isSafeInteger(requestedId) && requestedId > 0 ? requestedId : null;
-  const setSelectedId = (id: number | null) => {
-    const next = new URLSearchParams(searchParams);
-    if (id === null) next.delete("orderId");
-    else next.set("orderId", String(id));
-    setSearchParams(next);
-  };
+  useEffect(() => {
+    const requestedId = Number(searchParams.get("orderId"));
+    if (Number.isSafeInteger(requestedId) && requestedId > 0) {
+      navigate(`/admin/drone-orders/${requestedId}`, { replace: true });
+    }
+  }, [navigate, searchParams]);
 
   const orders = useMemo(() => data?.data ?? [], [data]);
   const counts = useMemo(
@@ -322,7 +315,7 @@ export default function DroneOrdersPage() {
                 {visible.map((order) => (
                   <tr
                     key={order.orderId}
-                    onClick={() => setSelectedId(order.orderId)}
+                    onClick={() => navigate(`/admin/drone-orders/${order.orderId}`)}
                     className="cursor-pointer border-b last:border-0 hover:bg-muted/40"
                   >
                     <td className="px-4 py-3 font-mono text-xs font-semibold">
@@ -372,8 +365,6 @@ export default function DroneOrdersPage() {
           </CardContent>
         </Card>
       )}
-
-      <DroneOrderDialog orderId={selectedId} onClose={() => setSelectedId(null)} />
     </div>
   );
 }
@@ -399,30 +390,22 @@ function StatCard({
   );
 }
 
-function DroneOrderDialog({
-  orderId,
-  onClose,
-}: {
-  orderId: number | null;
-  onClose: () => void;
-}) {
+export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
   const { t } = useTranslation();
-  const { data, isLoading, isError } = useGetDroneOrderQuery(orderId ?? 0, {
-    skip: orderId === null,
+  const { data, isLoading, isError } = useGetDroneOrderQuery(orderId, {
     pollingInterval: DETAIL_POLL_MS,
   });
-  const order = orderId === null ? undefined : data?.data;
+  const order = data?.data;
 
   return (
-    <Dialog open={orderId !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="flex flex-wrap items-center gap-2">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-2">
             <Route className="h-4 w-4" />
-            {t("admin.droneOrders.detail.title", { code: order?.orderCode ?? "" })}
+            <h2 className="text-lg font-semibold">
+              {t("admin.droneOrders.detail.title", { code: order?.orderCode ?? "" })}
+            </h2>
             {order && <MetaBadge meta={stageMeta(order)} />}
-          </DialogTitle>
-        </DialogHeader>
+      </div>
 
         {!order ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
@@ -638,6 +621,12 @@ function DroneOrderDialog({
                         : order.missionStatus)
                     : t("admin.droneOrders.fields.notInitialized")}
                 </LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.currentLatitude")} mono>
+                  {order.currentLatitude?.toFixed(6)}
+                </LabelValue>
+                <LabelValue label={t("admin.droneOrders.fields.currentLongitude")} mono>
+                  {order.currentLongitude?.toFixed(6)}
+                </LabelValue>
                 <LabelValue label={t("admin.droneOrders.fields.actualWeight")}>{grams(order.payloadWeightGrams)}</LabelValue>
                 {order.weightSurcharge ? (
                   <LabelValue label={t("admin.droneOrders.fields.weightSurcharge")}>
@@ -714,8 +703,7 @@ function DroneOrderDialog({
             </Section>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 }
 
