@@ -155,7 +155,7 @@
       "notifications": "Notifications",
       "promotions": "Promotions",
       "settings": "Settings",
-      "maintenance": "Device Maintenance",
+      "maintenance": "Maintenance & Device Incidents",
       "drones": "Drones",
       "droneOrders": "Drone journeys",
       "droneIncidents": "Dropped parcel incidents",
@@ -3351,15 +3351,15 @@
         }
       },
       "page": {
-        "title": "Equipment Maintenance",
+        "title": "Maintenance & Device Incidents",
         "description": "Technical operations center — monitor kiosk hardware, manage drone battery servicing & fleet",
         "syncDevices": "Sync Devices",
         "syncing": "Syncing technical data..."
       },
       "tabs": {
-        "kiosk": "Kiosk Maintenance ({{count}})",
-        "technicians": "Technicians ({{count}})",
-        "drone": "Drone Maintenance & Battery ({{count}})",
+        "kiosk": "Kiosk Incidents ({{count}})",
+        "technicians": "Incident Technicians ({{count}})",
+        "drone": "Drone Incidents ({{count}})",
         "schedules": "Schedules & Logs"
       },
       "status": {

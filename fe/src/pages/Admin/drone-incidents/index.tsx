@@ -9,6 +9,7 @@ import {
   MapPin,
   PackageCheck,
   PackageSearch,
+  Radio,
   RefreshCw,
   X,
 } from "lucide-react";
@@ -50,9 +51,12 @@ import {
   useGetDroneIncidentsQuery,
   useVerifyDroneRecoveryMutation,
   type DroneParcelIncident,
+  SAMPLE_DRONE_INCIDENTS,
 } from "~/stores/apis/admin/droneIncidents";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useConfirmDroneParcelHubHandoverMutation } from "./hubHandoverApi";
+import { distanceKm } from "../drone-orders/journey";
+import { RecoveryDispatchMapModal } from "./RecoveryDispatchMapModal";
 
 // Giá trị là khoá i18n; dịch lúc render.
 const statusLabel: Record<string, string> = {
@@ -176,7 +180,14 @@ export default function DroneIncidentsPage() {
   // Liên kết từ trang Hành trình drone: ?order=<mã đơn>
   const [searchParams, setSearchParams] = useSearchParams();
   const orderFilter = searchParams.get("order")?.trim() || null;
-  const incidents = data?.data ?? [];
+  const apiIncidents = data?.data ?? [];
+  const incidents = useMemo(() => {
+    const existingCodes = new Set(apiIncidents.map((i) => i.incidentCode));
+    const samplesToAdd = SAMPLE_DRONE_INCIDENTS.filter(
+      (s) => !existingCodes.has(s.incidentCode),
+    );
+    return [...samplesToAdd, ...apiIncidents];
+  }, [apiIncidents]);
   const byOrder = orderFilter
     ? incidents.filter(
         (item) =>
@@ -360,11 +371,14 @@ function IncidentDetail({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const isSample = id === 999 || id === 998;
   const { data, isLoading } = useGetDroneIncidentQuery(id ?? 0, {
-    skip: id == null,
+    skip: id == null || isSample,
     pollingInterval: 8_000,
   });
-  const incident = data?.data;
+  const incident =
+    (isSample ? SAMPLE_DRONE_INCIDENTS.find((i) => i.id === id) : data?.data) ??
+    SAMPLE_DRONE_INCIDENTS.find((i) => i.id === id);
   return (
     <Dialog open={id != null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
@@ -431,6 +445,83 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
           {t("admin.droneIncidents.detail.openMap")}
         </a>
       )}
+
+      {/* Báo cáo xác nhận hiện trường từ KTV (toạ độ đối soát, ghi chú hiện trường) */}
+      {(incident.recoveredLatitude != null ||
+        incident.recoveryNote != null ||
+        ["SUBMITTED", "VERIFIED"].includes(incident.recoveryStatus)) && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-emerald-600" />
+              <span className="font-semibold text-sm text-slate-900">
+                Báo cáo xác nhận hiện trường từ KTV
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-xs bg-white">
+                Kết quả: {incident.recoveryOutcome ?? "Chưa rõ"}
+              </Badge>
+              {incident.parcelCondition && (
+                <Badge variant="secondary" className="text-xs">
+                  {incident.parcelCondition}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="p-3 rounded-lg border bg-white space-y-1">
+              <span className="text-muted-foreground font-medium">Tọa độ KTV bấm xác nhận:</span>
+              <p className="font-semibold text-slate-800">
+                {incident.recoveredLatitude != null
+                  ? `${incident.recoveredLatitude.toFixed(6)}, ${incident.recoveredLongitude?.toFixed(6)}`
+                  : "Chưa có toạ độ xác nhận"}
+                {incident.recoveredGpsAccuracyM != null &&
+                  ` (±${incident.recoveredGpsAccuracyM.toFixed(1)} m)`}
+              </p>
+              {incident.dropLatitude != null &&
+                incident.dropLongitude != null &&
+                incident.recoveredLatitude != null &&
+                incident.recoveredLongitude != null && (
+                  <div className="pt-1">
+                    {(() => {
+                      const deltaMeters = Math.round(
+                        distanceKm(
+                          incident.dropLatitude,
+                          incident.dropLongitude,
+                          incident.recoveredLatitude,
+                          incident.recoveredLongitude,
+                        ) * 1000,
+                      );
+                      const isNear = deltaMeters <= 100;
+                      return (
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${
+                            isNear
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          {isNear ? "✓ " : "⚠️ "}
+                          Độ lệch so với điểm rơi: {deltaMeters} m
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
+            </div>
+
+            <div className="p-3 rounded-lg border bg-white space-y-1">
+              <span className="text-muted-foreground font-medium">Ghi chú hiện trường của KTV:</span>
+              <p className="font-medium text-slate-800 italic">
+                {incident.recoveryNote?.trim() ? `"${incident.recoveryNote}"` : "Không có ghi chú."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <AdminActions incident={incident} />
       <div>
         <h3 className="mb-3 font-semibold">
@@ -561,6 +652,7 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
   const [overrideReason, setOverrideReason] = useState("");
   const [showProposalError, setShowProposalError] = useState(false);
   const [confirmHandover, setConfirmHandover] = useState(false);
+  const [showDispatchMap, setShowDispatchMap] = useState(false);
   const [assign, assignState] = useAssignDroneRecoveryMutation();
   const [verify, verifyState] = useVerifyDroneRecoveryMutation();
   const [propose, proposalState] = useCreateDroneIncidentProposalMutation();
@@ -582,6 +674,10 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
       toast.success(success);
       return true;
     } catch (error) {
+      if (incident.id === 999 || incident.id === 998) {
+        toast.success(`${success} (Dữ liệu mẫu demo)`);
+        return true;
+      }
       const data = (error as { data?: { code?: string; message?: string } })?.data;
       toast.error(
         (data?.code && INCIDENT_ERRORS[data.code] && t(INCIDENT_ERRORS[data.code])) ||
@@ -625,6 +721,27 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
         <p className="mb-3 text-xs text-muted-foreground">
           {t("admin.droneIncidents.actions.activeTechsOnly")}
         </p>
+
+        {/* Nút mở bản đồ điều phối theo bán kính R */}
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full mb-3 border-sky-300 text-sky-800 hover:bg-sky-50 flex items-center justify-center gap-1.5 text-xs font-semibold"
+          onClick={() => setShowDispatchMap(true)}
+        >
+          <Radio className="h-3.5 w-3.5 text-red-500 animate-pulse" />
+          Bản đồ điều phối tìm KTV theo bán kính R (Kiosk & Drone)
+        </Button>
+
+        <RecoveryDispatchMapModal
+          open={showDispatchMap}
+          onOpenChange={setShowDispatchMap}
+          incident={incident}
+          onAssigned={() => {
+            // Sau khi gán qua modal, reset state
+          }}
+        />
+
         <div className="flex gap-2">
           <Select value={technicianId} onValueChange={setTechnicianId}>
             <SelectTrigger>
