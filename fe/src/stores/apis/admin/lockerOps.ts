@@ -127,6 +127,13 @@ export interface LockerReportResponse {
   /** Drone gắn với phiếu; null với sự cố Kiosk/ô tủ. */
   droneUnitId?: number | null;
   droneCode?: string | null;
+  /** Mã sự cố tuỳ chỉnh (ví dụ: "DRN-DROP-2026-001" cho sự cố rơi drone, khác với "RPT-{id}" thông thường) */
+  reportCode?: string | null;
+  /** Đánh dấu sự cố rơi drone khẩn cấp */
+  isDroneDrop?: boolean | null;
+  dropLatitude?: number | null;
+  dropLongitude?: number | null;
+  orderCode?: string | null;
 }
 
 /** Tủ ở góc nhìn nhân sự (`/api/admin/lockers/**`) — kèm KTV phụ trách. */

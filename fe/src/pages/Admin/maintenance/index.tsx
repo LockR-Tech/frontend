@@ -35,6 +35,7 @@ import {
   RotateCcw,
   Sparkles,
   Plus,
+  Radio,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
@@ -175,6 +176,83 @@ function timestampOf(value?: string | null): number {
   return parseBackendDateTime(value)?.getTime() ?? 0;
 }
 
+export const SAMPLE_DRONE_DROP_REPORT: LockerReportResponse = {
+  id: 9991,
+  reportCode: "DRN-DROP-2026-001", // Mã phiếu sự cố đặc biệt khác với RPT-xxx thông thường
+  isDroneDrop: true,
+  category: "DRONE",
+  lockerId: 1,
+  lockerCode: "CAB-DEMO-01",
+  lockerName: "Tủ thông minh FPT-01 (ĐH FPT)",
+  boxId: null,
+  boxNumber: null,
+  cellType: "DRONE",
+  userId: 1,
+  title: "Sự cố Drone rơi khẩn cấp — Rơi kiện hàng ORD-2026-8801 cách điểm đáp 350m",
+  description:
+    "Cảm biến gia tốc phát hiện drone rơi tự do từ độ cao 28m do mất lực nâng cánh quạt số 3. Kiện hàng và drone rơi tại bãi cỏ khuôn viên ĐH FPT (Toạ độ 10.841550, 106.810200). Hệ thống đã kích hoạt quét tìm kiếm KTV Kiosk & Drone gần nhất trong bán kính R.",
+  status: "OPEN",
+  assignedToUserId: null,
+  assignedAt: null,
+  resolvedByUserId: null,
+  resolvedAt: null,
+  createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+  updatedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+  lockerAddress: "Khuôn viên Đại học FPT, Đường D1, Khu Công nghệ cao, TP. Thủ Đức",
+  lockerLatitude: 10.8411,
+  lockerLongitude: 106.8097,
+  slaHours: 2,
+  slaDueAt: new Date(Date.now() + 95 * 60 * 1000).toISOString(),
+  overdue: false,
+  reporterName: "Hệ thống Telemetry Drone AI",
+  reporterPhone: "0909000999",
+  droneUnitId: 101,
+  droneCode: "DRN-HCMC-09",
+  dropLatitude: 10.84155,
+  dropLongitude: 106.8102,
+  orderCode: "ORD-2026-8801",
+  attachments: [
+    {
+      id: 901,
+      reportId: 9991,
+      repairLogId: null,
+      stage: "REPORT",
+      url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800",
+      thumbnailUrl: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800",
+      publicId: "drone_snap_001",
+      format: "jpg",
+      bytes: 204800,
+      width: 1200,
+      height: 800,
+      caption: "Snapshot camera drone ghi lại khoảnh khắc tiếp đất",
+      latitude: 10.84155,
+      longitude: 106.8102,
+      capturedAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+      uploadedByUserId: 1,
+      createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+    },
+    {
+      id: 902,
+      reportId: 9991,
+      repairLogId: null,
+      stage: "REPORT",
+      url: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800",
+      thumbnailUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800",
+      publicId: "drone_scene_001",
+      format: "jpg",
+      bytes: 204800,
+      width: 1200,
+      height: 800,
+      caption: "Ảnh hiện trường bãi cỏ quanh vị trí rơi",
+      latitude: 10.84159,
+      longitude: 106.81024,
+      capturedAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+      uploadedByUserId: 12,
+      createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+    },
+  ],
+};
+
 export default function MaintenanceAdminPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -232,15 +310,18 @@ export default function MaintenanceAdminPage() {
     () => (allAdminReports.length > 0 ? allAdminReports : (reports.data?.data ?? [])),
     [allAdminReports, reports.data]
   );
-  // Chỉ lấy phiếu sự cố Kiosk — loại bỏ hoàn toàn phiếu drone để tab Bảo trì Kiosk không lẫn lộn
+  // Chỉ lấy phiếu sự cố Kiosk — loại bỏ hoàn toàn phiếu drone để tab Sự cố Kiosk không lẫn lộn
   const kioskReportList = useMemo(
     () => reportList.filter((r) => !isDroneReport(r)),
     [reportList]
   );
-  const droneReportList = useMemo(
-    () => reportList.filter(isDroneReport),
-    [reportList]
-  );
+  const droneReportList = useMemo(() => {
+    const list = reportList.filter(isDroneReport);
+    const hasDropReport = list.some(
+      (r) => r.id === SAMPLE_DRONE_DROP_REPORT.id || r.reportCode === SAMPLE_DRONE_DROP_REPORT.reportCode
+    );
+    return hasDropReport ? list : [SAMPLE_DRONE_DROP_REPORT, ...list];
+  }, [reportList]);
   // Danh sách các trạm Kiosk duy nhất có phiếu để hiển thị trong bộ lọc
   const availableLockers = useMemo(() => {
     const map = new Map<number, { id: number; name: string; code?: string | null }>();
@@ -621,7 +702,7 @@ export default function MaintenanceAdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 max-w-3xl h-11 p-1 bg-muted/60 border border-border/50 rounded-xl">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 max-w-4xl h-11 p-1 bg-muted/60 border border-border/50 rounded-xl">
           <TabsTrigger
             value="kiosk"
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
@@ -1032,7 +1113,7 @@ export default function MaintenanceAdminPage() {
                         <div className="max-w-xl">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-sm text-foreground">
-                              RPT-{r.id} · {r.title}
+                              {r.reportCode || `RPT-${r.id}`} · {r.title}
                             </p>
                             {/* Status Badge */}
                             {isNew ? (
@@ -1143,7 +1224,7 @@ export default function MaintenanceAdminPage() {
                       <div className="flex flex-wrap gap-2 items-center">
                         <RepairLogDialog
                           reportId={r.id}
-                          title={`RPT-${r.id} · ${r.title}`}
+                          title={`${r.reportCode || `RPT-${r.id}`} · ${r.title}`}
                           technicianName={
                             r.assignedToUserId
                               ? assignedTech?.fullName ?? userNames[r.assignedToUserId]
@@ -1565,14 +1646,51 @@ export default function MaintenanceAdminPage() {
                     const assignedTech = report.assignedToUserId ? techniciansMap[report.assignedToUserId] : undefined;
                     const droneCode = (report as LockerReportResponse & { droneCode?: string }).droneCode;
                     const isNew = report.status === "OPEN";
+                    const isDropIncident = Boolean(
+                      report.isDroneDrop ||
+                      report.reportCode?.startsWith("DRN-DROP") ||
+                      report.id === SAMPLE_DRONE_DROP_REPORT.id
+                    );
+                    const displayCode = report.reportCode || `RPT-${report.id}`;
                     return (
-                      <div key={report.id} className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all ${isNew ? "border-l-4 border-l-amber-500 bg-amber-50/50 ring-1 ring-amber-200/70 my-1" : "hover:bg-muted/20 my-0.5 border border-transparent"}`}>
+                      <div
+                        key={report.id}
+                        className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all ${
+                          isDropIncident
+                            ? "border-l-4 border-l-red-600 bg-red-50/70 dark:bg-red-950/30 ring-1 ring-red-300 dark:ring-red-900/60 my-1.5 shadow-sm"
+                            : isNew
+                              ? "border-l-4 border-l-amber-500 bg-amber-50/50 ring-1 ring-amber-200/70 my-1"
+                              : "hover:bg-muted/20 my-0.5 border border-transparent"
+                        }`}
+                      >
                         <div className="max-w-2xl">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-sm text-foreground">RPT-{report.id} · {report.title}</p>
-                            <Badge variant="outline" className={`text-xs ${REPORT_BADGE[report.status] ?? ""}`}>
+                            {isDropIncident ? (
+                              <span className="font-mono font-bold text-xs px-2.5 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-300 shadow-xs tracking-wide">
+                                {displayCode}
+                              </span>
+                            ) : (
+                              <p className="font-semibold text-sm text-foreground">{displayCode}</p>
+                            )}
+                            <p className="font-semibold text-sm text-foreground">· {report.title}</p>
+                            {isDropIncident && (
+                              <Badge className="bg-red-600 text-white border-red-700 font-bold text-xs shadow-xs animate-pulse flex items-center gap-1.5">
+                                <Radio className="w-3 h-3 animate-ping" />
+                                🚨 SỰ CỐ RƠI DRONE KHẨN CẤP
+                              </Badge>
+                            )}
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${
+                                isDropIncident
+                                  ? "bg-red-100 text-red-800 border-red-300 font-semibold"
+                                  : REPORT_BADGE[report.status] ?? ""
+                              }`}
+                            >
                               {report.status === "OPEN"
-                                ? t("admin.maintenance.status.openAwaitingDroneTech")
+                                ? isDropIncident
+                                  ? "MỚI MỞ · CẦN ĐIỀU PHỐI TÌM KIẾM"
+                                  : t("admin.maintenance.status.openAwaitingDroneTech")
                                 : report.status === "IN_PROGRESS"
                                   ? t("admin.maintenance.status.inProgress")
                                   : report.status === "RESOLVED"
@@ -1590,13 +1708,33 @@ export default function MaintenanceAdminPage() {
                           <p className="text-xs text-muted-foreground mt-1">
                             <span className="text-foreground">{cleanDescription(report.description) || report.description}</span>
                             {" · "}<span className="font-medium text-foreground">{droneCode ? `Drone ${droneCode}` : report.lockerName ?? t("admin.maintenance.reports.flyingDevice")}</span>
+                            {report.dropLatitude != null && (
+                              <>
+                                {" · "}Tọa độ rơi: <span className="font-mono text-red-700 font-semibold">{report.dropLatitude.toFixed(6)}, {report.dropLongitude?.toFixed(6)}</span>
+                              </>
+                            )}
+                            {report.orderCode && (
+                              <>
+                                {" · "}Mã đơn: <span className="font-mono text-foreground font-semibold">{report.orderCode}</span>
+                              </>
+                            )}
                             {" · "}{t("common.createdAtTime")}: <span className="text-foreground font-mono">{formatDateTime(report.createdAt)}</span> ({getRelativeAge(t, report.createdAt)})
                           </p>
                           {(report.reporterName || report.reporterPhone) && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{[report.reporterName, report.reporterPhone].filter(Boolean).join(" · ")}</p>}
                           <ReportPhotoGroups report={report} variant="compact" userNames={userNames} />
                         </div>
                         <div className="flex flex-wrap gap-2 items-center">
-                          <RepairLogDialog reportId={report.id} title={`RPT-${report.id} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
+                          {isDropIncident && (
+                            <Button
+                              size="sm"
+                              className="h-8 text-xs gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold shadow-xs"
+                              onClick={() => navigate(`/admin/drone-incidents?order=${report.orderCode ?? 'ORD-2026-8801'}`)}
+                            >
+                              <Radio className="w-3.5 h-3.5 animate-pulse" />
+                              Điều phối KTV bán kính R
+                            </Button>
+                          )}
+                          <RepairLogDialog reportId={report.id} title={`${displayCode} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
                           {(report.status === "OPEN" || report.status === "IN_PROGRESS") && (
                             <Button size="sm" variant={report.status === "OPEN" ? "default" : "outline"} className="h-8 text-xs gap-1.5" onClick={() => setAssigningReport(report)}>
                               <UserCheck className="w-3.5 h-3.5" /> {report.status === "OPEN" ? t("admin.maintenance.reports.assignDroneTech") : t("admin.maintenance.reports.changeTech")}
