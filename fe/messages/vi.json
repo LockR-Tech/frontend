@@ -155,7 +155,7 @@
       "notifications": "Thông báo",
       "promotions": "Khuyến mãi",
       "settings": "Cài đặt",
-      "maintenance": "Bảo trì thiết bị",
+      "maintenance": "Bảo trì, sự cố thiết bị",
       "drones": "Drone",
       "droneOrders": "Hành trình drone",
       "droneIncidents": "Sự cố rơi kiện",
@@ -3351,15 +3351,15 @@
         }
       },
       "page": {
-        "title": "Bảo trì thiết bị",
+        "title": "Bảo trì, sự cố thiết bị",
         "description": "Trung tâm điều hành kỹ thuật — Giám sát phần cứng Kiosk, quản lý bảo dưỡng pin & đội bay Drone",
         "syncDevices": "Đồng bộ thiết bị",
         "syncing": "Đang đồng bộ dữ liệu kỹ thuật..."
       },
       "tabs": {
-        "kiosk": "Bảo trì Kiosk ({{count}})",
-        "technicians": "Đội ngũ KTV ({{count}})",
-        "drone": "Bảo trì & Pin Drone ({{count}})",
+        "kiosk": "Sự cố Kiosk ({{count}})",
+        "technicians": "Đội ngũ KTV sự cố ({{count}})",
+        "drone": "Sự cố Drone ({{count}})",
         "schedules": "Lịch bảo trì & Nhật ký"
       },
       "status": {
