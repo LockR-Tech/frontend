@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
@@ -51,6 +51,7 @@ import {
   useVerifyDroneRecoveryMutation,
   type DroneParcelIncident,
 } from "~/stores/apis/admin/droneIncidents";
+import { useGetDroneOrderQuery } from "~/stores/apis/admin/droneOrders";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useConfirmDroneParcelHubHandoverMutation } from "./hubHandoverApi";
 
@@ -62,12 +63,14 @@ const statusLabel: Record<string, string> = {
   RECOVERY_IN_PROGRESS: "admin.droneIncidents.status.recoveryInProgress",
   AWAITING_ADMIN_REVIEW: "admin.droneIncidents.status.awaitingAdminReview",
   RESOLUTION_PROPOSED: "admin.droneIncidents.status.resolutionProposed",
-  AWAITING_CUSTOMER_RESPONSE: "admin.droneIncidents.status.awaitingCustomerResponse",
+  AWAITING_CUSTOMER_RESPONSE:
+    "admin.droneIncidents.status.awaitingCustomerResponse",
   RESOLUTION_IN_PROGRESS: "admin.droneIncidents.status.resolutionInProgress",
   DISPUTED: "admin.droneIncidents.status.disputed",
   RESOLVED: "admin.droneIncidents.status.resolved",
   CLOSED: "admin.droneIncidents.status.closed",
-  MANUAL_INTERVENTION_REQUIRED: "admin.droneIncidents.status.manualInterventionRequired",
+  MANUAL_INTERVENTION_REQUIRED:
+    "admin.droneIncidents.status.manualInterventionRequired",
 };
 
 function statusText(value: string, t: TFunction): string {
@@ -76,35 +79,71 @@ function statusText(value: string, t: TFunction): string {
 }
 
 // Nhóm lọc theo trạng thái sự cố (DroneIncidentStates.INCIDENT ở backend)
-const FILTERS = [
-  "ALL",
-  "REPORTED",
-  "INVESTIGATING",
-  "RECOVERY_IN_PROGRESS",
-  "AWAITING_ADMIN_REVIEW",
-  "AWAITING_CUSTOMER_RESPONSE",
-  "RESOLUTION_IN_PROGRESS",
-  "DISPUTED",
-  "MANUAL_INTERVENTION_REQUIRED",
-  "RESOLVED",
-  "CLOSED",
-] as const;
+type IncidentFilter = {
+  value: string;
+  label: string;
+  statuses: string[];
+};
+
+const INCIDENT_FILTERS: IncidentFilter[] = [
+  { value: "ALL", label: "Tất cả", statuses: [] },
+  {
+    value: "NEEDS_ATTENTION",
+    label: "Cần xử lý",
+    statuses: [
+      "REPORTED",
+      "EVIDENCE_PENDING",
+      "INVESTIGATING",
+      "DISPUTED",
+      "MANUAL_INTERVENTION_REQUIRED",
+    ],
+  },
+  {
+    value: "RECOVERING",
+    label: "Đang thu hồi",
+    statuses: ["RECOVERY_IN_PROGRESS"],
+  },
+  {
+    value: "ADMIN_REVIEW",
+    label: "Chờ Admin xác minh",
+    statuses: ["AWAITING_ADMIN_REVIEW"],
+  },
+  {
+    value: "CUSTOMER_RESPONSE",
+    label: "Chờ khách phản hồi",
+    statuses: ["AWAITING_CUSTOMER_RESPONSE"],
+  },
+  {
+    value: "RESOLVING",
+    label: "Đang xử lý phương án",
+    statuses: ["RESOLUTION_PROPOSED", "RESOLUTION_IN_PROGRESS"],
+  },
+  { value: "DONE", label: "Đã hoàn tất", statuses: ["RESOLVED", "CLOSED"] },
+];
+
+const KNOWN_INCIDENT_STATUSES = new Set(
+  INCIDENT_FILTERS.flatMap((filter) => filter.statuses),
+);
 
 // Giá trị là khoá i18n; dịch lúc render.
 const RESOLUTION_LABELS: Record<string, string> = {
   FREE_REDELIVERY: "admin.droneIncidents.resolution.freeRedelivery",
-  REDELIVERY_PARTIAL_COMPENSATION: "admin.droneIncidents.resolution.redeliveryPartialCompensation",
+  REDELIVERY_PARTIAL_COMPENSATION:
+    "admin.droneIncidents.resolution.redeliveryPartialCompensation",
   COMPENSATION_ONLY: "admin.droneIncidents.resolution.compensationOnly",
   MANUAL_RESOLUTION: "admin.droneIncidents.resolution.manualResolution",
 };
 
 // Mã lỗi DroneParcelIncidentService → khoá i18n của thông báo
 const INCIDENT_ERRORS: Record<string, string> = {
-  RESOLUTION_CONTENT_INVALID: "admin.droneIncidents.errors.resolutionContentInvalid",
+  RESOLUTION_CONTENT_INVALID:
+    "admin.droneIncidents.errors.resolutionContentInvalid",
   RESOLUTION_TYPE_INVALID: "admin.droneIncidents.errors.resolutionTypeInvalid",
   PARCEL_NOT_AT_HUB: "admin.droneIncidents.errors.parcelNotAtHub",
-  FREE_REDELIVERY_DISABLED: "admin.droneIncidents.errors.freeRedeliveryDisabled",
-  INCIDENT_POLICY_DISABLED: "admin.droneIncidents.errors.incidentPolicyDisabled",
+  FREE_REDELIVERY_DISABLED:
+    "admin.droneIncidents.errors.freeRedeliveryDisabled",
+  INCIDENT_POLICY_DISABLED:
+    "admin.droneIncidents.errors.incidentPolicyDisabled",
   COMPENSATION_OVERRIDE_REASON_REQUIRED:
     "admin.droneIncidents.errors.compensationOverrideReasonRequired",
   RECOVERY_NOT_VERIFIED: "admin.droneIncidents.errors.recoveryNotVerified",
@@ -114,13 +153,18 @@ const INCIDENT_ERRORS: Record<string, string> = {
 
 /** Backend (bản mới) trả thêm mức bồi thường đề xuất theo chính sách; bản cũ chưa có. */
 function suggestedCompensationOf(incident: DroneParcelIncident): number | null {
-  const value = (incident as DroneParcelIncident & {
-    suggestedCompensation?: number | null;
-  }).suggestedCompensation;
+  const value = (
+    incident as DroneParcelIncident & {
+      suggestedCompensation?: number | null;
+    }
+  ).suggestedCompensation;
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
-const REDELIVERY_TYPES = new Set(["FREE_REDELIVERY", "REDELIVERY_PARTIAL_COMPENSATION"]);
+const REDELIVERY_TYPES = new Set([
+  "FREE_REDELIVERY",
+  "REDELIVERY_PARTIAL_COMPENSATION",
+]);
 
 /** Kiểm tra phương án giống DroneParcelIncidentService.propose để báo lỗi trước khi gửi. */
 function validateProposal(
@@ -137,7 +181,10 @@ function validateProposal(
   if (!Number.isFinite(amount) || amount < 0) {
     return t("admin.droneIncidents.validation.invalidAmount");
   }
-  if (REDELIVERY_TYPES.has(resolutionType) && incident.parcelStatus !== "RETURNED_TO_HUB") {
+  if (
+    REDELIVERY_TYPES.has(resolutionType) &&
+    incident.parcelStatus !== "RETURNED_TO_HUB"
+  ) {
     return t("admin.droneIncidents.errors.parcelNotAtHub");
   }
   if (resolutionType === "FREE_REDELIVERY" && amount !== 0) {
@@ -151,7 +198,9 @@ function validateProposal(
   }
   const suggested = suggestedCompensationOf(incident);
   if (suggested != null && amount > suggested && !overrideReason.trim()) {
-    return t("admin.droneIncidents.validation.overSuggested", { amount: formatCurrency(suggested) });
+    return t("admin.droneIncidents.validation.overSuggested", {
+      amount: formatCurrency(suggested),
+    });
   }
   return null;
 }
@@ -180,17 +229,38 @@ export default function DroneIncidentsPage() {
   const byOrder = orderFilter
     ? incidents.filter(
         (item) =>
-          item.orderCode === orderFilter || String(item.orderId) === orderFilter,
+          item.orderCode === orderFilter ||
+          String(item.orderId) === orderFilter,
       )
     : incidents;
-  const visible =
-    filter === "ALL"
-      ? byOrder
-      : byOrder.filter((item) => item.status === filter);
-  const filterCounts = byOrder.reduce<Record<string, number>>((acc, item) => {
-    acc[item.status] = (acc[item.status] ?? 0) + 1;
-    return acc;
-  }, {});
+  const belongsToFilter = (status: string, filterValue: string) => {
+    const group = INCIDENT_FILTERS.find((item) => item.value === filterValue);
+    if (!group || filterValue === "ALL") return true;
+    if (filterValue === "NEEDS_ATTENTION") {
+      return (
+        group.statuses.includes(status) || !KNOWN_INCIDENT_STATUSES.has(status)
+      );
+    }
+    return group.statuses.includes(status);
+  };
+  const visible = byOrder.filter((item) =>
+    belongsToFilter(item.status, filter),
+  );
+  const countForFilter = (filterValue: string) => {
+    const group = INCIDENT_FILTERS.find((item) => item.value === filterValue);
+    if (!group || filterValue === "ALL") return byOrder.length;
+    return byOrder.filter((item) => {
+      if (filterValue === "NEEDS_ATTENTION") {
+        return (
+          group.statuses.includes(item.status) ||
+          !KNOWN_INCIDENT_STATUSES.has(item.status)
+        );
+      }
+      return group.statuses.includes(item.status);
+    }).length;
+  };
+  // Backend có thể bổ sung trạng thái mới mà web chưa phát hành; vẫn cho Admin
+  // lọc được thay vì làm trạng thái đó biến mất khỏi danh sách chọn.
   const counts = {
     open: incidents.filter(
       (item) => !["CLOSED", "RESOLVED"].includes(item.status),
@@ -212,48 +282,71 @@ export default function DroneIncidentsPage() {
         description={t("admin.droneIncidents.description")}
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label={t("admin.droneIncidents.stats.open")} value={counts.open} />
-        <Stat label={t("admin.droneIncidents.stats.recovering")} value={counts.recovering} />
-        <Stat label={t("admin.droneIncidents.stats.review")} value={counts.review} />
-        <Stat label={t("admin.droneIncidents.stats.closed")} value={counts.closed} />
+        <Stat
+          label={t("admin.droneIncidents.stats.open")}
+          value={counts.open}
+        />
+        <Stat
+          label={t("admin.droneIncidents.stats.recovering")}
+          value={counts.recovering}
+        />
+        <Stat
+          label={t("admin.droneIncidents.stats.review")}
+          value={counts.review}
+        />
+        <Stat
+          label={t("admin.droneIncidents.stats.closed")}
+          value={counts.closed}
+        />
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          {orderFilter && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                const next = new URLSearchParams(searchParams);
-                next.delete("order");
-                setSearchParams(next, { replace: true });
-              }}
-            >
-              {t("admin.droneIncidents.orderChip", { code: orderFilter })}
-              <X className="ml-1 h-3.5 w-3.5" />
-            </Button>
-          )}
-          {FILTERS.map((value) => (
-            <Button
-              key={value}
-              size="sm"
-              variant={filter === value ? "default" : "outline"}
-              onClick={() => setFilter(value)}
-            >
-              {value === "ALL" ? t("common.all") : statusText(value, t)}
-              <span className="ml-1 text-xs opacity-70">
-                {value === "ALL" ? byOrder.length : (filterCounts[value] ?? 0)}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="flex flex-wrap items-end justify-between gap-3 p-4">
+          <div className="flex min-w-0 flex-1 flex-wrap items-end gap-3">
+            {orderFilter && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  const next = new URLSearchParams(searchParams);
+                  next.delete("order");
+                  setSearchParams(next, { replace: true });
+                }}
+              >
+                {t("admin.droneIncidents.orderChip", { code: orderFilter })}
+                <X className="ml-1 h-3.5 w-3.5" />
+              </Button>
+            )}
+            <label className="grid w-full gap-1.5 sm:w-80">
+              <span className="text-xs font-medium text-muted-foreground">
+                Lọc theo trạng thái sự cố
               </span>
-            </Button>
-          ))}
-        </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          <RefreshCw
-            className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
-          />
-          {t("button.refresh")}
-        </Button>
-      </div>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent
+                  side="bottom"
+                  align="start"
+                  sideOffset={6}
+                  avoidCollisions={false}
+                >
+                  {INCIDENT_FILTERS.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label} ({countForFilter(item.value)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+            />
+            {t("button.refresh")}
+          </Button>
+        </CardContent>
+      </Card>
       <Card className="border-0 shadow-sm">
         <CardContent className="overflow-x-auto p-0">
           {isLoading ? (
@@ -268,12 +361,22 @@ export default function DroneIncidentsPage() {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left text-xs text-muted-foreground">
-                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.code")}</th>
-                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.orderDrone")}</th>
-                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.incident")}</th>
-                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.recovery")}</th>
-                  <th className="px-4 py-3">{t("admin.droneIncidents.columns.inspection")}</th>
+                <tr className="border-b bg-muted/40 text-left text-xs text-muted-foreground">
+                  <th className="px-4 py-3">
+                    {t("admin.droneIncidents.columns.code")}
+                  </th>
+                  <th className="px-4 py-3">
+                    {t("admin.droneIncidents.columns.orderDrone")}
+                  </th>
+                  <th className="px-4 py-3">
+                    {t("admin.droneIncidents.columns.incident")}
+                  </th>
+                  <th className="px-4 py-3">
+                    {t("admin.droneIncidents.columns.recovery")}
+                  </th>
+                  <th className="px-4 py-3">
+                    {t("admin.droneIncidents.columns.inspection")}
+                  </th>
                   <th className="px-4 py-3">{t("common.time")}</th>
                   <th className="px-4 py-3" />
                 </tr>
@@ -282,7 +385,7 @@ export default function DroneIncidentsPage() {
                 {visible.map((item) => (
                   <tr
                     key={item.id}
-                    className="border-b last:border-0 hover:bg-muted/30"
+                    className="border-b last:border-0 transition-colors hover:bg-muted/30"
                   >
                     <td className="px-4 py-3 font-mono text-xs font-semibold">
                       {item.incidentCode}
@@ -388,6 +491,7 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
   const { t } = useTranslation();
   return (
     <div className="space-y-5">
+      <IncidentOrderContext orderId={incident.orderId} />
       <div className="grid gap-3 sm:grid-cols-3">
         <Info
           label={t("common.order")}
@@ -406,7 +510,10 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
               : t("admin.droneIncidents.detail.noGps")
           }
         />
-        <Info label={t("admin.droneIncidents.detail.gpsSource")} value={incident.gpsSource} />
+        <Info
+          label={t("admin.droneIncidents.detail.gpsSource")}
+          value={incident.gpsSource}
+        />
         <Info
           label="Camera / telemetry"
           value={`${incident.cameraStatus} · ${
@@ -417,52 +524,68 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
         />
       </div>
       <div className="rounded-lg border p-4">
-        <p className="font-semibold">{t("admin.droneIncidents.detail.description")}</p>
+        <p className="font-semibold">
+          {t("admin.droneIncidents.detail.description")}
+        </p>
         <p className="mt-2 text-sm text-muted-foreground">{incident.reason}</p>
       </div>
-      {incident.dropLatitude != null && (
-        <a
-          className="inline-flex items-center text-sm font-medium text-primary hover:underline"
-          target="_blank"
-          rel="noreferrer"
-          href={`https://www.openstreetmap.org/?mlat=${incident.dropLatitude}&mlon=${incident.dropLongitude}#map=17/${incident.dropLatitude}/${incident.dropLongitude}`}
-        >
-          <MapPin className="mr-1 h-4 w-4" />
-          {t("admin.droneIncidents.detail.openMap")}
-        </a>
-      )}
       <AdminActions incident={incident} />
-      <div>
-        <h3 className="mb-3 font-semibold">
-          {t("admin.droneIncidents.detail.evidence", { count: incident.evidence.length })}
-        </h3>
-        {incident.evidence.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {t("admin.droneIncidents.detail.noEvidence")}
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {incident.evidence.map((item) => (
-              <a
-                key={item.id}
-                href={item.secureUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="overflow-hidden rounded-lg border"
-              >
-                <img
-                  src={item.secureUrl}
-                  alt={item.caption ?? item.stage}
-                  className="h-32 w-full object-cover"
-                />
-                <p className="p-2 text-xs">{item.caption ?? item.stage}</p>
-              </a>
-            ))}
-          </div>
-        )}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-lg border p-4">
+          <h3 className="mb-3 font-semibold">
+            {t("admin.droneIncidents.detail.evidence", {
+              count: incident.evidence.length,
+            })}
+          </h3>
+          {incident.evidence.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("admin.droneIncidents.detail.noEvidence")}
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {incident.evidence.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.secureUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="overflow-hidden rounded-lg border"
+                >
+                  <img
+                    src={item.secureUrl}
+                    alt={item.caption ?? item.stage}
+                    className="h-32 w-full object-cover"
+                  />
+                  <p className="p-2 text-xs">{item.caption ?? item.stage}</p>
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+        <section className="rounded-lg border p-4">
+          <h3 className="mb-3 flex items-center gap-2 font-semibold">
+            <MapPin className="h-4 w-4 text-primary" />
+            {t("admin.droneIncidents.detail.dropLocation")}
+          </h3>
+          {incident.dropLatitude != null && incident.dropLongitude != null ? (
+            <iframe
+              title={`${t("admin.droneIncidents.detail.dropLocation")}: ${incident.incidentCode}`}
+              src={`https://www.google.com/maps?q=${incident.dropLatitude},${incident.dropLongitude}&z=16&output=embed`}
+              className="h-48 w-full rounded-md border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          ) : (
+            <div className="flex h-48 items-center justify-center rounded-md bg-muted px-4 text-center text-sm text-muted-foreground">
+              {t("admin.droneIncidents.detail.noGps")}
+            </div>
+          )}
+        </section>
       </div>
       <div>
-        <h3 className="mb-3 font-semibold">{t("admin.droneIncidents.detail.history")}</h3>
+        <h3 className="mb-3 font-semibold">
+          {t("admin.droneIncidents.detail.history")}
+        </h3>
         <div className="space-y-2">
           {incident.timeline.map((item) => (
             <div key={item.id} className="rounded-lg border p-3 text-sm">
@@ -483,13 +606,18 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
       </div>
       <div>
         <h3 className="mb-3 font-semibold">
-          {t("admin.droneIncidents.detail.proposals", { count: incident.proposals.length })}
+          {t("admin.droneIncidents.detail.proposals", {
+            count: incident.proposals.length,
+          })}
         </h3>
         {incident.proposals.map((proposal) => (
           <div key={proposal.id} className="mb-2 rounded-lg border p-3 text-sm">
             <div className="flex justify-between">
               <b>
-                {t("admin.droneIncidents.detail.proposalVersion", { version: proposal.proposalVersion })} ·{" "}
+                {t("admin.droneIncidents.detail.proposalVersion", {
+                  version: proposal.proposalVersion,
+                })}{" "}
+                ·{" "}
                 {RESOLUTION_LABELS[proposal.resolutionType]
                   ? t(RESOLUTION_LABELS[proposal.resolutionType])
                   : proposal.resolutionType.replaceAll("_", " ")}
@@ -504,7 +632,9 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
             </p>
             {proposal.customerResponseNote && (
               <p className="mt-1">
-                {t("admin.droneIncidents.detail.customerResponse", { note: proposal.customerResponseNote })}
+                {t("admin.droneIncidents.detail.customerResponse", {
+                  note: proposal.customerResponseNote,
+                })}
               </p>
             )}
           </div>
@@ -512,6 +642,128 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
       </div>
     </div>
   );
+}
+
+/** Dùng read model đơn drone thật để Admin có đủ ngữ cảnh trước khi quyết định
+ * thu hồi, bồi thường hoặc giao lại. Không sao chép dữ liệu đơn sang incident. */
+function IncidentOrderContext({ orderId }: { orderId: number }) {
+  const { data, isLoading, isError } = useGetDroneOrderQuery(orderId);
+  const order = data?.data;
+  const customer = [
+    order?.customerName,
+    order?.customerPhone,
+    order?.sender?.email,
+  ]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .join(" · ");
+  const receiver = [
+    order?.receiverName,
+    order?.receiverPhone,
+    order?.receiverEmail,
+  ]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .join(" · ");
+  const parcelSize = [
+    order?.parcelLengthCm,
+    order?.parcelWidthCm,
+    order?.parcelHeightCm,
+  ].every((value) => typeof value === "number")
+    ? `${order?.parcelLengthCm} × ${order?.parcelWidthCm} × ${order?.parcelHeightCm} cm`
+    : "—";
+
+  return (
+    <section className="rounded-xl border border-sky-100 bg-sky-50/40 p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="font-semibold">Thông tin đơn hàng & khách hàng</h3>
+          <p className="text-xs text-muted-foreground">
+            Dữ liệu đơn giao drone liên quan đến sự cố này.
+          </p>
+        </div>
+        <Link
+          to={`/admin/orders/${orderId}`}
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          Xem đơn hàng
+        </Link>
+      </div>
+      {isLoading ? (
+        <div className="flex h-20 items-center justify-center">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : isError || !order ? (
+        <p className="rounded-lg border border-dashed bg-background p-3 text-sm text-muted-foreground">
+          Không tải được chi tiết đơn hàng. Bạn vẫn có thể xử lý sự cố và thử
+          lại sau.
+        </p>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Info
+            label="Mã đơn hàng"
+            value={order.orderCode || `#${order.orderId}`}
+          />
+          <Info
+            label="Trạng thái đơn"
+            value={readableStatus(order.deliveryStage || order.status)}
+          />
+          <Info label="Khách gửi" value={customer || "Chưa có thông tin"} />
+          <Info label="Người nhận" value={receiver || "Chưa có thông tin"} />
+          <Info label="Tổng giá đơn" value={formatCurrency(order.totalPrice)} />
+          <Info
+            label="Đã thanh toán"
+            value={formatCurrency(
+              order.totalPrice == null
+                ? null
+                : order.totalPrice - (order.amountDue ?? 0),
+            )}
+          />
+          <Info label="Còn phải thu" value={formatCurrency(order.amountDue)} />
+          <Info
+            label="Thanh toán"
+            value={
+              [readableStatus(order.paymentStatus), order.paymentMethod]
+                .filter((value) => value !== "—")
+                .join(" · ") || "—"
+            }
+          />
+          <Info
+            label="Giá trị kiện khai báo"
+            value={formatCurrency(order.declaredValue)}
+          />
+          <Info
+            label="Kiện hàng"
+            value={
+              [
+                order.parcelCategory,
+                order.parcelWeightGrams != null
+                  ? `${order.parcelWeightGrams} g`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || "—"
+            }
+          />
+          <Info label="Kích thước kiện" value={parcelSize} />
+          <Info
+            label="Tủ gửi"
+            value={order.sourceLocker?.name || order.sourceLocker?.code || "—"}
+          />
+          <Info
+            label="Tủ nhận"
+            value={
+              order.destinationLocker?.name ||
+              order.destinationLocker?.code ||
+              "—"
+            }
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function readableStatus(value: string | null | undefined): string {
+  return value ? value.replaceAll("_", " ") : "—";
 }
 
 function Info({ label, value }: { label: string; value: string }) {
@@ -575,16 +827,20 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
     overrideReason,
   );
   const canHandover =
-    incident.recoveryStatus === "VERIFIED" && incident.recoveryOutcome === "FOUND";
+    incident.recoveryStatus === "VERIFIED" &&
+    incident.recoveryOutcome === "FOUND";
   const handle = async (action: () => Promise<unknown>, success: string) => {
     try {
       await action();
       toast.success(success);
       return true;
     } catch (error) {
-      const data = (error as { data?: { code?: string; message?: string } })?.data;
+      const data = (error as { data?: { code?: string; message?: string } })
+        ?.data;
       toast.error(
-        (data?.code && INCIDENT_ERRORS[data.code] && t(INCIDENT_ERRORS[data.code])) ||
+        (data?.code &&
+          INCIDENT_ERRORS[data.code] &&
+          t(INCIDENT_ERRORS[data.code])) ||
           data?.message ||
           t("admin.droneIncidents.actions.failed"),
       );
@@ -621,19 +877,26 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <div className="rounded-lg border p-4">
-        <h3 className="font-semibold">{t("admin.droneIncidents.actions.recoveryTitle")}</h3>
+        <h3 className="font-semibold">
+          {t("admin.droneIncidents.actions.recoveryTitle")}
+        </h3>
         <p className="mb-3 text-xs text-muted-foreground">
           {t("admin.droneIncidents.actions.activeTechsOnly")}
         </p>
         <div className="flex gap-2">
           <Select value={technicianId} onValueChange={setTechnicianId}>
             <SelectTrigger>
-              <SelectValue placeholder={t("admin.droneIncidents.actions.selectTech")} />
+              <SelectValue
+                placeholder={t("admin.droneIncidents.actions.selectTech")}
+              />
             </SelectTrigger>
             <SelectContent>
               {techs.map((tech) => (
                 <SelectItem key={tech.id} value={String(tech.id)}>
-                  {tech.fullName ?? t("admin.droneIncidents.actions.techFallback", { id: tech.id })}
+                  {tech.fullName ??
+                    t("admin.droneIncidents.actions.techFallback", {
+                      id: tech.id,
+                    })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -696,11 +959,15 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
       </div>
       <AlertDialog
         open={confirmHandover}
-        onOpenChange={(open) => !handoverState.isLoading && setConfirmHandover(open)}
+        onOpenChange={(open) =>
+          !handoverState.isLoading && setConfirmHandover(open)
+        }
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("admin.droneIncidents.actions.confirmHubTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("admin.droneIncidents.actions.confirmHubTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("admin.droneIncidents.actions.confirmHubDescription", {
                 code: incident.orderCode ?? `#${incident.orderId}`,
@@ -708,7 +975,9 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={handoverState.isLoading}>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel disabled={handoverState.isLoading}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
             <Button
               disabled={handoverState.isLoading}
               onClick={async () => {
@@ -719,14 +988,18 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 if (ok) setConfirmHandover(false);
               }}
             >
-              {handoverState.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {handoverState.isLoading && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               {t("button.confirm")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
       <div className="rounded-lg border p-4">
-        <h3 className="font-semibold">{t("admin.droneIncidents.actions.proposalTitle")}</h3>
+        <h3 className="font-semibold">
+          {t("admin.droneIncidents.actions.proposalTitle")}
+        </h3>
         <div className="mt-3 space-y-2">
           <Select value={resolutionType} onValueChange={changeResolutionType}>
             <SelectTrigger>
@@ -762,15 +1035,16 @@ function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               {t("admin.droneIncidents.actions.suggested")}{" "}
               <b className="text-foreground">{formatCurrency(suggested)}</b>
-              {resolutionType !== "FREE_REDELIVERY" && String(suggested) !== amount && (
-                <button
-                  type="button"
-                  className="font-medium text-primary hover:underline"
-                  onClick={() => setAmount(String(suggested))}
-                >
-                  {t("admin.droneIncidents.actions.useSuggested")}
-                </button>
-              )}
+              {resolutionType !== "FREE_REDELIVERY" &&
+                String(suggested) !== amount && (
+                  <button
+                    type="button"
+                    className="font-medium text-primary hover:underline"
+                    onClick={() => setAmount(String(suggested))}
+                  >
+                    {t("admin.droneIncidents.actions.useSuggested")}
+                  </button>
+                )}
             </p>
           )}
           <Input
