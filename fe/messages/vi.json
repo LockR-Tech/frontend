@@ -1976,6 +1976,7 @@
         "perUserLimit": "Mỗi người dùng",
         "isActive": "Kích hoạt ngay",
         "stackable": "Cho phép kết hợp với KM khác",
+        "stackableHint": "Chỉ có tác dụng khi cài đặt “Số mã giảm giá tối đa mỗi đơn” lớn hơn 1; khi đó mọi mã trên cùng đơn đều phải bật ô này.",
         "createSuccess": "Tạo khuyến mãi thành công",
         "editSuccess": "Cập nhật thành công",
         "createFailed": "Tạo thất bại",

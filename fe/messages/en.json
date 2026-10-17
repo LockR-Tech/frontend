@@ -1976,6 +1976,7 @@
         "perUserLimit": "Per User Limit",
         "isActive": "Activate Immediately",
         "stackable": "Allow combining with other promotions",
+        "stackableHint": "Only takes effect when the “maximum vouchers per order” setting is above 1; every code on the same order must then allow combining.",
         "createSuccess": "Promotion created successfully",
         "editSuccess": "Promotion updated successfully",
         "createFailed": "Failed to create promotion",

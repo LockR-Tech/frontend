@@ -443,6 +443,9 @@ export function PromotionModal({
               </span>
             </label>
           </div>
+          <p className="text-xs text-foreground/60 -mt-2">
+            {t("admin.promotions.modal.stackableHint")}
+          </p>
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2 border-t">
