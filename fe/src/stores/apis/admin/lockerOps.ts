@@ -388,6 +388,25 @@ export interface BatchDeleteBoxesRequest {
   deleteAll?: boolean;
 }
 
+export interface TechnicianPresenceResponse {
+  userId: number;
+  userName?: string;
+  technicianType?: 'LOCKER_TECHNICIAN' | 'DRONE_TECHNICIAN' | string;
+  onDuty: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  accuracyM: number | null;
+  headingDeg?: number | null;
+  speedMs?: number | null;
+  altitudeM?: number | null;
+  batteryLevel?: number | null;
+  deviceInfo?: string | null;
+  shiftStartedAt?: string | null;
+  shiftEndedAt?: string | null;
+  lastLocatedAt?: string | null;
+  updatedAt?: string | null;
+}
+
 const TAG = 'Lockers' as const;
 
 export const lockerOpsApi = baseApi.injectEndpoints({
@@ -949,6 +968,25 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       query: (technicianId) => `/api/admin/lockers/technicians/${technicianId}/performance`,
       providesTags: (_r, _e, id) => [{ type: TAG, id: `tech-perf-${id}` }],
     }),
+
+    // Get live presence and shift status of all technicians
+    getTechnicianPresences: builder.query<
+      ApiResponse<TechnicianPresenceResponse[]>,
+      { type?: string; all?: boolean } | void
+    >({
+      query: (params) => {
+        const queryParams: Record<string, any> = { all: true };
+        if (params && typeof params === "object") {
+          if (params.type) queryParams.type = params.type;
+          if (params.all !== undefined) queryParams.all = params.all;
+        }
+        return {
+          url: "/api/admin/maintenance/technicians/presence",
+          params: queryParams,
+        };
+      },
+      providesTags: [TAG],
+    }),
   }),
 });
 
@@ -1003,5 +1041,6 @@ export const {
   useUnassignReportMutation,
   useExtendReportSlaMutation,
   useGetTechnicianPerformanceQuery,
+  useGetTechnicianPresencesQuery,
   useSendUserNotificationMutation,
 } = lockerOpsApi;
