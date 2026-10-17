@@ -1920,11 +1920,18 @@
       "columns": {
         "code": "Code",
         "title": "Campaign Name",
+        "scope": "Applies at",
         "discount": "Discount",
         "minOrder": "Min Order",
         "period": "Period",
         "usage": "Usage",
         "status": "Status"
+      },
+      "scope": {
+        "global": "System-wide",
+        "filterAll": "All locations",
+        "filterLabel": "Filter by where it applies",
+        "unknownLocker": "Locker #{{id}}"
       },
       "discount": {
         "noLimit": "No limit",
@@ -1940,6 +1947,12 @@
         "titlePlaceholder": "e.g. 20% Off Summer Sale",
         "description": "Description",
         "descriptionPlaceholder": "Short description of the promotion...",
+        "scope": "Applies at",
+        "scopeSearch": "Search by locker code or name...",
+        "scopeEmpty": "No matching locker.",
+        "scopeLockersGroup": "Specific locker",
+        "scopeLoading": "Loading lockers...",
+        "scopeHint": "A locker-specific code only works for orders at that locker (drone orders use the sending locker).",
         "discountType": "Discount Type",
         "discountTypePercent": "Percentage (%)",
         "discountTypeFixed": "Fixed Amount (VND)",

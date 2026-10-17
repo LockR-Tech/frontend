@@ -1920,11 +1920,18 @@
       "columns": {
         "code": "Mã",
         "title": "Tên chương trình",
+        "scope": "Áp dụng tại",
         "discount": "Giảm giá",
         "minOrder": "Đơn tối thiểu",
         "period": "Thời hạn",
         "usage": "Lượt dùng",
         "status": "Trạng thái"
+      },
+      "scope": {
+        "global": "Toàn hệ thống",
+        "filterAll": "Tất cả nơi áp dụng",
+        "filterLabel": "Lọc theo nơi áp dụng",
+        "unknownLocker": "Tủ #{{id}}"
       },
       "discount": {
         "noLimit": "Không giới hạn",
@@ -1940,6 +1947,12 @@
         "titlePlaceholder": "VD: Giảm 20% mùa hè",
         "description": "Mô tả",
         "descriptionPlaceholder": "Mô tả ngắn về chương trình...",
+        "scope": "Áp dụng tại",
+        "scopeSearch": "Tìm theo mã hoặc tên tủ...",
+        "scopeEmpty": "Không tìm thấy tủ phù hợp.",
+        "scopeLockersGroup": "Tủ cụ thể",
+        "scopeLoading": "Đang tải danh sách tủ...",
+        "scopeHint": "Mã gắn với một tủ chỉ dùng được cho đơn tại tủ đó (đơn drone tính theo tủ gửi).",
         "discountType": "Loại giảm giá",
         "discountTypePercent": "Phần trăm (%)",
         "discountTypeFixed": "Số tiền cố định (VND)",

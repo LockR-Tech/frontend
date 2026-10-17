@@ -15,6 +15,8 @@ import {
   Percent,
   DollarSign,
   Image as ImageIcon,
+  Globe,
+  MapPin,
 } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { Badge } from "~/components/ui/badge";
@@ -29,6 +31,7 @@ import {
 import { DiscountType, PromotionStatus } from "~/types/admin/enums";
 import type { AdminPromotion } from "~/stores/apis/admin/promotions";
 import type { PromotionRow } from "../hooks/usePromotions";
+import { promotionLockerLabel } from "../promotion-status";
 
 interface PromotionTableProps {
   promotions: PromotionRow[];
@@ -182,6 +185,31 @@ export function PromotionTable({
               )}
             </div>
           </div>
+        );
+      },
+    }),
+
+    columnHelper.accessor("scopeLocker", {
+      header: t("admin.promotions.columns.scope"),
+      cell: (info) => {
+        const locker = info.getValue();
+        if (!locker) {
+          return (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Globe size={12} className="shrink-0" />
+              {t("admin.promotions.scope.global")}
+            </span>
+          );
+        }
+        const label = promotionLockerLabel(locker);
+        return (
+          <span
+            className="inline-flex items-center gap-1 text-xs font-medium text-foreground max-w-48"
+            title={label}
+          >
+            <MapPin size={12} className="shrink-0 text-orange-500" />
+            <span className="truncate">{label}</span>
+          </span>
         );
       },
     }),

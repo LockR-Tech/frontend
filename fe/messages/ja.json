@@ -457,11 +457,18 @@
       "columns": {
         "code": "コード",
         "title": "キャンペーン名",
+        "scope": "適用先",
         "discount": "割引",
         "minOrder": "最小注文",
         "period": "期間",
         "usage": "使用回数",
         "status": "ステータス"
+      },
+      "scope": {
+        "global": "システム全体",
+        "filterAll": "すべての適用先",
+        "filterLabel": "適用先で絞り込み",
+        "unknownLocker": "ロッカー #{{id}}"
       },
       "discount": {
         "noLimit": "制限なし",
@@ -477,6 +484,12 @@
         "titlePlaceholder": "例: 夏の20%割引",
         "description": "説明",
         "descriptionPlaceholder": "プロモーションの簡単な説明...",
+        "scope": "適用先",
+        "scopeSearch": "ロッカーのコードまたは名前で検索...",
+        "scopeEmpty": "該当するロッカーがありません。",
+        "scopeLockersGroup": "特定のロッカー",
+        "scopeLoading": "ロッカー一覧を読み込み中...",
+        "scopeHint": "ロッカー限定のコードは、そのロッカーの注文にのみ使用できます（ドローン注文は発送元ロッカー基準）。",
         "discountType": "割引種類",
         "discountTypePercent": "パーセント (%)",
         "discountTypeFixed": "定額 (VND)",

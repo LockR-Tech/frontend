@@ -22,6 +22,9 @@ export interface AdminPromotion {
   stackable?: boolean | null;
   /** null = áp dụng toàn hệ thống. */
   lockerId?: number | null;
+  /** Mã / tên tủ áp dụng — backend tra qua LockerClient; null nếu toàn hệ thống hoặc tra lỗi. */
+  lockerCode?: string | null;
+  lockerName?: string | null;
   /** null = không giới hạn. */
   totalUsageLimit?: number | null;
   perUserLimit?: number | null;
@@ -36,7 +39,10 @@ export interface AdminPromotion {
   updatedAt?: string | null;
 }
 
-/** PromotionRequest của order-service — PUT ghi đè mọi trường (kể cả lockerId). */
+/**
+ * PromotionRequest của order-service — PUT ghi đè mọi trường (kể cả lockerId).
+ * `lockerId` luôn gửi tường minh: null = toàn hệ thống.
+ */
 export interface AdminPromotionRequest {
   code: string;
   name: string;
@@ -49,7 +55,7 @@ export interface AdminPromotionRequest {
   status?: "ACTIVE" | "INACTIVE";
   startAt?: string;
   endAt?: string;
-  lockerId?: number;
+  lockerId: number | null;
   totalUsageLimit?: number;
   perUserLimit?: number;
 }
@@ -70,7 +76,7 @@ export const promotionToRequest = (
   status: p.status?.toUpperCase() === "INACTIVE" ? "INACTIVE" : "ACTIVE",
   startAt: p.startAt ?? undefined,
   endAt: p.endAt ?? undefined,
-  lockerId: p.lockerId ?? undefined,
+  lockerId: p.lockerId ?? null,
   totalUsageLimit: p.totalUsageLimit ?? undefined,
   perUserLimit: p.perUserLimit ?? undefined,
   ...overrides,
@@ -78,10 +84,11 @@ export const promotionToRequest = (
 
 export const promotionManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // GET /api/admin/promotions?code=&status= — List, không phân trang.
+    // GET /api/admin/promotions?code=&status=&lockerId= — List, không phân trang.
+    // lockerId=0 = chỉ voucher toàn hệ thống.
     getAllPromotions: builder.query<
       ApiResponse<AdminPromotion[]>,
-      { code?: string; status?: string } | void
+      { code?: string; status?: string; lockerId?: number } | void
     >({
       query: (params) => ({
         url: ADMIN_ENDPOINTS.PROMOTIONS,

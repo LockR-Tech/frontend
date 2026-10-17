@@ -34,3 +34,15 @@ export function promotionError(err: unknown): { code: string; message: string } 
         : "";
   return { code, message };
 }
+
+/** Nhãn tủ áp dụng dạng "CODE — Tên tủ"; thiếu cả hai thì "Tủ #id". */
+export function promotionLockerLabel(locker: {
+  id: number;
+  code?: string | null;
+  name?: string | null;
+}): string {
+  const code = locker.code?.trim();
+  const name = locker.name?.trim();
+  if (code && name) return `${code} — ${name}`;
+  return code || name || i18n.t("admin.promotions.scope.unknownLocker", { id: locker.id });
+}
