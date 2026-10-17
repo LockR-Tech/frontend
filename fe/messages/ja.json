@@ -185,6 +185,12 @@
         "returned": "返却済み",
         "completed": "完了",
         "canceled": "キャンセル"
+      },
+      "detail": {
+        "fees": {
+          "pointsDiscount": "ポイント利用",
+          "pointsUsed": "{{points}} ポイント"
+        }
       }
     },
     "stores": {

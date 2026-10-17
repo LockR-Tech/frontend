@@ -574,6 +574,8 @@
           "shippingFee": "Phí vận chuyển",
           "overtimeFee": "Phí quá hạn",
           "discount": "Giảm giá",
+          "pointsDiscount": "Điểm thưởng",
+          "pointsUsed": "{{points}} điểm",
           "total": "Tổng phải trả",
           "basePrice": "Giá chưa gồm phí quá hạn: {{amount}}",
           "promotions": "Khuyến mãi: {{codes}}"
