@@ -19,6 +19,8 @@ import {
   Send,
   Plane,
   Calendar,
+  MapPin,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -36,10 +38,14 @@ import {
   useGetAllAdminReportsQuery,
   useGetMaintenanceSchedulesQuery,
   useGetTechnicianPerformanceQuery,
+  useGetTechnicianPresencesQuery,
   type LockerReportResponse,
   type TechnicianPerformanceResponse,
+  type TechnicianPresenceResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from "~/stores/apis/admin/users";
+import { formatDateTime } from "~/lib/datetime";
+import { useWebSocket } from "~/hooks/useWebSocket";
 import type { TechnicianSummary } from "./technician-detail";
 import { isDroneReport } from "./maintenancePhotos";
 
@@ -72,6 +78,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [penaltyFilter, setPenaltyFilter] = useState("ALL");
   const [specialtyFilter, setSpecialtyFilter] = useState<"ALL" | "KIOSK" | "DRONE">("ALL");
+  const [shiftFilter, setShiftFilter] = useState<"ALL" | "ON_DUTY" | "OFF_DUTY">("ALL");
   const [perfById, setPerfById] = useState<Record<number, TechnicianPerformanceResponse>>({});
   const handlePerf = useCallback((techId: number, perf: TechnicianPerformanceResponse) => {
     setPerfById((prev) => (prev[techId] === perf ? prev : { ...prev, [techId]: perf }));
@@ -82,6 +89,62 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
     page: 0,
     size: 1000,
   });
+
+  // Fetch live technician presences and shift status (poll every 15s as background sync)
+  const { data: presencesData, refetch: refetchPresences } = useGetTechnicianPresencesQuery({ all: true }, {
+    pollingInterval: 15000,
+  });
+
+  const [realtimePresences, setRealtimePresences] = useState<Record<number, TechnicianPresenceResponse>>({});
+
+  const { subscribe } = useWebSocket({ autoConnect: true });
+
+  useEffect(() => {
+    if (!subscribe) return;
+
+    const handlePresenceMessage = (msg: any) => {
+      if (!msg) return;
+      const userId = Number(msg.userId);
+      if (!userId || isNaN(userId)) return;
+
+      const nextOnDuty = msg.onDuty === true || msg.onDuty === "true";
+      setRealtimePresences((prev) => ({
+        ...prev,
+        [userId]: {
+          ...(prev[userId] || {}),
+          userId,
+          userName: msg.userName ?? prev[userId]?.userName,
+          technicianType: msg.technicianType ?? prev[userId]?.technicianType,
+          onDuty: nextOnDuty,
+          latitude: msg.latitude != null ? Number(msg.latitude) : prev[userId]?.latitude ?? null,
+          longitude: msg.longitude != null ? Number(msg.longitude) : prev[userId]?.longitude ?? null,
+          accuracyM: msg.accuracyM != null ? Number(msg.accuracyM) : prev[userId]?.accuracyM ?? null,
+          headingDeg: msg.headingDeg != null ? Number(msg.headingDeg) : prev[userId]?.headingDeg ?? null,
+          speedMs: msg.speedMs != null ? Number(msg.speedMs) : prev[userId]?.speedMs ?? null,
+          altitudeM: msg.altitudeM != null ? Number(msg.altitudeM) : prev[userId]?.altitudeM ?? null,
+          batteryLevel: msg.batteryLevel != null ? Number(msg.batteryLevel) : prev[userId]?.batteryLevel ?? null,
+          deviceInfo: msg.deviceInfo ?? prev[userId]?.deviceInfo,
+          shiftStartedAt: msg.shiftStartedAt ?? prev[userId]?.shiftStartedAt,
+          shiftEndedAt: msg.shiftEndedAt ?? prev[userId]?.shiftEndedAt,
+          lastLocatedAt: msg.lastLocatedAt ?? prev[userId]?.lastLocatedAt ?? new Date().toISOString(),
+          updatedAt: msg.updatedAt ?? new Date().toISOString(),
+        },
+      }));
+      refetchPresences();
+    };
+
+    const subPresence = subscribe<any>("/topic/technicians/presence", handlePresenceMessage);
+    const subNotif = subscribe<any>("/topic/notifications", (msg) => {
+      if (msg?.type === "technician.presence.updated" || msg?.type === "TECHNICIAN_PRESENCE_UPDATED") {
+        handlePresenceMessage(msg);
+      }
+    });
+
+    return () => {
+      subPresence?.unsubscribe();
+      subNotif?.unsubscribe();
+    };
+  }, [subscribe, refetchPresences]);
 
   // Fetch all maintenance reports to aggregate workload per technician
   const { data: reportsData, refetch: refetchReports } = useGetAllAdminReportsQuery();
@@ -140,6 +203,20 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
       });
   }, [usersData, t]);
 
+  const presenceByUserId = useMemo(() => {
+    const map = new Map<number, TechnicianPresenceResponse>();
+    const list = presencesData?.data ?? [];
+    for (const p of list) {
+      map.set(p.userId, p);
+    }
+    for (const [userIdStr, p] of Object.entries(realtimePresences)) {
+      const id = Number(userIdStr);
+      const existing = map.get(id);
+      map.set(id, existing ? { ...existing, ...p } : p);
+    }
+    return map;
+  }, [presencesData, realtimePresences]);
+
   // Khối lượng việc + mức chế tài: lấy từ endpoint hiệu suất của server (ngưỡng admin cấu hình).
   // Khi hiệu suất KTV chưa tải xong thì đếm tạm từ danh sách phiếu (cờ `overdue` do server tính).
   const techMetrics = useMemo(() => {
@@ -193,6 +270,13 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const kioskTechs = technicians.filter((t) => t.specialty === "KIOSK").length;
   const droneTechs = technicians.filter((t) => t.specialty === "DRONE").length;
   const activeTechs = technicians.filter((t) => t.enabled).length;
+  const onDutyCount = useMemo(() => {
+    let count = 0;
+    for (const t of technicians) {
+      if (presenceByUserId.get(t.id)?.onDuty) count++;
+    }
+    return count;
+  }, [technicians, presenceByUserId]);
   const workingTechs = technicians.filter((t) => (techMetrics[t.id]?.inProgress ?? 0) > 0).length;
   const warningTechs = technicians.filter((t) => {
     const p = techMetrics[t.id]?.penaltyLevel;
@@ -202,15 +286,24 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   // Filter technicians
   const filteredTechs = useMemo(() => {
     return technicians.filter((t) => {
+      const presence = presenceByUserId.get(t.id);
+      const q = searchQuery.toLowerCase();
       const matchSearch =
-        t.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.fullName.toLowerCase().includes(q) ||
+        t.email.toLowerCase().includes(q) ||
+        (presence?.deviceInfo && presence.deviceInfo.toLowerCase().includes(q)) ||
         (t.phoneNumber && t.phoneNumber.includes(searchQuery));
 
       if (!matchSearch) return false;
 
       if (specialtyFilter !== "ALL" && t.specialty !== specialtyFilter) {
         return false;
+      }
+
+      if (shiftFilter !== "ALL") {
+        const isOnDuty = Boolean(presenceByUserId.get(t.id)?.onDuty);
+        if (shiftFilter === "ON_DUTY" && !isOnDuty) return false;
+        if (shiftFilter === "OFF_DUTY" && isOnDuty) return false;
       }
 
       const pLevel = techMetrics[t.id]?.penaltyLevel ?? "NORMAL";
@@ -222,7 +315,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
       return true;
     });
-  }, [technicians, searchQuery, specialtyFilter, penaltyFilter, techMetrics]);
+  }, [technicians, searchQuery, specialtyFilter, shiftFilter, penaltyFilter, techMetrics, presenceByUserId]);
 
   const handleToggleStatus = async (tech: TechnicianSummary) => {
     const newEnabled = !tech.enabled;
@@ -289,8 +382,12 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               </div>
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1">{workingTechs}</p>
-            <div className="text-[11px] font-medium flex items-center gap-1 mt-1 text-blue-600">
-              <span>{t("admin.maintenance.techTab.workingDesc")}</span>
+            <div className="text-[11px] font-medium flex items-center justify-between gap-1 mt-1">
+              <span className="text-blue-600">{t("admin.maintenance.techTab.workingDesc")}</span>
+              <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {onDutyCount} trực ca
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -373,7 +470,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="relative w-64">
+              <div className="relative w-60">
                 <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   placeholder={t("admin.maintenance.techTab.search")}
@@ -383,8 +480,19 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                 />
               </div>
 
+              <Select value={shiftFilter} onValueChange={(val: any) => setShiftFilter(val)}>
+                <SelectTrigger className="w-40 h-8 text-xs bg-background">
+                  <SelectValue placeholder="Ca trực" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tất cả ca trực</SelectItem>
+                  <SelectItem value="ON_DUTY">🟢 Đang trong ca ({onDutyCount})</SelectItem>
+                  <SelectItem value="OFF_DUTY">⚪ Ngoài ca ({technicians.length - onDutyCount})</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Select value={specialtyFilter} onValueChange={(val: any) => setSpecialtyFilter(val)}>
-                <SelectTrigger className="w-48 h-8 text-xs bg-background">
+                <SelectTrigger className="w-44 h-8 text-xs bg-background">
                   <SelectValue placeholder={t("admin.maintenance.techTab.specialtyFilter")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -395,7 +503,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               </Select>
 
               <Select value={penaltyFilter} onValueChange={setPenaltyFilter}>
-                <SelectTrigger className="w-44 h-8 text-xs bg-background">
+                <SelectTrigger className="w-40 h-8 text-xs bg-background">
                   <SelectValue placeholder={t("admin.maintenance.techTab.penaltyFilter")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -421,6 +529,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredTechs.map((tech) => {
+                const presence = presenceByUserId.get(tech.id);
                 const metrics = techMetrics[tech.id] || {
                   inProgress: 0,
                   resolved: 0,
@@ -551,6 +660,57 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                               ? t("admin.maintenance.techTab.highLoad", { count: metrics.inProgress })
                               : t("admin.maintenance.techTab.busy", { count: metrics.inProgress })}
                           </span>
+                        </div>
+
+                        {/* Shift & GPS Location Status Pill */}
+                        <div className="mt-2 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground flex items-center gap-1.5 text-[11px] font-medium">
+                              <span
+                                className={`w-2 h-2 rounded-full shrink-0 ${
+                                  presence?.onDuty
+                                    ? "bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.7)]"
+                                    : "bg-slate-300"
+                                }`}
+                              />
+                              Ca trực:
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] font-semibold px-1.5 py-0 ${
+                                presence?.onDuty
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                  : "bg-slate-50 text-slate-600 border-slate-200"
+                              }`}
+                            >
+                              {presence?.onDuty ? "Đang trong ca" : "Ngoài ca"}
+                            </Badge>
+                          </div>
+
+                          {presence?.latitude != null && presence?.longitude != null ? (
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${presence.latitude},${presence.longitude}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="pt-1.5 border-t border-border/40 flex items-start gap-1.5 text-[11px] text-sky-700 hover:text-sky-800 hover:underline group cursor-pointer"
+                              title={`Tọa độ: ${presence.latitude}, ${presence.longitude}${
+                                presence.lastLocatedAt ? ` (Cập nhật: ${formatDateTime(presence.lastLocatedAt)})` : ""
+                              }`}
+                            >
+                              <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                              <span className="line-clamp-2 leading-tight">
+                                {presence.deviceInfo
+                                  ? `${presence.deviceInfo} (${presence.latitude.toFixed(4)}, ${presence.longitude.toFixed(4)})`
+                                  : `${presence.latitude.toFixed(4)}, ${presence.longitude.toFixed(4)}`}
+                              </span>
+                            </a>
+                          ) : (
+                            <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span>Chưa có vị trí</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Metrics summary */}
