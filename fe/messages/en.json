@@ -334,7 +334,10 @@
       "loyalty": {
         "txType": {
           "adjustment": "Adjustment",
-          "redeem": "Redemption"
+          "redeem": "Redemption",
+          "orderEarn": "Earned from order",
+          "orderRedeem": "Used on order",
+          "orderRedeemRefund": "Refund for canceled order"
         },
         "enterPositive": "Please enter a number of points greater than 0.",
         "cannotDeductMore": "Cannot deduct more points than the current balance.",
@@ -345,6 +348,7 @@
         "loadFailed": "Couldn't load loyalty information.",
         "tier": "Membership Tier",
         "currentPoints": "Current Points",
+        "lifetimePoints": "Lifetime points earned",
         "pointsValue": "{{points}} points",
         "stamps": "Stamps Collected",
         "noAccount": "This user has no loyalty account yet — it will be created on the first adjustment.",
@@ -355,7 +359,7 @@
         "direction": "Adjustment Type",
         "add": "Add Points",
         "deduct": "Deduct Points",
-        "adjustHint": "The transaction is recorded with type «Adjustment»; the membership tier is recalculated from the point total.",
+        "adjustHint": "The transaction is recorded with type «Adjustment» and counts toward lifetime points; the membership tier is recalculated from lifetime points.",
         "processing": "Processing...",
         "confirmAdjust": "Confirm Adjustment",
         "historyTitle": "Points Transaction History",
@@ -2039,6 +2043,7 @@
         "outstanding": "Outstanding Points"
       },
       "tierDistribution": "Membership Tier Distribution",
+      "tierBasisHint": "Tiers are based on lifetime points earned — spending points never lowers a tier.",
       "pointsMetrics": "Loyalty Points Metrics",
       "metrics": {
         "issued": "Total Points Issued",

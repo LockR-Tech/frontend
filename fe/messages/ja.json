@@ -159,6 +159,16 @@
       "verified": {
         "yes": "認証済み",
         "no": "保留中"
+      },
+      "loyalty": {
+        "txType": {
+          "orderEarn": "注文で獲得",
+          "orderRedeem": "注文に使用",
+          "orderRedeemRefund": "キャンセル注文の返還",
+          "adjustment": "調整",
+          "redeem": "ポイント交換"
+        },
+        "lifetimePoints": "累計獲得ポイント"
       }
     },
     "orders": {
@@ -545,6 +555,9 @@
         "total": "リクエスト総数",
         "totalSub": "返金チケットの総数"
       }
+    },
+    "loyalty": {
+      "tierBasisHint": "ランクは累計獲得ポイントで決まります。ポイントを使ってもランクは下がりません。"
     }
   },
   "partner": {

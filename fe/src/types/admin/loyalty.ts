@@ -9,7 +9,13 @@ export type LoyaltyTier = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
 export interface LoyaltyAccountDTO {
   id: number | null;
   userId: number;
+  /** Số dư điểm hiện tại (dùng được). */
   points: number | null;
+  /**
+   * Tổng điểm đã tích từ trước tới nay — căn cứ xét hạng, không giảm khi dùng điểm.
+   * Backend cũ chưa có.
+   */
+  lifetimePoints?: number | null;
   stamps: number | null;
   tier: LoyaltyTier | string | null;
 }
@@ -29,7 +35,12 @@ export interface PointTransactionDTO {
   id: number;
   userId: number;
   orderId: number | null;
+  /** Có dấu: dương = cộng, âm = trừ. */
   points: number;
+  /**
+   * ORDER_EARN (tích từ đơn hoàn tất), ORDER_REDEEM (dùng cho đơn, âm),
+   * ORDER_REDEEM_REFUND (trả lại khi đơn huỷ/hoàn tiền), ADJUSTMENT (admin), REDEEM (cũ).
+   */
   type: string;
   createdAt: string;
 }
