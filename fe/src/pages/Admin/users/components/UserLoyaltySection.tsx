@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Coins,
   TrendingUp,
@@ -41,8 +42,11 @@ const TIER_META: Record<string, { labelKey: string; cls: string }> = {
   PLATINUM: { labelKey: "admin.loyalty.tier.platinum", cls: "bg-primary text-primary-foreground border-primary" },
 };
 
-// Loại giao dịch backend thực sự ghi: ADJUSTMENT (admin), REDEEM (đổi điểm).
+// Mọi loại giao dịch loyalty-service ghi; loại lạ hiện nguyên mã.
 const TX_LABEL_KEY: Record<string, string> = {
+  ORDER_EARN: "admin.users.loyalty.txType.orderEarn",
+  ORDER_REDEEM: "admin.users.loyalty.txType.orderRedeem",
+  ORDER_REDEEM_REFUND: "admin.users.loyalty.txType.orderRedeemRefund",
   ADJUSTMENT: "admin.users.loyalty.txType.adjustment",
   REDEEM: "admin.users.loyalty.txType.redeem",
 };
@@ -159,6 +163,18 @@ export function UserLoyaltySection({ userId }: Props) {
                     })}
                   </span>
                 </div>
+                {loyalty.lifetimePoints != null && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      {t("admin.users.loyalty.lifetimePoints")}
+                    </span>
+                    <span className="font-semibold text-foreground">
+                      {t("admin.users.loyalty.pointsValue", {
+                        points: loyalty.lifetimePoints.toLocaleString("vi-VN"),
+                      })}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{t("admin.users.loyalty.stamps")}</span>
                   <span className="font-semibold text-foreground">
@@ -291,7 +307,16 @@ export function UserLoyaltySection({ userId }: Props) {
                             {points.toLocaleString("vi-VN")}
                           </td>
                           <td className="py-2.5 px-3 text-muted-foreground text-xs font-mono">
-                            {tx.orderId ? `#${tx.orderId}` : "—"}
+                            {tx.orderId ? (
+                              <Link
+                                to={`/admin/orders/${tx.orderId}`}
+                                className="text-primary hover:underline"
+                              >
+                                #{tx.orderId}
+                              </Link>
+                            ) : (
+                              "—"
+                            )}
                           </td>
                           <td className="py-2.5 px-3 text-muted-foreground text-xs whitespace-nowrap">
                             {formatDateTime(tx.createdAt)}

@@ -13,16 +13,52 @@ import {
   type AdminPromotion,
   type AdminPromotionRequest,
 } from "@/stores/apis/admin/promotions";
+import { useGetAllLockersQuery } from "~/stores/apis/admin/lockers";
+import type { AdminLockerResponse } from "~/types/admin/locker";
 import { effectivePromotionStatus, promotionError } from "../promotion-status";
 
 export type PromotionStatusFilter = "ALL" | PromotionStatus;
 
-/** Khuyến mãi kèm trạng thái hiệu lực suy ra tại client. */
-export type PromotionRow = AdminPromotion & { effectiveStatus: PromotionStatus };
+/** Lọc theo nơi áp dụng: tất cả, chỉ toàn hệ thống, hoặc id tủ (dạng chuỗi cho Select). */
+export type PromotionLockerFilter = "ALL" | "GLOBAL" | `${number}`;
+
+/** Tủ mà voucher áp dụng (code/name có thể null khi không tra được). */
+export interface PromotionLockerRef {
+  id: number;
+  code: string | null;
+  name: string | null;
+}
+
+/**
+ * Khuyến mãi kèm trạng thái hiệu lực suy ra tại client và tủ áp dụng
+ * (`scopeLocker` null = toàn hệ thống).
+ */
+export type PromotionRow = AdminPromotion & {
+  effectiveStatus: PromotionStatus;
+  scopeLocker: PromotionLockerRef | null;
+};
+
+// Đủ lớn để lấy hết tủ trong một trang (các màn admin khác cũng dùng 1000).
+const LOCKER_PAGE = { page: 0, size: 1000 } as const;
+
+/** Mã/tên tủ: ưu tiên backend trả kèm voucher, thiếu thì tra danh sách tủ. */
+function resolveScopeLocker(
+  p: AdminPromotion,
+  lockerById: Map<number, AdminLockerResponse>,
+): PromotionLockerRef | null {
+  if (p.lockerId == null) return null;
+  const locker = lockerById.get(p.lockerId);
+  return {
+    id: p.lockerId,
+    code: p.lockerCode ?? locker?.code ?? null,
+    name: p.lockerName ?? locker?.name ?? null,
+  };
+}
 
 export function usePromotions() {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilterState] = useState<PromotionStatusFilter>("ALL");
+  const [lockerFilter, setLockerFilterState] = useState<PromotionLockerFilter>("ALL");
   const [searchQuery, setSearchQueryState] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
   const page = Math.max(0, Number(urlParams.get("page") ?? "0") || 0);
@@ -33,6 +69,10 @@ export function usePromotions() {
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("size", String(newSize)); next.set("page", "0"); return next; });
   const setStatusFilter = (value: PromotionStatusFilter) => {
     setStatusFilterState(value);
+    setPage(0);
+  };
+  const setLockerFilter = (value: PromotionLockerFilter) => {
+    setLockerFilterState(value);
     setPage(0);
   };
   const setSearchQuery = (value: string) => {
@@ -47,18 +87,49 @@ export function usePromotions() {
   const [deactivateTarget, setDeactivateTarget] = useState<AdminPromotion | null>(null);
 
   const { data, isLoading, refetch } = useGetAllPromotionsQuery();
+  const { data: lockersData, isLoading: isLoadingLockers } = useGetAllLockersQuery(LOCKER_PAGE);
 
   const [createPromotion, { isLoading: isCreating }] = useCreatePromotionMutation();
   const [updatePromotion, { isLoading: isUpdating }] = useUpdatePromotionMutation();
   const [deletePromotion, { isLoading: isDeleting }] = useDeletePromotionMutation();
+
+  /** Toàn bộ tủ, sắp theo mã — dùng cho ô chọn "Áp dụng tại" và bộ lọc. */
+  const lockers = useMemo(
+    () =>
+      [...extractList<AdminLockerResponse>(lockersData?.data)].sort((a, b) =>
+        (a.code ?? "").localeCompare(b.code ?? "", "vi", { numeric: true }),
+      ),
+    [lockersData],
+  );
+  const lockerById = useMemo(
+    () => new Map(lockers.map((l) => [l.id, l] as const)),
+    [lockers],
+  );
 
   const allPromotions: PromotionRow[] = useMemo(() => {
     const now = Date.now();
     return extractList<AdminPromotion>(data?.data).map((p) => ({
       ...p,
       effectiveStatus: effectivePromotionStatus(p, now),
+      scopeLocker: resolveScopeLocker(p, lockerById),
     }));
-  }, [data]);
+  }, [data, lockerById]);
+
+  /**
+   * Lựa chọn tủ cho bộ lọc: mọi tủ hiện có + tủ mà voucher đang gắn nhưng không còn
+   * trong danh sách (vd tủ đã xoá) để vẫn lọc được.
+   */
+  const lockerFilterOptions: PromotionLockerRef[] = useMemo(() => {
+    const options = new Map<number, PromotionLockerRef>(
+      lockers.map((l) => [l.id, { id: l.id, code: l.code, name: l.name }]),
+    );
+    for (const p of allPromotions) {
+      if (p.scopeLocker && !options.has(p.scopeLocker.id)) {
+        options.set(p.scopeLocker.id, p.scopeLocker);
+      }
+    }
+    return Array.from(options.values());
+  }, [lockers, allPromotions]);
 
   const filteredPromotions = useMemo(() => {
     let list = allPromotions;
@@ -67,18 +138,27 @@ export function usePromotions() {
       list = list.filter((p) => p.effectiveStatus === statusFilter);
     }
 
+    if (lockerFilter === "GLOBAL") {
+      list = list.filter((p) => p.scopeLocker === null);
+    } else if (lockerFilter !== "ALL") {
+      const lockerId = Number(lockerFilter);
+      list = list.filter((p) => p.scopeLocker?.id === lockerId);
+    }
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       list = list.filter(
         (p) =>
           (p.code ?? "").toLowerCase().includes(q) ||
           (p.name ?? "").toLowerCase().includes(q) ||
-          (p.description ?? "").toLowerCase().includes(q),
+          (p.description ?? "").toLowerCase().includes(q) ||
+          (p.scopeLocker?.code ?? "").toLowerCase().includes(q) ||
+          (p.scopeLocker?.name ?? "").toLowerCase().includes(q),
       );
     }
 
     return list;
-  }, [allPromotions, statusFilter, searchQuery]);
+  }, [allPromotions, statusFilter, lockerFilter, searchQuery]);
 
   // Backend trả cả danh sách → phân trang tại client.
   const totalElements = filteredPromotions.length;
@@ -173,11 +253,13 @@ export function usePromotions() {
 
   const clearFilters = () => {
     setStatusFilterState("ALL");
+    setLockerFilterState("ALL");
     setSearchQueryState("");
     setPage(0);
   };
 
-  const hasActiveFilters = statusFilter !== "ALL" || searchQuery !== "";
+  const hasActiveFilters =
+    statusFilter !== "ALL" || lockerFilter !== "ALL" || searchQuery !== "";
 
   return {
     promotions: pagedPromotions,
@@ -190,6 +272,11 @@ export function usePromotions() {
     statusFilter,
     setStatusFilter,
     statusCounts,
+    lockerFilter,
+    setLockerFilter,
+    lockerFilterOptions,
+    lockers,
+    isLoadingLockers,
     searchQuery,
     setSearchQuery,
     page,

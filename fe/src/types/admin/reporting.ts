@@ -217,6 +217,10 @@ export interface AdminOrder {
   promotionCode: string | null;
   /** Chuỗi các mã nối bằng dấu phẩy (`"KM1,KM2"`), không phải mảng. */
   appliedPromotionCodes: string | null;
+  /** Số điểm thưởng khách dùng cho đơn (0 = không dùng). Backend cũ chưa có. */
+  pointsUsed?: number | null;
+  /** Số tiền giảm nhờ điểm, trừ sau voucher. Backend cũ chưa có. */
+  pointsDiscount?: number | null;
   nextAction: string | null;
   nextActionMessage: string | null;
   paymentRequired: boolean | null;

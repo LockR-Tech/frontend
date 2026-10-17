@@ -6,19 +6,29 @@ import {
   Calendar,
   PackageX,
   PowerOff,
+  MapPin,
 } from "lucide-react";
 import { Trans, useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { TableToolbar } from "~/components/shared/data-table";
 import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { PromotionTable } from "./components/PromotionTable";
 import { PromotionModal } from "./components/PromotionModal";
 import { usePromotions } from "./hooks/usePromotions";
 import { PromotionStatus } from "~/types/admin/enums";
-import type { PromotionStatusFilter } from "./hooks/usePromotions";
+import type { PromotionLockerFilter, PromotionStatusFilter } from "./hooks/usePromotions";
+import { promotionLockerLabel } from "./promotion-status";
 
 const STATUS_TABS: {
   value: PromotionStatusFilter;
@@ -67,6 +77,11 @@ export default function PromotionsPage() {
     statusFilter,
     setStatusFilter,
     statusCounts,
+    lockerFilter,
+    setLockerFilter,
+    lockerFilterOptions,
+    lockers,
+    isLoadingLockers,
     searchQuery,
     setSearchQuery,
     isModalOpen,
@@ -149,12 +164,41 @@ export default function PromotionsPage() {
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-            <Input
-              placeholder={t("admin.promotions.searchPlaceholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full sm:w-64 text-sm"
-            />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+              <Input
+                placeholder={t("admin.promotions.searchPlaceholder")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-full sm:w-64 text-sm"
+              />
+              <Select
+                value={lockerFilter}
+                onValueChange={(v) => setLockerFilter(v as PromotionLockerFilter)}
+              >
+                <SelectTrigger
+                  className="h-9 w-full sm:w-64 text-sm"
+                  aria-label={t("admin.promotions.scope.filterLabel")}
+                  title={t("admin.promotions.scope.filterLabel")}
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    <MapPin size={14} className="shrink-0 text-muted-foreground" />
+                    <span className="truncate">
+                      <SelectValue />
+                    </span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  <SelectItem value="ALL">{t("admin.promotions.scope.filterAll")}</SelectItem>
+                  <SelectItem value="GLOBAL">{t("admin.promotions.scope.global")}</SelectItem>
+                  {lockerFilterOptions.length > 0 && <SelectSeparator />}
+                  {lockerFilterOptions.map((locker) => (
+                    <SelectItem key={locker.id} value={String(locker.id)}>
+                      {promotionLockerLabel(locker)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <TableToolbar
               onRefresh={refetch}
               onClearFilters={clearFilters}
@@ -186,6 +230,8 @@ export default function PromotionsPage() {
         mode={editingPromotion ? "edit" : "create"}
         onSave={handleSave}
         isSaving={isSaving}
+        lockers={lockers}
+        isLoadingLockers={isLoadingLockers}
       />
 
       <ConfirmActionDialog

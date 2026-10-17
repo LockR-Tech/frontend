@@ -194,6 +194,7 @@ export default function LoyaltyPage() {
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Award size={16} className="text-yellow-500" /> {t("admin.loyalty.tierDistribution")}
             </CardTitle>
+            <p className="text-xs text-muted-foreground">{t("admin.loyalty.tierBasisHint")}</p>
           </CardHeader>
           <CardContent className="space-y-3">
             {isLoading ? (

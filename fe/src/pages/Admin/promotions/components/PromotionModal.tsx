@@ -25,7 +25,9 @@ import type {
   AdminPromotion,
   AdminPromotionRequest,
 } from "~/stores/apis/admin/promotions";
+import type { AdminLockerResponse } from "~/types/admin/locker";
 import { PromotionImageField } from "./PromotionImageField";
+import { PromotionLockerField } from "./PromotionLockerField";
 import { promotionError } from "../promotion-status";
 
 interface PromotionModalProps {
@@ -35,6 +37,9 @@ interface PromotionModalProps {
   mode: "create" | "edit";
   onSave: (data: AdminPromotionRequest) => Promise<void>;
   isSaving: boolean;
+  /** Danh sách tủ cho ô "Áp dụng tại". */
+  lockers: AdminLockerResponse[];
+  isLoadingLockers?: boolean;
 }
 
 // Backend chỉ hiểu PERCENTAGE, loại khác đều tính như số tiền cố định.
@@ -68,6 +73,8 @@ interface FormState {
   perUserLimit: string;
   isActive: boolean;
   stackable: boolean;
+  /** null = toàn hệ thống. */
+  lockerId: number | null;
 }
 
 const DEFAULT_FORM: FormState = {
@@ -84,6 +91,7 @@ const DEFAULT_FORM: FormState = {
   perUserLimit: "1",
   isActive: true,
   stackable: false,
+  lockerId: null,
 };
 
 const numText = (v: number | null | undefined) => (v != null ? String(v) : "");
@@ -95,6 +103,8 @@ export function PromotionModal({
   mode,
   onSave,
   isSaving,
+  lockers,
+  isLoadingLockers,
 }: PromotionModalProps) {
   const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
@@ -119,6 +129,7 @@ export function PromotionModal({
         perUserLimit: numText(promotion.perUserLimit),
         isActive: (promotion.status ?? "").toUpperCase() !== "INACTIVE",
         stackable: Boolean(promotion.stackable),
+        lockerId: promotion.lockerId ?? null,
       });
     } else {
       setForm(DEFAULT_FORM);
@@ -155,7 +166,8 @@ export function PromotionModal({
     }
 
     // PromotionRequest của order-service: name/startAt/endAt/status; startAt/endAt là
-    // LocalDateTime UTC không offset. PUT ghi đè mọi trường nên giữ lại lockerId khi sửa.
+    // LocalDateTime UTC không offset. PUT ghi đè mọi trường; lockerId luôn gửi tường minh
+    // (null = toàn hệ thống) cho cả tạo lẫn sửa.
     const payload: AdminPromotionRequest = {
       code: form.code.toUpperCase().trim(),
       name: form.title.trim(),
@@ -177,7 +189,7 @@ export function PromotionModal({
       perUserLimit: form.perUserLimit ? parseInt(form.perUserLimit, 10) : undefined,
       status: form.isActive ? "ACTIVE" : "INACTIVE",
       stackable: form.stackable,
-      lockerId: mode === "edit" ? (promotion?.lockerId ?? undefined) : undefined,
+      lockerId: form.lockerId,
     };
 
     try {
@@ -256,6 +268,28 @@ export function PromotionModal({
               placeholder={t("admin.promotions.modal.descriptionPlaceholder")}
               rows={2}
             />
+          </div>
+
+          {/* Áp dụng tại */}
+          <div className="space-y-1.5">
+            <Label htmlFor="promotion-locker-scope">
+              {t("admin.promotions.modal.scope")}
+            </Label>
+            <PromotionLockerField
+              id="promotion-locker-scope"
+              value={form.lockerId}
+              onChange={(lockerId) => setForm((f) => ({ ...f, lockerId }))}
+              lockers={lockers}
+              isLoading={isLoadingLockers}
+              fallback={
+                mode === "edit" && promotion
+                  ? { code: promotion.lockerCode, name: promotion.lockerName }
+                  : null
+              }
+            />
+            <p className="text-xs text-muted-foreground/70">
+              {t("admin.promotions.modal.scopeHint")}
+            </p>
           </div>
 
           {/* Discount */}
@@ -409,6 +443,9 @@ export function PromotionModal({
               </span>
             </label>
           </div>
+          <p className="text-xs text-foreground/60 -mt-2">
+            {t("admin.promotions.modal.stackableHint")}
+          </p>
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2 border-t">
