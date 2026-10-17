@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import {
@@ -66,7 +66,9 @@ import {
   useGetMaintenanceSchedulesQuery,
   useGetAllInspectionLogsQuery,
   useSendUserNotificationMutation,
+  useGetTechnicianPresencesQuery,
   type LockerReportResponse,
+  type TechnicianPresenceResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation, useUpdateUserMutation } from "~/stores/apis/admin/users";
 import type { UpdateUserRequest } from "~/types";
@@ -79,6 +81,7 @@ import {
   INSPECTION_STATUS_META,
 } from "./maintenancePhotos";
 import { formatDateTime, formatDate as formatDateOnly, parseBackendDateTime } from "~/lib/datetime";
+import { useWebSocket } from "~/hooks/useWebSocket";
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
 import { InspectionChecklistResults } from "./InspectionChecklistResults";
 
@@ -205,6 +208,70 @@ export default function TechnicianDetailPage() {
   // Preventive Maintenance Schedules & Logs
   const { data: schedulesData } = useGetMaintenanceSchedulesQuery();
   const { data: inspectionLogsData } = useGetAllInspectionLogsQuery({ technicianId: techId });
+
+  // Live presence and shift status (poll every 15s as background fallback)
+  const { data: presencesData, refetch: refetchPresences } = useGetTechnicianPresencesQuery({ all: true }, {
+    pollingInterval: 15000,
+  });
+
+  const [realtimePresence, setRealtimePresence] = useState<TechnicianPresenceResponse | null>(null);
+
+  const { subscribe } = useWebSocket({ autoConnect: true });
+
+  useEffect(() => {
+    if (!subscribe || !techId) return;
+
+    const handlePresenceMessage = (msg: any) => {
+      if (!msg) return;
+      const incomingId = Number(msg.userId);
+      if (incomingId !== techId) return;
+
+      const nextOnDuty = msg.onDuty === true || msg.onDuty === "true";
+      setRealtimePresence((prev) => ({
+        ...(prev || {}),
+        userId: techId,
+        userName: msg.userName ?? prev?.userName,
+        technicianType: msg.technicianType ?? prev?.technicianType,
+        onDuty: nextOnDuty,
+        latitude: msg.latitude != null ? Number(msg.latitude) : prev?.latitude ?? null,
+        longitude: msg.longitude != null ? Number(msg.longitude) : prev?.longitude ?? null,
+        accuracyM: msg.accuracyM != null ? Number(msg.accuracyM) : prev?.accuracyM ?? null,
+        headingDeg: msg.headingDeg != null ? Number(msg.headingDeg) : prev?.headingDeg ?? null,
+        speedMs: msg.speedMs != null ? Number(msg.speedMs) : prev?.speedMs ?? null,
+        altitudeM: msg.altitudeM != null ? Number(msg.altitudeM) : prev?.altitudeM ?? null,
+        batteryLevel: msg.batteryLevel != null ? Number(msg.batteryLevel) : prev?.batteryLevel ?? null,
+        deviceInfo: msg.deviceInfo ?? prev?.deviceInfo,
+        shiftStartedAt: msg.shiftStartedAt ?? prev?.shiftStartedAt,
+        shiftEndedAt: msg.shiftEndedAt ?? prev?.shiftEndedAt,
+        lastLocatedAt: msg.lastLocatedAt ?? prev?.lastLocatedAt ?? new Date().toISOString(),
+        updatedAt: msg.updatedAt ?? new Date().toISOString(),
+      }));
+      refetchPresences();
+    };
+
+    const subGlobal = subscribe<any>("/topic/technicians/presence", handlePresenceMessage);
+    const subPersonal = subscribe<any>(`/topic/technicians/${techId}/presence`, handlePresenceMessage);
+    const subNotif = subscribe<any>("/topic/notifications", (msg) => {
+      if (msg?.type === "technician.presence.updated" || msg?.type === "TECHNICIAN_PRESENCE_UPDATED") {
+        handlePresenceMessage(msg);
+      }
+    });
+
+    return () => {
+      subGlobal?.unsubscribe();
+      subPersonal?.unsubscribe();
+      subNotif?.unsubscribe();
+    };
+  }, [subscribe, techId, refetchPresences]);
+
+  const technicianPresence: TechnicianPresenceResponse | null = useMemo(() => {
+    const list = presencesData?.data ?? [];
+    const base = list.find((p) => p.userId === techId) ?? null;
+    if (realtimePresence && realtimePresence.userId === techId) {
+      return { ...(base || {}), ...realtimePresence } as TechnicianPresenceResponse;
+    }
+    return base;
+  }, [presencesData, techId, realtimePresence]);
 
   const assignedSchedules = useMemo(
     () => (schedulesData?.data ?? []).filter((s) => s.assignedTechnicianId === techId),
@@ -542,6 +609,7 @@ export default function TechnicianDetailPage() {
               refetchPerf();
               refetchReports();
               refetchAllUsers();
+              refetchPresences();
               toast.success(t("admin.maintenance.techDetail.refreshed"));
             }}
           >
@@ -793,6 +861,127 @@ export default function TechnicianDetailPage() {
                   </span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Card: Ca làm việc & Vị trí GPS hiện trường */}
+          <Card className="border border-border/80 shadow-xs">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-sky-600" />
+                  Ca trực & Vị trí hiện trường
+                </CardTitle>
+                <Badge
+                  variant="outline"
+                  className={`text-xs font-semibold px-2 py-0.5 ${
+                    technicianPresence?.onDuty
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                      : "bg-slate-50 text-slate-600 border-slate-200"
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                      technicianPresence?.onDuty
+                        ? "bg-emerald-500 animate-pulse"
+                        : "bg-slate-400"
+                    }`}
+                  />
+                  {technicianPresence?.onDuty ? "Đang trong ca" : "Ngoài ca trực"}
+                </Badge>
+              </div>
+              <CardDescription className="text-xs mt-1">
+                Tọa độ GPS và trạng thái sẵn sàng nhận việc ngoài hiện trường.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-xs">
+              {/* Shift times */}
+              <div className="space-y-2 p-3 rounded-lg bg-muted/40 border border-border/60">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Vào ca lúc:
+                  </span>
+                  <span className="font-medium text-foreground">
+                    {technicianPresence?.shiftStartedAt
+                      ? formatDateTime(technicianPresence.shiftStartedAt)
+                      : "—"}
+                  </span>
+                </div>
+                {technicianPresence?.shiftEndedAt && (
+                  <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Hết ca lúc:
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {formatDateTime(technicianPresence.shiftEndedAt)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* GPS Coordinates & Accuracy */}
+              {technicianPresence?.latitude != null && technicianPresence?.longitude != null ? (
+                <div className="space-y-2 p-3 rounded-lg bg-sky-50/50 border border-sky-200/60 dark:bg-sky-950/20 dark:border-sky-800/40">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-sky-600" /> Tọa độ GPS:
+                    </span>
+                    <span className="font-mono font-bold text-foreground">
+                      {technicianPresence.latitude.toFixed(6)}, {technicianPresence.longitude.toFixed(6)}
+                    </span>
+                  </div>
+                  {technicianPresence.accuracyM != null && (
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>Độ chính xác:</span>
+                      <span className="font-medium text-foreground">
+                        ±{technicianPresence.accuracyM.toFixed(1)} mét
+                      </span>
+                    </div>
+                  )}
+                  {technicianPresence.lastLocatedAt && (
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>Cập nhật lúc:</span>
+                      <span className="font-medium text-foreground">
+                        {formatDateTime(technicianPresence.lastLocatedAt)}
+                      </span>
+                    </div>
+                  )}
+                  {technicianPresence.deviceInfo && (
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-sky-200/60 dark:border-sky-800/40">
+                      <span>Thiết bị:</span>
+                      <span className="font-medium text-foreground truncate max-w-[170px]" title={technicianPresence.deviceInfo}>
+                        {technicianPresence.deviceInfo}
+                      </span>
+                    </div>
+                  )}
+                  <div className="pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-8 text-xs bg-white text-sky-700 border-sky-300 hover:bg-sky-50 gap-1.5 dark:bg-slate-900 dark:text-sky-300 dark:border-sky-800"
+                      onClick={() => {
+                        window.open(
+                          `https://www.google.com/maps/search/?api=1&query=${technicianPresence.latitude},${technicianPresence.longitude}`,
+                          "_blank",
+                        );
+                      }}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Mở trên Google Maps
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg border border-dashed text-center text-muted-foreground text-xs space-y-1">
+                  <MapPin className="w-5 h-5 mx-auto text-muted-foreground/60" />
+                  <p className="font-medium">
+                    {technicianPresence?.onDuty ? "Đang chờ KTV gửi tọa độ GPS..." : "Chưa có dữ liệu vị trí GPS"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Vị trí sẽ được cập nhật khi KTV bật ca trực trên ứng dụng Mobile.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
