@@ -334,7 +334,10 @@
       "loyalty": {
         "txType": {
           "adjustment": "Điều chỉnh",
-          "redeem": "Đổi điểm"
+          "redeem": "Đổi điểm",
+          "orderEarn": "Tích từ đơn",
+          "orderRedeem": "Dùng cho đơn",
+          "orderRedeemRefund": "Hoàn điểm đơn huỷ"
         },
         "enterPositive": "Vui lòng nhập số điểm lớn hơn 0.",
         "cannotDeductMore": "Không thể trừ nhiều hơn số điểm hiện có.",
@@ -345,6 +348,7 @@
         "loadFailed": "Không tải được thông tin tích điểm.",
         "tier": "Hạng thành viên",
         "currentPoints": "Điểm hiện tại",
+        "lifetimePoints": "Tổng điểm đã tích",
         "pointsValue": "{{points}} điểm",
         "stamps": "Tem tích luỹ",
         "noAccount": "Người dùng chưa có tài khoản tích điểm — sẽ được tạo ở lần điều chỉnh đầu tiên.",
@@ -355,7 +359,7 @@
         "direction": "Loại điều chỉnh",
         "add": "Cộng điểm",
         "deduct": "Trừ điểm",
-        "adjustHint": "Giao dịch được ghi với loại «Điều chỉnh»; hạng thành viên tự tính lại theo tổng điểm.",
+        "adjustHint": "Giao dịch được ghi với loại «Điều chỉnh» và tính vào tổng điểm đã tích; hạng thành viên tự tính lại theo tổng điểm đã tích.",
         "processing": "Đang xử lý...",
         "confirmAdjust": "Xác nhận điều chỉnh",
         "historyTitle": "Lịch sử giao dịch điểm",
@@ -574,6 +578,8 @@
           "shippingFee": "Phí vận chuyển",
           "overtimeFee": "Phí quá hạn",
           "discount": "Giảm giá",
+          "pointsDiscount": "Điểm thưởng",
+          "pointsUsed": "{{points}} điểm",
           "total": "Tổng phải trả",
           "basePrice": "Giá chưa gồm phí quá hạn: {{amount}}",
           "promotions": "Khuyến mãi: {{codes}}"
@@ -1920,11 +1926,18 @@
       "columns": {
         "code": "Mã",
         "title": "Tên chương trình",
+        "scope": "Áp dụng tại",
         "discount": "Giảm giá",
         "minOrder": "Đơn tối thiểu",
         "period": "Thời hạn",
         "usage": "Lượt dùng",
         "status": "Trạng thái"
+      },
+      "scope": {
+        "global": "Toàn hệ thống",
+        "filterAll": "Tất cả nơi áp dụng",
+        "filterLabel": "Lọc theo nơi áp dụng",
+        "unknownLocker": "Tủ #{{id}}"
       },
       "discount": {
         "noLimit": "Không giới hạn",
@@ -1940,6 +1953,12 @@
         "titlePlaceholder": "VD: Giảm 20% mùa hè",
         "description": "Mô tả",
         "descriptionPlaceholder": "Mô tả ngắn về chương trình...",
+        "scope": "Áp dụng tại",
+        "scopeSearch": "Tìm theo mã hoặc tên tủ...",
+        "scopeEmpty": "Không tìm thấy tủ phù hợp.",
+        "scopeLockersGroup": "Tủ cụ thể",
+        "scopeLoading": "Đang tải danh sách tủ...",
+        "scopeHint": "Mã gắn với một tủ chỉ dùng được cho đơn tại tủ đó (đơn drone tính theo tủ gửi).",
         "discountType": "Loại giảm giá",
         "discountTypePercent": "Phần trăm (%)",
         "discountTypeFixed": "Số tiền cố định (VND)",
@@ -1957,6 +1976,7 @@
         "perUserLimit": "Mỗi người dùng",
         "isActive": "Kích hoạt ngay",
         "stackable": "Cho phép kết hợp với KM khác",
+        "stackableHint": "Chỉ có tác dụng khi cài đặt “Số mã giảm giá tối đa mỗi đơn” lớn hơn 1; khi đó mọi mã trên cùng đơn đều phải bật ô này.",
         "createSuccess": "Tạo khuyến mãi thành công",
         "editSuccess": "Cập nhật thành công",
         "createFailed": "Tạo thất bại",
@@ -2024,6 +2044,7 @@
         "outstanding": "Điểm đang lưu hành"
       },
       "tierDistribution": "Phân bổ hạng thành viên",
+      "tierBasisHint": "Hạng xét theo tổng điểm đã tích từ trước tới nay — dùng điểm không làm tụt hạng.",
       "pointsMetrics": "Số liệu điểm thưởng",
       "metrics": {
         "issued": "Tổng điểm đã phát",

@@ -66,6 +66,23 @@ function feeRows(fees: AdminOrderFees) {
   ].filter((row) => row.value !== null && row.value !== undefined);
 }
 
+/** Dòng "Điểm thưởng": chỉ hiện khi đơn có dùng điểm (trừ sau voucher). */
+function PointsDiscountRow({ order, t }: { order: AdminOrder; t: TFunction }) {
+  const pointsUsed = Number(order.pointsUsed ?? 0);
+  if (!(pointsUsed > 0)) return null;
+  return (
+    <div className="flex justify-between gap-3">
+      <span className="text-muted-foreground">{t("admin.orders.detail.fees.pointsDiscount")}</span>
+      <span className="text-right text-emerald-600 dark:text-emerald-400">
+        − {formatCurrency(order.pointsDiscount ?? 0)}{" "}
+        <span className="text-xs text-muted-foreground">
+          ({t("admin.orders.detail.fees.pointsUsed", { points: formatNumber(pointsUsed) })})
+        </span>
+      </span>
+    </div>
+  );
+}
+
 /**
  * Backend trả `appliedPromotionCodes` là MỘT chuỗi nối bằng dấu phẩy, không phải mảng.
  * Đơn cũ chỉ có `promotionCode` thì dùng mã đó.
@@ -560,6 +577,7 @@ export default function OrderDetailPage() {
                       </span>
                     </div>
                   ))}
+                  <PointsDiscountRow order={order} t={t} />
                   <Separator />
                   <div className="flex justify-between gap-3 font-semibold">
                     <span>{t("admin.orders.detail.fees.total")}</span>
@@ -572,10 +590,13 @@ export default function OrderDetailPage() {
                   </p>
                 </>
               ) : (
-                <div className="flex justify-between gap-3 font-semibold">
-                  <span>{t("admin.orders.detail.fees.total")}</span>
-                  <span>{formatCurrency(order.totalPrice)}</span>
-                </div>
+                <>
+                  <PointsDiscountRow order={order} t={t} />
+                  <div className="flex justify-between gap-3 font-semibold">
+                    <span>{t("admin.orders.detail.fees.total")}</span>
+                    <span>{formatCurrency(order.totalPrice)}</span>
+                  </div>
+                </>
               )}
 
               {promotionCodes.length > 0 && (

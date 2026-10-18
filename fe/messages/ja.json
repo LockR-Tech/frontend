@@ -159,6 +159,16 @@
       "verified": {
         "yes": "認証済み",
         "no": "保留中"
+      },
+      "loyalty": {
+        "txType": {
+          "orderEarn": "注文で獲得",
+          "orderRedeem": "注文に使用",
+          "orderRedeemRefund": "キャンセル注文の返還",
+          "adjustment": "調整",
+          "redeem": "ポイント交換"
+        },
+        "lifetimePoints": "累計獲得ポイント"
       }
     },
     "orders": {
@@ -185,6 +195,12 @@
         "returned": "返却済み",
         "completed": "完了",
         "canceled": "キャンセル"
+      },
+      "detail": {
+        "fees": {
+          "pointsDiscount": "ポイント利用",
+          "pointsUsed": "{{points}} ポイント"
+        }
       }
     },
     "stores": {
@@ -457,11 +473,18 @@
       "columns": {
         "code": "コード",
         "title": "キャンペーン名",
+        "scope": "適用先",
         "discount": "割引",
         "minOrder": "最小注文",
         "period": "期間",
         "usage": "使用回数",
         "status": "ステータス"
+      },
+      "scope": {
+        "global": "システム全体",
+        "filterAll": "すべての適用先",
+        "filterLabel": "適用先で絞り込み",
+        "unknownLocker": "ロッカー #{{id}}"
       },
       "discount": {
         "noLimit": "制限なし",
@@ -477,6 +500,12 @@
         "titlePlaceholder": "例: 夏の20%割引",
         "description": "説明",
         "descriptionPlaceholder": "プロモーションの簡単な説明...",
+        "scope": "適用先",
+        "scopeSearch": "ロッカーのコードまたは名前で検索...",
+        "scopeEmpty": "該当するロッカーがありません。",
+        "scopeLockersGroup": "特定のロッカー",
+        "scopeLoading": "ロッカー一覧を読み込み中...",
+        "scopeHint": "ロッカー限定のコードは、そのロッカーの注文にのみ使用できます（ドローン注文は発送元ロッカー基準）。",
         "discountType": "割引種類",
         "discountTypePercent": "パーセント (%)",
         "discountTypeFixed": "定額 (VND)",
@@ -494,6 +523,7 @@
         "perUserLimit": "ユーザーごとの上限",
         "isActive": "即座に有効化",
         "stackable": "他のプロモーションと組み合わせ可",
+        "stackableHint": "設定「1注文あたりの最大クーポン数」が1より大きい場合のみ有効です。その場合、同じ注文のすべてのコードで有効にする必要があります。",
         "createSuccess": "プロモーションを作成しました",
         "editSuccess": "プロモーションを更新しました",
         "createFailed": "作成に失敗しました",
@@ -526,6 +556,9 @@
         "total": "リクエスト総数",
         "totalSub": "返金チケットの総数"
       }
+    },
+    "loyalty": {
+      "tierBasisHint": "ランクは累計獲得ポイントで決まります。ポイントを使ってもランクは下がりません。"
     }
   },
   "partner": {

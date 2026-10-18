@@ -334,7 +334,10 @@
       "loyalty": {
         "txType": {
           "adjustment": "Adjustment",
-          "redeem": "Redemption"
+          "redeem": "Redemption",
+          "orderEarn": "Earned from order",
+          "orderRedeem": "Used on order",
+          "orderRedeemRefund": "Refund for canceled order"
         },
         "enterPositive": "Please enter a number of points greater than 0.",
         "cannotDeductMore": "Cannot deduct more points than the current balance.",
@@ -345,6 +348,7 @@
         "loadFailed": "Couldn't load loyalty information.",
         "tier": "Membership Tier",
         "currentPoints": "Current Points",
+        "lifetimePoints": "Lifetime points earned",
         "pointsValue": "{{points}} points",
         "stamps": "Stamps Collected",
         "noAccount": "This user has no loyalty account yet — it will be created on the first adjustment.",
@@ -355,7 +359,7 @@
         "direction": "Adjustment Type",
         "add": "Add Points",
         "deduct": "Deduct Points",
-        "adjustHint": "The transaction is recorded with type «Adjustment»; the membership tier is recalculated from the point total.",
+        "adjustHint": "The transaction is recorded with type «Adjustment» and counts toward lifetime points; the membership tier is recalculated from lifetime points.",
         "processing": "Processing...",
         "confirmAdjust": "Confirm Adjustment",
         "historyTitle": "Points Transaction History",
@@ -574,6 +578,8 @@
           "shippingFee": "Shipping fee",
           "overtimeFee": "Overtime fee",
           "discount": "Discount",
+          "pointsDiscount": "Loyalty points",
+          "pointsUsed": "{{points}} points",
           "total": "Total due",
           "basePrice": "Price excluding overtime fee: {{amount}}",
           "promotions": "Promotions: {{codes}}"
@@ -1920,11 +1926,18 @@
       "columns": {
         "code": "Code",
         "title": "Campaign Name",
+        "scope": "Applies at",
         "discount": "Discount",
         "minOrder": "Min Order",
         "period": "Period",
         "usage": "Usage",
         "status": "Status"
+      },
+      "scope": {
+        "global": "System-wide",
+        "filterAll": "All locations",
+        "filterLabel": "Filter by where it applies",
+        "unknownLocker": "Locker #{{id}}"
       },
       "discount": {
         "noLimit": "No limit",
@@ -1940,6 +1953,12 @@
         "titlePlaceholder": "e.g. 20% Off Summer Sale",
         "description": "Description",
         "descriptionPlaceholder": "Short description of the promotion...",
+        "scope": "Applies at",
+        "scopeSearch": "Search by locker code or name...",
+        "scopeEmpty": "No matching locker.",
+        "scopeLockersGroup": "Specific locker",
+        "scopeLoading": "Loading lockers...",
+        "scopeHint": "A locker-specific code only works for orders at that locker (drone orders use the sending locker).",
         "discountType": "Discount Type",
         "discountTypePercent": "Percentage (%)",
         "discountTypeFixed": "Fixed Amount (VND)",
@@ -1957,6 +1976,7 @@
         "perUserLimit": "Per User Limit",
         "isActive": "Activate Immediately",
         "stackable": "Allow combining with other promotions",
+        "stackableHint": "Only takes effect when the “maximum vouchers per order” setting is above 1; every code on the same order must then allow combining.",
         "createSuccess": "Promotion created successfully",
         "editSuccess": "Promotion updated successfully",
         "createFailed": "Failed to create promotion",
@@ -2024,6 +2044,7 @@
         "outstanding": "Outstanding Points"
       },
       "tierDistribution": "Membership Tier Distribution",
+      "tierBasisHint": "Tiers are based on lifetime points earned — spending points never lowers a tier.",
       "pointsMetrics": "Loyalty Points Metrics",
       "metrics": {
         "issued": "Total Points Issued",
