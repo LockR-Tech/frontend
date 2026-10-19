@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Route,
   UserCheck,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -435,18 +436,30 @@ export default function DroneDetailPage() {
             </div>
             <div>
               <p className="text-sm font-semibold">{t("admin.drones.detail.tech.title")}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <div className="mt-0.5 text-xs text-muted-foreground space-y-1">
                 {assignedTechId != null ? (
-                  <Trans
-                    t={t}
-                    i18nKey="admin.drones.detail.tech.assignedHint"
-                    values={{ name: assignedTechName }}
-                    components={{ b: <span className="font-semibold text-foreground" /> }}
-                  />
+                  <>
+                    <p>
+                      <Trans
+                        t={t}
+                        i18nKey="admin.drones.detail.tech.assignedHint"
+                        values={{ name: assignedTechName }}
+                        components={{
+                          b: (
+                            <Link
+                              to={`/admin/maintenance/technicians/${assignedTechId}`}
+                              className="font-semibold text-primary hover:underline"
+                            />
+                          ),
+                        }}
+                      />
+                    </p>
+                    
+                  </>
                 ) : (
-                  t("admin.drones.detail.tech.unassignedHint")
+                  <p>{t("admin.drones.detail.tech.unassignedHint")}</p>
                 )}
-              </p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">

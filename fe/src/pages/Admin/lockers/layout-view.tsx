@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Ban,
@@ -1244,17 +1244,29 @@ export default function LockerLayoutPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold">{t("admin.lockers.columns.technician")}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <div className="text-xs text-muted-foreground mt-0.5 space-y-1">
                   {assignedTechId != null ? (
-                    <Trans
-                      i18nKey="admin.lockers.layout.tech.routedTo"
-                      values={{ name: assignedTechName }}
-                      components={{ b: <span className="font-semibold text-foreground" /> }}
-                    />
+                    <>
+                      <p>
+                        <Trans
+                          i18nKey="admin.lockers.layout.tech.routedTo"
+                          values={{ name: assignedTechName }}
+                          components={{
+                            b: (
+                              <Link
+                                to={`/admin/maintenance/technicians/${assignedTechId}`}
+                                className="font-semibold text-primary hover:underline"
+                              />
+                            ),
+                          }}
+                        />
+                      </p>
+                      
+                    </>
                   ) : (
-                    t("admin.lockers.layout.tech.unassignedHint")
+                    <p>{t("admin.lockers.layout.tech.unassignedHint")}</p>
                   )}
-                </p>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">

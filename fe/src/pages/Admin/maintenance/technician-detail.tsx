@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import {
   ArrowLeft,
@@ -32,6 +32,7 @@ import {
   Plane,
   Pencil,
   CalendarClock,
+  BatteryCharging,
 } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
@@ -67,9 +68,11 @@ import {
   useGetAllInspectionLogsQuery,
   useSendUserNotificationMutation,
   useGetTechnicianPresencesQuery,
+  useGetStaffLockersQuery,
   type LockerReportResponse,
   type TechnicianPresenceResponse,
 } from "~/stores/apis/admin/lockerOps";
+import { useGetDronesQuery } from "~/stores/apis/admin/drones";
 import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation, useUpdateUserMutation } from "~/stores/apis/admin/users";
 import type { UpdateUserRequest } from "~/types";
 import { RepairLogDialog } from "./RepairLogDialog";
@@ -208,6 +211,24 @@ export default function TechnicianDetailPage() {
   // Preventive Maintenance Schedules & Logs
   const { data: schedulesData } = useGetMaintenanceSchedulesQuery();
   const { data: inspectionLogsData } = useGetAllInspectionLogsQuery({ technicianId: techId });
+
+  // Assigned devices (Lockers for Kiosk tech, Drones for Drone tech)
+  const { data: staffLockersData } = useGetStaffLockersQuery(undefined, {
+    skip: !techId || !isKioskTech,
+  });
+  const { data: dronesData } = useGetDronesQuery(undefined, {
+    skip: !techId || isKioskTech,
+  });
+
+  const assignedLockers = useMemo(
+    () => (staffLockersData?.data ?? []).filter((l) => l.assignedTechnicianId === techId),
+    [staffLockersData, techId]
+  );
+
+  const assignedDrones = useMemo(
+    () => (dronesData?.data ?? []).filter((d) => d.assignedTechnicianId === techId),
+    [dronesData, techId]
+  );
 
   // Live presence and shift status (poll every 15s as background fallback)
   const { data: presencesData, refetch: refetchPresences } = useGetTechnicianPresencesQuery({ all: true }, {
@@ -946,14 +967,6 @@ export default function TechnicianDetailPage() {
                       </span>
                     </div>
                   )}
-                  {technicianPresence.deviceInfo && (
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-sky-200/60 dark:border-sky-800/40">
-                      <span>Thiết bị:</span>
-                      <span className="font-medium text-foreground truncate max-w-[170px]" title={technicianPresence.deviceInfo}>
-                        {technicianPresence.deviceInfo}
-                      </span>
-                    </div>
-                  )}
                   <div className="pt-2">
                     <Button
                       variant="outline"
@@ -981,6 +994,151 @@ export default function TechnicianDetailPage() {
                     Vị trí sẽ được cập nhật khi KTV bật ca trực trên ứng dụng Mobile.
                   </p>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card: Thiết bị (Kiosk / Drone) phụ trách */}
+          <Card className="border border-border/80 shadow-xs">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  {technician?.specialty === "DRONE" ? (
+                    <>
+                      <Plane className="w-4 h-4 text-purple-600" />
+                      Drone phụ trách
+                    </>
+                  ) : (
+                    <>
+                      <Boxes className="w-4 h-4 text-primary" />
+                      Kiosk / Tủ phụ trách
+                    </>
+                  )}
+                </CardTitle>
+                <Badge variant="outline" className="text-xs font-semibold px-2 py-0.5 bg-muted">
+                  {technician?.specialty === "DRONE" ? assignedDrones.length : assignedLockers.length}
+                </Badge>
+              </div>
+              <CardDescription className="text-xs mt-1">
+                {technician?.specialty === "DRONE"
+                  ? "Danh sách Drone được phân công cho KTV phụ trách và bảo trì."
+                  : "Danh sách tủ Kiosk được phân công cho KTV phụ trách xử lý sự cố."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2.5 text-xs">
+              {technician?.specialty === "DRONE" ? (
+                assignedDrones.length === 0 ? (
+                  <div className="p-4 rounded-lg border border-dashed text-center text-muted-foreground text-xs space-y-1">
+                    <Plane className="w-5 h-5 mx-auto text-muted-foreground/60" />
+                    <p className="font-medium">Chưa có Drone phụ trách</p>
+                    <p className="text-[11px] text-muted-foreground/80">
+                      Gán KTV phụ trách trong trang chi tiết Drone.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {assignedDrones.map((drone) => (
+                      <div
+                        key={drone.id}
+                        className="p-3 rounded-lg border border-border/70 bg-card hover:bg-muted/40 transition-colors space-y-2 group"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                            <Plane className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                            <span>{drone.code}</span>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-semibold px-1.5 py-0"
+                          >
+                            {drone.status}
+                          </Badge>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground space-y-1">
+                          {drone.batteryPercent != null && (
+                            <div className="flex items-center justify-between">
+                              <span className="flex items-center gap-1">
+                                <BatteryCharging className="w-3 h-3 text-emerald-600" /> Pin:
+                              </span>
+                              <span className="font-mono font-medium text-foreground">{drone.batteryPercent}%</span>
+                            </div>
+                          )}
+                          {drone.lockerName && (
+                            <div className="flex items-center justify-between">
+                              <span>Trạm gốc:</span>
+                              <span className="font-medium text-foreground truncate max-w-[150px]">{drone.lockerName}</span>
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-7 text-xs bg-white hover:bg-sky-50 text-sky-700 border-sky-200 dark:bg-slate-900 dark:text-sky-300 dark:border-sky-800 gap-1"
+                          onClick={() => navigate(`/admin/drones/${drone.id}`)}
+                        >
+                          Xem chi tiết Drone
+                          <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : (
+                assignedLockers.length === 0 ? (
+                  <div className="p-4 rounded-lg border border-dashed text-center text-muted-foreground text-xs space-y-1">
+                    <Boxes className="w-5 h-5 mx-auto text-muted-foreground/60" />
+                    <p className="font-medium">Chưa có Kiosk phụ trách</p>
+                    <p className="text-[11px] text-muted-foreground/80">
+                      Gán KTV phụ trách trong trang chi tiết Kiosk.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {assignedLockers.map((locker) => (
+                      <div
+                        key={locker.id}
+                        className="p-3 rounded-lg border border-border/70 bg-card hover:bg-muted/40 transition-colors space-y-2 group"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 font-semibold text-foreground truncate">
+                            <Boxes className="w-3.5 h-3.5 text-primary shrink-0" />
+                            <span className="truncate">{locker.name}</span>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-semibold px-1.5 py-0 shrink-0"
+                          >
+                            {locker.status}
+                          </Badge>
+                        </div>
+                        <p className="font-mono text-[11px] text-muted-foreground">
+                          {locker.code}
+                        </p>
+                        {locker.address && (
+                          <div className="flex items-start gap-1 text-[11px] text-muted-foreground">
+                            <MapPin className="w-3 h-3 text-sky-600 shrink-0 mt-0.5" />
+                            <span className="line-clamp-2">{locker.address}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/50">
+                          <span>Số ô trống:</span>
+                          <span className="font-medium text-foreground">
+                            {locker.availableBoxes ?? 0} / {locker.totalBoxes ?? 0}
+                          </span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-7 text-xs bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-slate-900 dark:text-indigo-300 dark:border-indigo-800 gap-1"
+                          onClick={() => navigate(`/admin/lockers/${locker.id}`)}
+                        >
+                          Xem chi tiết Kiosk
+                          <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )
               )}
             </CardContent>
           </Card>
@@ -1259,10 +1417,19 @@ export default function TechnicianDetailPage() {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2 border-t border-border/60 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1.5 truncate">
                               <MapPin className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span className="truncate">
-                                {report.lockerName ?? `Kiosk #${report.lockerId}`}
+                              <Link
+                                to={
+                                  isDroneReport(report) && report.droneUnitId
+                                    ? `/admin/drones/${report.droneUnitId}`
+                                    : `/admin/lockers/${report.lockerId}`
+                                }
+                                className="truncate hover:underline text-foreground hover:text-primary transition-colors"
+                              >
+                                {isDroneReport(report)
+                                  ? `Drone ${report.droneCode ?? `#${report.droneUnitId}`}`
+                                  : (report.lockerName ?? `Kiosk #${report.lockerId}`)}
                                 {report.boxNumber ? ` · ${t("admin.maintenance.boxNumber", { number: report.boxNumber })}` : ""}
-                              </span>
+                              </Link>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
@@ -1485,11 +1652,23 @@ export default function TechnicianDetailPage() {
                                 )}
                               </div>
                               <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
-                                <span className="font-medium text-foreground">
-                                  {s.droneUnitId != null
-                                    ? `Drone ${s.droneCode ?? `#${s.droneUnitId}`}`
-                                    : `${s.lockerName ?? `Kiosk #${s.lockerId}`}${s.lockerCode ? ` (${s.lockerCode})` : ""}`}
-                                </span>
+                                {s.droneUnitId != null ? (
+                                  <Link
+                                    to={`/admin/drones/${s.droneUnitId}`}
+                                    className="font-medium text-foreground hover:text-primary hover:underline inline-flex items-center gap-1"
+                                  >
+                                    Drone {s.droneCode ?? `#${s.droneUnitId}`}
+                                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                  </Link>
+                                ) : (
+                                  <Link
+                                    to={`/admin/lockers/${s.lockerId}`}
+                                    className="font-medium text-foreground hover:text-primary hover:underline inline-flex items-center gap-1"
+                                  >
+                                    {s.lockerName ?? `Kiosk #${s.lockerId}`}{s.lockerCode ? ` (${s.lockerCode})` : ""}
+                                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                  </Link>
+                                )}
                                 {s.address && <span>· {s.address}</span>}
                                 <span>·</span>
                                 <span>
@@ -1542,11 +1721,23 @@ export default function TechnicianDetailPage() {
                         <div key={log.id} className="p-3.5 rounded-xl border border-border/80 bg-background space-y-2">
                           <div className="flex items-center justify-between flex-wrap gap-2">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-xs text-foreground">
-                                {log.droneUnitId != null
-                                  ? `Drone ${log.droneCode ?? `#${log.droneUnitId}`}`
-                                  : log.lockerName ?? `Kiosk #${log.lockerId}`}
-                              </span>
+                              {log.droneUnitId != null ? (
+                                <Link
+                                  to={`/admin/drones/${log.droneUnitId}`}
+                                  className="font-bold text-xs text-foreground hover:text-primary hover:underline inline-flex items-center gap-1"
+                                >
+                                  Drone {log.droneCode ?? `#${log.droneUnitId}`}
+                                  <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                </Link>
+                              ) : (
+                                <Link
+                                  to={`/admin/lockers/${log.lockerId}`}
+                                  className="font-bold text-xs text-foreground hover:text-primary hover:underline inline-flex items-center gap-1"
+                                >
+                                  {log.lockerName ?? `Kiosk #${log.lockerId}`}
+                                  <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                </Link>
+                              )}
                               <Badge variant="outline" className={`text-[10px] font-semibold ${INSPECTION_STATUS_META[log.status]?.cls ?? ""}`}>
                                 {INSPECTION_STATUS_META[log.status]?.label ?? log.status}
                               </Badge>

@@ -291,6 +291,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
       const matchSearch =
         t.fullName.toLowerCase().includes(q) ||
         t.email.toLowerCase().includes(q) ||
+        (presence?.latitude != null && presence?.longitude != null && `${presence.latitude}, ${presence.longitude}`.includes(q)) ||
         (presence?.deviceInfo && presence.deviceInfo.toLowerCase().includes(q)) ||
         (t.phoneNumber && t.phoneNumber.includes(searchQuery));
 
@@ -699,10 +700,8 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                               }`}
                             >
                               <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                              <span className="line-clamp-2 leading-tight">
-                                {presence.deviceInfo
-                                  ? `${presence.deviceInfo} (${presence.latitude.toFixed(4)}, ${presence.longitude.toFixed(4)})`
-                                  : `${presence.latitude.toFixed(4)}, ${presence.longitude.toFixed(4)}`}
+                              <span className="font-mono text-[11px] font-medium text-sky-700 hover:text-sky-800 dark:text-sky-400">
+                                {presence.latitude.toFixed(6)}, {presence.longitude.toFixed(6)}
                               </span>
                             </a>
                           ) : (

@@ -427,6 +427,18 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       providesTags: (_r, _e, id) => [{ type: TAG, id }],
     }),
 
+    // Danh sách tủ kèm KTV phụ trách cho admin/KTV (hỗ trợ lọc theo technicianId / storeId)
+    getStaffLockers: builder.query<ApiResponse<StaffLockerResponse[]>, { technicianId?: number; storeId?: number } | void>({
+      query: (params) => ({
+        url: '/api/admin/lockers',
+        params: params || {},
+      }),
+      providesTags: (result) =>
+        result?.data
+          ? [...result.data.map(({ id }) => ({ type: TAG, id })), TAG]
+          : [TAG],
+    }),
+
     // technicianId = null ⇒ bỏ gán, phiếu mới của tủ báo mọi KTV tủ
     assignLockerTechnician: builder.mutation<
       ApiResponse<StaffLockerResponse>,
@@ -994,6 +1006,7 @@ export const {
   useGetLockerStatsQuery,
   useGetLockerLayoutQuery,
   useGetStaffLockerQuery,
+  useGetStaffLockersQuery,
   useAssignLockerTechnicianMutation,
   useUpdateLockerLocationMutation,
   useGetFaultCellsQuery,

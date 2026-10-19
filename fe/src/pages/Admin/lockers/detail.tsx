@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import {
   ArrowLeft,
@@ -13,6 +13,8 @@ import {
   RefreshCw,
   History,
   AlertCircle,
+  UserCheck,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -23,6 +25,7 @@ import { LockerStatus, BoxStatus } from "~/types/admin/enums";
 import { useLockerDetail } from "./hooks/useLockerDetail";
 import { BoxForceOpenModal } from "./components/BoxForceOpenModal";
 import { useState } from "react";
+import { useGetStaffLockerQuery } from "~/stores/apis/admin/lockerOps";
 
 const lockerStatusConfig: Record<
   LockerStatus,
@@ -81,6 +84,12 @@ export default function LockerDetailPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { locker, isLoading, boxes, refreshBoxes } = useLockerDetail(lockerId);
+  const { data: staffLockerData } = useGetStaffLockerQuery(Number(lockerId), {
+    skip: !lockerId || isNaN(Number(lockerId)),
+  });
+  const staffLocker = staffLockerData?.data;
+  const assignedTechId = staffLocker?.assignedTechnicianId;
+  const assignedTechName = staffLocker?.assignedTechnicianName;
   const [selectedBox, setSelectedBox] = useState<typeof boxes[0] | null>(null);
   const [isForceOpenModalOpen, setIsForceOpenModalOpen] = useState(false);
 
@@ -201,6 +210,23 @@ export default function LockerDetailPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">{t("common.address")}</p>
                   <p className="text-xs text-foreground/80 leading-relaxed">{locker.address}</p>
+                </div>
+              </div>
+              <Separator />
+              <div className="flex items-start gap-2">
+                <UserCheck className="h-4 w-4 text-indigo-600 mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">{t("admin.lockers.columns.technician")}</p>
+                  {assignedTechId != null ? (
+                    <Link
+                      to={`/admin/maintenance/technicians/${assignedTechId}`}
+                      className="font-medium text-primary hover:underline text-xs inline-flex items-center gap-1"
+                    >
+                      {assignedTechName || `KTV #${assignedTechId}`} <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Chưa phân công KTV</p>
+                  )}
                 </div>
               </div>
             </CardContent>
