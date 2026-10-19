@@ -39,7 +39,8 @@ export interface PointTransactionDTO {
   points: number;
   /**
    * ORDER_EARN (tích từ đơn hoàn tất), ORDER_REDEEM (dùng cho đơn, âm),
-   * ORDER_REDEEM_REFUND (trả lại khi đơn huỷ/hoàn tiền), ADJUSTMENT (admin), REDEEM (cũ).
+   * ORDER_REDEEM_REFUND (trả lại khi đơn huỷ/hoàn tiền), ORDER_EARN_REVERSAL (thu hồi điểm đã tích khi
+   * đơn được hoàn tiền, âm), ADJUSTMENT (admin), REDEEM (cũ).
    */
   type: string;
   createdAt: string;

@@ -165,6 +165,7 @@
           "orderEarn": "注文で獲得",
           "orderRedeem": "注文に使用",
           "orderRedeemRefund": "キャンセル注文の返還",
+          "orderEarnReversal": "返金注文のポイント回収",
           "adjustment": "調整",
           "redeem": "ポイント交換"
         },

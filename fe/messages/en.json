@@ -338,7 +338,8 @@
           "redeem": "Redemption",
           "orderEarn": "Earned from order",
           "orderRedeem": "Used on order",
-          "orderRedeemRefund": "Refund for canceled order"
+          "orderRedeemRefund": "Refund for canceled order",
+          "orderEarnReversal": "Points taken back (order refunded)"
         },
         "enterPositive": "Please enter a number of points greater than 0.",
         "cannotDeductMore": "Cannot deduct more points than the current balance.",
