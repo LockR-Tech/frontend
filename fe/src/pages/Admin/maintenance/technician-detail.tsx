@@ -33,9 +33,17 @@ import {
   Pencil,
   CalendarClock,
   BatteryCharging,
+  Search,
+  X,
 } from "lucide-react";
 import { Input } from "~/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
@@ -73,7 +81,12 @@ import {
   type TechnicianPresenceResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetDronesQuery } from "~/stores/apis/admin/drones";
-import { useGetUserByIdQuery, useGetAllUsersQuery, useUpdateUserStatusMutation, useUpdateUserMutation } from "~/stores/apis/admin/users";
+import {
+  useGetUserByIdQuery,
+  useGetAllUsersQuery,
+  useUpdateUserStatusMutation,
+  useUpdateUserMutation,
+} from "~/stores/apis/admin/users";
 import type { UpdateUserRequest } from "~/types";
 import { RepairLogDialog } from "./RepairLogDialog";
 import { ExtendSlaDialog } from "./ExtendSlaDialog";
@@ -83,7 +96,11 @@ import {
   cleanDescription,
   INSPECTION_STATUS_META,
 } from "./maintenancePhotos";
-import { formatDateTime, formatDate as formatDateOnly, parseBackendDateTime } from "~/lib/datetime";
+import {
+  formatDateTime,
+  formatDate as formatDateOnly,
+  parseBackendDateTime,
+} from "~/lib/datetime";
 import { useWebSocket } from "~/hooks/useWebSocket";
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
 import { InspectionChecklistResults } from "./InspectionChecklistResults";
@@ -107,7 +124,8 @@ const SLA_CONFIG = {
     tier: 0,
     titleKey: "admin.maintenance.sla.normal.title",
     badgeLabelKey: "admin.maintenance.sla.normal.badge",
-    badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700",
+    badgeClass:
+      "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700",
     icon: CheckCircle2,
     descKey: "admin.maintenance.sla.normal.desc",
     consequenceKey: "admin.maintenance.sla.normal.consequence",
@@ -116,7 +134,8 @@ const SLA_CONFIG = {
     tier: 1,
     titleKey: "admin.maintenance.sla.warning.title",
     badgeLabelKey: "admin.maintenance.sla.warning.badge",
-    badgeClass: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700",
+    badgeClass:
+      "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700",
     icon: AlertTriangle,
     descKey: "admin.maintenance.sla.warning.desc",
     consequenceKey: "admin.maintenance.sla.warning.consequence",
@@ -125,7 +144,8 @@ const SLA_CONFIG = {
     tier: 2,
     titleKey: "admin.maintenance.sla.restricted.title",
     badgeLabelKey: "admin.maintenance.sla.restricted.badge",
-    badgeClass: "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-700",
+    badgeClass:
+      "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-700",
     icon: AlertOctagon,
     descKey: "admin.maintenance.sla.restricted.desc",
     consequenceKey: "admin.maintenance.sla.restricted.consequence",
@@ -134,7 +154,8 @@ const SLA_CONFIG = {
     tier: 3,
     titleKey: "admin.maintenance.sla.suspended.title",
     badgeLabelKey: "admin.maintenance.sla.suspended.badge",
-    badgeClass: "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700",
+    badgeClass:
+      "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700",
     icon: Ban,
     descKey: "admin.maintenance.sla.suspended.desc",
     consequenceKey: "admin.maintenance.sla.suspended.consequence",
@@ -148,36 +169,57 @@ export default function TechnicianDetailPage() {
   const techId = Number(technicianId);
 
   const [activeTab, setActiveTab] = useState("tickets");
-  const [ticketFilter, setTicketFilter] = useState<"ALL" | "IN_PROGRESS" | "RESOLVED" | "OVERDUE">("ALL");
+  const [ticketFilter, setTicketFilter] = useState<
+    "ALL" | "IN_PROGRESS" | "RESOLVED" | "OVERDUE"
+  >("ALL");
+  const [ticketSearch, setTicketSearch] = useState("");
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [selectedReportToAssign, setSelectedReportToAssign] = useState<number | null>(null);
+  const [selectedReportToAssign, setSelectedReportToAssign] = useState<
+    number | null
+  >(null);
   const [unassignTargetId, setUnassignTargetId] = useState<number | null>(null);
-  const [extendSlaReport, setExtendSlaReport] = useState<LockerReportResponse | null>(null);
+  const [extendSlaReport, setExtendSlaReport] =
+    useState<LockerReportResponse | null>(null);
 
   // Edit Phone dialog state
   const [editPhoneOpen, setEditPhoneOpen] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
 
   // Queries
-  const { data: userData, isLoading: isLoadingUser } = useGetUserByIdQuery(techId, {
+  const { data: userData, isLoading: isLoadingUser } = useGetUserByIdQuery(
+    techId,
+    {
+      skip: !techId || isNaN(techId),
+    },
+  );
+
+  const { data: allUsersData, refetch: refetchAllUsers } = useGetAllUsersQuery({
+    page: 0,
+    size: 1000,
+  });
+
+  const {
+    data: perfData,
+    isLoading: isLoadingPerf,
+    refetch: refetchPerf,
+  } = useGetTechnicianPerformanceQuery(techId, {
     skip: !techId || isNaN(techId),
   });
 
-  const { data: allUsersData, refetch: refetchAllUsers } = useGetAllUsersQuery({ page: 0, size: 1000 });
-
-  const { data: perfData, isLoading: isLoadingPerf, refetch: refetchPerf } = useGetTechnicianPerformanceQuery(
-    techId,
-    { skip: !techId || isNaN(techId) }
-  );
-
-  const { data: reportsData, isLoading: isLoadingReports, refetch: refetchReports } = useGetAllAdminReportsQuery();
+  const {
+    data: reportsData,
+    isLoading: isLoadingReports,
+    refetch: refetchReports,
+  } = useGetAllAdminReportsQuery();
 
   // Mutations
-  const [updateStatus, { isLoading: isUpdatingStatus }] = useUpdateUserStatusMutation();
+  const [updateStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateUserStatusMutation();
   const [updateUser, { isLoading: isUpdatingUser }] = useUpdateUserMutation();
   const [unassign, { isLoading: isUnassigning }] = useUnassignReportMutation();
   const [sendNotification] = useSendUserNotificationMutation();
-  const [assignReport, { isLoading: isAssigning }] = useAssignReportToTechnicianMutation();
+  const [assignReport, { isLoading: isAssigning }] =
+    useAssignReportToTechnicianMutation();
 
   // Find technician details
   const singleUser = userData?.data;
@@ -185,7 +227,7 @@ export default function TechnicianDetailPage() {
     const raw = allUsersData?.data as unknown;
     const list: any[] = Array.isArray(raw)
       ? raw
-      : (raw as { content?: any[] })?.content ?? [];
+      : ((raw as { content?: any[] })?.content ?? []);
     return list.find((u) => u.id === techId);
   }, [allUsersData, techId]);
 
@@ -210,7 +252,9 @@ export default function TechnicianDetailPage() {
 
   // Preventive Maintenance Schedules & Logs
   const { data: schedulesData } = useGetMaintenanceSchedulesQuery();
-  const { data: inspectionLogsData } = useGetAllInspectionLogsQuery({ technicianId: techId });
+  const { data: inspectionLogsData } = useGetAllInspectionLogsQuery({
+    technicianId: techId,
+  });
 
   // Assigned devices (Lockers for Kiosk tech, Drones for Drone tech)
   const { data: staffLockersData } = useGetStaffLockersQuery(undefined, {
@@ -221,21 +265,30 @@ export default function TechnicianDetailPage() {
   });
 
   const assignedLockers = useMemo(
-    () => (staffLockersData?.data ?? []).filter((l) => l.assignedTechnicianId === techId),
-    [staffLockersData, techId]
+    () =>
+      (staffLockersData?.data ?? []).filter(
+        (l) => l.assignedTechnicianId === techId,
+      ),
+    [staffLockersData, techId],
   );
 
   const assignedDrones = useMemo(
-    () => (dronesData?.data ?? []).filter((d) => d.assignedTechnicianId === techId),
-    [dronesData, techId]
+    () =>
+      (dronesData?.data ?? []).filter((d) => d.assignedTechnicianId === techId),
+    [dronesData, techId],
   );
 
   // Live presence and shift status (poll every 15s as background fallback)
-  const { data: presencesData, refetch: refetchPresences } = useGetTechnicianPresencesQuery({ all: true }, {
-    pollingInterval: 15000,
-  });
+  const { data: presencesData, refetch: refetchPresences } =
+    useGetTechnicianPresencesQuery(
+      { all: true },
+      {
+        pollingInterval: 15000,
+      },
+    );
 
-  const [realtimePresence, setRealtimePresence] = useState<TechnicianPresenceResponse | null>(null);
+  const [realtimePresence, setRealtimePresence] =
+    useState<TechnicianPresenceResponse | null>(null);
 
   const { subscribe } = useWebSocket({ autoConnect: true });
 
@@ -254,26 +307,55 @@ export default function TechnicianDetailPage() {
         userName: msg.userName ?? prev?.userName,
         technicianType: msg.technicianType ?? prev?.technicianType,
         onDuty: nextOnDuty,
-        latitude: msg.latitude != null ? Number(msg.latitude) : prev?.latitude ?? null,
-        longitude: msg.longitude != null ? Number(msg.longitude) : prev?.longitude ?? null,
-        accuracyM: msg.accuracyM != null ? Number(msg.accuracyM) : prev?.accuracyM ?? null,
-        headingDeg: msg.headingDeg != null ? Number(msg.headingDeg) : prev?.headingDeg ?? null,
-        speedMs: msg.speedMs != null ? Number(msg.speedMs) : prev?.speedMs ?? null,
-        altitudeM: msg.altitudeM != null ? Number(msg.altitudeM) : prev?.altitudeM ?? null,
-        batteryLevel: msg.batteryLevel != null ? Number(msg.batteryLevel) : prev?.batteryLevel ?? null,
+        latitude:
+          msg.latitude != null
+            ? Number(msg.latitude)
+            : (prev?.latitude ?? null),
+        longitude:
+          msg.longitude != null
+            ? Number(msg.longitude)
+            : (prev?.longitude ?? null),
+        accuracyM:
+          msg.accuracyM != null
+            ? Number(msg.accuracyM)
+            : (prev?.accuracyM ?? null),
+        headingDeg:
+          msg.headingDeg != null
+            ? Number(msg.headingDeg)
+            : (prev?.headingDeg ?? null),
+        speedMs:
+          msg.speedMs != null ? Number(msg.speedMs) : (prev?.speedMs ?? null),
+        altitudeM:
+          msg.altitudeM != null
+            ? Number(msg.altitudeM)
+            : (prev?.altitudeM ?? null),
+        batteryLevel:
+          msg.batteryLevel != null
+            ? Number(msg.batteryLevel)
+            : (prev?.batteryLevel ?? null),
         deviceInfo: msg.deviceInfo ?? prev?.deviceInfo,
         shiftStartedAt: msg.shiftStartedAt ?? prev?.shiftStartedAt,
         shiftEndedAt: msg.shiftEndedAt ?? prev?.shiftEndedAt,
-        lastLocatedAt: msg.lastLocatedAt ?? prev?.lastLocatedAt ?? new Date().toISOString(),
+        lastLocatedAt:
+          msg.lastLocatedAt ?? prev?.lastLocatedAt ?? new Date().toISOString(),
         updatedAt: msg.updatedAt ?? new Date().toISOString(),
       }));
       refetchPresences();
     };
 
-    const subGlobal = subscribe<any>("/topic/technicians/presence", handlePresenceMessage);
-    const subPersonal = subscribe<any>(`/topic/technicians/${techId}/presence`, handlePresenceMessage);
+    const subGlobal = subscribe<any>(
+      "/topic/technicians/presence",
+      handlePresenceMessage,
+    );
+    const subPersonal = subscribe<any>(
+      `/topic/technicians/${techId}/presence`,
+      handlePresenceMessage,
+    );
     const subNotif = subscribe<any>("/topic/notifications", (msg) => {
-      if (msg?.type === "technician.presence.updated" || msg?.type === "TECHNICIAN_PRESENCE_UPDATED") {
+      if (
+        msg?.type === "technician.presence.updated" ||
+        msg?.type === "TECHNICIAN_PRESENCE_UPDATED"
+      ) {
         handlePresenceMessage(msg);
       }
     });
@@ -289,13 +371,19 @@ export default function TechnicianDetailPage() {
     const list = presencesData?.data ?? [];
     const base = list.find((p) => p.userId === techId) ?? null;
     if (realtimePresence && realtimePresence.userId === techId) {
-      return { ...(base || {}), ...realtimePresence } as TechnicianPresenceResponse;
+      return {
+        ...(base || {}),
+        ...realtimePresence,
+      } as TechnicianPresenceResponse;
     }
     return base;
   }, [presencesData, techId, realtimePresence]);
 
   const assignedSchedules = useMemo(
-    () => (schedulesData?.data ?? []).filter((s) => s.assignedTechnicianId === techId),
+    () =>
+      (schedulesData?.data ?? []).filter(
+        (s) => s.assignedTechnicianId === techId,
+      ),
     [schedulesData, techId],
   );
 
@@ -304,7 +392,8 @@ export default function TechnicianDetailPage() {
   // Earliest report date fallback for joined date
   const earliestReportDate = useMemo(() => {
     if (!techReports.length) return null;
-    const ts = (v?: string | null) => parseBackendDateTime(v)?.getTime() ?? Infinity;
+    const ts = (v?: string | null) =>
+      parseBackendDateTime(v)?.getTime() ?? Infinity;
     return techReports.reduce((earliest: string | null, r) => {
       if (!r.createdAt) return earliest;
       if (!earliest) return r.createdAt;
@@ -317,7 +406,7 @@ export default function TechnicianDetailPage() {
     const raw = allUsersData?.data as unknown;
     const list: any[] = Array.isArray(raw)
       ? raw
-      : (raw as { content?: any[] })?.content ?? [];
+      : ((raw as { content?: any[] })?.content ?? []);
     const map: Record<number, string> = {};
     for (const u of list) {
       const name = u.fullName || u.name;
@@ -339,9 +428,11 @@ export default function TechnicianDetailPage() {
       : t("admin.maintenance.specialty.droneFleet");
 
     // SĐT chỉ lấy từ hồ sơ user-service — không bao giờ lấy SĐT người báo trong phiếu
-    const resolvedPhoneNumber = singleUser?.phoneNumber || userFromList?.phoneNumber || "";
+    const resolvedPhoneNumber =
+      singleUser?.phoneNumber || userFromList?.phoneNumber || "";
     // Trạng thái thật (ACTIVE/INACTIVE…) để gửi kèm khi sửa hồ sơ — PUT thiếu status sẽ bị reset về ACTIVE
-    const rawStatus: string | undefined = singleUser?.status || userFromList?.status || undefined;
+    const rawStatus: string | undefined =
+      singleUser?.status || userFromList?.status || undefined;
 
     // Ngày gia nhập: AdminUserView có createdAt -> singleUser -> ngày phiếu đầu tiên
     const resolvedCreatedAt =
@@ -351,7 +442,12 @@ export default function TechnicianDetailPage() {
 
     return {
       id: techId,
-      fullName: (singleUser as any)?.fullName || singleUser?.name || userFromList?.name || (userFromList as any)?.fullName || t("admin.maintenance.technicianFallback", { id: techId }),
+      fullName:
+        (singleUser as any)?.fullName ||
+        singleUser?.name ||
+        userFromList?.name ||
+        (userFromList as any)?.fullName ||
+        t("admin.maintenance.technicianFallback", { id: techId }),
       email: singleUser?.email || userFromList?.email || "",
       phoneNumber: resolvedPhoneNumber,
       enabled: singleUser?.enabled ?? userFromList?.enabled ?? true,
@@ -379,34 +475,83 @@ export default function TechnicianDetailPage() {
   const checkReportOverdue = (r: LockerReportResponse) => r.overdue === true;
 
   // Metrics: lấy từ endpoint hiệu suất của server; trong lúc tải thì đếm tạm từ danh sách phiếu
-  const inProgressCount = perf?.inProgress ?? techReports.filter((r) => r.status === "IN_PROGRESS").length;
-  const resolvedCount = perf?.resolved ?? techReports.filter((r) => r.status === "RESOLVED").length;
-  const overdueCount = perf?.overdue ?? techReports.filter(checkReportOverdue).length;
+  const inProgressCount =
+    perf?.inProgress ??
+    techReports.filter((r) => r.status === "IN_PROGRESS").length;
+  const resolvedCount =
+    perf?.resolved ?? techReports.filter((r) => r.status === "RESOLVED").length;
+  const overdueCount =
+    perf?.overdue ?? techReports.filter(checkReportOverdue).length;
   const totalCount = perf?.totalAssigned ?? techReports.length;
-  const completionRate = totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 100;
+  const completionRate =
+    totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 100;
 
   // Mức chế tài do server tính theo ngưỡng admin cấu hình; tài khoản bị tạm dừng luôn coi là đình chỉ
-  const penaltyKey: "NORMAL" | "WARNING" | "RESTRICTED" | "SUSPENDED" = !technician?.enabled
-    ? "SUSPENDED"
-    : perf?.penaltyLevel ?? "NORMAL";
+  const penaltyKey: "NORMAL" | "WARNING" | "RESTRICTED" | "SUSPENDED" =
+    !technician?.enabled ? "SUSPENDED" : (perf?.penaltyLevel ?? "NORMAL");
   const slaConfig = SLA_CONFIG[penaltyKey] ?? SLA_CONFIG.NORMAL;
   const SlaIcon = slaConfig.icon;
   const penaltyDesc = !technician?.enabled
     ? t("admin.maintenance.techDetail.accountPaused")
     : perf?.penaltyReason || t(slaConfig.descKey);
 
+  // Ticket counts for filter badges
+  const ticketCounts = useMemo(() => {
+    let inProgress = 0;
+    let resolved = 0;
+    let overdue = 0;
+
+    for (const r of techReports) {
+      if (r.status === "IN_PROGRESS") inProgress++;
+      if (r.status === "RESOLVED") resolved++;
+      if (checkReportOverdue(r)) overdue++;
+    }
+
+    return {
+      all: techReports.length,
+      inProgress,
+      resolved,
+      overdue,
+    };
+  }, [techReports]);
+
   // Filtered tickets
   const filteredReports = useMemo(() => {
     return techReports.filter((r) => {
-      if (ticketFilter === "ALL") return true;
-      if (ticketFilter === "OVERDUE") return r.overdue === true;
-      return r.status === ticketFilter;
+      if (ticketFilter === "IN_PROGRESS" && r.status !== "IN_PROGRESS")
+        return false;
+      if (ticketFilter === "RESOLVED" && r.status !== "RESOLVED") return false;
+      if (ticketFilter === "OVERDUE" && !checkReportOverdue(r)) return false;
+
+      if (ticketSearch.trim()) {
+        const query = ticketSearch.toLowerCase().trim();
+        const matchesId =
+          `rpt-${r.id}`.toLowerCase().includes(query) ||
+          String(r.id).includes(query);
+        const matchesTitle = r.title?.toLowerCase().includes(query);
+        const matchesLocker = r.lockerName?.toLowerCase().includes(query);
+        const matchesDrone = r.droneCode?.toLowerCase().includes(query);
+        const matchesDesc = r.description?.toLowerCase().includes(query);
+        if (
+          !matchesId &&
+          !matchesTitle &&
+          !matchesLocker &&
+          !matchesDrone &&
+          !matchesDesc
+        ) {
+          return false;
+        }
+      }
+
+      return true;
     });
-  }, [techReports, ticketFilter]);
+  }, [techReports, ticketFilter, ticketSearch]);
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(t("admin.maintenance.techDetail.copied", { label, value: text }));
+    toast.success(
+      t("admin.maintenance.techDetail.copied", { label, value: text }),
+    );
   };
 
   const handleSavePhone = async () => {
@@ -428,7 +573,8 @@ export default function TechnicianDetailPage() {
       toast.success(t("admin.maintenance.techDetail.phoneUpdated"));
     } catch (err: any) {
       toast.error(t("admin.maintenance.techDetail.phoneUpdateFailed"), {
-        description: err?.data?.message || err?.message || t("common.pleaseRetry"),
+        description:
+          err?.data?.message || err?.message || t("common.pleaseRetry"),
       });
     }
   };
@@ -447,8 +593,12 @@ export default function TechnicianDetailPage() {
           : t("admin.maintenance.techDetail.suspendSuccess"),
         {
           description: newEnabled
-            ? t("admin.maintenance.techDetail.nowActive", { name: technician.fullName })
-            : t("admin.maintenance.techDetail.nowPaused", { name: technician.fullName }),
+            ? t("admin.maintenance.techDetail.nowActive", {
+                name: technician.fullName,
+              })
+            : t("admin.maintenance.techDetail.nowPaused", {
+                name: technician.fullName,
+              }),
         },
       );
       refetchPerf();
@@ -468,15 +618,23 @@ export default function TechnicianDetailPage() {
       await sendNotification({
         userId: technician.id,
         title: "Cảnh cáo SLA",
-        message: `Bạn đang có ${overdueCount} phiếu sự cố trễ hạn SLA. Vui lòng xử lý dứt điểm các phiếu tồn đọng; `
-          + "tiếp tục trễ hạn có thể bị hạn chế nhận việc.",
+        message:
+          `Bạn đang có ${overdueCount} phiếu sự cố trễ hạn SLA. Vui lòng xử lý dứt điểm các phiếu tồn đọng; ` +
+          "tiếp tục trễ hạn có thể bị hạn chế nhận việc.",
         type: "SLA_WARNING",
       }).unwrap();
-      toast.success(t("admin.maintenance.techDetail.warningSent", { name: technician.fullName }), {
-        description: t("admin.maintenance.techDetail.warningSentDesc"),
-      });
+      toast.success(
+        t("admin.maintenance.techDetail.warningSent", {
+          name: technician.fullName,
+        }),
+        {
+          description: t("admin.maintenance.techDetail.warningSentDesc"),
+        },
+      );
     } catch (err: any) {
-      toast.error(t("admin.maintenance.techDetail.warningFailed"), { description: err?.data?.message || err?.message });
+      toast.error(t("admin.maintenance.techDetail.warningFailed"), {
+        description: err?.data?.message || err?.message,
+      });
     }
   };
 
@@ -484,14 +642,18 @@ export default function TechnicianDetailPage() {
     if (!unassignTargetId) return;
     try {
       await unassign(unassignTargetId).unwrap();
-      toast.success(t("admin.maintenance.techDetail.unassigned", { id: unassignTargetId }), {
-        description: t("admin.maintenance.techDetail.unassignedDesc"),
-      });
+      toast.success(
+        t("admin.maintenance.techDetail.unassigned", { id: unassignTargetId }),
+        {
+          description: t("admin.maintenance.techDetail.unassignedDesc"),
+        },
+      );
       refetchReports();
       refetchPerf();
     } catch (err: any) {
       toast.error(t("admin.maintenance.techDetail.unassignFailed"), {
-        description: err?.data?.message || err?.message || t("common.pleaseRetry"),
+        description:
+          err?.data?.message || err?.message || t("common.pleaseRetry"),
       });
     } finally {
       setUnassignTargetId(null);
@@ -508,7 +670,12 @@ export default function TechnicianDetailPage() {
         reportId: selectedReportToAssign,
         technicianId: technician.id,
       }).unwrap();
-      toast.success(t("admin.maintenance.techDetail.assignedSuccess", { id: selectedReportToAssign, name: technician.fullName }));
+      toast.success(
+        t("admin.maintenance.techDetail.assignedSuccess", {
+          id: selectedReportToAssign,
+          name: technician.fullName,
+        }),
+      );
       setAssignDialogOpen(false);
       setSelectedReportToAssign(null);
       refetchReports();
@@ -548,12 +715,20 @@ export default function TechnicianDetailPage() {
           <User className="w-6 h-6" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-foreground">{t("admin.maintenance.techDetail.notFound")}</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            {t("admin.maintenance.techDetail.notFound")}
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("admin.maintenance.techDetail.notFoundDesc", { id: technicianId })}
+            {t("admin.maintenance.techDetail.notFoundDesc", {
+              id: technicianId,
+            })}
           </p>
         </div>
-        <Button variant="outline" onClick={() => navigate("/admin/technicians")} className="gap-2">
+        <Button
+          variant="outline"
+          onClick={() => navigate("/admin/technicians")}
+          className="gap-2"
+        >
           <ArrowLeft className="w-4 h-4" />
           {t("admin.maintenance.techDetail.backToList")}
         </Button>
@@ -585,7 +760,7 @@ export default function TechnicianDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-bold tracking-tight text-foreground">
                 {technician.fullName}
               </h1>
@@ -597,18 +772,29 @@ export default function TechnicianDetailPage() {
                     : "bg-rose-100 text-rose-800 border-rose-300 font-semibold dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700"
                 }
               >
-                {technician.enabled ? t("admin.maintenance.account.active") : t("admin.maintenance.techDetail.paused")}
+                {technician.enabled
+                  ? t("admin.maintenance.account.active")
+                  : t("admin.maintenance.techDetail.paused")}
               </Badge>
-              <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300 font-semibold text-xs dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-700">
+              <Badge
+                variant="outline"
+                className="bg-indigo-100 text-indigo-800 border-indigo-300 font-semibold text-xs dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-700"
+              >
                 {t("admin.maintenance.techFallback", { id: technician.id })}
               </Badge>
               {technician.specialty === "KIOSK" ? (
-                <Badge variant="outline" className="bg-sky-100 text-sky-800 border-sky-300 font-semibold text-xs gap-1 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-700">
+                <Badge
+                  variant="outline"
+                  className="bg-sky-100 text-sky-800 border-sky-300 font-semibold text-xs gap-1 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-700"
+                >
                   <Wrench className="w-3 h-3 text-sky-700 dark:text-sky-300" />
                   {t("admin.maintenance.specialty.kioskHardware")}
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300 font-semibold text-xs gap-1 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-700">
+                <Badge
+                  variant="outline"
+                  className="bg-purple-100 text-purple-800 border-purple-300 font-semibold text-xs gap-1 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-700"
+                >
                   <Plane className="w-3 h-3 text-purple-700 dark:text-purple-300" />
                   {t("admin.maintenance.specialty.drone")}
                 </Badge>
@@ -695,13 +881,19 @@ export default function TechnicianDetailPage() {
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techDetail.totalAssigned")}</p>
+              <p className="text-xs text-muted-foreground font-medium">
+                {t("admin.maintenance.techDetail.totalAssigned")}
+              </p>
               <div className="w-8 h-8 rounded-md bg-slate-100 border border-slate-300 text-slate-700 dark:bg-slate-800 dark:text-slate-300 flex items-center justify-center">
                 <Boxes className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">{totalCount}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{t("admin.maintenance.techDetail.allTime")}</p>
+            <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">
+              {totalCount}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {t("admin.maintenance.techDetail.allTime")}
+            </p>
           </CardContent>
         </Card>
 
@@ -709,16 +901,22 @@ export default function TechnicianDetailPage() {
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.status.inProgress")}</p>
+              <p className="text-xs text-muted-foreground font-medium">
+                {t("admin.maintenance.status.inProgress")}
+              </p>
               <div className="w-8 h-8 rounded-md bg-blue-100 border border-blue-300 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 flex items-center justify-center">
                 <Clock className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">{inProgressCount}</p>
+            <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">
+              {inProgressCount}
+            </p>
             <p className="text-[11px] text-blue-700 dark:text-blue-300 font-medium mt-1">
               {inProgressCount === 0
                 ? t("admin.maintenance.techDetail.idleNow")
-                : t("admin.maintenance.techDetail.openCount", { count: inProgressCount })}
+                : t("admin.maintenance.techDetail.openCount", {
+                    count: inProgressCount,
+                  })}
             </p>
           </CardContent>
         </Card>
@@ -727,14 +925,20 @@ export default function TechnicianDetailPage() {
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.status.resolved")}</p>
+              <p className="text-xs text-muted-foreground font-medium">
+                {t("admin.maintenance.status.resolved")}
+              </p>
               <div className="w-8 h-8 rounded-md bg-emerald-100 border border-emerald-300 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center justify-center">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">{resolvedCount}</p>
+            <p className="text-2xl font-bold tracking-tight text-foreground mt-1.5">
+              {resolvedCount}
+            </p>
             <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium mt-1">
-              {t("admin.maintenance.techDetail.completionRate", { rate: completionRate })}
+              {t("admin.maintenance.techDetail.completionRate", {
+                rate: completionRate,
+              })}
             </p>
           </CardContent>
         </Card>
@@ -743,7 +947,9 @@ export default function TechnicianDetailPage() {
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techDetail.overdueSla")}</p>
+              <p className="text-xs text-muted-foreground font-medium">
+                {t("admin.maintenance.techDetail.overdueSla")}
+              </p>
               <div
                 className={`w-8 h-8 rounded-md border flex items-center justify-center ${
                   overdueCount > 0
@@ -756,14 +962,20 @@ export default function TechnicianDetailPage() {
             </div>
             <p
               className={`text-2xl font-bold tracking-tight mt-1.5 ${
-                overdueCount > 0 ? "text-rose-700 dark:text-rose-300" : "text-foreground"
+                overdueCount > 0
+                  ? "text-rose-700 dark:text-rose-300"
+                  : "text-foreground"
               }`}
             >
               {overdueCount}
             </p>
-            <p className={`text-[11px] mt-1 ${overdueCount > 0 ? "text-rose-700 font-medium" : "text-muted-foreground"}`}>
+            <p
+              className={`text-[11px] mt-1 ${overdueCount > 0 ? "text-rose-700 font-medium" : "text-muted-foreground"}`}
+            >
               {overdueCount > 0
-                ? t("admin.maintenance.techDetail.overdueCount", { count: overdueCount })
+                ? t("admin.maintenance.techDetail.overdueCount", {
+                    count: overdueCount,
+                  })
                 : t("admin.maintenance.techDetail.noOverdue")}
             </p>
           </CardContent>
@@ -787,15 +999,25 @@ export default function TechnicianDetailPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3 pb-3 border-b">
                 <Avatar className="h-12 w-12 border border-border/60">
-                  {technician.imageUrl && <AvatarImage src={technician.imageUrl} alt={technician.fullName} />}
+                  {technician.imageUrl && (
+                    <AvatarImage
+                      src={technician.imageUrl}
+                      alt={technician.fullName}
+                    />
+                  )}
                   <AvatarFallback className="bg-muted font-bold text-foreground text-sm">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold text-sm text-foreground">{technician.fullName}</h3>
+                  <h3 className="font-semibold text-sm text-foreground">
+                    {technician.fullName}
+                  </h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <Badge variant="outline" className="bg-muted/50 text-[10px] text-muted-foreground px-1.5 py-0">
+                    <Badge
+                      variant="outline"
+                      className="bg-muted/50 text-[10px] text-muted-foreground px-1.5 py-0"
+                    >
                       {t("admin.maintenance.techDetail.role")}
                     </Badge>
                   </div>
@@ -806,16 +1028,21 @@ export default function TechnicianDetailPage() {
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-muted-foreground" /> Email:
+                    <Mail className="w-3.5 h-3.5 text-muted-foreground" />{" "}
+                    Email:
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="font-medium text-foreground truncate max-w-[160px]">{technician.email || "—"}</span>
+                    <span className="font-medium text-foreground truncate max-w-[160px]">
+                      {technician.email || "—"}
+                    </span>
                     {technician.email && (
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6"
-                        onClick={() => handleCopy(technician.email, t("common.email"))}
+                        onClick={() =>
+                          handleCopy(technician.email, t("common.email"))
+                        }
                         title={t("admin.maintenance.techDetail.copy")}
                       >
                         <Copy className="w-3 h-3 text-muted-foreground" />
@@ -826,14 +1053,17 @@ export default function TechnicianDetailPage() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-muted-foreground" /> {t("admin.maintenance.techDetail.phoneLabel")}
+                    <Phone className="w-3.5 h-3.5 text-muted-foreground" />{" "}
+                    {t("admin.maintenance.techDetail.phoneLabel")}
                   </span>
                   <div className="flex items-center gap-1">
                     <span className="font-medium text-foreground">
                       {technician.phoneNumber ? (
                         technician.phoneNumber
                       ) : (
-                        <span className="text-muted-foreground italic">{t("admin.maintenance.noPhone")}</span>
+                        <span className="text-muted-foreground italic">
+                          {t("admin.maintenance.noPhone")}
+                        </span>
                       )}
                     </span>
                     {technician.phoneNumber && (
@@ -841,7 +1071,9 @@ export default function TechnicianDetailPage() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6"
-                        onClick={() => handleCopy(technician.phoneNumber!, t("common.phone"))}
+                        onClick={() =>
+                          handleCopy(technician.phoneNumber!, t("common.phone"))
+                        }
                         title={t("admin.maintenance.techDetail.copy")}
                       >
                         <Copy className="w-3 h-3 text-muted-foreground" />
@@ -864,21 +1096,30 @@ export default function TechnicianDetailPage() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-muted-foreground" /> {t("admin.maintenance.techDetail.joinedAt")}
+                    <Calendar className="w-3.5 h-3.5 text-muted-foreground" />{" "}
+                    {t("admin.maintenance.techDetail.joinedAt")}
                   </span>
                   <span className="font-medium text-foreground font-mono">
-                    {technician.createdAt ? formatDateOnly(technician.createdAt) : t("admin.maintenance.techDetail.updating")}
+                    {technician.createdAt
+                      ? formatDateOnly(technician.createdAt)
+                      : t("admin.maintenance.techDetail.updating")}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-muted-foreground">{t("admin.maintenance.techDetail.currentLoad")}</span>
+                  <span className="text-muted-foreground">
+                    {t("admin.maintenance.techDetail.currentLoad")}
+                  </span>
                   <span className="font-medium text-foreground">
                     {inProgressCount === 0
                       ? t("admin.maintenance.techDetail.readyForWork")
                       : inProgressCount >= 3
-                      ? t("admin.maintenance.techDetail.highLoad", { count: inProgressCount })
-                      : t("admin.maintenance.techDetail.normalLoad", { count: inProgressCount })}
+                        ? t("admin.maintenance.techDetail.highLoad", {
+                            count: inProgressCount,
+                          })
+                        : t("admin.maintenance.techDetail.normalLoad", {
+                            count: inProgressCount,
+                          })}
                   </span>
                 </div>
               </div>
@@ -908,7 +1149,9 @@ export default function TechnicianDetailPage() {
                         : "bg-slate-400"
                     }`}
                   />
-                  {technicianPresence?.onDuty ? "Đang trong ca" : "Ngoài ca trực"}
+                  {technicianPresence?.onDuty
+                    ? "Đang trong ca"
+                    : "Ngoài ca trực"}
                 </Badge>
               </div>
               <CardDescription className="text-xs mt-1">
@@ -920,7 +1163,8 @@ export default function TechnicianDetailPage() {
               <div className="space-y-2 p-3 rounded-lg bg-muted/40 border border-border/60">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Vào ca lúc:
+                    <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Vào
+                    ca lúc:
                   </span>
                   <span className="font-medium text-foreground">
                     {technicianPresence?.shiftStartedAt
@@ -931,7 +1175,8 @@ export default function TechnicianDetailPage() {
                 {technicianPresence?.shiftEndedAt && (
                   <div className="flex items-center justify-between pt-1 border-t border-border/40">
                     <span className="text-muted-foreground flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Hết ca lúc:
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />{" "}
+                      Hết ca lúc:
                     </span>
                     <span className="font-medium text-foreground">
                       {formatDateTime(technicianPresence.shiftEndedAt)}
@@ -941,14 +1186,17 @@ export default function TechnicianDetailPage() {
               </div>
 
               {/* GPS Coordinates & Accuracy */}
-              {technicianPresence?.latitude != null && technicianPresence?.longitude != null ? (
+              {technicianPresence?.latitude != null &&
+              technicianPresence?.longitude != null ? (
                 <div className="space-y-2 p-3 rounded-lg bg-sky-50/50 border border-sky-200/60 dark:bg-sky-950/20 dark:border-sky-800/40">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-sky-600" /> Tọa độ GPS:
+                      <MapPin className="w-3.5 h-3.5 text-sky-600" /> Tọa độ
+                      GPS:
                     </span>
                     <span className="font-mono font-bold text-foreground">
-                      {technicianPresence.latitude.toFixed(6)}, {technicianPresence.longitude.toFixed(6)}
+                      {technicianPresence.latitude.toFixed(6)},{" "}
+                      {technicianPresence.longitude.toFixed(6)}
                     </span>
                   </div>
                   {technicianPresence.accuracyM != null && (
@@ -988,10 +1236,13 @@ export default function TechnicianDetailPage() {
                 <div className="p-3 rounded-lg border border-dashed text-center text-muted-foreground text-xs space-y-1">
                   <MapPin className="w-5 h-5 mx-auto text-muted-foreground/60" />
                   <p className="font-medium">
-                    {technicianPresence?.onDuty ? "Đang chờ KTV gửi tọa độ GPS..." : "Chưa có dữ liệu vị trí GPS"}
+                    {technicianPresence?.onDuty
+                      ? "Đang chờ KTV gửi tọa độ GPS..."
+                      : "Chưa có dữ liệu vị trí GPS"}
                   </p>
                   <p className="text-[11px] text-muted-foreground/80">
-                    Vị trí sẽ được cập nhật khi KTV bật ca trực trên ứng dụng Mobile.
+                    Vị trí sẽ được cập nhật khi KTV bật ca trực trên ứng dụng
+                    Mobile.
                   </p>
                 </div>
               )}
@@ -1015,8 +1266,13 @@ export default function TechnicianDetailPage() {
                     </>
                   )}
                 </CardTitle>
-                <Badge variant="outline" className="text-xs font-semibold px-2 py-0.5 bg-muted">
-                  {technician?.specialty === "DRONE" ? assignedDrones.length : assignedLockers.length}
+                <Badge
+                  variant="outline"
+                  className="text-xs font-semibold px-2 py-0.5 bg-muted"
+                >
+                  {technician?.specialty === "DRONE"
+                    ? assignedDrones.length
+                    : assignedLockers.length}
                 </Badge>
               </div>
               <CardDescription className="text-xs mt-1">
@@ -1058,15 +1314,20 @@ export default function TechnicianDetailPage() {
                           {drone.batteryPercent != null && (
                             <div className="flex items-center justify-between">
                               <span className="flex items-center gap-1">
-                                <BatteryCharging className="w-3 h-3 text-emerald-600" /> Pin:
+                                <BatteryCharging className="w-3 h-3 text-emerald-600" />{" "}
+                                Pin:
                               </span>
-                              <span className="font-mono font-medium text-foreground">{drone.batteryPercent}%</span>
+                              <span className="font-mono font-medium text-foreground">
+                                {drone.batteryPercent}%
+                              </span>
                             </div>
                           )}
                           {drone.lockerName && (
                             <div className="flex items-center justify-between">
                               <span>Trạm gốc:</span>
-                              <span className="font-medium text-foreground truncate max-w-[150px]">{drone.lockerName}</span>
+                              <span className="font-medium text-foreground truncate max-w-[150px]">
+                                {drone.lockerName}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -1083,62 +1344,61 @@ export default function TechnicianDetailPage() {
                     ))}
                   </div>
                 )
+              ) : assignedLockers.length === 0 ? (
+                <div className="p-4 rounded-lg border border-dashed text-center text-muted-foreground text-xs space-y-1">
+                  <Boxes className="w-5 h-5 mx-auto text-muted-foreground/60" />
+                  <p className="font-medium">Chưa có Kiosk phụ trách</p>
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Gán KTV phụ trách trong trang chi tiết Kiosk.
+                  </p>
+                </div>
               ) : (
-                assignedLockers.length === 0 ? (
-                  <div className="p-4 rounded-lg border border-dashed text-center text-muted-foreground text-xs space-y-1">
-                    <Boxes className="w-5 h-5 mx-auto text-muted-foreground/60" />
-                    <p className="font-medium">Chưa có Kiosk phụ trách</p>
-                    <p className="text-[11px] text-muted-foreground/80">
-                      Gán KTV phụ trách trong trang chi tiết Kiosk.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                    {assignedLockers.map((locker) => (
-                      <div
-                        key={locker.id}
-                        className="p-3 rounded-lg border border-border/70 bg-card hover:bg-muted/40 transition-colors space-y-2 group"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 font-semibold text-foreground truncate">
-                            <Boxes className="w-3.5 h-3.5 text-primary shrink-0" />
-                            <span className="truncate">{locker.name}</span>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] font-semibold px-1.5 py-0 shrink-0"
-                          >
-                            {locker.status}
-                          </Badge>
+                <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                  {assignedLockers.map((locker) => (
+                    <div
+                      key={locker.id}
+                      className="p-3 rounded-lg border border-border/70 bg-card hover:bg-muted/40 transition-colors space-y-2 group"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 font-semibold text-foreground truncate">
+                          <Boxes className="w-3.5 h-3.5 text-primary shrink-0" />
+                          <span className="truncate">{locker.name}</span>
                         </div>
-                        <p className="font-mono text-[11px] text-muted-foreground">
-                          {locker.code}
-                        </p>
-                        {locker.address && (
-                          <div className="flex items-start gap-1 text-[11px] text-muted-foreground">
-                            <MapPin className="w-3 h-3 text-sky-600 shrink-0 mt-0.5" />
-                            <span className="line-clamp-2">{locker.address}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/50">
-                          <span>Số ô trống:</span>
-                          <span className="font-medium text-foreground">
-                            {locker.availableBoxes ?? 0} / {locker.totalBoxes ?? 0}
-                          </span>
-                        </div>
-                        <Button
+                        <Badge
                           variant="outline"
-                          size="sm"
-                          className="w-full h-7 text-xs bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-slate-900 dark:text-indigo-300 dark:border-indigo-800 gap-1"
-                          onClick={() => navigate(`/admin/lockers/${locker.id}`)}
+                          className="text-[10px] font-semibold px-1.5 py-0 shrink-0"
                         >
-                          Xem chi tiết Kiosk
-                          <ChevronRight className="w-3.5 h-3.5 ml-auto" />
-                        </Button>
+                          {locker.status}
+                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                )
+                      <p className="font-mono text-[11px] text-muted-foreground">
+                        {locker.code}
+                      </p>
+                      {locker.address && (
+                        <div className="flex items-start gap-1 text-[11px] text-muted-foreground">
+                          <MapPin className="w-3 h-3 text-sky-600 shrink-0 mt-0.5" />
+                          <span className="line-clamp-2">{locker.address}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/50">
+                        <span>Số ô trống:</span>
+                        <span className="font-medium text-foreground">
+                          {locker.availableBoxes ?? 0} /{" "}
+                          {locker.totalBoxes ?? 0}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full h-7 text-xs bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-slate-900 dark:text-indigo-300 dark:border-indigo-800 gap-1"
+                        onClick={() => navigate(`/admin/lockers/${locker.id}`)}
+                      >
+                        Xem chi tiết Kiosk
+                        <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -1151,7 +1411,10 @@ export default function TechnicianDetailPage() {
                   <ShieldCheck className="w-4 h-4 text-muted-foreground" />
                   {t("admin.maintenance.techDetail.slaPolicy")}
                 </CardTitle>
-                <Badge variant="outline" className={`text-xs ${slaConfig.badgeClass}`}>
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${slaConfig.badgeClass}`}
+                >
                   <SlaIcon className="w-3 h-3 mr-1" />
                   {t(slaConfig.badgeLabelKey)}
                 </Badge>
@@ -1169,31 +1432,50 @@ export default function TechnicianDetailPage() {
                 </div>
                 <p className="text-muted-foreground">{penaltyDesc}</p>
                 <p className="text-muted-foreground pt-1 border-t border-border/40 text-[11px]">
-                  <strong className="text-foreground">{t("admin.maintenance.techDetail.appliedPenalty")}</strong>
+                  <strong className="text-foreground">
+                    {t("admin.maintenance.techDetail.appliedPenalty")}
+                  </strong>
                   {t(slaConfig.consequenceKey)}
                 </p>
               </div>
 
               {/* 3-tier rules overview */}
               <div className="space-y-2">
-                <p className="font-semibold text-foreground text-xs">{t("admin.maintenance.techDetail.penaltyFramework")}</p>
+                <p className="font-semibold text-foreground text-xs">
+                  {t("admin.maintenance.techDetail.penaltyFramework")}
+                </p>
                 <div className="space-y-1.5 text-[11px]">
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
-                    <span className="font-bold text-muted-foreground shrink-0">{t("admin.maintenance.techDetail.level1")}</span>
+                    <span className="font-bold text-muted-foreground shrink-0">
+                      {t("admin.maintenance.techDetail.level1")}
+                    </span>
                     <span className="text-muted-foreground">
-                      <Trans i18nKey="admin.maintenance.techDetail.level1Rule" components={{ b: <strong /> }} />
+                      <Trans
+                        i18nKey="admin.maintenance.techDetail.level1Rule"
+                        components={{ b: <strong /> }}
+                      />
                     </span>
                   </div>
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
-                    <span className="font-bold text-muted-foreground shrink-0">{t("admin.maintenance.techDetail.level2")}</span>
+                    <span className="font-bold text-muted-foreground shrink-0">
+                      {t("admin.maintenance.techDetail.level2")}
+                    </span>
                     <span className="text-muted-foreground">
-                      <Trans i18nKey="admin.maintenance.techDetail.level2Rule" components={{ b: <strong /> }} />
+                      <Trans
+                        i18nKey="admin.maintenance.techDetail.level2Rule"
+                        components={{ b: <strong /> }}
+                      />
                     </span>
                   </div>
                   <div className="p-2 rounded border border-border/60 flex items-start gap-2 bg-card">
-                    <span className="font-bold text-muted-foreground shrink-0">{t("admin.maintenance.techDetail.level3")}</span>
+                    <span className="font-bold text-muted-foreground shrink-0">
+                      {t("admin.maintenance.techDetail.level3")}
+                    </span>
                     <span className="text-muted-foreground">
-                      <Trans i18nKey="admin.maintenance.techDetail.level3Rule" components={{ b: <strong /> }} />
+                      <Trans
+                        i18nKey="admin.maintenance.techDetail.level3Rule"
+                        components={{ b: <strong /> }}
+                      />
                     </span>
                   </div>
                   <p className="text-muted-foreground italic">
@@ -1207,78 +1489,154 @@ export default function TechnicianDetailPage() {
 
         {/* RIGHT COLUMN: Tabs for Tickets, Timeline, CSAT */}
         <div className="lg:col-span-2">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <div className="flex items-center justify-between border-b pb-2">
-              <TabsList className="h-9 p-1 bg-muted/60 border border-border/50 rounded-lg">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-4"
+          >
+            <div className="border-b pb-2 overflow-x-auto scrollbar-none">
+              <TabsList className="h-9 p-1 bg-muted/60 border border-border/50 rounded-lg inline-flex w-auto min-w-full sm:min-w-0">
                 <TabsTrigger
                   value="tickets"
-                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs whitespace-nowrap"
                 >
-                  <Wrench className="w-3.5 h-3.5 text-muted-foreground" />
-                  {t("admin.maintenance.techDetail.tabTickets", { count: techReports.length })}
+                  <Wrench className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  {t("admin.maintenance.techDetail.tabTickets", {
+                    count: techReports.length,
+                  })}
                 </TabsTrigger>
                 <TabsTrigger
                   value="timeline"
-                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs whitespace-nowrap"
                 >
-                  <History className="w-3.5 h-3.5 text-muted-foreground" />
+                  <History className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                   {t("admin.maintenance.techDetail.tabTimeline")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="schedules"
-                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs whitespace-nowrap"
                 >
-                  <CalendarClock className="w-3.5 h-3.5 text-muted-foreground" />
+                  <CalendarClock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                   {technician.specialty === "DRONE"
                     ? t("admin.maintenance.techDetail.tabDroneSchedules")
-                    : t("admin.maintenance.techDetail.tabKioskSchedules")} ({assignedSchedules.length})
+                    : t("admin.maintenance.techDetail.tabKioskSchedules")}{" "}
+                  ({assignedSchedules.length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="reviews"
-                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+                  className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs whitespace-nowrap"
                 >
-                  <Star className="w-3.5 h-3.5 text-muted-foreground" />
-                  {t("admin.maintenance.techDetail.tabReviews", { count: perf?.ratingCount ?? 0 })}
+                  <Star className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  {t("admin.maintenance.techDetail.tabReviews", {
+                    count: perf?.ratingCount ?? 0,
+                  })}
                 </TabsTrigger>
               </TabsList>
-
-              {/* Sub-actions */}
-              {activeTab === "tickets" && (
-                <div className="flex items-center gap-1">
-                  {[
-                    { key: "ALL", label: t("common.all") },
-                    { key: "IN_PROGRESS", label: t("admin.maintenance.metrics.inProgress") },
-                    { key: "RESOLVED", label: t("admin.maintenance.metrics.done") },
-                    { key: "OVERDUE", label: t("admin.maintenance.metrics.slaLate") },
-                  ].map((f) => (
-                    <Button
-                      key={f.key}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setTicketFilter(f.key as any)}
-                      className={`h-7 px-2 text-xs rounded-md ${
-                        ticketFilter === f.key
-                          ? "bg-secondary text-foreground font-semibold"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {f.label}
-                    </Button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* TAB 1: TICKETS LIST */}
             <TabsContent value="tickets" className="space-y-3 pt-1">
+              {/* Filter & Search Toolbar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-muted/30 border border-border/60 rounded-xl p-2.5">
+                {/* Filter Pills with Parentheses Counts */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    {
+                      key: "ALL" as const,
+                      label: t("common.all"),
+                      count: ticketCounts.all,
+                    },
+                    {
+                      key: "IN_PROGRESS" as const,
+                      label: t("admin.maintenance.metrics.inProgress"),
+                      count: ticketCounts.inProgress,
+                    },
+                    {
+                      key: "RESOLVED" as const,
+                      label: t("admin.maintenance.metrics.done"),
+                      count: ticketCounts.resolved,
+                    },
+                    {
+                      key: "OVERDUE" as const,
+                      label: t("admin.maintenance.metrics.slaLate"),
+                      count: ticketCounts.overdue,
+                    },
+                  ].map((f) => {
+                    const isSelected = ticketFilter === f.key;
+                    const isOverdue = f.key === "OVERDUE";
+                    return (
+                      <Button
+                        key={f.key}
+                        variant={isSelected ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => setTicketFilter(f.key)}
+                        className={`h-8 px-2.5 text-xs rounded-lg transition-all ${
+                          isSelected
+                            ? isOverdue && f.count > 0
+                              ? "bg-background text-rose-700 dark:text-rose-400 font-semibold shadow-xs border border-rose-300 dark:border-rose-800"
+                              : "bg-background text-foreground font-semibold shadow-xs border border-border"
+                            : isOverdue && f.count > 0
+                            ? "text-rose-600 hover:text-rose-700 dark:text-rose-400"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {f.label} ({f.count})
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                {/* Search input */}
+                <div className="relative w-full sm:w-60 shrink-0">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder={t(
+                      "admin.maintenance.techDetail.searchPlaceholder",
+                      { defaultValue: "Tìm theo mã, tiêu đề, thiết bị..." },
+                    )}
+                    value={ticketSearch}
+                    onChange={(e) => setTicketSearch(e.target.value)}
+                    className="h-8 pl-8 pr-7 text-xs rounded-lg bg-background border-border/80"
+                  />
+                  {ticketSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setTicketSearch("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground rounded-full"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {filteredReports.length === 0 ? (
                 <Card className="border border-border/70 shadow-xs">
-                  <CardContent className="py-12 text-center text-muted-foreground">
-                    <Wrench className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                    <p className="text-sm font-medium">{t("admin.maintenance.techDetail.noTickets")}</p>
-                    <p className="text-xs mt-0.5">
-                      {t("admin.maintenance.techDetail.noTicketsDesc")}
-                    </p>
+                  <CardContent className="py-12 text-center text-muted-foreground space-y-3">
+                    <Wrench className="w-8 h-8 mx-auto opacity-40" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {t("admin.maintenance.techDetail.noTickets")}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {t("admin.maintenance.techDetail.noTicketsDesc")}
+                      </p>
+                    </div>
+                    {(ticketFilter !== "ALL" || ticketSearch.trim()) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setTicketFilter("ALL");
+                          setTicketSearch("");
+                        }}
+                        className="text-xs h-8"
+                      >
+                        {t("admin.maintenance.techDetail.clearFilter", {
+                          defaultValue: "Xóa bộ lọc",
+                        })}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ) : (
@@ -1299,10 +1657,10 @@ export default function TechnicianDetailPage() {
                           isNew
                             ? "border-l-4 border-l-amber-500 border-amber-300 bg-amber-50/30 dark:bg-amber-950/20 shadow-xs ring-1 ring-amber-300/60 dark:ring-amber-900/40"
                             : isOverdue
-                            ? "border-rose-300 bg-rose-50/10 dark:border-rose-900/50"
-                            : isExtended
-                            ? "border-amber-300/80 bg-amber-50/15 dark:border-amber-800/40"
-                            : "border-border/80 hover:border-border"
+                              ? "border-rose-300 bg-rose-50/10 dark:border-rose-900/50"
+                              : isExtended
+                                ? "border-amber-300/80 bg-amber-50/15 dark:border-amber-800/40"
+                                : "border-border/80 hover:border-border"
                         }`}
                       >
                         <CardContent className="p-4 space-y-3">
@@ -1321,7 +1679,9 @@ export default function TechnicianDetailPage() {
                                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                                       <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                                     </span>
-                                    {t("admin.maintenance.status.newlyReceived")}
+                                    {t(
+                                      "admin.maintenance.status.newlyReceived",
+                                    )}
                                   </Badge>
                                 ) : (
                                   <Badge
@@ -1332,7 +1692,11 @@ export default function TechnicianDetailPage() {
                                         : "bg-blue-100 text-blue-800 border-blue-300 font-medium text-xs dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700"
                                     }
                                   >
-                                    {isDone ? t("admin.maintenance.status.resolved") : t("admin.maintenance.status.inProgress")}
+                                    {isDone
+                                      ? t("admin.maintenance.status.resolved")
+                                      : t(
+                                          "admin.maintenance.status.inProgress",
+                                        )}
                                   </Badge>
                                 )}
                                 <SlaCountdownBadge
@@ -1354,7 +1718,10 @@ export default function TechnicianDetailPage() {
                                     variant="outline"
                                     className="bg-rose-100 text-rose-800 border-rose-300 text-xs font-semibold dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700"
                                   >
-                                    {t("admin.maintenance.techDetail.overdueAfterExtension", { hours: extHours })}
+                                    {t(
+                                      "admin.maintenance.techDetail.overdueAfterExtension",
+                                      { hours: extHours },
+                                    )}
                                   </Badge>
                                 )}
                                 {!isOverdue && isExtended && (
@@ -1362,22 +1729,40 @@ export default function TechnicianDetailPage() {
                                     variant="outline"
                                     className="bg-amber-100 text-amber-800 border-amber-300 text-xs dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 font-medium"
                                   >
-                                    {t("admin.maintenance.techDetail.extended", { hours: extHours })}
+                                    {t(
+                                      "admin.maintenance.techDetail.extended",
+                                      { hours: extHours },
+                                    )}
                                   </Badge>
                                 )}
                               </div>
                               {/* User report content */}
                               {report.description && (
                                 <div className="space-y-0.5">
-                                  <p className="text-[10px] font-semibold text-muted-foreground">{t("admin.maintenance.techDetail.customerContent")}</p>
-                                  <p className="text-xs text-foreground bg-muted/30 px-2.5 py-1.5 rounded border border-border/50 leading-relaxed">{cleanDescription(report.description) || report.description}</p>
+                                  <p className="text-[10px] font-semibold text-muted-foreground">
+                                    {t(
+                                      "admin.maintenance.techDetail.customerContent",
+                                    )}
+                                  </p>
+                                  <p className="text-xs text-foreground bg-muted/30 px-2.5 py-1.5 rounded border border-border/50 leading-relaxed">
+                                    {cleanDescription(report.description) ||
+                                      report.description}
+                                  </p>
                                 </div>
                               )}
                               {/* Reporter contact */}
-                              {(report.reporterName || report.reporterPhone) && (
+                              {(report.reporterName ||
+                                report.reporterPhone) && (
                                 <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                                   <Phone className="w-3 h-3" />
-                                  {t("admin.maintenance.techDetail.reporter", { info: [report.reporterName, report.reporterPhone].filter(Boolean).join(" · ") })}
+                                  {t("admin.maintenance.techDetail.reporter", {
+                                    info: [
+                                      report.reporterName,
+                                      report.reporterPhone,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" · "),
+                                  })}
                                 </p>
                               )}
                             </div>
@@ -1397,13 +1782,18 @@ export default function TechnicianDetailPage() {
                                     className="h-8 text-xs border-amber-200 text-amber-700 hover:bg-amber-50 shrink-0 dark:border-amber-800 dark:text-amber-400"
                                     onClick={() => setExtendSlaReport(report)}
                                   >
-                                    <Clock className="w-3.5 h-3.5 mr-1" /> {t("admin.maintenance.techDetail.extendSla")}
+                                    <Clock className="w-3.5 h-3.5 mr-1" />{" "}
+                                    {t(
+                                      "admin.maintenance.techDetail.extendSla",
+                                    )}
                                   </Button>
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     className="h-8 text-xs border-rose-200 text-rose-700 hover:bg-rose-50 shrink-0 dark:border-rose-800 dark:text-rose-400"
-                                    onClick={() => setUnassignTargetId(report.id)}
+                                    onClick={() =>
+                                      setUnassignTargetId(report.id)
+                                    }
                                     disabled={isUnassigning}
                                   >
                                     {t("admin.maintenance.techDetail.reclaim")}
@@ -1427,21 +1817,36 @@ export default function TechnicianDetailPage() {
                               >
                                 {isDroneReport(report)
                                   ? `Drone ${report.droneCode ?? `#${report.droneUnitId}`}`
-                                  : (report.lockerName ?? `Kiosk #${report.lockerId}`)}
-                                {report.boxNumber ? ` · ${t("admin.maintenance.boxNumber", { number: report.boxNumber })}` : ""}
+                                  : (report.lockerName ??
+                                    `Kiosk #${report.lockerId}`)}
+                                {report.boxNumber
+                                  ? ` · ${t("admin.maintenance.boxNumber", { number: report.boxNumber })}`
+                                  : ""}
                               </Link>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span>{t("admin.maintenance.techDetail.createdAt", { time: formatDateTime(report.createdAt) })}</span>
+                              <span>
+                                {t("admin.maintenance.techDetail.createdAt", {
+                                  time: formatDateTime(report.createdAt),
+                                })}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                              <span>{t("admin.maintenance.techDetail.slaDue", { time: formatDateTime(report.slaDueAt) })}</span>
+                              <span>
+                                {t("admin.maintenance.techDetail.slaDue", {
+                                  time: formatDateTime(report.slaDueAt),
+                                })}
+                              </span>
                             </div>
                           </div>
 
-                          <ReportPhotoGroups report={report} variant="stacked" userNames={photoUserNames} />
+                          <ReportPhotoGroups
+                            report={report}
+                            variant="stacked"
+                            userNames={photoUserNames}
+                          />
                         </CardContent>
                       </Card>
                     );
@@ -1482,20 +1887,34 @@ export default function TechnicianDetailPage() {
                               <div className="flex items-center justify-between gap-2">
                                 <span className="font-semibold text-xs text-foreground">
                                   {isDone
-                                    ? t("admin.maintenance.techDetail.timelineResolved", { id: r.id, title: r.title })
-                                    : t("admin.maintenance.techDetail.timelineInProgress", { id: r.id, title: r.title })}
+                                    ? t(
+                                        "admin.maintenance.techDetail.timelineResolved",
+                                        { id: r.id, title: r.title },
+                                      )
+                                    : t(
+                                        "admin.maintenance.techDetail.timelineInProgress",
+                                        { id: r.id, title: r.title },
+                                      )}
                                 </span>
                                 <span className="text-[11px] text-muted-foreground font-mono">
-                                  {formatDateTime(r.resolvedAt || r.assignedAt || r.createdAt)}
+                                  {formatDateTime(
+                                    r.resolvedAt || r.assignedAt || r.createdAt,
+                                  )}
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                {t("admin.maintenance.labels.device")} <span className="text-foreground font-medium">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
-                                {r.boxNumber ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxNumber })}` : ""}
+                                {t("admin.maintenance.labels.device")}{" "}
+                                <span className="text-foreground font-medium">
+                                  {r.lockerName ?? `Kiosk #${r.lockerId}`}
+                                </span>
+                                {r.boxNumber
+                                  ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxNumber })}`
+                                  : ""}
                               </p>
                               {r.description && (
                                 <p className="text-xs text-muted-foreground bg-muted/40 p-2 rounded-md border border-border/40 mt-1">
-                                  {cleanDescription(r.description) || r.description}
+                                  {cleanDescription(r.description) ||
+                                    r.description}
                                 </p>
                               )}
                             </div>
@@ -1513,14 +1932,18 @@ export default function TechnicianDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="border border-border/80 shadow-xs md:col-span-1">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold">{t("admin.maintenance.techDetail.csat")}</CardTitle>
+                    <CardTitle className="text-sm font-semibold">
+                      {t("admin.maintenance.techDetail.csat")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="text-center py-4 space-y-2">
                     {perf && perf.ratingCount > 0 ? (
                       <>
                         <div className="text-3xl font-bold tracking-tight text-foreground">
                           {perf.averageRating.toFixed(1)}{" "}
-                          <span className="text-sm font-normal text-muted-foreground">/ 5.0</span>
+                          <span className="text-sm font-normal text-muted-foreground">
+                            / 5.0
+                          </span>
                         </div>
                         <div className="flex items-center justify-center gap-1 text-amber-500">
                           {[1, 2, 3, 4, 5].map((star) => (
@@ -1535,12 +1958,16 @@ export default function TechnicianDetailPage() {
                           ))}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {t("admin.maintenance.techDetail.basedOnRatings", { count: perf.ratingCount })}
+                          {t("admin.maintenance.techDetail.basedOnRatings", {
+                            count: perf.ratingCount,
+                          })}
                         </p>
                       </>
                     ) : (
                       <>
-                        <div className="text-3xl font-bold tracking-tight text-muted-foreground">—</div>
+                        <div className="text-3xl font-bold tracking-tight text-muted-foreground">
+                          —
+                        </div>
                         <p className="text-xs text-muted-foreground">
                           {isLoadingPerf
                             ? t("admin.maintenance.techDetail.loadingRatings")
@@ -1553,19 +1980,26 @@ export default function TechnicianDetailPage() {
 
                 <Card className="border border-border/80 shadow-xs md:col-span-2">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold">{t("admin.maintenance.techDetail.recentRatings")}</CardTitle>
+                    <CardTitle className="text-sm font-semibold">
+                      {t("admin.maintenance.techDetail.recentRatings")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {perf?.ratings && perf.ratings.length > 0 ? (
                       perf.ratings.map((item) => (
-                        <div key={item.id} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-1">
+                        <div
+                          key={item.id}
+                          className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-1"
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1 text-amber-500">
                               {[1, 2, 3, 4, 5].map((s) => (
                                 <Star
                                   key={s}
                                   className={`w-3 h-3 ${
-                                    s <= item.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"
+                                    s <= item.rating
+                                      ? "fill-amber-400 text-amber-400"
+                                      : "text-muted-foreground/30"
                                   }`}
                                 />
                               ))}
@@ -1574,7 +2008,13 @@ export default function TechnicianDetailPage() {
                               {formatDateTime(item.createdAt)}
                             </span>
                           </div>
-                          <p className="text-xs text-foreground font-medium">{item.comment || <span className="italic text-muted-foreground font-normal">{t("admin.maintenance.techDetail.noComment")}</span>}</p>
+                          <p className="text-xs text-foreground font-medium">
+                            {item.comment || (
+                              <span className="italic text-muted-foreground font-normal">
+                                {t("admin.maintenance.techDetail.noComment")}
+                              </span>
+                            )}
+                          </p>
                         </div>
                       ))
                     ) : (
@@ -1600,7 +2040,10 @@ export default function TechnicianDetailPage() {
                         <CalendarClock className="w-4 h-4 text-orange-600" />
                         {technician.specialty === "DRONE"
                           ? t("admin.maintenance.techDetail.assignedDrones")
-                          : t("admin.maintenance.techDetail.assignedKiosks")} ({assignedSchedules.length})
+                          : t(
+                              "admin.maintenance.techDetail.assignedKiosks",
+                            )}{" "}
+                        ({assignedSchedules.length})
                       </CardTitle>
                       <CardDescription className="text-xs">
                         {t("admin.maintenance.techDetail.assignedDesc")}
@@ -1618,36 +2061,72 @@ export default function TechnicianDetailPage() {
                       {assignedSchedules.map((s) => {
                         const now = new Date();
                         const target = parseBackendDateTime(s.nextDueAt);
-                        const diffDays = target ? Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+                        const diffDays = target
+                          ? Math.ceil(
+                              (target.getTime() - now.getTime()) /
+                                (1000 * 60 * 60 * 24),
+                            )
+                          : null;
                         const isOverdue = diffDays !== null && diffDays < 0;
-                        const isDue = diffDays !== null && (diffDays <= 1 || s.due);
+                        const isDue =
+                          diffDays !== null && (diffDays <= 1 || s.due);
 
                         return (
-                          <div key={s.id} className="py-3 flex items-center justify-between gap-3 flex-wrap">
+                          <div
+                            key={s.id}
+                            className="py-3 flex items-center justify-between gap-3 flex-wrap"
+                          >
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="font-semibold text-sm text-foreground">{s.title}</span>
+                                <span className="font-semibold text-sm text-foreground">
+                                  {s.title}
+                                </span>
                                 {isOverdue ? (
                                   <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-[10px] font-bold">
-                                    {t("admin.maintenance.techDetail.overdueDays", { count: Math.abs(diffDays!) })}
+                                    {t(
+                                      "admin.maintenance.techDetail.overdueDays",
+                                      { count: Math.abs(diffDays!) },
+                                    )}
                                   </Badge>
                                 ) : isDue ? (
                                   <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
                                     {t("admin.maintenance.techDetail.dueToday")}
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-200">
-                                    {t("admin.maintenance.techDetail.daysLeft", { days: diffDays ?? "" })}
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] text-blue-600 border-blue-200"
+                                  >
+                                    {t(
+                                      "admin.maintenance.techDetail.daysLeft",
+                                      { days: diffDays ?? "" },
+                                    )}
                                   </Badge>
                                 )}
                                 {s.lastResult && (
-                                  <Badge variant="outline" className={`text-[10px] ${INSPECTION_STATUS_META[s.lastResult]?.cls ?? ""}`}>
-                                    {t("admin.maintenance.techDetail.lastResult", { result: INSPECTION_STATUS_META[s.lastResult]?.label ?? s.lastResult })}
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] ${INSPECTION_STATUS_META[s.lastResult]?.cls ?? ""}`}
+                                  >
+                                    {t(
+                                      "admin.maintenance.techDetail.lastResult",
+                                      {
+                                        result:
+                                          INSPECTION_STATUS_META[s.lastResult]
+                                            ?.label ?? s.lastResult,
+                                      },
+                                    )}
                                   </Badge>
                                 )}
                                 {s.pendingReportId != null && (
-                                  <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 font-semibold">
-                                    {t("admin.maintenance.techDetail.pendingReport", { id: s.pendingReportId })}
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 font-semibold"
+                                  >
+                                    {t(
+                                      "admin.maintenance.techDetail.pendingReport",
+                                      { id: s.pendingReportId },
+                                    )}
                                   </Badge>
                                 )}
                               </div>
@@ -1665,7 +2144,8 @@ export default function TechnicianDetailPage() {
                                     to={`/admin/lockers/${s.lockerId}`}
                                     className="font-medium text-foreground hover:text-primary hover:underline inline-flex items-center gap-1"
                                   >
-                                    {s.lockerName ?? `Kiosk #${s.lockerId}`}{s.lockerCode ? ` (${s.lockerCode})` : ""}
+                                    {s.lockerName ?? `Kiosk #${s.lockerId}`}
+                                    {s.lockerCode ? ` (${s.lockerCode})` : ""}
                                     <ExternalLink className="w-3 h-3 text-muted-foreground" />
                                   </Link>
                                 )}
@@ -1679,12 +2159,22 @@ export default function TechnicianDetailPage() {
                                   />
                                 </span>
                                 <span>·</span>
-                                <span>{t("admin.maintenance.techDetail.dueAt")} <span className="font-mono text-foreground font-medium">{s.nextDueAt ? formatDateTime(s.nextDueAt) : "—"}</span></span>
+                                <span>
+                                  {t("admin.maintenance.techDetail.dueAt")}{" "}
+                                  <span className="font-mono text-foreground font-medium">
+                                    {s.nextDueAt
+                                      ? formatDateTime(s.nextDueAt)
+                                      : "—"}
+                                  </span>
+                                </span>
                               </p>
                               {(s.checklistItems?.length ?? 0) > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-1.5">
                                   {s.checklistItems!.map((chk, i) => (
-                                    <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-foreground font-medium">
+                                    <span
+                                      key={i}
+                                      className="text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-foreground font-medium"
+                                    >
                                       ✓ {chk}
                                     </span>
                                   ))}
@@ -1704,7 +2194,9 @@ export default function TechnicianDetailPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
                     <History className="w-4 h-4 text-emerald-600" />
-                    {t("admin.maintenance.techDetail.inspectionHistory", { count: technicianInspectionLogs.length })}
+                    {t("admin.maintenance.techDetail.inspectionHistory", {
+                      count: technicianInspectionLogs.length,
+                    })}
                   </CardTitle>
                   <CardDescription className="text-xs">
                     {t("admin.maintenance.techDetail.inspectionHistoryDesc")}
@@ -1718,7 +2210,10 @@ export default function TechnicianDetailPage() {
                   ) : (
                     <div className="space-y-3">
                       {technicianInspectionLogs.map((log) => (
-                        <div key={log.id} className="p-3.5 rounded-xl border border-border/80 bg-background space-y-2">
+                        <div
+                          key={log.id}
+                          className="p-3.5 rounded-xl border border-border/80 bg-background space-y-2"
+                        >
                           <div className="flex items-center justify-between flex-wrap gap-2">
                             <div className="flex items-center gap-2">
                               {log.droneUnitId != null ? (
@@ -1738,12 +2233,22 @@ export default function TechnicianDetailPage() {
                                   <ExternalLink className="w-3 h-3 text-muted-foreground" />
                                 </Link>
                               )}
-                              <Badge variant="outline" className={`text-[10px] font-semibold ${INSPECTION_STATUS_META[log.status]?.cls ?? ""}`}>
-                                {INSPECTION_STATUS_META[log.status]?.label ?? log.status}
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] font-semibold ${INSPECTION_STATUS_META[log.status]?.cls ?? ""}`}
+                              >
+                                {INSPECTION_STATUS_META[log.status]?.label ??
+                                  log.status}
                               </Badge>
                               {log.createdReportId && (
-                                <Badge variant="outline" className="text-[10px] text-rose-600 border-rose-200">
-                                  {t("admin.maintenance.techDetail.incidentReport", { id: log.createdReportId })}
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] text-rose-600 border-rose-200"
+                                >
+                                  {t(
+                                    "admin.maintenance.techDetail.incidentReport",
+                                    { id: log.createdReportId },
+                                  )}
                                 </Badge>
                               )}
                             </div>
@@ -1758,13 +2263,31 @@ export default function TechnicianDetailPage() {
                             </p>
                           )}
 
-                          <InspectionChecklistResults raw={log.checklistResults} />
+                          <InspectionChecklistResults
+                            raw={log.checklistResults}
+                          />
 
                           {log.photoUrls && log.photoUrls.length > 0 && (
                             <div className="flex items-center gap-2 flex-wrap pt-1">
                               {log.photoUrls.map((url, i) => (
-                                <div key={i} className="w-16 h-16 rounded border overflow-hidden bg-muted cursor-pointer" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>
-                                  <img src={url} alt={t("common.photoNumber", { index: i + 1 })} className="w-full h-full object-cover" />
+                                <div
+                                  key={i}
+                                  className="w-16 h-16 rounded border overflow-hidden bg-muted cursor-pointer"
+                                  onClick={() =>
+                                    window.open(
+                                      url,
+                                      "_blank",
+                                      "noopener,noreferrer",
+                                    )
+                                  }
+                                >
+                                  <img
+                                    src={url}
+                                    alt={t("common.photoNumber", {
+                                      index: i + 1,
+                                    })}
+                                    className="w-full h-full object-cover"
+                                  />
                                 </div>
                               ))}
                             </div>
@@ -1785,24 +2308,35 @@ export default function TechnicianDetailPage() {
       {/* ============================================================ */}
 
       {/* Unassign Confirmation Alert Dialog */}
-      <AlertDialog open={!!unassignTargetId} onOpenChange={(open) => !open && setUnassignTargetId(null)}>
+      <AlertDialog
+        open={!!unassignTargetId}
+        onOpenChange={(open) => !open && setUnassignTargetId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-semibold">
-              {t("admin.maintenance.techDetail.unassignTitle", { id: unassignTargetId })}
+              {t("admin.maintenance.techDetail.unassignTitle", {
+                id: unassignTargetId,
+              })}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs">
-              {t("admin.maintenance.techDetail.unassignDesc", { name: technician.fullName })}
+              {t("admin.maintenance.techDetail.unassignDesc", {
+                name: technician.fullName,
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="text-xs">{t("button.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel className="text-xs">
+              {t("button.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmUnassign}
               disabled={isUnassigning}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-xs"
             >
-              {isUnassigning ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : null}
+              {isUnassigning ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+              ) : null}
               {t("admin.maintenance.techDetail.confirmReclaim")}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1813,7 +2347,9 @@ export default function TechnicianDetailPage() {
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold">{t("admin.maintenance.techDetail.assignTitle")}</DialogTitle>
+            <DialogTitle className="text-base font-semibold">
+              {t("admin.maintenance.techDetail.assignTitle")}
+            </DialogTitle>
             <DialogDescription className="text-xs">
               <Trans
                 i18nKey="admin.maintenance.techDetail.assignDesc"
@@ -1828,10 +2364,14 @@ export default function TechnicianDetailPage() {
           </DialogHeader>
 
           <div className="space-y-3 py-2">
-            <p className="text-xs text-muted-foreground">{t("admin.maintenance.techDetail.assignPick")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("admin.maintenance.techDetail.assignPick")}
+            </p>
             {unassignedReports.length === 0 ? (
               <div className="py-6 text-center text-xs text-muted-foreground border rounded-lg bg-muted/20">
-                {t("admin.maintenance.techDetail.noUnassigned", { type: technician.specialty === "DRONE" ? "Drone" : "Kiosk" })}
+                {t("admin.maintenance.techDetail.noUnassigned", {
+                  type: technician.specialty === "DRONE" ? "Drone" : "Kiosk",
+                })}
               </div>
             ) : (
               <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
@@ -1855,11 +2395,17 @@ export default function TechnicianDetailPage() {
                           {formatDateTime(item.createdAt)}
                         </span>
                       </div>
-                      <p className="text-muted-foreground mt-0.5">{item.description}</p>
+                      <p className="text-muted-foreground mt-0.5">
+                        {item.description}
+                      </p>
                       <div className="flex items-center gap-1.5 mt-1 text-[11px] text-muted-foreground">
                         <MapPin className="w-3 h-3 text-muted-foreground" />
-                        <span>{item.lockerName ?? `Kiosk #${item.lockerId}`}</span>
-                        {item.boxNumber ? ` · ${t("admin.maintenance.boxNumber", { number: item.boxNumber })}` : ""}
+                        <span>
+                          {item.lockerName ?? `Kiosk #${item.lockerId}`}
+                        </span>
+                        {item.boxNumber
+                          ? ` · ${t("admin.maintenance.boxNumber", { number: item.boxNumber })}`
+                          : ""}
                       </div>
                     </div>
                   );
@@ -1869,7 +2415,12 @@ export default function TechnicianDetailPage() {
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(false)} className="text-xs">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAssignDialogOpen(false)}
+              className="text-xs"
+            >
               {t("button.cancel")}
             </Button>
             <Button
@@ -1878,7 +2429,9 @@ export default function TechnicianDetailPage() {
               disabled={!selectedReportToAssign || isAssigning}
               className="text-xs bg-primary text-primary-foreground"
             >
-              {isAssigning && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
+              {isAssigning && (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              )}
               {t("admin.maintenance.assign.confirm")}
             </Button>
           </DialogFooter>
@@ -1900,11 +2453,15 @@ export default function TechnicianDetailPage() {
             </DialogHeader>
             <div className="space-y-3 py-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">{t("admin.maintenance.techDetail.phoneContact")}</label>
+                <label className="text-xs font-medium text-foreground">
+                  {t("admin.maintenance.techDetail.phoneContact")}
+                </label>
                 <Input
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
-                  placeholder={t("admin.maintenance.techDetail.phonePlaceholder")}
+                  placeholder={t(
+                    "admin.maintenance.techDetail.phonePlaceholder",
+                  )}
                   className="h-9 text-xs"
                   autoFocus
                 />
@@ -1914,7 +2471,12 @@ export default function TechnicianDetailPage() {
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t">
-              <Button variant="outline" size="sm" onClick={() => setEditPhoneOpen(false)} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditPhoneOpen(false)}
+                className="text-xs"
+              >
                 {t("button.cancel")}
               </Button>
               <Button
@@ -1923,7 +2485,9 @@ export default function TechnicianDetailPage() {
                 disabled={isUpdatingUser || !phoneInput.trim()}
                 className="text-xs bg-primary text-primary-foreground"
               >
-                {isUpdatingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+                {isUpdatingUser ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                ) : null}
                 {t("common.saveChanges")}
               </Button>
             </DialogFooter>
@@ -1936,7 +2500,9 @@ export default function TechnicianDetailPage() {
         <ExtendSlaDialog
           report={extendSlaReport}
           open={!!extendSlaReport}
-          onOpenChange={(o) => { if (!o) setExtendSlaReport(null); }}
+          onOpenChange={(o) => {
+            if (!o) setExtendSlaReport(null);
+          }}
           onSuccess={() => {
             refetchReports();
             refetchPerf();
