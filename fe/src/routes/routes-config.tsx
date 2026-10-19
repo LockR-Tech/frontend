@@ -59,6 +59,7 @@ const DroneDetailPage = lazy(() => import("../pages/Admin/drones/detail"));
 const DroneOrdersPage = lazy(() => import("../pages/Admin/drone-orders"));
 const DroneOrderDetailPage = lazy(() => import("../pages/Admin/drone-orders/detail"));
 const DroneIncidentsPage = lazy(() => import("../pages/Admin/drone-incidents"));
+const DroneIncidentDetailPage = lazy(() => import("../pages/Admin/drone-incidents/detail"));
 const BusinessSettingsPage = lazy(() => import("../pages/Admin/settings"));
 const KnowledgePage = lazy(() => import("../pages/Admin/knowledge"));
 
@@ -428,6 +429,14 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <DroneIncidentsPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "drone-incidents/:id",
+        element: (
+          <LazyWrapper>
+            <DroneIncidentDetailPage />
           </LazyWrapper>
         ),
       },

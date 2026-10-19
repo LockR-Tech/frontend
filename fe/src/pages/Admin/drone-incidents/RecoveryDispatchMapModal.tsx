@@ -1,16 +1,26 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Circle, MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import {
+  Circle,
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  Tooltip,
+  useMap,
+} from "react-leaflet";
 import {
   AlertTriangle,
   Building2,
+  Check,
   Crosshair,
   MapPin,
   Navigation,
   Plane,
   Radio,
   Search,
+  ShieldCheck,
   UserCheck,
   Zap,
 } from "lucide-react";
@@ -31,6 +41,10 @@ import {
 } from "~/stores/apis/admin/droneIncidents";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { useGetAllLockersQuery } from "~/stores/apis/admin/lockers";
+import {
+  useGetTechnicianPresencesQuery,
+  type TechnicianPresenceResponse,
+} from "~/stores/apis/admin/lockerOps";
 import { distanceKm, kmLabel } from "../drone-orders/journey";
 
 interface RecoveryDispatchMapModalProps {
@@ -46,37 +60,158 @@ interface CandidateTech {
   phoneNumber?: string | null;
   role: "LOCKER_TECHNICIAN" | "DRONE_TECHNICIAN";
   roleLabel: string;
+  onDuty: boolean;
   lockerName?: string;
   lockerCode?: string;
   latitude: number | null;
   longitude: number | null;
+  deviceInfo?: string | null;
   distanceKm: number | null;
 }
 
 const RADIUS_OPTIONS = [1, 2, 3, 5, 10, 0] as const;
 
-function createMarkerIcon(label: string, bgColor: string, borderColor = "#ffffff") {
-  return L.divIcon({
-    className: "",
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-    popupAnchor: [0, -18],
-    html: `
-      <div style="
-        width:34px;
-        height:34px;
+function getShortTechName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length <= 2) return fullName;
+  return `${parts[parts.length - 2]} ${parts[parts.length - 1]}`;
+}
+
+function createTechMarkerIcon(
+  role: "LOCKER_TECHNICIAN" | "DRONE_TECHNICIAN",
+  fullName: string,
+  distanceKm: number | null,
+  isSelected: boolean,
+  onDuty: boolean,
+) {
+  const isKiosk = role === "LOCKER_TECHNICIAN";
+  const shortName = getShortTechName(fullName);
+  const distLabel = distanceKm != null ? ` · ${kmLabel(distanceKm)}` : "";
+
+  const bgGradient = isKiosk
+    ? "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)"
+    : "linear-gradient(135deg, #f97316 0%, #c2410c 100%)";
+
+  const borderColor = isSelected ? "#10b981" : "#ffffff";
+  const ringShadow = isSelected
+    ? "box-shadow: 0 0 0 3.5px rgba(16, 185, 129, 0.5), 0 6px 14px rgba(0,0,0,0.35); transform: scale(1.08);"
+    : "box-shadow: 0 3px 8px rgba(0,0,0,0.25);";
+
+  const subBadge = isKiosk
+    ? `<div style="
+        position:absolute;
+        bottom:-2px;
+        right:-3px;
+        width:16px;
+        height:16px;
         border-radius:9999px;
-        background:${bgColor};
-        border:2.5px solid ${borderColor};
-        box-shadow:0 3px 8px rgba(0,0,0,0.35);
-        color:#ffffff;
-        font-weight:700;
+        background:#ffffff;
+        border:1.5px solid #0284c7;
+        box-shadow:0 1px 3px rgba(0,0,0,0.25);
         display:flex;
         align-items:center;
         justify-content:center;
-        font-size:14px;
+        font-size:9px;
+        line-height:1;
+      ">🏢</div>`
+    : `<div style="
+        position:absolute;
+        bottom:-2px;
+        right:-3px;
+        width:16px;
+        height:16px;
+        border-radius:9999px;
+        background:#ffffff;
+        border:1.5px solid #ea580c;
+        box-shadow:0 1px 3px rgba(0,0,0,0.25);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:9px;
+        line-height:1;
+      ">🚁</div>`;
+
+  const statusDot = onDuty
+    ? `<span style="
+        position:absolute;
+        top:-2px;
+        right:-2px;
+        width:9px;
+        height:9px;
+        border-radius:9999px;
+        background:#10b981;
+        border:1.5px solid #ffffff;
+        box-shadow:0 0 4px #10b981;
+      "></span>`
+    : `<span style="
+        position:absolute;
+        top:-2px;
+        right:-2px;
+        width:8px;
+        height:8px;
+        border-radius:9999px;
+        background:#94a3b8;
+        border:1.5px solid #ffffff;
+      "></span>`;
+
+  const userSvg = `
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+  `;
+
+  const pillStyle = isSelected
+    ? "background:#065f46; color:#a7f3d0; border:1px solid #10b981; font-weight:700;"
+    : "background:rgba(15,23,42,0.85); color:#ffffff; border:1px solid rgba(255,255,255,0.25); font-weight:600;";
+
+  return L.divIcon({
+    className: "",
+    iconSize: [120, 56],
+    iconAnchor: [60, 17],
+    popupAnchor: [0, -22],
+    html: `
+      <div style="
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        width:120px;
+        cursor:pointer;
+        user-select:none;
       ">
-        ${label}
+        <div style="
+          position:relative;
+          width:34px;
+          height:34px;
+          border-radius:9999px;
+          background:${bgGradient};
+          border:2px solid ${borderColor};
+          ${ringShadow}
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          transition:all 0.15s ease-in-out;
+        ">
+          ${userSvg}
+          ${subBadge}
+          ${statusDot}
+        </div>
+        <div style="
+          margin-top:2px;
+          padding:1px 6px;
+          border-radius:9999px;
+          ${pillStyle}
+          box-shadow:0 1.5px 4px rgba(0,0,0,0.25);
+          font-size:10px;
+          line-height:13px;
+          white-space:nowrap;
+          max-width:115px;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          backdrop-filter:blur(3px);
+        ">
+          ${shortName}${distLabel}
+        </div>
       </div>
     `,
   });
@@ -97,8 +232,35 @@ const DROP_PIN_ICON = L.divIcon({
   `,
 });
 
-const KIOSK_TECH_ICON = createMarkerIcon("🏢", "#0284c7");
-const DRONE_TECH_ICON = createMarkerIcon("🚁", "#ea580c");
+function MapAutoBounds({
+  dropLat,
+  dropLng,
+  techs,
+}: {
+  dropLat: number;
+  dropLng: number;
+  techs: CandidateTech[];
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const points: [number, number][] = [[dropLat, dropLng]];
+    for (const t of techs) {
+      if (t.latitude != null && t.longitude != null) {
+        points.push([t.latitude, t.longitude]);
+      }
+    }
+
+    if (points.length > 1) {
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+    } else {
+      map.setView([dropLat, dropLng], 15);
+    }
+  }, [map, dropLat, dropLng, techs]);
+
+  return null;
+}
 
 export function RecoveryDispatchMapModal({
   open,
@@ -107,6 +269,10 @@ export function RecoveryDispatchMapModal({
   onAssigned,
 }: RecoveryDispatchMapModalProps) {
   const [radiusKm, setRadiusKm] = useState<number>(3);
+  const [dutyFilter, setDutyFilter] = useState<"ALL" | "ON_DUTY">("ALL");
+  const [selectedTechId, setSelectedTechId] = useState<number | null>(
+    incident.recoveryAssignedToUserId ?? null,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [assign, assignState] = useAssignDroneRecoveryMutation();
 
@@ -115,9 +281,22 @@ export function RecoveryDispatchMapModal({
     size: 1000,
   });
   const { data: lockersData } = useGetAllLockersQuery({ page: 0, size: 1000 });
+  const { data: presencesData } = useGetTechnicianPresencesQuery(
+    { all: true },
+    { pollingInterval: 10_000 },
+  );
 
-  const dropLat = incident.dropLatitude ?? 10.8412;
-  const dropLng = incident.dropLongitude ?? 106.8105;
+  const dropLat = incident.dropLatitude ?? 10.84159;
+  const dropLng = incident.dropLongitude ?? 106.81024;
+
+  const presenceByUserId = useMemo(() => {
+    const map = new Map<number, TechnicianPresenceResponse>();
+    const list = presencesData?.data ?? [];
+    for (const p of list) {
+      map.set(p.userId, p);
+    }
+    return map;
+  }, [presencesData]);
 
   // Lấy danh sách tủ để ánh xạ tọa độ KTV kiosk
   const lockerByTechId = useMemo(() => {
@@ -146,58 +325,83 @@ export function RecoveryDispatchMapModal({
     type RawUser = {
       id: number;
       fullName?: string;
+      name?: string;
       phoneNumber?: string | null;
       status?: string;
       roles?: string[];
     };
-    const list: RawUser[] = Array.isArray(raw)
+    const userList: RawUser[] = Array.isArray(raw)
       ? raw
       : ((raw as { content?: RawUser[] } | undefined)?.content ?? []);
 
+    const userMap = new Map<number, RawUser>();
+    for (const u of userList) {
+      userMap.set(u.id, u);
+    }
+
+    const allTechIds = new Set<number>();
+    for (const u of userList) {
+      if (u.status && u.status !== "ACTIVE") continue;
+      const roles = u.roles ?? [];
+      if (
+        roles.some((r) =>
+          [
+            "LOCKER_TECHNICIAN",
+            "ROLE_LOCKER_TECHNICIAN",
+            "DRONE_TECHNICIAN",
+            "ROLE_DRONE_TECHNICIAN",
+          ].includes(r),
+        )
+      ) {
+        allTechIds.add(u.id);
+      }
+    }
+    for (const p of presenceByUserId.values()) {
+      allTechIds.add(p.userId);
+    }
+
     const techs: CandidateTech[] = [];
 
-    for (const u of list) {
-      if (u.status !== "ACTIVE") continue;
-      const roles = u.roles ?? [];
-      const isLocker = roles.some((r) => ["LOCKER_TECHNICIAN", "ROLE_LOCKER_TECHNICIAN"].includes(r));
-      const isDrone = roles.some((r) => ["DRONE_TECHNICIAN", "ROLE_DRONE_TECHNICIAN"].includes(r));
+    for (const techId of allTechIds) {
+      const u = userMap.get(techId);
+      const presence = presenceByUserId.get(techId);
+      const locker = lockerByTechId.get(techId);
 
-      if (!isLocker && !isDrone) continue;
+      const roles = u?.roles ?? [];
+      const isDrone =
+        roles.some((r) => r.includes("DRONE")) ||
+        presence?.technicianType === "DRONE_TECHNICIAN";
 
-      const techRole = isLocker ? "LOCKER_TECHNICIAN" : "DRONE_TECHNICIAN";
-      const techRoleLabel = isLocker ? "KTV Kiosk" : "KTV Drone";
+      const techRole = isDrone ? "DRONE_TECHNICIAN" : "LOCKER_TECHNICIAN";
+      const techRoleLabel = isDrone ? "KTV Drone" : "KTV Kiosk";
 
-      let lat: number | null = null;
-      let lng: number | null = null;
-      let lockerName: string | undefined;
-      let lockerCode: string | undefined;
+      let lat: number | null =
+        presence?.latitude != null ? Number(presence.latitude) : null;
+      let lng: number | null =
+        presence?.longitude != null ? Number(presence.longitude) : null;
 
-      if (isLocker) {
-        const locker = lockerByTechId.get(u.id);
-        if (locker) {
-          lat = locker.lat;
-          lng = locker.lng;
-          lockerName = locker.name;
-          lockerCode = locker.code;
-        }
+      if ((lat == null || lng == null) && locker?.lat != null && locker?.lng != null) {
+        lat = locker.lat;
+        lng = locker.lng;
       }
 
-      // Khoảng cách tới điểm rơi của Drone
       let dist: number | null = null;
       if (lat != null && lng != null && dropLat != null && dropLng != null) {
         dist = distanceKm(dropLat, dropLng, lat, lng);
       }
 
       techs.push({
-        id: u.id,
-        fullName: u.fullName ?? `KTV #${u.id}`,
-        phoneNumber: u.phoneNumber,
+        id: techId,
+        fullName: u?.fullName || u?.name || presence?.userName || `KTV #${techId}`,
+        phoneNumber: u?.phoneNumber ?? null,
         role: techRole,
         roleLabel: techRoleLabel,
-        lockerName,
-        lockerCode,
+        onDuty: presence?.onDuty ?? true,
+        lockerName: locker?.name,
+        lockerCode: locker?.code,
         latitude: lat,
         longitude: lng,
+        deviceInfo: presence?.deviceInfo ?? null,
         distanceKm: dist,
       });
     }
@@ -211,10 +415,12 @@ export function RecoveryDispatchMapModal({
           phoneNumber: "0901234567",
           role: "LOCKER_TECHNICIAN",
           roleLabel: "KTV Kiosk",
+          onDuty: true,
           lockerName: "Tủ FPT-01 (ĐH FPT)",
           lockerCode: "CAB-DEMO-01",
           latitude: 10.8411,
           longitude: 106.8097,
+          deviceInfo: "Samsung Galaxy A53",
           distanceKm: distanceKm(dropLat, dropLng, 10.8411, 106.8097),
         },
         {
@@ -223,10 +429,12 @@ export function RecoveryDispatchMapModal({
           phoneNumber: "0912345678",
           role: "DRONE_TECHNICIAN",
           roleLabel: "KTV Drone",
+          onDuty: true,
           lockerName: "Trạm Drone Hub SHTP Q9",
           lockerCode: "HUB-SHTP-01",
           latitude: 10.85,
           longitude: 106.82,
+          deviceInfo: "Xiaomi 13T Pro",
           distanceKm: distanceKm(dropLat, dropLng, 10.85, 106.82),
         },
         {
@@ -235,10 +443,12 @@ export function RecoveryDispatchMapModal({
           phoneNumber: "0987654321",
           role: "LOCKER_TECHNICIAN",
           roleLabel: "KTV Kiosk",
+          onDuty: false,
           lockerName: "Tủ Vinhomes Grand Park S102",
           lockerCode: "CAB-VHGP-02",
           latitude: 10.849,
           longitude: 106.835,
+          deviceInfo: "iPhone 14 Pro",
           distanceKm: distanceKm(dropLat, dropLng, 10.849, 106.835),
         },
       );
@@ -251,11 +461,18 @@ export function RecoveryDispatchMapModal({
       if (b.distanceKm == null) return -1;
       return a.distanceKm - b.distanceKm;
     });
-  }, [usersData, lockerByTechId, dropLat, dropLng]);
+  }, [usersData, presenceByUserId, lockerByTechId, dropLat, dropLng]);
 
-  // Lọc theo bán kính R đã chọn & từ khóa tìm kiếm
+  const onDutyCount = useMemo(
+    () => candidateTechs.filter((t) => t.onDuty).length,
+    [candidateTechs],
+  );
+
+  // Lọc theo bán kính R đã chọn, ca trực & từ khóa tìm kiếm
   const visibleTechs = useMemo(() => {
     return candidateTechs.filter((tech) => {
+      if (dutyFilter === "ON_DUTY" && !tech.onDuty) return false;
+
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchName = tech.fullName.toLowerCase().includes(q);
@@ -270,11 +487,21 @@ export function RecoveryDispatchMapModal({
       }
       return true;
     });
-  }, [candidateTechs, radiusKm, searchQuery]);
+  }, [candidateTechs, dutyFilter, radiusKm, searchQuery]);
+
+  const mappableTechs = useMemo(() => {
+    return visibleTechs.filter(
+      (t) => t.latitude != null && t.longitude != null,
+    );
+  }, [visibleTechs]);
 
   const nearestTech = visibleTechs.find((t) => t.distanceKm != null);
+  const canAssign = ["OPEN", "AWAITING_ASSIGNMENT", "ASSIGNED"].includes(
+    incident.recoveryStatus,
+  );
 
   const handleAssign = async (technicianId: number, technicianName: string) => {
+    if (!canAssign) return;
     try {
       await assign({
         id: incident.id,
@@ -305,9 +532,16 @@ export function RecoveryDispatchMapModal({
               </div>
               <div>
                 <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                  Điều phối KTV tìm kiếm theo bán kính
-                  <Badge variant="destructive" className="ml-1 text-xs">
-                    Khẩn cấp
+                  Bản đồ vị trí KTV & Điều phối tìm kiếm
+                  <Badge
+                    variant={canAssign ? "destructive" : "outline"}
+                    className={
+                      canAssign
+                        ? "ml-1 text-xs"
+                        : "ml-1 text-xs bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold"
+                    }
+                  >
+                    {canAssign ? "Khẩn cấp" : "Đã tiếp nhận"}
                   </Badge>
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground mt-0.5">
@@ -318,43 +552,90 @@ export function RecoveryDispatchMapModal({
               </div>
             </div>
 
-            {nearestTech && (
-              <Button
-                size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm"
-                disabled={assignState.isLoading}
-                onClick={() => handleAssign(nearestTech.id, nearestTech.fullName)}
+            {canAssign ? (
+              nearestTech && (
+                <Button
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm"
+                  disabled={assignState.isLoading}
+                  onClick={() => handleAssign(nearestTech.id, nearestTech.fullName)}
+                >
+                  <Zap className="mr-1.5 h-4 w-4" />
+                  Gán ngay KTV gần nhất ({kmLabel(nearestTech.distanceKm!)})
+                </Button>
+              )
+            ) : (
+              <Badge
+                variant="outline"
+                className="bg-emerald-50 text-emerald-800 border-emerald-300 py-1.5 px-3 font-semibold text-xs flex items-center gap-1.5"
               >
-                <Zap className="mr-1.5 h-4 w-4" />
-                Gán ngay KTV gần nhất ({kmLabel(nearestTech.distanceKm!)})
-              </Button>
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                KTV đã tiếp nhận (Chế độ theo dõi)
+              </Badge>
             )}
           </div>
         </DialogHeader>
 
-        {/* Thanh điều khiển bán kính R & tìm kiếm */}
-        <div className="py-3 flex flex-wrap items-center justify-between gap-3 bg-muted/30 px-3 rounded-lg mt-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1">
-              <Crosshair className="h-3.5 w-3.5 text-red-500" /> Bán kính quét (R):
+        {!canAssign && (
+          <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs flex items-center gap-2 mt-2">
+            <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>
+              <b>Kỹ thuật viên đã tiếp nhận nhiệm vụ.</b> Bản đồ hiện ở chế độ theo dõi vị trí thực tế của KTV và điểm rơi. Quản trị viên không thể phân công lại.
             </span>
-            <div className="flex items-center gap-1">
-              {RADIUS_OPTIONS.map((r) => (
-                <Button
-                  key={r}
-                  size="sm"
-                  variant={radiusKm === r ? "default" : "outline"}
-                  className="h-7 text-xs px-2.5"
-                  onClick={() => setRadiusKm(r)}
-                >
-                  {r === 0 ? "Tất cả" : `${r} km`}
-                </Button>
-              ))}
+          </div>
+        )}
+
+        {/* Thanh điều khiển bán kính R, Ca trực & tìm kiếm */}
+        <div className="py-2.5 flex flex-wrap items-center justify-between gap-3 bg-muted/30 px-3 rounded-lg mt-2 text-xs">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-slate-700 flex items-center gap-1">
+                <Crosshair className="h-3.5 w-3.5 text-red-500" /> Bán kính:
+              </span>
+              <div className="flex items-center gap-1">
+                {RADIUS_OPTIONS.map((r) => (
+                  <Button
+                    key={r}
+                    size="sm"
+                    variant={radiusKm === r ? "default" : "outline"}
+                    className={`h-7 text-xs px-2.5 ${
+                      radiusKm === r ? "font-bold shadow-2xs" : ""
+                    }`}
+                    onClick={() => setRadiusKm(r)}
+                  >
+                    {r === 0 ? "Tất cả" : `${r} km`}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
+              <Button
+                size="sm"
+                variant={dutyFilter === "ALL" ? "default" : "outline"}
+                className={`h-7 text-xs px-2.5 ${dutyFilter === "ALL" ? "font-bold shadow-2xs" : ""}`}
+                onClick={() => setDutyFilter("ALL")}
+              >
+                Tất cả ({candidateTechs.length})
+              </Button>
+              <Button
+                size="sm"
+                variant={dutyFilter === "ON_DUTY" ? "default" : "outline"}
+                className={`h-7 text-xs px-2.5 ${
+                  dutyFilter === "ON_DUTY"
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-2xs"
+                    : "text-emerald-700 border-emerald-300 hover:bg-emerald-50"
+                }`}
+                onClick={() => setDutyFilter("ON_DUTY")}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 inline-block" />
+                Đang trực ({onDutyCount})
+              </Button>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="relative w-64">
+            <div className="relative w-56 sm:w-64">
               <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 placeholder="Tìm tên KTV hoặc tên tủ..."
@@ -363,8 +644,8 @@ export function RecoveryDispatchMapModal({
                 className="h-8 text-xs pl-8"
               />
             </div>
-            <span className="text-xs text-muted-foreground font-medium">
-              Tìm thấy: <b className="text-foreground">{visibleTechs.length}</b> KTV
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              Bản đồ: <b className="text-slate-900">{mappableTechs.length}</b> KTV
             </span>
           </div>
         </div>
@@ -372,15 +653,22 @@ export function RecoveryDispatchMapModal({
         {/* Khu vực hiển thị: Bản đồ Leaflet (Trái) & Danh sách KTV lân cận (Phải) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-[460px] overflow-hidden mt-3">
           {/* Bản đồ Leaflet */}
-          <div className="lg:col-span-7 h-[460px] rounded-lg overflow-hidden border relative shadow-inner">
+          <div className="lg:col-span-7 h-[460px] rounded-lg overflow-hidden border relative shadow-inner bg-slate-100">
             <MapContainer
               center={[dropLat, dropLng]}
-              zoom={radiusKm <= 2 ? 15 : radiusKm <= 5 ? 14 : 13}
+              zoom={14}
               style={{ width: "100%", height: "100%" }}
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+
+              {/* Tự động canh góc nhìn bao gồm điểm rơi & các KTV */}
+              <MapAutoBounds
+                dropLat={dropLat}
+                dropLng={dropLng}
+                techs={mappableTechs}
               />
 
               {/* Tâm sự cố Drone rơi */}
@@ -404,26 +692,61 @@ export function RecoveryDispatchMapModal({
                   pathOptions={{
                     color: "#ef4444",
                     fillColor: "#ef4444",
-                    fillOpacity: 0.12,
+                    fillOpacity: 0.08,
                     weight: 2,
                     dashArray: "6, 6",
                   }}
                 />
               )}
 
-              {/* Markers các KTV trong bán kính */}
-              {visibleTechs.map((tech) => {
-                if (tech.latitude == null || tech.longitude == null) return null;
+              {/* Markers các KTV trong bán kính với User Avatar */}
+              {mappableTechs.map((tech) => {
                 const isKiosk = tech.role === "LOCKER_TECHNICIAN";
+                const isSelected = selectedTechId === tech.id;
+                const icon = createTechMarkerIcon(
+                  tech.role,
+                  tech.fullName,
+                  tech.distanceKm,
+                  isSelected,
+                  tech.onDuty,
+                );
+
                 return (
                   <Marker
                     key={tech.id}
-                    position={[tech.latitude, tech.longitude]}
-                    icon={isKiosk ? KIOSK_TECH_ICON : DRONE_TECH_ICON}
+                    position={[tech.latitude!, tech.longitude!]}
+                    icon={icon}
+                    eventHandlers={{
+                      click: () => setSelectedTechId(tech.id),
+                    }}
                   >
+                    {/* Tooltip khi rê chuột - Không dùng permanent để tránh rối mắt */}
+                    <Tooltip direction="top" offset={[0, -22]}>
+                      <div className="text-xs p-1 space-y-0.5 font-sans min-w-[130px]">
+                        <p className="font-bold text-slate-900">{tech.fullName}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {tech.roleLabel} ·{" "}
+                          <span
+                            className={
+                              tech.onDuty
+                                ? "text-emerald-600 font-semibold"
+                                : "text-slate-500"
+                            }
+                          >
+                            {tech.onDuty ? "🟢 Đang trực" : "⚪ Ngoài ca"}
+                          </span>
+                        </p>
+                        {tech.distanceKm != null && (
+                          <p className="text-[11px] text-emerald-700 font-semibold">
+                            Khoảng cách: {kmLabel(tech.distanceKm)}
+                          </p>
+                        )}
+                      </div>
+                    </Tooltip>
+
                     <Popup>
                       <div className="text-xs space-y-1.5 p-1 min-w-[160px]">
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center justify-between gap-2 border-b pb-1">
                           <span className="font-bold text-sm text-foreground">
                             {tech.fullName}
                           </span>
@@ -444,20 +767,45 @@ export function RecoveryDispatchMapModal({
                             Cách điểm rơi: {kmLabel(tech.distanceKm)}
                           </p>
                         )}
+                        <p className="text-[11px] text-muted-foreground">
+                          Ca trực:{" "}
+                          <b
+                            className={
+                              tech.onDuty ? "text-emerald-700" : "text-slate-500"
+                            }
+                          >
+                            {tech.onDuty ? "Đang trong ca trực" : "Ngoài ca"}
+                          </b>
+                        </p>
                         {tech.lockerName && (
-                          <p className="text-muted-foreground">
+                          <p className="text-[11px] text-muted-foreground">
                             Tủ trực: <b>{tech.lockerName}</b>
                           </p>
                         )}
-                        <Button
-                          size="sm"
-                          className="w-full mt-2 h-7 text-xs"
-                          disabled={assignState.isLoading}
-                          onClick={() => handleAssign(tech.id, tech.fullName)}
-                        >
-                          <UserCheck className="mr-1 h-3.5 w-3.5" />
-                          Gán KTV này
-                        </Button>
+                        {tech.phoneNumber && (
+                          <p className="text-[11px] text-muted-foreground font-mono">
+                            📞 {tech.phoneNumber}
+                          </p>
+                        )}
+                        {canAssign ? (
+                          <Button
+                            size="sm"
+                            className="w-full mt-2 h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                            disabled={assignState.isLoading}
+                            onClick={() => handleAssign(tech.id, tech.fullName)}
+                          >
+                            <UserCheck className="mr-1 h-3.5 w-3.5" />
+                            Phân công KTV này
+                          </Button>
+                        ) : tech.id === incident.recoveryAssignedToUserId ? (
+                          <div className="mt-2 text-center py-1 px-2 rounded bg-emerald-100 text-emerald-800 font-bold text-[11px]">
+                            ✓ Đang phụ trách nhiệm vụ
+                          </div>
+                        ) : (
+                          <div className="mt-2 text-center text-muted-foreground italic text-[11px]">
+                            (Đã khóa phân công)
+                          </div>
+                        )}
                       </div>
                     </Popup>
                   </Marker>
@@ -465,15 +813,57 @@ export function RecoveryDispatchMapModal({
               })}
             </MapContainer>
 
-            <div className="absolute bottom-2 left-2 z-[1000] bg-white/90 backdrop-blur-sm px-2.5 py-1.5 rounded-md border text-[11px] shadow-sm flex items-center gap-3">
-              <span className="flex items-center gap-1">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span> Điểm rơi
+            {/* Chú giải góc bản đồ theo Icon User chuẩn */}
+            <div className="absolute bottom-2 left-2 z-[1000] bg-white/95 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] shadow-sm flex items-center gap-3 select-none">
+              <span className="flex items-center gap-1.5 text-slate-700 font-medium">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shadow-2xs"></span>
+                Điểm rơi
               </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-sky-500"></span> KTV Kiosk
+              <span className="flex items-center gap-1.5 text-slate-700 font-medium">
+                <span className="relative inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-sky-500 to-sky-700 text-white text-[10px] shadow-2xs">
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-white border border-sky-600 flex items-center justify-center text-[7px] leading-none">
+                    🏢
+                  </span>
+                </span>
+                KTV Kiosk
               </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-500"></span> KTV Drone
+              <span className="flex items-center gap-1.5 text-slate-700 font-medium">
+                <span className="relative inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] shadow-2xs">
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-white border border-orange-600 flex items-center justify-center text-[7px] leading-none">
+                    🚁
+                  </span>
+                </span>
+                KTV Drone
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-700 font-medium">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 shadow-2xs"></span>
+                Đang trong ca
               </span>
             </div>
           </div>
@@ -514,17 +904,32 @@ export function RecoveryDispatchMapModal({
                 visibleTechs.map((tech, idx) => {
                   const isKiosk = tech.role === "LOCKER_TECHNICIAN";
                   const isNearest = idx === 0 && tech.distanceKm != null;
+                  const isSelected = selectedTechId === tech.id;
+                  const isAssigned =
+                    tech.id === incident.recoveryAssignedToUserId;
+
                   return (
                     <div
                       key={tech.id}
-                      className={`p-3 rounded-lg border transition-all text-xs flex items-center justify-between gap-2 ${
-                        isNearest
-                          ? "bg-emerald-50/70 border-emerald-200"
+                      onClick={() => setSelectedTechId(tech.id)}
+                      className={`p-3 rounded-lg border transition-all text-xs flex items-center justify-between gap-2 cursor-pointer ${
+                        isSelected
+                          ? "bg-emerald-50/90 border-emerald-500 shadow-2xs ring-1 ring-emerald-500"
+                          : isAssigned
+                          ? "bg-sky-50/70 border-sky-300"
+                          : isNearest
+                          ? "bg-emerald-50/50 border-emerald-200"
                           : "bg-white hover:bg-slate-50 border-slate-200"
                       }`}
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-1.5">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              tech.onDuty ? "bg-emerald-500" : "bg-slate-300"
+                            }`}
+                            title={tech.onDuty ? "Đang trong ca" : "Ngoài ca"}
+                          />
                           <span className="font-bold text-slate-900 truncate">
                             {tech.fullName}
                           </span>
@@ -566,18 +971,33 @@ export function RecoveryDispatchMapModal({
                         </div>
                       </div>
 
-                      <Button
-                        size="sm"
-                        variant={isNearest ? "default" : "outline"}
-                        className={`h-7 px-2.5 text-xs whitespace-nowrap ${
-                          isNearest ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""
-                        }`}
-                        disabled={assignState.isLoading}
-                        onClick={() => handleAssign(tech.id, tech.fullName)}
-                      >
-                        <UserCheck className="mr-1 h-3 w-3" />
-                        Gán việc
-                      </Button>
+                      {canAssign ? (
+                        <Button
+                          size="sm"
+                          variant={isSelected || isNearest ? "default" : "outline"}
+                          className={`h-7 px-2.5 text-xs whitespace-nowrap ${
+                            isSelected || isNearest
+                              ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                              : ""
+                          }`}
+                          disabled={assignState.isLoading}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAssign(tech.id, tech.fullName);
+                          }}
+                        >
+                          <UserCheck className="mr-1 h-3 w-3" />
+                          Gán việc
+                        </Button>
+                      ) : tech.id === incident.recoveryAssignedToUserId ? (
+                        <Badge className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 whitespace-nowrap">
+                          ✓ Đang phụ trách
+                        </Badge>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground italic whitespace-nowrap">
+                          Đã khóa gán
+                        </span>
+                      )}
                     </div>
                   );
                 })

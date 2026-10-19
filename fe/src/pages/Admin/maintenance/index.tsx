@@ -7,6 +7,7 @@ import i18n from "~/utils/i18n";
 import {
   AlertTriangle,
   CheckCircle2,
+  ExternalLink,
   MapPin,
   Navigation,
   Phone,
@@ -209,7 +210,9 @@ export const SAMPLE_DRONE_DROP_REPORT: LockerReportResponse = {
   droneCode: "DRN-HCMC-09",
   dropLatitude: 10.84155,
   dropLongitude: 106.8102,
+  orderId: 8801,
   orderCode: "ORD-2026-8801",
+  incidentCode: "INC-2026-DROP-001",
   attachments: [
     {
       id: 901,
@@ -1677,9 +1680,21 @@ export default function MaintenanceAdminPage() {
                         <div className="max-w-2xl">
                           <div className="flex items-center gap-2 flex-wrap">
                             {isDropIncident ? (
-                              <span className="font-mono font-bold text-xs px-2.5 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-300 shadow-xs tracking-wide">
-                                {displayCode}
-                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  navigate(
+                                    `/admin/drone-incidents?order=${report.orderCode ?? report.orderId ?? "ORD-2026-8801"}`,
+                                  )
+                                }
+                                className="font-mono font-bold text-xs px-2.5 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-300 shadow-xs tracking-wide hover:bg-red-200 cursor-pointer inline-flex items-center gap-1"
+                                title="Bấm để mở Sự cố rơi kiện liên kết"
+                              >
+                                {report.incidentCode
+                                  ? `${report.incidentCode} (${displayCode})`
+                                  : displayCode}
+                                <ExternalLink className="w-3 h-3 opacity-70" />
+                              </button>
                             ) : (
                               <p className="font-semibold text-sm text-foreground">{displayCode}</p>
                             )}
@@ -1726,7 +1741,28 @@ export default function MaintenanceAdminPage() {
                             )}
                             {report.orderCode && (
                               <>
-                                {" · "}Mã đơn: <span className="font-mono text-foreground font-semibold">{report.orderCode}</span>
+                                {" · "}Mã đơn:{" "}
+                                <Link
+                                  to={`/admin/orders/${report.orderId ?? report.orderCode}`}
+                                  className="font-mono text-primary font-semibold hover:underline inline-flex items-center gap-0.5"
+                                  title="Xem chi tiết đơn hàng"
+                                >
+                                  {report.orderCode}
+                                  <ExternalLink className="w-2.5 h-2.5" />
+                                </Link>
+                              </>
+                            )}
+                            {report.incidentCode && (
+                              <>
+                                {" · "}Mã sự cố rơi:{" "}
+                                <Link
+                                  to={`/admin/drone-incidents?order=${report.orderCode ?? report.orderId ?? ""}`}
+                                  className="font-mono text-red-600 font-semibold hover:underline inline-flex items-center gap-0.5"
+                                  title="Xem chi tiết sự cố rơi kiện"
+                                >
+                                  {report.incidentCode}
+                                  <ExternalLink className="w-2.5 h-2.5" />
+                                </Link>
                               </>
                             )}
                             {" · "}{t("common.createdAtTime")}: <span className="text-foreground font-mono">{formatDateTime(report.createdAt)}</span> ({getRelativeAge(t, report.createdAt)})

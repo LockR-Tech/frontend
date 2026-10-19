@@ -80,6 +80,13 @@ export interface DroneParcelIncident {
   returnedToHubAt: string | null;
   redeliveryOrderId: number | null;
   compensationReference: string | null;
+  orderStatus?: string | null;
+  deliveryStage?: string | null;
+  compensationRate?: number | null;
+  declaredValue?: number | null;
+  recoveryTechnicianName?: string | null;
+  recoveryTechnicianPhone?: string | null;
+  recoveryTechnicianRole?: string | null;
   createdAt: string;
   updatedAt: string;
   evidence: DroneIncidentEvidence[];
@@ -153,6 +160,16 @@ export const droneIncidentApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, id) => [TAG, { type: TAG, id }],
     }),
+    completeDroneIncidentRedelivery: builder.mutation<
+      ApiResponse<DroneParcelIncident>,
+      number
+    >({
+      query: (id) => ({
+        url: `/api/admin/drone-incidents/${id}/redelivery/complete`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _error, id) => [TAG, { type: TAG, id }],
+    }),
   }),
 });
 
@@ -163,6 +180,7 @@ export const {
   useAssignDroneRecoveryMutation,
   useCreateDroneIncidentProposalMutation,
   useApproveDroneIncidentCompensationMutation,
+  useCompleteDroneIncidentRedeliveryMutation,
 } = droneIncidentApi;
 
 export const SAMPLE_DRONE_INCIDENTS: DroneParcelIncident[] = [

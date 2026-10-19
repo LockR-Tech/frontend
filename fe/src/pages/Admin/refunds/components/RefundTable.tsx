@@ -387,28 +387,47 @@ export function RefundTable({
     }),
     columnHelper.accessor("amount", {
       header: t("admin.payments.refund.table.amount", "Số tiền hoàn"),
-      cell: ({ row }) => (
-        <div className="text-right">
-          <p className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 font-mono">
-            {formatCurrency(row.original.amount)}
-          </p>
-          <p className="text-[11px] text-muted-foreground font-mono">
-            {t("admin.payments.refund.table.original", {
-              amount: formatCurrency(row.original.paymentAmount),
-            })}
-          </p>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const reason = row.original.reason || "";
+        const isCompensation = reason.includes("[Bồi thường sự cố");
+        const pctMatch = reason.match(/Hoàn\s+(\d+(?:\.\d+)?%)/i);
+        return (
+          <div className="text-right space-y-0.5">
+            <p className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 font-mono">
+              {formatCurrency(row.original.amount)}
+            </p>
+            {isCompensation && pctMatch ? (
+              <span className="inline-block text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded font-mono">
+                {pctMatch[0]}
+              </span>
+            ) : (
+              <p className="text-[11px] text-muted-foreground font-mono">
+                {t("admin.payments.refund.table.original", {
+                  amount: formatCurrency(row.original.paymentAmount),
+                })}
+              </p>
+            )}
+          </div>
+        );
+      },
     }),
     columnHelper.accessor("accountNumber", {
       header: t("admin.payments.refund.table.account", "Tài khoản nhận"),
       cell: ({ row }) => {
         const { bankName, bankCode, accountNumber, accountHolderName } = row.original;
         if (!accountNumber) {
+          const isCompensation = (row.original.reason || "").includes("[Bồi thường sự cố");
           return (
-            <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded font-medium">
-              {t("admin.payments.refund.table.noAccount", "Chưa có STK")}
-            </span>
+            <div className="space-y-1">
+              <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded font-medium inline-block">
+                {t("admin.payments.refund.table.noAccount", "Chưa có STK")}
+              </span>
+              {isCompensation && (
+                <p className="text-[10px] text-amber-700 leading-tight">
+                  Đã thông báo khách cập nhật STK
+                </p>
+              )}
+            </div>
           );
         }
         return (
@@ -491,10 +510,21 @@ export function RefundTable({
       header: t("admin.payments.refund.table.reason", "Lý do"),
       cell: ({ row }) => {
         const text = cleanReason(row.original.reason);
+        const isCompensation = text.includes("[Bồi thường sự cố");
         return (
-          <p className="text-xs text-foreground/80 max-w-[160px] line-clamp-2" title={text}>
-            {text || EMPTY_VALUE}
-          </p>
+          <div className="max-w-[190px] space-y-1">
+            {isCompensation && (
+              <Badge
+                variant="outline"
+                className="bg-rose-50 text-rose-700 border-rose-300 font-semibold text-[10px] py-0 px-1.5 flex items-center gap-1 w-fit"
+              >
+                <span>🚨 Bồi thường sự cố rơi</span>
+              </Badge>
+            )}
+            <p className="text-xs text-foreground/80 line-clamp-2" title={text}>
+              {text || EMPTY_VALUE}
+            </p>
+          </div>
         );
       },
     }),

@@ -134,6 +134,8 @@ export interface LockerReportResponse {
   dropLatitude?: number | null;
   dropLongitude?: number | null;
   orderCode?: string | null;
+  orderId?: number | null;
+  incidentCode?: string | null;
 }
 
 /** Tủ ở góc nhìn nhân sự (`/api/admin/lockers/**`) — kèm KTV phụ trách. */

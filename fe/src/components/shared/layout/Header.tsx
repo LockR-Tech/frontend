@@ -41,6 +41,7 @@ import {
   type Notification,
 } from "~/stores/apis/notificationApi";
 import { useGetDroneQuery } from "~/stores/apis/admin/drones";
+import { useGetDroneIncidentQuery } from "~/stores/apis/admin/droneIncidents";
 import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
 import { SUPPORTED_LANGUAGES, currentLanguage } from "~/utils/i18n";
 
@@ -106,6 +107,16 @@ function Breadcrumb() {
       ?? (location.state as { droneCode?: string } | null)?.droneCode
       ?? (droneQuery.isError ? `#${droneId}` : null);
 
+  const incidentId = paths[0] === "admin" && paths[1] === "drone-incidents" && isNumeric(paths[2] ?? "")
+    ? Number(paths[2])
+    : null;
+  const incidentQuery = useGetDroneIncidentQuery(incidentId ?? 0, { skip: incidentId == null });
+  const incidentCode = incidentId == null
+    ? null
+    : incidentQuery.data?.data?.incidentCode
+      ?? (location.state as { incidentCode?: string } | null)?.incidentCode
+      ?? (incidentQuery.isError ? `#${incidentId}` : null);
+
   if (paths.length < 2) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
@@ -133,6 +144,9 @@ function Breadcrumb() {
     }
     if (isLast && droneId != null && path === String(droneId)) {
       label = droneCode ?? t("header.loadingDrone");
+    }
+    if (isLast && incidentId != null && path === String(incidentId)) {
+      label = incidentCode ?? `#${incidentId}`;
     }
 
     return {
