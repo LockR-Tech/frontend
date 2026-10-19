@@ -38,6 +38,8 @@ import {
   useUpdateDroneStatusMutation,
 } from "~/stores/apis/admin/drones";
 import { useGetLockerStatsQuery } from "~/stores/apis/admin/lockerOps";
+import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
+import { extractList } from "~/lib/extract-list";
 
 // Giá trị là khoá i18n; dịch lúc render.
 const STATUS_LABELS: Record<string, string> = {
@@ -88,11 +90,21 @@ export default function DronesPage() {
   const navigate = useNavigate();
   const { data, isLoading, isFetching, refetch } = useGetDronesQuery();
   const lockersQuery = useGetLockerStatsQuery();
+  const usersQuery = useGetAllUsersQuery({ page: 0, size: 1000 });
   const [createDrone, createState] = useCreateDroneMutation();
   const [updateDroneStatus, statusState] = useUpdateDroneStatusMutation();
 
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+
+  const technicianNameById = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const u of extractList<{ id: number; fullName?: string; name?: string }>(usersQuery.data?.data)) {
+      const name = (u.fullName || u.name || "").trim();
+      if (name) m.set(u.id, name);
+    }
+    return m;
+  }, [usersQuery.data]);
 
   const drones = useMemo(() => data?.data ?? [], [data]);
   // Drone chỉ đậu được ở Kiosk có bãi đáp
@@ -305,11 +317,14 @@ export default function DronesPage() {
                     <span>{t("admin.drones.card.assignee", { name: "" }).replace(/:\s*$/, "")}:</span>
                     {d.assignedTechnicianId ? (
                       <Link
-                        to={`/admin/maintenance/technicians/${d.assignedTechnicianId}`}
+                        to={`/admin/technicians/${d.assignedTechnicianId}`}
                         onClick={(e) => e.stopPropagation()}
                         className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors truncate"
                       >
-                        {d.assignedTechnicianName ??
+                        {(d.assignedTechnicianId ? technicianNameById.get(d.assignedTechnicianId) : null) ||
+                          (d.assignedTechnicianName && !d.assignedTechnicianName.startsWith("KTV #")
+                            ? d.assignedTechnicianName
+                            : null) ||
                           t("admin.lockers.table.technicianId", {
                             id: d.assignedTechnicianId,
                           })}

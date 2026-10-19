@@ -447,7 +447,7 @@ export default function DroneDetailPage() {
                         components={{
                           b: (
                             <Link
-                              to={`/admin/maintenance/technicians/${assignedTechId}`}
+                              to={`/admin/technicians/${assignedTechId}`}
                               className="font-semibold text-primary hover:underline"
                             />
                           ),

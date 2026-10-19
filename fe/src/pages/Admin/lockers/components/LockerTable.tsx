@@ -328,16 +328,20 @@ export function LockerTable({
       header: t("admin.lockers.columns.technician"),
       cell: ({ row }) => {
         const { assignedTechnicianId, assignedTechnicianName } = row.original;
+        const displayName =
+          assignedTechnicianName && !assignedTechnicianName.startsWith("KTV #")
+            ? assignedTechnicianName
+            : (assignedTechnicianId != null
+                ? t("admin.lockers.table.technicianId", { id: assignedTechnicianId })
+                : null);
         return assignedTechnicianId != null ? (
           <Link
-            to={`/admin/maintenance/technicians/${assignedTechnicianId}`}
+            to={`/admin/technicians/${assignedTechnicianId}`}
             onClick={(e) => e.stopPropagation()}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
           >
             <UserCheck size={14} className="text-primary flex-shrink-0" />
-            <span>
-              {assignedTechnicianName ?? t("admin.lockers.table.technicianId", { id: assignedTechnicianId })}
-            </span>
+            <span>{displayName}</span>
           </Link>
         ) : (
           <span className="text-xs text-muted-foreground">{t("common.unassigned")}</span>

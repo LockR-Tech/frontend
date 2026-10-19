@@ -23,6 +23,7 @@ import {
   Gift,
   Sparkles,
   RotateCcw,
+  UserCheck,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -61,6 +62,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: Wrench,
     path: "/admin/maintenance",
     label: "admin.sidebar.maintenance",
+    permission: "admin_access",
+  },
+  {
+    icon: UserCheck,
+    path: "/admin/technicians",
+    label: "admin.sidebar.technicians",
     permission: "admin_access",
   },
   {

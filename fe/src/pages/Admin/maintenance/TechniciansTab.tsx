@@ -346,7 +346,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   };
 
   const openDetail = (tech: TechnicianSummary) => {
-    navigate(`/admin/maintenance/technicians/${tech.id}`);
+    navigate(`/admin/technicians/${tech.id}`);
   };
 
   return (

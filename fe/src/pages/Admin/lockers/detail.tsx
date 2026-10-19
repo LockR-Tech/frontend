@@ -219,7 +219,7 @@ export default function LockerDetailPage() {
                   <p className="text-xs text-muted-foreground">{t("admin.lockers.columns.technician")}</p>
                   {assignedTechId != null ? (
                     <Link
-                      to={`/admin/maintenance/technicians/${assignedTechId}`}
+                      to={`/admin/technicians/${assignedTechId}`}
                       className="font-medium text-primary hover:underline text-xs inline-flex items-center gap-1"
                     >
                       {assignedTechName || `KTV #${assignedTechId}`} <ExternalLink className="w-3 h-3" />

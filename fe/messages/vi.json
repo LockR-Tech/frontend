@@ -156,6 +156,7 @@
       "promotions": "Khuyến mãi",
       "settings": "Cài đặt",
       "maintenance": "Bảo trì, sự cố thiết bị",
+      "technicians": "Đội ngũ KTV",
       "drones": "Drone",
       "droneOrders": "Hành trình drone",
       "droneIncidents": "Sự cố rơi kiện",
@@ -2023,6 +2024,7 @@
     "breadcrumb": {
       "admin": "Quản trị",
       "staff": "Nhân viên",
+      "technicians": "Đội ngũ KTV",
       "detail": "Chi tiết",
       "create": "Tạo mới",
       "edit": "Chỉnh sửa"

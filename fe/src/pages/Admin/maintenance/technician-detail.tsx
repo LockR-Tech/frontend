@@ -553,7 +553,7 @@ export default function TechnicianDetailPage() {
             {t("admin.maintenance.techDetail.notFoundDesc", { id: technicianId })}
           </p>
         </div>
-        <Button variant="outline" onClick={() => navigate("/admin/maintenance")} className="gap-2">
+        <Button variant="outline" onClick={() => navigate("/admin/technicians")} className="gap-2">
           <ArrowLeft className="w-4 h-4" />
           {t("admin.maintenance.techDetail.backToList")}
         </Button>
@@ -579,7 +579,7 @@ export default function TechnicianDetailPage() {
             variant="outline"
             size="icon"
             className="h-9 w-9 shrink-0"
-            onClick={() => navigate("/admin/maintenance")}
+            onClick={() => navigate("/admin/technicians")}
             title={t("admin.maintenance.techDetail.backToList")}
           >
             <ArrowLeft className="h-4 w-4" />

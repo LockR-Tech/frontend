@@ -83,6 +83,7 @@ const pathLabelKeys: Record<string, string> = {
   "drone-orders": "admin.sidebar.droneOrders",
   "drone-incidents": "admin.sidebar.droneIncidents",
   maintenance: "admin.sidebar.maintenance",
+  technicians: "admin.sidebar.technicians",
   promotions: "admin.sidebar.promotions",
   knowledge: "admin.sidebar.knowledge",
 };
@@ -127,8 +128,8 @@ function Breadcrumb() {
     if (paths[0] === "admin" && path === "settings") {
       label = t("admin.sidebar.businessSettings");
     }
-    if (isNumeric(path) && path.length > 3) {
-      label = `#${path.slice(0, 6)}${path.length > 6 ? "..." : ""}`;
+    if (isNumeric(path)) {
+      label = path.length > 6 ? `#${path.slice(0, 6)}...` : `#${path}`;
     }
     if (isLast && droneId != null && path === String(droneId)) {
       label = droneCode ?? t("header.loadingDrone");

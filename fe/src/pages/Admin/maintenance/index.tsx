@@ -1,6 +1,6 @@
 import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
-import { useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import i18n from "~/utils/i18n";
@@ -61,7 +61,6 @@ import { toast } from "sonner";
 import { PageHeader } from "~/components/shared/page-header";
 import { RepairLogDialog } from "./RepairLogDialog";
 import { MaintenanceSchedules } from "./MaintenanceSchedules";
-import { TechniciansTab } from "./TechniciansTab";
 import type { TechnicianSummary } from "./technician-detail";
 import { AssignReportDialog } from "./AssignReportDialog";
 import { cleanDescription, isDroneReport, INSPECTION_STATUS_META } from "./maintenancePhotos";
@@ -280,8 +279,27 @@ export default function MaintenanceAdminPage() {
   const [historyFilter, setHistoryFilter] = useState<"ALL" | "INCIDENT" | "SCHEDULE">("ALL");
   const [historyAsset, setHistoryAsset] = useState<"KIOSK" | "DRONE">("KIOSK");
 
+  const [searchParams] = useSearchParams();
   const [pending, setPending] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState("kiosk");
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return tab && ["kiosk", "drone", "schedules"].includes(tab) ? tab : "kiosk";
+  });
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    const techIdParam = searchParams.get("techId");
+    if (tabParam && ["kiosk", "drone", "schedules"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    if (techIdParam) {
+      if (tabParam === "drone") {
+        setDroneTechFilter(techIdParam);
+      } else {
+        setSelectedTechFilter(techIdParam);
+      }
+    }
+  }, [searchParams]);
   const [viewingDrone, setViewingDrone] = useState<DroneResponse | null>(null);
   const [creatingDroneReport, setCreatingDroneReport] = useState(false);
   const [droneFilter, setDroneFilter] = useState<string>("ALL");
@@ -702,20 +720,13 @@ export default function MaintenanceAdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 max-w-4xl h-11 p-1 bg-muted/60 border border-border/50 rounded-xl">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 max-w-3xl h-11 p-1 bg-muted/60 border border-border/50 rounded-xl">
           <TabsTrigger
             value="kiosk"
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <Boxes className="w-4 h-4 text-orange-600" />
             {t("admin.maintenance.tabs.kiosk", { count: openReports + inProgressReports })}
-          </TabsTrigger>
-          <TabsTrigger
-            value="technicians"
-            className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
-          >
-            <Users className="w-4 h-4 text-indigo-600" />
-            {t("admin.maintenance.tabs.technicians", { count: technicians.length })}
           </TabsTrigger>
           <TabsTrigger
             value="drone"
@@ -1171,7 +1182,7 @@ export default function MaintenanceAdminPage() {
                           {r.assignedToUserId ? (
                             <button
                               type="button"
-                              onClick={() => navigate(`/admin/maintenance/technicians/${r.assignedToUserId}`)}
+                              onClick={() => navigate(`/admin/technicians/${r.assignedToUserId}`)}
                               className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200 transition-colors cursor-pointer"
                               title={t("admin.maintenance.reports.viewTechProfile")}
                             >
@@ -1700,7 +1711,7 @@ export default function MaintenanceAdminPage() {
                             {report.overdue && <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">{t("admin.maintenance.status.overdueSla")}</Badge>}
                             <SlaCountdownBadge slaDueAt={report.slaDueAt} createdAt={report.createdAt} slaHours={report.slaHours ?? 4} status={report.status} />
                             {report.assignedToUserId ? (
-                              <button type="button" onClick={() => navigate(`/admin/maintenance/technicians/${report.assignedToUserId}`)} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200">
+                              <button type="button" onClick={() => navigate(`/admin/technicians/${report.assignedToUserId}`)} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200">
                                 <UserCheck className="w-3 h-3" /> {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[report.assignedToUserId] ?? `#${report.assignedToUserId}` })}
                               </button>
                             ) : null}
@@ -2147,24 +2158,6 @@ export default function MaintenanceAdminPage() {
             );
           })()}
         </TabsContent>
-
-        {/* TAB 4: ĐỘI NGŨ KỸ THUẬT VIÊN */}
-        <TabsContent value="technicians" className="space-y-6">
-          <TechniciansTab
-            onAssignToTech={(techId, specialty) => {
-              const name = techniciansMap[techId]?.fullName ?? t("admin.maintenance.techFallback", { id: techId });
-              // KTV Drone chỉ nhận phiếu Drone ⇒ mở tab Drone với bộ lọc KTV Drone
-              if (specialty === "DRONE") {
-                setDroneTechFilter(String(techId));
-                setActiveTab("drone");
-              } else {
-                setSelectedTechFilter(String(techId));
-                setActiveTab("kiosk");
-              }
-              toast.info(t("admin.maintenance.toast.showingTechIncidents", { name }));
-            }}
-          />
-        </TabsContent>
       </Tabs>
 
       {/* Assign Report Dialog */}
@@ -2368,7 +2361,7 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
       t("admin.maintenance.droneDetail.assignedTech"),
       drone.assignedTechnicianId ? (
         <Link
-          to={`/admin/maintenance/technicians/${drone.assignedTechnicianId}`}
+          to={`/admin/technicians/${drone.assignedTechnicianId}`}
           className="inline-flex items-center gap-1 font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
         >
           <UserCheck className="h-3.5 w-3.5" />

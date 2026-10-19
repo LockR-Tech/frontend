@@ -11,6 +11,7 @@ import {
   useDeleteLockersBatchMutation,
   useDeleteAllLockersMutation,
 } from "~/stores/apis/admin";
+import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { extractList } from "~/lib/extract-list";
 import type { AdminLockerResponse } from "~/types";
 
@@ -53,13 +54,33 @@ export function useLockers() {
     return m;
   }, [storesData]);
 
+  // Join technician names from users list
+  const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
+  const technicianNameById = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const u of extractList<{ id: number; fullName?: string; name?: string }>(usersData?.data)) {
+      const name = (u.fullName || u.name || "").trim();
+      if (name) m.set(u.id, name);
+    }
+    return m;
+  }, [usersData]);
+
   const allLockers = useMemo(
     () =>
-      extractList<AdminLockerResponse>(data?.data).map((l) => ({
-        ...l,
-        storeName: l.storeName || storeNameById.get(l.storeId),
-      })),
-    [data, storeNameById],
+      extractList<AdminLockerResponse>(data?.data).map((l) => {
+        const resolvedTechName =
+          (l.assignedTechnicianId ? technicianNameById.get(l.assignedTechnicianId) : undefined) ||
+          (l.assignedTechnicianName && !l.assignedTechnicianName.startsWith("KTV #")
+            ? l.assignedTechnicianName
+            : undefined);
+
+        return {
+          ...l,
+          storeName: l.storeName || storeNameById.get(l.storeId),
+          assignedTechnicianName: resolvedTechName ?? l.assignedTechnicianName,
+        };
+      }),
+    [data, storeNameById, technicianNameById],
   );
 
   const filteredLockers = useMemo(() => {
@@ -76,7 +97,8 @@ export function useLockers() {
           locker.name?.toLowerCase().includes(query) ||
           locker.code?.toLowerCase().includes(query) ||
           locker.storeName?.toLowerCase().includes(query) ||
-          locker.address?.toLowerCase().includes(query),
+          locker.address?.toLowerCase().includes(query) ||
+          locker.assignedTechnicianName?.toLowerCase().includes(query),
       );
     }
 

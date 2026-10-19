@@ -156,6 +156,7 @@
       "promotions": "Promotions",
       "settings": "Settings",
       "maintenance": "Maintenance & Device Incidents",
+      "technicians": "Technicians",
       "drones": "Drones",
       "droneOrders": "Drone journeys",
       "droneIncidents": "Dropped parcel incidents",
@@ -2023,6 +2024,7 @@
     "breadcrumb": {
       "admin": "Admin",
       "staff": "Staff",
+      "technicians": "Technicians",
       "detail": "Detail",
       "create": "Create",
       "edit": "Edit"

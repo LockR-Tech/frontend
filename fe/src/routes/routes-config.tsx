@@ -50,6 +50,7 @@ const SchedulerPage = lazy(() => import("../pages/Admin/scheduler"));
 const LockersAdminPage = lazy(() => import("../pages/Admin/lockers"));
 const LockerLayoutPage = lazy(() => import("../pages/Admin/lockers/layout-view"));
 const MaintenanceAdminPage = lazy(() => import("../pages/Admin/maintenance"));
+const TechniciansPage = lazy(() => import("../pages/Admin/technicians"));
 const TechnicianDetailPage = lazy(() => import("../pages/Admin/maintenance/technician-detail"));
 const NotificationsPage = lazy(() => import("../pages/Admin/notifications"));
 const PromotionsPage = lazy(() => import("../pages/Admin/promotions"));
@@ -257,6 +258,26 @@ const routesConfig: RouteObject[] = [
             <MaintenanceAdminPage />
           </LazyWrapper>
         ),
+      },
+      {
+        path: "technicians",
+        element: (
+          <LazyWrapper>
+            <TechniciansPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "technicians/:technicianId",
+        element: (
+          <LazyWrapper>
+            <TechnicianDetailPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "maintenance/technicians",
+        element: <Navigate to="/admin/technicians" replace />,
       },
       {
         path: "maintenance/technicians/:technicianId",
