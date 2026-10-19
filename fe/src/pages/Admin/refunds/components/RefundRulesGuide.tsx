@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { useGetPublicBusinessSettingsQuery } from "~/stores/apis/admin/businessSettings";
 
 interface ScenarioItem {
   id: string;
@@ -34,6 +35,8 @@ interface ScenarioItem {
 export function RefundRulesGuide() {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>("locker-fault");
+  const { data: paymentSettingsRes } = useGetPublicBusinessSettingsQuery("payment");
+  const refundMaxDays = (paymentSettingsRes?.data?.["app.payment.refund-max-days"] as number) ?? 7;
 
   const scenarios: ScenarioItem[] = [
     {
@@ -87,7 +90,7 @@ export function RefundRulesGuide() {
       refundRate: "100% (theo điều kiện)",
       conditions: [
         "Khách đã thanh toán nhưng chưa đặt đồ vào tủ (chưa phát sinh sự kiện ITEM_PLACED).",
-        "Yêu cầu huỷ và hoàn tiền trong vòng 7 ngày kể từ khi thanh toán thành công.",
+        `Yêu cầu huỷ và hoàn tiền trong vòng ${refundMaxDays} ngày kể từ khi thanh toán thành công.`,
         "Với đơn thuê tủ dài ngày: chưa hết hạn và chưa nhận bàn giao ô.",
       ],
       evidence: [
