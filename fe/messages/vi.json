@@ -338,7 +338,8 @@
           "redeem": "Đổi điểm",
           "orderEarn": "Tích từ đơn",
           "orderRedeem": "Dùng cho đơn",
-          "orderRedeemRefund": "Hoàn điểm đơn huỷ"
+          "orderRedeemRefund": "Hoàn điểm đơn huỷ",
+          "orderEarnReversal": "Thu hồi điểm đơn hoàn tiền"
         },
         "enterPositive": "Vui lòng nhập số điểm lớn hơn 0.",
         "cannotDeductMore": "Không thể trừ nhiều hơn số điểm hiện có.",
