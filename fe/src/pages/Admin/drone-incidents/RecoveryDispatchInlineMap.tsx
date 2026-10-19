@@ -433,48 +433,40 @@ export function RecoveryDispatchInlineMap({
       userMap.set(u.id, u);
     }
 
-    // Tập hợp ID của tất cả KTV từ users và từ presences
-    const allTechIds = new Set<number>();
+    const techs: CandidateTech[] = [];
 
-    // a. Duyệt từ danh sách users
+    // Chỉ lấy những user có role là drone technician hoặc kiosk technician và đang trong ca
     for (const u of userList) {
       if (u.status && u.status !== "ACTIVE") continue;
       const roles = u.roles ?? [];
-      const isTech = roles.some((r) =>
+      const isDrone = roles.some((r) =>
+        [
+          "DRONE_TECHNICIAN",
+          "ROLE_DRONE_TECHNICIAN",
+          "MAINTENANCE",
+        ].includes(r),
+      );
+      const isLocker = roles.some((r) =>
         [
           "LOCKER_TECHNICIAN",
           "ROLE_LOCKER_TECHNICIAN",
-          "DRONE_TECHNICIAN",
-          "ROLE_DRONE_TECHNICIAN",
+          "TECHNICIAN",
         ].includes(r),
       );
-      if (isTech) {
-        allTechIds.add(u.id);
-      }
-    }
 
-    // b. Bổ sung từ presenceByUserId (đảm bảo không bỏ sót KTV nào đã có GPS)
-    for (const p of presenceByUserId.values()) {
-      allTechIds.add(p.userId);
-    }
+      // 1. Phải có role KTV Drone hoặc KTV Kiosk
+      if (!isDrone && !isLocker) continue;
 
-    const techs: CandidateTech[] = [];
-
-    for (const techId of allTechIds) {
-      const u = userMap.get(techId);
-      const presence = presenceByUserId.get(techId);
-      const locker = lockerByTechId.get(techId);
-
-      const roles = u?.roles ?? [];
-      const isDrone =
-        roles.some((r) => r.includes("DRONE")) ||
-        presence?.technicianType === "DRONE_TECHNICIAN";
+      // 2. Phải đang trong ca trực (onDuty === true)
+      const presence = presenceByUserId.get(u.id);
+      if (presence?.onDuty !== true) continue;
 
       const techRole = isDrone ? "DRONE_TECHNICIAN" : "LOCKER_TECHNICIAN";
       const techRoleLabel = isDrone ? "KTV Drone" : "KTV Kiosk";
+      const locker = lockerByTechId.get(u.id);
 
       // LẤY TỌA ĐỘ GPS:
-      // Ưu tiên 1: Toạ độ GPS thực tế từ presence (technician_presences)
+      // Ưu tiên 1: Toạ độ GPS thực tế từ presence
       let lat: number | null =
         presence?.latitude != null ? Number(presence.latitude) : null;
       let lng: number | null =
@@ -493,14 +485,14 @@ export function RecoveryDispatchInlineMap({
       }
 
       techs.push({
-        id: techId,
+        id: u.id,
         fullName:
-          u?.fullName || u?.name || presence?.userName || `KTV #${techId}`,
-        phoneNumber: u?.phoneNumber ?? null,
-        email: u?.email ?? null,
+          u.fullName || u.name || presence?.userName || `KTV #${u.id}`,
+        phoneNumber: u.phoneNumber ?? null,
+        email: u.email ?? null,
         role: techRole,
         roleLabel: techRoleLabel,
-        onDuty: presence?.onDuty ?? true,
+        onDuty: true,
         lockerName: locker?.name,
         lockerCode: locker?.code,
         latitude: lat,
@@ -694,28 +686,11 @@ export function RecoveryDispatchInlineMap({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
-            <Button
-              size="sm"
-              variant={dutyFilter === "ALL" ? "default" : "outline"}
-              className={`h-7 text-xs px-2.5 ${dutyFilter === "ALL" ? "font-bold shadow-2xs" : ""}`}
-              onClick={() => setDutyFilter("ALL")}
-            >
-              Tất cả ({candidateTechs.length})
-            </Button>
-            <Button
-              size="sm"
-              variant={dutyFilter === "ON_DUTY" ? "default" : "outline"}
-              className={`h-7 text-xs px-2.5 ${
-                dutyFilter === "ON_DUTY"
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-2xs"
-                  : "text-emerald-700 border-emerald-300 hover:bg-emerald-50"
-              }`}
-              onClick={() => setDutyFilter("ON_DUTY")}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 inline-block" />
-              Đang trực ({onDutyCount})
-            </Button>
+          <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
+            <span className="text-xs text-emerald-800 font-medium flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+              KTV đang trong ca: <b>{candidateTechs.length}</b>
+            </span>
           </div>
         </div>
 
@@ -910,57 +885,19 @@ export function RecoveryDispatchInlineMap({
             })}
           </MapContainer>
 
-          {/* Chú giải góc bản đồ theo Icon User chuẩn */}
-          <div className="absolute bottom-2 left-2 z-[1000] bg-white/95 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] shadow-sm flex items-center gap-3 select-none">
+          {/* Chú giải góc bản đồ theo màu sắc trực quan */}
+          <div className="absolute bottom-2 left-2 z-[1000] bg-white/95 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-slate-200 text-xs shadow-sm flex items-center gap-3.5 select-none">
             <span className="flex items-center gap-1.5 text-slate-700 font-medium">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shadow-2xs"></span>
               Điểm rơi
             </span>
             <span className="flex items-center gap-1.5 text-slate-700 font-medium">
-              <span className="relative inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-sky-500 to-sky-700 text-white text-[10px] shadow-2xs">
-                <svg
-                  width="11"
-                  height="11"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-white border border-sky-600 flex items-center justify-center text-[7px] leading-none">
-                  🏢
-                </span>
-              </span>
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-sky-500 shadow-2xs"></span>
               KTV Kiosk
             </span>
             <span className="flex items-center gap-1.5 text-slate-700 font-medium">
-              <span className="relative inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] shadow-2xs">
-                <svg
-                  width="11"
-                  height="11"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-white border border-orange-600 flex items-center justify-center text-[7px] leading-none">
-                  🚁
-                </span>
-              </span>
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-500 shadow-2xs"></span>
               KTV Drone
-            </span>
-            <span className="flex items-center gap-1.5 text-slate-700 font-medium">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 shadow-2xs"></span>
-              Đang trong ca
             </span>
           </div>
         </div>

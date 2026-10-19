@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
@@ -9,6 +9,7 @@ import {
   Clock,
   CreditCard,
   Edit3,
+  ExternalLink,
   KeyRound,
   MapPin,
   Package,
@@ -22,6 +23,10 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { Skeleton } from "~/components/ui/skeleton";
+import {
+  useGetDroneIncidentsQuery,
+  type DroneParcelIncident,
+} from "~/stores/apis/admin/droneIncidents";
 import {
   LabelValue,
   MetaBadge,
@@ -39,6 +44,19 @@ import { useOrderDetail } from "./hooks/useOrderDetail";
 import { OrderTimeline } from "./components/OrderTimeline";
 import { OrderStatusUpdateModal } from "./components/OrderStatusUpdateModal";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
+
+function getIncidentShortStatus(incident: DroneParcelIncident): string {
+  if (incident.status === "CLOSED") return "Đã đóng";
+  if (incident.status === "RESOLVED") return "Đã giải quyết";
+  if (incident.recoveryStatus === "SUBMITTED") return "Chờ duyệt thu hồi";
+  if (incident.recoveryStatus === "SEARCHING") return "Đang tìm kiếm";
+  if (incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB") return "Đã thu hồi";
+  if (incident.recoveryStatus === "ACCEPTED" || incident.recoveryStatus === "ASSIGNED") return "Đã phân công KTV";
+  if (incident.status === "RESOLUTION_IN_PROGRESS" || incident.compensationStatus === "PROCESSING") return "Đang bồi thường";
+  if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE") return "Chờ khách chọn bồi thường";
+  if (incident.recoveryStatus === "AWAITING_ASSIGNMENT" || incident.status === "REPORTED" || incident.recoveryStatus === "OPEN") return "Chờ điều phối";
+  return incident.status;
+}
 
 /**
  * Nhãn tủ cho người đọc: ưu tiên TÊN, mã tủ chỉ là phần phụ trong ngoặc.
@@ -356,7 +374,13 @@ function PaymentCard({ order }: { order: AdminOrder }) {
   );
 }
 
-function DroneCard({ order }: { order: AdminOrder }) {
+function DroneCard({
+  order,
+  parcelDropIncident,
+}: {
+  order: AdminOrder;
+  parcelDropIncident?: DroneParcelIncident | null;
+}) {
   const { t } = useTranslation();
   const drone = order.drone;
   if (!drone) return null;
@@ -380,6 +404,21 @@ function DroneCard({ order }: { order: AdminOrder }) {
             </span>
           )}
         </div>
+
+        {parcelDropIncident && (
+          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50/70 p-2.5 text-xs text-red-900">
+            <div className="flex items-center gap-1.5 font-medium truncate">
+              <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+              <span>Sự cố rơi ({parcelDropIncident.incidentCode}): {getIncidentShortStatus(parcelDropIncident)}</span>
+            </div>
+            <Link
+              to={`/admin/drone-incidents/${parcelDropIncident.id}`}
+              className="font-semibold text-red-700 hover:underline inline-flex items-center gap-1 shrink-0 ml-2"
+            >
+              Chi tiết <ExternalLink className="h-3 w-3" />
+            </Link>
+          </div>
+        )}
 
         {/* Khi đơn chưa được gán nhiệm vụ, backend chỉ trả chặng và tủ đích. */}
         {drone.missionId === null ? (
@@ -429,6 +468,21 @@ export default function OrderDetailPage() {
   const { t } = useTranslation();
   const { order, isLoading, error, refetch, isValidId } = useOrderDetail(orderId);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+
+  const { data: droneIncidentsData } = useGetDroneIncidentsQuery(undefined, {
+    pollingInterval: 15000,
+  });
+  const incidents = droneIncidentsData?.data ?? [];
+  const parcelDropIncident = useMemo(() => {
+    if (!order) return null;
+    return (
+      incidents.find(
+        (inc) =>
+          inc.orderId === order.id ||
+          (order.orderCode && inc.orderCode === order.orderCode),
+      ) ?? null
+    );
+  }, [incidents, order]);
 
   if (isLoading) return <DetailSkeleton />;
 
@@ -501,6 +555,17 @@ export default function OrderDetailPage() {
         <MetaBadge meta={orderPaymentStatusMeta(order.paymentStatus)} hideIcon />
         {order.deliveryStage && (
           <MetaBadge meta={deliveryStageMeta(order.deliveryStage)} hideIcon />
+        )}
+        {parcelDropIncident && (
+          <Link
+            to={`/admin/drone-incidents/${parcelDropIncident.id}`}
+            title={`Sự cố rơi ${parcelDropIncident.incidentCode} - Nhấp để xem chi tiết`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 shadow-xs hover:bg-red-100 hover:border-red-400 transition-colors"
+          >
+            <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />
+            <span>Sự cố rơi: {getIncidentShortStatus(parcelDropIncident)}</span>
+            <ExternalLink className="h-3 w-3 text-red-500 opacity-70" />
+          </Link>
         )}
         {order.overtime && (
           <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
@@ -704,7 +769,7 @@ export default function OrderDetailPage() {
           <CustomerCard order={order} />
           <LockerCard order={order} />
           <PaymentCard order={order} />
-          <DroneCard order={order} />
+          <DroneCard order={order} parcelDropIncident={parcelDropIncident} />
 
           {/* Khối này trước đây liệt kê 6 dòng mã số thô (`#701`, `#7`, `#3`) — nhìn vào
               không biết là tủ nào, cửa hàng nào. Nay hiện tên và số ô mà API chi tiết

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { Loader2, MapPin, Plane, RefreshCw, Route, TriangleAlert } from "lucide-react";
+import { Loader2, MapPin, Plane, RefreshCw, Route, TriangleAlert, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { Button } from "~/components/ui/button";
@@ -19,6 +19,10 @@ import {
 } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency } from "~/lib/report-format";
+import {
+  useGetDroneIncidentsQuery,
+  type DroneParcelIncident,
+} from "~/stores/apis/admin/droneIncidents";
 import {
   useConfirmDroneParcelReturnMutation,
   useGetDroneOrderQuery,
@@ -70,6 +74,40 @@ function isDropReported(order: DroneOrderTracking): boolean {
 
 function incidentLink(order: DroneOrderTracking): string {
   return `/admin/drone-incidents?order=${encodeURIComponent(order.orderCode)}`;
+}
+
+function getIncidentReadableStatus(incident: DroneParcelIncident): string {
+  if (incident.status === "CLOSED") return "Đã đóng sự cố";
+  if (incident.status === "RESOLVED") return "Đã giải quyết";
+  if (incident.recoveryStatus === "SUBMITTED") return "Chờ Admin xác minh";
+  if (incident.recoveryStatus === "SEARCHING") return "KTV đang tìm thực địa";
+  if (incident.recoveryStatus === "VERIFIED") return "Đã xác minh thu hồi";
+  if (incident.parcelStatus === "RETURNED_TO_HUB") return "Kiện đã về kho Hub";
+  if (incident.recoveryStatus === "ACCEPTED") return "KTV đã nhận tìm kiếm";
+  if (incident.recoveryStatus === "ASSIGNED") return "Đã phân công KTV";
+  if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE")
+    return "Chờ khách chọn bồi thường";
+  if (incident.status === "RESOLUTION_IN_PROGRESS" || incident.compensationStatus === "PROCESSING")
+    return "Đang chi trả bồi thường";
+  if (incident.recoveryStatus === "AWAITING_ASSIGNMENT" || incident.recoveryStatus === "OPEN" || incident.status === "REPORTED")
+    return "Chờ điều phối tìm kiếm";
+  return incident.status;
+}
+
+function getIncidentStatusBadgeClass(incident: DroneParcelIncident): string {
+  if (incident.status === "RESOLVED" || incident.status === "CLOSED" || incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB") {
+    return "bg-emerald-100 text-emerald-800 border-emerald-300";
+  }
+  if (incident.recoveryStatus === "SUBMITTED" || incident.status === "AWAITING_ADMIN_REVIEW" || incident.status === "AWAITING_CUSTOMER_RESPONSE") {
+    return "bg-amber-100 text-amber-800 border-amber-300";
+  }
+  if (incident.recoveryStatus === "SEARCHING" || incident.recoveryStatus === "ACCEPTED" || incident.recoveryStatus === "ASSIGNED") {
+    return "bg-blue-100 text-blue-800 border-blue-300";
+  }
+  if (incident.status === "RESOLUTION_IN_PROGRESS" || incident.compensationStatus === "PROCESSING") {
+    return "bg-purple-100 text-purple-800 border-purple-300";
+  }
+  return "bg-rose-100 text-rose-800 border-rose-300";
 }
 
 /** Chặng drone đã phóng — chỉ ở các chặng này mới báo được chuyến bay thất bại. */
@@ -395,7 +433,22 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
   const { data, isLoading, isError } = useGetDroneOrderQuery(orderId, {
     pollingInterval: DETAIL_POLL_MS,
   });
+  const { data: incidentResp } = useGetDroneIncidentsQuery(undefined, {
+    pollingInterval: DETAIL_POLL_MS,
+  });
   const order = data?.data;
+  const incidents = incidentResp?.data ?? [];
+
+  const latestIncident = useMemo(() => {
+    if (!order) return null;
+    const matches = incidents.filter(
+      (inc) =>
+        inc.orderId === order.orderId ||
+        (order.orderCode && inc.orderCode === order.orderCode),
+    );
+    if (matches.length === 0) return null;
+    return [...matches].sort((a, b) => b.id - a.id)[0];
+  }, [incidents, order]);
 
   return (
     <div className="space-y-6">
@@ -417,14 +470,63 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
           </div>
         ) : (
           <div className="space-y-6">
-            <IncidentBlockBanner order={order} />
-            <FailurePanel order={order} />
-            <PickupPanel key={`pickup-${order.orderId}`} order={order} />
-            <p className="text-xs text-muted-foreground">
-              {t("admin.droneOrders.detail.autoRefresh", { time: formatDateTime(order.updatedAt) })}
-            </p>
-
-            {isDropReported(order) && (
+            {/* Banner hiển thị trạng thái sự cố rơi gần nhất */}
+            {latestIncident ? (
+              <div className="rounded-xl border border-red-300/80 bg-gradient-to-r from-red-50 via-rose-50/70 to-amber-50/40 p-4 text-sm text-red-950 shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600 border border-red-200 shadow-xs">
+                      <TriangleAlert className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-bold text-red-950">Sự cố rơi kiện:</span>
+                        <span className="font-mono font-semibold text-red-800">{latestIncident.incidentCode}</span>
+                        <span
+                          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getIncidentStatusBadgeClass(
+                            latestIncident,
+                          )}`}
+                        >
+                          {getIncidentReadableStatus(latestIncident)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-700">
+                        {latestIncident.reason || "Kiện hàng được ghi nhận rơi trong quá trình bay vận chuyển."}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 pt-1">
+                        {latestIncident.recoveryTechnicianName && (
+                          <span className="inline-flex items-center gap-1">
+                            <span className="text-muted-foreground">KTV tìm kiếm:</span>
+                            <span className="font-medium text-slate-900">{latestIncident.recoveryTechnicianName}</span>
+                            {latestIncident.recoveryTechnicianPhone && (
+                              <span className="text-muted-foreground font-mono">({latestIncident.recoveryTechnicianPhone})</span>
+                            )}
+                          </span>
+                        )}
+                        {latestIncident.dropLatitude != null && latestIncident.dropLongitude != null && (
+                          <span className="inline-flex items-center gap-1 font-mono text-muted-foreground">
+                            <MapPin className="h-3 w-3 text-red-500" />
+                            {latestIncident.dropLatitude.toFixed(6)}, {latestIncident.dropLongitude.toFixed(6)}
+                          </span>
+                        )}
+                        {latestIncident.updatedAt && (
+                          <span className="text-muted-foreground">
+                            Cập nhật: {formatDateTime(latestIncident.updatedAt)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <Link
+                    to={`/admin/drone-incidents/${latestIncident.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-xs font-semibold text-white shadow hover:bg-red-700 transition-colors shrink-0"
+                  >
+                    <span>Xem chi tiết sự cố</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ) : isDropReported(order) ? (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
                 <span className="flex items-center gap-2">
                   <TriangleAlert className="h-4 w-4 shrink-0" />
@@ -437,7 +539,14 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                   {t("admin.droneOrders.detail.openIncident")}
                 </Link>
               </div>
-            )}
+            ) : null}
+
+            <IncidentBlockBanner order={order} />
+            <FailurePanel order={order} />
+            <PickupPanel key={`pickup-${order.orderId}`} order={order} />
+            <p className="text-xs text-muted-foreground">
+              {t("admin.droneOrders.detail.autoRefresh", { time: formatDateTime(order.updatedAt) })}
+            </p>
 
             {order.status === "CANCELED" && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">

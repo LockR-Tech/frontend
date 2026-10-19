@@ -176,7 +176,9 @@ export const INCIDENT_ERRORS: Record<string, string> = {
 };
 
 /** Backend (bản mới) trả thêm mức bồi thường đề xuất theo chính sách; bản cũ chưa có. */
-export function suggestedCompensationOf(incident: DroneParcelIncident): number | null {
+export function suggestedCompensationOf(
+  incident: DroneParcelIncident,
+): number | null {
   const value = (
     incident as DroneParcelIncident & {
       suggestedCompensation?: number | null;
@@ -399,9 +401,7 @@ export default function DroneIncidentsPage() {
                   <th className="px-4 py-3">
                     {t("admin.droneIncidents.columns.orderDrone")}
                   </th>
-                  <th className="px-4 py-3">
-                    KTV tìm hàng
-                  </th>
+                  <th className="px-4 py-3">KTV tìm hàng</th>
                   <th className="px-4 py-3">
                     {t("admin.droneIncidents.columns.incident")}
                   </th>
@@ -447,12 +447,14 @@ export default function DroneIncidentsPage() {
                             <Badge
                               variant="outline"
                               className={`text-[10px] px-1.5 py-0 ${
-                                item.recoveryTechnicianRole === "DRONE_TECHNICIAN"
+                                item.recoveryTechnicianRole ===
+                                "DRONE_TECHNICIAN"
                                   ? "bg-orange-50 text-orange-700 border-orange-200"
                                   : "bg-sky-50 text-sky-700 border-sky-200"
                               }`}
                             >
-                              {item.recoveryTechnicianRole === "DRONE_TECHNICIAN"
+                              {item.recoveryTechnicianRole ===
+                              "DRONE_TECHNICIAN"
                                 ? "KTV Drone"
                                 : "KTV Tủ"}
                             </Badge>
@@ -483,10 +485,7 @@ export default function DroneIncidentsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Link to={`/admin/drone-incidents/${item.id}`}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                        >
+                        <Button variant="ghost" size="sm">
                           <Eye className="mr-1 h-4 w-4" />
                           {t("button.detail")}
                         </Button>
@@ -646,7 +645,9 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="p-3 rounded-lg border bg-white space-y-1">
-              <span className="text-muted-foreground font-medium">Tọa độ KTV bấm xác nhận:</span>
+              <span className="text-muted-foreground font-medium">
+                Tọa độ KTV bấm xác nhận:
+              </span>
               <p className="font-semibold text-slate-800">
                 {incident.recoveredLatitude != null
                   ? `${incident.recoveredLatitude.toFixed(6)}, ${incident.recoveredLongitude?.toFixed(6)}`
@@ -687,9 +688,13 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
             </div>
 
             <div className="p-3 rounded-lg border bg-white space-y-1">
-              <span className="text-muted-foreground font-medium">Ghi chú hiện trường của KTV:</span>
+              <span className="text-muted-foreground font-medium">
+                Ghi chú hiện trường của KTV:
+              </span>
               <p className="font-medium text-slate-800 italic">
-                {incident.recoveryNote?.trim() ? `"${incident.recoveryNote}"` : "Không có ghi chú."}
+                {incident.recoveryNote?.trim()
+                  ? `"${incident.recoveryNote}"`
+                  : "Không có ghi chú."}
               </p>
             </div>
           </div>
@@ -865,16 +870,22 @@ export function IncidentOrderContext({
           </div>
           <div>
             <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-              Thông tin chi tiết Đơn hàng & Khách hàng
+              Thông tin Đơn hàng
               {order && (
-                <Badge variant="outline" className="font-mono text-xs bg-white text-sky-800 border-sky-300">
-                  {order.orderCode || `#${order.orderId}`}
-                </Badge>
+                <Link
+                  to={`/admin/orders/${order.orderId}`}
+                  className="inline-flex items-center gap-1 group"
+                >
+                  <Badge
+                    variant="outline"
+                    className="font-mono text-xs bg-white text-sky-800 border-sky-300 cursor-pointer group-hover:bg-sky-50 group-hover:border-sky-500 transition-colors"
+                  >
+                    {order.orderCode || `#${order.orderId}`}
+                    <ExternalLink className="h-3 w-3 ml-1 text-sky-600" />
+                  </Badge>
+                </Link>
               )}
             </h3>
-            <p className="text-xs text-muted-foreground">
-              Dữ liệu đơn hàng giao drone được đồng bộ từ order-service
-            </p>
           </div>
         </div>
 
@@ -889,17 +900,10 @@ export function IncidentOrderContext({
             </Link>
           )}
           <Link
-            to={`/admin/orders/${orderId}`}
-            className="text-xs font-semibold text-primary bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1 shadow-2xs transition-colors"
-          >
-            Mở chi tiết đơn hàng #{orderId}
-            <ExternalLink className="h-3.5 w-3.5" />
-          </Link>
-          <Link
             to={`/admin/drone-orders/${orderId}`}
             className="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1 shadow-2xs transition-colors"
           >
-            Hành trình bay drone
+            Hành trình bay
             <ExternalLink className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -908,11 +912,14 @@ export function IncidentOrderContext({
       {isLoading ? (
         <div className="flex h-24 items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-sky-600" />
-          <span className="ml-2 text-xs text-muted-foreground">Đang tải chi tiết đơn hàng...</span>
+          <span className="ml-2 text-xs text-muted-foreground">
+            Đang tải chi tiết đơn hàng...
+          </span>
         </div>
       ) : isError || !order ? (
         <p className="rounded-lg border border-dashed bg-white p-3 text-xs text-muted-foreground">
-          Không tải được chi tiết đơn hàng #{orderId}. Bạn vẫn có thể tiếp tục xử lý sự cố.
+          Không tải được chi tiết đơn hàng #{orderId}. Bạn vẫn có thể tiếp tục
+          xử lý sự cố.
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs">
@@ -924,18 +931,26 @@ export function IncidentOrderContext({
             </div>
             <div className="space-y-1">
               <p className="font-semibold text-slate-900 text-sm">
-                {order.customerName || order.sender?.name || "Chưa có tên người gửi"}
+                {order.customerName ||
+                  order.sender?.name ||
+                  "Chưa có tên người gửi"}
               </p>
               {(order.customerPhone || order.sender?.phone) && (
                 <p className="text-slate-600 flex items-center gap-1">
                   <Phone className="h-3 w-3 text-slate-400" />
-                  <a href={`tel:${order.customerPhone || order.sender?.phone}`} className="hover:underline font-mono">
+                  <a
+                    href={`tel:${order.customerPhone || order.sender?.phone}`}
+                    className="hover:underline font-mono"
+                  >
                     {order.customerPhone || order.sender?.phone}
                   </a>
                 </p>
               )}
               {order.sender?.email && (
-                <p className="text-slate-500 flex items-center gap-1 truncate" title={order.sender.email}>
+                <p
+                  className="text-slate-500 flex items-center gap-1 truncate"
+                  title={order.sender.email}
+                >
                   <Mail className="h-3 w-3 text-slate-400" />
                   <span>{order.sender.email}</span>
                 </p>
@@ -943,15 +958,22 @@ export function IncidentOrderContext({
             </div>
             <div className="pt-1.5 border-t space-y-1 text-[11px] text-slate-600">
               <p>
-                <b>Tủ gửi:</b> {order.sourceLocker?.name || order.sourceLocker?.code || "—"}
+                <b>Tủ gửi:</b>{" "}
+                {order.sourceLocker?.name || order.sourceLocker?.code || "—"}
                 {order.sourceBoxNumber != null && (
-                  <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">
+                  <Badge
+                    variant="outline"
+                    className="ml-1 text-[10px] px-1 py-0"
+                  >
                     Ô #{order.sourceBoxNumber}
                   </Badge>
                 )}
               </p>
               {order.sourceLocker?.address && (
-                <p className="text-muted-foreground line-clamp-2" title={order.sourceLocker.address}>
+                <p
+                  className="text-muted-foreground line-clamp-2"
+                  title={order.sourceLocker.address}
+                >
                   📍 {order.sourceLocker.address}
                 </p>
               )}
@@ -971,13 +993,19 @@ export function IncidentOrderContext({
               {order.receiverPhone && (
                 <p className="text-slate-600 flex items-center gap-1">
                   <Phone className="h-3 w-3 text-slate-400" />
-                  <a href={`tel:${order.receiverPhone}`} className="hover:underline font-mono">
+                  <a
+                    href={`tel:${order.receiverPhone}`}
+                    className="hover:underline font-mono"
+                  >
                     {order.receiverPhone}
                   </a>
                 </p>
               )}
               {order.receiverEmail && (
-                <p className="text-slate-500 flex items-center gap-1 truncate" title={order.receiverEmail}>
+                <p
+                  className="text-slate-500 flex items-center gap-1 truncate"
+                  title={order.receiverEmail}
+                >
                   <Mail className="h-3 w-3 text-slate-400" />
                   <span>{order.receiverEmail}</span>
                 </p>
@@ -985,15 +1013,24 @@ export function IncidentOrderContext({
             </div>
             <div className="pt-1.5 border-t space-y-1 text-[11px] text-slate-600">
               <p>
-                <b>Tủ nhận:</b> {order.destinationLocker?.name || order.destinationLocker?.code || "—"}
+                <b>Tủ nhận:</b>{" "}
+                {order.destinationLocker?.name ||
+                  order.destinationLocker?.code ||
+                  "—"}
                 {order.reservedBoxNumber != null && (
-                  <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0 bg-emerald-50 text-emerald-800 border-emerald-300">
+                  <Badge
+                    variant="outline"
+                    className="ml-1 text-[10px] px-1 py-0 bg-emerald-50 text-emerald-800 border-emerald-300"
+                  >
                     Ô nhận #{order.reservedBoxNumber}
                   </Badge>
                 )}
               </p>
               {order.destinationLocker?.address && (
-                <p className="text-muted-foreground line-clamp-2" title={order.destinationLocker.address}>
+                <p
+                  className="text-muted-foreground line-clamp-2"
+                  title={order.destinationLocker.address}
+                >
                   📍 {order.destinationLocker.address}
                 </p>
               )}
@@ -1015,13 +1052,18 @@ export function IncidentOrderContext({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Kích thước:</span>
-                <span className="font-semibold text-slate-900">{parcelSize}</span>
+                <span className="font-semibold text-slate-900">
+                  {parcelSize}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Cân nặng:</span>
                 <span className="font-semibold text-slate-900">
-                  {order.parcelWeightGrams != null ? `${order.parcelWeightGrams} g` : "—"}
-                  {order.payloadWeightGrams != null && ` (Nạp drone: ${order.payloadWeightGrams} g)`}
+                  {order.parcelWeightGrams != null
+                    ? `${order.parcelWeightGrams} g`
+                    : "—"}
+                  {order.payloadWeightGrams != null &&
+                    ` (Nạp drone: ${order.payloadWeightGrams} g)`}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -1032,13 +1074,22 @@ export function IncidentOrderContext({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Hàng dễ vỡ:</span>
-                <span className={order.fragile ? "font-bold text-amber-700" : "text-slate-600"}>
+                <span
+                  className={
+                    order.fragile
+                      ? "font-bold text-amber-700"
+                      : "text-slate-600"
+                  }
+                >
                   {order.fragile ? "Có (Dễ vỡ) ⚠️" : "Không"}
                 </span>
               </div>
             </div>
             {order.description && (
-              <p className="pt-1 border-t text-[11px] text-muted-foreground italic truncate" title={order.description}>
+              <p
+                className="pt-1 border-t text-[11px] text-muted-foreground italic truncate"
+                title={order.description}
+              >
                 Ghi chú: "{order.description}"
               </p>
             )}
@@ -1313,7 +1364,8 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 Điều phối & Kỹ thuật viên tìm hàng
               </h3>
               <p className="text-[11px] text-muted-foreground">
-                Theo dõi tiến độ tìm kiếm và điều phối KTV thu hồi kiện tại hiện trường
+                Theo dõi tiến độ tìm kiếm và điều phối KTV thu hồi kiện tại hiện
+                trường
               </p>
             </div>
           </div>
@@ -1377,7 +1429,10 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 <span className="text-[11px] text-muted-foreground block">
                   Tiến độ thu hồi
                 </span>
-                <Badge variant="secondary" className="text-xs font-semibold mt-0.5">
+                <Badge
+                  variant="secondary"
+                  className="text-xs font-semibold mt-0.5"
+                >
                   {statusText(incident.recoveryStatus, t)}
                 </Badge>
               </div>
@@ -1389,7 +1444,8 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             <div>
               <p className="font-semibold">Chưa có KTV phụ trách tìm hàng</p>
               <p className="text-amber-800 text-[11px] mt-0.5">
-                Hệ thống chưa tìm thấy KTV rảnh trong bán kính ban đầu. Vui lòng mở bản đồ điều phối để mở rộng bán kính và chọn KTV.
+                Hệ thống chưa tìm thấy KTV rảnh trong bán kính ban đầu. Vui lòng
+                mở bản đồ điều phối để mở rộng bán kính và chọn KTV.
               </p>
             </div>
           </div>
@@ -1424,7 +1480,9 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 Phân công thủ công (Reassign)
               </span>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Nếu KTV được hệ thống tự động gán không thể nhận nhiệm vụ (do bận việc cá nhân, phương tiện hoặc không liên lạc được), Quản trị viên được phép phân công lại thủ công cho KTV khác dưới đây:
+                Nếu KTV được hệ thống tự động gán không thể nhận nhiệm vụ (do
+                bận việc cá nhân, phương tiện hoặc không liên lạc được), Quản
+                trị viên được phép phân công lại thủ công cho KTV khác dưới đây:
               </p>
             </div>
 
@@ -1486,10 +1544,13 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             <ShieldCheck className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
             <div className="space-y-1">
               <p className="font-bold text-emerald-950 flex items-center gap-1.5">
-                Kỹ thuật viên đã tiếp nhận nhiệm vụ ({statusText(incident.recoveryStatus, t)})
+                Kỹ thuật viên đã tiếp nhận nhiệm vụ (
+                {statusText(incident.recoveryStatus, t)})
               </p>
               <p className="text-emerald-800 text-[11px] leading-relaxed">
-                KTV đã xác nhận nhận lệnh và đang trong quy trình xử lý thực địa. Để đảm bảo tính nhất quán của hiện trường, Quản trị viên không được phép đổi hoặc phân công lại KTV khác.
+                KTV đã xác nhận nhận lệnh và đang trong quy trình xử lý thực
+                địa. Để đảm bảo tính nhất quán của hiện trường, Quản trị viên
+                không được phép đổi hoặc phân công lại KTV khác.
               </p>
             </div>
           </div>
@@ -1508,17 +1569,26 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               </Badge>
             </div>
             <p className="text-xs text-amber-900 leading-relaxed">
-              KTV đã tìm thấy kiện và nộp báo cáo hiện trường. Admin cần đối chiếu các mục sau trước khi xác minh:
+              KTV đã tìm thấy kiện và nộp báo cáo hiện trường. Admin cần đối
+              chiếu các mục sau trước khi xác minh:
             </p>
             <ul className="text-xs text-amber-950 space-y-1 list-disc list-inside">
-              <li>Kiểm tra hình ảnh hiện trường và hiện trạng gói hàng thực tế.</li>
-              <li>Đối soát toạ độ GPS xác nhận từ điện thoại KTV so với toạ độ rơi.</li>
               <li>
-                Xác nhận tình trạng kiện: <b>{incident.parcelCondition || "Chưa rõ"}</b>.
+                Kiểm tra hình ảnh hiện trường và hiện trạng gói hàng thực tế.
+              </li>
+              <li>
+                Đối soát toạ độ GPS xác nhận từ điện thoại KTV so với toạ độ
+                rơi.
+              </li>
+              <li>
+                Xác nhận tình trạng kiện:{" "}
+                <b>{incident.parcelCondition || "Chưa rõ"}</b>.
               </li>
             </ul>
             <p className="text-[11px] text-muted-foreground italic">
-              * Sau khi bấm Duyệt xác minh, kiện hàng được mở khoá để KTV bàn giao về Hub và hệ thống cho phép tạo phương án bồi thường / giao lại cho khách.
+              * Sau khi bấm Duyệt xác minh, kiện hàng được mở khoá để KTV bàn
+              giao về Hub và hệ thống cho phép tạo phương án bồi thường / giao
+              lại cho khách.
             </p>
             <Button
               className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs gap-1.5 shadow-sm"
@@ -1545,16 +1615,28 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               </AlertDialogTitle>
               <AlertDialogDescription className="space-y-2 text-xs">
                 <p>
-                  Bạn đang thực hiện bước <b>Xác minh kết quả tìm hàng (Admin Review)</b>. Bước này có ý nghĩa:
+                  Bạn đang thực hiện bước{" "}
+                  <b>Xác minh kết quả tìm hàng (Admin Review)</b>. Bước này có ý
+                  nghĩa:
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-slate-700">
-                  <li>Xác nhận KTV đã tìm thấy kiện tại thực địa với toạ độ và hình ảnh đối soát hợp lệ.</li>
-                  <li>Chuyển trạng thái tìm hàng sang <b>ĐÃ XÁC MINH (VERIFIED)</b>.</li>
+                  <li>
+                    Xác nhận KTV đã tìm thấy kiện tại thực địa với toạ độ và
+                    hình ảnh đối soát hợp lệ.
+                  </li>
+                  <li>
+                    Chuyển trạng thái tìm hàng sang{" "}
+                    <b>ĐÃ XÁC MINH (VERIFIED)</b>.
+                  </li>
                   <li>Cho phép KTV vận chuyển kiện hàng bàn giao về Hub.</li>
-                  <li>Mở khoá chức năng tạo phương án xử lý bồi thường / giao lại cho khách hàng.</li>
+                  <li>
+                    Mở khoá chức năng tạo phương án xử lý bồi thường / giao lại
+                    cho khách hàng.
+                  </li>
                 </ul>
                 <p className="font-semibold text-slate-900 pt-1">
-                  Bạn đã kiểm tra kỹ hình ảnh hiện trường và toạ độ check-in chưa?
+                  Bạn đã kiểm tra kỹ hình ảnh hiện trường và toạ độ check-in
+                  chưa?
                 </p>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -1663,11 +1745,13 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                   variant="outline"
                   className="bg-sky-100 text-sky-800 border-sky-300 font-bold"
                 >
-                  {(incident.compensationRate).toFixed(0)}% giá trị kiện
+                  {incident.compensationRate.toFixed(0)}% giá trị kiện
                 </Badge>
               </div>
               <p className="text-[11px] text-sky-800">
-                Giá trị kiện: <b>{formatCurrency(incident.declaredValue ?? 0)}</b> ⇒ Mức bồi thường đề xuất:{" "}
+                Giá trị kiện:{" "}
+                <b>{formatCurrency(incident.declaredValue ?? 0)}</b> ⇒ Mức bồi
+                thường đề xuất:{" "}
                 <b className="text-emerald-700">{formatCurrency(suggested)}</b>.
               </p>
             </div>
@@ -1763,7 +1847,9 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 </Badge>
               </div>
               <p className="text-xs text-indigo-900">
-                Kiện hàng đã được điều phối giao lại từ Hub. Khi kiện đã giao thành công tới tay khách, bấm nút dưới để hoàn tất toàn bộ sự cố:
+                Kiện hàng đã được điều phối giao lại từ Hub. Khi kiện đã giao
+                thành công tới tay khách, bấm nút dưới để hoàn tất toàn bộ sự
+                cố:
               </p>
               <Button
                 size="sm"

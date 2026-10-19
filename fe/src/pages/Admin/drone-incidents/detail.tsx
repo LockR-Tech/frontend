@@ -436,13 +436,31 @@ export default function DroneIncidentDetailPage() {
       </div>
 
       {/* 2. Top Quick Links Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-sky-50/70 border border-sky-200 rounded-xl text-xs text-sky-950">
-        <div className="flex items-center gap-2">
-          <InfoIcon className="h-4 w-4 text-sky-600 shrink-0" />
-          <span>
-            Đơn hàng liên quan: <b className="font-mono text-sky-900">{incident.orderCode ?? `#${incident.orderId}`}</b> · Drone:{" "}
-            <b>{incident.droneCode}</b>
-          </span>
+      {/* <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-sky-50/70 border border-sky-200 rounded-xl text-xs text-sky-950">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="flex items-center gap-1.5">
+            <InfoIcon className="h-4 w-4 text-sky-600 shrink-0" />
+            <span>Đơn hàng liên quan:</span>
+            <Link
+              to={`/admin/orders/${incident.orderId}`}
+              className="font-mono font-bold text-sky-900 hover:text-sky-700 underline inline-flex items-center gap-1"
+            >
+              {incident.orderCode ?? `#${incident.orderId}`}
+              <ExternalLink className="h-3 w-3 inline text-sky-600" />
+            </Link>
+          </div>
+          <span className="text-sky-300 font-bold">·</span>
+          <div className="flex items-center gap-1.5">
+            <Plane className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+            <span>Hành trình bay:</span>
+            <Link
+              to={`/admin/drone-orders/${incident.orderId}`}
+              className="font-mono font-bold text-sky-900 hover:text-sky-700 underline inline-flex items-center gap-1"
+            >
+              {incident.missionId ? `#HT-${incident.missionId}` : `#HT-${incident.orderId}`}
+              <ExternalLink className="h-3 w-3 inline text-sky-600" />
+            </Link>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -468,11 +486,11 @@ export default function DroneIncidentDetailPage() {
             to={`/admin/drone-orders/${incident.orderId}`}
             className="inline-flex items-center gap-1 font-semibold text-slate-700 hover:text-slate-900 hover:underline bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs"
           >
-            Hành trình bay drone
+            Chi tiết hành trình bay
             <ExternalLink className="h-3 w-3" />
           </Link>
         </div>
-      </div>
+      </div> */}
 
       {/* 3. Top 4 KPI Metric Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -633,97 +651,154 @@ export default function DroneIncidentDetailPage() {
         inspectionReportId={incident.inspectionReportId}
       />
 
-      {/* 5. GỘP BẢN ĐỒ ĐIỀU PHỐI VÀO PHÂN CÔNG THỦ CÔNG (TRỰC TIẾP TRÊN TRANG) */}
-      <Card className="border-slate-200 shadow-2xs">
-        <CardHeader className="bg-slate-50/70 border-b pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Navigation className="h-4 w-4 text-primary" />
-              <CardTitle className="text-base font-bold text-slate-900">
-                Điều phối tìm kiếm & Phân công kỹ thuật viên (Bản đồ tương tác)
-              </CardTitle>
-            </div>
-          </div>
-          <CardDescription className="text-xs">
-            Bản đồ hiển thị các điểm vị trí và tên kỹ thuật viên quanh điểm rơi. Admin bấm trực tiếp vào KTV trên bản đồ hoặc danh sách để phân công.
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="p-4 space-y-4">
-          <RecoveryDispatchInlineMap
-            incident={incident}
-            onAssigned={() => refetch()}
-          />
-
-          {/* Bước xác minh kết quả tìm hàng từ KTV (SUBMITTED) */}
-          {incident.recoveryStatus === "SUBMITTED" && (
-            <div className="mt-4 rounded-xl border border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 p-4 space-y-3">
+      {/* 5. ĐIỀU PHỐI TÌM KIẾM THỦ CÔNG HOẶC THÔNG TIN KTV ĐÃ NHẬN NHIỆM VỤ */}
+      {incident.recoveryAssignedToUserId || !["OPEN", "AWAITING_ASSIGNMENT"].includes(incident.recoveryStatus) ? (
+        <Card className="border-emerald-200 shadow-2xs bg-gradient-to-br from-emerald-50/50 to-white">
+          <CardHeader className="bg-emerald-50/80 border-b border-emerald-100 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-amber-600" />
-                <span className="font-bold text-sm text-amber-950">
-                  Xác minh kết quả tìm hàng (Admin Review)
-                </span>
-                <Badge className="bg-amber-600 text-white text-[10px]">
-                  Chờ Admin duyệt
-                </Badge>
+                <div className="p-1.5 rounded-lg bg-emerald-600 text-white">
+                  <UserCheck className="h-4 w-4" />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-bold text-emerald-950 flex items-center gap-2">
+                    Kỹ thuật viên phụ trách thu hồi kiện
+                    <Badge className="bg-emerald-600 text-white text-[10px]">
+                      Đã tiếp nhận nhiệm vụ
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription className="text-xs text-emerald-800">
+                    KTV đang tiến hành quy trình tìm kiếm và thu hồi kiện hàng tại hiện trường. Đã khóa phân công thủ công.
+                  </CardDescription>
+                </div>
               </div>
-              <p className="text-xs text-amber-900 leading-relaxed">
-                KTV đã nộp báo cáo hiện trường. Quản trị viên cần đối soát các mục sau trước khi xác minh:
-              </p>
-              <ul className="text-xs text-amber-950 space-y-1 list-disc list-inside">
-                <li>Kiểm tra hình ảnh hiện trường và hiện trạng gói hàng thực tế.</li>
-                <li>Đối soát toạ độ GPS xác nhận từ điện thoại KTV so với toạ độ rơi.</li>
-                <li>
-                  Xác nhận tình trạng kiện: <b>{incident.parcelCondition || "Chưa rõ"}</b>.
-                </li>
-              </ul>
-              <p className="text-[11px] text-muted-foreground italic">
-                * Sau khi bấm Duyệt xác minh, kiện hàng được mở khoá để KTV bàn giao về Hub và hệ thống cho phép tạo phương án bồi thường / giao lại cho khách.
-              </p>
-              <Button
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs gap-1.5 shadow-sm"
-                disabled={verifyState.isLoading}
-                onClick={() => setShowVerifyConfirm(true)}
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Duyệt xác minh kết quả tìm hàng của KTV
-              </Button>
+              <Badge variant="outline" className="border-emerald-300 text-emerald-800 bg-white text-xs">
+                Mã sự cố: {incident.incidentCode}
+              </Badge>
             </div>
-          )}
+          </CardHeader>
 
-          {/* Nút bàn giao về Hub khi đã xác minh */}
-          {atHub ? (
-            <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/70 text-xs text-emerald-950 flex items-center gap-2">
-              <PackageCheck className="h-4 w-4 text-emerald-600" />
-              <span>
-                {incident.returnedToHubAt
-                  ? `Kiện hàng đã về trạm Hub an toàn lúc: ${formatDateTime(incident.returnedToHubAt)}`
-                  : "Kiện hàng đã được bàn giao an toàn về trạm Hub."}
-              </span>
+          <CardContent className="p-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
+                <span className="text-[11px] text-muted-foreground font-medium">Họ tên KTV:</span>
+                <p className="font-bold text-slate-900 text-sm">
+                  {incident.recoveryTechnicianName || `KTV #${incident.recoveryAssignedToUserId}`}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
+                <span className="text-[11px] text-muted-foreground font-medium">Số điện thoại liên hệ:</span>
+                <p className="font-bold text-slate-900 text-sm font-mono">
+                  {incident.recoveryTechnicianPhone || "Chưa cập nhật"}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
+                <span className="text-[11px] text-muted-foreground font-medium">Chuyên môn:</span>
+                <p className="font-bold text-slate-900 text-sm">
+                  {incident.recoveryTechnicianRole || "Kỹ thuật viên"}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
+                <span className="text-[11px] text-muted-foreground font-medium">Trạng thái thu hồi:</span>
+                <p className="font-bold text-emerald-700 text-sm">
+                  {incident.recoveryStatus}
+                </p>
+              </div>
             </div>
-          ) : canHandover ? (
-            <div className="p-3 rounded-lg border border-sky-200 bg-sky-50/70 text-xs space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-sky-950 flex items-center gap-1.5">
-                  <PackageCheck className="h-4 w-4 text-sky-600" />
-                  Xác nhận bàn giao kiện về Hub
-                </span>
+
+            {/* Bước xác minh kết quả tìm hàng từ KTV (SUBMITTED) */}
+            {incident.recoveryStatus === "SUBMITTED" && (
+              <div className="rounded-xl border border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-amber-600" />
+                  <span className="font-bold text-sm text-amber-950">
+                    Xác minh kết quả tìm hàng (Admin Review)
+                  </span>
+                  <Badge className="bg-amber-600 text-white text-[10px]">
+                    Chờ Admin duyệt
+                  </Badge>
+                </div>
+                <p className="text-xs text-amber-900 leading-relaxed">
+                  KTV đã nộp báo cáo hiện trường. Quản trị viên cần đối soát các mục sau trước khi xác minh:
+                </p>
+                <ul className="text-xs text-amber-950 space-y-1 list-disc list-inside">
+                  <li>Kiểm tra hình ảnh hiện trường và hiện trạng gói hàng thực tế.</li>
+                  <li>Đối soát toạ độ GPS xác nhận từ điện thoại KTV so với toạ độ rơi.</li>
+                  <li>
+                    Xác nhận tình trạng kiện: <b>{incident.parcelCondition || "Chưa rõ"}</b>.
+                  </li>
+                </ul>
+                <p className="text-[11px] text-muted-foreground italic">
+                  * Sau khi bấm Duyệt xác minh, kiện hàng được mở khoá để KTV bàn giao về Hub và hệ thống cho phép tạo phương án bồi thường / giao lại cho khách.
+                </p>
                 <Button
-                  size="sm"
-                  disabled={handoverState.isLoading}
-                  onClick={() => setConfirmHandover(true)}
-                  className="h-8 text-xs bg-sky-600 hover:bg-sky-700 text-white"
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs gap-1.5 shadow-sm"
+                  disabled={verifyState.isLoading}
+                  onClick={() => setShowVerifyConfirm(true)}
                 >
-                  Xác nhận kiện đã về Hub
+                  <CheckCircle2 className="h-4 w-4" />
+                  Duyệt xác minh kết quả tìm hàng của KTV
                 </Button>
               </div>
-              <p className="text-sky-800 text-[11px]">
-                Kiện hàng đã được KTV vận chuyển về trạm Hub. Bấm xác nhận để mở khoá phương án giao lại miễn phí cho khách hàng.
-              </p>
+            )}
+
+            {/* Nút bàn giao về Hub khi đã xác minh */}
+            {atHub ? (
+              <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/70 text-xs text-emerald-950 flex items-center gap-2">
+                <PackageCheck className="h-4 w-4 text-emerald-600" />
+                <span>
+                  {incident.returnedToHubAt
+                    ? `Kiện hàng đã về trạm Hub an toàn lúc: ${formatDateTime(incident.returnedToHubAt)}`
+                    : "Kiện hàng đã được bàn giao an toàn về trạm Hub."}
+                </span>
+              </div>
+            ) : canHandover ? (
+              <div className="p-3 rounded-lg border border-sky-200 bg-sky-50/70 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sky-950 flex items-center gap-1.5">
+                    <PackageCheck className="h-4 w-4 text-sky-600" />
+                    Xác nhận bàn giao kiện về Hub
+                  </span>
+                  <Button
+                    size="sm"
+                    disabled={handoverState.isLoading}
+                    onClick={() => setConfirmHandover(true)}
+                    className="h-8 text-xs bg-sky-600 hover:bg-sky-700 text-white"
+                  >
+                    Xác nhận kiện đã về Hub
+                  </Button>
+                </div>
+                <p className="text-sky-800 text-[11px]">
+                  Kiện hàng đã được KTV vận chuyển về trạm Hub. Bấm xác nhận để mở khoá phương án giao lại miễn phí cho khách hàng.
+                </p>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-slate-200 shadow-2xs">
+          <CardHeader className="bg-slate-50/70 border-b pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Navigation className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base font-bold text-slate-900">
+                  Điều phối tìm kiếm & Phân công kỹ thuật viên (Bản đồ tương tác)
+                </CardTitle>
+              </div>
             </div>
-          ) : null}
-        </CardContent>
-      </Card>
+            <CardDescription className="text-xs">
+              Bản đồ hiển thị các điểm vị trí và tên kỹ thuật viên quanh điểm rơi. Admin bấm trực tiếp vào KTV trên bản đồ hoặc danh sách để phân công.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="p-4 space-y-4">
+            <RecoveryDispatchInlineMap
+              incident={incident}
+              onAssigned={() => refetch()}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Modal xác nhận Admin Review */}
       <AlertDialog
