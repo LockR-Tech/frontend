@@ -1,6 +1,6 @@
 import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import i18n from "~/utils/i18n";
@@ -2362,9 +2362,27 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
   const historyQuery = useGetDroneMaintenanceHistoryQuery(drone.id);
   const history = historyQuery.data?.data;
   const battery = drone.batteryPercent ?? 0;
-  const details = [
+  const details: [string, React.ReactNode][] = [
     [t("admin.maintenance.droneDetail.station"), drone.lockerName ?? (drone.lockerId ? `Kiosk #${drone.lockerId}` : t("admin.maintenance.fleet.noStation"))],
-    [t("admin.maintenance.droneDetail.assignedTech"), drone.assignedTechnicianName ?? t("common.unassigned")],
+    [
+      t("admin.maintenance.droneDetail.assignedTech"),
+      drone.assignedTechnicianId ? (
+        <Link
+          to={`/admin/maintenance/technicians/${drone.assignedTechnicianId}`}
+          className="inline-flex items-center gap-1 font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
+        >
+          <UserCheck className="h-3.5 w-3.5" />
+          <span>
+            {drone.assignedTechnicianName ??
+              t("admin.lockers.table.technicianId", {
+                id: drone.assignedTechnicianId,
+              })}
+          </span>
+        </Link>
+      ) : (
+        drone.assignedTechnicianName ?? t("common.unassigned")
+      ),
+    ],
     [t("admin.maintenance.droneDetail.lastCharged"), drone.lastChargedAt ? formatDateTime(drone.lastChargedAt) : t("common.noDataYet")],
     [t("admin.maintenance.droneDetail.addedToFleet"), drone.createdAt ? formatDateTime(drone.createdAt) : t("common.noDataYet")],
     [t("admin.maintenance.droneDetail.lastUpdated"), drone.updatedAt ? formatDateTime(drone.updatedAt) : t("common.noDataYet")],

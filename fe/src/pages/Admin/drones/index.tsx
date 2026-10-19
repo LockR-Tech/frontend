@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Plane,
@@ -9,6 +9,7 @@ import {
   Loader2,
   Wrench,
   Power,
+  UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -299,11 +300,24 @@ export default function DronesPage() {
                     <p className="text-xs text-red-600">{d.faultReason}</p>
                   )}
 
-                  <p className="text-xs text-muted-foreground">
-                    {t("admin.drones.card.assignee", {
-                      name: d.assignedTechnicianName ?? t("admin.drones.card.noTechnician"),
-                    })}
-                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <UserCheck className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80" />
+                    <span>{t("admin.drones.card.assignee", { name: "" }).replace(/:\s*$/, "")}:</span>
+                    {d.assignedTechnicianId ? (
+                      <Link
+                        to={`/admin/maintenance/technicians/${d.assignedTechnicianId}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors truncate"
+                      >
+                        {d.assignedTechnicianName ??
+                          t("admin.lockers.table.technicianId", {
+                            id: d.assignedTechnicianId,
+                          })}
+                      </Link>
+                    ) : (
+                      <span className="truncate">{d.assignedTechnicianName ?? t("admin.drones.card.noTechnician")}</span>
+                    )}
+                  </div>
 
                   <div className="flex flex-wrap gap-2 pt-1">
                     <Button

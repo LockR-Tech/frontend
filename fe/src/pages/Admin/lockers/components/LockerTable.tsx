@@ -42,7 +42,7 @@ import {
 } from "~/components/ui/dialog";
 import { LockerStatus } from "~/types/admin/enums";
 import type { AdminLockerResponse } from "~/types/admin/locker";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 interface LockerTableProps {
@@ -329,10 +329,16 @@ export function LockerTable({
       cell: ({ row }) => {
         const { assignedTechnicianId, assignedTechnicianName } = row.original;
         return assignedTechnicianId != null ? (
-          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
-            <UserCheck size={14} className="text-indigo-600 flex-shrink-0" />
-            {assignedTechnicianName ?? t("admin.lockers.table.technicianId", { id: assignedTechnicianId })}
-          </span>
+          <Link
+            to={`/admin/maintenance/technicians/${assignedTechnicianId}`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
+          >
+            <UserCheck size={14} className="text-primary flex-shrink-0" />
+            <span>
+              {assignedTechnicianName ?? t("admin.lockers.table.technicianId", { id: assignedTechnicianId })}
+            </span>
+          </Link>
         ) : (
           <span className="text-xs text-muted-foreground">{t("common.unassigned")}</span>
         );
