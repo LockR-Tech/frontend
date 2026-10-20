@@ -43,6 +43,16 @@ function droneIcon(heading: number, live: boolean) {
 const SOURCE_ICON = pointIcon("A", "#0f766e");
 const DESTINATION_ICON = pointIcon("B", "#0a2342");
 
+function crashIcon() {
+  return L.divIcon({
+    className: "",
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    html: '<div style="width:36px;height:36px;border-radius:9999px;background:#dc2626;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(220,38,38,.5);display:flex;align-items:center;justify-content:center;color:#fff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>',
+  });
+}
+const CRASH_ICON = crashIcon();
+
 /**
  * Bản đồ hành trình trong dialog admin: tủ gửi A, tủ nhận B, lộ trình dự kiến, đoạn
  * đã bay và vị trí drone. Đơn đang bay thì nghe vị trí trực tiếp qua STOMP; chưa có
@@ -84,16 +94,22 @@ export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
     );
   }
 
+  const isDrop = order.deliveryStage === "DROP_REPORTED" || order.missionStatus === "DROP_REPORTED";
+  const dropProgress = isDrop ? (stageProgress(order.failedStage ?? "EN_ROUTE") ?? 0.5) : null;
+  const dropPoint = isDrop && a && b
+    ? ([a[0] + (b[0] - a[0]) * dropProgress, a[1] + (b[1] - a[1]) * dropProgress] as [number, number])
+    : null;
+
   const progress = inFlight ? stageProgress(order.deliveryStage) : null;
   const delivered = ["READY_FOR_PICKUP"].includes(order.deliveryStage ?? "")
     || order.status === "COMPLETED";
   const estimated = progress === null
     ? null
     : ([a[0] + (b[0] - a[0]) * progress, a[1] + (b[1] - a[1]) * progress] as [number, number]);
-  const drone = live ? ([live.lat, live.lng] as [number, number]) : estimated;
+  const drone = live ? ([live.lat, live.lng] as [number, number]) : isDrop ? dropPoint : estimated;
   const heading = live?.heading ?? bearing(a[0], a[1], b[0], b[1]);
   const totalKm = distanceKm(a[0], a[1], b[0], b[1]);
-  const remainingKm = drone ? distanceKm(drone[0], drone[1], b[0], b[1]) : null;
+  const remainingKm = isDrop ? null : drone ? distanceKm(drone[0], drone[1], b[0], b[1]) : null;
   const eta = live ? arrival(live, remainingKm) : null;
   const stage = deliveryStageMeta(order.deliveryStage);
 
@@ -111,9 +127,11 @@ export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <Polyline positions={[a, b]} pathOptions={{ color: "#94a3b8", weight: 3, dashArray: "8 6" }} />
-          {(drone || delivered) && (
+          {isDrop && dropPoint ? (
+            <Polyline positions={[a, dropPoint]} pathOptions={{ color: "#dc2626", weight: 4 }} />
+          ) : (drone || delivered) ? (
             <Polyline positions={[a, drone ?? b]} pathOptions={{ color: "#1e5a8a", weight: 4 }} />
-          )}
+          ) : null}
           <Marker position={a} icon={SOURCE_ICON}>
             <Tooltip direction="top">
               {t("admin.droneOrders.map.sourceTooltip", { name: source?.name ?? source?.code ?? "" })}
@@ -126,51 +144,60 @@ export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
               })}
             </Tooltip>
           </Marker>
-          {drone && (
+          {isDrop && dropPoint ? (
+            <Marker position={dropPoint} icon={CRASH_ICON}>
+              <Tooltip direction="top">
+                {order.droneCode ?? "Drone"} · Điểm báo rơi kiện ({dropPoint[0].toFixed(5)}, {dropPoint[1].toFixed(5)})
+              </Tooltip>
+            </Marker>
+          ) : drone ? (
             <Marker position={drone} icon={droneIcon(heading, Boolean(live))}>
               <Tooltip direction="top">
                 {order.droneCode ?? "Drone"} ·{" "}
                 {live ? t("admin.droneOrders.map.livePosition") : t("admin.droneOrders.map.estimatedPosition")}
               </Tooltip>
             </Marker>
-          )}
+          ) : null}
         </MapContainer>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Metric label={t("admin.droneOrders.map.currentStage")} value={stage.label} />
+        <Metric label={t("admin.droneOrders.map.currentStage")} value={isDrop ? "Báo rơi kiện" : stage.label} />
         <Metric label={t("admin.droneOrders.map.distanceAB")} value={kmLabel(totalKm)} />
         <Metric
           label={t("admin.droneOrders.map.remaining")}
           value={
-            remainingKm === null
-              ? (delivered ? t("admin.droneOrders.map.arrived") : "—")
-              : kmLabel(remainingKm)
+            isDrop
+              ? "Đã dừng giao do sự cố"
+              : remainingKm === null
+                ? (delivered ? t("admin.droneOrders.map.arrived") : "—")
+                : kmLabel(remainingKm)
           }
         />
         <Metric
           label={t("admin.droneOrders.map.eta")}
           value={
-            eta
-              ? t("admin.droneOrders.map.etaRemaining", {
-                  time: formatTime(eta),
-                  duration: durationLabel(eta.getTime() - Date.now()),
-                })
-              : order.etaMinutes != null && inFlight
-                ? t("admin.droneOrders.map.etaApprox", { minutes: order.etaMinutes })
-                : "—"
+            isDrop
+              ? "—"
+              : eta
+                ? t("admin.droneOrders.map.etaRemaining", {
+                    time: formatTime(eta),
+                    duration: durationLabel(eta.getTime() - Date.now()),
+                  })
+                : order.etaMinutes != null && inFlight
+                  ? t("admin.droneOrders.map.etaApprox", { minutes: order.etaMinutes })
+                  : "—"
           }
         />
       </div>
       {drone && (
         <p className="font-mono text-[11px] text-muted-foreground">
-          {t("admin.droneOrders.map.coordinates", {
-            lat: drone[0].toFixed(6),
-            lng: drone[1].toFixed(6),
-          })}
-          {live
-            ? ` · ${t("admin.droneOrders.map.coordsLive")}`
-            : ` · ${t("admin.droneOrders.map.coordsEstimated")}`}
+          {isDrop
+            ? `Toạ độ điểm rơi: ${drone[0].toFixed(6)}, ${drone[1].toFixed(6)} · Điểm rơi trên hành trình bay`
+            : `${t("admin.droneOrders.map.coordinates", {
+                lat: drone[0].toFixed(6),
+                lng: drone[1].toFixed(6),
+              })}${live ? ` · ${t("admin.droneOrders.map.coordsLive")}` : ` · ${t("admin.droneOrders.map.coordsEstimated")}`}`}
         </p>
       )}
     </div>

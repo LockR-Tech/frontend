@@ -13,6 +13,7 @@ import {
   type DroneCameraMetadata,
   type DroneOrderTracking,
 } from "~/stores/apis/admin/droneOrders";
+import { stageProgress } from "./journey";
 
 type PlayerState = DroneCameraMetadata["status"];
 
@@ -171,6 +172,19 @@ function ReportDropDialog({
   const [report, { isLoading }] = useReportDroppedParcelMutation();
   const { upload, isUploading, reset } = useImageUpload("REPORT_EVIDENCE");
 
+  const src = order.sourceLocker;
+  const dst = order.destinationLocker;
+  const progress = stageProgress(order.deliveryStage) ?? 0.5;
+  const routeLat = src?.latitude != null && dst?.latitude != null
+    ? src.latitude + (dst.latitude - src.latitude) * progress
+    : undefined;
+  const routeLng = src?.longitude != null && dst?.longitude != null
+    ? src.longitude + (dst.longitude - src.longitude) * progress
+    : undefined;
+  const isLiveGps = !!(camera?.telemetryLive && camera.latitude && camera.longitude);
+  const effectiveLat = isLiveGps ? camera.latitude : routeLat;
+  const effectiveLng = isLiveGps ? camera.longitude : routeLng;
+
   const submit = async () => {
     if (!reason.trim()) {
       toast.error(t("admin.droneOrders.reportDrop.reasonRequired"));
@@ -183,8 +197,8 @@ function ReportDropDialog({
         idempotencyKey: crypto.randomUUID(),
         payload: {
           reason: reason.trim(),
-          latitude: camera?.telemetryLive ? camera.latitude : undefined,
-          longitude: camera?.telemetryLive ? camera.longitude : undefined,
+          latitude: effectiveLat,
+          longitude: effectiveLng,
           cameraStatus: camera?.status ?? "UNAVAILABLE",
           cameraSnapshot: uploaded,
           snapshotCapturedAt: uploaded ? new Date().toISOString() : undefined,
@@ -212,7 +226,14 @@ function ReportDropDialog({
             <Telemetry label={t("common.order")} value={order.orderCode} />
             <Telemetry label="Drone" value={order.droneCode || t("admin.droneOrders.undetermined")} />
             <Telemetry label={t("admin.droneOrders.map.currentStage")} value={order.deliveryStage || t("admin.droneOrders.reportDrop.unknown")} />
-            <Telemetry label="GPS" value={camera?.telemetryLive && camera.latitude && camera.longitude ? `${camera.latitude.toFixed(5)}, ${camera.longitude.toFixed(5)}` : t("admin.droneOrders.reportDrop.noLiveGps")} />
+            <Telemetry
+              label="GPS"
+              value={
+                effectiveLat != null && effectiveLng != null
+                  ? `${effectiveLat.toFixed(5)}, ${effectiveLng.toFixed(5)}${isLiveGps ? " (Trực tiếp)" : " (Hành trình bay)"}`
+                  : t("admin.droneOrders.reportDrop.noLiveGps")
+              }
+            />
           </div>
           <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900">
             {t("admin.droneOrders.reportDrop.warning")}

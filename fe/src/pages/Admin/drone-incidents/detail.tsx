@@ -1430,6 +1430,18 @@ export default function DroneIncidentDetailPage() {
                       Đang giao lại
                     </Badge>
                   </div>
+                  {incident.redeliveryOrderId && (
+                    <div className="flex items-center justify-between bg-white/90 p-2 rounded border border-indigo-100 text-xs text-indigo-950">
+                      <span className="text-muted-foreground">Đơn giao lại mới:</span>
+                      <Link
+                        to={`/admin/drone-orders?orderId=${incident.redeliveryOrderId}`}
+                        className="font-mono font-bold text-indigo-700 underline flex items-center gap-1 hover:text-indigo-900"
+                      >
+                        Đơn #{incident.redeliveryOrderId}
+                        <ExternalLink className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  )}
                   <p className="text-xs text-indigo-900">
                     Kiện hàng đã được điều phối giao lại từ Hub. Khi kiện đã giao thành công tới tay khách, bấm nút dưới để hoàn tất toàn bộ sự cố:
                   </p>

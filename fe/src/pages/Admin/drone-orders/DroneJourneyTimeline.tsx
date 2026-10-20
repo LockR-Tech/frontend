@@ -25,23 +25,35 @@ interface Detail {
  */
 export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
   const { t } = useTranslation();
-  const stages = order.pickup ? ["AWAITING_DISPATCH", "PICKUP_ASSIGNED", "PICKED_UP", ...TIMELINE_STAGES.slice(1)] : [...TIMELINE_STAGES];
+  const isDrop = order.deliveryStage === "DROP_REPORTED" || order.missionStatus === "DROP_REPORTED";
+  const baseStages = order.pickup ? ["AWAITING_DISPATCH", "PICKUP_ASSIGNED", "PICKED_UP", ...TIMELINE_STAGES.slice(1)] : [...TIMELINE_STAGES];
   const times = stageTimes(order);
   const failed = FAILURE_STATUSES.has(order.status);
   const completed = order.status === "COMPLETED";
+
+  // Khi có sự cố rơi kiện: dừng timeline tại chặng rơi và hiển thị bước sự cố DROP_REPORTED
+  const lastReachedIdx = baseStages.reduce(
+    (max, stage, index) => (times.has(stage) ? Math.max(max, index) : max),
+    0,
+  );
+  const stages = isDrop
+    ? [...baseStages.slice(0, lastReachedIdx + 1), "DROP_REPORTED"]
+    : baseStages;
+
   const stageIndex = stages.indexOf(
     (order.deliveryStage ?? "") as (typeof TIMELINE_STAGES)[number],
   );
-  // Đơn huỷ/quá hạn dừng ở chặng xa nhất thực sự đạt, không tô các chặng chưa xảy ra.
   const reachedIndex = stages.reduce(
-    (max, stage, index) => (times.has(stage) ? index : max),
+    (max, stage, index) => (times.has(stage) ? Math.max(max, index) : max),
     0,
   );
   const active = completed
     ? stages.length
-    : failed
-      ? reachedIndex
-      : Math.max(stageIndex, 0);
+    : isDrop
+      ? stages.length - 1
+      : failed
+        ? reachedIndex
+        : Math.max(stageIndex, 0);
 
   const code = pickupCodeEvent(order);
   const details: Partial<Record<string, Detail[]>> = {
@@ -58,13 +70,32 @@ export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
       { label: t("admin.droneOrders.timeline.pickedUp"), at: order.completedAt },
     ];
   }
+  if (isDrop) {
+    const dropEvent = order.journeyEvents.find((e) => e.toStage === "DROP_REPORTED");
+    const dropTime = times.get("DROP_REPORTED") ?? (dropEvent?.occurredAt ? new Date(dropEvent.occurredAt) : parseBackendDateTime(order.missionEndedAt ?? order.updatedAt));
+    if (dropTime && !times.has("DROP_REPORTED")) {
+      times.set("DROP_REPORTED", dropTime);
+    }
+    details.DROP_REPORTED = [
+      {
+        label: "Sự cố",
+        at: dropTime,
+        note: dropEvent?.note || "Kiện hàng bị báo rơi giữa chặng bay — đã dừng giao hàng",
+      },
+    ];
+  }
 
   let previous: Date | null = null;
   return (
     <ol className="relative">
       {stages.map((stage, index) => {
+        const isDropStage = stage === "DROP_REPORTED";
         const state =
-          index < active ? "done" : index === active ? (failed ? "failed" : "current") : "pending";
+          index < active
+            ? "done"
+            : index === active
+              ? (isDropStage || failed ? "failed" : "current")
+              : "pending";
         const at = state === "pending" ? null : (times.get(stage) ?? null);
         const since = at && previous ? at.getTime() - previous.getTime() : null;
         const ongoing =

@@ -156,10 +156,12 @@ function routeDistance(meters: number | null | undefined): string | null {
 }
 
 function isFlightFailure(order: DroneOrderTracking): boolean {
+  if (isDropReported(order)) return false;
   return order.status === "CANCELED" && order.deliveryStage === "FAILED";
 }
 
 function stageMeta(order: DroneOrderTracking): BadgeMeta {
+  if (isDropReported(order)) return deliveryStageMeta("DROP_REPORTED");
   // Chuyến bay thất bại đóng đơn là CANCELED, nhưng không phải "đã huỷ".
   if (isFlightFailure(order)) return deliveryStageMeta("FAILED");
   return isFinished(order)
@@ -542,7 +544,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
             ) : null}
 
             <IncidentBlockBanner order={order} />
-            <FailurePanel order={order} />
+            {!isDropReported(order) && !latestIncident && <FailurePanel order={order} />}
             <PickupPanel key={`pickup-${order.orderId}`} order={order} />
             <p className="text-xs text-muted-foreground">
               {t("admin.droneOrders.detail.autoRefresh", { time: formatDateTime(order.updatedAt) })}
@@ -550,24 +552,34 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
 
             {order.status === "CANCELED" && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
-                {isFlightFailure(order)
-                  ? t("admin.droneOrders.detail.flightFailedBanner")
-                  : t("admin.droneOrders.detail.canceled")}
-                {order.cancelReason
-                  ? ` · ${
-                      CANCEL_REASON_LABELS[order.cancelReason]
-                        ? t(CANCEL_REASON_LABELS[order.cancelReason])
-                        : t("admin.droneOrders.cancelReason.unknown", { code: order.cancelReason })
-                    }`
-                  : ""}
-                {order.cancelNote ? ` · ${order.cancelNote}` : ""}
-                {order.paymentStatus === "REFUND_PENDING"
-                  ? ` · ${t("admin.droneOrders.detail.refundPending")}`
-                  : order.paymentStatus === "REFUNDED"
-                    ? ` · ${t("admin.droneOrders.detail.refunded")}`
-                    : order.paymentStatus === "PAID"
-                      ? ` · ${t("admin.droneOrders.detail.refundMissing")}`
+                {isDropReported(order) || latestIncident ? (
+                  <span>
+                    Đơn hàng đã đóng do sự cố rơi kiện
+                    {order.cancelNote ? ` · ${order.cancelNote}` : ""}
+                    {order.staffNote ? ` · ${order.staffNote}` : ""}
+                  </span>
+                ) : (
+                  <>
+                    {isFlightFailure(order)
+                      ? t("admin.droneOrders.detail.flightFailedBanner")
+                      : t("admin.droneOrders.detail.canceled")}
+                    {order.cancelReason
+                      ? ` · ${
+                          CANCEL_REASON_LABELS[order.cancelReason]
+                            ? t(CANCEL_REASON_LABELS[order.cancelReason])
+                            : t("admin.droneOrders.cancelReason.unknown", { code: order.cancelReason })
+                        }`
                       : ""}
+                    {order.cancelNote ? ` · ${order.cancelNote}` : ""}
+                    {order.paymentStatus === "REFUND_PENDING"
+                      ? ` · ${t("admin.droneOrders.detail.refundPending")}`
+                      : order.paymentStatus === "REFUNDED"
+                        ? ` · ${t("admin.droneOrders.detail.refunded")}`
+                        : order.paymentStatus === "PAID"
+                          ? ` · ${t("admin.droneOrders.detail.refundMissing")}`
+                          : ""}
+                  </>
+                )}
               </div>
             )}
 
@@ -579,7 +591,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
               <LiveCameraPanel order={order} />
             )}
 
-            {(order.parcelReturnPending || order.parcelReturnedAt) && (
+            {(order.parcelReturnPending || order.parcelReturnedAt) && !isDropReported(order) && !latestIncident && (
               <ParcelReturnPanel order={order} />
             )}
 
