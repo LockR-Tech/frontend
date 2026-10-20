@@ -5,6 +5,7 @@ Bản ghi mới nhất nằm trên cùng.
 
 | Thời điểm (UTC) | Web admin | Landing | Commit | Người đẩy |
 |---|---|---|---|---|
+| 2026-10-20 09:53 | failure | success | [`2ceae70`](https://github.com/LockR-Tech/frontend/commit/2ceae702d35394c2cd5a2404d1506624e389fd02) | @TruongNguyenThaiBinh77 |
 | 2026-10-20 05:22 | success | success | [`3157162`](https://github.com/LockR-Tech/frontend/commit/31571623500d4d391a057cd20729bac02597e337) | @LeThiYenVi |
 | 2026-10-20 01:42 | success | success | [`8f62cc6`](https://github.com/LockR-Tech/frontend/commit/8f62cc666e4d056a93ad429ce0731f2209c6eab6) | @Kimnha01 |
 | 2026-10-19 10:36 | success | success | [`fcc9d02`](https://github.com/LockR-Tech/frontend/commit/fcc9d02c1b25f18f4b73567583fc4f43d37659cf) | @TruongNguyenThaiBinh77 |
