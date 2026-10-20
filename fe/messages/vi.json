@@ -2408,7 +2408,9 @@
           "PICKED_UP": "Đã lấy hàng",
           "FAILED": "Lấy hàng không thành công",
           "CANCELED": "Việc lấy hàng đã đóng"
-        }
+        },
+        "photo": "Ảnh kiện lúc lấy hàng",
+        "photoTitle": "Ảnh lấy hàng · Đơn {{code}}"
       },
       "incident": {
         "blocked": "Đơn bị ảnh hưởng: {{reason}}",
