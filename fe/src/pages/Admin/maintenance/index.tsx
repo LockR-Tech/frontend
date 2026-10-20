@@ -37,12 +37,14 @@ import {
   Sparkles,
   Plus,
   Radio,
+  Trash2,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +52,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "~/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -84,6 +96,8 @@ import {
   useGetDeviceStatusesQuery,
   useGetDroneMaintenanceHistoryQuery,
   useGetAllInspectionLogsQuery,
+  useDeleteReportMutation,
+  useDeleteReportsBatchMutation,
   type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
@@ -267,6 +281,24 @@ export default function MaintenanceAdminPage() {
   // Admin đóng phiếu qua endpoint admin (PUT /api/admin/lockers/reports/{id}/resolve)
   const [resolveAdmin] = useResolveAdminReportMutation();
   const [clearFault] = useClearBoxFaultMutation();
+  const [deleteReportMutation, { isLoading: isDeletingSingle }] = useDeleteReportMutation();
+  const [deleteReportsBatchMutation, { isLoading: isDeletingBatch }] = useDeleteReportsBatchMutation();
+
+  const [selectedKioskIds, setSelectedKioskIds] = useState<number[]>([]);
+  const [selectedDroneIds, setSelectedDroneIds] = useState<number[]>([]);
+  const [reportToDelete, setReportToDelete] = useState<LockerReportResponse | null>(null);
+  const [batchDeleteConfirm, setBatchDeleteConfirm] = useState<{
+    open: boolean;
+    category: "KIOSK" | "DRONE";
+    count: number;
+    ids?: number[];
+    all?: boolean;
+  }>({
+    open: false,
+    category: "KIOSK",
+    count: 0,
+  });
+  const [dismissedSampleReportIds, setDismissedSampleReportIds] = useState<number[]>([]);
 
   // Drone fleet queries & mutations
   const dronesQuery = useGetDronesQuery(undefined, { pollingInterval: 15000 });
@@ -339,11 +371,15 @@ export default function MaintenanceAdminPage() {
   );
   const droneReportList = useMemo(() => {
     const list = reportList.filter(isDroneReport);
-    const hasDropReport = list.some(
+    const filteredList = list.filter((r) => !dismissedSampleReportIds.includes(r.id));
+    if (dismissedSampleReportIds.includes(SAMPLE_DRONE_DROP_REPORT.id)) {
+      return filteredList;
+    }
+    const hasDropReport = filteredList.some(
       (r) => r.id === SAMPLE_DRONE_DROP_REPORT.id || r.reportCode === SAMPLE_DRONE_DROP_REPORT.reportCode
     );
-    return hasDropReport ? list : [SAMPLE_DRONE_DROP_REPORT, ...list];
-  }, [reportList]);
+    return hasDropReport ? filteredList : [SAMPLE_DRONE_DROP_REPORT, ...filteredList];
+  }, [reportList, dismissedSampleReportIds]);
   // Danh sách các trạm Kiosk duy nhất có phiếu để hiển thị trong bộ lọc
   const availableLockers = useMemo(() => {
     const map = new Map<number, { id: number; name: string; code?: string | null }>();
@@ -696,6 +732,125 @@ export default function MaintenanceAdminPage() {
       userNames[r.routedToUserId] ??
       t("admin.maintenance.techFallback", { id: r.routedToUserId });
     return t("admin.maintenance.routing.awaitingNamed", { name });
+  };
+
+  // --- Chọn và xóa phiếu sự cố Kiosk ---
+  const isAllKioskSelected =
+    filteredReports.length > 0 &&
+    filteredReports.every((r) => selectedKioskIds.includes(r.id));
+  const isPartialKioskSelected =
+    filteredReports.some((r) => selectedKioskIds.includes(r.id)) && !isAllKioskSelected;
+
+  const handleToggleSelectAllKiosk = (checked: boolean) => {
+    if (checked) {
+      const allIds = Array.from(new Set([...selectedKioskIds, ...filteredReports.map((r) => r.id)]));
+      setSelectedKioskIds(allIds);
+    } else {
+      const filteredIdSet = new Set(filteredReports.map((r) => r.id));
+      setSelectedKioskIds((prev) => prev.filter((id) => !filteredIdSet.has(id)));
+    }
+  };
+
+  const handleToggleKioskReport = (id: number) => {
+    setSelectedKioskIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  // --- Chọn và xóa phiếu sự cố Drone ---
+  const isAllDroneSelected =
+    filteredDroneReports.length > 0 &&
+    filteredDroneReports.every((r) => selectedDroneIds.includes(r.id));
+  const isPartialDroneSelected =
+    filteredDroneReports.some((r) => selectedDroneIds.includes(r.id)) && !isAllDroneSelected;
+
+  const handleToggleSelectAllDrone = (checked: boolean) => {
+    if (checked) {
+      const allIds = Array.from(new Set([...selectedDroneIds, ...filteredDroneReports.map((r) => r.id)]));
+      setSelectedDroneIds(allIds);
+    } else {
+      const filteredIdSet = new Set(filteredDroneReports.map((r) => r.id));
+      setSelectedDroneIds((prev) => prev.filter((id) => !filteredIdSet.has(id)));
+    }
+  };
+
+  const handleToggleDroneReport = (id: number) => {
+    setSelectedDroneIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  // --- Handler xóa 1 phiếu sự cố ---
+  const handleDeleteSingleReport = async () => {
+    if (!reportToDelete) return;
+    const isMock = reportToDelete.id === SAMPLE_DRONE_DROP_REPORT.id;
+    try {
+      if (isMock) {
+        setDismissedSampleReportIds((prev) => [...prev, reportToDelete.id]);
+        setSelectedDroneIds((prev) => prev.filter((id) => id !== reportToDelete.id));
+        toast.success(`Đã xóa thành công phiếu ${reportToDelete.reportCode || `RPT-${reportToDelete.id}`}`);
+      } else {
+        await deleteReportMutation(reportToDelete.id).unwrap();
+        toast.success(`Đã xóa thành công phiếu ${reportToDelete.reportCode || `RPT-${reportToDelete.id}`}`);
+        setSelectedKioskIds((prev) => prev.filter((id) => id !== reportToDelete.id));
+        setSelectedDroneIds((prev) => prev.filter((id) => id !== reportToDelete.id));
+      }
+      setReportToDelete(null);
+    } catch (err: any) {
+      toast.error("Không thể xóa phiếu sự cố", {
+        description: err?.data?.message || err?.message || "Đã xảy ra lỗi khi xóa phiếu",
+      });
+    }
+  };
+
+  // --- Handler xóa nhiều phiếu hoặc xóa tất cả ---
+  const handleExecuteBatchDelete = async () => {
+    const { category, ids, all } = batchDeleteConfirm;
+    const isKiosk = category === "KIOSK";
+    const selectedIds = ids || (isKiosk ? selectedKioskIds : selectedDroneIds);
+
+    try {
+      if (all) {
+        const res = await deleteReportsBatchMutation({
+          deleteAll: true,
+          category: isKiosk ? "KIOSK" : "DRONE",
+        }).unwrap();
+        const count = res.data?.deletedCount ?? 0;
+        if (!isKiosk) {
+          setDismissedSampleReportIds((prev) => [...prev, SAMPLE_DRONE_DROP_REPORT.id]);
+        }
+        toast.success(
+          `Đã xóa thành công tất cả ${count} phiếu sự cố ${isKiosk ? "Kiosk" : "Drone"}`
+        );
+        if (isKiosk) setSelectedKioskIds([]);
+        else setSelectedDroneIds([]);
+      } else {
+        const realIds = selectedIds.filter((id) => id !== SAMPLE_DRONE_DROP_REPORT.id);
+        const hasMock = selectedIds.includes(SAMPLE_DRONE_DROP_REPORT.id);
+        let count = 0;
+        if (realIds.length > 0) {
+          const res = await deleteReportsBatchMutation({
+            reportIds: realIds,
+            category: isKiosk ? "KIOSK" : "DRONE",
+          }).unwrap();
+          count = res.data?.deletedCount ?? realIds.length;
+        }
+        if (hasMock) {
+          setDismissedSampleReportIds((prev) => [...prev, SAMPLE_DRONE_DROP_REPORT.id]);
+          count += 1;
+        }
+        toast.success(
+          `Đã xóa thành công ${count} phiếu sự cố ${isKiosk ? "Kiosk" : "Drone"}`
+        );
+        if (isKiosk) setSelectedKioskIds([]);
+        else setSelectedDroneIds([]);
+      }
+      setBatchDeleteConfirm({ open: false, category: "KIOSK", count: 0 });
+    } catch (err: any) {
+      toast.error("Không thể xóa hàng loạt phiếu sự cố", {
+        description: err?.data?.message || err?.message || "Đã xảy ra lỗi khi xóa các phiếu",
+      });
+    }
   };
 
   const refetchAll = () => {
@@ -1062,6 +1217,78 @@ export default function MaintenanceAdminPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Hàng 3: Chọn tất cả và Thanh tác vụ xóa nhiều phiếu Kiosk */}
+                <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-border/40 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="select-all-kiosk"
+                      checked={isAllKioskSelected ? true : isPartialKioskSelected ? "indeterminate" : false}
+                      onCheckedChange={(checked) => handleToggleSelectAllKiosk(Boolean(checked))}
+                    />
+                    <label
+                      htmlFor="select-all-kiosk"
+                      className="text-xs font-medium cursor-pointer select-none text-foreground flex items-center gap-1.5"
+                    >
+                      Chọn tất cả {filteredReports.length} phiếu đang lọc
+                      {selectedKioskIds.length > 0 && (
+                        <Badge variant="outline" className="text-[11px] font-mono bg-rose-50 text-rose-700 border-rose-300">
+                          (Đã chọn {selectedKioskIds.length})
+                        </Badge>
+                      )}
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {selectedKioskIds.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedKioskIds([])}
+                        className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Bỏ chọn
+                      </Button>
+                    )}
+                    {selectedKioskIds.length > 0 && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="h-7 px-3 text-xs font-semibold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
+                        onClick={() =>
+                          setBatchDeleteConfirm({
+                            open: true,
+                            category: "KIOSK",
+                            count: selectedKioskIds.length,
+                            ids: selectedKioskIds,
+                            all: false,
+                          })
+                        }
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Xóa {selectedKioskIds.length} phiếu đã chọn
+                      </Button>
+                    )}
+                    {kioskReportList.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/60 dark:text-rose-400 gap-1.5"
+                        onClick={() =>
+                          setBatchDeleteConfirm({
+                            open: true,
+                            category: "KIOSK",
+                            count: kioskReportList.length,
+                            all: true,
+                          })
+                        }
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Xóa toàn bộ ({kioskReportList.length})
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -1118,126 +1345,137 @@ export default function MaintenanceAdminPage() {
                     const isNew = r.status === "OPEN";
                     const isRecent = r.createdAt && (Date.now() - timestampOf(r.createdAt)) < 3600000;
                     const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
+                    const isSelected = selectedKioskIds.includes(r.id);
 
                     return (
                       <div
                         key={r.id}
                         className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all ${
-                          isNew
-                            ? "border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20 shadow-xs ring-1 ring-amber-200/70 dark:ring-amber-900/40 my-1"
-                            : "hover:bg-muted/20 my-0.5 border border-transparent"
+                          isSelected
+                            ? "border-l-4 border-l-rose-500 bg-rose-50/50 dark:bg-rose-950/20 shadow-xs ring-1 ring-rose-300 dark:ring-rose-900/60 my-1"
+                            : isNew
+                              ? "border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20 shadow-xs ring-1 ring-amber-200/70 dark:ring-amber-900/40 my-1"
+                              : "hover:bg-muted/20 my-0.5 border border-transparent"
                         }`}
                       >
-                        <div className="max-w-xl">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-sm text-foreground">
-                              {r.reportCode || `RPT-${r.id}`} · {r.title}
-                            </p>
-                            {/* Status Badge */}
-                            {isNew ? (
-                              <Badge
-                                variant="outline"
-                                className="bg-amber-500 text-white border-amber-600 font-bold text-xs shadow-xs flex items-center gap-1.5 px-2.5 py-0.5 animate-pulse"
-                              >
-                                <span className="relative flex h-2 w-2">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                                </span>
-                                {t("admin.maintenance.status.openAwaitingTechUpper")}
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className={`text-xs ${REPORT_BADGE[r.status] ?? ""}`}>
-                                {r.status === "IN_PROGRESS" ? t("admin.maintenance.status.inProgress") : r.status === "RESOLVED" ? t("admin.maintenance.status.resolved") : r.status}
-                              </Badge>
-                            )}
-                            {isRecent && !isNew && (
-                              <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold text-[11px] shadow-xs flex items-center gap-1 px-2 py-0.5">
-                                <Sparkles className="w-3 h-3 text-emerald-600" />
-                                {t("admin.maintenance.status.justCreated")}
-                              </Badge>
-                            )}
-                            {r.blocksLocker && r.status !== "RESOLVED" && (
-                              <Badge
-                                variant="outline"
-                                className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs"
-                                title={t("admin.maintenance.reports.blocksLockerHint")}
-                              >
-                                {t("admin.maintenance.reports.blocksLocker")}
-                              </Badge>
-                            )}
-                            {r.scheduleId != null && (
-                              <Badge
-                                variant="outline"
-                                className="bg-sky-50 text-sky-800 border-sky-300 font-medium text-xs"
-                                title={t("admin.maintenance.reports.fromScheduleHint", { id: r.scheduleId })}
-                              >
-                                {t("admin.maintenance.reports.fromSchedule")}
-                              </Badge>
-                            )}
-                            {r.overdue && (
-                              <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
-                                {t("admin.maintenance.status.overdueSla")}
-                              </Badge>
-                            )}
-                            <SlaCountdownBadge
-                              slaDueAt={r.slaDueAt}
-                              createdAt={r.createdAt}
-                              slaHours={r.slaHours ?? 4}
-                              status={r.status}
-                            />
-                          {/* Technician badge — chỉ theo người được giao (assignedToUserId) */}
-                          {r.assignedToUserId ? (
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/admin/technicians/${r.assignedToUserId}`)}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200 transition-colors cursor-pointer"
-                              title={t("admin.maintenance.reports.viewTechProfile")}
-                            >
-                              <UserCheck className="w-3 h-3 text-indigo-700" />
-                              <span>
-                                {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[r.assignedToUserId] ?? `#${r.assignedToUserId}` })}
-                              </span>
-                              {assignedTech?.phoneNumber && (
-                                <span className="text-[10px] text-indigo-600 font-mono">
-                                  ({assignedTech.phoneNumber})
-                                </span>
+                        <div className="flex items-start gap-3 max-w-xl">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => handleToggleKioskReport(r.id)}
+                            className="mt-1 data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 shrink-0"
+                            aria-label={`Chọn phiếu ${r.reportCode || `RPT-${r.id}`}`}
+                          />
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold text-sm text-foreground">
+                                {r.reportCode || `RPT-${r.id}`} · {r.title}
+                              </p>
+                              {/* Status Badge */}
+                              {isNew ? (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-amber-500 text-white border-amber-600 font-bold text-xs shadow-xs flex items-center gap-1.5 px-2.5 py-0.5 animate-pulse"
+                                >
+                                  <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                  </span>
+                                  {t("admin.maintenance.status.openAwaitingTechUpper")}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className={`text-xs ${REPORT_BADGE[r.status] ?? ""}`}>
+                                  {r.status === "IN_PROGRESS" ? t("admin.maintenance.status.inProgress") : r.status === "RESOLVED" ? t("admin.maintenance.status.resolved") : r.status}
+                                </Badge>
                               )}
-                            </button>
-                          ) : r.status === "OPEN" ? (
-                            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs font-semibold">
-                              {routingLabel(r)}
-                            </Badge>
-                          ) : null}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          <span className="text-foreground">{cleanDescription(r.description) || r.description}</span> · <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
-                          {r.boxNumber
-                            ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxNumber })}`
-                            : r.boxId
-                              ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxId })}`
-                              : ""}{" "}
-                          {r.cellType ? `· ${t("admin.maintenance.reports.cellType", { type: r.cellType })} ` : ""}
-                          · {t("common.createdAtTime")}: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>{" "}
-                          {r.createdAt && (
-                            <span className="text-[11px] text-muted-foreground font-medium">
-                              ({getRelativeAge(t, r.createdAt)})
-                            </span>
+                              {isRecent && !isNew && (
+                                <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold text-[11px] shadow-xs flex items-center gap-1 px-2 py-0.5">
+                                  <Sparkles className="w-3 h-3 text-emerald-600" />
+                                  {t("admin.maintenance.status.justCreated")}
+                                </Badge>
+                              )}
+                              {r.blocksLocker && r.status !== "RESOLVED" && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs"
+                                  title={t("admin.maintenance.reports.blocksLockerHint")}
+                                >
+                                  {t("admin.maintenance.reports.blocksLocker")}
+                                </Badge>
+                              )}
+                              {r.scheduleId != null && (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-sky-50 text-sky-800 border-sky-300 font-medium text-xs"
+                                  title={t("admin.maintenance.reports.fromScheduleHint", { id: r.scheduleId })}
+                                >
+                                  {t("admin.maintenance.reports.fromSchedule")}
+                                </Badge>
+                              )}
+                              {r.overdue && (
+                                <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-semibold text-xs">
+                                  {t("admin.maintenance.status.overdueSla")}
+                                </Badge>
+                              )}
+                              <SlaCountdownBadge
+                                slaDueAt={r.slaDueAt}
+                                createdAt={r.createdAt}
+                                slaHours={r.slaHours ?? 4}
+                                status={r.status}
+                              />
+                            {/* Technician badge — chỉ theo người được giao (assignedToUserId) */}
+                            {r.assignedToUserId ? (
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/admin/technicians/${r.assignedToUserId}`)}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200 transition-colors cursor-pointer"
+                                title={t("admin.maintenance.reports.viewTechProfile")}
+                              >
+                                <UserCheck className="w-3 h-3 text-indigo-700" />
+                                <span>
+                                  {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[r.assignedToUserId] ?? `#${r.assignedToUserId}` })}
+                                </span>
+                                {assignedTech?.phoneNumber && (
+                                  <span className="text-[10px] text-indigo-600 font-mono">
+                                    ({assignedTech.phoneNumber})
+                                  </span>
+                                )}
+                              </button>
+                            ) : r.status === "OPEN" ? (
+                              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs font-semibold">
+                                {routingLabel(r)}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            <span className="text-foreground">{cleanDescription(r.description) || r.description}</span> · <span className="font-medium text-foreground">{r.lockerName ?? `Kiosk #${r.lockerId}`}</span>
+                            {r.boxNumber
+                              ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxNumber })}`
+                              : r.boxId
+                                ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxId })}`
+                                : ""}{" "}
+                            {r.cellType ? `· ${t("admin.maintenance.reports.cellType", { type: r.cellType })} ` : ""}
+                            · {t("common.createdAtTime")}: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>{" "}
+                            {r.createdAt && (
+                              <span className="text-[11px] text-muted-foreground font-medium">
+                                ({getRelativeAge(t, r.createdAt)})
+                              </span>
+                            )}
+                          </p>
+                          {(r.reporterName || r.reporterPhone) && (
+                            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                              <Phone className="h-3 w-3 shrink-0" />
+                              {[r.reporterName, r.reporterPhone].filter(Boolean).join(" · ")}
+                            </p>
                           )}
-                        </p>
-                        {(r.reporterName || r.reporterPhone) && (
-                          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                            <Phone className="h-3 w-3 shrink-0" />
-                            {[r.reporterName, r.reporterPhone].filter(Boolean).join(" · ")}
-                          </p>
-                        )}
-                        {r.lockerAddress && (
-                          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3 shrink-0" />
-                            {r.lockerAddress}
-                          </p>
-                        )}
+                          {r.lockerAddress && (
+                            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                              <MapPin className="h-3 w-3 shrink-0" />
+                              {r.lockerAddress}
+                            </p>
+                          )}
 
-                        <ReportPhotoGroups report={r} variant="compact" userNames={userNames} />
+                          <ReportPhotoGroups report={r} variant="compact" userNames={userNames} />
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
                         <RepairLogDialog
@@ -1289,6 +1527,16 @@ export default function MaintenanceAdminPage() {
                             <CheckCircle2 className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.techDone")}
                           </span>
                         )}
+
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50"
+                          title="Xóa phiếu sự cố này"
+                          onClick={() => setReportToDelete(r)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
                     </div>
                   );
@@ -1619,6 +1867,78 @@ export default function MaintenanceAdminPage() {
                   </div>
                 )}
                 </div>
+
+                {/* Hàng 3: Chọn tất cả và Thanh tác vụ xóa nhiều phiếu Drone */}
+                <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-border/40 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="select-all-drone"
+                      checked={isAllDroneSelected ? true : isPartialDroneSelected ? "indeterminate" : false}
+                      onCheckedChange={(checked) => handleToggleSelectAllDrone(Boolean(checked))}
+                    />
+                    <label
+                      htmlFor="select-all-drone"
+                      className="text-xs font-medium cursor-pointer select-none text-foreground flex items-center gap-1.5"
+                    >
+                      Chọn tất cả {filteredDroneReports.length} phiếu đang lọc
+                      {selectedDroneIds.length > 0 && (
+                        <Badge variant="outline" className="text-[11px] font-mono bg-rose-50 text-rose-700 border-rose-300">
+                          (Đã chọn {selectedDroneIds.length})
+                        </Badge>
+                      )}
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {selectedDroneIds.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedDroneIds([])}
+                        className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Bỏ chọn
+                      </Button>
+                    )}
+                    {selectedDroneIds.length > 0 && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="h-7 px-3 text-xs font-semibold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
+                        onClick={() =>
+                          setBatchDeleteConfirm({
+                            open: true,
+                            category: "DRONE",
+                            count: selectedDroneIds.length,
+                            ids: selectedDroneIds,
+                            all: false,
+                          })
+                        }
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Xóa {selectedDroneIds.length} phiếu đã chọn
+                      </Button>
+                    )}
+                    {droneReportList.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/60 dark:text-rose-400 gap-1.5"
+                        onClick={() =>
+                          setBatchDeleteConfirm({
+                            open: true,
+                            category: "DRONE",
+                            count: droneReportList.length,
+                            all: true,
+                          })
+                        }
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Xóa toàn bộ ({droneReportList.length})
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -1670,19 +1990,29 @@ export default function MaintenanceAdminPage() {
                       report.id === SAMPLE_DRONE_DROP_REPORT.id
                     );
                     const displayCode = report.reportCode || `RPT-${report.id}`;
+                    const isSelected = selectedDroneIds.includes(report.id);
                     return (
                       <div
                         key={report.id}
                         className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all ${
-                          isDropIncident
-                            ? "border-l-4 border-l-red-600 bg-red-50/70 dark:bg-red-950/30 ring-1 ring-red-300 dark:ring-red-900/60 my-1.5 shadow-sm"
-                            : isNew
-                              ? "border-l-4 border-l-amber-500 bg-amber-50/50 ring-1 ring-amber-200/70 my-1"
-                              : "hover:bg-muted/20 my-0.5 border border-transparent"
+                          isSelected
+                            ? "border-l-4 border-l-rose-500 bg-rose-50/50 dark:bg-rose-950/20 shadow-xs ring-1 ring-rose-300 dark:ring-rose-900/60 my-1"
+                            : isDropIncident
+                              ? "border-l-4 border-l-red-600 bg-red-50/70 dark:bg-red-950/30 ring-1 ring-red-300 dark:ring-red-900/60 my-1.5 shadow-sm"
+                              : isNew
+                                ? "border-l-4 border-l-amber-500 bg-amber-50/50 ring-1 ring-amber-200/70 my-1"
+                                : "hover:bg-muted/20 my-0.5 border border-transparent"
                         }`}
                       >
-                        <div className="max-w-2xl">
-                          <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-start gap-3 max-w-2xl">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => handleToggleDroneReport(report.id)}
+                            className="mt-1 data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 shrink-0"
+                            aria-label={`Chọn phiếu ${displayCode}`}
+                          />
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
                             {isDropIncident ? (
                               <button
                                 type="button"
@@ -1774,7 +2104,8 @@ export default function MaintenanceAdminPage() {
                           {(report.reporterName || report.reporterPhone) && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{[report.reporterName, report.reporterPhone].filter(Boolean).join(" · ")}</p>}
                           <ReportPhotoGroups report={report} variant="compact" userNames={userNames} />
                         </div>
-                        <div className="flex flex-wrap gap-2 items-center">
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
                           {isDropIncident && (
                             <Button
                               size="sm"
@@ -1803,6 +2134,16 @@ export default function MaintenanceAdminPage() {
                             </Button>
                           )}
                           {report.status === "RESOLVED" && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.techDone")}</span>}
+
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50"
+                            title="Xóa phiếu sự cố này"
+                            onClick={() => setReportToDelete(report)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
                       </div>
                     );
@@ -2272,6 +2613,97 @@ export default function MaintenanceAdminPage() {
       )}
 
       {viewingDrone && <DroneDetailsDialog drone={viewingDrone} onClose={() => setViewingDrone(null)} />}
+
+      {/* Hộp thoại xác nhận xóa 1 phiếu sự cố */}
+      <AlertDialog open={!!reportToDelete} onOpenChange={(open) => !open && setReportToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
+              <Trash2 className="w-5 h-5" />
+              Xóa phiếu sự cố {reportToDelete?.reportCode || `RPT-${reportToDelete?.id}`}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-sm text-muted-foreground">
+              <p>
+                Bạn có chắc chắn muốn xóa vĩnh viễn phiếu sự cố{" "}
+                <span className="font-semibold text-foreground">
+                  {reportToDelete?.reportCode || `RPT-${reportToDelete?.id}`}
+                </span>{" "}
+                ({reportToDelete?.title}) không?
+              </p>
+              <div className="rounded-md bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 leading-relaxed">
+                ⚠️ Hành động này không thể hoàn tác. Mọi dữ liệu liên quan bao gồm hình ảnh đính kèm, nhật ký kỹ thuật và đánh giá sẽ bị xóa hoàn toàn. Nếu phiếu này đang khóa ô tủ, ô tủ sẽ tự động được mở khóa.
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingSingle}>Hủy bỏ</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+              disabled={isDeletingSingle}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteSingleReport();
+              }}
+            >
+              {isDeletingSingle ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1.5" />}
+              Xác nhận xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Hộp thoại xác nhận xóa hàng loạt / xóa toàn bộ phiếu sự cố */}
+      <AlertDialog
+        open={batchDeleteConfirm.open}
+        onOpenChange={(open) =>
+          !open && setBatchDeleteConfirm({ open: false, category: "KIOSK", count: 0 })
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
+              <Trash2 className="w-5 h-5" />
+              {batchDeleteConfirm.all
+                ? `Xác nhận xóa TOÀN BỘ phiếu sự cố ${batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone"}`
+                : `Xác nhận xóa hàng loạt ${batchDeleteConfirm.count} phiếu sự cố`}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-sm text-muted-foreground">
+              <p>
+                {batchDeleteConfirm.all ? (
+                  <>
+                    Bạn có chắc chắn muốn xóa <span className="font-bold text-rose-600">toàn bộ {batchDeleteConfirm.count} phiếu sự cố</span> thuộc danh mục{" "}
+                    <span className="font-semibold text-foreground">
+                      {batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone"}
+                    </span>{" "}
+                    không?
+                  </>
+                ) : (
+                  <>
+                    Bạn có chắc chắn muốn xóa vĩnh viễn <span className="font-bold text-rose-600">{batchDeleteConfirm.count} phiếu</span> sự cố đã chọn không?
+                  </>
+                )}
+              </p>
+              <div className="rounded-md bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 leading-relaxed">
+                ⚠️ Cảnh báo: Tất cả phiếu sự cố được chọn, hình ảnh đính kèm trên hệ thống lưu trữ và nhật ký xử lý sẽ bị xóa vĩnh viễn khỏi cơ sở dữ liệu.
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingBatch}>Hủy bỏ</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+              disabled={isDeletingBatch}
+              onClick={(e) => {
+                e.preventDefault();
+                handleExecuteBatchDelete();
+              }}
+            >
+              {isDeletingBatch ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1.5" />}
+              {batchDeleteConfirm.all ? "Xóa toàn bộ" : `Xóa ${batchDeleteConfirm.count} phiếu`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -28,6 +28,18 @@ export const BOX_CFG: Record<
     border: "border-border",
     text: "text-muted-foreground",
   },
+  FAULT: {
+    labelKey: "admin.lockers.cell.faulty",
+    bg: "bg-destructive/10",
+    border: "border-destructive/20",
+    text: "text-destructive",
+  },
+  IN_USE: {
+    labelKey: "admin.stores.boxStatus.occupied",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/20",
+    text: "text-amber-700 dark:text-amber-400",
+  },
 };
 
 export const LOCKER_STATUS_CFG: Record<

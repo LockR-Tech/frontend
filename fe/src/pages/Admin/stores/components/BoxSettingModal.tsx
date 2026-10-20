@@ -89,10 +89,8 @@ interface Props {
   onRefresh: () => void;
 }
 
-const STATUS_OPTIONS = [
+const MANUAL_STATUS_OPTIONS = [
   { value: BoxStatus.AVAILABLE },
-  { value: BoxStatus.OCCUPIED },
-  { value: BoxStatus.RESERVED },
   { value: BoxStatus.MAINTENANCE },
 ];
 
@@ -107,9 +105,17 @@ export function BoxSettingModal({
   const [saving, setSaving] = useState(false);
   const [confirmForceOpen, setConfirmForceOpen] = useState(false);
 
+  const isOccupied = box.status === BoxStatus.OCCUPIED || box.status === "OCCUPIED" || box.status === "IN_USE";
+  const isReserved = box.status === BoxStatus.RESERVED || box.status === "RESERVED";
+  const holdsOrder = isOccupied || isReserved;
+
   const cfg = BOX_CFG[status] ?? BOX_CFG[BoxStatus.MAINTENANCE];
 
   const handleSaveStatus = async () => {
+    if (holdsOrder) {
+      toast.error("Không thể thay đổi trạng thái khi ô đang có hàng hoặc giữ chỗ");
+      return;
+    }
     if (status === box.status) {
       onClose();
       return;
@@ -117,11 +123,12 @@ export function BoxSettingModal({
     setSaving(true);
     try {
       await apiPut(`/api/admin/lockers/boxes/${box.id}/status`, { status });
+      toast.success(`Đã cập nhật trạng thái ô #${box.boxNumber}`);
       onRefresh();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       toast.error(t("admin.stores.boxSetting.statusUpdateFailed"), {
-        description: err instanceof Error ? err.message : undefined,
+        description: err?.data?.message || (err instanceof Error ? err.message : undefined),
       });
     } finally {
       setSaving(false);
@@ -172,32 +179,47 @@ export function BoxSettingModal({
               </span>
             </div>
 
-            <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block font-medium">
-                {t("admin.stores.boxSetting.changeStatus")}
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {STATUS_OPTIONS.map((opt) => {
-                  const optCfg = BOX_CFG[opt.value];
-                  const isSelected = status === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      onClick={() => setStatus(opt.value)}
-                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
-                        isSelected
-                          ? `${optCfg.bg} ${optCfg.border} ${optCfg.text} ring-2 ring-offset-1 ring-current`
-                          : "bg-background border-border/50 text-muted-foreground hover:border-border/70"
-                      }`}
-                    >
-                      {t(optCfg.labelKey)}
-                    </button>
-                  );
-                })}
+            {holdsOrder ? (
+              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <div className="text-xs space-y-1">
+                  <p className="font-semibold">
+                    {isOccupied ? "Ô đang chứa hàng của đơn hàng" : "Ô đang được giữ chỗ cho đơn hàng"}
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Trạng thái ô được quản lý tự động bởi luồng đơn hàng và phiếu xử lý sự cố. Không thể đổi trạng thái thủ công khi ô đang có hàng.
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block font-medium">
+                  {t("admin.stores.boxSetting.changeStatus")}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {MANUAL_STATUS_OPTIONS.map((opt) => {
+                    const optCfg = BOX_CFG[opt.value];
+                    const isSelected = status === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setStatus(opt.value)}
+                        className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
+                          isSelected
+                            ? `${optCfg.bg} ${optCfg.border} ${optCfg.text} ring-2 ring-offset-1 ring-current`
+                            : "bg-background border-border/50 text-muted-foreground hover:border-border/70"
+                        }`}
+                      >
+                        {t(optCfg.labelKey)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-            {box.status === BoxStatus.OCCUPIED && (
+            {isOccupied && (
               <div className="pt-2 border-t border-border/60">
                 <p className="text-xs text-muted-foreground mb-2">{t("admin.stores.boxSetting.emergency")}</p>
                 <Button
@@ -219,7 +241,7 @@ export function BoxSettingModal({
             </Button>
             <Button
               onClick={handleSaveStatus}
-              disabled={saving}
+              disabled={saving || holdsOrder || status === box.status}
             >
               {saving ? t("common.saving") : t("button.save")}
             </Button>

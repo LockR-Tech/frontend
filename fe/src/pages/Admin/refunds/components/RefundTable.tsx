@@ -344,7 +344,14 @@ export function RefundTable({
       header: t("admin.payments.refund.table.ticket", "Mã phiếu"),
       cell: ({ row }) => (
         <div>
-          <p className="font-mono font-semibold text-sm">#{row.original.id}</p>
+          <button
+            type="button"
+            onClick={() => handleOpenAction(row.original, "DETAIL")}
+            className="font-mono font-bold text-sm text-primary hover:underline cursor-pointer text-left"
+            title="Bấm để xem chi tiết phiếu hoàn"
+          >
+            #{row.original.id}
+          </button>
           <p className="text-[11px] text-muted-foreground font-mono">
             {t("admin.payments.refund.table.paymentRef", { id: row.original.paymentId })}
           </p>
@@ -471,80 +478,28 @@ export function RefundTable({
         </div>
       ),
     }),
-    columnHelper.display({
-      id: "evidence",
-      header: "Minh chứng",
-      cell: ({ row }) => {
-        const customerImg = getCustomerAttachment(row.original);
-        const adminImg = getAdminProof(row.original);
-        if (!customerImg && !adminImg) return <span className="text-xs text-muted-foreground/60">—</span>;
-        return (
-          <div className="flex items-center gap-1.5">
-            {customerImg && (
-              <button
-                type="button"
-                onClick={() => setViewingProofUrl(customerImg)}
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 transition-all text-[11px] font-medium"
-                title="Ảnh từ khách hàng"
-              >
-                <ImageIcon className="h-3 w-3" />
-                <span>Khách</span>
-              </button>
-            )}
-            {adminImg && (
-              <button
-                type="button"
-                onClick={() => setViewingProofUrl(adminImg)}
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-all text-[11px] font-medium"
-                title="Biên lai chuyển khoản (UNC)"
-              >
-                <ImageIcon className="h-3 w-3" />
-                <span>UNC</span>
-              </button>
-            )}
-          </div>
-        );
-      },
-    }),
-    columnHelper.accessor("reason", {
-      header: t("admin.payments.refund.table.reason", "Lý do"),
-      cell: ({ row }) => {
-        const text = cleanReason(row.original.reason);
-        const isCompensation = text.includes("[Bồi thường sự cố");
-        return (
-          <div className="max-w-[190px] space-y-1">
-            {isCompensation && (
-              <Badge
-                variant="outline"
-                className="bg-rose-50 text-rose-700 border-rose-300 font-semibold text-[10px] py-0 px-1.5 flex items-center gap-1 w-fit"
-              >
-                <span>🚨 Bồi thường sự cố rơi</span>
-              </Badge>
-            )}
-            <p className="text-xs text-foreground/80 line-clamp-2" title={text}>
-              {text || EMPTY_VALUE}
-            </p>
-          </div>
-        );
-      },
-    }),
     columnHelper.accessor("requestedAt", {
       header: t("common.time", "Thời gian"),
-      cell: ({ row }) => (
-        <div className="whitespace-nowrap font-mono text-xs">
-          <div className="flex items-center gap-1 text-foreground/80">
-            <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
-            <span>{formatDateTime(row.original.requestedAt)}</span>
+      cell: ({ row }) => {
+        const dt = formatDateTime(row.original.requestedAt);
+        const [timePart, datePart] = dt.includes(" ") ? dt.split(" ") : [dt, ""];
+        return (
+          <div className="font-mono text-xs whitespace-nowrap space-y-0.5">
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
+              <div className="flex flex-col leading-tight">
+                <span className="font-semibold text-foreground">{timePart}</span>
+                <span className="text-[11px] text-muted-foreground">{datePart}</span>
+              </div>
+            </div>
+            {row.original.processedAt && (
+              <p className="text-[10px] text-muted-foreground pl-4.5 leading-tight" title={t("admin.payments.refund.table.processedAt", { time: formatDateTime(row.original.processedAt) })}>
+                XL: {formatDateTime(row.original.processedAt)}
+              </p>
+            )}
           </div>
-          {row.original.processedAt && (
-            <p className="text-[11px] text-muted-foreground">
-              {t("admin.payments.refund.table.processedAt", {
-                time: formatDateTime(row.original.processedAt),
-              })}
-            </p>
-          )}
-        </div>
-      ),
+        );
+      },
     }),
     columnHelper.display({
       id: "actions",
@@ -556,6 +511,17 @@ export function RefundTable({
         if (item.status === "PENDING") {
           return (
             <div className="flex items-center justify-end gap-1.5">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground font-medium"
+                title={t("button.detail", "Chi tiết")}
+                onClick={() => handleOpenAction(item, "DETAIL")}
+              >
+                <Eye className="h-3.5 w-3.5 mr-1" />
+                {t("button.detail", "Chi tiết")}
+              </Button>
               <Button
                 type="button"
                 size="sm"
@@ -588,6 +554,7 @@ export function RefundTable({
               className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground font-medium"
               onClick={() => handleOpenAction(item, "DETAIL")}
             >
+              <Eye className="h-3.5 w-3.5 mr-1" />
               {t("button.detail", "Chi tiết")}
             </Button>
           </div>
@@ -1102,7 +1069,7 @@ export function RefundTable({
 
           {selectedRefund && (
             <div className="space-y-3 py-1">
-              <div className="bg-muted/60 p-3 rounded-lg space-y-1.5 text-xs">
+              <div className="bg-muted/60 p-3 rounded-lg space-y-1.5 text-xs border border-border/40">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("admin.payments.refund.table.ticket")}:</span>
                   <span className="font-mono font-semibold">#{selectedRefund.id}</span>
@@ -1114,6 +1081,51 @@ export function RefundTable({
                   </span>
                 </div>
               </div>
+
+              {/* Thông tin lý do yêu cầu từ khách hàng */}
+              <div className="bg-muted/40 p-3 rounded-lg border border-border/40 space-y-1 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground font-medium">Lý do yêu cầu từ khách:</span>
+                  {cleanReason(selectedRefund.reason).includes("[Bồi thường sự cố") && (
+                    <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-300 text-[10px] py-0 px-1 font-semibold">
+                      🚨 Bồi thường rơi
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-foreground/90 italic leading-relaxed whitespace-pre-wrap">
+                  {cleanReason(selectedRefund.reason) ? `"${cleanReason(selectedRefund.reason)}"` : "Không có ghi chú lý do"}
+                </p>
+              </div>
+
+              {/* Ảnh minh chứng từ khách hàng nếu có */}
+              {getCustomerAttachment(selectedRefund) && (
+                <div className="space-y-1.5 text-xs p-2.5 rounded-lg bg-card border border-border/60">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground font-medium flex items-center gap-1 text-blue-600">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      Ảnh minh chứng từ khách:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setViewingProofUrl(getCustomerAttachment(selectedRefund)!)}
+                      className="text-primary hover:underline text-[11px] flex items-center gap-1 font-semibold"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Phóng to
+                    </button>
+                  </div>
+                  <div
+                    className="relative rounded-lg overflow-hidden border border-border/60 bg-muted/30 cursor-pointer max-h-36 flex items-center justify-center p-1 group"
+                    onClick={() => setViewingProofUrl(getCustomerAttachment(selectedRefund)!)}
+                  >
+                    <img
+                      src={getCustomerAttachment(selectedRefund)!}
+                      alt="Ảnh đính kèm từ khách"
+                      className="w-full h-auto max-h-36 object-contain rounded group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">
@@ -1234,10 +1246,6 @@ export function RefundTable({
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("admin.payments.refund.detail.originalReason")}:</span>
-                  <span className="text-foreground max-w-[260px] text-right">{cleanReason(selectedRefund.reason) || EMPTY_VALUE}</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-muted-foreground">Thời gian yêu cầu:</span>
                   <span className="font-mono">{formatDateTime(selectedRefund.requestedAt)}</span>
                 </div>
@@ -1247,6 +1255,19 @@ export function RefundTable({
                     <span className="font-mono">{formatDateTime(selectedRefund.processedAt)}</span>
                   </div>
                 )}
+                <div className="pt-2 border-t border-border/40 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground font-medium">{t("admin.payments.refund.detail.originalReason", "Lý do yêu cầu từ khách")}:</span>
+                    {cleanReason(selectedRefund.reason).includes("[Bồi thường sự cố") && (
+                      <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-300 text-[10px] py-0 px-1.5 font-semibold">
+                        🚨 Bồi thường sự cố rơi
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="p-2.5 rounded-lg bg-background border border-border/60 text-foreground/90 italic leading-relaxed whitespace-pre-wrap">
+                    {cleanReason(selectedRefund.reason) ? `"${cleanReason(selectedRefund.reason)}"` : EMPTY_VALUE}
+                  </p>
+                </div>
               </div>
 
               {/* Ảnh đính kèm từ khách hàng (nếu có) */}
