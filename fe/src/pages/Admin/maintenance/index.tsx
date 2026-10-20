@@ -64,6 +64,7 @@ import { RepairLogDialog } from "./RepairLogDialog";
 import { MaintenanceSchedules } from "./MaintenanceSchedules";
 import type { TechnicianSummary } from "./technician-detail";
 import { AssignReportDialog } from "./AssignReportDialog";
+import { useGetPublicBusinessSettingsQuery } from "~/stores/apis/admin/businessSettings";
 import { cleanDescription, isDroneReport, INSPECTION_STATUS_META } from "./maintenancePhotos";
 import { ReportPhotoGroups } from "./ReportPhotoGroups";
 import { ResolveReportDialog } from "./ResolveReportDialog";
@@ -420,9 +421,12 @@ export default function MaintenanceAdminPage() {
   const resolvedReports = kioskReportList.filter((r) => r.status === "RESOLVED").length;
   const overdueReports = kioskReportList.filter((r) => r.overdue).length;
 
+  const { data: lockerSettingsRes } = useGetPublicBusinessSettingsQuery("locker");
+  const droneLowBatteryPercent = (lockerSettingsRes?.data?.["app.locker.drone-low-battery-percent"] as number) ?? 20;
+
   // Drone Stats
   const droneFaults = droneList.filter((d) => d.status === "FAULT" || d.status === "MAINTENANCE").length;
-  const droneLowBattery = droneList.filter((d) => d.batteryPercent != null && d.batteryPercent < 20).length;
+  const droneLowBattery = droneList.filter((d) => d.batteryPercent != null && d.batteryPercent < droneLowBatteryPercent).length;
   const droneActive = droneList.filter((d) => d.status === "IN_FLIGHT" || d.status === "RESERVED").length;
   const droneReady = droneList.filter((d) => d.status === "IDLE" || d.status === "CHARGING").length;
   const droneOpenReports = droneReportList.filter((r) => r.status === "OPEN").length;
@@ -479,7 +483,7 @@ export default function MaintenanceAdminPage() {
       ? droneList
       : droneFilter === "ATTENTION"
         ? droneList.filter(
-        (d) => d.status === "FAULT" || d.status === "MAINTENANCE" || (d.batteryPercent != null && d.batteryPercent < 20),
+        (d) => d.status === "FAULT" || d.status === "MAINTENANCE" || (d.batteryPercent != null && d.batteryPercent < droneLowBatteryPercent),
       )
         : droneList.filter((d) => d.status === droneFilter);
 
@@ -487,8 +491,8 @@ export default function MaintenanceAdminPage() {
     return filteredByStatus
       .filter((d) => {
         const battery = d.batteryPercent ?? 0;
-        if (droneBatteryFilter === "LOW" && battery >= 20) return false;
-        if (droneBatteryFilter === "MEDIUM" && (battery < 20 || battery >= 50)) return false;
+        if (droneBatteryFilter === "LOW" && battery >= droneLowBatteryPercent) return false;
+        if (droneBatteryFilter === "MEDIUM" && (battery < droneLowBatteryPercent || battery >= 50)) return false;
         if (droneBatteryFilter === "READY" && battery < 50) return false;
         if (!query) return true;
         return [d.code, d.lockerName, d.assignedTechnicianName, d.faultReason]
@@ -496,12 +500,12 @@ export default function MaintenanceAdminPage() {
           .some((value) => String(value).toLowerCase().includes(query));
       })
       .sort((a, b) => {
-        const attentionA = a.status === "FAULT" || a.status === "MAINTENANCE" || (a.batteryPercent ?? 0) < 20 ? 1 : 0;
-        const attentionB = b.status === "FAULT" || b.status === "MAINTENANCE" || (b.batteryPercent ?? 0) < 20 ? 1 : 0;
+        const attentionA = a.status === "FAULT" || a.status === "MAINTENANCE" || (a.batteryPercent ?? 0) < droneLowBatteryPercent ? 1 : 0;
+        const attentionB = b.status === "FAULT" || b.status === "MAINTENANCE" || (b.batteryPercent ?? 0) < droneLowBatteryPercent ? 1 : 0;
         if (attentionA !== attentionB) return attentionB - attentionA;
         return (a.code || "").localeCompare(b.code || "");
       });
-  }, [droneList, droneFilter, droneFleetSearch, droneBatteryFilter]);
+  }, [droneList, droneFilter, droneFleetSearch, droneBatteryFilter, droneLowBatteryPercent]);
 
   const filteredDroneReports = useMemo(() => {
     const query = droneSearchQuery.trim().toLowerCase();
