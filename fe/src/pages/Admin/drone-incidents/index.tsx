@@ -33,6 +33,7 @@ import { PageHeader } from "~/components/shared/page-header";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -175,7 +176,13 @@ export const INCIDENT_ERRORS: Record<string, string> = {
   RECOVERY_FORBIDDEN: "admin.droneIncidents.errors.recoveryForbidden",
 };
 
-/** Backend (bản mới) trả thêm mức bồi thường đề xuất theo chính sách; bản cũ chưa có. */
+export function formatCompensationRate(rate?: number | null): string {
+  if (rate == null) return "60%";
+  const pct = rate <= 1 ? rate * 100 : rate;
+  return `${pct.toFixed(0)}%`;
+}
+
+/** Backend (bản mới) trả thêm mức bồi thường đề xuất theo chính sách; bản cũ tính dự phòng. */
 export function suggestedCompensationOf(
   incident: DroneParcelIncident,
 ): number | null {
@@ -184,7 +191,14 @@ export function suggestedCompensationOf(
       suggestedCompensation?: number | null;
     }
   ).suggestedCompensation;
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const base = incident.declaredValue ?? 0;
+  if (base <= 0) return 0;
+  const rawRate = incident.compensationRate ?? 60;
+  const ratePct = rawRate <= 1 ? rawRate * 100 : rawRate;
+  const calc = Math.round((base * ratePct) / 100);
+  const cap = incident.compensationCap ?? 0;
+  return cap > 0 ? Math.min(calc, cap) : calc;
 }
 
 export const REDELIVERY_TYPES = new Set([
@@ -222,6 +236,9 @@ export function validateProposal(
   if (resolutionType === "COMPENSATION_ONLY" && amount <= 0) {
     return t("admin.droneIncidents.validation.compensationNeedsAmount");
   }
+  if (resolutionType === "MANUAL_RESOLUTION" && !overrideReason.trim()) {
+    return "Thỏa thuận riêng yêu cầu nhập ghi chú chi tiết phương án đã trao đổi với khách.";
+  }
   const suggested = suggestedCompensationOf(incident);
   if (suggested != null && amount > suggested && !overrideReason.trim()) {
     return t("admin.droneIncidents.validation.overSuggested", {
@@ -257,7 +274,12 @@ export default function DroneIncidentsPage() {
     const samplesToAdd = SAMPLE_DRONE_INCIDENTS.filter(
       (s) => !existingCodes.has(s.incidentCode),
     );
-    return [...samplesToAdd, ...apiIncidents];
+    const combined = [...samplesToAdd, ...apiIncidents];
+    return combined.sort((a, b) => {
+      const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
   }, [apiIncidents]);
   const byOrder = orderFilter
     ? incidents.filter(
@@ -411,7 +433,7 @@ export default function DroneIncidentsPage() {
                   <th className="px-4 py-3">
                     {t("admin.droneIncidents.columns.inspection")}
                   </th>
-                  <th className="px-4 py-3">{t("common.time")}</th>
+                  <th className="px-4 py-3">Cập nhật lần cuối</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -481,7 +503,16 @@ export default function DroneIncidentsPage() {
                       <Status value={item.inspectionStatus} />
                     </td>
                     <td className="px-4 py-3 font-mono text-xs">
-                      {formatDateTime(item.createdAt)}
+                      <div className="font-semibold text-slate-800">
+                        {formatDateTime(item.updatedAt || item.createdAt)}
+                      </div>
+                      {item.updatedAt &&
+                        item.createdAt &&
+                        item.updatedAt !== item.createdAt && (
+                          <div className="text-[10px] text-muted-foreground font-sans">
+                            Tạo: {formatDateTime(item.createdAt)}
+                          </div>
+                        )}
                     </td>
                     <td className="px-4 py-3">
                       <Link to={`/admin/drone-incidents/${item.id}`}>
@@ -715,22 +746,31 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-3">
-              {incident.evidence.map((item) => (
-                <a
-                  key={item.id}
-                  href={item.secureUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="overflow-hidden rounded-lg border"
-                >
-                  <img
-                    src={item.secureUrl}
-                    alt={item.caption ?? item.stage}
-                    className="h-32 w-full object-cover"
-                  />
-                  <p className="p-2 text-xs">{item.caption ?? item.stage}</p>
-                </a>
-              ))}
+              {incident.evidence.map((item) => {
+                const imageUrl = item.secureUrl || item.url || "";
+                return (
+                  <a
+                    key={item.id}
+                    href={imageUrl || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="overflow-hidden rounded-lg border block"
+                  >
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={item.caption ?? item.stage}
+                        className="h-32 w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-32 w-full flex items-center justify-center bg-slate-200 text-slate-400 text-xs">
+                        Không có ảnh
+                      </div>
+                    )}
+                    <p className="p-2 text-xs">{item.caption ?? item.stage}</p>
+                  </a>
+                );
+              })}
             </div>
           )}
         </section>
@@ -1279,6 +1319,9 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
     atHub ? "0" : suggested != null && suggested > 0 ? String(suggested) : "",
   );
   const [overrideReason, setOverrideReason] = useState("");
+  const [refundShippingFee, setRefundShippingFee] = useState<boolean>(
+    incident.refundShippingFeeAllowed ?? true,
+  );
   const [showProposalError, setShowProposalError] = useState(false);
   const [confirmHandover, setConfirmHandover] = useState(false);
   const [showVerifyConfirm, setShowVerifyConfirm] = useState(false);
@@ -1343,7 +1386,8 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
           resolutionType,
           redeliveryOffered: REDELIVERY_TYPES.has(resolutionType),
           compensationAmount: Number(amount) || 0,
-          refundShippingFee: false,
+          refundShippingFee:
+            resolutionType === "FREE_REDELIVERY" ? false : refundShippingFee,
           overrideReason: overrideReason.trim() || undefined,
         }).unwrap(),
       t("admin.droneIncidents.actions.proposalSent"),
@@ -1728,35 +1772,96 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <div className="rounded-lg border p-4">
-        <h3 className="font-semibold">
-          {t("admin.droneIncidents.actions.proposalTitle")}
-        </h3>
-        <div className="mt-3 space-y-2">
-          {/* Cấu hình phần trăm bồi thường */}
-          {incident.compensationRate != null && (
-            <div className="rounded-lg bg-sky-50 border border-sky-200 p-2.5 text-xs text-sky-900 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold flex items-center gap-1.5">
-                  <InfoIcon className="h-4 w-4 text-sky-600" />
-                  Mức bồi thường theo cấu hình:
-                </span>
-                <Badge
-                  variant="outline"
-                  className="bg-sky-100 text-sky-800 border-sky-300 font-bold"
-                >
-                  {incident.compensationRate.toFixed(0)}% giá trị kiện
-                </Badge>
-              </div>
-              <p className="text-[11px] text-sky-800">
-                Giá trị kiện:{" "}
-                <b>{formatCurrency(incident.declaredValue ?? 0)}</b> ⇒ Mức bồi
-                thường đề xuất:{" "}
-                <b className="text-emerald-700">{formatCurrency(suggested)}</b>.
-              </p>
-            </div>
-          )}
+      <div className="rounded-lg border p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-sm">
+            {t("admin.droneIncidents.actions.proposalTitle")}
+          </h3>
+          <Badge
+            variant="outline"
+            className={`text-xs ${
+              incident.incidentPolicyEnabled !== false
+                ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                : "bg-red-50 text-red-800 border-red-300"
+            }`}
+          >
+            Chính sách: {incident.incidentPolicyEnabled !== false ? "Đang bật" : "Đang tắt"}
+          </Badge>
+        </div>
 
+        {/* Bảng cấu hình quy tắc bồi thường từ Hệ thống (8 quy tắc Image 1) */}
+        <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-2 text-xs">
+          <div className="flex items-center justify-between border-b pb-1.5">
+            <span className="font-semibold text-slate-900 flex items-center gap-1.5 text-xs">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              Cấu hình bồi thường áp dụng cho đơn:
+            </span>
+            <Link
+              to="/admin/settings"
+              target="_blank"
+              className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
+            >
+              Xem cài đặt
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+            <div className="p-2 rounded bg-white border">
+              <span className="text-muted-foreground block text-[10px]">Tỷ lệ đề xuất</span>
+              <span className="font-bold text-slate-800">
+                {formatCompensationRate(incident.compensationRate)}
+              </span>
+            </div>
+            <div className="p-2 rounded bg-white border">
+              <span className="text-muted-foreground block text-[10px]">Trần bồi thường</span>
+              <span className="font-bold text-slate-800">
+                {incident.compensationCap && incident.compensationCap > 0
+                  ? formatCurrency(incident.compensationCap)
+                  : "Không đặt trần"}
+              </span>
+            </div>
+            <div className="p-2 rounded bg-white border">
+              <span className="text-muted-foreground block text-[10px]">SLA thu hồi</span>
+              <span className="font-bold text-slate-800">
+                {incident.recoverySlaHours ?? 4} giờ
+              </span>
+            </div>
+            <div className="p-2 rounded bg-white border">
+              <span className="text-muted-foreground block text-[10px]">Duyệt chi bồi thường</span>
+              <span className="font-bold text-slate-800">
+                {incident.approvalRequired !== false ? "Bắt buộc duyệt" : "Tự động"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 border-t pt-1.5">
+            <span>
+              Giá trị kiện: <b>{formatCurrency(incident.declaredValue ?? 0)}</b>
+            </span>
+            <span>
+              ⇒ Gợi ý bồi thường:{" "}
+              <b className="text-emerald-700">{formatCurrency(suggested)}</b>
+            </span>
+            <span>
+              • Hoàn cước ship:{" "}
+              <b className="text-slate-800">
+                {incident.refundShippingFeeAllowed !== false ? "Có" : "Không"}
+              </b>
+            </span>
+            <span>
+              • Xem xét lại:{" "}
+              <b className="text-slate-800">
+                {incident.disputeAllowed !== false ? "Cho phép" : "Không"}
+              </b>
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-slate-700">
+            Phương án giải quyết đề xuất:
+          </label>
           <Select value={resolutionType} onValueChange={changeResolutionType}>
             <SelectTrigger>
               <SelectValue />
@@ -1776,18 +1881,23 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               ))}
             </SelectContent>
           </Select>
+        </div>
 
-          <div className="rounded bg-slate-50 border p-2 text-[11px] text-muted-foreground">
-            {resolutionType === "FREE_REDELIVERY" &&
-              "• Giao lại miễn phí toàn bộ cước phí sau khi kiện đã an toàn về Hub."}
-            {resolutionType === "REDELIVERY_PARTIAL_COMPENSATION" &&
-              "• Giao lại kiện cho khách đồng thời tạo phiếu hoàn tiền bồi thường một phần giá trị kiện."}
-            {resolutionType === "COMPENSATION_ONLY" &&
-              "• Tạo phiếu hoàn tiền bồi thường qua tài khoản ngân hàng của khách (không giao lại kiện)."}
-            {resolutionType === "MANUAL_RESOLUTION" &&
-              "• Thỏa thuận phương án riêng với khách hàng ngoài quy trình tự động."}
-          </div>
+        <div className="rounded bg-slate-50 border p-2 text-[11px] text-muted-foreground leading-relaxed">
+          {resolutionType === "FREE_REDELIVERY" &&
+            "• Giao lại miễn phí toàn bộ cước phí sau khi kiện đã an toàn về Hub (Khoản bồi thường = 0đ)."}
+          {resolutionType === "REDELIVERY_PARTIAL_COMPENSATION" &&
+            "• Giao lại kiện cho khách sau khi đã về Hub, đồng thời tạo phiếu bồi thường một phần giá trị thiệt hại."}
+          {resolutionType === "COMPENSATION_ONLY" &&
+            "• Tạo phiếu bồi thường chuyển khoản qua ngân hàng cho khách (không giao lại kiện do mất hoặc hỏng hoàn toàn)."}
+          {resolutionType === "MANUAL_RESOLUTION" &&
+            "• Thoả thuận phương án riêng với khách hàng ngoài quy trình tự động. Nhập biên bản/nội dung thỏa thuận vào ô ghi chú."}
+        </div>
 
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700">
+            Số tiền bồi thường (VND):
+          </label>
           <Input
             type="number"
             min="0"
@@ -1802,7 +1912,7 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
           {suggested != null && (
             <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               {t("admin.droneIncidents.actions.suggested")}{" "}
-              <b className="text-foreground">{formatCurrency(suggested)}</b>
+              <b className="text-emerald-700">{formatCurrency(suggested)}</b>
               {resolutionType !== "FREE_REDELIVERY" &&
                 String(suggested) !== amount && (
                   <button
@@ -1815,14 +1925,46 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 )}
             </p>
           )}
+        </div>
+
+        {/* Tuỳ chọn hoàn phí giao hàng khi bồi thường (Quy tắc 5 BE) */}
+        {resolutionType !== "FREE_REDELIVERY" && (
+          <div className="flex items-center space-x-2 rounded border bg-slate-50/70 p-2 text-xs">
+            <Checkbox
+              id="refundShippingFee"
+              checked={refundShippingFee}
+              onCheckedChange={(checked) => setRefundShippingFee(Boolean(checked))}
+            />
+            <label
+              htmlFor="refundShippingFee"
+              className="text-xs font-medium text-slate-800 cursor-pointer select-none leading-none"
+            >
+              Hoàn phí giao hàng khi bồi thường
+              <span className="text-[10px] text-muted-foreground block font-normal mt-0.5">
+                (Khoản hoàn phí vận chuyển được xử lý tách biệt với bồi thường giá trị kiện hàng)
+              </span>
+            </label>
+          </div>
+        )}
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700">
+            Lý do điều chỉnh / Ghi chú thỏa thuận:
+          </label>
           <Input
             value={overrideReason}
             onChange={(event) => setOverrideReason(event.target.value)}
-            placeholder={t("admin.droneIncidents.actions.overridePlaceholder")}
+            placeholder={
+              resolutionType === "MANUAL_RESOLUTION"
+                ? "Bắt buộc: Nhập chi tiết phương án đã thỏa thuận với khách..."
+                : t("admin.droneIncidents.actions.overridePlaceholder")
+            }
           />
-          {showProposalError && proposalError && (
-            <p className="text-xs text-red-600">{proposalError}</p>
-          )}
+        </div>
+
+        {showProposalError && proposalError && (
+          <p className="text-xs text-red-600 font-medium">{proposalError}</p>
+        )}
           <Button
             disabled={
               !["VERIFIED", "CLOSED"].includes(incident.recoveryStatus) ||
@@ -1891,6 +2033,5 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
           </p>
         </div>
       </div>
-    </div>
   );
 }

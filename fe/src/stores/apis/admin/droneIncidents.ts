@@ -4,7 +4,8 @@ import type { ApiResponse } from "../../../types";
 export interface DroneIncidentEvidence {
   id: number;
   stage: string;
-  secureUrl: string;
+  url?: string;
+  secureUrl?: string;
   caption: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -84,9 +85,17 @@ export interface DroneParcelIncident {
   deliveryStage?: string | null;
   compensationRate?: number | null;
   declaredValue?: number | null;
+  suggestedCompensation?: number | null;
   recoveryTechnicianName?: string | null;
   recoveryTechnicianPhone?: string | null;
   recoveryTechnicianRole?: string | null;
+  compensationCap?: number | null;
+  freeRedeliveryAllowed?: boolean;
+  refundShippingFeeAllowed?: boolean;
+  recoverySlaHours?: number | null;
+  approvalRequired?: boolean;
+  incidentPolicyEnabled?: boolean;
+  disputeAllowed?: boolean;
   createdAt: string;
   updatedAt: string;
   evidence: DroneIncidentEvidence[];
@@ -230,6 +239,16 @@ export const SAMPLE_DRONE_INCIDENTS: DroneParcelIncident[] = [
     returnedToHubAt: null,
     redeliveryOrderId: null,
     compensationReference: null,
+    compensationRate: 60,
+    compensationCap: 0,
+    freeRedeliveryAllowed: true,
+    refundShippingFeeAllowed: true,
+    recoverySlaHours: 4,
+    approvalRequired: true,
+    disputeAllowed: true,
+    incidentPolicyEnabled: true,
+    declaredValue: 350000,
+    suggestedCompensation: 210000,
     createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
     evidence: [],
@@ -303,6 +322,16 @@ export const SAMPLE_DRONE_INCIDENTS: DroneParcelIncident[] = [
     returnedToHubAt: null,
     redeliveryOrderId: null,
     compensationReference: null,
+    compensationRate: 60,
+    compensationCap: 0,
+    freeRedeliveryAllowed: true,
+    refundShippingFeeAllowed: true,
+    recoverySlaHours: 4,
+    approvalRequired: true,
+    disputeAllowed: true,
+    incidentPolicyEnabled: true,
+    declaredValue: 500000,
+    suggestedCompensation: 300000,
     createdAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
     evidence: [

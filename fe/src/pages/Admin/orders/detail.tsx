@@ -51,7 +51,8 @@ function getIncidentShortStatus(incident: DroneParcelIncident): string {
   if (incident.recoveryStatus === "SUBMITTED") return "Chờ duyệt thu hồi";
   if (incident.recoveryStatus === "SEARCHING") return "Đang tìm kiếm";
   if (incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB") return "Đã thu hồi";
-  if (incident.recoveryStatus === "ACCEPTED" || incident.recoveryStatus === "ASSIGNED") return "Đã phân công KTV";
+  if (incident.recoveryStatus === "ACCEPTED") return "KTV đã nhận";
+  if (incident.recoveryStatus === "ASSIGNED") return "Chờ KTV nhận";
   if (incident.status === "RESOLUTION_IN_PROGRESS" || incident.compensationStatus === "PROCESSING") return "Đang bồi thường";
   if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE") return "Chờ khách chọn bồi thường";
   if (incident.recoveryStatus === "AWAITING_ASSIGNMENT" || incident.status === "REPORTED" || incident.recoveryStatus === "OPEN") return "Chờ điều phối";

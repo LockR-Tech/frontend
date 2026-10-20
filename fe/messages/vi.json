@@ -2652,10 +2652,10 @@
         "manualInterventionRequired": "Cần can thiệp thủ công"
       },
       "resolution": {
-        "freeRedelivery": "Giao lại miễn phí",
-        "redeliveryPartialCompensation": "Giao lại + bồi thường một phần",
-        "compensationOnly": "Chỉ bồi thường",
-        "manualResolution": "Xử lý thủ công"
+        "freeRedelivery": "Giao lại miễn phí toàn bộ cước phí",
+        "redeliveryPartialCompensation": "Giao lại kiện + Bồi thường một phần",
+        "compensationOnly": "Chỉ bồi thường qua tài khoản ngân hàng (Không giao lại)",
+        "manualResolution": "Thoả thuận phương án riêng với khách"
       },
       "errors": {
         "resolutionContentInvalid": "Loại phương án không khớp với lựa chọn giao lại / mức bồi thường.",

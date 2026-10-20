@@ -2652,10 +2652,10 @@
         "manualInterventionRequired": "Manual intervention required"
       },
       "resolution": {
-        "freeRedelivery": "Free redelivery",
+        "freeRedelivery": "Free redelivery (waive shipping fee)",
         "redeliveryPartialCompensation": "Redelivery + partial compensation",
-        "compensationOnly": "Compensation only",
-        "manualResolution": "Manual resolution"
+        "compensationOnly": "Bank compensation only (no redelivery)",
+        "manualResolution": "Custom agreement with customer"
       },
       "errors": {
         "resolutionContentInvalid": "The resolution type does not match the redelivery choice / compensation amount.",

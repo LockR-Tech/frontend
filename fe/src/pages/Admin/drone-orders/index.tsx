@@ -84,7 +84,7 @@ function getIncidentReadableStatus(incident: DroneParcelIncident): string {
   if (incident.recoveryStatus === "VERIFIED") return "Đã xác minh thu hồi";
   if (incident.parcelStatus === "RETURNED_TO_HUB") return "Kiện đã về kho Hub";
   if (incident.recoveryStatus === "ACCEPTED") return "KTV đã nhận tìm kiếm";
-  if (incident.recoveryStatus === "ASSIGNED") return "Đã phân công KTV";
+  if (incident.recoveryStatus === "ASSIGNED") return "Đã phân công (Chờ KTV nhận)";
   if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE")
     return "Chờ khách chọn bồi thường";
   if (incident.status === "RESOLUTION_IN_PROGRESS" || incident.compensationStatus === "PROCESSING")
@@ -98,10 +98,10 @@ function getIncidentStatusBadgeClass(incident: DroneParcelIncident): string {
   if (incident.status === "RESOLVED" || incident.status === "CLOSED" || incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB") {
     return "bg-emerald-100 text-emerald-800 border-emerald-300";
   }
-  if (incident.recoveryStatus === "SUBMITTED" || incident.status === "AWAITING_ADMIN_REVIEW" || incident.status === "AWAITING_CUSTOMER_RESPONSE") {
+  if (incident.recoveryStatus === "ASSIGNED" || incident.recoveryStatus === "SUBMITTED" || incident.status === "AWAITING_ADMIN_REVIEW" || incident.status === "AWAITING_CUSTOMER_RESPONSE") {
     return "bg-amber-100 text-amber-800 border-amber-300";
   }
-  if (incident.recoveryStatus === "SEARCHING" || incident.recoveryStatus === "ACCEPTED" || incident.recoveryStatus === "ASSIGNED") {
+  if (incident.recoveryStatus === "SEARCHING" || incident.recoveryStatus === "ACCEPTED") {
     return "bg-blue-100 text-blue-800 border-blue-300";
   }
   if (incident.status === "RESOLUTION_IN_PROGRESS" || incident.compensationStatus === "PROCESSING") {

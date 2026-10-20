@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -56,6 +56,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency } from "~/lib/report-format";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   useGetDroneIncidentQuery,
   useVerifyDroneRecoveryMutation,
@@ -73,6 +74,7 @@ import {
   IncidentOrderContext,
   suggestedCompensationOf,
   validateProposal,
+  formatCompensationRate,
   REDELIVERY_TYPES,
   INCIDENT_ERRORS,
 } from "./index";
@@ -120,7 +122,7 @@ function formatRecoveryStatus(status: string): { label: string; className: strin
     case "ACCEPTED":
       return { label: "Thu hồi: KTV đã tiếp nhận", className: "bg-blue-100 text-blue-800 border-blue-300" };
     case "ASSIGNED":
-      return { label: "Thu hồi: Đã phân công KTV", className: "bg-sky-100 text-sky-800 border-sky-300" };
+      return { label: "Thu hồi: Đã phân công (Chờ KTV nhận)", className: "bg-amber-100 text-amber-800 border-amber-300" };
     case "AWAITING_ASSIGNMENT":
       return { label: "Thu hồi: Chờ phân công KTV", className: "bg-amber-50 text-amber-800 border-amber-300" };
     case "OPEN":
@@ -270,7 +272,14 @@ export default function DroneIncidentDetailPage() {
     atHub ? "0" : suggested != null && suggested > 0 ? String(suggested) : "",
   );
   const [overrideReason, setOverrideReason] = useState("");
+  const [refundShippingFee, setRefundShippingFee] = useState<boolean>(true);
   const [showProposalError, setShowProposalError] = useState(false);
+
+  useEffect(() => {
+    if (incident?.refundShippingFeeAllowed !== undefined) {
+      setRefundShippingFee(incident.refundShippingFeeAllowed);
+    }
+  }, [incident?.refundShippingFeeAllowed]);
 
   const proposalError = incident
     ? validateProposal(t, incident, resolutionType, amount, overrideReason)
@@ -308,7 +317,8 @@ export default function DroneIncidentDetailPage() {
           resolutionType,
           redeliveryOffered: REDELIVERY_TYPES.has(resolutionType),
           compensationAmount: Number(amount) || 0,
-          refundShippingFee: false,
+          refundShippingFee:
+            resolutionType === "FREE_REDELIVERY" ? false : refundShippingFee,
           overrideReason: overrideReason.trim() || undefined,
         }).unwrap(),
       "Đã gửi đề xuất phương án bồi thường cho khách hàng!",
@@ -352,9 +362,10 @@ export default function DroneIncidentDetailPage() {
     );
   }
 
-  const canAssign = ["OPEN", "AWAITING_ASSIGNMENT", "ASSIGNED"].includes(
+  const isTechAccepted = !["OPEN", "AWAITING_ASSIGNMENT", "ASSIGNED"].includes(
     incident.recoveryStatus,
   );
+  const canAssign = !isTechAccepted;
   const canHandover =
     incident.recoveryStatus === "VERIFIED" && incident.recoveryOutcome === "FOUND";
 
@@ -543,23 +554,36 @@ export default function DroneIncidentDetailPage() {
               </span>
               <Badge
                 variant="outline"
-                className={`text-[10px] ${
-                  canAssign
-                    ? "bg-amber-50 text-amber-700 border-amber-300 font-semibold"
-                    : "bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold"
+                className={`text-[10px] font-semibold ${
+                  isTechAccepted
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                    : incident.recoveryStatus === "ASSIGNED"
+                      ? "bg-amber-50 text-amber-700 border-amber-300"
+                      : "bg-slate-100 text-slate-700 border-slate-300"
                 }`}
               >
-                {canAssign ? "Chờ KTV nhận" : "KTV đã nhận"}
+                {isTechAccepted
+                  ? "KTV đã nhận việc"
+                  : incident.recoveryStatus === "ASSIGNED"
+                    ? "Chờ KTV bấm nhận"
+                    : "Chưa phân công"}
               </Badge>
             </div>
             <div>
               <p className="font-bold text-slate-900 text-sm truncate">
-                {incident.recoveryTechnicianName || "Chưa phân công"}
+                {incident.recoveryTechnicianName ||
+                  (incident.recoveryAssignedToUserId
+                    ? `KTV #${incident.recoveryAssignedToUserId}`
+                    : "Chưa phân công")}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 {incident.recoveryTechnicianRole === "DRONE_TECHNICIAN"
                   ? "🚁 KTV Drone (Không bận đơn)"
-                  : "🏢 KTV Kiosk / Tủ (GPS gần điểm rơi)"}
+                  : incident.recoveryTechnicianRole
+                    ? "🏢 KTV Kiosk / Tủ (GPS gần điểm rơi)"
+                    : incident.recoveryStatus === "ASSIGNED"
+                      ? "Đang chờ KTV bấm nhận việc"
+                      : "Đang chờ điều phối KTV"}
               </p>
             </div>
             {incident.recoveryTechnicianPhone ? (
@@ -652,7 +676,7 @@ export default function DroneIncidentDetailPage() {
       />
 
       {/* 5. ĐIỀU PHỐI TÌM KIẾM THỦ CÔNG HOẶC THÔNG TIN KTV ĐÃ NHẬN NHIỆM VỤ */}
-      {incident.recoveryAssignedToUserId || !["OPEN", "AWAITING_ASSIGNMENT"].includes(incident.recoveryStatus) ? (
+      {isTechAccepted ? (
         <Card className="border-emerald-200 shadow-2xs bg-gradient-to-br from-emerald-50/50 to-white">
           <CardHeader className="bg-emerald-50/80 border-b border-emerald-100 pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -664,11 +688,17 @@ export default function DroneIncidentDetailPage() {
                   <CardTitle className="text-base font-bold text-emerald-950 flex items-center gap-2">
                     Kỹ thuật viên phụ trách thu hồi kiện
                     <Badge className="bg-emerald-600 text-white text-[10px]">
-                      Đã tiếp nhận nhiệm vụ
+                      {incident.recoveryStatus === "SEARCHING"
+                        ? "Đang tìm kiếm thực địa"
+                        : incident.recoveryStatus === "SUBMITTED"
+                          ? "Đã nộp kết quả tìm hàng"
+                          : incident.recoveryStatus === "VERIFIED"
+                            ? "Đã xác minh thu hồi"
+                            : "KTV đã tiếp nhận nhiệm vụ"}
                     </Badge>
                   </CardTitle>
                   <CardDescription className="text-xs text-emerald-800">
-                    KTV đang tiến hành quy trình tìm kiếm và thu hồi kiện hàng tại hiện trường. Đã khóa phân công thủ công.
+                    KTV đã bấm nhận nhiệm vụ và đang tiến hành quy trình tìm kiếm / thu hồi kiện hàng. Phân công thủ công đã được khóa.
                   </CardDescription>
                 </div>
               </div>
@@ -695,13 +725,17 @@ export default function DroneIncidentDetailPage() {
               <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
                 <span className="text-[11px] text-muted-foreground font-medium">Chuyên môn:</span>
                 <p className="font-bold text-slate-900 text-sm">
-                  {incident.recoveryTechnicianRole || "Kỹ thuật viên"}
+                  {incident.recoveryTechnicianRole === "DRONE_TECHNICIAN"
+                    ? "KTV Drone"
+                    : incident.recoveryTechnicianRole === "LOCKER_TECHNICIAN"
+                      ? "KTV Kiosk / Tủ"
+                      : incident.recoveryTechnicianRole || "Kỹ thuật viên"}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
                 <span className="text-[11px] text-muted-foreground font-medium">Trạng thái thu hồi:</span>
                 <p className="font-bold text-emerald-700 text-sm">
-                  {incident.recoveryStatus}
+                  {formatRecoveryStatus(incident.recoveryStatus).label}
                 </p>
               </div>
             </div>
@@ -776,28 +810,84 @@ export default function DroneIncidentDetailPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-slate-200 shadow-2xs">
-          <CardHeader className="bg-slate-50/70 border-b pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Navigation className="h-4 w-4 text-primary" />
-                <CardTitle className="text-base font-bold text-slate-900">
-                  Điều phối tìm kiếm & Phân công kỹ thuật viên (Bản đồ tương tác)
-                </CardTitle>
+        /* KTV CHƯA BẤM NHẬN NHIỆM VỤ -> ADMIN CÓ QUYỀN ĐIỀU PHỐI / PHÂN CÔNG THỦ CÔNG */
+        <div className="space-y-4">
+          {/* Thông báo tình trạng điều phối hiện tại */}
+          {incident.recoveryStatus === "ASSIGNED" ? (
+            <div className="rounded-xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50/60 p-4 text-xs text-amber-950 shadow-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-amber-200 text-amber-900 shrink-0">
+                    <UserCheck className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-amber-950">
+                        Đang chờ KTV bấm nhận nhiệm vụ
+                      </span>
+                      <Badge className="bg-amber-600 text-white text-[10px]">
+                        Chưa nhận
+                      </Badge>
+                    </div>
+                    <p className="text-amber-900 text-xs">
+                      Hệ thống đã chỉ định KTV:{" "}
+                      <b className="text-slate-900 font-semibold">
+                        {incident.recoveryTechnicianName || `KTV #${incident.recoveryAssignedToUserId}`}
+                      </b>
+                      {incident.recoveryTechnicianPhone && (
+                        <span className="font-mono text-slate-700 ml-1">
+                          ({incident.recoveryTechnicianPhone})
+                        </span>
+                      )}
+                      {" — "}
+                      <span className="italic text-amber-800">
+                        KTV chưa bấm xác nhận nhận việc. Quản trị viên có toàn quyền phân công lại cho KTV khác bên dưới nếu KTV này bận.
+                      </span>
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
-            <CardDescription className="text-xs">
-              Bản đồ hiển thị các điểm vị trí và tên kỹ thuật viên quanh điểm rơi. Admin bấm trực tiếp vào KTV trên bản đồ hoặc danh sách để phân công.
-            </CardDescription>
-          </CardHeader>
+          ) : (
+            <div className="rounded-xl border border-sky-200 bg-sky-50/80 p-3.5 text-xs text-sky-950 flex items-center gap-3 shadow-2xs">
+              <div className="p-2 rounded-lg bg-sky-200 text-sky-800 shrink-0">
+                <Navigation className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="font-bold text-sky-950 text-sm">Chưa có kỹ thuật viên tìm hàng</p>
+                <p className="text-sky-800 text-xs mt-0.5">
+                  Vui lòng quan sát vị trí các kỹ thuật viên trên bản đồ bên dưới và bấm trực tiếp vào KTV gần nhất để phân công tìm kiếm.
+                </p>
+              </div>
+            </div>
+          )}
 
-          <CardContent className="p-4 space-y-4">
-            <RecoveryDispatchInlineMap
-              incident={incident}
-              onAssigned={() => refetch()}
-            />
-          </CardContent>
-        </Card>
+          {/* Bản đồ phân công / điều phối thủ công */}
+          <Card className="border-slate-200 shadow-2xs">
+            <CardHeader className="bg-slate-50/70 border-b pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Navigation className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-base font-bold text-slate-900">
+                    {incident.recoveryStatus === "ASSIGNED"
+                      ? "Phân công lại kỹ thuật viên tìm kiếm (Bản đồ tương tác)"
+                      : "Điều phối tìm kiếm & Phân công kỹ thuật viên (Bản đồ tương tác)"}
+                  </CardTitle>
+                </div>
+              </div>
+              <CardDescription className="text-xs">
+                Bản đồ hiển thị các điểm vị trí và tên kỹ thuật viên quanh điểm rơi. Admin bấm trực tiếp vào KTV trên bản đồ hoặc danh sách để phân công.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="p-4 space-y-4">
+              <RecoveryDispatchInlineMap
+                incident={incident}
+                onAssigned={() => refetch()}
+              />
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Modal xác nhận Admin Review */}
@@ -982,29 +1072,38 @@ export default function DroneIncidentDetailPage() {
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {incident.evidence.map((item) => (
-                      <a
-                        key={item.id}
-                        href={item.secureUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group relative overflow-hidden rounded-xl border bg-slate-100 shadow-2xs hover:shadow-md transition-all block"
-                      >
-                        <img
-                          src={item.secureUrl}
-                          alt={item.caption ?? item.stage}
-                          className="h-32 w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white">
-                          <p className="text-[11px] font-medium truncate">
-                            {item.caption || item.stage || "Ảnh hiện trường"}
-                          </p>
-                          <p className="text-[9px] text-slate-300">
-                            {formatDateTime(item.createdAt)}
-                          </p>
-                        </div>
-                      </a>
-                    ))}
+                    {incident.evidence.map((item) => {
+                      const imageUrl = item.secureUrl || item.url || "";
+                      return (
+                        <a
+                          key={item.id}
+                          href={imageUrl || "#"}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="group relative overflow-hidden rounded-xl border bg-slate-100 shadow-2xs hover:shadow-md transition-all block"
+                        >
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={item.caption ?? item.stage}
+                              className="h-32 w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="h-32 w-full flex items-center justify-center bg-slate-200 text-slate-400 text-xs">
+                              Không có ảnh
+                            </div>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white">
+                            <p className="text-[11px] font-medium truncate">
+                              {item.caption || item.stage || "Ảnh hiện trường"}
+                            </p>
+                            <p className="text-[9px] text-slate-300">
+                              {formatDateTime(item.createdAt)}
+                            </p>
+                          </div>
+                        </a>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1063,6 +1162,101 @@ export default function DroneIncidentDetailPage() {
 
         {/* CỘT PHẢI (6 / 12): Xử lý Phương án bồi thường & Lịch sử đề xuất */}
         <div className="lg:col-span-6 space-y-6">
+          {/* Card Cấu hình bồi thường 8 quy tắc từ Hệ thống */}
+          <Card className="border-slate-200 shadow-2xs">
+            <CardHeader className="bg-slate-50/70 border-b pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-sm font-bold text-slate-900">
+                    Cấu hình chính sách bồi thường sự cố
+                  </CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={`text-xs ${
+                      incident.incidentPolicyEnabled !== false
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                        : "bg-red-50 text-red-800 border-red-300"
+                    }`}
+                  >
+                    Chính sách: {incident.incidentPolicyEnabled !== false ? "Đang bật" : "Đang tắt"}
+                  </Badge>
+                  <Link
+                    to="/admin/settings"
+                    target="_blank"
+                    className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
+                  >
+                    Cài đặt
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+              <CardDescription className="text-xs">
+                Quy tắc xử lý bồi thường và hoàn cước áp dụng từ backend cho đơn hàng này
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-3.5 space-y-2.5 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                <div className="p-2 rounded bg-slate-50 border">
+                  <span className="text-muted-foreground block text-[10px]">Tỷ lệ đề xuất</span>
+                  <span className="font-bold text-slate-800">
+                    {formatCompensationRate(incident.compensationRate)}
+                  </span>
+                </div>
+                <div className="p-2 rounded bg-slate-50 border">
+                  <span className="text-muted-foreground block text-[10px]">Trần bồi thường</span>
+                  <span className="font-bold text-slate-800">
+                    {incident.compensationCap && incident.compensationCap > 0
+                      ? formatCurrency(incident.compensationCap)
+                      : "Không đặt trần"}
+                  </span>
+                </div>
+                <div className="p-2 rounded bg-slate-50 border">
+                  <span className="text-muted-foreground block text-[10px]">SLA thu hồi</span>
+                  <span className="font-bold text-slate-800">
+                    {incident.recoverySlaHours ?? 4} giờ
+                  </span>
+                </div>
+                <div className="p-2 rounded bg-slate-50 border">
+                  <span className="text-muted-foreground block text-[10px]">Phê duyệt Admin</span>
+                  <span className="font-bold text-slate-800">
+                    {incident.approvalRequired !== false ? "Bắt buộc duyệt" : "Tự động"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 border-t pt-2">
+                <span>
+                  Giá trị kiện: <b>{formatCurrency(incident.declaredValue ?? 0)}</b>
+                </span>
+                <span>
+                  ⇒ Mức gợi ý bồi thường:{" "}
+                  <b className="text-emerald-700">{formatCurrency(suggested)}</b>
+                </span>
+                <span>
+                  • Giao lại miễn phí:{" "}
+                  <b className="text-slate-800">
+                    {incident.freeRedeliveryAllowed !== false ? "Cho phép (khi về Hub)" : "Tắt"}
+                  </b>
+                </span>
+                <span>
+                  • Hoàn cước ship:{" "}
+                  <b className="text-slate-800">
+                    {incident.refundShippingFeeAllowed !== false ? "Có" : "Không"}
+                  </b>
+                </span>
+                <span>
+                  • Cho phép khiếu nại (Dispute):{" "}
+                  <b className="text-slate-800">
+                    {incident.disputeAllowed !== false ? "Có" : "Không"}
+                  </b>
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Card: Xử lý phương án bồi thường & giao lại */}
           <Card className="border-slate-200 shadow-2xs">
             <CardHeader className="bg-slate-50/70 border-b pb-3">
@@ -1073,11 +1267,9 @@ export default function DroneIncidentDetailPage() {
                     Xử lý phương án bồi thường & Giao lại
                   </CardTitle>
                 </div>
-                {incident.compensationRate != null && (
-                  <Badge variant="outline" className="bg-sky-50 text-sky-800 border-sky-300 text-xs font-bold">
-                    Tỷ lệ cấu hình: {(incident.compensationRate * 100).toFixed(0)}%
-                  </Badge>
-                )}
+                <Badge variant="outline" className="bg-sky-50 text-sky-800 border-sky-300 text-xs font-bold">
+                  Tỷ lệ: {formatCompensationRate(incident.compensationRate)}
+                </Badge>
               </div>
               <CardDescription className="text-xs">
                 Tạo đề xuất phương án giải quyết gửi cho khách hàng chấp thuận
@@ -1121,18 +1313,18 @@ export default function DroneIncidentDetailPage() {
                 </Select>
               </div>
 
-              <div className="rounded bg-slate-50 border p-2.5 text-[11px] text-muted-foreground space-y-1">
+              <div className="rounded bg-slate-50 border p-2.5 text-[11px] text-muted-foreground leading-relaxed">
                 {resolutionType === "FREE_REDELIVERY" && (
-                  <p>• Giao lại miễn phí toàn bộ cước phí sau khi kiện đã an toàn về Hub.</p>
+                  <p>• Giao lại miễn phí toàn bộ cước phí sau khi kiện đã an toàn về Hub (Số tiền bồi thường = 0đ).</p>
                 )}
                 {resolutionType === "REDELIVERY_PARTIAL_COMPENSATION" && (
-                  <p>• Giao lại kiện cho khách đồng thời tạo phiếu hoàn tiền bồi thường một phần giá trị kiện.</p>
+                  <p>• Giao lại kiện cho khách sau khi đã về Hub, đồng thời tạo phiếu hoàn tiền bồi thường một phần giá trị kiện hàng.</p>
                 )}
                 {resolutionType === "COMPENSATION_ONLY" && (
-                  <p>• Tạo phiếu hoàn tiền bồi thường qua tài khoản ngân hàng của khách (không giao lại kiện).</p>
+                  <p>• Tạo phiếu hoàn tiền bồi thường qua tài khoản ngân hàng của khách (không giao lại kiện do thất lạc hoặc hư hỏng nặng).</p>
                 )}
                 {resolutionType === "MANUAL_RESOLUTION" && (
-                  <p>• Thỏa thuận phương án riêng với khách hàng ngoài quy trình tự động.</p>
+                  <p>• Thỏa thuận phương án riêng với khách hàng ngoài quy trình tự động. Bắt buộc ghi rõ nội dung thỏa thuận vào ô ghi chú.</p>
                 )}
               </div>
 
@@ -1155,7 +1347,7 @@ export default function DroneIncidentDetailPage() {
                 />
                 {suggested != null && (
                   <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                    Gợi ý theo cấu hình bồi thường ({(incident.compensationRate ?? 0.5) * 100}%):{" "}
+                    Gợi ý theo cấu hình ({formatCompensationRate(incident.compensationRate)}):{" "}
                     <b className="text-emerald-700">{formatCurrency(suggested)}</b>
                     {resolutionType !== "FREE_REDELIVERY" && String(suggested) !== amount && (
                       <button
@@ -1170,15 +1362,39 @@ export default function DroneIncidentDetailPage() {
                 )}
               </div>
 
+              {/* Tuỳ chọn hoàn phí giao hàng khi bồi thường (Quy tắc 5 BE) */}
+              {resolutionType !== "FREE_REDELIVERY" && (
+                <div className="flex items-center space-x-2 rounded border bg-slate-50/70 p-2.5 text-xs">
+                  <Checkbox
+                    id="detailRefundShippingFee"
+                    checked={refundShippingFee}
+                    onCheckedChange={(checked) => setRefundShippingFee(Boolean(checked))}
+                  />
+                  <label
+                    htmlFor="detailRefundShippingFee"
+                    className="text-xs font-medium text-slate-800 cursor-pointer select-none leading-none"
+                  >
+                    Hoàn phí giao hàng khi bồi thường
+                    <span className="text-[10px] text-muted-foreground block font-normal mt-0.5">
+                      (Khoản hoàn phí vận chuyển được xử lý tách biệt với bồi thường giá trị kiện hàng)
+                    </span>
+                  </label>
+                </div>
+              )}
+
               {/* Lý do vượt mức / Ghi chú */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700">
-                  Lý do điều chỉnh / Ghi chú:
+                  Lý do điều chỉnh / Ghi chú thỏa thuận:
                 </label>
                 <Input
                   value={overrideReason}
                   onChange={(e) => setOverrideReason(e.target.value)}
-                  placeholder="Bắt buộc nếu bồi thường vượt mức gợi ý..."
+                  placeholder={
+                    resolutionType === "MANUAL_RESOLUTION"
+                      ? "Bắt buộc: Nhập chi tiết phương án đã thỏa thuận với khách..."
+                      : "Bắt buộc nếu bồi thường vượt mức gợi ý..."
+                  }
                   className="text-xs"
                 />
               </div>
