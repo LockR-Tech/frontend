@@ -41,6 +41,7 @@ import { useGetGatewaysQuery } from "~/stores/apis/admin/lockerOps";
 interface DroneHardwarePanelProps {
   droneId: number;
   droneCode: string;
+  onOperationLogged?: () => void;
 }
 
 interface EffectiveDroneDevice {
@@ -78,7 +79,7 @@ interface DiscoveredPi {
   hardware?: string;
 }
 
-export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelProps) {
+export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: DroneHardwarePanelProps) {
   const LOCAL_STORAGE_KEY = `lockr_drone_binding_${droneId}`;
 
   const [localBinding, setLocalBinding] = useState<{
@@ -235,7 +236,7 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
     const pollPi = async () => {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 4000);
+        const timer = setTimeout(() => controller.abort(), 2500);
         const res = await fetch(`http://${targetIp}:8080/api/status`, {
           signal: controller.signal,
         });
@@ -246,14 +247,14 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
           if (isMounted) setLivePiStatus({ ...data, online: true });
         } else {
           failCountRef.current += 1;
-          if (failCountRef.current >= 3 && isMounted) {
-            setLivePiStatus((prev: any) => (prev ? { ...prev, online: false } : null));
+          if (isMounted) {
+            setLivePiStatus((prev: any) => (prev ? { ...prev, online: false } : { online: false }));
           }
         }
       } catch {
         failCountRef.current += 1;
-        if (failCountRef.current >= 3 && isMounted) {
-          setLivePiStatus((prev: any) => (prev ? { ...prev, online: false } : null));
+        if (isMounted) {
+          setLivePiStatus((prev: any) => (prev ? { ...prev, online: false } : { online: false }));
         }
       }
     };
@@ -268,25 +269,30 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
 
   // Thiết bị tổng hợp để hiển thị trên giao diện (hoàn toàn từ tín hiệu thật)
   const device: EffectiveDroneDevice | null = useMemo(() => {
+    const rawOnline = livePiStatus !== null ? Boolean(livePiStatus.online) : Boolean(backendDevice?.online);
+
     if (backendDevice) {
+      const mergedMavlink = rawOnline ? (livePiStatus?.mavlinkStatus || backendDevice.mavlinkStatus || "DISCONNECTED") : "DISCONNECTED";
+      const isPixhawkOk = rawOnline && (mergedMavlink === "connected" || mergedMavlink === "CONNECTED");
+
       return {
         ...backendDevice,
-        ...(livePiStatus ? {
-          mavlinkStatus: livePiStatus.mavlinkStatus || backendDevice.mavlinkStatus,
-          flightMode: livePiStatus.flightMode || backendDevice.flightMode,
-          armed: livePiStatus.armed ?? backendDevice.armed,
-          landedState: livePiStatus.landedState || backendDevice.landedState,
-          gpsFixType: livePiStatus.gpsFixType ?? backendDevice.gpsFixType,
-          gpsSatellites: livePiStatus.gpsSatellites ?? backendDevice.gpsSatellites,
-          batteryPercent: livePiStatus.batteryPercent ?? backendDevice.batteryPercent,
-          voltageV: livePiStatus.voltageV ?? backendDevice.voltageV,
-          currentA: livePiStatus.currentA ?? backendDevice.currentA,
-          online: livePiStatus.online ?? backendDevice.online,
-          cameraStreamUrl: livePiStatus.cameraStreamUrl || backendDevice.cameraStreamUrl,
-        } : {}),
+        online: rawOnline,
+        mavlinkStatus: mergedMavlink,
+        flightMode: isPixhawkOk ? (livePiStatus?.flightMode || backendDevice.flightMode) : undefined,
+        armed: isPixhawkOk ? (livePiStatus?.armed ?? backendDevice.armed) : undefined,
+        landedState: isPixhawkOk ? (livePiStatus?.landedState || backendDevice.landedState) : undefined,
+        gpsFixType: isPixhawkOk ? (livePiStatus?.gpsFixType ?? backendDevice.gpsFixType) : undefined,
+        gpsSatellites: isPixhawkOk ? (livePiStatus?.gpsSatellites ?? backendDevice.gpsSatellites) : undefined,
+        batteryPercent: isPixhawkOk ? (livePiStatus?.batteryPercent ?? backendDevice.batteryPercent ?? undefined) : undefined,
+        voltageV: isPixhawkOk ? (livePiStatus?.voltageV ?? backendDevice.voltageV ?? undefined) : undefined,
+        currentA: isPixhawkOk ? (livePiStatus?.currentA ?? backendDevice.currentA ?? undefined) : undefined,
+        cameraStreamUrl: livePiStatus?.cameraStreamUrl || backendDevice.cameraStreamUrl,
       };
     }
     if (localBinding && (localBinding.ipAddress || localBinding.macAddress)) {
+      const isLiveOnline = Boolean(livePiStatus?.online);
+      const isPixhawkOk = isLiveOnline && (livePiStatus?.mavlinkStatus === "connected" || livePiStatus?.mavlinkStatus === "CONNECTED");
       return {
         id: typeof localBinding.id === "number" ? localBinding.id : undefined,
         droneId,
@@ -294,19 +300,19 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
         macAddress: localBinding.macAddress,
         ipAddress: localBinding.ipAddress,
         hostname: localBinding.hostname,
-        online: livePiStatus?.online ?? false,
-        cameraOnline: livePiStatus?.cameraOnline ?? false,
+        online: isLiveOnline,
+        cameraOnline: isLiveOnline && Boolean(livePiStatus?.cameraOnline),
         cameraStreamUrl: livePiStatus?.cameraStreamUrl || (localBinding.ipAddress ? `http://${localBinding.ipAddress}:8080/stream.mjpg` : undefined),
         firmwareVersion: livePiStatus?.firmwareVersion,
-        mavlinkStatus: livePiStatus?.mavlinkStatus,
-        flightMode: livePiStatus?.flightMode,
-        armed: livePiStatus?.armed,
-        landedState: livePiStatus?.landedState,
-        batteryPercent: livePiStatus?.batteryPercent,
-        voltageV: livePiStatus?.voltageV,
-        currentA: livePiStatus?.currentA,
-        gpsFixType: livePiStatus?.gpsFixType,
-        gpsSatellites: livePiStatus?.gpsSatellites,
+        mavlinkStatus: isLiveOnline ? (livePiStatus?.mavlinkStatus || "DISCONNECTED") : "DISCONNECTED",
+        flightMode: isPixhawkOk ? livePiStatus?.flightMode : undefined,
+        armed: isPixhawkOk ? livePiStatus?.armed : undefined,
+        landedState: isPixhawkOk ? livePiStatus?.landedState : undefined,
+        batteryPercent: isPixhawkOk ? livePiStatus?.batteryPercent : undefined,
+        voltageV: isPixhawkOk ? livePiStatus?.voltageV : undefined,
+        currentA: isPixhawkOk ? livePiStatus?.currentA : undefined,
+        gpsFixType: isPixhawkOk ? livePiStatus?.gpsFixType : undefined,
+        gpsSatellites: isPixhawkOk ? livePiStatus?.gpsSatellites : undefined,
         lastSeenAt: livePiStatus?.lastSeenAt,
       };
     }
@@ -383,7 +389,7 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
           macAddress: chosenMac || `PI-${droneCode}`,
           ipAddress: chosenIp,
           cameraStreamUrl: chosenIp ? `http://${chosenIp}:8080/stream.mjpg` : undefined,
-          cameraStatus: "LIVE",
+          cameraStatus: chosenIp ? "CONFIGURED" : "OFFLINE",
         }).unwrap();
       }
       toast.success(`Đã gán bộ điều khiển thành công vào drone ${droneCode}`);
@@ -395,6 +401,7 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
     refetch();
     refetchAll();
     refetchGateways();
+    onOperationLogged?.();
   };
 
   // Hành động gỡ bộ điều khiển
@@ -409,7 +416,7 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
 
     if (device?.id) {
       try {
-        await unassignDevice(device.id).unwrap();
+        await unassignDevice({ deviceId: device.id, droneId }).unwrap();
       } catch {
         // ignore
       }
@@ -419,6 +426,7 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
     refetch();
     refetchAll();
     refetchGateways();
+    onOperationLogged?.();
   };
 
   const streamUrl = useMemo(() => {
@@ -460,10 +468,19 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
                 refetchGateways();
                 setCameraReloadKey(Date.now());
                 if (targetIp) {
-                  fetch(`http://${targetIp}:8080/api/status`)
-                    .then((r) => r.json())
+                  const controller = new AbortController();
+                  const timer = setTimeout(() => controller.abort(), 2000);
+                  fetch(`http://${targetIp}:8080/api/status`, { signal: controller.signal })
+                    .then((r) => {
+                      clearTimeout(timer);
+                      if (!r.ok) throw new Error("HTTP error");
+                      return r.json();
+                    })
                     .then((d) => setLivePiStatus({ ...d, online: true }))
-                    .catch(() => {});
+                    .catch(() => {
+                      clearTimeout(timer);
+                      setLivePiStatus((prev: any) => (prev ? { ...prev, online: false } : { online: false }));
+                    });
                 }
               }}
               disabled={isFetching}
@@ -539,14 +556,19 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
                     <Compass className="h-4 w-4 text-sky-600" />
                     Pixhawk (Autopilot)
                   </div>
-                  {device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED" ? (
+                  {!device.online ? (
+                    <Badge variant="outline" className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-400/50 text-[10px] py-0 px-2">
+                      <Unplug className="mr-1 h-3 w-3" />
+                      Mất tín hiệu (Pi tắt nguồn)
+                    </Badge>
+                  ) : (device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED") ? (
                     <Badge variant="outline" className="bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-400/50 text-[10px] py-0 px-2">
                       <CheckCircle2 className="mr-1 h-3 w-3 text-sky-600" />
                       MAVLink OK
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-400/50 text-[10px] py-0 px-2">
-                      {device.mavlinkStatus || "Chưa có tín hiệu"}
+                      {device.mavlinkStatus || "Chưa kết nối Pixhawk"}
                     </Badge>
                   )}
                 </div>
@@ -554,32 +576,52 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Chế độ bay:</span>
-                    <Badge variant="secondary" className="font-mono text-[10px] px-1.5 py-0 font-bold">
-                      {device.flightMode || "—"}
-                    </Badge>
+                    {device.online && (device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED") && device.flightMode ? (
+                      <Badge variant="secondary" className="font-mono text-[10px] px-1.5 py-0 font-bold">
+                        {device.flightMode}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Động cơ:</span>
-                    <span className={`font-semibold ${device.armed ? "text-rose-600" : "text-emerald-600"}`}>
-                      {device.armed ? "ARMED (Đang quay)" : "DISARMED (An toàn)"}
-                    </span>
+                    {!device.online || (device.mavlinkStatus !== "connected" && device.mavlinkStatus !== "CONNECTED") || device.armed == null ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : device.armed ? (
+                      <span className="font-semibold text-rose-600">ARMED (Đang quay)</span>
+                    ) : (
+                      <span className="font-semibold text-emerald-600">DISARMED (An toàn)</span>
+                    )}
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Trạng thái:</span>
-                    <span>
-                      {device.landedState === "IN_AIR"
-                        ? "Đang bay trên không"
-                        : device.landedState === "ON_GROUND"
-                        ? "Đậu trên mặt đất"
-                        : device.landedState || "—"}
-                    </span>
+                    {!device.online || (device.mavlinkStatus !== "connected" && device.mavlinkStatus !== "CONNECTED") ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <span>
+                        {device.landedState === "IN_AIR"
+                          ? "Đang bay trên không"
+                          : device.landedState === "ON_GROUND"
+                          ? "Đậu trên mặt đất"
+                          : device.landedState === "TAKEOFF"
+                          ? "Đang cất cánh"
+                          : device.landedState === "LANDING"
+                          ? "Đang hạ cánh"
+                          : device.landedState || "—"}
+                      </span>
+                    )}
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Định vị GPS:</span>
-                    <span>
-                      {device.gpsFixType && device.gpsFixType >= 3 ? "3D Fix" : "Chưa khóa GPS"}{" "}
-                      · {device.gpsSatellites ?? 0} vệ tinh
-                    </span>
+                    {!device.online || (device.mavlinkStatus !== "connected" && device.mavlinkStatus !== "CONNECTED") ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <span>
+                        {device.gpsFixType && device.gpsFixType >= 3 ? "3D Fix" : "Chưa khóa GPS"}{" "}
+                        · {device.gpsSatellites ?? 0} vệ tinh
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -591,25 +633,58 @@ export function DroneHardwarePanel({ droneId, droneCode }: DroneHardwarePanelPro
                     <BatteryCharging className="h-4 w-4 text-emerald-600" />
                     Nguồn & Năng lượng
                   </div>
-                  <Badge variant="outline" className="bg-emerald-500/15 text-emerald-700 border-emerald-400/50 text-[10px] py-0 px-2">
-                    {device.batteryPercent != null ? `${device.batteryPercent}%` : "—"}
-                  </Badge>
+                  {device.online && (device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED") && device.batteryPercent != null ? (
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] py-0 px-2 ${
+                        (device.batteryPercent ?? 0) < 20
+                          ? "bg-rose-500/15 text-rose-700 border-rose-400/50"
+                          : (device.batteryPercent ?? 0) < 50
+                          ? "bg-amber-500/15 text-amber-700 border-amber-400/50"
+                          : "bg-emerald-500/15 text-emerald-700 border-emerald-400/50"
+                      }`}
+                    >
+                      {device.batteryPercent}%
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[10px] py-0 px-2">
+                      —
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Điện áp tổng:</span>
-                    <span className="font-semibold">{device.voltageV ? `${device.voltageV} V` : "—"}</span>
+                    <span className="font-semibold">
+                      {device.online && (device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED") && device.voltageV != null
+                        ? `${device.voltageV} V`
+                        : "—"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Dòng xả hiện tại:</span>
-                    <span>{device.currentA ? `${device.currentA} A` : "—"}</span>
+                    <span>
+                      {device.online && (device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED") && device.currentA != null
+                        ? `${device.currentA} A`
+                        : "—"}
+                    </span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className={`h-full ${(device.batteryPercent ?? 100) < 20 ? "bg-rose-500" : (device.batteryPercent ?? 100) < 50 ? "bg-amber-500" : "bg-emerald-500"}`}
-                      style={{ width: `${Math.max(3, Math.min(100, device.batteryPercent ?? 100))}%` }}
-                    />
+                    {device.online && (device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED") && device.batteryPercent != null ? (
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          (device.batteryPercent ?? 0) < 20
+                            ? "bg-rose-500"
+                            : (device.batteryPercent ?? 0) < 50
+                            ? "bg-amber-500"
+                            : "bg-emerald-500"
+                        }`}
+                        style={{ width: `${Math.max(3, Math.min(100, device.batteryPercent ?? 0))}%` }}
+                      />
+                    ) : (
+                      <div className="h-full bg-muted-foreground/20" style={{ width: "0%" }} />
+                    )}
                   </div>
                 </div>
               </div>

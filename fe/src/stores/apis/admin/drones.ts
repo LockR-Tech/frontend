@@ -54,6 +54,36 @@ export interface DroneIncidentReportResponse {
   droneCode: string | null;
 }
 
+export interface DroneIotLogResponse {
+  id: number;
+  droneId: number;
+  droneCode: string;
+  component: string;
+  eventType: string;
+  result: string;
+  actorType: string;
+  actorId?: string | null;
+  orderId?: number | null;
+
+
+
+
+
+
+
+  message: string;
+
+  createdAt: string;
+}
+
+export interface DroneIotLogQueryParams {
+  droneId: number;
+  component?: string;
+  eventType?: string;
+  result?: string;
+  search?: string;
+}
+
 export interface DroneOperationLogResponse {
   id: number;
   droneUnitId: number;
@@ -180,15 +210,41 @@ export const droneManagementApi = baseApi.injectEndpoints({
         method: "POST",
         body: { droneId },
       }),
-      invalidatesTags: [TAG],
+      invalidatesTags: (_result, _error, { droneId }) => [
+        TAG,
+        { type: TAG, id: droneId },
+        { type: TAG, id: `device-${droneId}` },
+        { type: TAG, id: `logs-${droneId}` },
+        { type: TAG, id: `iot-logs-${droneId}` },
+      ],
     }),
 
-    unassignDroneDevice: builder.mutation<ApiResponse<DroneDeviceResponse>, number>({
-      query: (deviceId) => ({
-        url: `/api/admin/drone-devices/${deviceId}/unassign`,
-        method: "POST",
-      }),
-      invalidatesTags: [TAG],
+    unassignDroneDevice: builder.mutation<
+      ApiResponse<DroneDeviceResponse>,
+      { deviceId: number; droneId?: number } | number
+    >({
+      query: (arg) => {
+        const deviceId = typeof arg === "number" ? arg : arg.deviceId;
+        return {
+          url: `/api/admin/drone-devices/${deviceId}/unassign`,
+          method: "POST",
+        };
+      },
+      invalidatesTags: (_result, _error, arg) => {
+        const droneId =
+          typeof arg === "object" ? arg.droneId : _result?.data?.droneId;
+        return [
+          TAG,
+          ...(droneId
+            ? [
+                { type: TAG, id: droneId },
+                { type: TAG, id: `device-${droneId}` },
+                { type: TAG, id: `logs-${droneId}` },
+                { type: TAG, id: `iot-logs-${droneId}` },
+              ]
+            : []),
+        ];
+      },
     }),
 
     registerDroneDevice: builder.mutation<
@@ -217,7 +273,66 @@ export const droneManagementApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: (_result, _error, { droneId }) => [TAG, { type: TAG, id: `device-${droneId}` }],
+      invalidatesTags: (_result, _error, { droneId }) => [
+        TAG,
+        { type: TAG, id: droneId },
+        { type: TAG, id: `device-${droneId}` },
+        { type: TAG, id: `logs-${droneId}` },
+        { type: TAG, id: `iot-logs-${droneId}` },
+      ],
+    }),
+
+    getDroneIotLogs: builder.query<ApiResponse<DroneIotLogResponse[]>, DroneIotLogQueryParams | number>({
+      query: (arg) => {
+        const droneId = typeof arg === "number" ? arg : arg.droneId;
+        const params =
+          typeof arg === "number"
+            ? {}
+            : {
+                component: arg.component && arg.component !== "ALL" ? arg.component : undefined,
+                eventType: arg.eventType && arg.eventType !== "ALL" ? arg.eventType : undefined,
+                result: arg.result && arg.result !== "ALL" ? arg.result : undefined,
+                search: arg.search?.trim() ? arg.search.trim() : undefined,
+              };
+        return {
+          url: `/api/admin/drones/${droneId}/iot-logs`,
+          params,
+        };
+      },
+      providesTags: (_result, _error, arg) => {
+        const droneId = typeof arg === "number" ? arg : arg.droneId;
+        return [TAG, { type: TAG, id: `iot-logs-${droneId}` }];
+      },
+    }),
+
+    createDroneIotLog: builder.mutation<
+      ApiResponse<DroneIotLogResponse>,
+      {
+        droneId: number;
+        droneCode?: string;
+        component: string;
+        eventType: string;
+        result: string;
+        actorType?: string;
+        actorId?: string;
+        orderId?: number;
+
+
+
+
+
+
+
+        message: string;
+
+      }
+    >({
+      query: ({ droneId, ...body }) => ({
+        url: `/api/admin/drones/${droneId}/iot-logs`,
+        method: "POST",
+        body: { droneId, ...body },
+      }),
+      invalidatesTags: (_result, _error, { droneId }) => [TAG, { type: TAG, id: `iot-logs-${droneId}` }],
     }),
   }),
 });
@@ -238,4 +353,6 @@ export const {
   useAssignDroneDeviceMutation,
   useUnassignDroneDeviceMutation,
   useRegisterDroneDeviceMutation,
+  useGetDroneIotLogsQuery,
+  useCreateDroneIotLogMutation,
 } = droneManagementApi;
