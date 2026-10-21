@@ -89,11 +89,25 @@ export function BoxQrModal({
     return cells.filter((c) => !isDroneCell(c) && !isXlCell(c));
   }, [cells, filterType]);
 
+  const isDrone = currentCell ? isDroneCell(currentCell) : false;
+  const isXl = currentCell ? isXlCell(currentCell) : false;
+
+  // Tự động chuyển về tab tem đơn nếu ô đang chọn không phải là drone
+  useEffect(() => {
+    if (!isDrone && printMode === "aruco") {
+      setPrintMode("single");
+    }
+  }, [isDrone, printMode]);
+
+  // Reset tab về single khi đóng modal để lần mở sau không bị nhớ trạng thái cũ
+  useEffect(() => {
+    if (!open) {
+      setPrintMode("single");
+    }
+  }, [open]);
+
   if (!currentCell && cells.length === 0) return null;
   if (!currentCell) return null;
-
-  const isDrone = isDroneCell(currentCell);
-  const isXl = isXlCell(currentCell);
 
   // Payload mã QR chuẩn JSON sinh thái Lock.R
   const getQrValue = (c: CellResponse) => {
@@ -516,7 +530,7 @@ export function BoxQrModal({
   };
 
   const handlePrint = () => {
-    if (printMode === "aruco") {
+    if (printMode === "aruco" && isDrone) {
       handlePrintAruco();
     } else {
       window.print();
@@ -594,7 +608,7 @@ export function BoxQrModal({
 
         {/* Nội dung Modal */}
         <div className="flex-1 overflow-y-auto">
-          {printMode === "aruco" ? (
+          {printMode === "aruco" && isDrone ? (
             /* ================= CHẾ ĐỘ ARUCO DRONE STUDIO ================= */
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[500px]">
               {/* CỘT TRÁI (7 cols): Studio mô phỏng tem ArUco nắp trượt thực tế */}
@@ -1203,9 +1217,9 @@ export function BoxQrModal({
               onClick={handlePrint}
             >
               <Printer className="w-3.5 h-3.5" />
-              {printMode === "aruco"
+              {printMode === "aruco" && isDrone
                 ? `In tem ArUco ô #${currentCell.boxNumber}`
-                : printMode === "single"
+                : printMode === "single" || !isDrone
                 ? `In tem nhãn ô #${currentCell.boxNumber}`
                 : `In tất cả ${cells.length} tem nhãn`}
             </Button>
