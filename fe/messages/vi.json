@@ -2576,6 +2576,7 @@
         "logs": {
           "title": "Nhật ký vận hành {{code}}",
           "description": "Chuyến bay, phiếu sửa chữa và các thao tác (phân công, đổi trạm, pin, ngừng hoạt động) được ghi nhận cho Drone.",
+          "iotTab": "Nhật ký IoT ({{count}})",
           "flightsTab": "Nhật ký chuyến bay ({{count}})",
           "reportsTab": "Sự cố & Sửa chữa ({{count}})",
           "operationsTab": "Thao tác ({{count}})",

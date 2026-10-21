@@ -2576,6 +2576,7 @@
         "logs": {
           "title": "Operation Log {{code}}",
           "description": "Flights, repair reports and actions (assignment, station change, battery, decommissioning) recorded for this drone.",
+          "iotTab": "IoT Logs ({{count}})",
           "flightsTab": "Flight log ({{count}})",
           "reportsTab": "Incidents & Repairs ({{count}})",
           "operationsTab": "Actions ({{count}})",
