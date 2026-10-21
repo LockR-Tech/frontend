@@ -14,6 +14,7 @@ import {
   Briefcase,
   Tag,
   Plane,
+  Activity,
   Route,
   PackageSearch,
   TrendingUp,
@@ -86,6 +87,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: PackageSearch,
     path: "/admin/drone-incidents",
     label: "admin.sidebar.droneIncidents",
+    permission: "admin_access",
+  },
+{
+    icon: Activity,
+    path: "/admin/drone-logs",
+    label: "admin.sidebar.droneLogs",
     permission: "admin_access",
   },
   {

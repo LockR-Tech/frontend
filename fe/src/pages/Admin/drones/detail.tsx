@@ -4,7 +4,6 @@ import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
   ArrowLeft,
-  BatteryCharging,
   CheckCircle2,
   ClipboardList,
   History,
@@ -374,73 +373,51 @@ export default function DroneDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="icon"
-            className="h-9 w-9"
+            className="h-9 w-9 shrink-0"
             onClick={() => navigate("/admin/drones")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{t("admin.drones.detail.title", { code: drone.code })}</h1>
-            <p className="text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {t("admin.drones.detail.title", { code: drone.code })}
+              </h1>
+              <Badge
+                variant="outline"
+                className={`px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[drone.status] ?? "bg-muted"}`}
+              >
+                {STATUS_LABELS[drone.status] ? t(STATUS_LABELS[drone.status]) : drone.status}
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {t("admin.drones.detail.deviceId", { id: drone.id })}
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={refresh}>
-          <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+        <Button variant="outline" size="sm" onClick={refresh} className="h-9 gap-1.5">
+          <RefreshCw className="h-3.5 w-3.5" />
           {t("button.refresh")}
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-4 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-blue-50 text-blue-600">
-            <Plane className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t("admin.drones.detail.currentStatus")}</p>
-            <Badge
-              variant="outline"
-              className={STATUS_BADGE[drone.status] ?? "bg-muted"}
-            >
-              {STATUS_LABELS[drone.status] ? t(STATUS_LABELS[drone.status]) : drone.status}
-            </Badge>
-          </div>
-        </div>
-        <div className="min-w-52 space-y-1.5">
-          <div className="flex justify-between text-xs">
-            <span className="flex items-center gap-1 text-muted-foreground">
-              <BatteryCharging className="h-3.5 w-3.5" />
-              {t("admin.drones.detail.batteryLevel")}
-            </span>
-            <strong>{battery}%</strong>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full ${batteryColor(battery)}`}
-              style={{ width: `${Math.max(3, Math.min(100, battery))}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <Card className="border border-border/80 shadow-xs">
-        <CardContent className="flex flex-col justify-between gap-3 p-4 md:flex-row md:items-center">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-indigo-200/60 bg-indigo-50 text-indigo-600">
-              <UserCheck className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">{t("admin.drones.detail.tech.title")}</p>
-              <div className="mt-0.5 text-xs text-muted-foreground space-y-1">
-                {assignedTechId != null ? (
-                  <>
-                    <p>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card className="flex flex-col justify-between border border-border/80 shadow-xs">
+          <CardContent className="space-y-3.5 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-indigo-200/60 bg-indigo-50 text-indigo-600">
+                <UserCheck className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">{t("admin.drones.detail.tech.title")}</p>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  {assignedTechId != null ? (
+                    <p className="line-clamp-1">
                       <Trans
                         t={t}
                         i18nKey="admin.drones.detail.tech.assignedHint"
@@ -455,121 +432,120 @@ export default function DroneDetailPage() {
                         }}
                       />
                     </p>
-                    
-                  </>
-                ) : (
-                  <p>{t("admin.drones.detail.tech.unassignedHint")}</p>
-                )}
+                  ) : (
+                    <p>{t("admin.drones.detail.tech.unassignedHint")}</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select
-              value={selectedTechValue}
-              onValueChange={setTechChoice}
-              disabled={assignmentState.isLoading}
-            >
-              <SelectTrigger className="h-9 w-full text-xs md:w-72">
-                <SelectValue placeholder={t("admin.drones.detail.tech.placeholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_TECHNICIAN}>
-                  {t("admin.drones.detail.tech.noneOption")}
-                </SelectItem>
-                {assignedTechId != null &&
-                  !droneTechnicians.some(
-                    (technician) => technician.id === assignedTechId,
-                  ) && (
-                    <SelectItem value={currentTechValue}>
-                      {assignedTechName}
+            <div className="flex items-center gap-2 pt-1">
+              <Select
+                value={selectedTechValue}
+                onValueChange={setTechChoice}
+                disabled={assignmentState.isLoading}
+              >
+                <SelectTrigger className="h-9 w-full text-xs">
+                  <SelectValue placeholder={t("admin.drones.detail.tech.placeholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_TECHNICIAN}>
+                    {t("admin.drones.detail.tech.noneOption")}
+                  </SelectItem>
+                  {assignedTechId != null &&
+                    !droneTechnicians.some(
+                      (technician) => technician.id === assignedTechId,
+                    ) && (
+                      <SelectItem value={currentTechValue}>
+                        {assignedTechName}
+                      </SelectItem>
+                    )}
+                  {droneTechnicians.map((technician) => (
+                    <SelectItem
+                      key={technician.id}
+                      value={String(technician.id)}
+                      disabled={!technician.active}
+                    >
+                      {technician.name} (#{technician.id})
+                      {technician.phone ? ` · ${technician.phone}` : ""}
+                      {!technician.active ? ` · ${t("admin.drones.detail.tech.locked")}` : ""}
                     </SelectItem>
-                  )}
-                {droneTechnicians.map((technician) => (
-                  <SelectItem
-                    key={technician.id}
-                    value={String(technician.id)}
-                    disabled={!technician.active}
-                  >
-                    {technician.name} (#{technician.id})
-                    {technician.phone ? ` · ${technician.phone}` : ""}
-                    {!technician.active ? ` · ${t("admin.drones.detail.tech.locked")}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              size="sm"
-              className="h-9"
-              onClick={saveTechnician}
-              disabled={
-                assignmentState.isLoading ||
-                selectedTechValue === currentTechValue
-              }
-            >
-              {assignmentState.isLoading ? t("common.saving") : t("button.save")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                className="h-9 shrink-0 px-4"
+                onClick={saveTechnician}
+                disabled={
+                  assignmentState.isLoading ||
+                  selectedTechValue === currentTechValue
+                }
+              >
+                {assignmentState.isLoading ? t("common.saving") : t("button.save")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card className="border border-border/80 shadow-xs">
-        <CardContent className="flex flex-col justify-between gap-3 p-4 md:flex-row md:items-center">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-sky-200/60 bg-sky-50 text-sky-600">
-              <MapPin className="h-4 w-4" />
+        <Card className="flex flex-col justify-between border border-border/80 shadow-xs">
+          <CardContent className="space-y-3.5 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-sky-200/60 bg-sky-50 text-sky-600">
+                <MapPin className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">{t("admin.drones.detail.station.title")}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">
+                  {t("admin.drones.detail.station.currentLabel")}{" "}
+                  <span className="font-semibold text-foreground">
+                    {drone.lockerName ??
+                      (drone.lockerId
+                        ? t("admin.drones.detail.station.kiosk", { id: drone.lockerId })
+                        : t("admin.drones.detail.station.notAttached"))}
+                  </span>
+                  {activeMission
+                    ? ` · ${t("admin.drones.detail.station.activeMissionHint")}`
+                    : ""}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold">{t("admin.drones.detail.station.title")}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {t("admin.drones.detail.station.currentLabel")}{" "}
-                <span className="font-semibold text-foreground">
-                  {drone.lockerName ??
-                    (drone.lockerId
-                      ? t("admin.drones.detail.station.kiosk", { id: drone.lockerId })
-                      : t("admin.drones.detail.station.notAttached"))}
-                </span>
-                {activeMission
-                  ? ` · ${t("admin.drones.detail.station.activeMissionHint")}`
-                  : ""}
-              </p>
+            <div className="flex items-center gap-2 pt-1">
+              <Select
+                value={selectedLockerValue}
+                onValueChange={setLockerChoice}
+                disabled={activeMission || updateDroneState.isLoading}
+              >
+                <SelectTrigger className="h-9 w-full text-xs">
+                  <SelectValue placeholder={t("admin.drones.detail.station.placeholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {landingPadLockers.map((locker) => (
+                    <SelectItem
+                      key={locker.lockerId}
+                      value={String(locker.lockerId)}
+                    >
+                      {locker.name} ({locker.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                className="h-9 shrink-0 px-4"
+                onClick={saveLocker}
+                disabled={
+                  activeMission ||
+                  updateDroneState.isLoading ||
+                  !selectedLockerValue ||
+                  selectedLockerValue === currentLockerValue
+                }
+              >
+                {updateDroneState.isLoading ? t("common.saving") : t("button.save")}
+              </Button>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select
-              value={selectedLockerValue}
-              onValueChange={setLockerChoice}
-              disabled={activeMission || updateDroneState.isLoading}
-            >
-              <SelectTrigger className="h-9 w-full text-xs md:w-72">
-                <SelectValue placeholder={t("admin.drones.detail.station.placeholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                {landingPadLockers.map((locker) => (
-                  <SelectItem
-                    key={locker.lockerId}
-                    value={String(locker.lockerId)}
-                  >
-                    {locker.name} ({locker.code})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              size="sm"
-              className="h-9"
-              onClick={saveLocker}
-              disabled={
-                activeMission ||
-                updateDroneState.isLoading ||
-                !selectedLockerValue ||
-                selectedLockerValue === currentLockerValue
-              }
-            >
-              {updateDroneState.isLoading ? t("common.saving") : t("button.save")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       <DroneAdminActions drone={drone} activeMission={activeMission} />
 
@@ -613,6 +589,18 @@ export default function DroneDetailPage() {
                   : t("admin.drones.detail.station.notAttached"))
               }
             />
+            <div>
+              <p className="text-xs text-muted-foreground">{t("admin.drones.detail.batteryLevel")}</p>
+              <div className="mt-0.5 flex items-center gap-2">
+                <span className="font-medium">{battery}%</span>
+                <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={`h-full ${batteryColor(battery)}`}
+                    style={{ width: `${Math.max(3, Math.min(100, battery))}%` }}
+                  />
+                </div>
+              </div>
+            </div>
             <Info
               label={t("admin.drones.detail.info.lastCharged")}
               value={

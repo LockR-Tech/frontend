@@ -105,8 +105,8 @@ export function BoxSettingModal({
   const [saving, setSaving] = useState(false);
   const [confirmForceOpen, setConfirmForceOpen] = useState(false);
 
-  const isOccupied = box.status === BoxStatus.OCCUPIED || box.status === "OCCUPIED" || box.status === "IN_USE";
-  const isReserved = box.status === BoxStatus.RESERVED || box.status === "RESERVED";
+  const isOccupied = (box.status as any) === BoxStatus.OCCUPIED || (box.status as any) === "OCCUPIED" || (box.status as any) === "IN_USE";
+  const isReserved = (box.status as any) === BoxStatus.RESERVED || (box.status as any) === "RESERVED";
   const holdsOrder = isOccupied || isReserved;
 
   const cfg = BOX_CFG[status] ?? BOX_CFG[BoxStatus.MAINTENANCE];

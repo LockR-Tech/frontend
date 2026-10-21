@@ -190,6 +190,35 @@ export const droneManagementApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [TAG],
     }),
+
+    registerDroneDevice: builder.mutation<
+      ApiResponse<DroneDeviceResponse>,
+      {
+        droneId: number;
+        code?: string;
+        macAddress?: string;
+        ipAddress?: string;
+        batteryPercent?: number;
+        voltageV?: number;
+        currentA?: number;
+        firmwareVersion?: string;
+        mavlinkStatus?: string;
+        flightMode?: string;
+        armed?: boolean;
+        landedState?: string;
+        gpsFixType?: number;
+        gpsSatellites?: number;
+        cameraStatus?: string;
+        cameraStreamUrl?: string;
+      }
+    >({
+      query: ({ droneId, ...body }) => ({
+        url: `/api/admin/drones/${droneId}/device`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { droneId }) => [TAG, { type: TAG, id: `device-${droneId}` }],
+    }),
   }),
 });
 
@@ -208,4 +237,5 @@ export const {
   useGetDroneDevicesQuery,
   useAssignDroneDeviceMutation,
   useUnassignDroneDeviceMutation,
+  useRegisterDroneDeviceMutation,
 } = droneManagementApi;

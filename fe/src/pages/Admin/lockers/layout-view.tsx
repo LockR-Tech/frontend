@@ -277,9 +277,20 @@ function CellTile({
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="font-bold text-sm tracking-tight">{t("admin.lockers.boxLabel", { number: cell.boxNumber })}</span>
           {isDrone && (
-            <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
-              Drone
-            </Badge>
+            <>
+              <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
+                Drone
+              </Badge>
+              {cell.arucoMarkerId !== null && cell.arucoMarkerId !== undefined ? (
+                <Badge className="bg-sky-700 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4 font-mono shadow-xs">
+                  ArUco #{cell.arucoMarkerId}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-amber-600 border-amber-400 bg-amber-50 dark:bg-amber-950/30 text-[9px] font-semibold px-1 py-0 h-4">
+                  Chưa gán ArUco
+                </Badge>
+              )}
+            </>
           )}
           {isXl && (
             <Badge className="bg-cyan-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
@@ -373,6 +384,14 @@ function CellTile({
             <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium">
               <QrCode className="w-3.5 h-3.5 mr-2 text-primary" /> {t("admin.lockers.cell.qrAndLabel")}
             </DropdownMenuItem>
+            {isDrone && (
+              <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium text-sky-600 dark:text-sky-400">
+                <Plane className="w-3.5 h-3.5 mr-2 text-sky-500" />
+                {cell.arucoMarkerId !== null && cell.arucoMarkerId !== undefined
+                  ? `Mã ArUco #${cell.arucoMarkerId}`
+                  : "Gán mã ArUco Drone"}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={() => onEdit(cell)} className="cursor-pointer font-medium">
               <Sliders className="w-3.5 h-3.5 mr-2 text-indigo-600" /> {t("admin.lockers.cell.editFunction")}
             </DropdownMenuItem>

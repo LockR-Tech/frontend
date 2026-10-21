@@ -161,7 +161,8 @@
       "droneOrders": "Drone journeys",
       "droneIncidents": "Dropped parcel incidents",
       "businessSettings": "Business rules",
-      "knowledge": "Knowledge base"
+      "knowledge": "Knowledge base",
+      "droneLogs": "Drone & Locker Logs"
     },
     "dashboard": {
       "title": "Overview",
@@ -2122,7 +2123,8 @@
         "rentalHours": "Rental Hours",
         "extension": "Extension",
         "parcelSafety": "Parcel & Flight Safety",
-        "shared": "Applies to All Services"
+        "shared": "Applies to All Services",
+        "simulation": "Simulation & ArUco Test Mode"
       }
     },
     "droneOrders": {

@@ -35,4 +35,10 @@ export const OrderSettingsKeys = {
 
   DRONE_DEFAULT_PARCEL_WEIGHT: "app.order.drone-default-parcel-weight-grams",
   DRONE_MIN_PREFLIGHT_BATTERY: "app.order.drone-min-preflight-battery-percent",
+
+  DRONE_DEMO_INDOOR_ARUCO_ENABLED: "app.drone.demo.indoor-aruco-enabled",
+  DRONE_DEMO_HOLD_OPEN_SECONDS: "app.drone.demo.hold-open-seconds",
+  DRONE_DEMO_ENABLED: "app.drone.demo.enabled",
+  DRONE_DEMO_STAGE_DELAY_MS: "app.drone.demo.stage-delay-ms",
+  DRONE_DEMO_ALLOWED_USER_IDS: "app.drone.demo.allowed-user-ids",
 } as const;

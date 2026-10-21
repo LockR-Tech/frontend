@@ -24,6 +24,11 @@ export interface CellResponse {
   doorOpen?: boolean;
   hwState?: string | null;
   isDrone?: boolean;
+  arucoDictionary?: string | null;
+  arucoMarkerId?: number | null;
+  arucoMarkerSizeCm?: number | null;
+  arucoAssignedAt?: string | null;
+  arucoAssignedBy?: number | null;
 }
 
 export interface BoxAccessLogResponse {
@@ -652,6 +657,24 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+// Admin assign ArUco marker to DRONE box
+    assignArucoMarker: builder.mutation<ApiResponse<CellResponse>, { boxId: number }>({
+      query: ({ boxId }) => ({
+        url: `/api/admin/lockers/boxes/${boxId}/assign-aruco`,
+        method: 'POST',
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Admin unassign ArUco marker from box
+    unassignArucoMarker: builder.mutation<ApiResponse<CellResponse>, { boxId: number }>({
+      query: ({ boxId }) => ({
+        url: `/api/admin/lockers/boxes/${boxId}/aruco`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [TAG],
+    }),
+
     // Admin add box to locker
     addBox: builder.mutation<
       ApiResponse<CellResponse>,
@@ -1055,6 +1078,8 @@ export const {
   useSetBoxCleaningMutation,
   useReturnBoxToServiceMutation,
   useForceOpenBoxMutation,
+  useAssignArucoMarkerMutation,
+  useUnassignArucoMarkerMutation,
   useAddBoxMutation,
   useAddBoxesBatchMutation,
   useUpdateBoxMutation,
