@@ -99,7 +99,7 @@ export function Sidebar({
   const isItemActive = useCallback(
     (itemPath: string) => {
       if (location.pathname === itemPath) return true;
-      if (itemPath === "/" || itemPath === "/admin" || itemPath === "/partner") {
+      if (itemPath === "/" || itemPath === "/admin") {
         return false;
       }
       return location.pathname.startsWith(`${itemPath}/`);

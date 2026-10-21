@@ -25,7 +25,6 @@ export const RoleName = {
   STAFF: "STAFF",
   ADMIN: "ADMIN",
   MODERATOR: "MODERATOR",
-  PARTNER: "PARTNER",
 } as const;
 
 export type RoleName = (typeof RoleName)[keyof typeof RoleName];
@@ -109,18 +108,6 @@ export const PaymentStatus = {
 } as const;
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
-
-// ============================================
-// Partner Status
-// ============================================
-export const PartnerStatus = {
-  PENDING: "PENDING",
-  APPROVED: "APPROVED",
-  REJECTED: "REJECTED",
-  SUSPENDED: "SUSPENDED",
-} as const;
-
-export type PartnerStatus = (typeof PartnerStatus)[keyof typeof PartnerStatus];
 
 // ============================================
 // Point Transaction Type

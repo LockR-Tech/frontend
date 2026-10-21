@@ -16,8 +16,6 @@ export const ROLE_LABEL_KEYS: Record<string, string> = {
   STAFF: "shared.roles.staff",
   USER: "shared.roles.user",
   MODERATOR: "shared.roles.moderator",
-  PARTNER: "shared.roles.partner",
-  PARTNER_STAFF: "shared.roles.partnerStaff",
   SUPER_ADMIN: "shared.roles.superAdmin",
 };
 

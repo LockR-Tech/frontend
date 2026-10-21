@@ -6,7 +6,6 @@ export interface OverviewStat {
 
 export interface DashboardOverview {
   users: OverviewStat;
-  partners: OverviewStat;
   stores: OverviewStat;
   revenue: OverviewStat;
   orders: OverviewStat;

@@ -149,7 +149,6 @@
       "revenue": "Doanh thu",
       "loyalty": "Khách hàng thân thiết",
       "loyaltyProgram": "Tích điểm",
-      "partners": "Đối tác",
       "feedback": "Phản hồi",
       "scheduler": "Lập lịch",
       "notifications": "Thông báo",
@@ -1338,67 +1337,6 @@
         "mac": "Địa chỉ MAC Pi:",
         "lastSeen": "Thấy lần cuối:",
         "noSignal": "Chưa có tín hiệu"
-      }
-    },
-    "partners": {
-      "title": "Quản lý đối tác",
-      "description": "Quản lý và phê duyệt đối tác trong hệ thống",
-      "searchPlaceholder": "Tìm kiếm đối tác...",
-      "addPartner": "Thêm đối tác",
-      "columns": {
-        "partner": "Đối tác",
-        "representative": "Ngườii đại diện",
-        "address": "Địa chỉ",
-        "stores": "Cửa hàng",
-        "status": "Trạng thái"
-      },
-      "status": {
-        "pending": "Chờ duyệt",
-        "approved": "Đã duyệt",
-        "rejected": "Từ chối",
-        "suspended": "Đình chỉ"
-      },
-      "detail": {
-        "status": {
-          "approved": "Đã phê duyệt",
-          "rejected": "Đã từ chối",
-          "suspended": "Đã đình chỉ"
-        },
-        "title": "Chi tiết đối tác #{{id}}",
-        "notFound": "Không tìm thấy đối tác.",
-        "stores": "Địa điểm",
-        "staff": "Nhân viên",
-        "revenueShare": "Chia sẻ doanh thu",
-        "businessInfo": "Thông tin doanh nghiệp",
-        "businessName": "Tên doanh nghiệp",
-        "registrationNumber": "Mã đăng ký kinh doanh",
-        "taxId": "Mã số thuế",
-        "contactInfo": "Thông tin liên hệ",
-        "representative": "Đại diện",
-        "contactEmail": "Email liên hệ",
-        "systemInfo": "Thông tin hệ thống",
-        "registeredAt": "Ngày đăng ký",
-        "approvedAt": "Ngày phê duyệt",
-        "rejectionReason": "Lý do từ chối",
-        "rejecting": "Đang từ chối…",
-        "approving": "Đang phê duyệt…",
-        "suspending": "Đang đình chỉ…"
-      },
-      "stats": {
-        "total": "Tổng đối tác",
-        "totalStores": "Tổng địa điểm"
-      },
-      "table": {
-        "notUpdated": "Chưa cập nhật",
-        "storesCount": "{{count}} địa điểm"
-      },
-      "toast": {
-        "approved": "Đã phê duyệt đối tác thành công!",
-        "approveFailed": "Không thể phê duyệt đối tác",
-        "rejected": "Đã từ chối đối tác!",
-        "rejectFailed": "Không thể từ chối đối tác",
-        "suspended": "Đã đình chỉ đối tác!",
-        "suspendFailed": "Không thể đình chỉ đối tác"
       }
     },
     "feedback": {
@@ -4249,128 +4187,6 @@
       }
     }
   },
-  "partner": {
-    "sidebar": {
-      "dashboard": "Dashboard",
-      "orders": "Đơn hàng",
-      "staff": "Nhân viên",
-      "revenue": "Doanh thu",
-      "stores": "Cửa hàng",
-      "services": "Dịch vụ",
-      "notifications": "Thông báo",
-      "settings": "Cài đặt"
-    },
-    "common": {
-      "updating": "Đang cập nhật...",
-      "settings": "Cài đặt",
-      "logout": "Đăng xuất"
-    },
-    "dashboard": {
-      "title": "Dashboard",
-      "subtitle": "Tổng quan hoạt động cửa hàng",
-      "errorTitle": "Không thể tải dashboard",
-      "welcome": "Chào mừng",
-      "pendingOrders": "Đơn hàng chờ xử lý",
-      "ordersNeedAction": "đơn hàng cần xử lý",
-      "stats": {
-        "todayOrders": "Đơn hôm nay",
-        "total": "Tổng",
-        "processing": "Đang xử lý",
-        "processingShort": "Đang xử lý",
-        "revenue": "Doanh thu",
-        "thisMonth": "Tháng này",
-        "earnings": "Thu về",
-        "stores": "Cửa hàng",
-        "active": "Hoạt động"
-      }
-    },
-    "orders": {
-      "title": "Quản lý đơn hàng",
-      "subtitle": "Theo dõi và xử lý đơn hàng giặt ủi",
-      "loadingTitle": "Đang tải danh sách đơn hàng...",
-      "errorTitle": "Không thể tải danh sách đơn hàng",
-      "description": "Quản lý đơn hàng",
-      "tabs": {
-        "all": "Tất cả",
-        "waiting": "Chờ lấy đồ",
-        "collected": "Đã lấy",
-        "processing": "Đang giặt",
-        "ready": "Sẵn sàng trả",
-        "returned": "Đã trả",
-        "completed": "Hoàn thành"
-      },
-      "empty": {
-        "title": "Chưa có đơn hàng",
-        "message": "Không có đơn hàng nào ở trạng thái này."
-      },
-      "columns": {
-        "orderCode": "Mã đơn",
-        "customer": "Khách hàng",
-        "locker": "Locker",
-        "service": "Dịch vụ",
-        "weight": "Cân nặng",
-        "total": "Tổng tiền"
-      },
-      "results": "đơn hàng",
-      "actions": {
-        "accept": "Cấp mã lấy đồ",
-        "process": "Bắt đầu giặt",
-        "markReady": "Cấp mã trả đồ",
-        "enterWeight": "Cập nhật KG"
-      },
-      "status": {
-        "waitingReturn": "Chờ Staff trả đồ",
-        "waitingPickup": "Chờ khách lấy đồ"
-      }
-    },
-    "services": {
-      "title": "Quản lý dịch vụ",
-      "subtitle": "Xem các dịch vụ được gán cho cửa hàng",
-      "loadingTitle": "Đang tải danh sách dịch vụ...",
-      "errorTitle": "Không thể tải danh sách dịch vụ",
-      "description": "Quản lý dịch vụ"
-    },
-    "revenue": {
-      "title": "Doanh thu",
-      "subtitle": "Theo dõi doanh thu và giao dịch",
-      "loadingTitle": "Đang tải dữ liệu doanh thu...",
-      "errorTitle": "Không thể tải dữ liệu doanh thu",
-      "description": "Xem báo cáo doanh thu"
-    },
-    "lockers": {
-      "title": "Quản lý Locker",
-      "subtitle": "Theo dõi trạng thái và quản lý các tủ locker",
-      "loadingTitle": "Đang tải thông tin locker...",
-      "errorTitle": "Không thể tải danh sách locker",
-      "reportIssue": "Báo cáo sự cố",
-      "description": "Quản lý tủ đồ",
-      "empty": {
-        "title": "Chưa có locker nào",
-        "message": "Cửa hàng của bạn chưa được gán locker. Vui lòng liên hệ Admin để được hỗ trợ."
-      }
-    },
-    "staff": {
-      "title": "Quản lý nhân viên",
-      "subtitle": "Quản lý nhân viên và cấp mã truy cập",
-      "loadingTitle": "Đang tải danh sách nhân viên...",
-      "errorTitle": "Không thể tải danh sách nhân viên",
-      "description": "Quản lý nhân viên"
-    },
-    "notifications": {
-      "title": "Thông báo",
-      "subtitle": "Quản lý thông báo từ hệ thống",
-      "loadingTitle": "Đang tải thông báo...",
-      "errorTitle": "Không thể tải thông báo",
-      "description": "Quản lý thông báo"
-    },
-    "settings": {
-      "title": "Cài đặt",
-      "subtitle": "Quản lý thông tin cửa hàng",
-      "loadingTitle": "Đang tải thông tin...",
-      "errorTitle": "Không thể tải thông tin",
-      "description": "Cài đặt tài khoản"
-    }
-  },
   "dropdown": {
     "viewDetail": "Xem chi tiết",
     "edit": "Chỉnh sửa",
@@ -4589,8 +4405,6 @@
       "staff": "Nhân viên",
       "user": "Người dùng",
       "moderator": "Kiểm duyệt viên",
-      "partner": "Đối tác",
-      "partnerStaff": "Nhân viên đối tác",
       "superAdmin": "Quản trị cấp cao"
     },
     "layout": {
@@ -4661,8 +4475,7 @@
       "home": "Trang chủ",
       "register": "Đăng ký",
       "stores": "Cửa hàng",
-      "lockers": "Tủ đồ",
-      "partnerDashboard": "Partner Dashboard"
+      "lockers": "Tủ đồ"
     },
     "notFound": {
       "autoRedirect": "Tự động chuyển hướng...",
