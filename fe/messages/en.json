@@ -487,19 +487,13 @@
         "newStatus": "New status",
         "newStatusPlaceholder": "Select a new status",
         "currentTag": "(current)",
-        "receiveBox": "Receiving box ID (optional)",
-        "receiveBoxPlaceholder": "Leave empty to not assign a receiving box",
-        "releasesBox": "This status releases the box held by the order.",
-        "receiveBoxInvalid": "The receiving box ID must be an integer",
+        "noTransitions": "This order is closed — no status can be changed manually.",
         "updated": "Moved order {{code}} to “{{status}}”",
         "updateFailed": "Couldn't update the status",
         "hint": {
-          "initialized": "Order just created; the customer hasn't put the parcel in the locker yet.",
-          "storing": "The parcel is in the box; the recipient hasn't picked it up yet.",
-          "expired": "Pickup deadline passed. Unlike the automatic transition, setting this status manually does NOT release the held box.",
-          "awaitingDispatch": "Waiting for a drone to be dispatched for the delivery leg.",
-          "completed": "Delivered. This action releases the held box.",
-          "canceled": "Cancels the order. This action releases the held box."
+          "expired": "Move the items to storage: releases the box, voids the PIN and notifies the customer, same as the automatic overdue transition.",
+          "completed": "Close an order that has been handed over: releases the box and voids the PIN.",
+          "canceled": "Cancel the order: voids the PIN, releases the box and returns vouchers/points. Drone orders can only be canceled before the technician has collected the parcel. No automatic refund — handle it on the Refunds page."
         }
       },
       "timeline": {

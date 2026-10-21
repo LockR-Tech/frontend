@@ -19,6 +19,7 @@ import {
 } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
 import { EMPTY_VALUE, formatCurrency } from "~/lib/report-format";
+import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder } from "~/types/admin/reporting";
 
 interface OrderTableProps {
@@ -216,13 +217,16 @@ export function OrderTable({
                 <Eye className="mr-2 h-4 w-4" />
                 {t("dropdown.viewDetail")}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onUpdateStatus(order)}
-                className="cursor-pointer"
-              >
-                <Edit3 className="mr-2 h-4 w-4" />
-                {t("admin.orders.updateStatus")}
-              </DropdownMenuItem>
+              {/* Đơn đã đóng (COMPLETED/CANCELED) không còn bước nào admin đổi tay được. */}
+              {adminOrderNextStatuses(order.status).length > 0 && (
+                <DropdownMenuItem
+                  onClick={() => onUpdateStatus(order)}
+                  className="cursor-pointer"
+                >
+                  <Edit3 className="mr-2 h-4 w-4" />
+                  {t("admin.orders.updateStatus")}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );

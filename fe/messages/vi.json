@@ -487,19 +487,13 @@
         "newStatus": "Trạng thái mới",
         "newStatusPlaceholder": "Chọn trạng thái mới",
         "currentTag": "(hiện tại)",
-        "receiveBox": "Mã ô nhận (tuỳ chọn)",
-        "receiveBoxPlaceholder": "Để trống nếu không gán ô nhận",
-        "releasesBox": "Trạng thái này giải phóng ô đang giữ của đơn.",
-        "receiveBoxInvalid": "Mã ô nhận phải là số nguyên",
+        "noTransitions": "Đơn đã đóng — không còn trạng thái nào đổi tay được.",
         "updated": "Đã chuyển đơn {{code}} sang “{{status}}”",
         "updateFailed": "Không cập nhật được trạng thái",
         "hint": {
-          "initialized": "Đơn vừa tạo, khách chưa bỏ hàng vào tủ.",
-          "storing": "Hàng đang nằm trong ô, người nhận chưa lấy.",
-          "expired": "Quá hạn lấy hàng. Khác với lúc hệ thống tự chuyển, đổi tay sang trạng thái này KHÔNG giải phóng ô đang giữ.",
-          "awaitingDispatch": "Chờ điều phối drone cho chặng giao.",
-          "completed": "Đã giao xong. Thao tác này giải phóng ô đang giữ.",
-          "canceled": "Huỷ đơn. Thao tác này giải phóng ô đang giữ."
+          "expired": "Dời đồ về kho lưu trữ: giải phóng ô, huỷ mã PIN và báo khách như khi hệ thống tự chuyển quá hạn.",
+          "completed": "Chốt đơn đã trao hàng: giải phóng ô và huỷ mã PIN.",
+          "canceled": "Huỷ đơn: huỷ mã PIN, giải phóng ô và trả lại mã giảm giá/điểm. Đơn drone chỉ huỷ được khi KTV chưa lấy kiện. Không tự hoàn tiền — xử lý ở trang Hoàn tiền."
         }
       },
       "timeline": {
