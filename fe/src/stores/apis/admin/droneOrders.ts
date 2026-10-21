@@ -153,6 +153,9 @@ export interface DronePickupView {
   failureReason: string | null;
   failureNote: string | null;
   technicianNote: string | null;
+  /** Ảnh kiện KTV chụp lúc lấy hàng (bắt buộc khi xác nhận đã lấy). */
+  pickupPhotoUrl?: string | null;
+  pickupPhotoCapturedAt?: string | null;
 }
 
 export interface DroneTechnicianCandidate {

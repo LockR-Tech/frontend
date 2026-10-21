@@ -5,6 +5,7 @@ import { Loader2, TriangleAlert, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { LabelValue } from "~/components/shared/reporting";
+import { PhotoGallery } from "~/components/shared/media";
 import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency } from "~/lib/report-format";
 import { MetaBadge, refundStatusMeta } from "~/components/shared/reporting";
@@ -152,6 +153,23 @@ export function PickupPanel({ order }: { order: DroneOrderTracking }) {
           </LabelValue>
         ) : null}
       </div>
+      {pickup.pickupPhotoUrl ? (
+        <LabelValue label={t("admin.droneOrders.pickup.photo")}>
+          <PhotoGallery
+            title={t("admin.droneOrders.pickup.photoTitle", { code: order.orderCode ?? `#${order.orderId}` })}
+            photos={[
+              {
+                key: "pickup",
+                url: pickup.pickupPhotoUrl,
+                alt: t("admin.droneOrders.pickup.photo"),
+                time: pickup.pickupPhotoCapturedAt ? formatDateTime(pickup.pickupPhotoCapturedAt) : null,
+                uploader: pickup.technicianName,
+                deletable: false,
+              },
+            ]}
+          />
+        </LabelValue>
+      ) : null}
       {assignable ? <AssignTechnician orderId={order.orderId} current={pickup.technicianId ?? null} /> : null}
     </Panel>
   );

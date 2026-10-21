@@ -2408,7 +2408,9 @@
           "PICKED_UP": "Parcel collected",
           "FAILED": "Pickup unsuccessful",
           "CANCELED": "Pickup closed"
-        }
+        },
+        "photo": "Parcel photo at pickup",
+        "photoTitle": "Pickup photo · Order {{code}}"
       },
       "incident": {
         "blocked": "Order affected: {{reason}}",

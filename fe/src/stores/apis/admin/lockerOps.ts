@@ -162,6 +162,12 @@ export interface ExtendSlaRequest {
   reason?: string;
 }
 
+export interface BatchDeleteReportsRequest {
+  reportIds?: number[];
+  deleteAll?: boolean;
+  category?: 'LOCKER' | 'DRONE' | 'KIOSK' | string;
+}
+
 export interface RepairLogResponse {
   id: number;
   reportId: number;
@@ -962,6 +968,28 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    // Admin xóa một phiếu sự cố
+    deleteReport: builder.mutation<ApiResponse<void>, number>({
+      query: (reportId) => ({
+        url: `/api/admin/lockers/reports/${reportId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    // Admin xóa nhiều phiếu sự cố theo danh sách hoặc toàn bộ
+    deleteReportsBatch: builder.mutation<
+      ApiResponse<{ deletedCount: number }>,
+      BatchDeleteReportsRequest
+    >({
+      query: (body) => ({
+        url: '/api/admin/lockers/reports/batch-delete',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [TAG],
+    }),
+
     // Admin gửi thông báo (in-app + push) cho một người dùng — dùng cho cảnh cáo SLA KTV.
     sendUserNotification: builder.mutation<
       ApiResponse<unknown>,
@@ -1055,6 +1083,8 @@ export const {
   useAssignReportToTechnicianMutation,
   useUnassignReportMutation,
   useExtendReportSlaMutation,
+  useDeleteReportMutation,
+  useDeleteReportsBatchMutation,
   useGetTechnicianPerformanceQuery,
   useGetTechnicianPresencesQuery,
   useSendUserNotificationMutation,
