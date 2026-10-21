@@ -19,3 +19,4 @@ export * from "./droneOrders";
 export * from "./droneIncidents";
 export * from "./businessSettings";
 export * from "./knowledge";
+export * from "./droneCommLogs";

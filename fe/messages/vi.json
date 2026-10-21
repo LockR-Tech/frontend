@@ -161,7 +161,8 @@
       "droneOrders": "Hành trình drone",
       "droneIncidents": "Sự cố rơi kiện",
       "businessSettings": "Cấu hình nghiệp vụ",
-      "knowledge": "Kho tri thức"
+      "knowledge": "Kho tri thức",
+      "droneLogs": "Nhật ký Drone & Tủ"
     },
     "dashboard": {
       "title": "Tổng quan",
@@ -2122,7 +2123,8 @@
         "rentalHours": "Số giờ thuê",
         "extension": "Gia hạn",
         "parcelSafety": "Kiện hàng & an toàn bay",
-        "shared": "Áp dụng cho mọi dịch vụ"
+        "shared": "Áp dụng cho mọi dịch vụ",
+        "simulation": "Chế độ mô phỏng & Thử nghiệm ArUco"
       }
     },
     "droneOrders": {

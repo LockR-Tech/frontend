@@ -274,6 +274,7 @@ export default function DroneOrdersPage() {
         description={t("admin.droneOrders.description")}
       />
 
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label={t("admin.droneOrders.scope.active")} value={counts.active} color="text-primary" />

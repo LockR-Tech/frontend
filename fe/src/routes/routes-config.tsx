@@ -60,6 +60,7 @@ const DroneOrdersPage = lazy(() => import("../pages/Admin/drone-orders"));
 const DroneOrderDetailPage = lazy(() => import("../pages/Admin/drone-orders/detail"));
 const DroneIncidentsPage = lazy(() => import("../pages/Admin/drone-incidents"));
 const DroneIncidentDetailPage = lazy(() => import("../pages/Admin/drone-incidents/detail"));
+const DroneLogsPage = lazy(() => import("../pages/Admin/drone-logs"));
 const BusinessSettingsPage = lazy(() => import("../pages/Admin/settings"));
 const KnowledgePage = lazy(() => import("../pages/Admin/knowledge"));
 
@@ -144,6 +145,8 @@ const routeAliases: RouteObject[] = [
 
   // Feedback aliases
   { path: "feedback", element: <Navigate to="/admin/feedback" replace /> },
+  { path: "drone-logs", element: <Navigate to="/admin/drone-logs" replace /> },
+  { path: "nhat-ky-drone", element: <Navigate to="/admin/drone-logs" replace /> },
   { path: "phan-hoi", element: <Navigate to="/admin/feedback" replace /> },
 
   // Business settings aliases
@@ -437,6 +440,14 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <DroneIncidentDetailPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "drone-logs",
+        element: (
+          <LazyWrapper>
+            <DroneLogsPage />
           </LazyWrapper>
         ),
       },

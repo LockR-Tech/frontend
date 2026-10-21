@@ -109,6 +109,16 @@ export const SERVICE_CATALOG: ServiceDefinition[] = [
         ],
       },
       { titleKey: "admin.services.ruleGroup.overtime", keys: OVERTIME_KEYS },
+      {
+        titleKey: "admin.services.ruleGroup.simulation",
+        keys: [
+          OrderSettingsKeys.DRONE_DEMO_INDOOR_ARUCO_ENABLED,
+          OrderSettingsKeys.DRONE_DEMO_HOLD_OPEN_SECONDS,
+          OrderSettingsKeys.DRONE_DEMO_ENABLED,
+          OrderSettingsKeys.DRONE_DEMO_STAGE_DELAY_MS,
+          OrderSettingsKeys.DRONE_DEMO_ALLOWED_USER_IDS,
+        ],
+      },
     ],
   },
 ];
