@@ -10,7 +10,6 @@ export * from "./revenue";
 export * from "./wallet";
 export * from "./scheduler";
 export * from "./loyalty";
-export * from "./partners";
 export * from "./notifications";
 export * from "./promotions";
 export * from "./feedbackApi";

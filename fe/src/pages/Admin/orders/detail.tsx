@@ -43,6 +43,7 @@ import { EMPTY_VALUE, formatCurrency, formatNumber } from "~/lib/report-format";
 import { useOrderDetail } from "./hooks/useOrderDetail";
 import { OrderTimeline } from "./components/OrderTimeline";
 import { OrderStatusUpdateModal } from "./components/OrderStatusUpdateModal";
+import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
 
 function getIncidentShortStatus(incident: DroneParcelIncident): string {
@@ -543,10 +544,12 @@ export default function OrderDetailPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setIsStatusModalOpen(true)}>
-          <Edit3 className="mr-1.5 h-3.5 w-3.5" />
-          {t("admin.orders.updateStatus")}
-        </Button>
+        {adminOrderNextStatuses(order.status).length > 0 && (
+          <Button variant="outline" size="sm" onClick={() => setIsStatusModalOpen(true)}>
+            <Edit3 className="mr-1.5 h-3.5 w-3.5" />
+            {t("admin.orders.updateStatus")}
+          </Button>
+        )}
       </div>
 
       {/* Băng trạng thái */}

@@ -149,7 +149,6 @@
       "revenue": "Revenue",
       "loyalty": "Loyalty",
       "loyaltyProgram": "Loyalty points",
-      "partners": "Partners",
       "feedback": "Feedback",
       "scheduler": "Scheduler",
       "notifications": "Notifications",
@@ -487,19 +486,13 @@
         "newStatus": "New status",
         "newStatusPlaceholder": "Select a new status",
         "currentTag": "(current)",
-        "receiveBox": "Receiving box ID (optional)",
-        "receiveBoxPlaceholder": "Leave empty to not assign a receiving box",
-        "releasesBox": "This status releases the box held by the order.",
-        "receiveBoxInvalid": "The receiving box ID must be an integer",
+        "noTransitions": "This order is closed — no status can be changed manually.",
         "updated": "Moved order {{code}} to “{{status}}”",
         "updateFailed": "Couldn't update the status",
         "hint": {
-          "initialized": "Order just created; the customer hasn't put the parcel in the locker yet.",
-          "storing": "The parcel is in the box; the recipient hasn't picked it up yet.",
-          "expired": "Pickup deadline passed. Unlike the automatic transition, setting this status manually does NOT release the held box.",
-          "awaitingDispatch": "Waiting for a drone to be dispatched for the delivery leg.",
-          "completed": "Delivered. This action releases the held box.",
-          "canceled": "Cancels the order. This action releases the held box."
+          "expired": "Move the items to storage: releases the box, voids the PIN and notifies the customer, same as the automatic overdue transition.",
+          "completed": "Close an order that has been handed over: releases the box and voids the PIN.",
+          "canceled": "Cancel the order: voids the PIN, releases the box and returns vouchers/points. Drone orders can only be canceled before the technician has collected the parcel. No automatic refund — handle it on the Refunds page."
         }
       },
       "timeline": {
@@ -1344,67 +1337,6 @@
         "mac": "Pi MAC address:",
         "lastSeen": "Last seen:",
         "noSignal": "No signal yet"
-      }
-    },
-    "partners": {
-      "title": "Partner Management",
-      "description": "Manage and approve partners in the system",
-      "searchPlaceholder": "Search partners...",
-      "addPartner": "Add partner",
-      "columns": {
-        "partner": "Partner",
-        "representative": "Representative",
-        "address": "Address",
-        "stores": "Stores",
-        "status": "Status"
-      },
-      "status": {
-        "pending": "Pending",
-        "approved": "Approved",
-        "rejected": "Rejected",
-        "suspended": "Suspended"
-      },
-      "detail": {
-        "status": {
-          "approved": "Approved",
-          "rejected": "Rejected",
-          "suspended": "Suspended"
-        },
-        "title": "Partner Details #{{id}}",
-        "notFound": "Partner not found.",
-        "stores": "Stores",
-        "staff": "Staff",
-        "revenueShare": "Revenue Share",
-        "businessInfo": "Business Information",
-        "businessName": "Business Name",
-        "registrationNumber": "Business Registration No.",
-        "taxId": "Tax ID",
-        "contactInfo": "Contact Information",
-        "representative": "Representative",
-        "contactEmail": "Contact Email",
-        "systemInfo": "System Information",
-        "registeredAt": "Registered On",
-        "approvedAt": "Approved On",
-        "rejectionReason": "Rejection Reason",
-        "rejecting": "Rejecting…",
-        "approving": "Approving…",
-        "suspending": "Suspending…"
-      },
-      "stats": {
-        "total": "Total Partners",
-        "totalStores": "Total Stores"
-      },
-      "table": {
-        "notUpdated": "Not provided",
-        "storesCount": "{{count}} store(s)"
-      },
-      "toast": {
-        "approved": "Partner approved successfully!",
-        "approveFailed": "Couldn't approve the partner",
-        "rejected": "Partner rejected!",
-        "rejectFailed": "Couldn't reject the partner",
-        "suspended": "Partner suspended!",
-        "suspendFailed": "Couldn't suspend the partner"
       }
     },
     "feedback": {
@@ -4255,128 +4187,6 @@
       }
     }
   },
-  "partner": {
-    "sidebar": {
-      "dashboard": "Dashboard",
-      "orders": "Orders",
-      "staff": "Staff",
-      "revenue": "Revenue",
-      "stores": "Stores",
-      "services": "Services",
-      "notifications": "Notifications",
-      "settings": "Settings"
-    },
-    "common": {
-      "updating": "Updating...",
-      "settings": "Settings",
-      "logout": "Logout"
-    },
-    "dashboard": {
-      "title": "Dashboard",
-      "subtitle": "Store activity overview",
-      "errorTitle": "Failed to load dashboard",
-      "welcome": "Welcome",
-      "pendingOrders": "Pending Orders",
-      "ordersNeedAction": "orders need action",
-      "stats": {
-        "todayOrders": "Today's Orders",
-        "total": "Total",
-        "processing": "Processing",
-        "processingShort": "Processing",
-        "revenue": "Revenue",
-        "thisMonth": "This Month",
-        "earnings": "Earnings",
-        "stores": "Stores",
-        "active": "Active"
-      }
-    },
-    "orders": {
-      "title": "Order Management",
-      "subtitle": "Track and process laundry orders",
-      "loadingTitle": "Loading orders...",
-      "errorTitle": "Failed to load orders",
-      "description": "Manage orders",
-      "tabs": {
-        "all": "All",
-        "waiting": "Waiting Pickup",
-        "collected": "Collected",
-        "processing": "Processing",
-        "ready": "Ready to Return",
-        "returned": "Returned",
-        "completed": "Completed"
-      },
-      "empty": {
-        "title": "No Orders",
-        "message": "No orders in this status."
-      },
-      "columns": {
-        "orderCode": "Order Code",
-        "customer": "Customer",
-        "locker": "Locker",
-        "service": "Service",
-        "weight": "Weight",
-        "total": "Total"
-      },
-      "results": "orders",
-      "actions": {
-        "accept": "Issue Pickup Code",
-        "process": "Start Washing",
-        "markReady": "Issue Return Code",
-        "enterWeight": "Update Weight"
-      },
-      "status": {
-        "waitingReturn": "Waiting Staff Return",
-        "waitingPickup": "Waiting Customer Pickup"
-      }
-    },
-    "services": {
-      "title": "Service Management",
-      "subtitle": "View services assigned to your store",
-      "loadingTitle": "Loading services...",
-      "errorTitle": "Failed to load services",
-      "description": "Manage services"
-    },
-    "revenue": {
-      "title": "Revenue",
-      "subtitle": "Track revenue and transactions",
-      "loadingTitle": "Loading revenue data...",
-      "errorTitle": "Failed to load revenue data",
-      "description": "View revenue reports"
-    },
-    "lockers": {
-      "title": "Locker Management",
-      "subtitle": "Monitor and manage lockers",
-      "loadingTitle": "Loading locker info...",
-      "errorTitle": "Failed to load lockers",
-      "reportIssue": "Report Issue",
-      "description": "Manage lockers",
-      "empty": {
-        "title": "No Lockers",
-        "message": "Your store has no lockers assigned. Please contact Admin for support."
-      }
-    },
-    "staff": {
-      "title": "Staff Management",
-      "subtitle": "Manage staff and issue access codes",
-      "loadingTitle": "Loading staff list...",
-      "errorTitle": "Failed to load staff list",
-      "description": "Manage staff"
-    },
-    "notifications": {
-      "title": "Notifications",
-      "subtitle": "Manage system notifications",
-      "loadingTitle": "Loading notifications...",
-      "errorTitle": "Failed to load notifications",
-      "description": "Manage notifications"
-    },
-    "settings": {
-      "title": "Settings",
-      "subtitle": "Manage store information",
-      "loadingTitle": "Loading settings...",
-      "errorTitle": "Failed to load settings",
-      "description": "Account settings"
-    }
-  },
   "dropdown": {
     "viewDetail": "View Detail",
     "edit": "Edit",
@@ -4595,8 +4405,6 @@
       "staff": "Staff",
       "user": "User",
       "moderator": "Moderator",
-      "partner": "Partner",
-      "partnerStaff": "Partner staff",
       "superAdmin": "Super administrator"
     },
     "layout": {
@@ -4667,8 +4475,7 @@
       "home": "Home",
       "register": "Sign Up",
       "stores": "Stores",
-      "lockers": "Lockers",
-      "partnerDashboard": "Partner Dashboard"
+      "lockers": "Lockers"
     },
     "notFound": {
       "autoRedirect": "Redirecting automatically...",

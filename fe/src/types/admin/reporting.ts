@@ -88,6 +88,22 @@ export const ADMIN_ORDER_STATUSES = [
 
 export type AdminOrderStatus = (typeof ADMIN_ORDER_STATUSES)[number] | "RETURNED";
 
+/**
+ * Bước admin được đổi tay — khớp `OrderService.STAFF_TRANSITIONS` (order-service).
+ * Không có bước về INITIALIZED/STORING; COMPLETED/CANCELED là đóng hẳn.
+ */
+export const ADMIN_ORDER_STATUS_TRANSITIONS: Record<string, AdminOrderStatus[]> = {
+  INITIALIZED: ["CANCELED"],
+  AWAITING_DISPATCH: ["CANCELED"],
+  STORING: ["COMPLETED", "EXPIRED"],
+  RETURNED: ["COMPLETED", "EXPIRED"],
+  EXPIRED: ["COMPLETED"],
+};
+
+export function adminOrderNextStatuses(status: string | null | undefined): AdminOrderStatus[] {
+  return ADMIN_ORDER_STATUS_TRANSITIONS[(status ?? "").toUpperCase()] ?? [];
+}
+
 /** Loại đơn (`STORAGE` là giá trị cũ còn sót). */
 export const ADMIN_ORDER_TYPES = ["SEND", "RENTAL", "DRONE_DELIVERY"] as const;
 

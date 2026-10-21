@@ -112,7 +112,6 @@
       "revenue": "売上",
       "loyalty": "ロイヤルティ",
       "loyaltyProgram": "ポイントプログラム",
-      "partners": "パートナー",
       "feedback": "フィードバック",
       "scheduler": "スケジューラ",
       "notifications": "通知",
@@ -258,25 +257,6 @@
         "inactive": "非アクティブ",
         "maintenance": "メンテナンス",
         "disconnected": "切断"
-      }
-    },
-    "partners": {
-      "title": "パートナー管理",
-      "description": "システムのパートナーを管理および承認",
-      "searchPlaceholder": "パートナーを検索...",
-      "addPartner": "パートナーを追加",
-      "columns": {
-        "partner": "パートナー",
-        "representative": "担当者",
-        "address": "住所",
-        "stores": "店舗",
-        "status": "ステータス"
-      },
-      "status": {
-        "pending": "保留中",
-        "approved": "承認済み",
-        "rejected": "拒否",
-        "suspended": "停止"
       }
     },
     "feedback": {
@@ -560,86 +540,6 @@
     },
     "loyalty": {
       "tierBasisHint": "ランクは累計獲得ポイントで決まります。ポイントを使ってもランクは下がりません。"
-    }
-  },
-  "partner": {
-    "sidebar": {
-      "dashboard": "ダッシュボード",
-      "orders": "注文",
-      "staff": "スタッフ",
-      "revenue": "収益",
-      "stores": "店舗",
-      "services": "サービス",
-      "notifications": "通知",
-      "settings": "設定"
-    },
-    "dashboard": {
-      "title": "ダッシュボード",
-      "welcome": "ようこそ",
-      "pendingOrders": "保留中の注文",
-      "ordersNeedAction": "件の注文が対応が必要",
-      "stats": {
-        "todayOrders": "今日の注文",
-        "total": "合計",
-        "processing": "処理中",
-        "processingShort": "処理中",
-        "revenue": "収益",
-        "thisMonth": "今月",
-        "earnings": "収入",
-        "stores": "店舗",
-        "active": "アクティブ"
-      }
-    },
-    "orders": {
-      "title": "注文",
-      "description": "注文を管理",
-      "empty": {
-        "title": "注文なし",
-        "message": "このステータスの注文はありません。"
-      },
-      "columns": {
-        "orderCode": "注文コード",
-        "customer": "顧客",
-        "locker": "ロッカー",
-        "service": "サービス",
-        "weight": "重量",
-        "total": "合計"
-      },
-      "results": "件の注文",
-      "actions": {
-        "accept": "ピックアップコード発行",
-        "process": "洗濯開始",
-        "markReady": "返却コード発行",
-        "enterWeight": "重量更新"
-      },
-      "status": {
-        "waitingReturn": "スタッフ返却待ち",
-        "waitingPickup": "顧客ピックアップ待ち"
-      }
-    },
-    "lockers": {
-      "title": "ロッカー",
-      "description": "ロッカーを管理"
-    },
-    "services": {
-      "title": "サービス",
-      "description": "サービスを管理"
-    },
-    "staff": {
-      "title": "スタッフ",
-      "description": "スタッフを管理"
-    },
-    "revenue": {
-      "title": "収益",
-      "description": "収益レポートを表示"
-    },
-    "notifications": {
-      "title": "通知",
-      "description": "通知を管理"
-    },
-    "settings": {
-      "title": "設定",
-      "description": "アカウント設定"
     }
   },
   "dropdown": {

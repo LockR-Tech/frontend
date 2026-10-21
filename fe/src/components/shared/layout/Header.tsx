@@ -60,7 +60,6 @@ const themes = [
 // đổi ngôn ngữ sang English/日本語 thì breadcrumb vẫn là tiếng Việt.
 const pathLabelKeys: Record<string, string> = {
   admin: "admin.breadcrumb.admin",
-  partner: "admin.sidebar.partners",
   dashboard: "admin.sidebar.dashboard",
   users: "admin.sidebar.users",
   orders: "admin.sidebar.orders",
@@ -70,7 +69,6 @@ const pathLabelKeys: Record<string, string> = {
   payments: "admin.sidebar.payments",
   refunds: "admin.sidebar.refunds",
   loyalty: "admin.sidebar.loyaltyProgram",
-  partners: "admin.sidebar.partners",
   feedback: "admin.sidebar.feedback",
   settings: "admin.sidebar.settings",
   scheduler: "admin.sidebar.scheduler",
@@ -135,7 +133,7 @@ function Breadcrumb() {
 
     const labelKey = pathLabelKeys[path];
     let label = labelKey ? t(labelKey) : path;
-    // /admin/settings là trang quy tắc nghiệp vụ; /partner/settings vẫn là "Cài đặt".
+    // /admin/settings là trang quy tắc nghiệp vụ, không phải "Cài đặt" chung.
     if (paths[0] === "admin" && path === "settings") {
       label = t("admin.sidebar.businessSettings");
     }

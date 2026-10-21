@@ -26,16 +26,6 @@ const mockAdminUser: User = {
   avatar: undefined,
 };
 
-// Mock partner user for development
-const mockPartnerUser: User = {
-  id: "2",
-  fullName: "Partner Mock",
-  email: "partner@mock.com",
-  role: ["PARTNER"],
-  permissions: ["partner_access"],
-  avatar: undefined,
-};
-
 // Helper: call API with JSON
 async function apiFetch<T>(endpoint: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {
@@ -84,10 +74,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Email entered in step 1 — the verify-2fa response doesn't echo it back,
   // so we keep it to fill the User.email field after verification.
   const [pendingAdminEmail, setPendingAdminEmail] = useState("");
-
-  // ── Partner OTP state ──
-  const [isWaitingForOTP, setIsWaitingForOTP] = useState(false);
-  const [partnerContactInfo, setPartnerContactInfo] = useState("");
 
   // ── Mock Auth: Auto login for development ──
   useEffect(() => {
@@ -265,102 +251,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // ============================================
-  // Partner OTP Login
-  // ============================================
-  const partnerSendOTP = async (
-    email: string,
-    contactType: "EMAIL" | "PHONE",
-  ) => {
-    if (isMockEnabled) {
-      // Mock OTP sent
-      setTimeout(() => {
-        setPartnerContactInfo(email);
-        setIsWaitingForOTP(true);
-        console.log("[MockAuth] OTP sent to:", email);
-      }, mockDelay);
-      return;
-    }
-
-    setError(null);
-    const endpoint =
-      contactType === "EMAIL"
-        ? AUTH_ENDPOINTS.EMAIL_SEND_OTP
-        : AUTH_ENDPOINTS.PHONE_LOGIN;
-
-    await apiFetch<{ message: string }>(endpoint, { email });
-
-    setPartnerContactInfo(email);
-    setIsWaitingForOTP(true);
-  };
-
-  const partnerVerifyOTP = async (email: string, otpCode: string) => {
-    if (isMockEnabled) {
-      // Mock OTP verify - accept any OTP
-      setTimeout(() => {
-        setIsWaitingForOTP(false);
-        setPartnerContactInfo("");
-        persistLogin({
-          accessToken: "mock-jwt-token",
-          user: mockPartnerUser,
-        });
-        console.log("[MockAuth] Partner logged in:", mockPartnerUser.email);
-      }, mockDelay);
-      return;
-    }
-
-    setError(null);
-    const data = await apiFetch<{
-      accessToken: string;
-      refreshToken: string;
-      userInfo: {
-        id: number;
-        email: string;
-        name?: string;
-        firstName?: string;
-        lastName?: string;
-        imageUrl?: string | null;
-      };
-    }>(AUTH_ENDPOINTS.EMAIL_VERIFY_OTP, {
-      email,
-      otp: otpCode,
-    });
-
-    // Decode roles from JWT payload
-    let roles: string[] = [];
-    try {
-      const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
-      roles = payload.roles ?? [];
-    } catch {
-      /* ignore decode errors */
-    }
-
-    const user: User = {
-      id: String(data.userInfo.id),
-      fullName:
-        data.userInfo.name ||
-        `${data.userInfo.firstName ?? ""} ${data.userInfo.lastName ?? ""}`.trim(),
-      email: data.userInfo.email,
-      role: roles,
-      permissions: [],
-      avatar: data.userInfo.imageUrl ?? undefined,
-    };
-
-    setIsWaitingForOTP(false);
-    setPartnerContactInfo("");
-    persistLogin({
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-      user,
-    });
-  };
-
-  const cancelPartnerOTP = () => {
-    setIsWaitingForOTP(false);
-    setPartnerContactInfo("");
-    setError(null);
-  };
-
-  // ============================================
   // Logout & Permissions
   // ============================================
   const logout = async () => {
@@ -370,7 +260,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setError(null);
     cancelAdmin2FA();
-    cancelPartnerOTP();
   };
 
   const hasPermission = (requiredPermission: string): boolean => {
@@ -400,12 +289,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "view_payments",
         "manage_payments",
         "manage_loyalty",
-        "manage_partners",
         "manage_feedback",
         "manage_settings",
       ],
-      PARTNER: ["partner_access"],
-      PARTNER_STAFF: ["partner_access"],
       USER: [],
     };
 
@@ -432,12 +318,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         adminLoginStep1,
         adminLoginStep2,
         cancelAdmin2FA,
-        // Partner OTP
-        isWaitingForOTP,
-        partnerContactInfo,
-        partnerSendOTP,
-        partnerVerifyOTP,
-        cancelPartnerOTP,
       }}
     >
       {children}

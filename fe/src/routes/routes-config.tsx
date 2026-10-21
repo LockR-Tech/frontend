@@ -6,9 +6,6 @@ import ProtectedRoute from "./protected-route";
 import AuthLayout from "../pages/auth/layout";
 import AdminLayout from "../pages/Admin/layout";
 
-// Partner Layout (eager loaded as it's small)
-import PartnerLayout from "../pages/Partner/layout";
-
 // Error Pages (eager loaded for immediate display)
 import {
   MaintenancePage,
@@ -37,7 +34,6 @@ const OrdersPage = lazy(() => import("../pages/Admin/orders"));
 const OrderDetailPage = lazy(() => import("../pages/Admin/orders/detail"));
 const FeedbackPage = lazy(() => import("../pages/Admin/feedback"));
 const FeedbackDetailPage = lazy(() => import("../pages/Admin/feedback/detail"));
-const PartnersPage = lazy(() => import("../pages/Admin/partners"));
 const StoresPage = lazy(() => import("../pages/Admin/stores"));
 const StoreDetailPage = lazy(() => import("../pages/Admin/stores/detail"));
 const ServicesPage = lazy(() => import("../pages/Admin/services"));
@@ -66,20 +62,6 @@ const KnowledgePage = lazy(() => import("../pages/Admin/knowledge"));
 
 // Lazy load Auth Pages
 const LoginPage = lazy(() => import("~/pages/auth/Login"));
-
-// Lazy load Partner Pages
-const PartnerDashboard = lazy(() => import("../pages/Partner/dashboard"));
-const PartnerOrders = lazy(() => import("../pages/Partner/orders"));
-const PartnerOrderDetail = lazy(() => import("../pages/Partner/orders/detail"));
-const PartnerStaff = lazy(() => import("../pages/Partner/staff"));
-const PartnerRevenue = lazy(() => import("../pages/Partner/revenue"));
-const PartnerStores = lazy(() => import("../pages/Partner/stores"));
-const PartnerStoreDetail = lazy(() => import("../pages/Partner/stores/[id]"));
-const PartnerServices = lazy(() => import("../pages/Partner/services"));
-const PartnerNotifications = lazy(
-  () => import("../pages/Partner/notifications"),
-);
-const PartnerSettings = lazy(() => import("../pages/Partner/settings"));
 
 // Wrapper for lazy components
 function LazyWrapper({ children }: { children: ReactNode }): ReactNode {
@@ -123,11 +105,6 @@ const routeAliases: RouteObject[] = [
   { path: "service", element: <Navigate to="/admin/services" replace /> },
   { path: "dich-vu", element: <Navigate to="/admin/services" replace /> },
 
-  // Partner aliases
-  { path: "partners", element: <Navigate to="/admin/partners" replace /> },
-  { path: "partner-admin", element: <Navigate to="/admin/partners" replace /> },
-  { path: "doi-tac", element: <Navigate to="/admin/partners" replace /> },
-
   // Payment aliases
   { path: "payments", element: <Navigate to="/admin/payments" replace /> },
   { path: "payment", element: <Navigate to="/admin/payments" replace /> },
@@ -151,9 +128,6 @@ const routeAliases: RouteObject[] = [
 
   // Business settings aliases
   { path: "cau-hinh", element: <Navigate to="/admin/settings" replace /> },
-
-  // Partner portal aliases
-  { path: "partner", element: <Navigate to="/partner/dashboard" replace /> },
 ];
 
 const routesConfig: RouteObject[] = [
@@ -348,14 +322,6 @@ const routesConfig: RouteObject[] = [
         ),
       },
       {
-        path: "partners",
-        element: (
-          <LazyWrapper>
-            <PartnersPage />
-          </LazyWrapper>
-        ),
-      },
-      {
         path: "feedback",
         element: (
           <LazyWrapper>
@@ -469,106 +435,6 @@ const routesConfig: RouteObject[] = [
         ),
       },
       // Admin catch-all
-      { path: "*", element: <NotFoundPage /> },
-    ],
-  },
-
-  // Partner Routes
-  {
-    path: "partner",
-    element: (
-      <ProtectedRoute requiredPermission="partner_access">
-        <PartnerLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        path: "dashboard",
-        element: (
-          <LazyWrapper>
-            <PartnerDashboard />
-          </LazyWrapper>
-        ),
-      },
-      {
-        path: "orders",
-        element: (
-          <LazyWrapper>
-            <PartnerOrders />
-          </LazyWrapper>
-        ),
-      },
-      {
-        path: "orders/:orderId",
-        element: (
-          <LazyWrapper>
-            <PartnerOrderDetail />
-          </LazyWrapper>
-        ),
-      },
-      {
-        path: "staff",
-        element: (
-          <LazyWrapper>
-            <PartnerStaff />
-          </LazyWrapper>
-        ),
-      },
-      {
-        path: "revenue",
-        element: (
-          <LazyWrapper>
-            <PartnerRevenue />
-          </LazyWrapper>
-        ),
-      },
-      {
-        path: "stores",
-        element: (
-          <LazyWrapper>
-            <PartnerStores />
-          </LazyWrapper>
-        ),
-      },
-      {
-        path: "stores/:storeId",
-        element: (
-          <LazyWrapper>
-            <PartnerStoreDetail />
-          </LazyWrapper>
-        ),
-      },
-      // Backward compatibility redirect
-      {
-        path: "lockers",
-        element: <Navigate to="/partner/stores" replace />,
-      },
-      {
-        path: "services",
-        element: (
-          <LazyWrapper>
-            <PartnerServices />
-          </LazyWrapper>
-        ),
-      },
-      {
-        path: "notifications",
-        element: (
-          <LazyWrapper>
-            <PartnerNotifications />
-          </LazyWrapper>
-        ),
-      },
-      {
-        path: "settings",
-        element: (
-          <LazyWrapper>
-            <PartnerSettings />
-          </LazyWrapper>
-        ),
-      },
-      { path: "profile", element: <Navigate to="../settings" replace /> },
-      // Partner catch-all
       { path: "*", element: <NotFoundPage /> },
     ],
   },

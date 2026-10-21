@@ -16,7 +16,6 @@ export * from "./payment";
 export * from "./scheduler";
 export * from "./dashboard";
 export * from "./loyalty";
-export * from "./partner";
 export * from "./notification";
 export * from "./promotion";
 export * from "./feedback";

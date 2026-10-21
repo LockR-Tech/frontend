@@ -29,7 +29,6 @@ export const ADMIN_DASHBOARD = {
     COMMUNITY: "admin.dashboard.recommendations.community",
     ACADEMY: "admin.dashboard.recommendations.academy",
     HELPCENTER: "admin.dashboard.recommendations.helpCenter",
-    PARTNER_DIRECTORY: "admin.dashboard.recommendations.partnerDirectory",
   },
   USED: "admin.dashboard.used",
 };
