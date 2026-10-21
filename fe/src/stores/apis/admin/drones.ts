@@ -5,6 +5,30 @@ import type { ReportAttachmentRequest } from "../media";
 // Đội drone giao/nhận gắn với bãi đáp của tủ (locker-service).
 // Toàn bộ thao tác của trang ADMIN đi qua route admin. Route drone-technician
 // giữ riêng quy tắc claim/ownership cho ứng dụng của kỹ thuật viên drone.
+export interface DroneDeviceResponse {
+  id: number;
+  macAddress: string;
+  droneId: number | null;
+  droneCode: string | null;
+  ipAddress: string | null;
+  firmwareVersion: string | null;
+  mavlinkStatus: string;
+  flightMode: string;
+  armed: boolean;
+  landedState: string;
+  gpsFixType: number;
+  gpsSatellites: number;
+  batteryPercent: number;
+  voltageV: number | null;
+  currentA: number | null;
+  cameraStatus: string;
+  cameraStreamUrl: string | null;
+  lastSeenAt: string | null;
+  online: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DroneResponse {
   id: number;
   code: string;
@@ -136,6 +160,36 @@ export const droneManagementApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [TAG],
     }),
+
+    getDroneDevice: builder.query<ApiResponse<DroneDeviceResponse>, number>({
+      query: (id) => `/api/admin/drones/${id}/device`,
+      providesTags: (_result, _error, id) => [{ type: TAG, id: `device-${id}` }],
+    }),
+
+    getDroneDevices: builder.query<ApiResponse<DroneDeviceResponse[]>, void>({
+      query: () => "/api/admin/drone-devices",
+      providesTags: [TAG],
+    }),
+
+    assignDroneDevice: builder.mutation<
+      ApiResponse<DroneDeviceResponse>,
+      { deviceId: number; droneId: number }
+    >({
+      query: ({ deviceId, droneId }) => ({
+        url: `/api/admin/drone-devices/${deviceId}/assign`,
+        method: "POST",
+        body: { droneId },
+      }),
+      invalidatesTags: [TAG],
+    }),
+
+    unassignDroneDevice: builder.mutation<ApiResponse<DroneDeviceResponse>, number>({
+      query: (deviceId) => ({
+        url: `/api/admin/drone-devices/${deviceId}/unassign`,
+        method: "POST",
+      }),
+      invalidatesTags: [TAG],
+    }),
   }),
 });
 
@@ -150,4 +204,8 @@ export const {
   useUpdateDroneStatusMutation,
   useCreateDroneIncidentReportMutation,
   useUpdateDroneBatteryMutation,
+  useGetDroneDeviceQuery,
+  useGetDroneDevicesQuery,
+  useAssignDroneDeviceMutation,
+  useUnassignDroneDeviceMutation,
 } = droneManagementApi;

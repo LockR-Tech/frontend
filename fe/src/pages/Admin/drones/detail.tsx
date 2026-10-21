@@ -59,6 +59,7 @@ import {
   useUpdateDroneMutation,
 } from "~/stores/apis/admin/drones";
 import { DroneAdminActions } from "./DroneAdminActions";
+import { DroneHardwarePanel } from "./components/DroneHardwarePanel";
 
 const NO_TECHNICIAN = "NONE";
 // Giá trị là khoá i18n; dịch lúc render.
@@ -571,6 +572,8 @@ export default function DroneDetailPage() {
       </Card>
 
       <DroneAdminActions drone={drone} activeMission={activeMission} />
+
+      <DroneHardwarePanel droneId={id} droneCode={drone.code} />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <KpiCard label={t("admin.drones.detail.kpi.totalFlights")} value={flightLogs.length} />

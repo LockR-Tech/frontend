@@ -95,6 +95,7 @@ export interface DroneOrderTracking {
   receiverPhone: string | null;
   cancelReason: number | null;
   cancelNote: string | null;
+  staffNote?: string | null;
   sourceLocker: DroneLockerPoint | null;
   destinationLocker: DroneLockerPoint | null;
   /** Khai báo kiện lúc đặt đơn; kích thước và giá trị khai báo có thể null. */
