@@ -67,12 +67,6 @@ export const ADMIN_ENDPOINTS = {
   STORE_STATUS: (id: number) => `${ROOT_URI.ADMIN}/stores/${id}/status`,
   STORE_IMAGE: (id: number) => `${ROOT_URI.ADMIN}/stores/${id}/image`,
 
-  // Services Management
-  SERVICES: `${ROOT_URI.ADMIN}/services`,
-  SERVICE_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/services/${id}`,
-  SERVICE_PRICE: (id: number) => `${ROOT_URI.ADMIN}/services/${id}/price`,
-  SERVICE_STATUS: (id: number) => `${ROOT_URI.ADMIN}/services/${id}/status`,
-
   // Lockers Management
   LOCKERS: `${ROOT_URI.ADMIN}/lockers`,
   LOCKER_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/lockers/${id}`,
@@ -219,11 +213,6 @@ export const ADMIN_ENDPOINTS = {
   // Analytics
   ANALYTICS_FEEDBACK: `${ROOT_URI.ADMIN}/analytics/feedback`,
   ANALYTICS_SATISFACTION: `${ROOT_URI.ADMIN}/analytics/satisfaction`,
-
-  // Legacy
-  ANALYTICS: `${ROOT_URI.ADMIN}/analytics`,
-  SCHEDULE: `${ROOT_URI.ADMIN}/schedule`,
-  INTEGRATIONS: `${ROOT_URI.ADMIN}/integrations`,
 } as const;
 
 // Public business settings (không cần đăng nhập)
