@@ -999,7 +999,8 @@
         "outOfService": "Ngưng dùng",
         "cleaning": "Bảo trì",
         "suspended": "Tạm ngưng",
-        "droneReady": "Nhận Drone"
+        "droneReady": "Nhận Drone",
+        "pendingCheck": "Chờ KTV kiểm tra"
       },
       "cell": {
         "faultDrone": "Báo hỏng (Drone)",
@@ -1034,7 +1035,9 @@
         "ordersDialogDesc": "Đơn còn mở đang giữ ô này (đã giữ chỗ hoặc đang có hàng).",
         "viewOrder": "Xem đơn",
         "orderCustomer": "Khách: {{name}}",
-        "orderReceiver": "Người nhận: {{name}}"
+        "orderReceiver": "Người nhận: {{name}}",
+        "pendingCheck": "Chờ KTV kiểm tra",
+        "pendingCheckHint": "Khách báo sự cố — tạm ngưng cấp ô, chủ đồ vẫn mở được"
       },
       "layout": {
         "toast": {
@@ -1171,7 +1174,8 @@
           "totalBoxes": "Tổng số ô vật lý",
           "emptyBoxes": "Ô trống",
           "inUse": "Đang dùng",
-          "faultyBoxes": "Ô hỏng"
+          "faultyBoxes": "Ô hỏng",
+          "pendingCheckBoxes": "Ô chờ KTV kiểm tra"
         },
         "doorWarning": {
           "title": "Cảnh báo an toàn: Có {{count}} ô đang mở cửa ({{boxes}})",
@@ -1204,7 +1208,8 @@
           "inUse": "Đang dùng / Đã đặt ({{boxes}})",
           "fault": "Ô hỏng / bảo trì ({{boxes}})",
           "doorsOpen": "Cửa đang mở ({{boxes}})",
-          "doorsClosed": "Cửa đã đóng ({{count}})"
+          "doorsClosed": "Cửa đã đóng ({{count}})",
+          "pendingCheck": "Chờ KTV kiểm tra ({{boxes}})"
         }
       },
       "boxType": {
@@ -3383,7 +3388,8 @@
         "openAwaitingTechUpper": "MỚI MỞ · CHỜ KTV NHẬN",
         "newlyReceived": "MỚI TIẾP NHẬN",
         "justCreated": "VỪA PHÁT SINH",
-        "overdueSla": "Quá hạn SLA"
+        "overdueSla": "Quá hạn SLA",
+        "rejected": "Không xác nhận"
       },
       "droneStatus": {
         "idle": "Sẵn sàng",

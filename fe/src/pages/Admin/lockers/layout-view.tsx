@@ -143,6 +143,8 @@ const STATUS_STYLE: Record<string, { labelKey: string; cls: string }> = {
   RESERVED: { labelKey: "admin.lockers.boxStatus.reserved", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
   OCCUPIED: { labelKey: "admin.lockers.boxStatus.occupied", cls: "bg-secondary border-border text-foreground" },
   FAULT: { labelKey: "admin.lockers.boxStatus.fault", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
+  // Khách báo sự cố: tạm ngưng cấp ô, chủ đồ vẫn mở được — chờ KTV xác nhận (FAULT) hoặc từ chối phiếu.
+  PENDING_CHECK: { labelKey: "admin.lockers.boxStatus.pendingCheck", cls: "bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-400" },
   OUT_OF_SERVICE: { labelKey: "admin.lockers.boxStatus.outOfService", cls: "bg-secondary/40 border-border text-muted-foreground" },
   CLEANING: { labelKey: "admin.lockers.boxStatus.cleaning", cls: "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400" },
 };
@@ -281,6 +283,19 @@ function CellTile({
           </span>
         );
         break;
+      case "PENDING_CHECK":
+        bgClass = "bg-orange-50/95 dark:bg-orange-950/50";
+        borderClass = "border-orange-400 dark:border-orange-700 ring-1 ring-orange-400/30 shadow-xs";
+        textClass = "text-orange-950 dark:text-orange-100";
+        statusBadge = (
+          <span
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-700 dark:text-orange-400 z-10"
+            title={t("admin.lockers.cell.pendingCheckHint")}
+          >
+            <AlertTriangle className="w-3.5 h-3.5" /> {t("admin.lockers.cell.pendingCheck")}
+          </span>
+        );
+        break;
       case "CLEANING":
       case "OUT_OF_SERVICE":
       default:
@@ -299,7 +314,7 @@ function CellTile({
   // Viền cảnh báo khi cửa mở; ô có phiếu sự cố mà vẫn đang dùng thì viền đỏ như app.
   const doorRingClass = doorOpen
     ? "ring-2 ring-amber-400 border-amber-400 dark:border-amber-500 shadow-md shadow-amber-400/20"
-    : hasOpenReport && cell.status !== "FAULT"
+    : hasOpenReport && cell.status !== "FAULT" && cell.status !== "PENDING_CHECK"
       ? "ring-2 ring-rose-400/60 border-rose-400 dark:border-rose-600"
       : "";
 
@@ -412,12 +427,17 @@ function CellTile({
                   </DropdownMenuItem>
                 </>
               )}
-              {cell.status === "FAULT" && (
+              {(cell.status === "FAULT" || cell.status === "PENDING_CHECK") && (
                 <>
                   <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
                     <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
                   </DropdownMenuItem>
                 </>
+              )}
+              {cell.status === "PENDING_CHECK" && (
+                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                  <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
+                </DropdownMenuItem>
               )}
               {(cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING") && (
                 <>
@@ -481,7 +501,7 @@ function CellTile({
 
       {/* Clean, ergonomic action controls */}
       <div className="flex items-center justify-between gap-1.5 pt-1.5 z-10">
-        {cell.status === "FAULT" ? (
+        {cell.status === "FAULT" || cell.status === "PENDING_CHECK" ? (
           <Button
             size="sm"
             variant="outline"
@@ -758,7 +778,7 @@ export default function LockerLayoutPage() {
   const blockingReports = useMemo(
     () =>
       (reportsData?.data ?? []).filter(
-        (r) => r.lockerId === id && r.blocksLocker && r.status !== "RESOLVED",
+        (r) => r.lockerId === id && r.blocksLocker && r.status !== "RESOLVED" && r.status !== "REJECTED",
       ),
     [reportsData, id],
   );
@@ -766,7 +786,7 @@ export default function LockerLayoutPage() {
   const openReportsByBox = useMemo(() => {
     const byBox = new Map<number, LockerReportResponse[]>();
     for (const r of reportsData?.data ?? []) {
-      if (r.lockerId !== id || r.boxId == null || r.status === "RESOLVED") continue;
+      if (r.lockerId !== id || r.boxId == null || r.status === "RESOLVED" || r.status === "REJECTED") continue;
       byBox.set(r.boxId, [...(byBox.get(r.boxId) ?? []), r]);
     }
     return byBox;
@@ -1519,6 +1539,11 @@ export default function LockerLayoutPage() {
             <p className="text-2xl font-bold text-destructive">
               {cells.filter((c) => c.status === "FAULT").length}
             </p>
+            {cells.some((c) => c.status === "PENDING_CHECK") && (
+              <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mt-0.5">
+                {t("admin.lockers.layout.kpi.pendingCheckBoxes")}: {cells.filter((c) => c.status === "PENDING_CHECK").length}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -1716,6 +1741,9 @@ export default function LockerLayoutPage() {
             </span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-1 rounded-md border border-rose-300 dark:border-rose-700">
               <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> {t("admin.lockers.layout.legend.fault", { boxes: cells.filter((c) => c.status === 'FAULT').map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-orange-800 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/50 px-2.5 py-1 rounded-md border border-orange-300 dark:border-orange-700">
+              <AlertTriangle className="w-3.5 h-3.5 text-orange-500" /> {t("admin.lockers.layout.legend.pendingCheck", { boxes: cells.filter((c) => c.status === 'PENDING_CHECK').map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
             </span>
             <span className="inline-flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-2.5 py-1 rounded-md border border-amber-400">
               <DoorOpen className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> {t("admin.lockers.layout.legend.doorsOpen", { boxes: cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(', ') || '0' })}

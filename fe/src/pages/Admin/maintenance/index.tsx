@@ -114,6 +114,8 @@ const REPORT_BADGE: Record<string, string> = {
   OPEN: "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 font-semibold",
   IN_PROGRESS: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200 font-semibold",
   RESOLVED: "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 font-semibold",
+  // KTV kiểm tra không đúng như mô tả: phiếu đóng, đã phản hồi người báo.
+  REJECTED: "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200 font-semibold",
 };
 
 // Khớp DroneStatus của backend: IDLE, RESERVED, CHARGING, IN_FLIGHT, MAINTENANCE, FAULT
@@ -1418,7 +1420,7 @@ export default function MaintenanceAdminPage() {
                                 </Badge>
                               ) : (
                                 <Badge variant="outline" className={`text-xs ${REPORT_BADGE[r.status] ?? ""}`}>
-                                  {r.status === "IN_PROGRESS" ? t("admin.maintenance.status.inProgress") : r.status === "RESOLVED" ? t("admin.maintenance.status.resolved") : r.status}
+                                  {r.status === "IN_PROGRESS" ? t("admin.maintenance.status.inProgress") : r.status === "RESOLVED" ? t("admin.maintenance.status.resolved") : r.status === "REJECTED" ? t("admin.maintenance.status.rejected") : r.status}
                                 </Badge>
                               )}
                               {isRecent && !isNew && (

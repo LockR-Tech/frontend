@@ -97,6 +97,8 @@ export function getCellStatusLabel(cell: {
       return i18n.t("admin.lockers.boxStatus.reserved");
     case "FAULT":
       return i18n.t("admin.lockers.boxStatus.fault");
+    case "PENDING_CHECK":
+      return i18n.t("admin.lockers.boxStatus.pendingCheck");
     case "CLEANING":
       return i18n.t("admin.lockers.boxStatus.cleaning");
     case "OUT_OF_SERVICE":
@@ -145,6 +147,8 @@ export function getStatusDotColor(status?: string | null): string {
       return "bg-amber-500";
     case "FAULT":
       return "bg-rose-500";
+    case "PENDING_CHECK":
+      return "bg-orange-500";
     case "CLEANING":
       return "bg-blue-500";
     case "OUT_OF_SERVICE":
