@@ -999,7 +999,8 @@
         "outOfService": "Out of service",
         "cleaning": "Maintenance",
         "suspended": "Suspended",
-        "droneReady": "Drone ready"
+        "droneReady": "Drone ready",
+        "pendingCheck": "Awaiting check"
       },
       "cell": {
         "faultDrone": "Faulty (Drone)",
@@ -1034,7 +1035,9 @@
         "ordersDialogDesc": "Open orders holding this box (reserved or with items inside).",
         "viewOrder": "View order",
         "orderCustomer": "Customer: {{name}}",
-        "orderReceiver": "Receiver: {{name}}"
+        "orderReceiver": "Receiver: {{name}}",
+        "pendingCheck": "Awaiting technician check",
+        "pendingCheckHint": "Reported by a customer — not offered to new orders, the owner can still open it"
       },
       "layout": {
         "toast": {
@@ -1171,7 +1174,8 @@
           "totalBoxes": "Total Physical Boxes",
           "emptyBoxes": "Empty Boxes",
           "inUse": "In Use",
-          "faultyBoxes": "Faulty Boxes"
+          "faultyBoxes": "Faulty Boxes",
+          "pendingCheckBoxes": "Boxes awaiting check"
         },
         "doorWarning": {
           "title": "Safety warning: {{count}} box(es) with open doors ({{boxes}})",
@@ -1204,7 +1208,8 @@
           "inUse": "In use / Reserved ({{boxes}})",
           "fault": "Faulty / maintenance ({{boxes}})",
           "doorsOpen": "Doors open ({{boxes}})",
-          "doorsClosed": "Doors closed ({{count}})"
+          "doorsClosed": "Doors closed ({{count}})",
+          "pendingCheck": "Awaiting technician check ({{boxes}})"
         }
       },
       "boxType": {
@@ -3383,7 +3388,8 @@
         "openAwaitingTechUpper": "NEW · AWAITING TECHNICIAN",
         "newlyReceived": "NEWLY RECEIVED",
         "justCreated": "JUST REPORTED",
-        "overdueSla": "SLA Overdue"
+        "overdueSla": "SLA Overdue",
+        "rejected": "Not confirmed"
       },
       "droneStatus": {
         "idle": "Ready",
