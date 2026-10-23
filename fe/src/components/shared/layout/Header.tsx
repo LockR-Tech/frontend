@@ -42,6 +42,7 @@ import {
 } from "~/stores/apis/notificationApi";
 import { useGetDroneQuery } from "~/stores/apis/admin/drones";
 import { useGetDroneIncidentQuery } from "~/stores/apis/admin/droneIncidents";
+import { useGetLockerLayoutQuery } from "~/stores/apis/admin/lockerOps";
 import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
 import { SUPPORTED_LANGUAGES, currentLanguage } from "~/utils/i18n";
 
@@ -115,6 +116,18 @@ function Breadcrumb() {
       ?? (location.state as { incidentCode?: string } | null)?.incidentCode
       ?? (incidentQuery.isError ? `#${incidentId}` : null);
 
+  // Chi tiết tủ: hiện tên tủ (vd "Tủ Vinhomes Grand Park – S1.02") thay vì #800006.
+  // Cùng query và tham số với trang chi tiết ⇒ dùng chung cache, không thêm request.
+  const lockerId = paths[0] === "admin" && paths[1] === "lockers" && isNumeric(paths[2] ?? "")
+    ? Number(paths[2])
+    : null;
+  const lockerQuery = useGetLockerLayoutQuery(lockerId ?? 0, { skip: lockerId == null });
+  const lockerName = lockerId == null
+    ? null
+    : lockerQuery.data?.data?.name?.trim()
+      || lockerQuery.data?.data?.code
+      || (lockerQuery.isError ? `#${lockerId}` : null);
+
   if (paths.length < 2) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
@@ -146,6 +159,9 @@ function Breadcrumb() {
     if (isLast && incidentId != null && path === String(incidentId)) {
       label = incidentCode ?? `#${incidentId}`;
     }
+    if (isLast && lockerId != null && path === String(lockerId)) {
+      label = lockerName ?? t("header.loadingLocker");
+    }
 
     return {
       label,
@@ -167,10 +183,11 @@ function Breadcrumb() {
               <span
                 className={cn(
                   isLast
-                    ? "font-semibold text-foreground"
-                    : "text-muted-foreground",
-                  "max-w-[140px] truncate",
+                    ? "font-semibold text-foreground max-w-[320px]"
+                    : "text-muted-foreground max-w-[140px]",
+                  "truncate",
                 )}
+                title={item.label}
               >
                 {item.label}
               </span>

@@ -124,7 +124,8 @@
     "searchPlaceholder": "Tìm trang quản trị…",
     "searchEmpty": "Không tìm thấy trang phù hợp.",
     "searchGroup": "Trang quản trị",
-    "loadingDrone": "Đang tải Drone…"
+    "loadingDrone": "Đang tải Drone…",
+    "loadingLocker": "Đang tải tủ…"
   },
   "table": {
     "rowsPerPage": "Số hàng/trang",
@@ -820,7 +821,11 @@
         "disconnected": "Mất kết nối"
       },
       "filters": {
-        "searchPlaceholder": "Tìm kiếm tủ đồ..."
+        "searchPlaceholder": "Tìm kiếm tủ đồ...",
+        "location": "Địa điểm",
+        "allLocations": "Tất cả địa điểm",
+        "technician": "KTV phụ trách",
+        "allTechnicians": "Tất cả KTV"
       },
       "stats": {
         "totalLockers": "Tổng tủ đồ",
@@ -1019,7 +1024,17 @@
         "sendToCleaning": "Đưa vào vệ sinh",
         "reportFault": "Báo hỏng ô tủ",
         "cannotDelete": "Không thể xóa ô đang chứa hàng hoặc đã giữ chỗ",
-        "deleteBox": "Xóa ô tủ này"
+        "deleteBox": "Xóa ô tủ này",
+        "openReports": "Có báo hỏng · {{reports}}",
+        "reportReason": "Lý do: {{reason}}",
+        "holdingOrder": "Đơn đang chứa",
+        "holdingOrdersCount": "{{count}} đơn đang chứa",
+        "noOrder": "Ô này không có đơn nào đang chứa.",
+        "ordersDialogTitle": "Đơn đang chứa ở ô #{{number}}",
+        "ordersDialogDesc": "Đơn còn mở đang giữ ô này (đã giữ chỗ hoặc đang có hàng).",
+        "viewOrder": "Xem đơn",
+        "orderCustomer": "Khách: {{name}}",
+        "orderReceiver": "Người nhận: {{name}}"
       },
       "layout": {
         "toast": {
@@ -1216,10 +1231,23 @@
           "online": "Trực tuyến (Cắm điện)",
           "offline": "Mất kết nối (Rút điện)",
           "closed": "Cửa đóng",
-          "timeout": "Quá hạn",
+          "timeout": "Tủ không phản hồi",
           "jammed": "Kẹt khóa",
           "denied": "Từ chối",
           "restartRequested": "Yêu cầu khởi động"
+        },
+        "message": {
+          "timeoutTitle": "Tủ không phản hồi lệnh mở sau {{seconds}} giây",
+          "timeoutTitleNoSeconds": "Tủ không phản hồi lệnh mở",
+          "timeoutHint": "Bộ điều khiển tủ có thể mất điện hoặc mất mạng nên ô có thể chưa mở. Kiểm tra nguồn và mạng của tủ (thẻ Bộ điều khiển) rồi thử lại.",
+          "jammedTitle": "Chốt ô bị kẹt — tủ không mở được ô",
+          "jammedHint": "Ô đã được đánh dấu hỏng. Giao KTV kiểm tra chốt khoá và cửa ô.",
+          "hardwareTitle": "Tủ báo lỗi khi mở ô: {{detail}}",
+          "hardwareHint": "Mã lỗi phần cứng {{code}}. Giao KTV kiểm tra ô này.",
+          "sendFailedTitle": "Không gửi được lệnh mở tới tủ",
+          "sendFailedHint": "Máy chủ không liên lạc được với bộ điều khiển (MQTT) nên ô chưa mở. Thử lại sau ít phút.",
+          "systemErrorTitle": "Lỗi hệ thống khi xử lý lệnh mở ô",
+          "systemErrorHint": "Máy chủ gặp lỗi khi xử lý lệnh; ô có thể chưa mở. Thử lại hoặc báo đội kỹ thuật kèm thời điểm này."
         },
         "slotsUnknown": "— ô",
         "title": "Nhật ký vận hành & IoT của tủ {{locker}}",
@@ -1229,8 +1257,8 @@
         "totalEntries": "Tổng bản ghi nhật ký",
         "hardwareIssues": "Lỗi & Cảnh báo phần cứng",
         "banner": {
-          "online": "🟢 Tủ {{locker}} đang cấp nguồn & kết nối (Online):",
-          "offline": "🔴 Tủ {{locker}} mất kết nối / rút điện (Offline):",
+          "online": " Tủ {{locker}} đang cấp nguồn & kết nối (Online):",
+          "offline": " Tủ {{locker}} mất kết nối / rút điện (Offline):",
           "onlineDetail": "Phần cứng {{hardware}} · {{slots}} · firmware {{firmware}} · Tín hiệu gần nhất: {{time}}",
           "offlineDetail": "Tủ hiện chưa có nguồn điện hoặc bộ điều khiển đã tắt · Tín hiệu cuối lúc: {{time}}"
         },
@@ -1267,6 +1295,7 @@
           "category": "Phân loại",
           "description": "Mô tả sự cố",
           "categoryGeneral": "CHUNG",
+          "openReport": "Mở phiếu RPT-{{id}} ở trang Bảo trì",
           "resolved": "Đã xử lý",
           "inProgress": "Đang xử lý",
           "open": "Đang mở",

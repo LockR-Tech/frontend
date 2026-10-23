@@ -9,6 +9,8 @@ export const OrderSettingsKeys = {
   DRONE_DELIVERY_FEE: "app.order.drone-delivery-fee",
   RENTAL_RATE_STANDARD: "app.order.rental-rate-standard",
   RENTAL_RATE_XL: "app.order.rental-rate-xl",
+  RENTAL_DAILY_RATE_STANDARD: "app.order.rental-daily-rate-standard",
+  RENTAL_DAILY_RATE_XL: "app.order.rental-daily-rate-xl",
 
   OVERTIME_FEE_PER_HOUR: "app.order.pickup-overtime-fee-per-hour",
   MAX_OVERTIME_FEE: "app.order.pickup-max-overtime-fee",

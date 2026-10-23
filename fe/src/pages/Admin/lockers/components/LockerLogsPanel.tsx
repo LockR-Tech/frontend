@@ -42,6 +42,8 @@ import {
   type CellResponse,
   type GatewayDeviceResponse,
 } from "~/stores/apis/admin/lockerOps";
+import { useNavigate } from "react-router-dom";
+import { describeAccessLogMessage } from "./accessLogMessage";
 import { formatDateTime } from "~/lib/datetime";
 import { useTranslation } from "react-i18next";
 import i18n from "~/utils/i18n";
@@ -91,6 +93,7 @@ const RESULT_LABEL: Record<string, { labelKey: string; cls: string; icon: any }>
 
 export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGateway }: LockerLogsPanelProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const lockerLabel = lockerCode || `#${lockerId}`;
   const { data, isLoading, isFetching, refetch } = useGetLockerAccessLogsQuery(lockerId, {
     pollingInterval: 10000,
@@ -500,6 +503,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                         const isOnline = log.result?.toUpperCase() === "ONLINE";
                         const isDiscovery = log.credentialType === "DISCOVERY" || log.credentialType === "GATEWAY";
                         const isDisplay = log.credentialType === "DISPLAY";
+                        const explained = describeAccessLogMessage(log);
 
                         return (
                           <TableRow key={`${log.id}-${index}`} className="hover:bg-muted/30">
@@ -563,7 +567,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                               )}
                             </TableCell>
                             <TableCell
-                              className={`max-w-[380px] truncate ${
+                              className={`max-w-[420px] ${explained ? "whitespace-normal" : "truncate"} ${
                                 isOffline
                                   ? "text-rose-700 dark:text-rose-400 font-semibold"
                                   : isOnline
@@ -576,7 +580,19 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                               }`}
                               title={log.message ?? ""}
                             >
-                              {log.message || "—"}
+                              {explained ? (
+                                <div className="space-y-0.5">
+                                  <p className="font-semibold leading-snug">{t(explained.titleKey, explained.params)}</p>
+                                  <p className="text-[11px] font-normal leading-snug text-muted-foreground">
+                                    {t(explained.hintKey, explained.params)}
+                                  </p>
+                                  {explained.params.note && (
+                                    <p className="text-[11px] font-normal leading-snug text-foreground/80">{explained.params.note}</p>
+                                  )}
+                                </div>
+                              ) : (
+                                log.message || "—"
+                              )}
                             </TableCell>
                           </TableRow>
                         );
@@ -610,8 +626,19 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                   </TableHeader>
                   <TableBody>
                     {lockerReports.map((report) => (
-                      <TableRow key={report.id} className="hover:bg-muted/30">
-                        <TableCell className="font-bold text-primary">RPT-{report.id}</TableCell>
+                      // Bấm cả dòng để mở thẳng phiếu ở trang Bảo trì thay vì phải đi tìm.
+                      <TableRow
+                        key={report.id}
+                        className="cursor-pointer hover:bg-muted/40"
+                        role="link"
+                        tabIndex={0}
+                        title={t("admin.lockers.logs.reports.openReport", { id: report.id })}
+                        onClick={() => navigate(`/admin/maintenance?reportId=${report.id}`)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") navigate(`/admin/maintenance?reportId=${report.id}`);
+                        }}
+                      >
+                        <TableCell className="font-bold text-primary underline-offset-2 hover:underline">RPT-{report.id}</TableCell>
                         <TableCell className="font-semibold">
                           {report.boxNumber != null ? (
                             <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">

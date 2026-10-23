@@ -67,6 +67,8 @@ export const SERVICE_CATALOG: ServiceDefinition[] = [
         keys: [
           OrderSettingsKeys.RENTAL_RATE_STANDARD,
           OrderSettingsKeys.RENTAL_RATE_XL,
+          OrderSettingsKeys.RENTAL_DAILY_RATE_STANDARD,
+          OrderSettingsKeys.RENTAL_DAILY_RATE_XL,
         ],
       },
       {

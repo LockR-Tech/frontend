@@ -15,6 +15,14 @@ export default function LockersPage() {
     setStatus,
     searchQuery,
     setSearchQuery,
+    storeFilter,
+    setStoreFilter,
+    storeOptions,
+    technicianFilter,
+    setTechnicianFilter,
+    technicianOptions,
+    unassignedCount,
+    totalLockers,
     statusCounts,
     handleMaintenance,
     handleActivate,
@@ -50,6 +58,14 @@ export default function LockersPage() {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               statusCounts={statusCounts}
+              storeFilter={storeFilter}
+              onStoreFilterChange={setStoreFilter}
+              storeOptions={storeOptions}
+              technicianFilter={technicianFilter}
+              onTechnicianFilterChange={setTechnicianFilter}
+              technicianOptions={technicianOptions}
+              unassignedCount={unassignedCount}
+              totalLockers={totalLockers}
             />
 
             <TableToolbar
