@@ -50,6 +50,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     permission: "admin_access",
   },
   {
+    icon: SlidersHorizontal,
+    path: "/admin/cabinet-control",
+    label: "admin.sidebar.cabinetControl",
+    permission: "control_cabinet",
+  },
+  {
     icon: Sparkles,
     path: "/admin/services",
     label: "admin.sidebar.services",

@@ -143,6 +143,7 @@
       "orders": "Orders",
       "stores": "Stores",
       "lockers": "Lockers",
+      "cabinetControl": "Cabinet control",
       "services": "Services",
       "payments": "Payments",
       "refunds": "Refunds",

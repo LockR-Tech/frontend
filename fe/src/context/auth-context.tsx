@@ -291,7 +291,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "manage_loyalty",
         "manage_feedback",
         "manage_settings",
+        "control_cabinet",
       ],
+      LOCKER_TECHNICIAN: ["control_cabinet"],
       USER: [],
     };
 
