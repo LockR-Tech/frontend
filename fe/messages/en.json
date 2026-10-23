@@ -2415,6 +2415,28 @@
         "FLIGHT_INCIDENT": "In-flight incident",
         "OPERATIONAL": "Operational reason",
         "OTHER": "Other"
+      },
+      "weather": {
+        "routeTitle": "Route weather",
+        "lockersTitle": "Weather at drone lockers",
+        "loading": "Loading weather forecast…",
+        "loadFailed": "Could not load the weather forecast.",
+        "noLockers": "No locker has a drone landing pad yet.",
+        "allSafe": "All {{count}} lockers can fly in the next 30 minutes.",
+        "someBlocked": "{{blocked}}/{{count}} lockers cannot fly or have no forecast.",
+        "wind": "Wind {{value}} km/h",
+        "gust": "Gusts {{value}} km/h",
+        "rain": "Rain {{value}} mm",
+        "window": "Next 30 minutes",
+        "checkedAt": "updated {{time}}",
+        "provider": "source {{provider}}",
+        "sourceFallback": "Launch locker",
+        "destinationFallback": "Receiving locker",
+        "status": {
+          "SAFE": "Safe to fly",
+          "UNSAFE": "Unsafe to fly",
+          "UNAVAILABLE": "No forecast"
+        }
       }
     },
     "drones": {

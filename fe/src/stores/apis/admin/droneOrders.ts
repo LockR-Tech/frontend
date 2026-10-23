@@ -194,6 +194,44 @@ export interface ReportDroppedParcelPayload {
   snapshotCapturedAt?: string;
 }
 
+/** Kết quả kiểm tra thời tiết 30 phút tới — cùng nguồn với bước chặn đặt đơn / phóng drone. */
+export interface DroneWeatherAssessment {
+  safe: boolean;
+  /** SAFE | UNSAFE | UNAVAILABLE */
+  status: string;
+  message: string;
+  checkedAt: string | null;
+  windowMinutes: number;
+  sampledRoutePoints: number;
+  maxWindSpeedKmh: number;
+  maxWindGustKmh: number;
+  maxPrecipitationMm: number;
+  worstWeatherCode: number;
+  /** OPEN_METEO | MET_NORWAY */
+  provider: string | null;
+  temperatureC: number | null;
+  condition: string | null;
+}
+
+export interface DroneRouteWeather {
+  orderId: number;
+  sourceLockerId: number | null;
+  sourceLockerName: string | null;
+  destinationLockerId: number | null;
+  destinationLockerName: string | null;
+  weather: DroneWeatherAssessment;
+}
+
+export interface DroneLockerWeather {
+  lockerId: number;
+  code: string | null;
+  name: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  weather: DroneWeatherAssessment;
+}
+
 const TAG = "DroneOrders" as const;
 
 export const droneOrderApi = baseApi.injectEndpoints({
@@ -222,6 +260,15 @@ export const droneOrderApi = baseApi.injectEndpoints({
     getDroneOrder: builder.query<ApiResponse<DroneOrderTracking>, number>({
       query: (orderId) => `/api/admin/drone-orders/${orderId}`,
       providesTags: (_result, _error, orderId) => [{ type: TAG, id: orderId }],
+    }),
+
+    // Không gắn tag: thời tiết tự làm mới theo chu kỳ, không theo thao tác trên đơn.
+    getDroneRouteWeather: builder.query<ApiResponse<DroneRouteWeather>, number>({
+      query: (orderId) => `/api/admin/drone-orders/${orderId}/weather`,
+    }),
+
+    getDroneLockerWeather: builder.query<ApiResponse<DroneLockerWeather[]>, void>({
+      query: () => "/api/admin/drone-orders/weather/lockers",
     }),
 
     getDroneCamera: builder.query<ApiResponse<DroneCameraMetadata>, number>({
@@ -282,6 +329,8 @@ export const {
   useGetDroneOrdersQuery,
   useGetDroneOrderQuery,
   useGetDroneCameraQuery,
+  useGetDroneRouteWeatherQuery,
+  useGetDroneLockerWeatherQuery,
   useReportDroppedParcelMutation,
   useFailDroneOrderMutation,
   useConfirmDroneParcelReturnMutation,
