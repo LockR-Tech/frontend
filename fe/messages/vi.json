@@ -2415,6 +2415,28 @@
         "FLIGHT_INCIDENT": "Sự cố trong lúc bay",
         "OPERATIONAL": "Lý do vận hành",
         "OTHER": "Lý do khác"
+      },
+      "weather": {
+        "routeTitle": "Thời tiết tuyến bay",
+        "lockersTitle": "Thời tiết tại các tủ drone",
+        "loading": "Đang tải dự báo thời tiết…",
+        "loadFailed": "Không tải được dự báo thời tiết.",
+        "noLockers": "Chưa có tủ nào có bãi đáp drone.",
+        "allSafe": "Cả {{count}} tủ đều bay được trong 30 phút tới.",
+        "someBlocked": "{{blocked}}/{{count}} tủ đang không bay được hoặc chưa có dự báo.",
+        "wind": "Gió {{value}} km/h",
+        "gust": "Giật {{value}} km/h",
+        "rain": "Mưa {{value}} mm",
+        "window": "Dự báo 30 phút tới",
+        "checkedAt": "cập nhật {{time}}",
+        "provider": "nguồn {{provider}}",
+        "sourceFallback": "Tủ bay",
+        "destinationFallback": "Tủ nhận",
+        "status": {
+          "SAFE": "Bay được",
+          "UNSAFE": "Không an toàn để bay",
+          "UNAVAILABLE": "Chưa có dự báo"
+        }
       }
     },
     "drones": {

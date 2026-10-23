@@ -37,6 +37,7 @@ import { LiveCameraPanel } from "./LiveCameraPanel";
 import { isPickupCodeEvent, pickupCodeEvent, sentAt, stageTimes } from "./journey";
 import { PickupPanel, IncidentBlockBanner, CloseAsFailedForm, FailurePanel } from "./HomePickupPanels";
 import { canCloseAsFailed } from "./homePickupRules";
+import { LockerWeatherOverview, RouteWeatherPanel } from "./WeatherPanels";
 
 /** Danh sách hỏi lại server sau mỗi khoảng này để chặng mới tự hiện, không cần tải lại trang. */
 const LIST_POLL_MS = 5000;
@@ -273,6 +274,8 @@ export default function DroneOrdersPage() {
         title={t("admin.droneOrders.title")}
         description={t("admin.droneOrders.description")}
       />
+
+      <LockerWeatherOverview />
 
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -583,6 +586,8 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                 )}
               </div>
             )}
+
+            {!isFinished(order) && <RouteWeatherPanel orderId={order.orderId} />}
 
             <Section title={t("admin.droneOrders.section.map")}>
               <DroneTrackingMap order={order} />
