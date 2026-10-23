@@ -17,10 +17,22 @@ import type { AdminLockerResponse } from "~/types";
 
 export type LockerStatusFilter = "ALL" | LockerStatus;
 
+/** Lọc nhanh: "ALL", hoặc id địa điểm / id KTV dạng chuỗi; KTV còn có "UNASSIGNED". */
+export const ALL_FILTER = "ALL";
+export const UNASSIGNED_FILTER = "UNASSIGNED";
+
+export interface LockerFilterOption {
+  value: string;
+  label: string;
+  count: number;
+}
+
 export function useLockers() {
   const { t } = useTranslation();
   const [status, setStatusState] = useState<LockerStatusFilter>("ALL");
   const [searchQuery, setSearchQueryState] = useState("");
+  const [storeFilter, setStoreFilterState] = useState<string>(ALL_FILTER);
+  const [technicianFilter, setTechnicianFilterState] = useState<string>(ALL_FILTER);
   const [urlParams, setUrlParams] = useSearchParams();
   const page = Number(urlParams.get("page") ?? "0");
   const pageSize = Number(urlParams.get("size") ?? "10");
@@ -36,6 +48,14 @@ export function useLockers() {
   };
   const setSearchQuery = (value: string) => {
     setSearchQueryState(value);
+    if (page !== 0) setPage(0);
+  };
+  const setStoreFilter = (value: string) => {
+    setStoreFilterState(value);
+    if (page !== 0) setPage(0);
+  };
+  const setTechnicianFilter = (value: string) => {
+    setTechnicianFilterState(value);
     if (page !== 0) setPage(0);
   };
 
@@ -90,6 +110,16 @@ export function useLockers() {
       result = result.filter((locker) => locker.status === status);
     }
 
+    if (storeFilter !== ALL_FILTER) {
+      result = result.filter((locker) => String(locker.storeId) === storeFilter);
+    }
+
+    if (technicianFilter === UNASSIGNED_FILTER) {
+      result = result.filter((locker) => !locker.assignedTechnicianId);
+    } else if (technicianFilter !== ALL_FILTER) {
+      result = result.filter((locker) => String(locker.assignedTechnicianId) === technicianFilter);
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -103,7 +133,44 @@ export function useLockers() {
     }
 
     return result;
-  }, [allLockers, status, searchQuery]);
+  }, [allLockers, status, storeFilter, technicianFilter, searchQuery]);
+
+  // Chỉ liệt kê địa điểm / KTV đang thật sự có tủ, kèm số tủ, xếp theo tên.
+  const storeOptions = useMemo<LockerFilterOption[]>(() => {
+    const byStore = new Map<number, LockerFilterOption>();
+    for (const locker of allLockers) {
+      if (locker.storeId == null) continue;
+      const option = byStore.get(locker.storeId) ?? {
+        value: String(locker.storeId),
+        label: locker.storeName || `#${locker.storeId}`,
+        count: 0,
+      };
+      option.count += 1;
+      byStore.set(locker.storeId, option);
+    }
+    return [...byStore.values()].sort((a, b) => a.label.localeCompare(b.label, "vi"));
+  }, [allLockers]);
+
+  const technicianOptions = useMemo<LockerFilterOption[]>(() => {
+    const byTech = new Map<number, LockerFilterOption>();
+    for (const locker of allLockers) {
+      const techId = locker.assignedTechnicianId;
+      if (!techId) continue;
+      const option = byTech.get(techId) ?? {
+        value: String(techId),
+        label: locker.assignedTechnicianName || `#${techId}`,
+        count: 0,
+      };
+      option.count += 1;
+      byTech.set(techId, option);
+    }
+    return [...byTech.values()].sort((a, b) => a.label.localeCompare(b.label, "vi"));
+  }, [allLockers]);
+
+  const unassignedCount = useMemo(
+    () => allLockers.filter((l) => !l.assignedTechnicianId).length,
+    [allLockers],
+  );
 
   const paginatedLockers = useMemo(() => {
     const start = page * pageSize;
@@ -129,10 +196,13 @@ export function useLockers() {
   const clearFilters = () => {
     setStatusState("ALL");
     setSearchQueryState("");
+    setStoreFilterState(ALL_FILTER);
+    setTechnicianFilterState(ALL_FILTER);
     setPage(0);
   };
 
-  const hasActiveFilters = status !== "ALL" || searchQuery !== "";
+  const hasActiveFilters =
+    status !== "ALL" || searchQuery !== "" || storeFilter !== ALL_FILTER || technicianFilter !== ALL_FILTER;
 
   const [setMaintenance] = useSetLockerMaintenanceMutation();
   const [deleteLockerMutation, { isLoading: isDeletingSingle }] = useDeleteLockerMutation();
@@ -236,6 +306,14 @@ export function useLockers() {
     setStatus,
     searchQuery,
     setSearchQuery,
+    storeFilter,
+    setStoreFilter,
+    storeOptions,
+    technicianFilter,
+    setTechnicianFilter,
+    technicianOptions,
+    unassignedCount,
+    totalLockers: allLockers.length,
     page,
     setPage,
     pageSize,

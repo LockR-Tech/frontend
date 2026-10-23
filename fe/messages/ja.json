@@ -91,7 +91,8 @@
     "searchPlaceholder": "管理ページを検索…",
     "searchEmpty": "該当するページがありません。",
     "searchGroup": "管理ページ",
-    "loadingDrone": "ドローンを読み込み中…"
+    "loadingDrone": "ドローンを読み込み中…",
+    "loadingLocker": "ロッカーを読み込み中…"
   },
   "table": {
     "rowsPerPage": "ページあたりの行数",

@@ -336,6 +336,9 @@ export default function MaintenanceAdminPage() {
       }
     }
   }, [searchParams]);
+  // Link tới đúng một phiếu từ nơi khác (nhật ký tủ, thẻ ô): /admin/maintenance?reportId=29
+  const focusReportId = Number(searchParams.get("reportId")) || null;
+  const [focusedReportId, setFocusedReportId] = useState<number | null>(null);
   const [viewingDrone, setViewingDrone] = useState<DroneResponse | null>(null);
   const [creatingDroneReport, setCreatingDroneReport] = useState(false);
   const [droneFilter, setDroneFilter] = useState<string>("ALL");
@@ -380,6 +383,33 @@ export default function MaintenanceAdminPage() {
     );
     return hasDropReport ? filteredList : [SAMPLE_DRONE_DROP_REPORT, ...filteredList];
   }, [reportList, dismissedSampleReportIds]);
+  // Có phiếu cần mở: chuyển đúng tab, bỏ bộ lọc đang che nó, cuộn tới và mở chi tiết.
+  // Chờ danh sách phiếu tải xong; mỗi reportId chỉ xử lý một lần để người dùng lọc lại được.
+  useEffect(() => {
+    if (!focusReportId || focusedReportId === focusReportId) return;
+    const target = reportList.find((r) => r.id === focusReportId);
+    if (!target) return;
+    setFocusedReportId(focusReportId);
+    if (isDroneReport(target)) {
+      setActiveTab("drone");
+      setDroneReportFilter("ALL");
+      setDroneSearchQuery("");
+      setDroneTechFilter("ALL");
+      setDroneUnitFilter("ALL");
+      setDroneDateFilter("ALL");
+    } else {
+      setActiveTab("kiosk");
+      setReportFilter("ALL");
+      setSelectedTechFilter("ALL");
+      setSelectedLockerFilter("ALL");
+      setDateFilter("ALL");
+      setSearchQuery("");
+    }
+    window.setTimeout(() => {
+      document.getElementById(`report-${focusReportId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 200);
+  }, [focusReportId, focusedReportId, reportList]);
+
   // Danh sách các trạm Kiosk duy nhất có phiếu để hiển thị trong bộ lọc
   const availableLockers = useMemo(() => {
     const map = new Map<number, { id: number; name: string; code?: string | null }>();
@@ -1346,11 +1376,15 @@ export default function MaintenanceAdminPage() {
                     const isRecent = r.createdAt && (Date.now() - timestampOf(r.createdAt)) < 3600000;
                     const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
                     const isSelected = selectedKioskIds.includes(r.id);
+                    const isFocused = r.id === focusedReportId;
 
                     return (
                       <div
                         key={r.id}
-                        className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all ${
+                        id={`report-${r.id}`}
+                        className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all scroll-mt-24 ${
+                          isFocused ? "ring-2 ring-primary ring-offset-2 ring-offset-background " : ""
+                        }${
                           isSelected
                             ? "border-l-4 border-l-rose-500 bg-rose-50/50 dark:bg-rose-950/20 shadow-xs ring-1 ring-rose-300 dark:ring-rose-900/60 my-1"
                             : isNew
@@ -1480,6 +1514,7 @@ export default function MaintenanceAdminPage() {
                       <div className="flex flex-wrap gap-2 items-center">
                         <RepairLogDialog
                           reportId={r.id}
+                          defaultOpen={isFocused}
                           title={`${r.reportCode || `RPT-${r.id}`} · ${r.title}`}
                           technicianName={
                             r.assignedToUserId
@@ -1991,10 +2026,14 @@ export default function MaintenanceAdminPage() {
                     );
                     const displayCode = report.reportCode || `RPT-${report.id}`;
                     const isSelected = selectedDroneIds.includes(report.id);
+                    const isFocused = report.id === focusedReportId;
                     return (
                       <div
                         key={report.id}
-                        className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all ${
+                        id={`report-${report.id}`}
+                        className={`py-3.5 flex items-center justify-between gap-4 flex-wrap px-3 rounded-xl transition-all scroll-mt-24 ${
+                          isFocused ? "ring-2 ring-primary ring-offset-2 ring-offset-background " : ""
+                        }${
                           isSelected
                             ? "border-l-4 border-l-rose-500 bg-rose-50/50 dark:bg-rose-950/20 shadow-xs ring-1 ring-rose-300 dark:ring-rose-900/60 my-1"
                             : isDropIncident
@@ -2116,7 +2155,7 @@ export default function MaintenanceAdminPage() {
                               Điều phối KTV bán kính R
                             </Button>
                           )}
-                          <RepairLogDialog reportId={report.id} title={`${displayCode} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
+                          <RepairLogDialog reportId={report.id} defaultOpen={isFocused} title={`${displayCode} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
                           {(report.status === "OPEN" || report.status === "IN_PROGRESS") && (
                             <Button size="sm" variant={report.status === "OPEN" ? "default" : "outline"} className="h-8 text-xs gap-1.5" onClick={() => setAssigningReport(report)}>
                               <UserCheck className="w-3.5 h-3.5" /> {report.status === "OPEN" ? t("admin.maintenance.reports.assignDroneTech") : t("admin.maintenance.reports.changeTech")}

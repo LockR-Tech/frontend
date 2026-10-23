@@ -124,7 +124,8 @@
     "searchPlaceholder": "Search admin pages…",
     "searchEmpty": "No matching page.",
     "searchGroup": "Admin pages",
-    "loadingDrone": "Loading drone…"
+    "loadingDrone": "Loading drone…",
+    "loadingLocker": "Loading locker…"
   },
   "table": {
     "rowsPerPage": "Rows per page",
@@ -820,7 +821,11 @@
         "disconnected": "Disconnected"
       },
       "filters": {
-        "searchPlaceholder": "Search lockers..."
+        "searchPlaceholder": "Search lockers...",
+        "location": "Location",
+        "allLocations": "All locations",
+        "technician": "Technician",
+        "allTechnicians": "All technicians"
       },
       "stats": {
         "totalLockers": "Total Lockers",
@@ -1019,7 +1024,17 @@
         "sendToCleaning": "Mark for cleaning",
         "reportFault": "Report box fault",
         "cannotDelete": "Can't delete a box that is holding items or reserved",
-        "deleteBox": "Delete this box"
+        "deleteBox": "Delete this box",
+        "openReports": "Fault reported · {{reports}}",
+        "reportReason": "Reason: {{reason}}",
+        "holdingOrder": "Order inside",
+        "holdingOrdersCount": "{{count}} orders inside",
+        "noOrder": "No order is holding this box.",
+        "ordersDialogTitle": "Orders in box #{{number}}",
+        "ordersDialogDesc": "Open orders holding this box (reserved or with items inside).",
+        "viewOrder": "View order",
+        "orderCustomer": "Customer: {{name}}",
+        "orderReceiver": "Receiver: {{name}}"
       },
       "layout": {
         "toast": {
@@ -1216,10 +1231,23 @@
           "online": "Online (Plugged in)",
           "offline": "Disconnected (Unplugged)",
           "closed": "Door closed",
-          "timeout": "Timed out",
+          "timeout": "No response",
           "jammed": "Lock jammed",
           "denied": "Denied",
           "restartRequested": "Restart requested"
+        },
+        "message": {
+          "timeoutTitle": "The cabinet did not answer the open command within {{seconds}} s",
+          "timeoutTitleNoSeconds": "The cabinet did not answer the open command",
+          "timeoutHint": "The controller may have lost power or network, so the box may still be closed. Check the cabinet power and network (Controller card), then retry.",
+          "jammedTitle": "Box latch jammed — the cabinet could not open the box",
+          "jammedHint": "The box was marked faulty. Have a technician check the latch and door.",
+          "hardwareTitle": "The cabinet reported an error opening the box: {{detail}}",
+          "hardwareHint": "Hardware error code {{code}}. Have a technician check this box.",
+          "sendFailedTitle": "The open command could not be sent to the cabinet",
+          "sendFailedHint": "The server could not reach the controller (MQTT), so the box did not open. Retry in a few minutes.",
+          "systemErrorTitle": "System error while processing the open command",
+          "systemErrorHint": "The server failed while handling the command; the box may still be closed. Retry, or report this time to the tech team."
         },
         "slotsUnknown": "— boxes",
         "title": "Operations & IoT Log for Locker {{locker}}",
@@ -1267,6 +1295,7 @@
           "category": "Category",
           "description": "Incident Description",
           "categoryGeneral": "GENERAL",
+          "openReport": "Open report RPT-{{id}} in Maintenance",
           "resolved": "Resolved",
           "inProgress": "In progress",
           "open": "Open",
