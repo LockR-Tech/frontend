@@ -40,6 +40,7 @@ export const OrderSettingsKeys = {
 
   DRONE_DEMO_INDOOR_ARUCO_ENABLED: "app.drone.demo.indoor-aruco-enabled",
   DRONE_DEMO_HOLD_OPEN_SECONDS: "app.drone.demo.hold-open-seconds",
+  DRONE_OPEN_LID_MAX_WAIT_SECONDS: "app.drone.delivery.open-lid-max-wait-seconds",
   DRONE_DEMO_ENABLED: "app.drone.demo.enabled",
   DRONE_DEMO_STAGE_DELAY_MS: "app.drone.demo.stage-delay-ms",
   DRONE_DEMO_ALLOWED_USER_IDS: "app.drone.demo.allowed-user-ids",

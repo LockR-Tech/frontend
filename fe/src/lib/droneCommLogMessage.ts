@@ -94,7 +94,9 @@ export function describeDroneCommLog(log: DroneLockerCommLog): string {
     case 'MARKER_VALIDATED':
       return 'Xác thực mã ArUco hợp lệ với ô tủ đích';
     case 'OPEN_LID_REQUESTED':
-      return 'Gửi lệnh yêu cầu mở nắp trượt ô tủ';
+      return log.retryCount > 0
+        ? `Gửi lại lệnh mở nắp trượt ô tủ (tủ đã kết nối lại, lần ${log.retryCount})`
+        : 'Gửi lệnh yêu cầu mở nắp trượt ô tủ';
     case 'LID_OPENED':
       return 'Nắp trượt ô tủ đã mở hoàn toàn';
     case 'DROP_PHASE_STARTED':
@@ -102,7 +104,9 @@ export function describeDroneCommLog(log: DroneLockerCommLog): string {
     case 'DROP_PHASE_COMPLETED':
       return 'Hoàn tất giai đoạn nhả hàng';
     case 'CLOSE_LID_REQUESTED':
-      return 'Gửi lệnh yêu cầu đóng nắp trượt ô tủ';
+      return log.retryCount > 0
+        ? `Gửi lại lệnh đóng nắp trượt ô tủ (tủ đã kết nối lại, lần ${log.retryCount})`
+        : 'Gửi lệnh yêu cầu đóng nắp trượt ô tủ';
     case 'LID_CLOSED':
       return 'Nắp trượt ô tủ đã đóng hoàn toàn và khóa an toàn';
     case 'DELIVERY_READY':

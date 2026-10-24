@@ -100,6 +100,8 @@ import { GatewayPanel } from "./components/GatewayPanel";
 import { LockerLogsPanel } from "./components/LockerLogsPanel";
 import { EditBoxModal } from "./components/EditBoxModal";
 import { BoxQrModal } from "./components/BoxQrModal";
+import { BoxOpenQrSheet } from "./components/BoxOpenQrSheet";
+import { LockerBluetoothPanel } from "./components/LockerBluetoothPanel";
 import { KioskScreenModal } from "./components/KioskScreenModal";
 import { LockerAddBoxPreview } from "./components/LockerAddBoxPreview";
 import { LockerLocationModal } from "./components/LockerLocationModal";
@@ -833,6 +835,8 @@ export default function LockerLayoutPage() {
   // Modal State for Box QR Code & Printing
   const [showQrModal, setShowQrModal] = useState(false);
   const [selectedQrCell, setSelectedQrCell] = useState<CellResponse | null>(null);
+  // Tờ QR mở ô để thử tủ (quét là ô bật ra, không cần đơn)
+  const [showOpenQrSheet, setShowOpenQrSheet] = useState(false);
 
   // Modal State for 7-inch Touch Screen
   const [showScreenModal, setShowScreenModal] = useState(false);
@@ -1337,6 +1341,14 @@ export default function LockerLayoutPage() {
           </Button>
           <Button
             variant="outline"
+            onClick={() => setShowOpenQrSheet(true)}
+            disabled={cells.length === 0}
+            className="shadow-xs border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+          >
+            <Unlock className="w-4 h-4 mr-1.5" /> {t("admin.lockers.openQr.button", "QR mở ô (thử tủ)")}
+          </Button>
+          <Button
+            variant="outline"
             onClick={openArrange}
             disabled={cells.length === 0}
             className="shadow-xs"
@@ -1754,6 +1766,9 @@ export default function LockerLayoutPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Kiểm tra beacon Bluetooth của tủ và mở thử từng ô */}
+      <LockerBluetoothPanel lockerId={id} lockerCode={layout.code} cells={cells} />
 
       {/* 1) Xem nhật ký của tủ */}
       <LockerLogsPanel lockerId={id} lockerCode={layout.code} cells={cells} gateway={currentGateway} />
@@ -2225,6 +2240,15 @@ export default function LockerLayoutPage() {
         lockerId={id}
         lockerName={layout.name}
         lockerCode={layout.code}
+      />
+
+      <BoxOpenQrSheet
+        open={showOpenQrSheet}
+        onOpenChange={setShowOpenQrSheet}
+        lockerId={id}
+        lockerCode={layout.code}
+        lockerName={layout.name}
+        cells={cells}
       />
 
       {/* 4) Modal thông số & data Màn hình cảm ứng 7 inch */}

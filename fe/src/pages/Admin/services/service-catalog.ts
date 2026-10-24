@@ -116,6 +116,7 @@ export const SERVICE_CATALOG: ServiceDefinition[] = [
         keys: [
           OrderSettingsKeys.DRONE_DEMO_INDOOR_ARUCO_ENABLED,
           OrderSettingsKeys.DRONE_DEMO_HOLD_OPEN_SECONDS,
+          OrderSettingsKeys.DRONE_OPEN_LID_MAX_WAIT_SECONDS,
           OrderSettingsKeys.DRONE_DEMO_ENABLED,
           OrderSettingsKeys.DRONE_DEMO_STAGE_DELAY_MS,
           OrderSettingsKeys.DRONE_DEMO_ALLOWED_USER_IDS,

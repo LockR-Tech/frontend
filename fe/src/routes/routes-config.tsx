@@ -46,6 +46,7 @@ const SchedulerPage = lazy(() => import("../pages/Admin/scheduler"));
 const LockersAdminPage = lazy(() => import("../pages/Admin/lockers"));
 const CabinetControlPage = lazy(() => import("../pages/Admin/cabinet-control"));
 const LockerLayoutPage = lazy(() => import("../pages/Admin/lockers/layout-view"));
+const OpenBoxByQrPage = lazy(() => import("../pages/Admin/lockers/open-box"));
 const MaintenanceAdminPage = lazy(() => import("../pages/Admin/maintenance"));
 const TechniciansPage = lazy(() => import("../pages/Admin/technicians"));
 const TechnicianDetailPage = lazy(() => import("../pages/Admin/maintenance/technician-detail"));
@@ -227,6 +228,15 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <LockerLayoutPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        // Đích của mã QR mở ô để thử tủ (tờ QR ở trang chi tiết tủ).
+        path: "lockers/:lockerId/open/:boxId",
+        element: (
+          <LazyWrapper>
+            <OpenBoxByQrPage />
           </LazyWrapper>
         ),
       },
