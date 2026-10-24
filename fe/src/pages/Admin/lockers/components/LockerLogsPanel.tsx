@@ -40,9 +40,15 @@ import {
   useGetLockerAccessLogsQuery,
   useGetAllAdminReportsQuery,
   useGetGatewaysQuery,
+  type BoxAccessLogResponse,
   type CellResponse,
   type GatewayDeviceResponse,
 } from "~/stores/apis/admin/lockerOps";
+import {
+  useGetLockerDroneCommLogsQuery,
+  type DroneLockerCommLog,
+} from "~/stores/apis/admin/droneCommLogs";
+import { describeDroneCommLog, isDroneCommLogError } from "~/lib/droneCommLogMessage";
 import { useNavigate } from "react-router-dom";
 import { describeAccessLogMessage } from "./accessLogMessage";
 import { formatDateTime } from "~/lib/datetime";
@@ -91,7 +97,36 @@ const RESULT_LABEL: Record<string, { labelKey: string; cls: string; icon: any }>
   JAMMED: { labelKey: "admin.lockers.logs.result.jammed", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300", icon: AlertTriangle },
   DENIED: { labelKey: "admin.lockers.logs.result.denied", cls: "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-300", icon: XCircle },
   RESTART_REQUESTED: { labelKey: "admin.lockers.logs.result.restartRequested", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: RefreshCw },
+  PENDING: { labelKey: "admin.lockers.logs.result.pending", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300", icon: Clock },
 };
+
+/// Một dòng nhật ký của tủ: bản ghi iot-service, hoặc thông điệp giao tiếp Drone ↔ Tủ (order-service,
+/// cùng nguồn với trang /admin/drone-logs) được quy về cùng dạng để lọc/hiển thị chung.
+type PanelLog = BoxAccessLogResponse & { droneLog?: DroneLockerCommLog };
+
+function droneLogResult(log: DroneLockerCommLog): string {
+  const status = (log.processingStatus || "").toUpperCase();
+  if (status === "REJECTED") return "DENIED";
+  if (isDroneCommLogError(log)) return "FAILED";
+  if (status === "PENDING" || status === "PROCESSING") return "PENDING";
+  return "SUCCESS";
+}
+
+function fromDroneLog(log: DroneLockerCommLog): PanelLog {
+  return {
+    id: log.id,
+    // -1: thông điệp không gắn ô cụ thể — không lẫn với 0 (bộ điều khiển/màn hình của tủ).
+    boxId: log.compartmentId ?? -1,
+    lockerId: log.lockerId,
+    orderId: log.orderId ?? null,
+    actorUserId: null,
+    credentialType: "DRONE",
+    result: droneLogResult(log),
+    message: describeDroneCommLog(log),
+    createdAt: log.timestamp,
+    droneLog: log,
+  };
+}
 
 export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGateway }: LockerLogsPanelProps) {
   const { t } = useTranslation();
@@ -100,6 +135,11 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
   const { data, isLoading, isFetching, refetch } = useGetLockerAccessLogsQuery(lockerId, {
     pollingInterval: 10000,
   });
+  const {
+    data: droneLogsData,
+    isFetching: droneLogsFetching,
+    refetch: refetchDroneLogs,
+  } = useGetLockerDroneCommLogsQuery(lockerId, { pollingInterval: 15000 });
 
   const { data: gatewaysData, refetch: refetchGateways } = useGetGatewaysQuery(undefined, { pollingInterval: 5000 });
   const gateway = useMemo(
@@ -115,16 +155,18 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
   const [selectedType, setSelectedType] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Chỉ hiển thị nhật ký server ghi (iot-service đã tự ghi các lần bộ điều khiển online/offline)
+  // Nhật ký server ghi (iot-service đã tự ghi các lần bộ điều khiển online/offline), bổ sung thông
+  // điệp giao tiếp Drone ↔ Tủ của chính tủ này. Hai nguồn chỉ nối thêm, không thay thế nhau.
   const logs = useMemo(() => {
-    const serverLogs = [...(data?.data ?? [])];
+    const droneLogs: DroneLockerCommLog[] = droneLogsData?.data ?? [];
+    const serverLogs: PanelLog[] = [...(data?.data ?? []), ...droneLogs.map(fromDroneLog)];
     // Sắp xếp giảm dần theo thời gian (mới nhất lên đầu)
     return serverLogs.sort((a, b) => {
       const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return tB - tA;
     });
-  }, [data]);
+  }, [data, droneLogsData]);
 
   // Thông tin bộ điều khiển: thiếu thì để "—", không tự điền giá trị mặc định
   const gatewayHardware = gateway?.hardware
@@ -172,6 +214,8 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
           if (log.credentialType !== "DISPLAY") return false;
         } else if (selectedType === "MASTER") {
           if (log.credentialType !== "MASTER") return false;
+        } else if (selectedType === "DRONE") {
+          if (log.credentialType !== "DRONE") return false;
         } else if (selectedType === "USER_OPEN") {
           if (
             log.credentialType !== "PIN" &&
@@ -190,7 +234,12 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
         const orderMatch = log.orderId != null && String(log.orderId).includes(q);
         const credMatch = log.credentialType?.toLowerCase().includes(q);
         const userMatch = log.actorUserId != null && String(log.actorUserId).includes(q);
-        if (!msgMatch && !orderMatch && !credMatch && !userMatch) {
+        const droneMatch =
+          log.droneLog != null &&
+          [log.droneLog.eventType, log.droneLog.droneId, log.droneLog.sessionId].some((v) =>
+            v?.toLowerCase().includes(q)
+          );
+        if (!msgMatch && !orderMatch && !credMatch && !userMatch && !droneMatch) {
           return false;
         }
       }
@@ -223,6 +272,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
 
   const handleRefresh = () => {
     refetch();
+    refetchDroneLogs();
     refetchGateways();
   };
 
@@ -269,9 +319,9 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
               size="sm"
               className="h-8 text-xs"
               onClick={handleRefresh}
-              disabled={isFetching}
+              disabled={isFetching || droneLogsFetching}
             >
-              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isFetching ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isFetching || droneLogsFetching ? "animate-spin" : ""}`} />
               {t("button.refresh")}
             </Button>
           </div>
@@ -412,6 +462,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                   <SelectItem value="USER_OPEN">{t("admin.lockers.logs.filter.userOpen")}</SelectItem>
                   <SelectItem value="HARDWARE_ISSUES">{t("admin.lockers.logs.hardwareIssues")}</SelectItem>
                   <SelectItem value="MASTER">{t("admin.lockers.logs.credential.master")}</SelectItem>
+                  <SelectItem value="DRONE">{t("admin.lockers.logs.filter.drone")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -505,15 +556,24 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                         const isOnline = log.result?.toUpperCase() === "ONLINE";
                         const isDiscovery = log.credentialType === "DISCOVERY" || log.credentialType === "GATEWAY";
                         const isDisplay = log.credentialType === "DISPLAY";
-                        const explained = describeAccessLogMessage(log);
+                        const drone = log.droneLog;
+                        const explained = drone ? null : describeAccessLogMessage(log);
 
                         return (
-                          <TableRow key={`${log.id}-${index}`} className="hover:bg-muted/30">
+                          <TableRow key={`${drone ? "drone" : "iot"}-${log.id}-${index}`} className="hover:bg-muted/30">
                             <TableCell className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                               {formatDateTime(log.createdAt)}
                             </TableCell>
                             <TableCell className="font-semibold">
-                              {log.boxId === 0 ? (
+                              {drone && boxNum == null ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-300 whitespace-nowrap"
+                                >
+                                  <Plane className="w-2.5 h-2.5 mr-1" />
+                                  {drone.droneId || t("admin.lockers.logs.credential.drone")}
+                                </Badge>
+                              ) : log.boxId === 0 ? (
                                 isDisplay ? (
                                   <Badge
                                     variant="outline"
@@ -564,12 +624,14 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                                 <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400">Waveshare 7"</span>
                               ) : isDiscovery ? (
                                 <span className="text-[11px] font-mono text-purple-600 dark:text-purple-400">Pi Controller</span>
+                              ) : drone?.droneId ? (
+                                <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400">{drone.droneId}</span>
                               ) : (
                                 t("common.system")
                               )}
                             </TableCell>
                             <TableCell
-                              className={`max-w-[420px] ${explained ? "whitespace-normal" : "truncate"} ${
+                              className={`max-w-[420px] ${explained || drone ? "whitespace-normal" : "truncate"} ${
                                 isOffline
                                   ? "text-rose-700 dark:text-rose-400 font-semibold"
                                   : isOnline
@@ -582,7 +644,16 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                               }`}
                               title={log.message ?? ""}
                             >
-                              {explained ? (
+                              {drone ? (
+                                <div className="space-y-0.5">
+                                  <p className="font-semibold leading-snug">{log.message}</p>
+                                  <p className="text-[11px] font-mono font-normal leading-snug text-muted-foreground">
+                                    {[drone.eventType, `${drone.sourceDevice} → ${drone.destinationDevice || "—"}`]
+                                      .filter(Boolean)
+                                      .join(" · ")}
+                                  </p>
+                                </div>
+                              ) : explained ? (
                                 <div className="space-y-0.5">
                                   <p className="font-semibold leading-snug">{t(explained.titleKey, explained.params)}</p>
                                   <p className="text-[11px] font-normal leading-snug text-muted-foreground">

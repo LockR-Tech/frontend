@@ -18,7 +18,6 @@ import { toast } from 'sonner';
 import { PageHeader } from '~/components/shared/page-header';
 import { StandalonePagination } from '~/components/shared/data-table/DataTablePagination';
 import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Input } from '~/components/ui/input';
 import {
@@ -87,28 +86,40 @@ function translateRawMessage(raw: string): string {
 }
 
 function resolveLogMessage(log: DroneLockerCommLog): string {
-  if (log.errorMessage && log.errorMessage.trim()) {
-    return translateRawMessage(log.errorMessage);
+  const isErr = isErrorStatus(log);
+
+  // Khi có lỗi hoặc bị từ chối: hiển thị nguyên nhân lỗi cụ thể
+  if (isErr) {
+    if (log.errorMessage && log.errorMessage.trim()) {
+      return translateRawMessage(log.errorMessage);
+    }
+    const parsed = parsePayloadObject(log);
+    if (parsed) {
+      if (typeof parsed.errorMessage === 'string' && parsed.errorMessage.trim()) {
+        return translateRawMessage(parsed.errorMessage);
+      }
+      if (typeof parsed.message === 'string' && parsed.message.trim()) {
+        return translateRawMessage(parsed.message);
+      }
+    }
+    if (log.errorCode) {
+      return `Lỗi xử lý: ${log.errorCode}`;
+    }
   }
 
-  const parsed = parsePayloadObject(log);
-  if (parsed) {
-    if (typeof parsed.errorMessage === 'string' && parsed.errorMessage.trim()) {
-      return translateRawMessage(parsed.errorMessage);
-    }
-    if (typeof parsed.message === 'string' && parsed.message.trim()) {
-      return translateRawMessage(parsed.message);
-    }
-    if (log.eventType === 'MARKER_DETECTED') {
-      const mid = parsed.arucoMarkerId ?? log.markerId ?? '?';
+  // Khi sự kiện thành công / đang xử lý: thống nhất mô tả thông điệp theo sự kiện
+  switch (log.eventType) {
+    case 'MARKER_DETECTED': {
+      const parsed = parsePayloadObject(log);
+      const mid = parsed?.arucoMarkerId ?? log.markerId ?? '0';
       const dist =
-        typeof parsed.distanceM === 'number' ? `${parsed.distanceM.toFixed(2)}m` : null;
+        typeof parsed?.distanceM === 'number' ? `${parsed.distanceM.toFixed(2)}m` : null;
       const ox =
-        typeof parsed.offsetX === 'number'
+        typeof parsed?.offsetX === 'number'
           ? `${parsed.offsetX >= 0 ? '+' : ''}${parsed.offsetX.toFixed(2)}m`
           : null;
       const oy =
-        typeof parsed.offsetY === 'number'
+        typeof parsed?.offsetY === 'number'
           ? `${parsed.offsetY >= 0 ? '+' : ''}${parsed.offsetY.toFixed(2)}m`
           : null;
       const parts = [`Camera phát hiện mã ArUco #${mid}`];
@@ -116,17 +127,6 @@ function resolveLogMessage(log: DroneLockerCommLog): string {
       if (ox && oy) parts.push(`Lệch X: ${ox}, Y: ${oy}`);
       return parts.join(' · ');
     }
-    if (parsed.action && (parsed.boxId || parsed.box_id)) {
-      return `Lệnh ${parsed.action} nắp trượt cho ô #${parsed.boxId ?? parsed.box_id}`;
-    }
-    if (parsed.hwState && parsed.status) {
-      return `Phản hồi phần cứng tủ: ${parsed.status} (Trạng thái nắp: ${parsed.hwState})`;
-    }
-  }
-
-  switch (log.eventType) {
-    case 'MARKER_DETECTED':
-      return `Camera Drone phát hiện mã ArUco #${log.markerId ?? '?'}`;
     case 'MARKER_VALIDATED':
       return 'Xác thực mã ArUco hợp lệ với ô tủ đích';
     case 'OPEN_LID_REQUESTED':
@@ -134,16 +134,19 @@ function resolveLogMessage(log: DroneLockerCommLog): string {
     case 'LID_OPENED':
       return 'Nắp trượt ô tủ đã mở hoàn toàn';
     case 'DROP_PHASE_STARTED':
-      return 'Bắt đầu đếm ngược thời gian giữ mở nắp trượt';
+      return 'Bắt đầu giai đoạn nhả hàng (giữ mở nắp trượt trong 5 giây)';
     case 'DROP_PHASE_COMPLETED':
-      return 'Hoàn tất giai đoạn thả hàng / giữ mở nắp trượt';
+      return 'Hoàn tất giai đoạn nhả hàng';
     case 'CLOSE_LID_REQUESTED':
       return 'Gửi lệnh yêu cầu đóng nắp trượt ô tủ';
     case 'LID_CLOSED':
       return 'Nắp trượt ô tủ đã đóng hoàn toàn và khóa an toàn';
     case 'DELIVERY_READY':
-      return 'Giao hàng hoàn tất — Kiện hàng sẵn sàng để khách nhận';
+      return 'Giao hàng hoàn tất an toàn — Kiện hàng sẵn sàng để khách nhận';
     default:
+      if (log.errorMessage && log.errorMessage.trim()) {
+        return translateRawMessage(log.errorMessage);
+      }
       return '—';
   }
 }
@@ -435,9 +438,9 @@ export default function DroneLogsPage() {
               <thead className="bg-muted/40 border-b border-border text-muted-foreground">
                 <tr>
                   <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Thời gian</th>
+                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Đối tượng</th>
                   <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Sự kiện</th>
                   <th className="py-2.5 px-4 text-left font-semibold">Nội dung thông điệp (Message)</th>
-                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Đối tượng</th>
                   <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">ArUco Marker</th>
                   <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Trạng thái</th>
                 </tr>
@@ -485,42 +488,10 @@ export default function DroneLogsPage() {
                           </div>
                         </td>
 
-                        {/* 2. Sự kiện */}
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          {renderEventBadge(log.eventType)}
-                        </td>
-
-                        {/* 3. Nội dung thông điệp (Message) */}
-                        <td className="py-3 px-4 min-w-[260px]">
-                          <div className="flex items-start gap-1.5">
-                            {isErr ? (
-                              <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
-                            ) : (
-                              <MessageSquareText className="w-3.5 h-3.5 text-sky-500 shrink-0 mt-0.5" />
-                            )}
-                            <div className="space-y-0.5">
-                              {log.errorCode && (
-                                <span className="inline-block font-mono text-[10px] font-semibold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 mr-1">
-                                  {log.errorCode}
-                                </span>
-                              )}
-                              <p
-                                className={`text-xs leading-relaxed break-words ${
-                                  isErr
-                                    ? 'text-rose-600 dark:text-rose-400 font-medium'
-                                    : 'text-foreground'
-                                }`}
-                              >
-                                {messageText}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* 4. Đơn hàng & Thiết bị (Chỉ hiện đối tượng thực hiện sự kiện + đơn hàng) */}
+                        {/* 2. Đối tượng (Nằm ngay bên phải cột Thời gian) */}
                         <td className="py-3 px-4 whitespace-nowrap">
                           <div className="space-y-1">
-                            {/* Đối tượng thực hiện sự kiện (Drone hoặc Tủ) */}
+                            {/* Đối tượng thực hiện sự kiện (Drone hoặc Tủ/Ô tủ) */}
                             {actorType === 'LOCKER' && resolvedLockerId ? (
                               <div className="flex items-center gap-1.5 text-[11px]">
                                 <Link
@@ -530,7 +501,7 @@ export default function DroneLogsPage() {
                                 >
                                   <Boxes className="w-3 h-3" />
                                   <span>
-                                    Tủ {lockerInfo?.code ? ` ${lockerInfo.code}` : ''}
+                                    Tủ {lockerInfo?.code ? ` ${lockerInfo.code}` : `#${resolvedLockerId}`}
                                   </span>
                                   <ExternalLink className="w-2.5 h-2.5 opacity-70" />
                                 </Link>
@@ -542,7 +513,7 @@ export default function DroneLogsPage() {
                                       resolvedBoxNumber ? ` (Ô số ${resolvedBoxNumber})` : ''
                                     }`}
                                   >
-                                    Ô {resolvedBoxNumber ? ` số ${resolvedBoxNumber}` : ''}
+                                    Ô {resolvedBoxNumber ? ` số ${resolvedBoxNumber}` : `#${resolvedCompartmentId}`}
                                   </Link>
                                 )}
                               </div>
@@ -578,13 +549,44 @@ export default function DroneLogsPage() {
                                 >
                                   <Package className="w-3 h-3" />
                                   <span>
-                                    Đơn
-                                    #{orderInfo?.orderCode ? `${orderInfo.orderCode}` : ''}
+                                    Đơn #{orderInfo?.orderCode ? orderInfo.orderCode : log.orderId}
                                   </span>
                                   <ExternalLink className="w-2.5 h-2.5 opacity-70" />
                                 </Link>
                               </div>
                             ) : null}
+                          </div>
+                        </td>
+
+                        {/* 3. Sự kiện */}
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          {renderEventBadge(log.eventType)}
+                        </td>
+
+                        {/* 4. Nội dung thông điệp (Message) - Đồng bộ chính xác với Sự kiện */}
+                        <td className="py-3 px-4 min-w-[280px]">
+                          <div className="flex items-start gap-1.5">
+                            {isErr ? (
+                              <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                            ) : (
+                              <MessageSquareText className="w-3.5 h-3.5 text-sky-500 shrink-0 mt-0.5" />
+                            )}
+                            <div className="space-y-0.5">
+                              {log.errorCode && (
+                                <span className="inline-block font-mono text-[10px] font-semibold px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 mr-1">
+                                  {log.errorCode}
+                                </span>
+                              )}
+                              <p
+                                className={`text-xs leading-relaxed break-words ${
+                                  isErr
+                                    ? 'text-rose-600 dark:text-rose-400 font-medium'
+                                    : 'text-foreground'
+                                }`}
+                              >
+                                {messageText}
+                              </p>
+                            </div>
                           </div>
                         </td>
 

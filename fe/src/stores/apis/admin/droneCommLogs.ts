@@ -84,6 +84,9 @@ export interface DroneCommLogSearchParams {
   size?: number;
 }
 
+/// Giới hạn số trang (×100 bản ghi) khi gom nhật ký drone của một tủ, tránh kéo vô hạn mỗi lượt làm mới.
+const LOCKER_LOG_MAX_PAGES = 10;
+
 function normalizeCommLog(
   raw: DroneLockerCommLog,
   sessionContextMap: Map<string, Partial<DroneLockerCommLog>>
@@ -330,6 +333,82 @@ export const droneCommLogsApi = baseApi.injectEndpoints({
       providesTags: ['DroneOrder'],
     }),
 
+    // Mọi thông điệp Drone ↔ Tủ thuộc một tủ, gán tủ đúng như trang /admin/drone-logs: lockerId của
+    // bản ghi; thiếu thì lấy theo phiên giao (sessionId) rồi tới tủ đích của đơn. Bản ghi chỉ có
+    // sessionId/orderId (vd. MARKER_DETECTED trước khi khớp đơn, DROP_PHASE_COMPLETED) vẫn được gom.
+    getLockerDroneCommLogs: builder.query({
+      async queryFn(lockerId: number, _queryApi: any, _extraOptions: any, fetchWithBQ: any) {
+        const byId = new Map<number, DroneLockerCommLog>();
+        const collect = (list: DroneLockerCommLog[] | undefined) => {
+          for (const item of list ?? []) {
+            if (item && typeof item.id === 'number') byId.set(item.id, item);
+          }
+        };
+
+        // 1. Bản ghi đã gắn lockerId của tủ (backend tối đa 100 bản ghi/trang).
+        for (let page = 0; page < LOCKER_LOG_MAX_PAGES; page++) {
+          const res = await fetchWithBQ({
+            url: '/api/admin/drone-locker-logs',
+            params: { lockerId, fromDate: '2020-01-01', toDate: '2099-12-31', page, size: 100 },
+          });
+          if (res.error) return { error: res.error };
+          const pageData = (res.data as ApiResponse<PageResponse<DroneLockerCommLog>> | undefined)?.data;
+          collect(pageData?.content);
+          if (!pageData || page + 1 >= pageData.totalPages) break;
+        }
+
+        // 2. Đơn drone có tủ đích là tủ này + đơn đã xuất hiện ở bước 1 ⇒ lấy đủ nhật ký từng đơn.
+        const [ordersRes, activeRes] = await Promise.all([
+          fetchWithBQ({ url: '/api/admin/drone-orders', params: { includeFinished: true } }),
+          fetchWithBQ('/api/admin/drone-locker-logs/active-sessions'),
+        ]);
+        const droneOrders: DroneOrderTracking[] =
+          (ordersRes.data as ApiResponse<DroneOrderTracking[]> | undefined)?.data ?? [];
+        const activeSessions: DroneActiveSession[] =
+          (activeRes.data as ApiResponse<DroneActiveSession[]> | undefined)?.data ?? [];
+        const destinationByOrder = new Map<number, number | null>();
+        for (const o of droneOrders) destinationByOrder.set(o.orderId, o.destinationLockerId);
+
+        const orderIds = new Set<number>();
+        for (const o of droneOrders) if (o.destinationLockerId === lockerId) orderIds.add(o.orderId);
+        for (const l of byId.values()) if (l.orderId) orderIds.add(l.orderId);
+        const orderResults = await Promise.all(
+          Array.from(orderIds).map((oid) => fetchWithBQ(`/api/admin/drone-locker-logs/orders/${oid}`))
+        );
+        for (const r of orderResults) collect((r?.data as ApiResponse<DroneLockerCommLog[]> | undefined)?.data);
+
+        // 3. Trọn phiên giao của các bản ghi đã gom (bắt cả bản ghi chưa gắn đơn/tủ).
+        const sessionIds = new Set<string>();
+        for (const s of activeSessions) if (s.sessionId && s.lockerId === lockerId) sessionIds.add(s.sessionId);
+        for (const l of byId.values()) if (l.sessionId) sessionIds.add(l.sessionId);
+        const sessionResults = await Promise.all(
+          Array.from(sessionIds).map((sid) =>
+            fetchWithBQ(`/api/admin/drone-locker-logs/sessions/${encodeURIComponent(sid)}`)
+          )
+        );
+        for (const r of sessionResults) collect((r?.data as ApiResponse<DroneLockerCommLog[]> | undefined)?.data);
+
+        const mine = enrichLogsBySession(Array.from(byId.values()), activeSessions).filter((log) => {
+          const resolved = log.lockerId ?? (log.orderId ? destinationByOrder.get(log.orderId) : null) ?? null;
+          return resolved === lockerId;
+        });
+        mine.sort((a, b) => {
+          const tA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+          const tB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+          if (tB !== tA) return tB - tA;
+          return (b.id ?? 0) - (a.id ?? 0);
+        });
+        const response: ApiResponse<DroneLockerCommLog[]> = {
+          data: mine,
+          message: 'OK',
+          status: 200,
+          timestamp: new Date().toISOString(),
+        };
+        return { data: response };
+      },
+      providesTags: ['DroneOrder'],
+    }),
+
     getSessionTimeline: builder.query({
       query: (sessionId: string) =>
         `/api/admin/drone-locker-logs/sessions/${encodeURIComponent(sessionId)}`,
@@ -350,6 +429,7 @@ export const droneCommLogsApi = baseApi.injectEndpoints({
 
 export const {
   useGetDroneCommLogsQuery,
+  useGetLockerDroneCommLogsQuery,
   useGetSessionTimelineQuery,
   useGetOrderCommLogsQuery,
   useGetActiveDroneSessionsQuery,

@@ -1240,7 +1240,8 @@
           "timeout": "Tủ không phản hồi",
           "jammed": "Kẹt khóa",
           "denied": "Từ chối",
-          "restartRequested": "Yêu cầu khởi động"
+          "restartRequested": "Yêu cầu khởi động",
+          "pending": "Đang xử lý"
         },
         "message": {
           "timeoutTitle": "Tủ không phản hồi lệnh mở sau {{seconds}} giây",
@@ -1257,7 +1258,7 @@
         },
         "slotsUnknown": "— ô",
         "title": "Nhật ký vận hành & IoT của tủ {{locker}}",
-        "description": "Theo dõi chi tiết từng lần kết nối (cắm điện), mất kết nối (rút điện), mở khóa và can thiệp phần cứng.",
+        "description": "Theo dõi chi tiết từng lần kết nối (cắm điện), mất kết nối (rút điện), mở khóa, can thiệp phần cứng và thông điệp giao tiếp Drone ↔ Tủ.",
         "tabAccess": "Nhật ký mở tủ & IoT ({{count}})",
         "tabReports": "Sự cố & Sửa chữa ({{count}})",
         "totalEntries": "Tổng bản ghi nhật ký",
@@ -1281,7 +1282,8 @@
           "boxOption": "Ô #{{number}} (ID: {{id}})",
           "result": "Kết quả",
           "allResults": "Tất cả kết quả",
-          "jammed": "Kẹt khóa / Lỗi"
+          "jammed": "Kẹt khóa / Lỗi",
+          "drone": "Giao tiếp Drone ↔ Tủ"
         },
         "loading": "Đang tải nhật ký...",
         "empty": "Chưa có bản ghi nhật ký nào phù hợp.",

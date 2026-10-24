@@ -1240,7 +1240,8 @@
           "timeout": "No response",
           "jammed": "Lock jammed",
           "denied": "Denied",
-          "restartRequested": "Restart requested"
+          "restartRequested": "Restart requested",
+          "pending": "Processing"
         },
         "message": {
           "timeoutTitle": "The cabinet did not answer the open command within {{seconds}} s",
@@ -1257,7 +1258,7 @@
         },
         "slotsUnknown": "— boxes",
         "title": "Operations & IoT Log for Locker {{locker}}",
-        "description": "Track every connection (plugged in), disconnection (unplugged), unlock and hardware intervention in detail.",
+        "description": "Track every connection (plugged in), disconnection (unplugged), unlock, hardware intervention and Drone ↔ Locker message in detail.",
         "tabAccess": "Open & IoT Log ({{count}})",
         "tabReports": "Incidents & Repairs ({{count}})",
         "totalEntries": "Total log entries",
@@ -1281,7 +1282,8 @@
           "boxOption": "Box #{{number}} (ID: {{id}})",
           "result": "Result",
           "allResults": "All results",
-          "jammed": "Lock jammed / Error"
+          "jammed": "Lock jammed / Error",
+          "drone": "Drone ↔ Locker messages"
         },
         "loading": "Loading logs...",
         "empty": "No matching log entries yet.",
