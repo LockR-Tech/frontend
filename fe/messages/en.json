@@ -341,7 +341,9 @@
           "orderEarn": "Earned from order",
           "orderRedeem": "Used on order",
           "orderRedeemRefund": "Refund for canceled order",
-          "orderEarnReversal": "Points taken back (order refunded)"
+          "orderEarnReversal": "Points taken back (order refunded)",
+          "voucherExchange": "Exchanged for voucher",
+          "voucherExchangeRefund": "Voucher exchange refunded"
         },
         "enterPositive": "Please enter a number of points greater than 0.",
         "cannotDeductMore": "Cannot deduct more points than the current balance.",
@@ -1905,6 +1907,7 @@
       }
     },
     "promotions": {
+      "pointsCostBadge": "{{points}} points",
       "title": "Promotion Management",
       "description": "Create and manage voucher codes and discount campaigns",
       "createBtn": "Create Promotion",
@@ -1969,6 +1972,9 @@
         "totalLimit": "Total Usage Limit",
         "totalLimitPlaceholder": "Empty = unlimited",
         "perUserLimit": "Per User Limit",
+        "pointsCost": "Points to redeem",
+        "pointsCostPlaceholder": "Empty = regular code",
+        "pointsCostHint": "Enter a point price to make this a points voucher: hidden from the Offers page, customers exchange points for it in “My offers”, and only they can apply it. 1 point = 1 VND. Leave “Per User Limit” empty to let customers exchange again after using it.",
         "isActive": "Activate Immediately",
         "stackable": "Allow combining with other promotions",
         "stackableHint": "Only takes effect when the “maximum vouchers per order” setting is above 1; every code on the same order must then allow combining.",

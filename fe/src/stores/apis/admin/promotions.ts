@@ -28,6 +28,8 @@ export interface AdminPromotion {
   /** null = không giới hạn. */
   totalUsageLimit?: number | null;
   perUserLimit?: number | null;
+  /** > 0 = voucher đổi bằng điểm (giá bằng điểm, 1 điểm = 1đ); null = mã thường. */
+  pointsCost?: number | null;
   /** Trạng thái lưu trong DB: ACTIVE / INACTIVE. */
   status: string;
   /** LocalDateTime UTC, không offset. */
@@ -58,6 +60,8 @@ export interface AdminPromotionRequest {
   lockerId: number | null;
   totalUsageLimit?: number;
   perUserLimit?: number;
+  /** > 0 = chỉ có được bằng cách đổi điểm; bỏ trống = mã thường. */
+  pointsCost?: number;
 }
 
 /** Dựng lại request đầy đủ từ một khuyến mãi để chỉ đổi vài trường (vd ngưng áp dụng). */
@@ -79,6 +83,7 @@ export const promotionToRequest = (
   lockerId: p.lockerId ?? null,
   totalUsageLimit: p.totalUsageLimit ?? undefined,
   perUserLimit: p.perUserLimit ?? undefined,
+  pointsCost: p.pointsCost ?? undefined,
   ...overrides,
 });
 

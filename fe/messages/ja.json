@@ -167,6 +167,8 @@
           "orderRedeem": "注文に使用",
           "orderRedeemRefund": "キャンセル注文の返還",
           "orderEarnReversal": "返金注文のポイント回収",
+          "voucherExchange": "クーポンと交換",
+          "voucherExchangeRefund": "クーポン交換の返還",
           "adjustment": "調整",
           "redeem": "ポイント交換"
         },
@@ -440,6 +442,7 @@
       }
     },
     "promotions": {
+      "pointsCostBadge": "{{points}} ポイント",
       "title": "プロモーション管理",
       "description": "バウチャーコードや割引キャンペーンを作成・管理",
       "createBtn": "プロモーションを作成",
@@ -504,6 +507,9 @@
         "totalLimit": "総使用回数上限",
         "totalLimitPlaceholder": "空白 = 無制限",
         "perUserLimit": "ユーザーごとの上限",
+        "pointsCost": "交換ポイント",
+        "pointsCostPlaceholder": "空白 = 通常コード",
+        "pointsCostHint": "ポイント数を入力するとポイント交換クーポンになります（特典ページには表示されず、「マイ特典」で交換した本人のみ利用可能）。1ポイント = 1 VND。",
         "isActive": "即座に有効化",
         "stackable": "他のプロモーションと組み合わせ可",
         "stackableHint": "設定「1注文あたりの最大クーポン数」が1より大きい場合のみ有効です。その場合、同じ注文のすべてのコードで有効にする必要があります。",

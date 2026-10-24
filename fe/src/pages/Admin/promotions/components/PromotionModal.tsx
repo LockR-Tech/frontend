@@ -71,6 +71,8 @@ interface FormState {
   endDate: string;
   totalUsageLimit: string;
   perUserLimit: string;
+  /** Trống = mã thường; có số = voucher đổi bằng điểm. */
+  pointsCost: string;
   isActive: boolean;
   stackable: boolean;
   /** null = toàn hệ thống. */
@@ -89,6 +91,7 @@ const DEFAULT_FORM: FormState = {
   endDate: "",
   totalUsageLimit: "",
   perUserLimit: "1",
+  pointsCost: "",
   isActive: true,
   stackable: false,
   lockerId: null,
@@ -127,6 +130,7 @@ export function PromotionModal({
         endDate: toDatetimeLocal(promotion.endAt),
         totalUsageLimit: numText(promotion.totalUsageLimit),
         perUserLimit: numText(promotion.perUserLimit),
+        pointsCost: numText(promotion.pointsCost),
         isActive: (promotion.status ?? "").toUpperCase() !== "INACTIVE",
         stackable: Boolean(promotion.stackable),
         lockerId: promotion.lockerId ?? null,
@@ -187,6 +191,7 @@ export function PromotionModal({
         ? parseInt(form.totalUsageLimit, 10)
         : undefined,
       perUserLimit: form.perUserLimit ? parseInt(form.perUserLimit, 10) : undefined,
+      pointsCost: form.pointsCost ? parseInt(form.pointsCost, 10) : undefined,
       status: form.isActive ? "ACTIVE" : "INACTIVE",
       stackable: form.stackable,
       lockerId: form.lockerId,
@@ -388,6 +393,21 @@ export function PromotionModal({
                 placeholder={t("admin.promotions.modal.totalLimitPlaceholder")}
               />
             </div>
+          </div>
+
+          {/* Đổi bằng điểm */}
+          <div className="space-y-1.5">
+            <Label>{t("admin.promotions.modal.pointsCost")}</Label>
+            <Input
+              type="number"
+              min="1"
+              value={form.pointsCost}
+              onChange={(e) => set("pointsCost", e.target.value)}
+              placeholder={t("admin.promotions.modal.pointsCostPlaceholder")}
+            />
+            <p className="text-xs text-muted-foreground/70">
+              {t("admin.promotions.modal.pointsCostHint")}
+            </p>
           </div>
 
           {/* Date range */}

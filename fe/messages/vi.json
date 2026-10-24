@@ -341,7 +341,9 @@
           "orderEarn": "Tích từ đơn",
           "orderRedeem": "Dùng cho đơn",
           "orderRedeemRefund": "Hoàn điểm đơn huỷ",
-          "orderEarnReversal": "Thu hồi điểm đơn hoàn tiền"
+          "orderEarnReversal": "Thu hồi điểm đơn hoàn tiền",
+          "voucherExchange": "Đổi điểm lấy voucher",
+          "voucherExchangeRefund": "Hoàn điểm đổi voucher"
         },
         "enterPositive": "Vui lòng nhập số điểm lớn hơn 0.",
         "cannotDeductMore": "Không thể trừ nhiều hơn số điểm hiện có.",
@@ -1905,6 +1907,7 @@
       }
     },
     "promotions": {
+      "pointsCostBadge": "Đổi {{points}} điểm",
       "title": "Quản lý khuyến mãi",
       "description": "Tạo và quản lý mã voucher, chương trình giảm giá",
       "createBtn": "Tạo khuyến mãi",
@@ -1969,6 +1972,9 @@
         "totalLimit": "Tổng lượt dùng",
         "totalLimitPlaceholder": "Để trống = không giới hạn",
         "perUserLimit": "Mỗi người dùng",
+        "pointsCost": "Đổi bằng điểm",
+        "pointsCostPlaceholder": "Để trống = mã thường",
+        "pointsCostHint": "Nhập số điểm để biến mã này thành voucher đổi điểm: không hiện ở trang Ưu đãi, khách đổi điểm trong “Ưu đãi của tôi” và chỉ người đã đổi mới dùng được. 1 điểm = 1đ. Để khách đổi lại sau khi dùng, để trống “Mỗi người dùng”.",
         "isActive": "Kích hoạt ngay",
         "stackable": "Cho phép kết hợp với KM khác",
         "stackableHint": "Chỉ có tác dụng khi cài đặt “Số mã giảm giá tối đa mỗi đơn” lớn hơn 1; khi đó mọi mã trên cùng đơn đều phải bật ô này.",
