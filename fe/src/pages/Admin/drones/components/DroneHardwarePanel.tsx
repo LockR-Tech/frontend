@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Loader2,
   Plus,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -75,28 +76,30 @@ interface DiscoveredPi {
   macAddress: string;
   hostname: string;
   online: boolean;
-  label: string;
   hardware?: string;
+  droneId?: number | null;
+  assignedDroneCode?: string | null;
+  isAssignedOther?: boolean;
 }
 
 export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: DroneHardwarePanelProps) {
-  const LOCAL_STORAGE_KEY = `lockr_drone_binding_${droneId}`;
-
-  const [localBinding, setLocalBinding] = useState<{
-    id?: number | string;
-    ipAddress?: string;
-    macAddress?: string;
-    hostname?: string;
-  } | null>(() => {
+  // Xóa sạch bộ nhớ đệm (cache localStorage cũ) theo yêu cầu người dùng
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : null;
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("lockr_drone_binding_")) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
     } catch {
-      return null;
+      // ignore
     }
-  });
+  }, []);
 
-  // 1. Dữ liệu từ API Backend
+  // 1. Dữ liệu thiết bị được lưu từ Backend
   const { data: deviceData, isLoading, refetch, isFetching } = useGetDroneDeviceQuery(droneId, {
     pollingInterval: 5000,
   });
@@ -111,7 +114,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
   const allDevices = useMemo(() => allDevicesData?.data ?? [], [allDevicesData]);
   const gateways = useMemo(() => gatewaysData?.data ?? [], [gatewaysData]);
 
-  // 2. Trạng thái telemetry trực tiếp từ Pi
+  // 2. Trạng thái telemetry trực tiếp từ Pi qua mạng nội bộ
   const [livePiStatus, setLivePiStatus] = useState<any>(null);
   const failCountRef = useRef(0);
 
@@ -130,83 +133,116 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
   const [unassignDevice, { isLoading: unassigning }] = useUnassignDroneDeviceMutation();
   const [registerDevice, { isLoading: registering }] = useRegisterDroneDeviceMutation();
 
-  // Xác định IP đang kết nối
+  // Xác định IP đang kết nối - hoàn toàn từ backend thực tế
   const targetIp = useMemo(() => {
     if (backendDevice?.ipAddress) return backendDevice.ipAddress;
-    if (livePiStatus?.ipAddress) return livePiStatus.ipAddress;
-    if (localBinding?.ipAddress) return localBinding.ipAddress;
     return null;
-  }, [backendDevice, livePiStatus, localBinding]);
+  }, [backendDevice]);
 
-  // Tự động tổng hợp danh sách các Raspberry Pi đã phát hiện được từ hệ thống
+  // Tự động tổng hợp danh sách các Raspberry Pi hoạt động từ hệ thống
   useEffect(() => {
     if (!assignModalOpen) return;
 
-    setProbing(true);
     const list: DiscoveredPi[] = [];
     const seenMacs = new Set<string>();
 
-    // 1. Thêm từ drone_devices (đã gán cho drone này hoặc chưa gán)
+    // 1. Thêm từ drone_devices
     allDevices.forEach((d) => {
       if (d.macAddress && !seenMacs.has(d.macAddress)) {
         seenMacs.add(d.macAddress);
-        const isCurrent = d.droneId === droneId;
-        const isFree = d.droneId == null;
-        if (isCurrent || isFree) {
-          list.push({
-            key: `drone-dev-${d.id}`,
-            id: d.id,
-            macAddress: d.macAddress,
-            ipAddress: d.ipAddress || "",
-            hostname: d.droneCode ? `Drone ${d.droneCode}` : "Raspberry Pi",
-            hardware: "drone",
-            online: Boolean(d.online),
-            label: `${d.macAddress}${d.ipAddress ? ` · ${d.ipAddress}` : ""}`,
-          });
-        }
-      }
-    });
-
-    // 2. Thêm từ gateway_devices (Pi tự gửi MQTT discovery)
-    gateways.forEach((g) => {
-      if (g.macAddress && !seenMacs.has(g.macAddress) && g.lockerId == null) {
-        seenMacs.add(g.macAddress);
+        const isAssignedOther = Boolean(d.droneId && d.droneId !== droneId);
         list.push({
-          key: `gw-${g.id}`,
-          ipAddress: "",
-          macAddress: g.macAddress,
-          hostname: g.hardware === "drone" ? "Drone Companion" : (g.hardware || "Raspberry Pi"),
-          hardware: g.hardware,
-          online: Boolean(g.online),
-          label: `${g.macAddress} · ${g.hardware || "Raspberry Pi"}`,
+          key: `drone-dev-${d.id}`,
+          id: d.id,
+          macAddress: d.macAddress,
+          ipAddress: d.ipAddress || "",
+          hostname: d.droneCode ? `Pi Drone (${d.droneCode})` : "Raspberry Pi",
+          hardware: "drone",
+          online: Boolean(d.online),
+          droneId: d.droneId,
+          assignedDroneCode: d.droneCode,
+          isAssignedOther,
         });
       }
     });
 
-    // 3. Nếu đang có kết nối trực tiếp hoặc localBinding chưa có trong danh sách
-    if (targetIp && livePiStatus?.macAddress && !seenMacs.has(livePiStatus.macAddress)) {
-      list.push({
-        key: `live-${livePiStatus.macAddress}`,
-        ipAddress: targetIp,
-        macAddress: livePiStatus.macAddress,
-        hostname: livePiStatus.hostname || "Raspberry Pi",
-        hardware: "drone",
-        online: true,
-        label: `${livePiStatus.macAddress} · ${targetIp}`,
-      });
-    }
+    // 2. Thêm từ gateway_devices (Pi gửi MQTT discovery)
+    gateways.forEach((g) => {
+      if (g.macAddress) {
+        if (seenMacs.has(g.macAddress)) {
+          // Bổ sung IP vào mục đã có nếu mục đó chưa có IP
+          if (g.ipAddress) {
+            const existing = list.find((item) => item.macAddress === g.macAddress);
+            if (existing && !existing.ipAddress) {
+              existing.ipAddress = g.ipAddress;
+            }
+          }
+          return;
+        }
+
+        // Bỏ qua gateway thuộc locker tủ
+        if (g.lockerId != null) return;
+
+        seenMacs.add(g.macAddress);
+        const assignedDrone = allDevices.find(
+          (ad) =>
+            (ad.macAddress === g.macAddress || (g.ipAddress && ad.ipAddress === g.ipAddress)) &&
+            ad.droneId != null
+        );
+        const isAssignedOther = Boolean(assignedDrone && assignedDrone.droneId !== droneId);
+
+        list.push({
+          key: `gw-${g.id}`,
+          macAddress: g.macAddress,
+          ipAddress: g.ipAddress || "",
+          hostname:
+            g.hardware === "drone"
+              ? "Drone Companion Pi"
+              : g.hardware
+              ? `Raspberry Pi (${g.hardware})`
+              : "Raspberry Pi",
+          hardware: g.hardware,
+          online: Boolean(g.online),
+          droneId: assignedDrone?.droneId ?? null,
+          assignedDroneCode: assignedDrone?.droneCode ?? null,
+          isAssignedOther,
+        });
+      }
+    });
+
+    // Sắp xếp danh sách:
+    // 1. Chưa bị gán cho drone khác lên đầu
+    // 2. Trực tuyến (online) lên đầu
+    // 3. Có IP lên đầu
+    list.sort((a, b) => {
+      if (a.isAssignedOther !== b.isAssignedOther) {
+        return a.isAssignedOther ? 1 : -1;
+      }
+      if (a.online !== b.online) {
+        return a.online ? -1 : 1;
+      }
+      if (Boolean(a.ipAddress) !== Boolean(b.ipAddress)) {
+        return a.ipAddress ? -1 : 1;
+      }
+      return a.hostname.localeCompare(b.hostname);
+    });
 
     setDiscoveredList(list);
-    if (list.length > 0 && !selectedPiKey) {
-      setSelectedPiKey(list[0].key);
-      if (list[0].ipAddress) {
-        setDeviceIpInput(list[0].ipAddress);
+
+    // Tự động chọn Pi phù hợp nếu chưa chọn
+    if (!selectedPiKey) {
+      const firstAvailable = list.find((p) => !p.isAssignedOther);
+      if (firstAvailable) {
+        setSelectedPiKey(firstAvailable.key);
+        setDeviceIpInput(firstAvailable.ipAddress || "");
+      } else if (list.length > 0) {
+        setSelectedPiKey(list[0].key);
+        setDeviceIpInput(list[0].ipAddress || "");
+      } else {
+        setSelectedPiKey("custom");
       }
-    } else if (list.length === 0) {
-      setSelectedPiKey("custom");
     }
-    setProbing(false);
-  }, [assignModalOpen, allDevices, gateways, droneId, targetIp, livePiStatus, selectedPiKey]);
+  }, [assignModalOpen, allDevices, gateways, droneId, selectedPiKey]);
 
   // Khi người dùng chọn Pi khác trong dropdown
   const handleSelectPiChange = (val: string) => {
@@ -215,8 +251,6 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
       const match = discoveredList.find((p) => p.key === val);
       if (match?.ipAddress) {
         setDeviceIpInput(match.ipAddress);
-      } else if (targetIp && livePiStatus?.macAddress === match?.macAddress) {
-        setDeviceIpInput(targetIp);
       } else {
         setDeviceIpInput("");
       }
@@ -228,7 +262,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
     return discoveredList.find((p) => p.key === selectedPiKey) ?? null;
   }, [selectedPiKey, discoveredList]);
 
-  // Polling telemetry liên tục từ Pi khi đã xác định được IP
+  // Polling telemetry liên tục từ Pi khi đã xác định được IP từ Backend
   useEffect(() => {
     if (!targetIp) return;
 
@@ -269,57 +303,34 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
 
   // Thiết bị tổng hợp để hiển thị trên giao diện (hoàn toàn từ tín hiệu thật)
   const device: EffectiveDroneDevice | null = useMemo(() => {
-    const rawOnline = livePiStatus !== null ? Boolean(livePiStatus.online) : Boolean(backendDevice?.online);
+    if (!backendDevice) return null;
 
-    if (backendDevice) {
-      const mergedMavlink = rawOnline ? (livePiStatus?.mavlinkStatus || backendDevice.mavlinkStatus || "DISCONNECTED") : "DISCONNECTED";
-      const isPixhawkOk = rawOnline && (mergedMavlink === "connected" || mergedMavlink === "CONNECTED");
+    const rawOnline = livePiStatus !== null ? Boolean(livePiStatus.online) : Boolean(backendDevice.online);
+    const mergedMavlink = rawOnline
+      ? livePiStatus?.mavlinkStatus || backendDevice.mavlinkStatus || "DISCONNECTED"
+      : "DISCONNECTED";
+    const isPixhawkOk = rawOnline && (mergedMavlink === "connected" || mergedMavlink === "CONNECTED");
 
-      return {
-        ...backendDevice,
-        online: rawOnline,
-        mavlinkStatus: mergedMavlink,
-        flightMode: isPixhawkOk ? (livePiStatus?.flightMode || backendDevice.flightMode) : undefined,
-        armed: isPixhawkOk ? (livePiStatus?.armed ?? backendDevice.armed) : undefined,
-        landedState: isPixhawkOk ? (livePiStatus?.landedState || backendDevice.landedState) : undefined,
-        gpsFixType: isPixhawkOk ? (livePiStatus?.gpsFixType ?? backendDevice.gpsFixType) : undefined,
-        gpsSatellites: isPixhawkOk ? (livePiStatus?.gpsSatellites ?? backendDevice.gpsSatellites) : undefined,
-        batteryPercent: isPixhawkOk ? (livePiStatus?.batteryPercent ?? backendDevice.batteryPercent ?? undefined) : undefined,
-        voltageV: isPixhawkOk ? (livePiStatus?.voltageV ?? backendDevice.voltageV ?? undefined) : undefined,
-        currentA: isPixhawkOk ? (livePiStatus?.currentA ?? backendDevice.currentA ?? undefined) : undefined,
-        cameraStreamUrl: livePiStatus?.cameraStreamUrl || backendDevice.cameraStreamUrl,
-      };
-    }
-    if (localBinding && (localBinding.ipAddress || localBinding.macAddress)) {
-      const isLiveOnline = Boolean(livePiStatus?.online);
-      const isPixhawkOk = isLiveOnline && (livePiStatus?.mavlinkStatus === "connected" || livePiStatus?.mavlinkStatus === "CONNECTED");
-      return {
-        id: typeof localBinding.id === "number" ? localBinding.id : undefined,
-        droneId,
-        droneCode,
-        macAddress: localBinding.macAddress,
-        ipAddress: localBinding.ipAddress,
-        hostname: localBinding.hostname,
-        online: isLiveOnline,
-        cameraOnline: isLiveOnline && Boolean(livePiStatus?.cameraOnline),
-        cameraStreamUrl: livePiStatus?.cameraStreamUrl || (localBinding.ipAddress ? `http://${localBinding.ipAddress}:8080/stream.mjpg` : undefined),
-        firmwareVersion: livePiStatus?.firmwareVersion,
-        mavlinkStatus: isLiveOnline ? (livePiStatus?.mavlinkStatus || "DISCONNECTED") : "DISCONNECTED",
-        flightMode: isPixhawkOk ? livePiStatus?.flightMode : undefined,
-        armed: isPixhawkOk ? livePiStatus?.armed : undefined,
-        landedState: isPixhawkOk ? livePiStatus?.landedState : undefined,
-        batteryPercent: isPixhawkOk ? livePiStatus?.batteryPercent : undefined,
-        voltageV: isPixhawkOk ? livePiStatus?.voltageV : undefined,
-        currentA: isPixhawkOk ? livePiStatus?.currentA : undefined,
-        gpsFixType: isPixhawkOk ? livePiStatus?.gpsFixType : undefined,
-        gpsSatellites: isPixhawkOk ? livePiStatus?.gpsSatellites : undefined,
-        lastSeenAt: livePiStatus?.lastSeenAt,
-      };
-    }
-    return null;
-  }, [backendDevice, livePiStatus, localBinding, droneId, droneCode]);
+    return {
+      ...backendDevice,
+      online: rawOnline,
+      mavlinkStatus: mergedMavlink,
+      flightMode: isPixhawkOk ? livePiStatus?.flightMode || backendDevice.flightMode : undefined,
+      armed: isPixhawkOk ? livePiStatus?.armed ?? backendDevice.armed : undefined,
+      landedState: isPixhawkOk ? livePiStatus?.landedState || backendDevice.landedState : undefined,
+      gpsFixType: isPixhawkOk ? livePiStatus?.gpsFixType ?? backendDevice.gpsFixType : undefined,
+      gpsSatellites: isPixhawkOk ? livePiStatus?.gpsSatellites ?? backendDevice.gpsSatellites : undefined,
+      batteryPercent: isPixhawkOk ? livePiStatus?.batteryPercent ?? backendDevice.batteryPercent ?? undefined : undefined,
+      voltageV: isPixhawkOk ? livePiStatus?.voltageV ?? backendDevice.voltageV ?? undefined : undefined,
+      currentA: isPixhawkOk ? livePiStatus?.currentA ?? backendDevice.currentA ?? undefined : undefined,
+      cameraStreamUrl:
+        livePiStatus?.cameraStreamUrl ||
+        backendDevice.cameraStreamUrl ||
+        (backendDevice.ipAddress ? `http://${backendDevice.ipAddress}:8080/stream.mjpg` : undefined),
+    };
+  }, [backendDevice, livePiStatus]);
 
-  // Hành động gán duy nhất
+  // Hành động gán bộ điều khiển (có kiểm tra kết nối IP thực tế & chống gán trùng)
   const handleAssign = async () => {
     let chosenIp = "";
     let chosenMac = "";
@@ -332,56 +343,139 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
         toast.error("Vui lòng nhập địa chỉ IP của Raspberry Pi");
         return;
       }
+
+      // Kiểm tra định dạng IP cơ bản
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+      if (!ipRegex.test(chosenIp) && !chosenIp.includes("localhost") && !chosenIp.includes(".local")) {
+        toast.error("Địa chỉ IP không đúng định dạng. Ví dụ: 192.168.1.15");
+        return;
+      }
+
+      // Kiểm tra xem IP này có đang được gán cho drone khác trong allDevices không
+      const conflictIp = allDevices.find(
+        (d) => d.ipAddress === chosenIp && d.droneId != null && d.droneId !== droneId
+      );
+      if (conflictIp) {
+        toast.error(
+          `Địa chỉ IP ${chosenIp} đã được gán cho drone ${
+            conflictIp.droneCode || `#${conflictIp.droneId}`
+          }. Không được gán trùng!`
+        );
+        return;
+      }
+
+      // Kiểm tra sự tồn tại thực tế của Pi tại IP này
+      setProbing(true);
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 2500);
-        const res = await fetch(`http://${chosenIp}:8080/api/status`, { signal: controller.signal });
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(`http://${chosenIp}:8080/api/status`, {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
         clearTimeout(timeout);
-        if (res.ok) {
-          const d = await res.json();
-          chosenMac = d.macAddress || `PI-${chosenIp.replace(/\./g, "")}`;
-          chosenHost = d.hostname || "Raspberry Pi";
+        if (!res.ok) {
+          toast.error(
+            `Không tìm thấy Raspberry Pi tại IP ${chosenIp} (Mã lỗi HTTP: ${res.status}). Vui lòng kiểm tra lại.`
+          );
+          setProbing(false);
+          return;
         }
+        const data = await res.json();
+        chosenMac = data.macAddress || `PI-${chosenIp.replace(/\./g, "")}`;
+        chosenHost = data.hostname || `Raspberry Pi (${chosenIp})`;
       } catch {
-        chosenMac = `PI-${chosenIp.replace(/\./g, "")}`;
-        chosenHost = "Raspberry Pi";
+        toast.error(
+          `Không thể kết nối đến Raspberry Pi tại địa chỉ IP: ${chosenIp}. Thiết bị không tồn tại hoặc chưa khởi động dịch vụ trên cổng 8080.`
+        );
+        setProbing(false);
+        return;
+      }
+
+      // Kiểm tra tiếp MAC nếu có
+      const conflictMac = allDevices.find(
+        (d) => d.macAddress === chosenMac && d.droneId != null && d.droneId !== droneId
+      );
+      if (conflictMac) {
+        toast.error(
+          `Thiết bị Raspberry Pi (MAC: ${chosenMac}) đã được gán cho drone ${
+            conflictMac.droneCode || `#${conflictMac.droneId}`
+          }. Không được gán trùng!`
+        );
+        setProbing(false);
+        return;
       }
     } else {
       const match = discoveredList.find((p) => p.key === selectedPiKey);
-      if (match) {
-        chosenIp = deviceIpInput.trim() || match.ipAddress || (livePiStatus?.macAddress === match.macAddress ? targetIp || "" : "");
-        chosenMac = match.macAddress;
-        chosenHost = match.hostname;
-        if (typeof match.id === "number") {
-          chosenBackendId = match.id;
+      if (!match) {
+        toast.error("Vui lòng chọn Raspberry Pi để gán");
+        return;
+      }
+
+      if (match.isAssignedOther) {
+        toast.error(
+          `Raspberry Pi này đã được gán cho drone ${
+            match.assignedDroneCode || `#${match.droneId}`
+          }. Không thể gán trùng!`
+        );
+        return;
+      }
+
+      chosenIp = deviceIpInput.trim() || match.ipAddress;
+      if (!chosenIp) {
+        toast.error("Vui lòng nhập địa chỉ IP của Raspberry Pi");
+        return;
+      }
+
+      // Kiểm tra xem IP này có đang gán cho drone khác không
+      const conflictIp = allDevices.find(
+        (d) => d.ipAddress === chosenIp && d.droneId != null && d.droneId !== droneId
+      );
+      if (conflictIp) {
+        toast.error(
+          `Địa chỉ IP ${chosenIp} đã được gán cho drone ${
+            conflictIp.droneCode || `#${conflictIp.droneId}`
+          }. Không được gán trùng!`
+        );
+        return;
+      }
+
+      chosenMac = match.macAddress;
+      chosenHost = match.hostname;
+      if (typeof match.id === "number") {
+        chosenBackendId = match.id;
+      }
+
+      // Kiểm tra thực tế kết nối tới IP
+      setProbing(true);
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(`http://${chosenIp}:8080/api/status`, {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
+        clearTimeout(timeout);
+        if (!res.ok) {
+          toast.error(`Không tìm thấy Raspberry Pi tại IP ${chosenIp} (Mã lỗi: ${res.status}).`);
+          setProbing(false);
+          return;
         }
+        const data = await res.json();
+        if (data.macAddress) chosenMac = data.macAddress;
+      } catch {
+        toast.error(
+          `Không thể kết nối đến Raspberry Pi tại IP ${chosenIp}. Vui lòng kiểm tra lại địa chỉ IP.`
+        );
+        setProbing(false);
+        return;
       }
     }
 
-    if (!chosenMac && !chosenIp && !chosenBackendId) {
-      toast.error("Vui lòng chọn hoặc nhập Raspberry Pi để gán");
-      return;
-    }
-
-    const bindingInfo = {
-      id: chosenBackendId || 1,
-      ipAddress: chosenIp,
-      macAddress: chosenMac,
-      hostname: chosenHost,
-    };
-
-    // 1. Lưu cục bộ làm fallback
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(bindingInfo));
-      setLocalBinding(bindingInfo);
-    } catch {
-      // ignore
-    }
-
-    // 2. Gửi request gán vào hệ thống
+    // Gửi request gán vào Backend (lưu vào database)
     try {
       if (chosenBackendId) {
-        await assignDevice({ deviceId: chosenBackendId, droneId }).unwrap();
+        await assignDevice({ deviceId: chosenBackendId, droneId, ipAddress: chosenIp }).unwrap();
       } else {
         await registerDevice({
           droneId,
@@ -392,37 +486,36 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
           cameraStatus: chosenIp ? "CONFIGURED" : "OFFLINE",
         }).unwrap();
       }
-      toast.success(`Đã gán bộ điều khiển thành công vào drone ${droneCode}`);
-    } catch {
-      toast.success(`Đã kết nối bộ điều khiển vào drone ${droneCode}`);
+      toast.success(`Đã gán bộ điều khiển (IP: ${chosenIp}) thành công vào drone ${droneCode}`);
+      setAssignModalOpen(false);
+      refetch();
+      refetchAll();
+      refetchGateways();
+      onOperationLogged?.();
+    } catch (err: any) {
+      const errorMsg =
+        err?.data?.message ||
+        err?.data?.error ||
+        err?.message ||
+        "Không thể gán bộ điều khiển do lỗi hệ thống.";
+      toast.error(errorMsg);
+    } finally {
+      setProbing(false);
     }
-
-    setAssignModalOpen(false);
-    refetch();
-    refetchAll();
-    refetchGateways();
-    onOperationLogged?.();
   };
 
   // Hành động gỡ bộ điều khiển
   const handleUnassign = async () => {
-    try {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-      setLocalBinding(null);
-      setLivePiStatus(null);
-    } catch {
-      // ignore
-    }
-
     if (device?.id) {
       try {
         await unassignDevice({ deviceId: device.id, droneId }).unwrap();
-      } catch {
-        // ignore
+        toast.success(`Đã gỡ bộ điều khiển khỏi drone ${droneCode}`);
+      } catch (err: any) {
+        toast.error(err?.data?.message || "Không thể gỡ bộ điều khiển");
       }
     }
 
-    toast.success(`Đã gỡ bộ điều khiển khỏi drone ${droneCode}`);
+    setLivePiStatus(null);
     refetch();
     refetchAll();
     refetchGateways();
@@ -536,7 +629,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Địa chỉ IP:</span>
-                    <span className="font-mono font-medium text-primary">{device.ipAddress || targetIp || "—"}</span>
+                    <span className="font-mono font-bold text-primary">{device.ipAddress || targetIp || "—"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Hệ điều hành:</span>
@@ -561,7 +654,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
                       <Unplug className="mr-1 h-3 w-3" />
                       Mất tín hiệu (Pi tắt nguồn)
                     </Badge>
-                  ) : (device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED") ? (
+                  ) : device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED" ? (
                     <Badge variant="outline" className="bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-400/50 text-[10px] py-0 px-2">
                       <CheckCircle2 className="mr-1 h-3 w-3 text-sky-600" />
                       MAVLink OK
@@ -737,13 +830,13 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
                 </div>
               </div>
 
-              <div className={`relative bg-black flex items-center justify-center overflow-hidden transition-all ${cameraFullscreen ? "h-[500px]" : "h-72"}`}>
+              <div className={`relative bg-slate-950 flex items-center justify-center overflow-hidden transition-all ${cameraFullscreen ? "h-[640px]" : "h-80 md:h-[380px]"}`}>
                 {device.online && streamUrl ? (
                   <img
                     key={cameraReloadKey}
                     src={streamUrl}
                     alt={`Live stream from ${droneCode}`}
-                    className="h-full w-full object-contain"
+                    className="h-full w-auto max-w-full object-contain"
                     onError={(e) => {
                       (e.target as HTMLElement).style.display = "none";
                     }}
@@ -770,7 +863,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
             </div>
           </>
         ) : (
-          /* Trạng thái chưa gán bộ điều khiển — Chiều cao gọn gàng, 1 nút duy nhất */
+          /* Trạng thái chưa gán bộ điều khiển */
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-muted/10 py-5 px-4 text-center space-y-2.5">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-50 text-purple-600 dark:bg-purple-950/40">
               <Cpu className="h-5 w-5" />
@@ -793,9 +886,9 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
         )}
       </CardContent>
 
-      {/* Modal gán bộ điều khiển — Giao diện thiết kế mới, hiện đại & trực quan */}
+      {/* Modal gán bộ điều khiển */}
       <Dialog open={assignModalOpen} onOpenChange={setAssignModalOpen}>
-        <DialogContent className="sm:max-w-[480px] p-5 gap-4">
+        <DialogContent className="sm:max-w-[520px] p-5 gap-4">
           <DialogHeader className="space-y-1.5 text-left">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20 shrink-0">
@@ -809,7 +902,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
                   </Badge>
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
-                  Chọn máy tính nhúng Raspberry Pi đang phát tín hiệu để gán vào drone này.
+                  Chọn Raspberry Pi đang hoạt động từ danh sách hoặc nhập địa chỉ IP để gán vào drone này.
                 </DialogDescription>
               </div>
             </div>
@@ -819,42 +912,67 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
             {/* Bộ chọn Pi */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="font-medium text-foreground">Bộ điều khiển phát hiện được:</label>
-                {probing ? (
-                  <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Đang quét...
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                    {discoveredList.filter((d) => d.online).length} trực tuyến
-                  </span>
-                )}
+                <label className="font-medium text-foreground">
+                  Danh sách Raspberry Pi phát hiện được:
+                </label>
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                  {discoveredList.filter((d) => d.online).length} trực tuyến
+                </span>
               </div>
 
               <Select value={selectedPiKey} onValueChange={handleSelectPiChange}>
-                <SelectTrigger className="h-9 text-xs border-border/80">
-                  <SelectValue placeholder={probing ? "Đang dò tìm Pi..." : "Chọn Raspberry Pi..."} />
+                <SelectTrigger className="h-10 text-xs border-border/80">
+                  <SelectValue placeholder="Chọn Raspberry Pi (Tên & IP)..." />
                 </SelectTrigger>
-                <SelectContent className="max-h-64">
+                <SelectContent className="max-h-72">
                   {discoveredList.map((pi) => (
-                    <SelectItem key={pi.key} value={pi.key} className="text-xs py-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${pi.online ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
-                        <span className="font-mono font-medium">{pi.macAddress}</span>
-                        <span className="text-muted-foreground">· {pi.hostname || "Pi"}</span>
-                        {pi.online && (
-                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded font-medium ml-1">
-                            Trực tuyến
-                          </span>
-                        )}
+                    <SelectItem key={pi.key} value={pi.key} className="text-xs py-2.5 cursor-pointer">
+                      <div className="flex items-center justify-between gap-3 w-full">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${
+                              pi.online ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
+                            }`}
+                          />
+                          <div className="flex flex-col text-left">
+                            <span className="font-semibold text-foreground">
+                              {pi.hostname}
+                            </span>
+                            <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
+                              <span className={pi.ipAddress ? "text-primary font-bold" : "text-amber-600 dark:text-amber-400"}>
+                                IP: {pi.ipAddress || "Chưa có IP"}
+                              </span>
+                              <span>·</span>
+                              <span>MAC: {pi.macAddress}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="shrink-0 flex items-center">
+                          {pi.isAssignedOther ? (
+                            <Badge variant="destructive" className="text-[10px] py-0.5 px-2">
+                              Đang gán: {pi.assignedDroneCode || `Drone #${pi.droneId}`}
+                            </Badge>
+                          ) : pi.droneId === droneId ? (
+                            <Badge variant="outline" className="text-[10px] py-0.5 px-2 text-primary border-primary">
+                              Đang gán drone này
+                            </Badge>
+                          ) : pi.online ? (
+                            <Badge variant="outline" className="text-[10px] py-0.5 px-2 bg-emerald-50 text-emerald-700 border-emerald-400 dark:bg-emerald-950/40 dark:text-emerald-400">
+                              Hoạt động
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] py-0.5 px-2 text-muted-foreground">
+                              Ngoại tuyến
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
-                  <SelectItem value="custom" className="text-xs py-2 border-t mt-1 font-medium text-primary">
-                    <div className="flex items-center gap-1.5">
-                      <Plus className="h-3.5 w-3.5" />
-                      Nhập địa chỉ IP khác...
+                  <SelectItem value="custom" className="text-xs py-2.5 border-t mt-1 font-medium text-primary">
+                    <div className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      <span>Tự nhập địa chỉ IP khác...</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -863,16 +981,20 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
 
             {/* Chi tiết thiết bị được chọn (Live Preview) */}
             {selectedPiKey !== "custom" && selectedPi && (
-              <div className="rounded-lg border bg-muted/20 p-3 space-y-2.5">
+              <div className="rounded-lg border bg-muted/20 p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-medium text-xs text-foreground">
                     <Cpu className="h-3.5 w-3.5 text-purple-600" />
-                    <span>Thông tin phần cứng:</span>
+                    <span>Thông tin Raspberry Pi được chọn:</span>
                   </div>
-                  {selectedPi.online ? (
+                  {selectedPi.isAssignedOther ? (
+                    <Badge variant="destructive" className="text-[10px] py-0 px-2 font-medium">
+                      Đang được gán cho {selectedPi.assignedDroneCode || `Drone #${selectedPi.droneId}`}
+                    </Badge>
+                  ) : selectedPi.online ? (
                     <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-400/40 text-[10px] py-0 px-2 font-medium">
                       <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Trực tuyến (MQTT)
+                      Đang hoạt động (Trực tuyến)
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="bg-muted text-muted-foreground text-[10px] py-0 px-2">
@@ -883,51 +1005,75 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-background rounded-md p-2 border border-border/60">
-                    <span className="text-[10px] text-muted-foreground block">Địa chỉ MAC</span>
-                    <span className="font-mono font-medium text-foreground">{selectedPi.macAddress}</span>
+                    <span className="text-[10px] text-muted-foreground block">Tên Raspberry Pi</span>
+                    <span className="font-semibold text-foreground truncate block">{selectedPi.hostname}</span>
                   </div>
                   <div className="bg-background rounded-md p-2 border border-border/60">
                     <span className="text-[10px] text-muted-foreground block">Địa chỉ IP</span>
-                    <span className="font-mono font-medium text-primary">
-                      {deviceIpInput || selectedPi.ipAddress || targetIp || "Tự động nhận diện"}
+                    <span className="font-mono font-bold text-primary truncate block">
+                      {deviceIpInput || selectedPi.ipAddress || "Chưa có IP"}
                     </span>
+                  </div>
+                  <div className="bg-background rounded-md p-2 border border-border/60">
+                    <span className="text-[10px] text-muted-foreground block">Địa chỉ MAC</span>
+                    <span className="font-mono font-medium text-foreground truncate block">{selectedPi.macAddress}</span>
+                  </div>
+                  <div className="bg-background rounded-md p-2 border border-border/60">
+                    <span className="text-[10px] text-muted-foreground block">Phần cứng / Vai trò</span>
+                    <span className="font-medium text-foreground truncate block capitalize">{selectedPi.hardware || "Raspberry Pi"}</span>
                   </div>
                 </div>
 
-                {/* Ô nhập IP nếu Pi chưa có IP để truyền camera ngay */}
-                {!selectedPi.ipAddress && !targetIp && (
+                {/* Nếu Pi chưa có IP, bắt buộc nhập IP */}
+                {!selectedPi.ipAddress && (
                   <div className="space-y-1 pt-1">
-                    <label className="text-[11px] text-muted-foreground font-medium">
-                      Địa chỉ IP để xem camera ngay (tùy chọn):
+                    <label className="text-[11px] text-foreground font-semibold flex items-center gap-1">
+                      Nhập địa chỉ IP cho Pi này: <span className="text-destructive">*</span>
                     </label>
                     <Input
                       className="h-8 text-xs font-mono"
-                      placeholder="Ví dụ: 10.3.77.123 hoặc 192.168.1.15"
+                      placeholder="Ví dụ: 192.168.1.15 hoặc 10.3.77.123"
                       value={deviceIpInput}
                       onChange={(e) => setDeviceIpInput(e.target.value)}
                     />
+                    <p className="text-[10px] text-muted-foreground">
+                      Hệ thống sẽ kết nối với Pi tại IP này và lưu vĩnh viễn vào cơ sở dữ liệu.
+                    </p>
                   </div>
                 )}
 
-                <div className="text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 p-2 rounded-md border border-emerald-500/20">
-                  Drone <strong>{droneCode}</strong> sẽ lập tức đồng bộ dữ liệu bay Pixhawk, pin và luồng camera từ Pi này.
-                </div>
+                {/* Cảnh báo nếu Pi này đang được gán cho drone khác */}
+                {selectedPi.isAssignedOther ? (
+                  <div className="text-[11px] text-destructive bg-destructive/10 p-2.5 rounded-md border border-destructive/30 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+                    <span>
+                      Bộ điều khiển này hiện đang được gán cho <strong>{selectedPi.assignedDroneCode || `Drone #${selectedPi.droneId}`}</strong>. Không thể gán trùng vào drone khác!
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 p-2 rounded-md border border-emerald-500/20">
+                    Drone <strong>{droneCode}</strong> sẽ đồng bộ dữ liệu bay Pixhawk, pin và luồng camera trực tiếp từ Pi này.
+                  </div>
+                )}
               </div>
             )}
 
             {/* Chế độ nhập IP thủ công */}
             {selectedPiKey === "custom" && (
               <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
-                <label className="font-medium text-foreground">Địa chỉ IP của Raspberry Pi:</label>
+                <label className="font-medium text-foreground text-xs flex items-center justify-between">
+                  <span>Địa chỉ IP của Raspberry Pi:</span>
+                  <span className="text-destructive">* Bắt buộc</span>
+                </label>
                 <Input
                   className="h-8 text-xs font-mono"
-                  placeholder="Ví dụ: 10.3.77.123 hoặc 192.168.1.15"
+                  placeholder="Ví dụ: 192.168.1.15 hoặc 10.3.77.123"
                   value={customIp}
                   onChange={(e) => setCustomIp(e.target.value)}
                   autoFocus
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Hệ thống sẽ kết nối với dịch vụ API & Camera (cổng 8080) tại địa chỉ IP này.
+                  Hệ thống sẽ kiểm tra và kết nối với dịch vụ API & Camera (cổng 8080) tại địa chỉ IP này. Nếu IP không tồn tại hoặc không phản hồi, hệ thống sẽ từ chối gán.
                 </p>
               </div>
             )}
@@ -943,17 +1089,20 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
               disabled={
                 assigning ||
                 registering ||
+                probing ||
                 (!selectedPiKey && !customIp) ||
-                (selectedPiKey === "custom" && !customIp.trim())
+                (selectedPiKey === "custom" && !customIp.trim()) ||
+                Boolean(selectedPi?.isAssignedOther) ||
+                (selectedPiKey !== "custom" && !selectedPi?.ipAddress && !deviceIpInput.trim())
               }
               className="h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4"
             >
-              {assigning || registering ? (
+              {assigning || registering || probing ? (
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               ) : (
                 <RadioTower className="mr-1.5 h-3.5 w-3.5" />
               )}
-              Gán bộ điều khiển
+              {probing ? "Đang kiểm tra kết nối Pi..." : "Gán bộ điều khiển"}
             </Button>
           </DialogFooter>
         </DialogContent>

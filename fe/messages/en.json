@@ -1216,7 +1216,8 @@
           "hardwareFault": "Hardware incident",
           "setup": "Layout check",
           "gateway": "Controller assignment",
-          "sensor": "Sensor"
+          "sensor": "Sensor",
+          "drone": "Drone Delivery"
         },
         "result": {
           "online": "Online (Plugged in)",

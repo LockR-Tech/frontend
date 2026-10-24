@@ -203,12 +203,12 @@ export const droneManagementApi = baseApi.injectEndpoints({
 
     assignDroneDevice: builder.mutation<
       ApiResponse<DroneDeviceResponse>,
-      { deviceId: number; droneId: number }
+      { deviceId: number; droneId: number; ipAddress?: string }
     >({
-      query: ({ deviceId, droneId }) => ({
+      query: ({ deviceId, droneId, ipAddress }) => ({
         url: `/api/admin/drone-devices/${deviceId}/assign`,
         method: "POST",
-        body: { droneId },
+        body: { droneId, ipAddress },
       }),
       invalidatesTags: (_result, _error, { droneId }) => [
         TAG,

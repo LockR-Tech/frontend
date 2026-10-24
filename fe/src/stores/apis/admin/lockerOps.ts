@@ -354,6 +354,7 @@ export interface GatewayDeviceResponse {
   setupRequestedAt: string | null;
   setupFinishedAt: string | null;
   lastSeenAt: string | null;
+  ipAddress?: string | null;
 }
 
 export interface TechnicianRatingItem {

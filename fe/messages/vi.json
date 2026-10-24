@@ -1216,7 +1216,8 @@
           "hardwareFault": "Sự cố phần cứng",
           "setup": "Kiểm tra sơ đồ",
           "gateway": "Gán bộ điều khiển",
-          "sensor": "Cảm biến"
+          "sensor": "Cảm biến",
+          "drone": "Giao nhận Drone"
         },
         "result": {
           "online": "Trực tuyến (Cắm điện)",

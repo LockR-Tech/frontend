@@ -15,6 +15,7 @@ import {
   Clock,
   Monitor,
   Unplug,
+  Plane,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -74,6 +75,7 @@ const CREDENTIAL_LABEL: Record<string, { labelKey: string; cls: string; icon: an
   SETUP: { labelKey: "admin.lockers.logs.credential.setup", cls: "bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-300", icon: Wrench },
   GATEWAY: { labelKey: "admin.lockers.logs.credential.gateway", cls: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300", icon: RadioTower },
   SENSOR: { labelKey: "admin.lockers.logs.credential.sensor", cls: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-300", icon: Cpu },
+  DRONE: { labelKey: "admin.lockers.logs.credential.drone", cls: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-300", icon: Plane },
 };
 
 const RESULT_LABEL: Record<string, { labelKey: string; cls: string; icon: any }> = {
