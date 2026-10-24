@@ -207,7 +207,10 @@ export const droneCommLogsApi = baseApi.injectEndpoints({
           const enrichedContent = enrichLogsBySession(searchPageData.content, activeSessions);
           return {
             data: {
-              success: true,
+              // Đủ trường của ApiResponse (thiếu thì `tsc -b` báo TS2352 và deploy web admin dừng).
+              message: 'OK',
+              status: 200,
+              timestamp: new Date().toISOString(),
               data: {
                 ...searchPageData,
                 content: enrichedContent,
@@ -319,7 +322,10 @@ export const droneCommLogsApi = baseApi.injectEndpoints({
 
         return {
           data: {
-            success: true,
+            // Đủ trường của ApiResponse (thiếu thì `tsc -b` báo TS2352 và deploy web admin dừng).
+            message: 'OK',
+            status: 200,
+            timestamp: new Date().toISOString(),
             data: {
               content,
               page,
