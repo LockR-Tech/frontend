@@ -42,6 +42,23 @@ export interface CabinetPanel {
 
 export type LidAction = "open" | "close" | "home" | "stop";
 
+/** Một dòng nhật ký điều khiển: lệnh từ web (WEB) hoặc việc tủ đã làm (CABINET). */
+export interface CabinetControlLog {
+  id: number;
+  lockerId: number;
+  source: "WEB" | "CABINET" | string;
+  actorUserId: number | null;
+  action: string; // BOX_OPEN | BOX_TEST | LID_OPEN | LID_CLOSE | LID_HOME | LID_STOP | LID_JOG | LID_TUNE
+  axis: number | null;
+  boxId: number | null;
+  boxNumber: number | null;
+  revolutions: number | null;
+  status: string;
+  message: string | null;
+  occurredAt: string;
+  createdAt: string;
+}
+
 const ROOT = (lockerId: number) => `/api/locker-technician/cabinet/${lockerId}`;
 
 export const cabinetControlApi = baseApi.injectEndpoints({
@@ -49,6 +66,11 @@ export const cabinetControlApi = baseApi.injectEndpoints({
     // Trạng thái các trục nắp của tủ (poll để hiển thị).
     getCabinetPanel: builder.query<ApiResponse<CabinetPanel>, number>({
       query: (lockerId) => `${ROOT(lockerId)}/panel`,
+    }),
+
+    // Nhật ký lưu trên server: vẫn xem được khi tủ mất kết nối.
+    getCabinetLogs: builder.query<ApiResponse<CabinetControlLog[]>, { lockerId: number; limit?: number }>({
+      query: ({ lockerId, limit = 100 }) => `${ROOT(lockerId)}/logs?limit=${limit}`,
     }),
 
     openCabinetBox: builder.mutation<
@@ -98,6 +120,7 @@ export const cabinetControlApi = baseApi.injectEndpoints({
 
 export const {
   useGetCabinetPanelQuery,
+  useGetCabinetLogsQuery,
   useOpenCabinetBoxMutation,
   useControlLidMutation,
   useJogLidMutation,

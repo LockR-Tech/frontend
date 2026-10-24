@@ -1,21 +1,49 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { AlertTriangle, DoorOpen, Gauge, RotateCcw, Square, ArrowUp, ArrowDown, Home } from "lucide-react";
+import { AlertTriangle, DoorOpen, Gauge, RotateCcw, Square, ArrowUp, ArrowDown, Home, ScrollText } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
+import { formatDateTime } from "~/lib/datetime";
 import {
   useGetStaffLockersQuery,
   useGetLockerLayoutQuery,
 } from "~/stores/apis/admin/lockerOps";
 import {
   useGetCabinetPanelQuery,
+  useGetCabinetLogsQuery,
   useOpenCabinetBoxMutation,
   useControlLidMutation,
   useJogLidMutation,
   useTuneLidMutation,
+  type CabinetControlLog,
   type LidAction,
   type LidStatus,
 } from "~/stores/apis/admin/cabinetControl";
+
+const ACTION_LABELS: Record<string, string> = {
+  BOX_OPEN: "Mở ô",
+  BOX_TEST: "Thử ô",
+  LID_OPEN: "Nắp: mở hết",
+  LID_CLOSE: "Nắp: đóng hết",
+  LID_HOME: "Nắp: về gốc",
+  LID_STOP: "Nắp: dừng",
+  LID_JOG: "Nắp: chạy thử",
+  LID_TUNE: "Nắp: chỉnh thông số",
+};
+
+function statusClass(status: string) {
+  switch (status.toUpperCase()) {
+    case "OK":
+    case "SUCCESS":
+    case "ACCEPTED":
+    case "OPEN":
+      return "bg-emerald-50 text-emerald-700";
+    case "STOPPED":
+      return "bg-amber-50 text-amber-700";
+    default:
+      return "bg-rose-50 text-rose-700";
+  }
+}
 
 const TUNE_FIELDS: { key: string; label: string; step?: number }[] = [
   { key: "rps", label: "Tốc độ (vòng/giây)", step: 0.1 },
@@ -57,6 +85,13 @@ export default function CabinetControlPage() {
     });
   const lids = panelResp?.data?.result?.lids ?? [];
 
+  const { data: logsResp, refetch: refetchLogs } = useGetCabinetLogsQuery(
+    { lockerId: lockerId as number },
+    { skip: lockerId == null, pollingInterval: 5000 },
+  );
+  const logs = logsResp?.data ?? [];
+  const boxNumberById = useMemo(() => new Map(boxes.map((b) => [b.id, b.boxNumber])), [boxes]);
+
   const [openBox] = useOpenCabinetBoxMutation();
   const [controlLid] = useControlLidMutation();
   const [jogLid] = useJogLidMutation();
@@ -72,6 +107,7 @@ export default function CabinetControlPage() {
     } catch {
       toast.error(`${label} không gửi được — kiểm tra kết nối`);
     }
+    refetchLogs();
   };
 
   if (lockerId == null) {
@@ -162,7 +198,75 @@ export default function CabinetControlPage() {
           </p>
         )}
       </section>
+
+      <CabinetLogSection logs={logs} boxNumberById={boxNumberById} />
     </div>
+  );
+}
+
+function CabinetLogSection({
+  logs, boxNumberById,
+}: {
+  logs: CabinetControlLog[];
+  boxNumberById: Map<number, number>;
+}) {
+  const target = (log: CabinetControlLog) => {
+    const box = log.boxNumber ?? (log.boxId != null ? boxNumberById.get(log.boxId) : undefined);
+    if (box != null) return `Ô ${box}`;
+    if (log.axis != null) return `Trục ${log.axis}`;
+    return "—";
+  };
+
+  return (
+    <section className="rounded-xl border border-border p-4">
+      <h2 className="mb-1 flex items-center gap-2 text-base font-semibold">
+        <ScrollText className="h-4 w-4" /> Nhật ký điều khiển
+      </h2>
+      <p className="mb-3 text-xs text-muted-foreground">
+        <b>Web</b>: lệnh gửi từ trang này. <b>Tủ</b>: việc tủ thực sự làm (kích relay, chạy nắp) từ mọi nguồn —
+        tủ lưu lại khi mất mạng và gửi lên khi có mạng lại, nên có thể hiện muộn nhưng đúng giờ xảy ra.
+      </p>
+      {logs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Chưa có nhật ký.</p>
+      ) : (
+        <div className="max-h-120 overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-background text-left text-xs text-muted-foreground">
+              <tr>
+                <th className="py-2 pr-3 font-medium">Thời gian</th>
+                <th className="py-2 pr-3 font-medium">Nguồn</th>
+                <th className="py-2 pr-3 font-medium">Hành động</th>
+                <th className="py-2 pr-3 font-medium">Ô / trục</th>
+                <th className="py-2 pr-3 font-medium">Số vòng</th>
+                <th className="py-2 pr-3 font-medium">Kết quả</th>
+                <th className="py-2 font-medium">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.map((log) => (
+                <tr key={log.id} className="border-t border-border align-top">
+                  <td className="whitespace-nowrap py-2 pr-3 tabular-nums">{formatDateTime(log.occurredAt)}</td>
+                  <td className="py-2 pr-3">
+                    {log.source === "WEB"
+                      ? `Web${log.actorUserId != null ? ` · #${log.actorUserId}` : ""}`
+                      : "Tủ"}
+                  </td>
+                  <td className="whitespace-nowrap py-2 pr-3">{ACTION_LABELS[log.action] ?? log.action}</td>
+                  <td className="py-2 pr-3">{target(log)}</td>
+                  <td className="py-2 pr-3 tabular-nums">{log.revolutions != null ? log.revolutions : "—"}</td>
+                  <td className="py-2 pr-3">
+                    <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusClass(log.status)}`}>
+                      {log.status}
+                    </span>
+                  </td>
+                  <td className="py-2 text-muted-foreground">{log.message ?? ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
 
