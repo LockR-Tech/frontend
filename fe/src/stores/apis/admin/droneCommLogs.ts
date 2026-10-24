@@ -172,7 +172,7 @@ export const droneCommLogsApi = baseApi.injectEndpoints({
         fetchWithBQ: any
       ) {
         const page = params.page ?? 0;
-        const size = params.size ?? 20;
+        const size = params.size ?? 10;
 
         // 1. Fetch active sessions in parallel to enrich session context and provide fallback logs
         const activeSessionsRes = await fetchWithBQ('/api/admin/drone-locker-logs/active-sessions');
@@ -200,7 +200,7 @@ export const droneCommLogsApi = baseApi.injectEndpoints({
           searchRes.data as ApiResponse<PageResponse<DroneLockerCommLog>> | undefined
         )?.data;
 
-        if (!searchRes.error && searchPageData && Array.isArray(searchPageData.content) && searchPageData.content.length > 0) {
+        if (!searchRes.error && searchPageData && Array.isArray(searchPageData.content)) {
           const enrichedContent = enrichLogsBySession(searchPageData.content, activeSessions);
           return {
             data: {

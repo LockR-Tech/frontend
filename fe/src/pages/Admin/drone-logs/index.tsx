@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '~/components/shared/page-header';
+import { StandalonePagination } from '~/components/shared/data-table/DataTablePagination';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
@@ -177,7 +178,7 @@ export default function DroneLogsPage() {
   const [eventType, setEventType] = useState<string>('ALL');
   const [status, setStatus] = useState<string>('ALL');
   const [page, setPage] = useState<number>(0);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // Queries (auto-poll every 5s so new logs appear live in the table)
   const {
@@ -423,15 +424,10 @@ export default function DroneLogsPage() {
       {/* Logs Table Card */}
       <Card>
         <CardHeader className="py-3 px-4 border-b">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Layers className="w-4 h-4 text-sky-500" />
-              Danh sách thông điệp giao tiếp ({totalElements})
-            </CardTitle>
-            <span className="text-xs text-muted-foreground">
-              Trang {page + 1} / {totalPages}
-            </span>
-          </div>
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Layers className="w-4 h-4 text-sky-500" />
+            Danh sách thông điệp giao tiếp ({totalElements})
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -625,34 +621,19 @@ export default function DroneLogsPage() {
             </table>
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between p-3 border-t">
-              <p className="text-xs text-muted-foreground">
-                Hiển thị trang {page + 1} trên {totalPages} ({totalElements} bản ghi)
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs"
-                  disabled={page === 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                >
-                  Trước
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs"
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Sau
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* Server-side Pagination matching Lock.R Admin standard */}
+          <StandalonePagination
+            pageIndex={page}
+            pageSize={pageSize}
+            pageCount={totalPages}
+            totalRows={totalElements}
+            onPageChange={(p) => setPage(p)}
+            onPageSizeChange={(s) => {
+              setPageSize(s);
+              setPage(0);
+            }}
+            className="border-t border-border px-4 py-3"
+          />
         </CardContent>
       </Card>
     </div>

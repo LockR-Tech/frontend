@@ -11,21 +11,26 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 
-interface DataTablePaginationProps<TData> {
-  table: Table<TData>;
+export interface StandalonePaginationProps {
+  pageIndex: number;
+  pageSize: number;
+  pageCount: number;
+  totalRows: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
   className?: string;
-  totalRowsOverride?: number;
 }
 
-export function DataTablePagination<TData>({
-  table,
+export function StandalonePagination({
+  pageIndex,
+  pageSize,
+  pageCount,
+  totalRows,
+  onPageChange,
+  onPageSizeChange,
   className,
-  totalRowsOverride,
-}: DataTablePaginationProps<TData>) {
+}: StandalonePaginationProps) {
   const { t } = useTranslation();
-  const pageIndex = table.getState().pagination.pageIndex;
-  const pageCount = table.getPageCount();
-  const totalRows = totalRowsOverride ?? table.getFilteredRowModel().rows.length;
 
   const getVisiblePages = () => {
     const pages: (number | "ellipsis")[] = [];
@@ -53,15 +58,14 @@ export function DataTablePagination<TData>({
     return pages;
   };
 
-  const pageSize = table.getState().pagination.pageSize;
-  const visibleRows = table.getRowModel().rows.length;
-  // Luôn có 20 (cỡ trang mặc định của các màn hình server) và cỡ trang đang dùng.
   const pageSizeOptions = Array.from(
     new Set([10, 20, 25, 50, 100, pageSize]),
   ).sort((a, b) => a - b);
 
-  // Trang rỗng ngoài trang đầu vẫn hiện để quay lại được.
   if (totalRows === 0 && pageIndex === 0) return null;
+
+  const from = totalRows === 0 ? 0 : pageIndex * pageSize + 1;
+  const to = Math.min((pageIndex + 1) * pageSize, totalRows);
 
   return (
     <div
@@ -74,7 +78,7 @@ export function DataTablePagination<TData>({
         <span>{t("table.showing")}</span>
         <Select
           value={pageSize.toString()}
-          onValueChange={(value) => table.setPageSize(Number(value))}
+          onValueChange={(value) => onPageSizeChange(Number(value))}
         >
           <SelectTrigger className="h-8 w-[70px] bg-card border-border">
             <SelectValue />
@@ -87,13 +91,13 @@ export function DataTablePagination<TData>({
             ))}
           </SelectContent>
         </Select>
-        {visibleRows > 0 ? (
+        {totalRows > 0 ? (
           <span className="text-muted-foreground">
             <Trans
               i18nKey="table.rangeOfTotal"
               values={{
-                from: pageIndex * pageSize + 1,
-                to: Math.min((pageIndex + 1) * pageSize, totalRows),
+                from,
+                to,
                 total: totalRows,
               }}
               components={{ b: <span className="font-medium text-foreground" /> }}
@@ -114,8 +118,8 @@ export function DataTablePagination<TData>({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
+          onClick={() => onPageChange(0)}
+          disabled={pageIndex <= 0}
           className="h-8 w-8 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <ChevronsLeft size={16} />
@@ -123,8 +127,8 @@ export function DataTablePagination<TData>({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
+          onClick={() => onPageChange(Math.max(0, pageIndex - 1))}
+          disabled={pageIndex <= 0}
           className="h-8 w-8 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <ChevronLeft size={16} />
@@ -139,7 +143,7 @@ export function DataTablePagination<TData>({
             ) : (
               <button
                 key={page}
-                onClick={() => table.setPageIndex(page)}
+                onClick={() => onPageChange(page)}
                 className={cn(
                   "w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200",
                   pageIndex === page
@@ -156,8 +160,8 @@ export function DataTablePagination<TData>({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
+          onClick={() => onPageChange(Math.min(pageCount - 1, pageIndex + 1))}
+          disabled={pageIndex >= pageCount - 1}
           className="h-8 w-8 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <ChevronRight size={16} />
@@ -165,13 +169,42 @@ export function DataTablePagination<TData>({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => table.setPageIndex(pageCount - 1)}
-          disabled={!table.getCanNextPage()}
+          onClick={() => onPageChange(Math.max(0, pageCount - 1))}
+          disabled={pageIndex >= pageCount - 1}
           className="h-8 w-8 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           <ChevronsRight size={16} />
         </Button>
       </div>
     </div>
+  );
+}
+
+interface DataTablePaginationProps<TData> {
+  table: Table<TData>;
+  className?: string;
+  totalRowsOverride?: number;
+}
+
+export function DataTablePagination<TData>({
+  table,
+  className,
+  totalRowsOverride,
+}: DataTablePaginationProps<TData>) {
+  const pageIndex = table.getState().pagination.pageIndex;
+  const pageCount = table.getPageCount();
+  const totalRows = totalRowsOverride ?? table.getFilteredRowModel().rows.length;
+  const pageSize = table.getState().pagination.pageSize;
+
+  return (
+    <StandalonePagination
+      pageIndex={pageIndex}
+      pageSize={pageSize}
+      pageCount={pageCount}
+      totalRows={totalRows}
+      onPageChange={(p) => table.setPageIndex(p)}
+      onPageSizeChange={(s) => table.setPageSize(s)}
+      className={className}
+    />
   );
 }
