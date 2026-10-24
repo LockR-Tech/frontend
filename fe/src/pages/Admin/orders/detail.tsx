@@ -193,9 +193,47 @@ function CustomerCard({ order }: { order: AdminOrder }) {
   );
 }
 
+/** Đơn drone chỉ giao VÀO tủ: không có ô gửi, ô khách chọn là ô nhận. Đơn cũ (trước V32) còn lưu ô ở sendBox. */
+function isDroneOrder(order: AdminOrder) {
+  return order.type === "DRONE_DELIVERY";
+}
+
+function droneReceiveBoxNumber(order: AdminOrder) {
+  return order.receiveBoxNumber ?? order.reservedBoxNumber ?? order.sendBoxNumber;
+}
+
+function DroneLockerCard({ order }: { order: AdminOrder }) {
+  const { t } = useTranslation();
+  const receiveLocker = order.destinationLocker ?? order.locker;
+  const boxNumber = droneReceiveBoxNumber(order);
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <MapPin className="h-4 w-4" />
+          {t("admin.orders.detail.locker.title")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <LabelValue label={t("admin.orders.detail.locker.receiveLocker")}>
+          {lockerLabel(receiveLocker, t)}
+        </LabelValue>
+        <LabelValue label={t("admin.orders.detail.locker.receiveLockerAddress")}>
+          {receiveLocker?.address}
+        </LabelValue>
+        <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
+          {boxNumber !== null ? t("admin.orders.boxNumber", { number: boxNumber }) : null}
+        </LabelValue>
+        <p className="text-[11px] text-muted-foreground">{t("admin.orders.detail.locker.droneNoSendBox")}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function LockerCard({ order }: { order: AdminOrder }) {
   const { t } = useTranslation();
   const { locker, destinationLocker, store } = order;
+  if (isDroneOrder(order)) return <DroneLockerCard order={order} />;
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -790,21 +828,31 @@ export default function OrderDetailPage() {
                 {order.locker?.name ?? order.locker?.code}
               </LabelValue>
               <LabelValue label={t("common.store")}>{order.store?.name}</LabelValue>
-              <LabelValue label={t("admin.orders.detail.locker.sendBox")}>
-                {order.sendBoxNumber !== null
-                  ? t("admin.orders.boxNumberLong", { number: order.sendBoxNumber })
-                  : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
-                {order.receiveBoxNumber !== null
-                  ? t("admin.orders.boxNumberLong", { number: order.receiveBoxNumber })
-                  : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.locker.reservedBox")}>
-                {order.reservedBoxNumber !== null
-                  ? t("admin.orders.boxNumberLong", { number: order.reservedBoxNumber })
-                  : null}
-              </LabelValue>
+              {isDroneOrder(order) ? (
+                <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
+                  {droneReceiveBoxNumber(order) !== null
+                    ? t("admin.orders.boxNumberLong", { number: droneReceiveBoxNumber(order) })
+                    : null}
+                </LabelValue>
+              ) : (
+                <>
+                  <LabelValue label={t("admin.orders.detail.locker.sendBox")}>
+                    {order.sendBoxNumber !== null
+                      ? t("admin.orders.boxNumberLong", { number: order.sendBoxNumber })
+                      : null}
+                  </LabelValue>
+                  <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
+                    {order.receiveBoxNumber !== null
+                      ? t("admin.orders.boxNumberLong", { number: order.receiveBoxNumber })
+                      : null}
+                  </LabelValue>
+                  <LabelValue label={t("admin.orders.detail.locker.reservedBox")}>
+                    {order.reservedBoxNumber !== null
+                      ? t("admin.orders.boxNumberLong", { number: order.reservedBoxNumber })
+                      : null}
+                  </LabelValue>
+                </>
+              )}
               <LabelValue label={t("admin.orders.detail.links.type")}>
                 {orderTypeMeta(order.type).label}
               </LabelValue>
