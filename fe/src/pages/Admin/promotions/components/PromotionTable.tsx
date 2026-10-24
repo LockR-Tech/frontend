@@ -145,14 +145,26 @@ export function PromotionTable({
   const columns = [
     columnHelper.accessor("code", {
       header: t("admin.promotions.columns.code"),
-      cell: (info) => (
-        <div className="flex items-center gap-1.5">
-          <Tag size={13} className="text-orange-500 shrink-0" />
-          <span className="font-mono font-semibold text-xs text-foreground tracking-wide">
-            {info.getValue()}
-          </span>
-        </div>
-      ),
+      cell: (info) => {
+        const pointsCost = info.row.original.pointsCost;
+        return (
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1.5">
+              <Tag size={13} className="text-orange-500 shrink-0" />
+              <span className="font-mono font-semibold text-xs text-foreground tracking-wide">
+                {info.getValue()}
+              </span>
+            </div>
+            {pointsCost != null && pointsCost > 0 && (
+              <span className="text-[11px] font-medium text-violet-600">
+                {t("admin.promotions.pointsCostBadge", {
+                  points: pointsCost.toLocaleString("vi-VN"),
+                })}
+              </span>
+            )}
+          </div>
+        );
+      },
       size: 130,
     }),
 

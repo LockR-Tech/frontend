@@ -48,6 +48,8 @@ const TX_LABEL_KEY: Record<string, string> = {
   ORDER_REDEEM: "admin.users.loyalty.txType.orderRedeem",
   ORDER_REDEEM_REFUND: "admin.users.loyalty.txType.orderRedeemRefund",
   ORDER_EARN_REVERSAL: "admin.users.loyalty.txType.orderEarnReversal",
+  VOUCHER_EXCHANGE: "admin.users.loyalty.txType.voucherExchange",
+  VOUCHER_EXCHANGE_REFUND: "admin.users.loyalty.txType.voucherExchangeRefund",
   ADJUSTMENT: "admin.users.loyalty.txType.adjustment",
   REDEEM: "admin.users.loyalty.txType.redeem",
 };
