@@ -186,6 +186,7 @@ export default function CabinetControlPage() {
             key={lid.axis}
             axis={lid.axis}
             enabled={lid.enabled}
+            boxes={lid.boxes ?? []}
             status={lid.status}
             onAction={(action) => run(`Nắp trục ${lid.axis}`, controlLid({ lockerId, axis: lid.axis, action }).unwrap().then((d) => ({ data: d })))}
             onJog={(revolutions, direction) => run(`Chạy nắp trục ${lid.axis}`, jogLid({ lockerId, axis: lid.axis, revolutions, direction }).unwrap().then((d) => ({ data: d })))}
@@ -271,10 +272,11 @@ function CabinetLogSection({
 }
 
 function LidPanel({
-  axis, enabled, status, onAction, onJog, onTune,
+  axis, enabled, boxes, status, onAction, onJog, onTune,
 }: {
   axis: number;
   enabled: boolean;
+  boxes: number[];
   status: LidStatus | null;
   onAction: (a: LidAction) => void;
   onJog: (revolutions: number, direction: "open" | "close") => void;
@@ -291,6 +293,9 @@ function LidPanel({
       <div className="mb-3 flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-base font-semibold">
           <Gauge className="h-4 w-4" /> Trục nắp {axis}
+          {boxes.length > 0 && (
+            <span className="text-sm font-normal text-muted-foreground">· trên ô {boxes.join(", ")}</span>
+          )}
         </h3>
         <span className={`text-sm font-semibold ${stateColor(status?.state)}`}>
           {disabled ? "Chưa bật" : (status?.state ?? "—")}

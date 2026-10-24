@@ -36,7 +36,8 @@ export interface CabinetPanel {
   status: string;
   message: string;
   result: {
-    lids?: { axis: number; enabled: boolean; status: LidStatus | null }[];
+    // boxes: số ô mà nắp của trục nằm trên (LIDn_BOXES trên Pi); rỗng = chưa khai báo.
+    lids?: { axis: number; enabled: boolean; boxes?: number[]; status: LidStatus | null }[];
   } | null;
 }
 
