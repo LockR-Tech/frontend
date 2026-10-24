@@ -13,16 +13,6 @@ export interface AuthContextType {
   adminLoginStep1: (email: string, password: string) => Promise<void>;
   adminLoginStep2: (otpCode: string) => Promise<void>;
   cancelAdmin2FA: () => void;
-
-  // Partner OTP login
-  isWaitingForOTP: boolean;
-  partnerContactInfo: string;
-  partnerSendOTP: (
-    email: string,
-    contactType: "EMAIL" | "PHONE",
-  ) => Promise<void>;
-  partnerVerifyOTP: (email: string, otp: string) => Promise<void>;
-  cancelPartnerOTP: () => void;
 }
 
 export interface User {

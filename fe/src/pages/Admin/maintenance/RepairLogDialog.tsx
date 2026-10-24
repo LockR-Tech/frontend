@@ -42,14 +42,17 @@ export function RepairLogDialog({
   title,
   technicianName,
   report,
+  defaultOpen = false,
 }: {
   reportId: number;
   title: string;
   technicianName?: string;
   report?: LockerReportResponse;
+  /** Mở sẵn khi vào trang bằng link tới đúng phiếu (`?reportId=`). */
+  defaultOpen?: boolean;
 }) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"info" | "logs">("info");
 

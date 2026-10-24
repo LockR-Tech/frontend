@@ -25,17 +25,9 @@ const ROUTE_NAMES: Record<string, string> = {
   "/admin/payments": "admin.sidebar.payments",
   "/admin/refunds": "admin.sidebar.refunds",
   "/admin/loyalty": "admin.sidebar.loyalty",
-  "/admin/partners": "admin.sidebar.partners",
   "/admin/feedback": "admin.sidebar.feedback",
   "/admin/scheduler": "admin.sidebar.scheduler",
   "/admin/settings": "admin.sidebar.businessSettings",
-  "/partner/dashboard": "errorPage.routes.partnerDashboard",
-  "/partner/orders": "admin.sidebar.orders",
-  "/partner/staff": "admin.breadcrumb.staff",
-  "/partner/revenue": "admin.sidebar.revenue",
-  "/partner/lockers": "errorPage.routes.lockers",
-  "/partner/services": "admin.sidebar.services",
-  "/partner/settings": "admin.sidebar.settings",
 };
 
 export default function NotFoundPage(): React.JSX.Element {
@@ -280,7 +272,6 @@ export default function NotFoundPage(): React.JSX.Element {
                 { path: "/admin/dashboard", label: "Dashboard" },
                 { path: "/admin/orders", label: t("admin.sidebar.orders") },
                 { path: "/admin/users", label: "Users" },
-                { path: "/partner/dashboard", label: "Partner" },
               ].map((link) => (
                 <button
                   key={link.path}

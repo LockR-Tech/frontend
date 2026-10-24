@@ -26,6 +26,7 @@ import {
   LayoutGrid,
   MapPin,
   ExternalLink,
+  PackageSearch,
 } from "lucide-react";
 import {
   isXlCell,
@@ -86,7 +87,12 @@ import {
   useGetGatewaysQuery,
   useUpdateBoxMutation,
   type CellResponse,
+  type LockerReportResponse,
 } from "~/stores/apis/admin/lockerOps";
+import { useSearchAdminOrdersQuery } from "~/stores/apis/admin/orders";
+import type { AdminOrder } from "~/types/admin/reporting";
+import { MetaBadge } from "~/components/shared/reporting/MetaBadge";
+import { orderStatusMeta, orderTypeMeta } from "~/components/shared/reporting/report-meta";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { extractList } from "~/lib/extract-list";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -110,6 +116,24 @@ const SUSPENDED_LOCKER_STATUSES = ["MAINTENANCE", "INACTIVE"];
 
 const NO_TECHNICIAN = "NONE";
 
+// Đơn còn giữ ô — khớp `LockerOrderRepository.findActiveByBoxId` (mọi trạng thái trừ
+// COMPLETED/CANCELED/EXPIRED; RETURNED là giá trị cũ còn sót).
+const OPEN_ORDER_STATUSES = ["INITIALIZED", "STORING", "AWAITING_DISPATCH", "RETURNED"];
+// Trần `AdminOrderQueryService.MAX_PAGE_SIZE` — lớn hơn là server trả 400 và không có đơn nào.
+const OPEN_ORDERS_PAGE_SIZE = 100;
+
+/** Ô mà đơn đang giữ: ô gửi/nhận, hoặc ô đã giữ chỗ trước khi bỏ hàng. */
+function orderBoxIds(order: AdminOrder): number[] {
+  return [order.sendBoxId, order.receiveBoxId, order.reservedBoxId].filter(
+    (boxId): boxId is number => boxId != null,
+  );
+}
+
+/** Trang chi tiết đúng loại đơn: đơn drone có màn riêng. */
+function orderDetailPath(order: AdminOrder) {
+  return order.type === "DRONE_DELIVERY" ? `/admin/drone-orders/${order.id}` : `/admin/orders/${order.id}`;
+}
+
 // user-service /api/admin/users lọc theo `role` (khớp chuỗi con) ⇒ chỉ tải KTV tủ.
 // PageableRequest của users slice chưa khai báo `role` nên truyền qua hằng thay vì object literal.
 const TECHNICIAN_USERS_QUERY = { page: 0, size: 1000, role: "LOCKER_TECHNICIAN" };
@@ -119,6 +143,8 @@ const STATUS_STYLE: Record<string, { labelKey: string; cls: string }> = {
   RESERVED: { labelKey: "admin.lockers.boxStatus.reserved", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
   OCCUPIED: { labelKey: "admin.lockers.boxStatus.occupied", cls: "bg-secondary border-border text-foreground" },
   FAULT: { labelKey: "admin.lockers.boxStatus.fault", cls: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400" },
+  // Khách báo sự cố: tạm ngưng cấp ô, chủ đồ vẫn mở được — chờ KTV xác nhận (FAULT) hoặc từ chối phiếu.
+  PENDING_CHECK: { labelKey: "admin.lockers.boxStatus.pendingCheck", cls: "bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-400" },
   OUT_OF_SERVICE: { labelKey: "admin.lockers.boxStatus.outOfService", cls: "bg-secondary/40 border-border text-muted-foreground" },
   CLEANING: { labelKey: "admin.lockers.boxStatus.cleaning", cls: "bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400" },
 };
@@ -139,21 +165,33 @@ interface BoxActionDialogState {
 
 function CellTile({
   cell,
+  orders,
+  openReports,
   onAction,
   onEdit,
   onShowQr,
+  onShowOrders,
   busy,
 }: {
   cell: CellResponse;
+  /** Đơn còn giữ ô này (thường 0 hoặc 1). */
+  orders: AdminOrder[];
+  /** Phiếu sự cố chưa xử lý xong của ô — khách báo qua đơn thì ô vẫn OCCUPIED. */
+  openReports: LockerReportResponse[];
   onAction: (cell: CellResponse, type: BoxActionType) => void;
   onEdit: (cell: CellResponse) => void;
   onShowQr: (cell: CellResponse) => void;
+  onShowOrders: (cell: CellResponse) => void;
   busy: boolean;
 }) {
   const { t } = useTranslation();
   const isXl = isXlCell(cell);
   const isDrone = isDroneCell(cell);
   const doorOpen = isDoorOpen(cell);
+  const hasOrder = orders.length > 0;
+  const hasOpenReport = openReports.length > 0;
+  // Lý do lấy từ ô (admin/KTV báo hỏng) hoặc từ phiếu (khách báo qua đơn).
+  const reportReason = cell.faultReason ? null : openReports.find((r) => r.description)?.description ?? null;
 
   let bgClass = "bg-card";
   let borderClass = "border-border";
@@ -245,6 +283,19 @@ function CellTile({
           </span>
         );
         break;
+      case "PENDING_CHECK":
+        bgClass = "bg-orange-50/95 dark:bg-orange-950/50";
+        borderClass = "border-orange-400 dark:border-orange-700 ring-1 ring-orange-400/30 shadow-xs";
+        textClass = "text-orange-950 dark:text-orange-100";
+        statusBadge = (
+          <span
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-700 dark:text-orange-400 z-10"
+            title={t("admin.lockers.cell.pendingCheckHint")}
+          >
+            <AlertTriangle className="w-3.5 h-3.5" /> {t("admin.lockers.cell.pendingCheck")}
+          </span>
+        );
+        break;
       case "CLEANING":
       case "OUT_OF_SERVICE":
       default:
@@ -260,10 +311,12 @@ function CellTile({
     }
   }
 
-  // Viền cảnh báo khi cửa mở
+  // Viền cảnh báo khi cửa mở; ô có phiếu sự cố mà vẫn đang dùng thì viền đỏ như app.
   const doorRingClass = doorOpen
     ? "ring-2 ring-amber-400 border-amber-400 dark:border-amber-500 shadow-md shadow-amber-400/20"
-    : "";
+    : hasOpenReport && cell.status !== "FAULT" && cell.status !== "PENDING_CHECK"
+      ? "ring-2 ring-rose-400/60 border-rose-400 dark:border-rose-600"
+      : "";
 
   return (
     <div
@@ -273,7 +326,7 @@ function CellTile({
       {/* Decorative handle */}
       <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-border/80 rounded-full" />
       
-      <div className="flex items-center justify-between z-10">
+      <div className="flex items-start justify-between gap-2 z-10">
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="font-bold text-sm tracking-tight">{t("admin.lockers.boxLabel", { number: cell.boxNumber })}</span>
           {isDrone && (
@@ -308,7 +361,8 @@ function CellTile({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        {/* Góc phải: [QR][loại ô] / [⋯ thao tác khác] nằm ngay dưới QR cho dễ bấm */}
+        <div className="grid grid-cols-[auto_auto] items-center justify-items-center gap-1 shrink-0">
           <Button
             size="sm"
             variant="ghost"
@@ -324,18 +378,130 @@ function CellTile({
           {isDrone && <Plane className="w-5 h-5 text-indigo-600 dark:text-indigo-400 opacity-95 drop-shadow-xs" />}
           {isXl && <Luggage className="w-5 h-5 text-cyan-600 dark:text-cyan-400 opacity-90" />}
           {!isDrone && !isXl && <BoxIcon className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-80" />}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 w-6 p-0 border border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-700 dark:text-slate-200"
+                disabled={busy}
+                title={t("admin.lockers.cell.moreActions")}
+              >
+                <MoreHorizontal className="w-3.5 h-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 text-xs">
+              <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium">
+                <QrCode className="w-3.5 h-3.5 mr-2 text-primary" /> {t("admin.lockers.cell.qrAndLabel")}
+              </DropdownMenuItem>
+              {isDrone && (
+                <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium text-sky-600 dark:text-sky-400">
+                  <Plane className="w-3.5 h-3.5 mr-2 text-sky-500" />
+                  {cell.arucoMarkerId !== null && cell.arucoMarkerId !== undefined
+                    ? `Mã ArUco #${cell.arucoMarkerId}`
+                    : "Gán mã ArUco Drone"}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => onEdit(cell)} className="cursor-pointer font-medium">
+                <Sliders className="w-3.5 h-3.5 mr-2 text-indigo-600" /> {t("admin.lockers.cell.editFunction")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {cell.status === "AVAILABLE" && (
+                <>
+                  <DropdownMenuItem onClick={() => onAction(cell, "OUT_OF_SERVICE")} className="cursor-pointer">
+                    <Ban className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.suspendUse")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onAction(cell, "CLEANING")} className="cursor-pointer">
+                    <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-500" /> {t("admin.lockers.cell.sendToCleaning")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                    <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
+                  </DropdownMenuItem>
+                </>
+              )}
+              {(cell.status === "OCCUPIED" || cell.status === "RESERVED") && (
+                <>
+                  <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                    <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
+                  </DropdownMenuItem>
+                </>
+              )}
+              {(cell.status === "FAULT" || cell.status === "PENDING_CHECK") && (
+                <>
+                  <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
+                    <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
+                  </DropdownMenuItem>
+                </>
+              )}
+              {cell.status === "PENDING_CHECK" && (
+                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                  <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
+                </DropdownMenuItem>
+              )}
+              {(cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING") && (
+                <>
+                  <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
+                    <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                    <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
+                  </DropdownMenuItem>
+                </>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onAction(cell, "DELETE_BOX")}
+                disabled={cell.status === "OCCUPIED" || cell.status === "RESERVED" || busy}
+                className="cursor-pointer text-rose-600 dark:text-rose-400 focus:text-rose-600 font-medium"
+                title={cell.status === "OCCUPIED" || cell.status === "RESERVED" ? t("admin.lockers.cell.cannotDelete") : undefined}
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.deleteBox")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       {statusBadge}
-      {cell.faultReason && (
+      {hasOpenReport && (
+        <Link
+          to={`/admin/maintenance?reportId=${openReports[0].id}`}
+          className="z-10 mt-0.5 inline-flex items-center gap-1 self-start rounded border border-rose-300 bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300"
+          title={openReports.map((r) => `RPT-${r.id}: ${r.title}`).join("\n")}
+        >
+          <AlertTriangle className="w-3 h-3" />
+          {t("admin.lockers.cell.openReports", { reports: openReports.map((r) => `RPT-${r.id}`).join(", ") })}
+        </Link>
+      )}
+      {(cell.faultReason || reportReason) && (
         <span className="text-[11px] leading-tight line-clamp-2 mt-1 z-10 text-red-600 dark:text-red-400">
-          {cell.faultReason}
+          {cell.faultReason ?? t("admin.lockers.cell.reportReason", { reason: reportReason })}
         </span>
       )}
 
+      {/* Đơn đang giữ ô: sáng khi có đơn, mờ khi ô trống — bấm để xem mã đơn */}
+      <div className="mt-auto pt-2 z-10">
+        <Button
+          size="sm"
+          variant="outline"
+          className={`h-6 px-2 text-[10px] font-semibold shadow-2xs ${
+            hasOrder
+              ? "border-violet-300 text-violet-700 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800"
+              : "border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 text-slate-500"
+          }`}
+          disabled={!hasOrder}
+          onClick={() => onShowOrders(cell)}
+        >
+          <PackageSearch className="w-3 h-3 mr-1" />
+          {hasOrder && orders.length > 1
+            ? t("admin.lockers.cell.holdingOrdersCount", { count: orders.length })
+            : t("admin.lockers.cell.holdingOrder")}
+        </Button>
+      </div>
+
       {/* Clean, ergonomic action controls */}
-      <div className="mt-auto flex items-center justify-between gap-1.5 pt-2 z-10">
-        {cell.status === "FAULT" ? (
+      <div className="flex items-center justify-between gap-1.5 pt-1.5 z-10">
+        {cell.status === "FAULT" || cell.status === "PENDING_CHECK" ? (
           <Button
             size="sm"
             variant="outline"
@@ -366,85 +532,6 @@ function CellTile({
             <Unlock className="w-3 h-3 mr-1" /> {t("admin.lockers.cell.forceOpen")}
           </Button>
         )}
-
-        {/* Dropdown for secondary actions */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-6 w-6 p-0 border border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-700 dark:text-slate-200"
-              disabled={busy}
-              title={t("admin.lockers.cell.moreActions")}
-            >
-              <MoreHorizontal className="w-3.5 h-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 text-xs">
-            <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium">
-              <QrCode className="w-3.5 h-3.5 mr-2 text-primary" /> {t("admin.lockers.cell.qrAndLabel")}
-            </DropdownMenuItem>
-            {isDrone && (
-              <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium text-sky-600 dark:text-sky-400">
-                <Plane className="w-3.5 h-3.5 mr-2 text-sky-500" />
-                {cell.arucoMarkerId !== null && cell.arucoMarkerId !== undefined
-                  ? `Mã ArUco #${cell.arucoMarkerId}`
-                  : "Gán mã ArUco Drone"}
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={() => onEdit(cell)} className="cursor-pointer font-medium">
-              <Sliders className="w-3.5 h-3.5 mr-2 text-indigo-600" /> {t("admin.lockers.cell.editFunction")}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {cell.status === "AVAILABLE" && (
-              <>
-                <DropdownMenuItem onClick={() => onAction(cell, "OUT_OF_SERVICE")} className="cursor-pointer">
-                  <Ban className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.suspendUse")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction(cell, "CLEANING")} className="cursor-pointer">
-                  <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-500" /> {t("admin.lockers.cell.sendToCleaning")}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
-                  <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
-                </DropdownMenuItem>
-              </>
-            )}
-            {(cell.status === "OCCUPIED" || cell.status === "RESERVED") && (
-              <>
-                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
-                  <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
-                </DropdownMenuItem>
-              </>
-            )}
-            {cell.status === "FAULT" && (
-              <>
-                <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
-                  <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
-                </DropdownMenuItem>
-              </>
-            )}
-            {(cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING") && (
-              <>
-                <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
-                  <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
-                  <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
-                </DropdownMenuItem>
-              </>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onAction(cell, "DELETE_BOX")}
-              disabled={cell.status === "OCCUPIED" || cell.status === "RESERVED" || busy}
-              className="cursor-pointer text-rose-600 dark:text-rose-400 focus:text-rose-600 font-medium"
-              title={cell.status === "OCCUPIED" || cell.status === "RESERVED" ? t("admin.lockers.cell.cannotDelete") : undefined}
-            >
-              <Trash2 className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.deleteBox")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </div>
   );
@@ -455,30 +542,40 @@ function isKioskColumnCell(cell: CellResponse) {
   return (cell.colIndex == null || cell.colIndex <= 1) && (cell.rowIndex == null || cell.rowIndex <= 1);
 }
 
-function getBoxGridStyle(cell: CellResponse, maxRows: number) {
-  // Cột: nếu colIndex <= 0 hoặc null thì đưa về cột 1 (dưới màn hình Kiosk). Ngược lại là colIndex.
+/** Chỗ ô được gán trên lưới (cột ≤ 0 hoặc thiếu ⇒ cột 1, dưới màn hình Kiosk). */
+function baseSlot(cell: CellResponse) {
   const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex : 1;
   const row = cell.rowIndex ?? 1;
+  return { row, col };
+}
 
-  // Ô vali XL ở cột 1 bắt đầu từ hàng 2: khoang dọc lớn kéo dài trọn chiều cao dưới màn hình 7 inch
-  if (isXlCell(cell) && col === 1 && row === 2) {
-    return {
-      gridColumn: "1",
-      gridRow: `2 / span ${Math.max(1, maxRows - 1)}`,
-    };
-  }
+function occupiedSlots(cells: CellResponse[]) {
+  return new Set(cells.map((c) => {
+    const { row, col } = baseSlot(c);
+    return `${row}:${col}`;
+  }));
+}
 
-  // Ô vali XL thông thường chiếm 2 hàng
-  if (isXlCell(cell)) {
-    return {
-      gridColumn: `${col}`,
-      gridRow: `${row} / span 2`,
-    };
-  }
+/**
+ * Số hàng ô chiếm khi vẽ. Ô vali XL được vẽ cao hơn (2 hàng; ở cột 1 từ hàng 2 thì kéo hết
+ * chiều cao dưới màn hình 7 inch) nhưng CHỈ khi các chỗ bên dưới còn trống. Tủ thật có ô XL
+ * cùng cỡ cửa với ô thường (lưới đều, ô bên dưới đã có chủ) thì vẽ đúng một ô — trước đây
+ * luôn kéo 2 hàng nên đè lên ô bên dưới dù dữ liệu hàng/cột đúng.
+ */
+function rowSpanOf(cell: CellResponse, occupied: Set<string>, maxRows: number) {
+  if (!isXlCell(cell)) return 1;
+  const { row, col } = baseSlot(cell);
+  const wanted = col === 1 && row === 2 ? Math.max(1, maxRows - 1) : 2;
+  let span = 1;
+  while (span < wanted && !occupied.has(`${row + span}:${col}`)) span += 1;
+  return span;
+}
 
+function getBoxGridStyle(cell: CellResponse, rowSpan: number) {
+  const { row, col } = baseSlot(cell);
   return {
     gridColumn: `${col}`,
-    gridRow: `${row}`,
+    gridRow: rowSpan > 1 ? `${row} / span ${rowSpan}` : `${row}`,
   };
 }
 
@@ -488,22 +585,23 @@ interface OverlapGroup {
 }
 
 /** Các nhóm ô bị vẽ chồng lên nhau: cùng ô lưới hoặc trùng Màn hình Kiosk (1, 1). */
-function findOverlappingBoxes(cells: CellResponse[]): OverlapGroup[] {
+function findOverlappingBoxes(cells: CellResponse[], maxRows: number): OverlapGroup[] {
   const slots = new Map<string, number[]>();
   const put = (key: string, boxNumber: number) => {
     const list = slots.get(key);
     if (list) list.push(boxNumber);
     else slots.set(key, [boxNumber]);
   };
+  // Cùng cách tính chiều cao với lúc vẽ: chỉ còn báo chồng khi hai ô thật sự gán trùng chỗ.
+  const occupied = occupiedSlots(cells);
   for (const cell of cells) {
-    const col = cell.colIndex != null && cell.colIndex > 0 ? cell.colIndex : 1;
-    const row = cell.rowIndex ?? 1;
+    const { row, col } = baseSlot(cell);
     if (row === 1 && col === 1) {
       put("kiosk_screen", cell.boxNumber);
     }
-    put(`${row}:${col}`, cell.boxNumber);
-    if (isXlCell(cell)) {
-      put(`${row + 1}:${col}`, cell.boxNumber);
+    const span = rowSpanOf(cell, occupied, maxRows);
+    for (let r = row; r < row + span; r += 1) {
+      put(`${r}:${col}`, cell.boxNumber);
     }
   }
   const groups = new Map<string, OverlapGroup>();
@@ -671,16 +769,45 @@ export default function LockerLayoutPage() {
 
   // Phiếu đang chặn cả tủ (chỉ cần khi tủ đang bảo trì)
   const lockerStatus = data?.data?.status ?? staffLocker?.status ?? "";
+  // Tải luôn (không chỉ khi tủ bảo trì): ô có phiếu khách báo qua đơn vẫn OCCUPIED,
+  // chỉ phiếu mới cho biết ô đang hỏng như app khách thấy.
   const { data: reportsData } = useGetAllAdminReportsQuery(undefined, {
-    skip: lockerStatus !== "MAINTENANCE",
+    skip: !Number.isFinite(id),
+    pollingInterval: 30000,
   });
   const blockingReports = useMemo(
     () =>
       (reportsData?.data ?? []).filter(
-        (r) => r.lockerId === id && r.blocksLocker && r.status !== "RESOLVED",
+        (r) => r.lockerId === id && r.blocksLocker && r.status !== "RESOLVED" && r.status !== "REJECTED",
       ),
     [reportsData, id],
   );
+
+  const openReportsByBox = useMemo(() => {
+    const byBox = new Map<number, LockerReportResponse[]>();
+    for (const r of reportsData?.data ?? []) {
+      if (r.lockerId !== id || r.boxId == null || r.status === "RESOLVED" || r.status === "REJECTED") continue;
+      byBox.set(r.boxId, [...(byBox.get(r.boxId) ?? []), r]);
+    }
+    return byBox;
+  }, [reportsData, id]);
+
+  // Đơn còn mở của tủ (tủ gửi/nhận hoặc tủ đích drone) — gom theo ô đang giữ.
+  const { data: openOrdersData } = useSearchAdminOrdersQuery(
+    { lockerId: id, status: OPEN_ORDER_STATUSES, size: OPEN_ORDERS_PAGE_SIZE, sort: "createdAt,desc" },
+    { skip: !Number.isFinite(id), pollingInterval: 15000 },
+  );
+  const ordersByBox = useMemo(() => {
+    const byBox = new Map<number, AdminOrder[]>();
+    for (const order of openOrdersData?.data?.content ?? []) {
+      for (const boxId of new Set(orderBoxIds(order))) {
+        byBox.set(boxId, [...(byBox.get(boxId) ?? []), order]);
+      }
+    }
+    return byBox;
+  }, [openOrdersData]);
+  const [ordersCell, setOrdersCell] = useState<CellResponse | null>(null);
+  const ordersCellOrders = ordersCell ? ordersByBox.get(ordersCell.id) ?? [] : [];
 
   // Modal State for Adding Box(es)
   const [showAddModal, setShowAddModal] = useState(false);
@@ -741,8 +868,6 @@ export default function LockerLayoutPage() {
     return layout.cells;
   }, [layout]);
 
-  const overlapGroups = useMemo(() => findOverlappingBoxes(cells), [cells]);
-
   const maxRows = useMemo(() => {
     if (!cells.length) return 3;
     return Math.max(
@@ -750,6 +875,9 @@ export default function LockerLayoutPage() {
       ...cells.map((c) => (c.rowIndex ?? 1) + (isXlCell(c) ? 1 : 0)),
     );
   }, [cells]);
+
+  const overlapGroups = useMemo(() => findOverlappingBoxes(cells, maxRows), [cells, maxRows]);
+  const occupied = useMemo(() => occupiedSlots(cells), [cells]);
 
   const maxCols = useMemo(() => {
     if (!cells.length) return 3;
@@ -1411,6 +1539,11 @@ export default function LockerLayoutPage() {
             <p className="text-2xl font-bold text-destructive">
               {cells.filter((c) => c.status === "FAULT").length}
             </p>
+            {cells.some((c) => c.status === "PENDING_CHECK") && (
+              <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mt-0.5">
+                {t("admin.lockers.layout.kpi.pendingCheckBoxes")}: {cells.filter((c) => c.status === "PENDING_CHECK").length}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -1559,7 +1692,7 @@ export default function LockerLayoutPage() {
             </div>
 
             {cells.map((cell) => {
-              const gridStyle = getBoxGridStyle(cell, maxRows);
+              const gridStyle = getBoxGridStyle(cell, rowSpanOf(cell, occupied, maxRows));
               return (
                 <div
                   key={cell.id}
@@ -1568,9 +1701,12 @@ export default function LockerLayoutPage() {
                 >
                   <CellTile
                     cell={cell}
+                    orders={ordersByBox.get(cell.id) ?? []}
+                    openReports={openReportsByBox.get(cell.id) ?? []}
                     onAction={handleOpenAction}
                     onEdit={handleOpenEdit}
                     onShowQr={handleOpenQr}
+                    onShowOrders={setOrdersCell}
                     busy={
                       (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) &&
                       pendingBox === cell.id
@@ -1605,6 +1741,9 @@ export default function LockerLayoutPage() {
             </span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-1 rounded-md border border-rose-300 dark:border-rose-700">
               <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> {t("admin.lockers.layout.legend.fault", { boxes: cells.filter((c) => c.status === 'FAULT').map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-orange-800 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/50 px-2.5 py-1 rounded-md border border-orange-300 dark:border-orange-700">
+              <AlertTriangle className="w-3.5 h-3.5 text-orange-500" /> {t("admin.lockers.layout.legend.pendingCheck", { boxes: cells.filter((c) => c.status === 'PENDING_CHECK').map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
             </span>
             <span className="inline-flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-2.5 py-1 rounded-md border border-amber-400">
               <DoorOpen className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> {t("admin.lockers.layout.legend.doorsOpen", { boxes: cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(', ') || '0' })}
@@ -1982,6 +2121,51 @@ export default function LockerLayoutPage() {
               </div>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Đơn đang giữ ô — mở từ nút "Đơn đang chứa" trên thẻ ô */}
+      <Dialog open={ordersCell != null} onOpenChange={(open) => !open && setOrdersCell(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {t("admin.lockers.cell.ordersDialogTitle", { number: ordersCell?.boxNumber ?? "" })}
+            </DialogTitle>
+            <DialogDescription>{t("admin.lockers.cell.ordersDialogDesc")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {ordersCellOrders.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("admin.lockers.cell.noOrder")}</p>
+            ) : (
+              ordersCellOrders.map((order) => (
+                <div key={order.id} className="rounded-lg border border-border p-3 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold text-sm select-all">{order.orderCode ?? `#${order.id}`}</span>
+                    <Link
+                      to={orderDetailPath(order)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                    >
+                      {t("admin.lockers.cell.viewOrder")} <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <MetaBadge meta={orderTypeMeta(order.type)} />
+                    <MetaBadge meta={orderStatusMeta(order.status)} />
+                  </div>
+                  {(order.customer?.fullName || order.receiverName || order.receiverPhone) && (
+                    <p className="text-xs text-muted-foreground">
+                      {order.customer?.fullName && t("admin.lockers.cell.orderCustomer", { name: order.customer.fullName })}
+                      {order.customer?.fullName && (order.receiverName || order.receiverPhone) && " · "}
+                      {(order.receiverName || order.receiverPhone) &&
+                        t("admin.lockers.cell.orderReceiver", {
+                          name: [order.receiverName, order.receiverPhone].filter(Boolean).join(" – "),
+                        })}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

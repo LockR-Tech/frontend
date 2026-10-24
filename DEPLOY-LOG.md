@@ -5,6 +5,15 @@ Bản ghi mới nhất nằm trên cùng.
 
 | Thời điểm (UTC) | Web admin | Landing | Commit | Người đẩy |
 |---|---|---|---|---|
+| 2026-10-23 17:56 | failure | success | [`0c5d8a5`](https://github.com/LockR-Tech/frontend/commit/0c5d8a53831d8ff7bf2ea57e513f9ee20ab42ed8) | @TruongNguyenThaiBinh77 |
+| 2026-10-23 13:43 | failure | success | [`32ccdc9`](https://github.com/LockR-Tech/frontend/commit/32ccdc9822df3f7e8d3bce4b1ca676819b6e8bdf) | @LeThiYenVi |
+| 2026-10-23 13:03 | failure | success | [`61518b3`](https://github.com/LockR-Tech/frontend/commit/61518b30dd6746ed8074c3876b3563d7f9a8cafe) | @TruongNguyenThaiBinh77 |
+| 2026-10-23 08:59 | failure | success | [`fae2b8d`](https://github.com/LockR-Tech/frontend/commit/fae2b8d596368286db3d24ad6c195c2dda4eb082) | @BaoHuy-Dev |
+| 2026-10-22 17:29 | success | success | [`a7d8076`](https://github.com/LockR-Tech/frontend/commit/a7d80768d50b31d617d9b587fc0030d3e93f22b1) | @TruongNguyenThaiBinh77 |
+| 2026-10-21 18:25 | success | success | [`5406d60`](https://github.com/LockR-Tech/frontend/commit/5406d60a3417642c102ca89cc7321e37c409592a) | @TruongNguyenThaiBinh77 |
+| 2026-10-21 14:59 | success | success | [`ae58be1`](https://github.com/LockR-Tech/frontend/commit/ae58be1e0fce43ec07af2c40483a2d2805c09b0e) | @Kimnha01 |
+| 2026-10-21 09:39 | success | success | [`9d11d45`](https://github.com/LockR-Tech/frontend/commit/9d11d45d0fd22bce2eca12a0ef8c335e490c6b4e) | @Kimnha01 |
+| 2026-10-21 02:07 | failure | success | [`ac16aeb`](https://github.com/LockR-Tech/frontend/commit/ac16aebc5db65b18bee61cb67f741ab9f881cfd6) | @Kimnha01 |
 | 2026-10-20 09:53 | failure | success | [`2ceae70`](https://github.com/LockR-Tech/frontend/commit/2ceae702d35394c2cd5a2404d1506624e389fd02) | @TruongNguyenThaiBinh77 |
 | 2026-10-20 05:22 | success | success | [`3157162`](https://github.com/LockR-Tech/frontend/commit/31571623500d4d391a057cd20729bac02597e337) | @LeThiYenVi |
 | 2026-10-20 01:42 | success | success | [`8f62cc6`](https://github.com/LockR-Tech/frontend/commit/8f62cc666e4d056a93ad429ce0731f2209c6eab6) | @Kimnha01 |

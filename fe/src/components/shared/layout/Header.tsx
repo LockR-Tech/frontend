@@ -42,6 +42,7 @@ import {
 } from "~/stores/apis/notificationApi";
 import { useGetDroneQuery } from "~/stores/apis/admin/drones";
 import { useGetDroneIncidentQuery } from "~/stores/apis/admin/droneIncidents";
+import { useGetLockerLayoutQuery } from "~/stores/apis/admin/lockerOps";
 import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
 import { SUPPORTED_LANGUAGES, currentLanguage } from "~/utils/i18n";
 
@@ -60,7 +61,6 @@ const themes = [
 // đổi ngôn ngữ sang English/日本語 thì breadcrumb vẫn là tiếng Việt.
 const pathLabelKeys: Record<string, string> = {
   admin: "admin.breadcrumb.admin",
-  partner: "admin.sidebar.partners",
   dashboard: "admin.sidebar.dashboard",
   users: "admin.sidebar.users",
   orders: "admin.sidebar.orders",
@@ -70,7 +70,6 @@ const pathLabelKeys: Record<string, string> = {
   payments: "admin.sidebar.payments",
   refunds: "admin.sidebar.refunds",
   loyalty: "admin.sidebar.loyaltyProgram",
-  partners: "admin.sidebar.partners",
   feedback: "admin.sidebar.feedback",
   settings: "admin.sidebar.settings",
   scheduler: "admin.sidebar.scheduler",
@@ -117,6 +116,18 @@ function Breadcrumb() {
       ?? (location.state as { incidentCode?: string } | null)?.incidentCode
       ?? (incidentQuery.isError ? `#${incidentId}` : null);
 
+  // Chi tiết tủ: hiện tên tủ (vd "Tủ Vinhomes Grand Park – S1.02") thay vì #800006.
+  // Cùng query và tham số với trang chi tiết ⇒ dùng chung cache, không thêm request.
+  const lockerId = paths[0] === "admin" && paths[1] === "lockers" && isNumeric(paths[2] ?? "")
+    ? Number(paths[2])
+    : null;
+  const lockerQuery = useGetLockerLayoutQuery(lockerId ?? 0, { skip: lockerId == null });
+  const lockerName = lockerId == null
+    ? null
+    : lockerQuery.data?.data?.name?.trim()
+      || lockerQuery.data?.data?.code
+      || (lockerQuery.isError ? `#${lockerId}` : null);
+
   if (paths.length < 2) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
@@ -135,7 +146,7 @@ function Breadcrumb() {
 
     const labelKey = pathLabelKeys[path];
     let label = labelKey ? t(labelKey) : path;
-    // /admin/settings là trang quy tắc nghiệp vụ; /partner/settings vẫn là "Cài đặt".
+    // /admin/settings là trang quy tắc nghiệp vụ, không phải "Cài đặt" chung.
     if (paths[0] === "admin" && path === "settings") {
       label = t("admin.sidebar.businessSettings");
     }
@@ -147,6 +158,9 @@ function Breadcrumb() {
     }
     if (isLast && incidentId != null && path === String(incidentId)) {
       label = incidentCode ?? `#${incidentId}`;
+    }
+    if (isLast && lockerId != null && path === String(lockerId)) {
+      label = lockerName ?? t("header.loadingLocker");
     }
 
     return {
@@ -169,10 +183,11 @@ function Breadcrumb() {
               <span
                 className={cn(
                   isLast
-                    ? "font-semibold text-foreground"
-                    : "text-muted-foreground",
-                  "max-w-[140px] truncate",
+                    ? "font-semibold text-foreground max-w-[320px]"
+                    : "text-muted-foreground max-w-[140px]",
+                  "truncate",
                 )}
+                title={item.label}
               >
                 {item.label}
               </span>

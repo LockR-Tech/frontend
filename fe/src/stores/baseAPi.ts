@@ -54,17 +54,12 @@ export const baseApi = createApi({
     "Auth",
     "Users",
     "Stores",
-    "Services",
     "Lockers",
     "Orders",
     "Payments",
     "Dashboard",
     "Scheduler",
     "Loyalty", // Giữ từ main cho Admin
-    "Partners", // Giữ từ main cho Admin management
-    "Partner", // Thêm cho Partner profile
-    "AccessCodes", // Thêm cho Staff Access Code logic
-    "PartnerOrder", // Thêm cho luồng xử lý đơn của Partner
     "Notifications", // Thêm cho hệ thống thông báo realtime
     "NotificationStats", // Stats của notifications
     "NotificationTemplates", // Templates của notifications

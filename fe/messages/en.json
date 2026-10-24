@@ -124,7 +124,8 @@
     "searchPlaceholder": "Search admin pages…",
     "searchEmpty": "No matching page.",
     "searchGroup": "Admin pages",
-    "loadingDrone": "Loading drone…"
+    "loadingDrone": "Loading drone…",
+    "loadingLocker": "Loading locker…"
   },
   "table": {
     "rowsPerPage": "Rows per page",
@@ -143,13 +144,13 @@
       "orders": "Orders",
       "stores": "Stores",
       "lockers": "Lockers",
+      "cabinetControl": "Cabinet control",
       "services": "Services",
       "payments": "Payments",
       "refunds": "Refunds",
       "revenue": "Revenue",
       "loyalty": "Loyalty",
       "loyaltyProgram": "Loyalty points",
-      "partners": "Partners",
       "feedback": "Feedback",
       "scheduler": "Scheduler",
       "notifications": "Notifications",
@@ -487,19 +488,13 @@
         "newStatus": "New status",
         "newStatusPlaceholder": "Select a new status",
         "currentTag": "(current)",
-        "receiveBox": "Receiving box ID (optional)",
-        "receiveBoxPlaceholder": "Leave empty to not assign a receiving box",
-        "releasesBox": "This status releases the box held by the order.",
-        "receiveBoxInvalid": "The receiving box ID must be an integer",
+        "noTransitions": "This order is closed — no status can be changed manually.",
         "updated": "Moved order {{code}} to “{{status}}”",
         "updateFailed": "Couldn't update the status",
         "hint": {
-          "initialized": "Order just created; the customer hasn't put the parcel in the locker yet.",
-          "storing": "The parcel is in the box; the recipient hasn't picked it up yet.",
-          "expired": "Pickup deadline passed. Unlike the automatic transition, setting this status manually does NOT release the held box.",
-          "awaitingDispatch": "Waiting for a drone to be dispatched for the delivery leg.",
-          "completed": "Delivered. This action releases the held box.",
-          "canceled": "Cancels the order. This action releases the held box."
+          "expired": "Move the items to storage: releases the box, voids the PIN and notifies the customer, same as the automatic overdue transition.",
+          "completed": "Close an order that has been handed over: releases the box and voids the PIN.",
+          "canceled": "Cancel the order: voids the PIN, releases the box and returns vouchers/points. Drone orders can only be canceled before the technician has collected the parcel. No automatic refund — handle it on the Refunds page."
         }
       },
       "timeline": {
@@ -826,7 +821,11 @@
         "disconnected": "Disconnected"
       },
       "filters": {
-        "searchPlaceholder": "Search lockers..."
+        "searchPlaceholder": "Search lockers...",
+        "location": "Location",
+        "allLocations": "All locations",
+        "technician": "Technician",
+        "allTechnicians": "All technicians"
       },
       "stats": {
         "totalLockers": "Total Lockers",
@@ -1000,7 +999,8 @@
         "outOfService": "Out of service",
         "cleaning": "Maintenance",
         "suspended": "Suspended",
-        "droneReady": "Drone ready"
+        "droneReady": "Drone ready",
+        "pendingCheck": "Awaiting check"
       },
       "cell": {
         "faultDrone": "Faulty (Drone)",
@@ -1025,7 +1025,19 @@
         "sendToCleaning": "Mark for cleaning",
         "reportFault": "Report box fault",
         "cannotDelete": "Can't delete a box that is holding items or reserved",
-        "deleteBox": "Delete this box"
+        "deleteBox": "Delete this box",
+        "openReports": "Fault reported · {{reports}}",
+        "reportReason": "Reason: {{reason}}",
+        "holdingOrder": "Order inside",
+        "holdingOrdersCount": "{{count}} orders inside",
+        "noOrder": "No order is holding this box.",
+        "ordersDialogTitle": "Orders in box #{{number}}",
+        "ordersDialogDesc": "Open orders holding this box (reserved or with items inside).",
+        "viewOrder": "View order",
+        "orderCustomer": "Customer: {{name}}",
+        "orderReceiver": "Receiver: {{name}}",
+        "pendingCheck": "Awaiting technician check",
+        "pendingCheckHint": "Reported by a customer — not offered to new orders, the owner can still open it"
       },
       "layout": {
         "toast": {
@@ -1162,7 +1174,8 @@
           "totalBoxes": "Total Physical Boxes",
           "emptyBoxes": "Empty Boxes",
           "inUse": "In Use",
-          "faultyBoxes": "Faulty Boxes"
+          "faultyBoxes": "Faulty Boxes",
+          "pendingCheckBoxes": "Boxes awaiting check"
         },
         "doorWarning": {
           "title": "Safety warning: {{count}} box(es) with open doors ({{boxes}})",
@@ -1195,7 +1208,8 @@
           "inUse": "In use / Reserved ({{boxes}})",
           "fault": "Faulty / maintenance ({{boxes}})",
           "doorsOpen": "Doors open ({{boxes}})",
-          "doorsClosed": "Doors closed ({{count}})"
+          "doorsClosed": "Doors closed ({{count}})",
+          "pendingCheck": "Awaiting technician check ({{boxes}})"
         }
       },
       "boxType": {
@@ -1223,10 +1237,23 @@
           "online": "Online (Plugged in)",
           "offline": "Disconnected (Unplugged)",
           "closed": "Door closed",
-          "timeout": "Timed out",
+          "timeout": "No response",
           "jammed": "Lock jammed",
           "denied": "Denied",
           "restartRequested": "Restart requested"
+        },
+        "message": {
+          "timeoutTitle": "The cabinet did not answer the open command within {{seconds}} s",
+          "timeoutTitleNoSeconds": "The cabinet did not answer the open command",
+          "timeoutHint": "The controller may have lost power or network, so the box may still be closed. Check the cabinet power and network (Controller card), then retry.",
+          "jammedTitle": "Box latch jammed — the cabinet could not open the box",
+          "jammedHint": "The box was marked faulty. Have a technician check the latch and door.",
+          "hardwareTitle": "The cabinet reported an error opening the box: {{detail}}",
+          "hardwareHint": "Hardware error code {{code}}. Have a technician check this box.",
+          "sendFailedTitle": "The open command could not be sent to the cabinet",
+          "sendFailedHint": "The server could not reach the controller (MQTT), so the box did not open. Retry in a few minutes.",
+          "systemErrorTitle": "System error while processing the open command",
+          "systemErrorHint": "The server failed while handling the command; the box may still be closed. Retry, or report this time to the tech team."
         },
         "slotsUnknown": "— boxes",
         "title": "Operations & IoT Log for Locker {{locker}}",
@@ -1274,6 +1301,7 @@
           "category": "Category",
           "description": "Incident Description",
           "categoryGeneral": "GENERAL",
+          "openReport": "Open report RPT-{{id}} in Maintenance",
           "resolved": "Resolved",
           "inProgress": "In progress",
           "open": "Open",
@@ -1345,67 +1373,6 @@
         "mac": "Pi MAC address:",
         "lastSeen": "Last seen:",
         "noSignal": "No signal yet"
-      }
-    },
-    "partners": {
-      "title": "Partner Management",
-      "description": "Manage and approve partners in the system",
-      "searchPlaceholder": "Search partners...",
-      "addPartner": "Add partner",
-      "columns": {
-        "partner": "Partner",
-        "representative": "Representative",
-        "address": "Address",
-        "stores": "Stores",
-        "status": "Status"
-      },
-      "status": {
-        "pending": "Pending",
-        "approved": "Approved",
-        "rejected": "Rejected",
-        "suspended": "Suspended"
-      },
-      "detail": {
-        "status": {
-          "approved": "Approved",
-          "rejected": "Rejected",
-          "suspended": "Suspended"
-        },
-        "title": "Partner Details #{{id}}",
-        "notFound": "Partner not found.",
-        "stores": "Stores",
-        "staff": "Staff",
-        "revenueShare": "Revenue Share",
-        "businessInfo": "Business Information",
-        "businessName": "Business Name",
-        "registrationNumber": "Business Registration No.",
-        "taxId": "Tax ID",
-        "contactInfo": "Contact Information",
-        "representative": "Representative",
-        "contactEmail": "Contact Email",
-        "systemInfo": "System Information",
-        "registeredAt": "Registered On",
-        "approvedAt": "Approved On",
-        "rejectionReason": "Rejection Reason",
-        "rejecting": "Rejecting…",
-        "approving": "Approving…",
-        "suspending": "Suspending…"
-      },
-      "stats": {
-        "total": "Total Partners",
-        "totalStores": "Total Stores"
-      },
-      "table": {
-        "notUpdated": "Not provided",
-        "storesCount": "{{count}} store(s)"
-      },
-      "toast": {
-        "approved": "Partner approved successfully!",
-        "approveFailed": "Couldn't approve the partner",
-        "rejected": "Partner rejected!",
-        "rejectFailed": "Couldn't reject the partner",
-        "suspended": "Partner suspended!",
-        "suspendFailed": "Couldn't suspend the partner"
       }
     },
     "feedback": {
@@ -2454,6 +2421,28 @@
         "FLIGHT_INCIDENT": "In-flight incident",
         "OPERATIONAL": "Operational reason",
         "OTHER": "Other"
+      },
+      "weather": {
+        "routeTitle": "Route weather",
+        "lockersTitle": "Weather at drone lockers",
+        "loading": "Loading weather forecast…",
+        "loadFailed": "Could not load the weather forecast.",
+        "noLockers": "No locker has a drone landing pad yet.",
+        "allSafe": "All {{count}} lockers can fly in the next 30 minutes.",
+        "someBlocked": "{{blocked}}/{{count}} lockers cannot fly or have no forecast.",
+        "wind": "Wind {{value}} km/h",
+        "gust": "Gusts {{value}} km/h",
+        "rain": "Rain {{value}} mm",
+        "window": "Next 30 minutes",
+        "checkedAt": "updated {{time}}",
+        "provider": "source {{provider}}",
+        "sourceFallback": "Launch locker",
+        "destinationFallback": "Receiving locker",
+        "status": {
+          "SAFE": "Safe to fly",
+          "UNSAFE": "Unsafe to fly",
+          "UNAVAILABLE": "No forecast"
+        }
       }
     },
     "drones": {
@@ -3400,7 +3389,8 @@
         "openAwaitingTechUpper": "NEW · AWAITING TECHNICIAN",
         "newlyReceived": "NEWLY RECEIVED",
         "justCreated": "JUST REPORTED",
-        "overdueSla": "SLA Overdue"
+        "overdueSla": "SLA Overdue",
+        "rejected": "Not confirmed"
       },
       "droneStatus": {
         "idle": "Ready",
@@ -4256,128 +4246,6 @@
       }
     }
   },
-  "partner": {
-    "sidebar": {
-      "dashboard": "Dashboard",
-      "orders": "Orders",
-      "staff": "Staff",
-      "revenue": "Revenue",
-      "stores": "Stores",
-      "services": "Services",
-      "notifications": "Notifications",
-      "settings": "Settings"
-    },
-    "common": {
-      "updating": "Updating...",
-      "settings": "Settings",
-      "logout": "Logout"
-    },
-    "dashboard": {
-      "title": "Dashboard",
-      "subtitle": "Store activity overview",
-      "errorTitle": "Failed to load dashboard",
-      "welcome": "Welcome",
-      "pendingOrders": "Pending Orders",
-      "ordersNeedAction": "orders need action",
-      "stats": {
-        "todayOrders": "Today's Orders",
-        "total": "Total",
-        "processing": "Processing",
-        "processingShort": "Processing",
-        "revenue": "Revenue",
-        "thisMonth": "This Month",
-        "earnings": "Earnings",
-        "stores": "Stores",
-        "active": "Active"
-      }
-    },
-    "orders": {
-      "title": "Order Management",
-      "subtitle": "Track and process laundry orders",
-      "loadingTitle": "Loading orders...",
-      "errorTitle": "Failed to load orders",
-      "description": "Manage orders",
-      "tabs": {
-        "all": "All",
-        "waiting": "Waiting Pickup",
-        "collected": "Collected",
-        "processing": "Processing",
-        "ready": "Ready to Return",
-        "returned": "Returned",
-        "completed": "Completed"
-      },
-      "empty": {
-        "title": "No Orders",
-        "message": "No orders in this status."
-      },
-      "columns": {
-        "orderCode": "Order Code",
-        "customer": "Customer",
-        "locker": "Locker",
-        "service": "Service",
-        "weight": "Weight",
-        "total": "Total"
-      },
-      "results": "orders",
-      "actions": {
-        "accept": "Issue Pickup Code",
-        "process": "Start Washing",
-        "markReady": "Issue Return Code",
-        "enterWeight": "Update Weight"
-      },
-      "status": {
-        "waitingReturn": "Waiting Staff Return",
-        "waitingPickup": "Waiting Customer Pickup"
-      }
-    },
-    "services": {
-      "title": "Service Management",
-      "subtitle": "View services assigned to your store",
-      "loadingTitle": "Loading services...",
-      "errorTitle": "Failed to load services",
-      "description": "Manage services"
-    },
-    "revenue": {
-      "title": "Revenue",
-      "subtitle": "Track revenue and transactions",
-      "loadingTitle": "Loading revenue data...",
-      "errorTitle": "Failed to load revenue data",
-      "description": "View revenue reports"
-    },
-    "lockers": {
-      "title": "Locker Management",
-      "subtitle": "Monitor and manage lockers",
-      "loadingTitle": "Loading locker info...",
-      "errorTitle": "Failed to load lockers",
-      "reportIssue": "Report Issue",
-      "description": "Manage lockers",
-      "empty": {
-        "title": "No Lockers",
-        "message": "Your store has no lockers assigned. Please contact Admin for support."
-      }
-    },
-    "staff": {
-      "title": "Staff Management",
-      "subtitle": "Manage staff and issue access codes",
-      "loadingTitle": "Loading staff list...",
-      "errorTitle": "Failed to load staff list",
-      "description": "Manage staff"
-    },
-    "notifications": {
-      "title": "Notifications",
-      "subtitle": "Manage system notifications",
-      "loadingTitle": "Loading notifications...",
-      "errorTitle": "Failed to load notifications",
-      "description": "Manage notifications"
-    },
-    "settings": {
-      "title": "Settings",
-      "subtitle": "Manage store information",
-      "loadingTitle": "Loading settings...",
-      "errorTitle": "Failed to load settings",
-      "description": "Account settings"
-    }
-  },
   "dropdown": {
     "viewDetail": "View Detail",
     "edit": "Edit",
@@ -4596,8 +4464,6 @@
       "staff": "Staff",
       "user": "User",
       "moderator": "Moderator",
-      "partner": "Partner",
-      "partnerStaff": "Partner staff",
       "superAdmin": "Super administrator"
     },
     "layout": {
@@ -4668,8 +4534,7 @@
       "home": "Home",
       "register": "Sign Up",
       "stores": "Stores",
-      "lockers": "Lockers",
-      "partnerDashboard": "Partner Dashboard"
+      "lockers": "Lockers"
     },
     "notFound": {
       "autoRedirect": "Redirecting automatically...",

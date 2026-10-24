@@ -32,7 +32,6 @@ export const RoleNameSchema = z.enum([
   'USER',
   'STAFF',
   'MODERATOR',
-  'PARTNER',
 ]);
 
 export const LockerStatusSchema = z.enum([
@@ -83,13 +82,6 @@ export const PaymentStatusSchema = z.enum([
   'FAILED',
   'REFUNDED',
   'CANCELED',
-]);
-
-export const PartnerStatusSchema = z.enum([
-  'PENDING',
-  'APPROVED',
-  'REJECTED',
-  'SUSPENDED',
 ]);
 
 export const PointTransactionTypeSchema = z.enum([
@@ -234,14 +226,6 @@ export const AdjustUserPointsRequestSchema = z.object({
 });
 
 // ============================================
-// Partner Management Schemas
-// ============================================
-
-export const RejectPartnerRequestSchema = z.object({
-  reason: z.string().min(1, 'Reason is required'),
-});
-
-// ============================================
 // Type Exports
 // ============================================
 
@@ -253,7 +237,6 @@ export type OrderType = z.infer<typeof OrderTypeSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export type PaymentStatus = z.infer<typeof PaymentStatusSchema>;
-export type PartnerStatus = z.infer<typeof PartnerStatusSchema>;
 export type PointTransactionType = z.infer<typeof PointTransactionTypeSchema>;
 export type StampType = z.infer<typeof StampTypeSchema>;
 
@@ -278,4 +261,3 @@ export type UpdateOrderStatusRequest = z.infer<typeof UpdateOrderStatusRequestSc
 export type UpdatePaymentStatusRequest = z.infer<typeof UpdatePaymentStatusRequestSchema>;
 
 export type AdjustUserPointsRequest = z.infer<typeof AdjustUserPointsRequestSchema>;
-export type RejectPartnerRequest = z.infer<typeof RejectPartnerRequestSchema>;

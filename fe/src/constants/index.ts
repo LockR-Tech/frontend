@@ -17,5 +17,3 @@ export const PATH = {
 export * from "./api-paths";
 export * from "./roles";
 export * from "./sidebar";
-export * from "./partner-page.constants";
-export * from "./partner-sidebar";

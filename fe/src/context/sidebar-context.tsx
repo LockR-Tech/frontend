@@ -40,7 +40,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 export function useSidebar() {
   const context = useContext(SidebarContext);
   if (context === undefined) {
-    // Return no-op fallback when used outside SidebarProvider (e.g. Partner layout)
+    // Return no-op fallback when used outside SidebarProvider
     return {
       isExpanded: false,
       sidebarWidth: 0,

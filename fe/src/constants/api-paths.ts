@@ -10,7 +10,6 @@ export const ROOT_URI = {
   AUTH: "/api/auth",
   USERS: "/api/user",
   ADMIN: "/api/admin",
-  PARTNER: "/api/partner",
   LOYALTY: "/api/loyalty",
   MEDIA: "/api/media",
   LOCKER_TECHNICIAN: "/api/locker-technician",
@@ -67,12 +66,6 @@ export const ADMIN_ENDPOINTS = {
   STORE_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/stores/${id}`,
   STORE_STATUS: (id: number) => `${ROOT_URI.ADMIN}/stores/${id}/status`,
   STORE_IMAGE: (id: number) => `${ROOT_URI.ADMIN}/stores/${id}/image`,
-
-  // Services Management
-  SERVICES: `${ROOT_URI.ADMIN}/services`,
-  SERVICE_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/services/${id}`,
-  SERVICE_PRICE: (id: number) => `${ROOT_URI.ADMIN}/services/${id}/price`,
-  SERVICE_STATUS: (id: number) => `${ROOT_URI.ADMIN}/services/${id}/status`,
 
   // Lockers Management
   LOCKERS: `${ROOT_URI.ADMIN}/lockers`,
@@ -153,17 +146,6 @@ export const ADMIN_ENDPOINTS = {
   LOYALTY_USER_HISTORY: (userId: number) =>
     `${ROOT_URI.ADMIN}/loyalty/users/${userId}/history`,
 
-  // Partner Management
-  PARTNERS: `${ROOT_URI.ADMIN}/partners`,
-  PARTNER_BY_ID: (partnerId: number) =>
-    `${ROOT_URI.ADMIN}/partners/${partnerId}`,
-  PARTNER_APPROVE: (partnerId: number) =>
-    `${ROOT_URI.ADMIN}/partners/${partnerId}/approve`,
-  PARTNER_REJECT: (partnerId: number) =>
-    `${ROOT_URI.ADMIN}/partners/${partnerId}/reject`,
-  PARTNER_SUSPEND: (partnerId: number) =>
-    `${ROOT_URI.ADMIN}/partners/${partnerId}/suspend`,
-
   // Promotion Management
   PROMOTIONS: `${ROOT_URI.ADMIN}/promotions`,
   PROMOTION_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/promotions/${id}`,
@@ -231,11 +213,6 @@ export const ADMIN_ENDPOINTS = {
   // Analytics
   ANALYTICS_FEEDBACK: `${ROOT_URI.ADMIN}/analytics/feedback`,
   ANALYTICS_SATISFACTION: `${ROOT_URI.ADMIN}/analytics/satisfaction`,
-
-  // Legacy
-  ANALYTICS: `${ROOT_URI.ADMIN}/analytics`,
-  SCHEDULE: `${ROOT_URI.ADMIN}/schedule`,
-  INTEGRATIONS: `${ROOT_URI.ADMIN}/integrations`,
 } as const;
 
 // Public business settings (không cần đăng nhập)
@@ -273,46 +250,11 @@ export const LOYALTY_ENDPOINTS = {
   TRANSACTIONS: `${ROOT_URI.LOYALTY}/transactions`,
 } as const;
 
-// Partner Endpoints
-export const PARTNER_ENDPOINTS = {
-  PROFILE: `${ROOT_URI.PARTNER}`,
-  REGISTER: `${ROOT_URI.PARTNER}/register`,
-  DASHBOARD: `${ROOT_URI.PARTNER}/dashboard`,
-  ORDERS: `${ROOT_URI.PARTNER}/orders`,
-  ORDERS_PENDING: `${ROOT_URI.PARTNER}/orders/pending`,
-  ORDER_BY_ID: (id: number) => `${ROOT_URI.PARTNER}/orders/${id}`,
-  ORDER_ACCEPT: (id: number) => `${ROOT_URI.PARTNER}/orders/${id}/accept`,
-  ORDER_PROCESS: (id: number) => `${ROOT_URI.PARTNER}/orders/${id}/process`,
-  ORDER_READY: (id: number) => `${ROOT_URI.PARTNER}/orders/${id}/ready`,
-  ORDER_WEIGHT: (id: number) => `${ROOT_URI.PARTNER}/orders/${id}/weight`,
-  ORDER_COLLECT: (id: number) => `${ROOT_URI.PARTNER}/orders/${id}/collect`,
-  ORDER_STATISTICS: `${ROOT_URI.PARTNER}/orders/statistics`,
-  ACCESS_CODES: `${ROOT_URI.PARTNER}/access-codes`,
-  ACCESS_CODE_GENERATE: `${ROOT_URI.PARTNER}/access-codes/generate`,
-  ACCESS_CODES_BY_ORDER: (orderId: number) =>
-    `${ROOT_URI.PARTNER}/access-codes/order/${orderId}`,
-  ACCESS_CODE_CANCEL: (codeId: number) =>
-    `${ROOT_URI.PARTNER}/access-codes/${codeId}/cancel`,
-  STAFF: `${ROOT_URI.PARTNER}/staff`,
-  STAFF_BY_ID: (id: number) => `${ROOT_URI.PARTNER}/staff/${id}`,
-  STORES: `${ROOT_URI.PARTNER}/stores`,
-  STORE_LOCKERS: (storeId: number) => `api/lockers/${storeId}`,
-  LOCKERS: `${ROOT_URI.PARTNER}/lockers`,
-  GET_BOXES_BY_LOCKER: (storeId: number) => `api/locker/${storeId}/boxes`,
-  LOCKER_AVAILABLE_BOXES: (lockerId: number) =>
-    `${ROOT_URI.PARTNER}/lockers/${lockerId}/boxes/available`,
-  LOCKER_BOXES: (lockerId: number) => `/api/lockers/${lockerId}/boxes`,
-  REVENUE: `${ROOT_URI.PARTNER}/revenue`,
-  ORDER_COMPLAINTS: (orderId: number) => `/api/orders/${orderId}/complaints`,
-  ORDER_RATING: (orderId: number) => `/api/orders/${orderId}/rating`,
-} as const;
-
 // Combined API Paths
 export const API_PATHS = {
   ...AUTH_ENDPOINTS,
   ...USER_ENDPOINTS,
   ...ADMIN_ENDPOINTS,
-  ...PARTNER_ENDPOINTS,
 } as const;
 // HTTP Methods & Metadata
 export const HTTP_METHODS = {

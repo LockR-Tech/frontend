@@ -1,6 +1,5 @@
 import {
   Home,
-  Users,
   Package,
   ListOrdered,
   UserCog,
@@ -8,10 +7,7 @@ import {
   CreditCard,
   Clock,
   Boxes,
-  LayoutDashboard,
   Bell,
-  Settings,
-  Briefcase,
   Tag,
   Plane,
   Activity,
@@ -52,6 +48,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     path: "/admin/lockers",
     label: "admin.sidebar.lockers",
     permission: "admin_access",
+  },
+  {
+    icon: SlidersHorizontal,
+    path: "/admin/cabinet-control",
+    label: "admin.sidebar.cabinetControl",
+    permission: "control_cabinet",
   },
   {
     icon: Sparkles,
@@ -169,67 +171,6 @@ export const SIDEBAR_BRAND = {
   name: "Smart Kiosk",
   tagline: "Admin Portal",
 };
-
-// Partner Navigation Items
-export const PARTNER_NAV_ITEMS: NavItem[] = [
-  {
-    icon: LayoutDashboard,
-    path: "/partner/dashboard",
-    label: "partner.sidebar.dashboard",
-    permission: "partner_access",
-  },
-  {
-    icon: Package,
-    path: "/partner/orders",
-    label: "partner.sidebar.orders",
-    permission: "partner_access",
-  },
-  {
-    icon: Boxes,
-    path: "/partner/stores",
-    label: "partner.sidebar.stores",
-    permission: "partner_access",
-  },
-  // TODO: Uncomment when partner services API is ready
-  // {
-  //   icon: Briefcase,
-  //   path: "/partner/services",
-  //   label: "partner.sidebar.services",
-  //   permission: "partner_access",
-  // },
-  // TODO: Uncomment when partner revenue period API is ready (currently shown in dashboard)
-  // {
-  //   icon: DollarSign,
-  //   path: "/partner/revenue",
-  //   label: "partner.sidebar.revenue",
-  //   permission: "partner_access",
-  // },
-  {
-    icon: Users,
-    path: "/partner/staff",
-    label: "partner.sidebar.staff",
-    permission: "partner_access",
-  },
-  // TODO: Uncomment when revenue page is ready (data shown on dashboard for now)
-  // {
-  //   icon: DollarSign,
-  //   path: "/partner/revenue",
-  //   label: "partner.sidebar.revenue",
-  //   permission: "partner_access",
-  // },
-  {
-    icon: Bell,
-    path: "/partner/notifications",
-    label: "partner.sidebar.notifications",
-    permission: "partner_access",
-  },
-  {
-    icon: Settings,
-    path: "/partner/settings",
-    label: "partner.sidebar.settings",
-    permission: "partner_access",
-  },
-];
 
 // Sidebar Styling Config
 export const SIDEBAR_CONFIG = {

@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -23,7 +22,7 @@ import { MetaBadge, orderStatusMeta } from "~/components/shared/reporting";
 import { useAuth } from "~/context/auth-context";
 import { useUpdateAdminOrderStatusMutation } from "~/stores/apis/admin/orders";
 import { toReportError } from "~/lib/report-error";
-import { ADMIN_ORDER_STATUSES } from "~/types/admin/reporting";
+import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder, AdminOrderStatus } from "~/types/admin/reporting";
 
 interface OrderStatusUpdateModalProps {
@@ -32,21 +31,12 @@ interface OrderStatusUpdateModalProps {
   onUpdated?: () => void;
 }
 
-/** Khoá message ghi chú cho từng trạng thái, theo đúng nghiệp vụ tủ Lock.R. */
+/** Khoá message ghi chú cho từng trạng thái đích admin được chọn. */
 const STATUS_HINTS: Record<string, string> = {
-  INITIALIZED: "admin.orders.statusModal.hint.initialized",
-  STORING: "admin.orders.statusModal.hint.storing",
   EXPIRED: "admin.orders.statusModal.hint.expired",
-  AWAITING_DISPATCH: "admin.orders.statusModal.hint.awaitingDispatch",
   COMPLETED: "admin.orders.statusModal.hint.completed",
   CANCELED: "admin.orders.statusModal.hint.canceled",
 };
-
-/** Trạng thái backend giải phóng ô khi chuyển sang (OrderService.updateStatus) — cần nhắc trước khi bấm. */
-const RELEASES_BOX: AdminOrderStatus[] = ["COMPLETED", "CANCELED"];
-
-/** Chỉ RETURNED (giá trị cũ, không còn trong danh sách chọn) mới chiếm ô nhận theo `receiveBoxId`. */
-const USES_RECEIVE_BOX: AdminOrderStatus[] = ["RETURNED"];
 
 export function OrderStatusUpdateModal({
   order,
@@ -58,35 +48,25 @@ export function OrderStatusUpdateModal({
   const [updateStatus, { isLoading: saving }] =
     useUpdateAdminOrderStatusMutation();
   const [selected, setSelected] = useState<AdminOrderStatus | "">("");
-  const [receiveBoxId, setReceiveBoxId] = useState("");
 
   useEffect(() => {
     setSelected("");
-    setReceiveBoxId("");
   }, [order?.id]);
 
   if (!order) return null;
 
   const staffId = Number(user?.id);
-
-  const usesReceiveBox = selected !== "" && USES_RECEIVE_BOX.includes(selected);
+  // Chỉ các bước backend cho phép từ trạng thái hiện tại (OrderService.STAFF_TRANSITIONS).
+  const nextStatuses = adminOrderNextStatuses(order.status);
 
   const handleSubmit = async () => {
     if (!selected) return;
-    const parsedBoxId =
-      usesReceiveBox && receiveBoxId.trim() ? Number(receiveBoxId.trim()) : undefined;
-    if (parsedBoxId !== undefined && !Number.isInteger(parsedBoxId)) {
-      toast.error(t("admin.orders.statusModal.receiveBoxInvalid"));
-      return;
-    }
-
     try {
       await updateStatus({
         id: order.id,
         status: selected,
         // Gửi id admin để dòng lịch sử ghi đúng ai đổi trạng thái.
         ...(Number.isFinite(staffId) ? { staffId } : {}),
-        ...(parsedBoxId !== undefined ? { receiveBoxId: parsedBoxId } : {}),
       }).unwrap();
       toast.success(
         t("admin.orders.statusModal.updated", {
@@ -103,8 +83,6 @@ export function OrderStatusUpdateModal({
       );
     }
   };
-
-  const releasesBox = selected !== "" && RELEASES_BOX.includes(selected);
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -126,55 +104,34 @@ export function OrderStatusUpdateModal({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="new-status">{t("admin.orders.statusModal.newStatus")}</Label>
-            <Select
-              value={selected}
-              onValueChange={(value) => setSelected(value as AdminOrderStatus)}
-            >
-              <SelectTrigger id="new-status">
-                <SelectValue placeholder={t("admin.orders.statusModal.newStatusPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                {ADMIN_ORDER_STATUSES.map((status) => (
-                  <SelectItem
-                    key={status}
-                    value={status}
-                    disabled={status === order.status}
-                  >
-                    {orderStatusMeta(status).label}
-                    {status === order.status &&
-                      ` ${t("admin.orders.statusModal.currentTag")}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selected && STATUS_HINTS[selected] && (
-              <p className="text-xs text-muted-foreground">
-                {t(STATUS_HINTS[selected])}
-              </p>
-            )}
-          </div>
-
-          {usesReceiveBox && (
-            <div className="space-y-1.5">
-              <Label htmlFor="receive-box">
-                {t("admin.orders.statusModal.receiveBox")}
-              </Label>
-              <Input
-                id="receive-box"
-                inputMode="numeric"
-                placeholder={t("admin.orders.statusModal.receiveBoxPlaceholder")}
-                value={receiveBoxId}
-                onChange={(e) => setReceiveBoxId(e.target.value)}
-              />
-            </div>
-          )}
-
-          {releasesBox && (
-            <p className="text-xs text-amber-600 dark:text-amber-400">
-              {t("admin.orders.statusModal.releasesBox")}
+          {nextStatuses.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("admin.orders.statusModal.noTransitions")}
             </p>
+          ) : (
+            <div className="space-y-1.5">
+              <Label htmlFor="new-status">{t("admin.orders.statusModal.newStatus")}</Label>
+              <Select
+                value={selected}
+                onValueChange={(value) => setSelected(value as AdminOrderStatus)}
+              >
+                <SelectTrigger id="new-status">
+                  <SelectValue placeholder={t("admin.orders.statusModal.newStatusPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {nextStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {orderStatusMeta(status).label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selected && STATUS_HINTS[selected] && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  {t(STATUS_HINTS[selected])}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
