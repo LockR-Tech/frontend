@@ -532,7 +532,10 @@
           "storeContact": "Liên hệ cửa hàng",
           "pinCode": "Mã PIN",
           "pinIssuedAt": "PIN phát lúc",
-          "qrCode": "Mã QR"
+          "qrCode": "Mã QR",
+          "receiveLocker": "Tủ nhận",
+          "receiveLockerAddress": "Địa chỉ tủ nhận",
+          "droneNoSendBox": "Đơn drone chỉ giao vào tủ nhận nên không có ô gửi — drone bay từ tủ xuất phát do hệ thống chọn (xem khối Drone)."
         },
         "payment": {
           "noMoreDue": "Không cần thu thêm",

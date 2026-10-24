@@ -532,7 +532,10 @@
           "storeContact": "Store contact",
           "pinCode": "PIN code",
           "pinIssuedAt": "PIN issued at",
-          "qrCode": "QR code"
+          "qrCode": "QR code",
+          "receiveLocker": "Receiving locker",
+          "receiveLockerAddress": "Receiving locker address",
+          "droneNoSendBox": "Drone orders only deliver into the receiving locker, so there is no drop-off box — the drone departs from a system-chosen locker (see the Drone card)."
         },
         "payment": {
           "noMoreDue": "Nothing more to collect",
