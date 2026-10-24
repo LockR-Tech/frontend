@@ -128,8 +128,8 @@ export default function CabinetControlPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {boxes.map((b) => (
             <button
-              key={b.boxId ?? b.id}
-              onClick={() => run(`Mở ô ${b.boxNumber}`, openBox({ lockerId, boxId: b.boxId ?? b.id }).unwrap().then((d) => ({ data: d })))}
+              key={b.id}
+              onClick={() => run(`Mở ô ${b.boxNumber}`, openBox({ lockerId, boxId: b.id }).unwrap().then((d) => ({ data: d })))}
               className="flex flex-col items-center gap-1 rounded-lg border border-border bg-card p-3 text-sm hover:border-primary hover:bg-accent"
             >
               <DoorOpen className="h-5 w-5 text-primary" />
