@@ -29,6 +29,9 @@ const ACTION_LABELS: Record<string, string> = {
   LID_STOP: "Nắp: dừng",
   LID_JOG: "Nắp: chạy thử",
   LID_TUNE: "Nắp: chỉnh thông số",
+  BLE_TOKEN: "Bluetooth: cấp mã mở ô",
+  BOX_OPEN_BLE: "Mở ô qua Bluetooth",
+  BLE_REJECTED: "Bluetooth: mã bị từ chối",
 };
 
 function statusClass(status: string) {
@@ -37,6 +40,7 @@ function statusClass(status: string) {
     case "SUCCESS":
     case "ACCEPTED":
     case "OPEN":
+    case "ISSUED":
       return "bg-emerald-50 text-emerald-700";
     case "STOPPED":
       return "bg-amber-50 text-amber-700";

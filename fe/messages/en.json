@@ -992,6 +992,25 @@
         "unassignTitle": "Remove the controller from this locker?",
         "unassignDesc": "Pi {{mac}} will clear its box layout and stop accepting commands for locker #{{id}}. The app and kiosk won't be able to open real boxes until it is reassigned."
       },
+      "bluetoothTest": {
+        "title": "Bluetooth open test",
+        "description": "Customer accounts listed here see a Bluetooth button on the app's Profile page and can open any box of this locker over Bluetooth (standing next to it). Every open is written to the cabinet control log.",
+        "add": "Allow an account",
+        "searchPlaceholder": "Search by name, email, phone…",
+        "searchEmpty": "No customer account found",
+        "empty": "No account may test Bluetooth opening on this locker yet.",
+        "unknownUser": "Account #{{id}}",
+        "grantedAt": "granted {{time}}",
+        "revoke": "Revoke",
+        "confirmRevokeTitle": "Revoke Bluetooth test?",
+        "confirmRevokeDescription": "{{name}} will no longer get Bluetooth open codes for this locker. Codes already issued expire within 2 minutes.",
+        "toast": {
+          "granted": "Account may now test Bluetooth opening",
+          "grantFailed": "Could not grant access",
+          "revoked": "Bluetooth test access revoked",
+          "revokeFailed": "Could not revoke access"
+        }
+      },
       "boxLabel": "Box #{{number}}",
       "boxNumberRequired": "Please enter the box number!",
       "boxStatus": {

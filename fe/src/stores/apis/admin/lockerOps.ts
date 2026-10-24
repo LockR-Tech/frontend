@@ -421,6 +421,14 @@ export interface TechnicianPresenceResponse {
   updatedAt?: string | null;
 }
 
+/** iot-service BleTestGrantResponse — tên/email ghép từ danh sách người dùng của admin. */
+export interface BleTestGrantResponse {
+  lockerId: number;
+  userId: number;
+  grantedBy: number | null;
+  createdAt: string;
+}
+
 const TAG = 'Lockers' as const;
 
 export const lockerOpsApi = baseApi.injectEndpoints({
@@ -945,6 +953,29 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: TAG, id: 'gateways' }],
     }),
 
+    // Thử mở ô qua Bluetooth (F3-G11): tài khoản được admin cho thử trên tủ này.
+    getBleTestGrants: builder.query<ApiResponse<BleTestGrantResponse[]>, number>({
+      query: (lockerId) => `/api/admin/iot/ble-test/lockers/${lockerId}/users`,
+      providesTags: (_r, _e, lockerId) => [{ type: TAG, id: `ble-test-${lockerId}` }],
+    }),
+
+    grantBleTest: builder.mutation<ApiResponse<BleTestGrantResponse>, { lockerId: number; userId: number }>({
+      query: ({ lockerId, userId }) => ({
+        url: `/api/admin/iot/ble-test/lockers/${lockerId}/users`,
+        method: 'POST',
+        body: { userId },
+      }),
+      invalidatesTags: (_r, _e, { lockerId }) => [{ type: TAG, id: `ble-test-${lockerId}` }],
+    }),
+
+    revokeBleTest: builder.mutation<ApiResponse<void>, { lockerId: number; userId: number }>({
+      query: ({ lockerId, userId }) => ({
+        url: `/api/admin/iot/ble-test/lockers/${lockerId}/users/${userId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_r, _e, { lockerId }) => [{ type: TAG, id: `ble-test-${lockerId}` }],
+    }),
+
     // Admin view of all reports with optional technician filtering
     getAllAdminReports: builder.query<
       ApiResponse<LockerReportResponse[]>,
@@ -1105,6 +1136,9 @@ export const {
   useAssignGatewayMutation,
   useUnassignGatewayMutation,
   useRediscoverGatewayMutation,
+  useGetBleTestGrantsQuery,
+  useGrantBleTestMutation,
+  useRevokeBleTestMutation,
   useGetAllAdminReportsQuery,
   useAssignReportToTechnicianMutation,
   useUnassignReportMutation,

@@ -97,6 +97,7 @@ import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { extractList } from "~/lib/extract-list";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { GatewayPanel } from "./components/GatewayPanel";
+import { BluetoothTestPanel } from "./components/BluetoothTestPanel";
 import { LockerLogsPanel } from "./components/LockerLogsPanel";
 import { EditBoxModal } from "./components/EditBoxModal";
 import { BoxQrModal } from "./components/BoxQrModal";
@@ -1520,6 +1521,8 @@ export default function LockerLayoutPage() {
         cellCount={cells.length}
         highestBoxNumber={cells.reduce((max, c) => Math.max(max, c.boxNumber ?? 0), 0)}
       />
+
+      <BluetoothTestPanel lockerId={id} />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
