@@ -992,6 +992,25 @@
         "unassignTitle": "Gỡ bộ điều khiển khỏi tủ?",
         "unassignDesc": "Pi {{mac}} sẽ xoá sơ đồ ô và thôi nhận lệnh của tủ #{{id}}. App và kiosk sẽ không mở được ô thật cho tới khi gán lại."
       },
+      "bluetoothTest": {
+        "title": "Thử mở ô qua Bluetooth",
+        "description": "Tài khoản khách trong danh sách thấy nút Bluetooth ở trang Hồ sơ của app và mở được ô bất kỳ của tủ này qua Bluetooth (đứng cạnh tủ). Mỗi lần mở đều ghi vào nhật ký điều khiển tủ.",
+        "add": "Cho tài khoản thử",
+        "searchPlaceholder": "Tìm theo tên, email, số điện thoại…",
+        "searchEmpty": "Không tìm thấy tài khoản khách",
+        "empty": "Chưa có tài khoản nào được thử mở ô qua Bluetooth ở tủ này.",
+        "unknownUser": "Tài khoản #{{id}}",
+        "grantedAt": "cấp lúc {{time}}",
+        "revoke": "Thu quyền",
+        "confirmRevokeTitle": "Thu quyền thử Bluetooth?",
+        "confirmRevokeDescription": "{{name}} sẽ không xin được mã mở ô qua Bluetooth ở tủ này nữa. Mã đã cấp hết hạn sau tối đa 2 phút.",
+        "toast": {
+          "granted": "Đã cho tài khoản thử mở ô qua Bluetooth",
+          "grantFailed": "Không cấp được quyền",
+          "revoked": "Đã thu quyền thử Bluetooth",
+          "revokeFailed": "Không thu được quyền"
+        }
+      },
       "boxLabel": "Ô #{{number}}",
       "boxNumberRequired": "Vui lòng nhập số ô tủ!",
       "boxStatus": {
