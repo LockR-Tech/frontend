@@ -115,7 +115,7 @@ export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
 
   return (
     <div className="space-y-3">
-      <div className="h-72 overflow-hidden rounded-lg border">
+      <div className="relative isolate z-0 h-72 overflow-hidden rounded-lg border">
         <MapContainer
           key={order.orderId}
           bounds={bounds}

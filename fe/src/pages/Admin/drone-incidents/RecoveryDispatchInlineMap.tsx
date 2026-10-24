@@ -713,7 +713,7 @@ export function RecoveryDispatchInlineMap({
       {/* 3. Khu vực Bản đồ Leaflet (Trái) & Danh sách KTV lựa chọn (Phải) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Bản đồ Leaflet tương tác */}
-        <div className="lg:col-span-7 h-[460px] rounded-xl overflow-hidden border border-slate-200 relative shadow-inner bg-slate-100">
+        <div className="lg:col-span-7 h-[460px] rounded-xl overflow-hidden border border-slate-200 relative isolate z-0 shadow-inner bg-slate-100">
           <MapContainer
             center={[dropLat, dropLng]}
             zoom={14}
