@@ -94,15 +94,33 @@ export function describeDroneCommLog(log: DroneLockerCommLog): string {
     case 'MARKER_VALIDATED':
       return 'Xác thực mã ArUco hợp lệ với ô tủ đích';
     case 'OPEN_LID_REQUESTED':
+      if (log.errorMessage && log.errorMessage.trim()) {
+        return translateRawMessage(log.errorMessage);
+      }
       return log.retryCount > 0
-        ? `Gửi lại lệnh mở nắp trượt ô tủ (tủ đã kết nối lại, lần ${log.retryCount})`
-        : 'Gửi lệnh yêu cầu mở nắp trượt ô tủ';
+        ? `Gửi lại lệnh mở nắp trượt ô tủ (lần ${log.retryCount})`
+        : 'Đã gửi lệnh mở nắp trượt ô tủ';
+    case 'LID_OPEN_ACCEPTED':
+      return 'Tủ đã nhận lệnh mở, nắp trượt đang chạy';
+    case 'LID_CLOSE_ACCEPTED':
+      return 'Tủ đã nhận lệnh đóng, nắp trượt đang chạy';
+    case 'TARGET_REQUEST':
+      if (log.errorMessage && log.errorMessage.trim()) {
+        return translateRawMessage(log.errorMessage);
+      }
+      return 'Drone hỏi mục tiêu giao hàng (ô đích và mã ArUco)';
     case 'LID_OPENED':
-      return 'Nắp trượt ô tủ đã mở hoàn toàn';
+      if (log.errorMessage && log.errorMessage.trim()) {
+        return translateRawMessage(log.errorMessage);
+      }
+      return 'Tủ báo nắp trượt đã mở';
     case 'DROP_PHASE_STARTED':
-      return 'Bắt đầu giai đoạn nhả hàng (giữ mở nắp trượt trong 5 giây)';
+      if (log.errorMessage && log.errorMessage.trim()) {
+        return translateRawMessage(log.errorMessage);
+      }
+      return 'Bắt đầu giả lập drone nhả hàng (nắp đã mở thật)';
     case 'DROP_PHASE_COMPLETED':
-      return 'Hoàn tất giai đoạn nhả hàng';
+      return 'Hoàn tất giả lập drone nhả hàng';
     case 'CLOSE_LID_REQUESTED':
       return log.retryCount > 0
         ? `Gửi lại lệnh đóng nắp trượt ô tủ (tủ đã kết nối lại, lần ${log.retryCount})`
