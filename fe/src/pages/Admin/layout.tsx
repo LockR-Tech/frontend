@@ -7,6 +7,7 @@ import { useAuth } from "~/context/auth-context";
 import { SidebarProvider, useSidebar } from "~/context/sidebar-context";
 import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
 import { useInitialPrefetch } from "~/hooks/use-route-prefetch";
+import { useAdminRealtimeSync } from "~/hooks/useAdminRealtimeSync";
 import PreferencesModal from "./preferences-modal";
 
 // Inner component that uses sidebar context
@@ -18,6 +19,9 @@ function AdminLayoutInner() {
 
   // Prefetch popular routes after initial render
   useInitialPrefetch();
+
+  // Dữ liệu đổi ở bất cứ đâu (app khách, KTV, kiosk, admin khác) ⇒ trang đang mở tự tải lại.
+  useAdminRealtimeSync();
 
   useEffect(() => {
     const checkScreen = () => {
