@@ -25,10 +25,10 @@ const LID_PINS: { key: "pulPin" | "dirPin" | "homePin" | "endPin"; label: string
 ];
 const WIRING_COLUMNS: { key: keyof WiringRow; label: string; width: string }[] = [
   { key: "group", label: "Nhóm", width: "w-32" },
-  { key: "from", label: "Từ", width: "w-48" },
+  { key: "from", label: "Chân Pi / từ", width: "w-48" },
+  { key: "wire", label: "Tên dây", width: "w-28" },
   { key: "to", label: "Tới", width: "w-48" },
   { key: "via", label: "Qua", width: "w-44" },
-  { key: "wire", label: "Màu dây", width: "w-28" },
   { key: "note", label: "Ghi chú", width: "w-56" },
 ];
 
