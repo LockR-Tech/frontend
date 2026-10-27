@@ -38,7 +38,62 @@ export interface CabinetPanel {
   result: {
     // boxes: số ô mà nắp của trục nằm trên (LIDn_BOXES trên Pi); rỗng = chưa khai báo.
     lids?: { axis: number; enabled: boolean; boxes?: number[]; status: LidStatus | null }[];
+    // Bản đồ chân đang chạy thật trên Pi (Pi cũ không gửi).
+    hardware?: HardwareConfig;
   } | null;
+}
+
+/** Một trục nắp trượt trong bản đồ chân (GPIO theo số BCM). */
+export interface LidAxisConfig {
+  axis: number;
+  enabled: boolean;
+  pulPin: number;
+  dirPin: number;
+  homePin: number;
+  endPin: number;
+  openDirHigh: boolean;
+  limitActiveLow: boolean;
+  boxes: number[];
+}
+
+/** Bản đồ chân Pi thực sự dùng — gửi xuống tủ bằng lệnh hw-config. Phần tử i của relayPins/doorPins = ô i+1. */
+export interface HardwareConfig {
+  relayPins: number[];
+  relayActiveHigh: boolean;
+  unlockMs: number;
+  doorPins: number[];
+  doorClosedLow: boolean;
+  requireDoorSensor: boolean;
+  lidBypassPhysicalMotion: boolean;
+  lids: LidAxisConfig[];
+}
+
+/** Một dòng sơ đồ đấu dây (chỉ để tra cứu, Pi không dùng). */
+export interface WiringRow {
+  group: string;
+  from: string;
+  to: string;
+  via: string;
+  wire: string;
+  note: string;
+}
+
+export interface HardwareConfigView {
+  lockerId: number;
+  config: HardwareConfig;
+  wiring: WiringRow[];
+  defaultTemplate: boolean;
+  updatedBy: number | null;
+  updatedAt: string | null;
+  appliedBy: number | null;
+  appliedAt: string | null;
+  applyStatus: string | null;
+  applyMessage: string | null;
+}
+
+export interface HardwareApplyResult extends CabinetCommandResult {
+  warnings: string[];
+  errors: string[];
 }
 
 export type LidAction = "open" | "close" | "home" | "stop";
@@ -72,6 +127,27 @@ export const cabinetControlApi = baseApi.injectEndpoints({
     // Nhật ký lưu trên server: vẫn xem được khi tủ mất kết nối.
     getCabinetLogs: builder.query<ApiResponse<CabinetControlLog[]>, { lockerId: number; limit?: number }>({
       query: ({ lockerId, limit = 100 }) => `${ROOT(lockerId)}/logs?limit=${limit}`,
+    }),
+
+    // Cấu hình phần cứng đã lưu (chưa lưu thì là mẫu TU01, defaultTemplate = true).
+    getCabinetHardware: builder.query<ApiResponse<HardwareConfigView>, number>({
+      query: (lockerId) => `${ROOT(lockerId)}/hardware`,
+    }),
+
+    saveCabinetHardware: builder.mutation<
+      ApiResponse<HardwareConfigView>,
+      { lockerId: number; config: HardwareConfig; wiring: WiringRow[] }
+    >({
+      query: ({ lockerId, config, wiring }) => ({
+        url: `${ROOT(lockerId)}/hardware`,
+        method: "PUT",
+        body: { config, wiring },
+      }),
+    }),
+
+    // Gửi bản đã lưu xuống tủ; tủ khởi động lại bộ điều khiển khoảng 10 giây.
+    applyCabinetHardware: builder.mutation<ApiResponse<HardwareApplyResult>, number>({
+      query: (lockerId) => ({ url: `${ROOT(lockerId)}/hardware/apply`, method: "POST" }),
     }),
 
     openCabinetBox: builder.mutation<
@@ -122,6 +198,9 @@ export const cabinetControlApi = baseApi.injectEndpoints({
 export const {
   useGetCabinetPanelQuery,
   useGetCabinetLogsQuery,
+  useGetCabinetHardwareQuery,
+  useSaveCabinetHardwareMutation,
+  useApplyCabinetHardwareMutation,
   useOpenCabinetBoxMutation,
   useControlLidMutation,
   useJogLidMutation,

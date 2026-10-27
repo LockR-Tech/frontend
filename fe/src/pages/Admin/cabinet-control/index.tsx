@@ -3,7 +3,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AlertTriangle, DoorOpen, Gauge, RotateCcw, Square, ArrowUp, ArrowDown, Home, ScrollText } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { useAuth } from "~/context/auth-context";
 import { formatDateTime } from "~/lib/datetime";
+import { HardwareConfigTab } from "./HardwareConfigTab";
 import {
   useGetStaffLockersQuery,
   useGetLockerLayoutQuery,
@@ -29,6 +32,7 @@ const ACTION_LABELS: Record<string, string> = {
   LID_STOP: "Nắp: dừng",
   LID_JOG: "Nắp: chạy thử",
   LID_TUNE: "Nắp: chỉnh thông số",
+  HW_CONFIG: "Áp dụng cấu hình phần cứng",
   BLE_TOKEN: "Bluetooth: cấp mã mở ô",
   BOX_OPEN_BLE: "Mở ô qua Bluetooth",
   BLE_REJECTED: "Bluetooth: mã bị từ chối",
@@ -68,6 +72,7 @@ function stateColor(state?: string) {
 
 export default function CabinetControlPage() {
   const { t } = useTranslation();
+  const { hasPermission } = useAuth();
   const { data: lockersResp } = useGetStaffLockersQuery();
   const lockers = useMemo(() => lockersResp?.data ?? [], [lockersResp]);
   const [lockerId, setLockerId] = useState<number | null>(null);
@@ -162,6 +167,17 @@ export default function CabinetControlPage() {
         </button>
       </div>
 
+      <Tabs defaultValue="control" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="control">Điều khiển</TabsTrigger>
+          <TabsTrigger value="hardware">Cấu hình phần cứng</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="hardware">
+          <HardwareConfigTab lockerId={lockerId} running={panelResp?.data?.result?.hardware} canEdit={hasPermission("manage_lockers")} />
+        </TabsContent>
+
+        <TabsContent value="control" className="space-y-6">
       {/* Mở ô */}
       <section className="rounded-xl border border-border p-4">
         <h2 className="mb-3 text-base font-semibold">Mở ô tủ</h2>
@@ -205,6 +221,8 @@ export default function CabinetControlPage() {
       </section>
 
       <CabinetLogSection logs={logs} boxNumberById={boxNumberById} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
