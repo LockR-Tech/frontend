@@ -74,6 +74,7 @@ export function RouteWeatherPanel({ orderId }: { orderId: number }) {
     pollingInterval: REFRESH_MS,
   });
   const route = data?.data;
+  if (route && !route.weather) return null;
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-2">

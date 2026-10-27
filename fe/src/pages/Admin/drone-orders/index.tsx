@@ -44,6 +44,11 @@ const LIST_POLL_MS = 5000;
 const DETAIL_POLL_MS = 3000;
 
 const FINISHED_STATUSES = new Set(["COMPLETED", "CANCELED", "EXPIRED"]);
+const FLIGHT_ENDED_STAGES = new Set(["READY_FOR_PICKUP", "DELIVERED", "COMPLETED", "FAILED", "CANCELED", "CANCELLED", "EXPIRED", "DROP_REPORTED"]);
+const FLIGHT_ENDED_MISSION_STATUSES = new Set(["DEPOSITED", "CANCELED", "FAILED", "DROP_REPORTED"]);
+function isFlightEnded(order: DroneOrderTracking): boolean {
+  return FINISHED_STATUSES.has(order.status) || order.status === "STORING" || FLIGHT_ENDED_STAGES.has(order.deliveryStage ?? "") || FLIGHT_ENDED_MISSION_STATUSES.has(order.missionStatus ?? "");
+}
 
 type Scope = "active" | "finished" | "all";
 
@@ -587,7 +592,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
               </div>
             )}
 
-            {!isFinished(order) && <RouteWeatherPanel orderId={order.orderId} />}
+            {!isFlightEnded(order) && <RouteWeatherPanel orderId={order.orderId} />}
 
             <Section title={t("admin.droneOrders.section.map")}>
               <DroneTrackingMap order={order} />
