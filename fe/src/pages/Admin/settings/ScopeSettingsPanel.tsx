@@ -36,6 +36,12 @@ interface ScopeSettingsPanelProps {
   onClearDrafts: (scope: SettingScope) => void;
   /** `null` = lịch sử cả nhóm. */
   onShowHistory: (key: string | null) => void;
+  /**
+   * Chỉ hiện các quy tắc thuộc những nhóm này hoặc có key trong `keys` — dùng khi nhúng một phần
+   * quy tắc vào trang khác (vd. trang Thời tiết & bay). Bỏ trống cả hai = mọi quy tắc của scope.
+   */
+  groups?: string[];
+  keys?: string[];
 }
 
 export function ScopeSettingsPanel({
@@ -46,6 +52,8 @@ export function ScopeSettingsPanel({
   onRevertDraft,
   onClearDrafts,
   onShowHistory,
+  groups: onlyGroups,
+  keys: onlyKeys,
 }: ScopeSettingsPanelProps) {
   const { t } = useTranslation();
   const { scope } = tab;
@@ -55,10 +63,13 @@ export function ScopeSettingsPanel({
   const [resettingKey, setResettingKey] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const settings = useMemo<SettingView[]>(
-    () => (Array.isArray(data?.data) ? data.data : []),
-    [data],
-  );
+  const settings = useMemo<SettingView[]>(() => {
+    const all = Array.isArray(data?.data) ? data.data : [];
+    if (!onlyGroups?.length && !onlyKeys?.length) return all;
+    return all.filter(
+      (s) => (s.group != null && onlyGroups?.includes(s.group)) || onlyKeys?.includes(s.key),
+    );
+  }, [data, onlyGroups, onlyKeys]);
   const changes = useMemo(() => collectChanges(settings, drafts), [settings, drafts]);
   const invalidCount = changes.filter((c) => c.error).length;
   const overriddenCount = settings.filter((s) => s.overridden).length;

@@ -81,6 +81,7 @@ const pathLabelKeys: Record<string, string> = {
   edit: "admin.breadcrumb.edit",
   drones: "admin.sidebar.drones",
   "drone-orders": "admin.sidebar.droneOrders",
+  "flight-control": "admin.sidebar.flightControl",
   "drone-incidents": "admin.sidebar.droneIncidents",
   maintenance: "admin.sidebar.maintenance",
   technicians: "admin.sidebar.technicians",

@@ -230,6 +230,21 @@ export interface DroneLockerWeather {
   latitude: number | null;
   longitude: number | null;
   weather: DroneWeatherAssessment;
+  /** Khác null khi admin đang tạm dừng bay ở trạm này. */
+  suspension?: DroneStationSuspension | null;
+}
+
+/** Trạm bay đang tạm dừng (trang Thời tiết & bay). */
+export interface DroneStationSuspension {
+  lockerId: number;
+  /** WEATHER | LANDING_PAD | AIRSPACE | OPERATIONAL | OTHER */
+  reason: string;
+  reasonLabel: string | null;
+  note: string | null;
+  suspendedByUserId: number | null;
+  /** LocalDateTime UTC, không offset (đọc bằng `~/lib/datetime`). */
+  suspendedAt: string | null;
+  resumeAt: string | null;
 }
 
 const TAG = "DroneOrders" as const;
