@@ -1,16 +1,19 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronUp, CloudLightning, CloudOff, CloudSun, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, CloudLightning, CloudOff, CloudSun, OctagonPause, RefreshCw } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { formatDateTime } from "~/lib/datetime";
 import {
   useGetDroneLockerWeatherQuery,
   useGetDroneRouteWeatherQuery,
+  type DroneStationSuspension,
   type DroneWeatherAssessment,
 } from "~/stores/apis/admin/droneOrders";
 
 // Thời tiết cho admin — cùng kết quả server dùng để chặn đặt đơn / phóng drone, và cùng dữ liệu
-// khách, KTV thấy trên app. Dự báo 30 phút tới; server nhớ 5 phút nên làm mới mỗi 5 phút là đủ.
+// khách, KTV thấy trên app. Khoảng dự báo và ngưỡng do admin chỉnh ở trang Thời tiết & bay;
+// server nhớ 5 phút nên làm mới mỗi 5 phút là đủ.
 const REFRESH_MS = 5 * 60 * 1000;
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -28,7 +31,16 @@ function tone(weather: DroneWeatherAssessment) {
   return { box: "border-red-500/30 bg-red-500/10 text-red-800", Icon: CloudLightning };
 }
 
-export function WeatherSummary({ weather, title }: { weather: DroneWeatherAssessment; title?: string | null }) {
+export function WeatherSummary({
+  weather,
+  title,
+  suspension,
+}: {
+  weather: DroneWeatherAssessment;
+  title?: string | null;
+  /** Trạm đang bị admin dừng bay: hiện lý do, kể cả khi trời vẫn bay được. */
+  suspension?: DroneStationSuspension | null;
+}) {
   const { t } = useTranslation();
   const { box, Icon } = tone(weather);
   const facts = [
@@ -53,9 +65,17 @@ export function WeatherSummary({ weather, title }: { weather: DroneWeatherAssess
         <p className="font-semibold">{t(`admin.droneOrders.weather.status.${weather.status}`, { defaultValue: weather.status })}</p>
         {facts.length > 0 ? <p className="text-foreground/80">{facts.join(" · ")}</p> : null}
         {weather.status !== "SAFE" ? <p>{weather.message}</p> : null}
+        {suspension ? (
+          <p className="flex items-center gap-1.5 font-semibold text-amber-800">
+            <OctagonPause className="h-4 w-4 shrink-0" />
+            {t("admin.droneOrders.weather.suspended", {
+              reason: suspension.reasonLabel ?? suspension.reason,
+            })}
+          </p>
+        ) : null}
         <p className="text-xs text-muted-foreground">
           {[
-            t("admin.droneOrders.weather.window"),
+            t("admin.droneOrders.weather.window", { minutes: weather.windowMinutes }),
             weather.checkedAt ? t("admin.droneOrders.weather.checkedAt", { time: formatDateTime(weather.checkedAt) }) : null,
             provider ? t("admin.droneOrders.weather.provider", { provider }) : null,
           ]
@@ -110,7 +130,8 @@ export function LockerWeatherOverview() {
     pollingInterval: REFRESH_MS,
   });
   const lockers = data?.data ?? [];
-  const blocked = lockers.filter((l) => l.weather.status !== "SAFE").length;
+  const blocked = lockers.filter((l) => l.weather.status !== "SAFE" || l.suspension).length;
+  const windowMinutes = lockers[0]?.weather.windowMinutes ?? 30;
   const headline = isLoading
     ? t("admin.droneOrders.weather.loading")
     : isError
@@ -118,7 +139,7 @@ export function LockerWeatherOverview() {
       : lockers.length === 0
         ? t("admin.droneOrders.weather.noLockers")
         : blocked === 0
-          ? t("admin.droneOrders.weather.allSafe", { count: lockers.length })
+          ? t("admin.droneOrders.weather.allSafe", { count: lockers.length, minutes: windowMinutes })
           : t("admin.droneOrders.weather.someBlocked", { blocked, count: lockers.length });
 
   return (
@@ -136,9 +157,14 @@ export function LockerWeatherOverview() {
           </span>
           {open ? <ChevronUp className="h-4 w-4 shrink-0" /> : <ChevronDown className="h-4 w-4 shrink-0" />}
         </button>
-        <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-        </Button>
+        <div className="flex shrink-0 items-center gap-1">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/admin/flight-control">{t("admin.droneOrders.weather.manage")}</Link>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
       {open && lockers.length > 0 ? (
         <div className="grid grid-cols-1 gap-3 border-t p-4 md:grid-cols-2 xl:grid-cols-3">
@@ -147,6 +173,7 @@ export function LockerWeatherOverview() {
               key={locker.lockerId}
               weather={locker.weather}
               title={locker.name ?? locker.code ?? `#${locker.lockerId}`}
+              suspension={locker.suspension}
             />
           ))}
         </div>

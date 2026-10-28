@@ -13,6 +13,7 @@ import {
   Activity,
   Route,
   PackageSearch,
+  CloudSun,
   TrendingUp,
   Wrench,
   SlidersHorizontal,
@@ -83,6 +84,12 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: Route,
     path: "/admin/drone-orders",
     label: "admin.sidebar.droneOrders",
+    permission: "admin_access",
+  },
+  {
+    icon: CloudSun,
+    path: "/admin/flight-control",
+    label: "admin.sidebar.flightControl",
     permission: "admin_access",
   },
   {

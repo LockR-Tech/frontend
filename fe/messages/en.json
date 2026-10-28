@@ -163,7 +163,8 @@
       "droneIncidents": "Dropped parcel incidents",
       "businessSettings": "Business rules",
       "knowledge": "Knowledge base",
-      "droneLogs": "Drone & Locker Logs"
+      "droneLogs": "Drone & Locker Logs",
+      "flightControl": "Weather & flights"
     },
     "dashboard": {
       "title": "Overview",
@@ -2458,12 +2459,12 @@
         "loading": "Loading weather forecast…",
         "loadFailed": "Could not load the weather forecast.",
         "noLockers": "No locker has a drone landing pad yet.",
-        "allSafe": "All {{count}} lockers can fly in the next 30 minutes.",
+        "allSafe": "All {{count}} lockers can fly in the next {{minutes}} minutes.",
         "someBlocked": "{{blocked}}/{{count}} lockers cannot fly or have no forecast.",
         "wind": "Wind {{value}} km/h",
         "gust": "Gusts {{value}} km/h",
         "rain": "Rain {{value}} mm",
-        "window": "Next 30 minutes",
+        "window": "Next {{minutes}} minutes",
         "checkedAt": "updated {{time}}",
         "provider": "source {{provider}}",
         "sourceFallback": "Launch locker",
@@ -2472,7 +2473,9 @@
           "SAFE": "Safe to fly",
           "UNSAFE": "Unsafe to fly",
           "UNAVAILABLE": "No forecast"
-        }
+        },
+        "suspended": "Station paused: {{reason}}",
+        "manage": "Flight control"
       }
     },
     "drones": {
@@ -4273,6 +4276,110 @@
         "targetStore": "Store: {{name}}",
         "targetCustomer": "Customer: {{name}}",
         "targetService": "Service: {{name}}"
+      }
+    },
+    "flightControl": {
+      "title": "Weather & flight control",
+      "description": "Watch the weather at each station, pause flights system-wide or per station, review flight blocks and tune weather limits.",
+      "global": {
+        "title": "Pause all drone flights",
+        "loading": "Loading…",
+        "on": "Paused: no new drone orders, the flight team cannot accept or launch. Paid orders are blocked and are closed with a refund once the block times out.",
+        "off": "Flying normally. Use this for a no-fly order or widespread bad weather; for a single area pause the stations below.",
+        "confirmSuspendTitle": "Pause all drone flights?",
+        "confirmSuspend": "Every station stops taking new drone orders and the flight team cannot accept or launch until you turn flights back on. Customers and the flight team with open orders are notified.",
+        "confirmResumeTitle": "Resume flights?",
+        "confirmResume": "New drone orders are accepted and the flight team can launch again (still subject to weather and paused stations).",
+        "suspendAction": "Pause flights",
+        "resumeAction": "Resume flights",
+        "suspendedToast": "All drone flights paused",
+        "resumedToast": "Flights resumed",
+        "failed": "Could not change the flight status"
+      },
+      "summary": {
+        "title": "Flight blocks in the last 24 hours"
+      },
+      "stations": {
+        "title": "Flight stations",
+        "description": "Lockers with a drone landing pad: current weather and pause state of each station. A paused station is not used as a source, does not receive drones, and the flight team cannot accept or launch through it.",
+        "loadFailed": "Could not load stations.",
+        "suspend": "Pause station",
+        "resume": "Resume station",
+        "since": "Paused since {{time}}",
+        "until": "resumes {{time}}",
+        "untilManual": "until resumed",
+        "suspended": "Flights paused at {{name}}",
+        "resumed": "Flights resumed at {{name}}",
+        "actionFailed": "Could not update the station"
+      },
+      "suspendDialog": {
+        "title": "Pause flights at {{name}}",
+        "description": "New orders pick another station near the sender (if any); paid orders using this station are blocked and the customer and flight team are notified.",
+        "reason": "Reason",
+        "note": "Note",
+        "notePlaceholder": "e.g. Local thunderstorm in Thu Duc",
+        "noteHint": "Shown to the flight team and in the station log.",
+        "resumeAt": "Resume automatically at (Vietnam time)",
+        "resumeHint": "Leave empty to pause until you resume it.",
+        "confirm": "Pause"
+      },
+      "tabs": {
+        "blocks": "Flight blocks",
+        "logs": "Station log",
+        "rules": "Limits & flight conditions"
+      },
+      "blocks": {
+        "allCauses": "All causes",
+        "allActions": "All steps",
+        "orderCode": "Order code",
+        "from": "From",
+        "to": "To",
+        "time": "Time",
+        "cause": "Cause",
+        "step": "Blocked step",
+        "order": "Order",
+        "route": "Route",
+        "detail": "Detail",
+        "notCreated": "Not created",
+        "blockedStation": "Paused station: {{name}}",
+        "loading": "Loading…",
+        "loadFailed": "Could not load flight blocks.",
+        "empty": "No flight blocks match the filters."
+      },
+      "logs": {
+        "time": "Time",
+        "station": "Station",
+        "action": "Action",
+        "reason": "Reason",
+        "until": "Resumes",
+        "actor": "By",
+        "suspend": "Paused",
+        "resume": "Resumed",
+        "loadFailed": "Could not load the station log.",
+        "empty": "No station has been paused yet."
+      },
+      "rules": {
+        "title": "Weather limits & flight conditions",
+        "description": "Applies to booking, launching and the weather board; takes effect on save, no restart needed."
+      },
+      "cause": {
+        "WEATHER_UNSAFE": "Unsafe weather",
+        "WEATHER_UNAVAILABLE": "No weather forecast",
+        "FLIGHTS_SUSPENDED": "All flights paused",
+        "STATION_SUSPENDED": "Station paused"
+      },
+      "action": {
+        "BOOKING": "Customer booking",
+        "ACCEPT": "Flight team accepts",
+        "LAUNCH": "Launch",
+        "IN_PROGRESS": "Order in progress"
+      },
+      "reason": {
+        "WEATHER": "Weather at the station",
+        "LANDING_PAD": "Landing pad maintenance",
+        "AIRSPACE": "No-fly order",
+        "OPERATIONAL": "Operational",
+        "OTHER": "Other"
       }
     }
   },

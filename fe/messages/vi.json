@@ -163,7 +163,8 @@
       "droneIncidents": "Sự cố rơi kiện",
       "businessSettings": "Cấu hình nghiệp vụ",
       "knowledge": "Kho tri thức",
-      "droneLogs": "Nhật ký Drone & Tủ"
+      "droneLogs": "Nhật ký Drone & Tủ",
+      "flightControl": "Thời tiết & bay"
     },
     "dashboard": {
       "title": "Tổng quan",
@@ -2458,12 +2459,12 @@
         "loading": "Đang tải dự báo thời tiết…",
         "loadFailed": "Không tải được dự báo thời tiết.",
         "noLockers": "Chưa có tủ nào có bãi đáp drone.",
-        "allSafe": "Cả {{count}} tủ đều bay được trong 30 phút tới.",
+        "allSafe": "Cả {{count}} tủ đều bay được trong {{minutes}} phút tới.",
         "someBlocked": "{{blocked}}/{{count}} tủ đang không bay được hoặc chưa có dự báo.",
         "wind": "Gió {{value}} km/h",
         "gust": "Giật {{value}} km/h",
         "rain": "Mưa {{value}} mm",
-        "window": "Dự báo 30 phút tới",
+        "window": "Dự báo {{minutes}} phút tới",
         "checkedAt": "cập nhật {{time}}",
         "provider": "nguồn {{provider}}",
         "sourceFallback": "Tủ bay",
@@ -2472,7 +2473,9 @@
           "SAFE": "Bay được",
           "UNSAFE": "Không an toàn để bay",
           "UNAVAILABLE": "Chưa có dự báo"
-        }
+        },
+        "suspended": "Trạm đang tạm dừng bay: {{reason}}",
+        "manage": "Điều khiển bay"
       }
     },
     "drones": {
@@ -4273,6 +4276,110 @@
         "targetStore": "Cửa hàng: {{name}}",
         "targetCustomer": "Khách hàng: {{name}}",
         "targetService": "Dịch vụ: {{name}}"
+      }
+    },
+    "flightControl": {
+      "title": "Thời tiết & điều khiển bay",
+      "description": "Theo dõi thời tiết từng trạm, tạm dừng bay toàn hệ thống hoặc từng trạm, xem lịch sử chặn bay và chỉnh ngưỡng thời tiết.",
+      "global": {
+        "title": "Tạm dừng bay toàn hệ thống",
+        "loading": "Đang tải…",
+        "on": "Đang tạm dừng: không nhận đơn drone mới, đội bay không nhận đơn và không phóng được. Đơn đã trả tiền bị chặn, quá hạn chặn sẽ tự đóng và hoàn tiền.",
+        "off": "Đang bay bình thường. Dùng khi có lệnh cấm bay hoặc thời tiết xấu trên diện rộng; nếu chỉ một khu vực thì dừng từng trạm bên dưới.",
+        "confirmSuspendTitle": "Tạm dừng bay toàn hệ thống?",
+        "confirmSuspend": "Mọi trạm ngừng nhận đơn drone mới, đội bay không nhận đơn và không phóng được cho tới khi bạn bật lại. Khách và đội bay đang có đơn được báo ngay.",
+        "confirmResumeTitle": "Cho bay lại?",
+        "confirmResume": "Đơn drone mới được nhận và đội bay phóng được (vẫn theo thời tiết và các trạm đang dừng).",
+        "suspendAction": "Tạm dừng bay",
+        "resumeAction": "Cho bay lại",
+        "suspendedToast": "Đã tạm dừng bay toàn hệ thống",
+        "resumedToast": "Đã cho bay lại",
+        "failed": "Không đổi được trạng thái bay"
+      },
+      "summary": {
+        "title": "Số lần bị chặn bay trong 24 giờ qua"
+      },
+      "stations": {
+        "title": "Các trạm bay",
+        "description": "Tủ có bãi đáp drone: thời tiết hiện tại và lệnh dừng bay của từng trạm. Trạm đang dừng không làm tủ gửi, không nhận drone tới, đội bay không nhận đơn và không phóng qua trạm đó.",
+        "loadFailed": "Không tải được danh sách trạm.",
+        "suspend": "Tạm dừng trạm",
+        "resume": "Mở lại trạm",
+        "since": "Dừng từ {{time}}",
+        "until": "tự mở lại {{time}}",
+        "untilManual": "tới khi mở lại",
+        "suspended": "Đã tạm dừng bay ở {{name}}",
+        "resumed": "Đã mở lại bay ở {{name}}",
+        "actionFailed": "Không thực hiện được thao tác với trạm"
+      },
+      "suspendDialog": {
+        "title": "Tạm dừng bay ở {{name}}",
+        "description": "Đơn mới sẽ chọn trạm khác gần người gửi (nếu có); đơn đã trả tiền đang dùng trạm này bị chặn và được báo cho khách, đội bay.",
+        "reason": "Lý do",
+        "note": "Ghi chú",
+        "notePlaceholder": "VD: Mưa giông cục bộ khu Thủ Đức",
+        "noteHint": "Hiện cho đội bay và trong nhật ký dừng trạm.",
+        "resumeAt": "Tự mở lại lúc (giờ Việt Nam)",
+        "resumeHint": "Để trống = dừng tới khi bạn mở lại.",
+        "confirm": "Tạm dừng"
+      },
+      "tabs": {
+        "blocks": "Lịch sử chặn bay",
+        "logs": "Nhật ký dừng trạm",
+        "rules": "Ngưỡng & điều kiện bay"
+      },
+      "blocks": {
+        "allCauses": "Mọi nguyên nhân",
+        "allActions": "Mọi bước",
+        "orderCode": "Mã đơn",
+        "from": "Từ ngày",
+        "to": "Đến ngày",
+        "time": "Thời điểm",
+        "cause": "Nguyên nhân",
+        "step": "Bước bị chặn",
+        "order": "Đơn",
+        "route": "Tuyến",
+        "detail": "Chi tiết",
+        "notCreated": "Chưa tạo đơn",
+        "blockedStation": "Trạm dừng: {{name}}",
+        "loading": "Đang tải…",
+        "loadFailed": "Không tải được lịch sử chặn bay.",
+        "empty": "Chưa có lần chặn bay nào khớp bộ lọc."
+      },
+      "logs": {
+        "time": "Thời điểm",
+        "station": "Trạm",
+        "action": "Thao tác",
+        "reason": "Lý do",
+        "until": "Tự mở lại",
+        "actor": "Người thao tác",
+        "suspend": "Tạm dừng",
+        "resume": "Mở lại",
+        "loadFailed": "Không tải được nhật ký dừng trạm.",
+        "empty": "Chưa có trạm nào bị tạm dừng."
+      },
+      "rules": {
+        "title": "Ngưỡng thời tiết & điều kiện bay",
+        "description": "Áp dụng cho đặt đơn, đội bay phóng drone và bảng thời tiết; lưu là có hiệu lực, không cần khởi động lại."
+      },
+      "cause": {
+        "WEATHER_UNSAFE": "Thời tiết không an toàn",
+        "WEATHER_UNAVAILABLE": "Không có dự báo thời tiết",
+        "FLIGHTS_SUSPENDED": "Tạm dừng toàn hệ thống",
+        "STATION_SUSPENDED": "Trạm đang tạm dừng"
+      },
+      "action": {
+        "BOOKING": "Khách đặt đơn",
+        "ACCEPT": "Đội bay nhận đơn",
+        "LAUNCH": "Phóng drone",
+        "IN_PROGRESS": "Đơn đang chạy"
+      },
+      "reason": {
+        "WEATHER": "Thời tiết tại trạm",
+        "LANDING_PAD": "Bảo trì bãi đáp",
+        "AIRSPACE": "Lệnh cấm bay khu vực",
+        "OPERATIONAL": "Lý do vận hành",
+        "OTHER": "Lý do khác"
       }
     }
   },
