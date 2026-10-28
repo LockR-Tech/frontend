@@ -19,6 +19,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Textarea } from "~/components/ui/textarea";
 import { formatDateTime } from "~/lib/datetime";
 import {
+  useGetFlightBlockSummaryByStationQuery,
   useGetFlightStationsQuery,
   useResumeStationMutation,
   useSuspendStationMutation,
@@ -41,7 +42,10 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
   const { data, isLoading, isFetching, isError, refetch } = stations;
   const [resumeStation, { isLoading: resuming }] = useResumeStationMutation();
   const [target, setTarget] = useState<DroneLockerWeather | null>(null);
-  const list = data?.data ?? [];
+  const { data: blockCounts } = useGetFlightBlockSummaryByStationQuery(24, { pollingInterval: REFRESH_MS });
+  // Trạm không bay được (trời xấu hoặc đang dừng) lên đầu để admin thấy ngay.
+  const grounded = (station: DroneLockerWeather) => Boolean(station.suspension) || station.weather?.safe === false;
+  const list = [...(data?.data ?? [])].sort((a, b) => Number(grounded(b)) - Number(grounded(a)));
 
   const resume = async (station: DroneLockerWeather) => {
     try {
@@ -82,6 +86,9 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
                 {station.suspension ? (
                   <div className="space-y-1 text-xs text-muted-foreground">
                     {station.suspension.note ? <p>“{station.suspension.note}”</p> : null}
+                    {station.suspension.suspendedByUserId == null && station.suspension.reason === "WEATHER" ? (
+                      <p className="font-medium text-amber-800">{t("admin.flightControl.stations.autoStop")}</p>
+                    ) : null}
                     <p>
                       {t("admin.flightControl.stations.since", {
                         time: formatDateTime(station.suspension.suspendedAt),
@@ -93,6 +100,11 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
                         : ` · ${t("admin.flightControl.stations.untilManual")}`}
                     </p>
                   </div>
+                ) : null}
+                {blockCounts?.data?.[String(station.lockerId)] ? (
+                  <p className="text-xs text-muted-foreground">
+                    {t("admin.flightControl.stations.blocks24h", { count: blockCounts.data[String(station.lockerId)] })}
+                  </p>
                 ) : null}
                 <div className="mt-auto flex justify-end">
                   {station.suspension ? (

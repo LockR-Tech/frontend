@@ -117,6 +117,11 @@ export const droneFlightControlApi = baseApi.injectEndpoints({
       query: (hours) => ({ url: `${BASE}/blocks/summary`, params: { hours: hours ?? 24 } }),
       providesTags: [{ type: TAG, id: "blocks" }],
     }),
+    /** lockerId → số lần chặn bay liên quan tới trạm trong `hours` giờ qua. */
+    getFlightBlockSummaryByStation: builder.query<ApiResponse<Record<string, number>>, number | void>({
+      query: (hours) => ({ url: `${BASE}/blocks/summary/stations`, params: { hours: hours ?? 24 } }),
+      providesTags: [{ type: TAG, id: "blocks" }],
+    }),
   }),
 });
 
@@ -127,4 +132,5 @@ export const {
   useGetStationSuspensionLogsQuery,
   useGetFlightBlocksQuery,
   useGetFlightBlockSummaryQuery,
+  useGetFlightBlockSummaryByStationQuery,
 } = droneFlightControlApi;

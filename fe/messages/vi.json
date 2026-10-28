@@ -4308,6 +4308,8 @@
         "since": "Dừng từ {{time}}",
         "until": "tự mở lại {{time}}",
         "untilManual": "tới khi mở lại",
+        "autoStop": "Hệ thống tự dừng theo dự báo · tự mở lại khi trời tốt",
+        "blocks24h": "{{count}} lần chặn bay trong 24 giờ qua",
         "suspended": "Đã tạm dừng bay ở {{name}}",
         "resumed": "Đã mở lại bay ở {{name}}",
         "actionFailed": "Không thực hiện được thao tác với trạm"

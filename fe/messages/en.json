@@ -4308,6 +4308,8 @@
         "since": "Paused since {{time}}",
         "until": "resumes {{time}}",
         "untilManual": "until resumed",
+        "autoStop": "Paused automatically by the forecast · resumes when the weather clears",
+        "blocks24h": "{{count}} blocked flights in the last 24 hours",
         "suspended": "Flights paused at {{name}}",
         "resumed": "Flights resumed at {{name}}",
         "actionFailed": "Could not update the station"
