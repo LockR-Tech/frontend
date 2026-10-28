@@ -31,15 +31,16 @@
   --ring: #0F172A;
   --radius: 0.75rem;
 
-  /* Sidebar Tokens - Clean light surface matching canvas */
-  --sidebar-background: #FFFFFF;
-  --sidebar-foreground: #0F172A;
-  --sidebar-primary: #0F172A;
+  /* Sidebar Tokens - Nền navy đậm tách khỏi vùng nội dung, mục đang chọn tô xanh */
+  --sidebar-background: #0F172A;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-muted-foreground: #94A3B8;
+  --sidebar-primary: #2563EB;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F1F5F9;
-  --sidebar-accent-foreground: #0F172A;
-  --sidebar-border: #E2E8F0;
-  --sidebar-ring: #0F172A;
+  --sidebar-accent: #1E293B;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #3B82F6;
 }
 
 /* DARK MODE - Deep Refined Slate */
@@ -65,14 +66,15 @@
   --ring: #F8FAFC;
 
   /* Sidebar Tokens - Deep refined slate */
-  --sidebar-background: #0B1120;
+  --sidebar-background: #111B30;
   --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #F8FAFC;
-  --sidebar-primary-foreground: #090D16;
+  --sidebar-muted-foreground: #94A3B8;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #1E293B;
   --sidebar-accent-foreground: #F8FAFC;
   --sidebar-border: #1E293B;
-  --sidebar-ring: #F8FAFC;
+  --sidebar-ring: #3B82F6;
 }
 
 /* ============================================
@@ -128,6 +130,7 @@
   /* Sidebar colors */
   --color-sidebar-background: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-accent: var(--sidebar-accent);

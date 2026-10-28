@@ -134,7 +134,7 @@ export function Sidebar({
       {/* Sidebar Container */}
       <aside
         className={cn(
-          "fixed left-0 top-0 h-screen bg-card text-card-foreground border-r border-border flex flex-col z-50 transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 h-screen bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border flex flex-col z-50 transition-all duration-300 ease-in-out",
           isTablet && !isMobileOpen && "-translate-x-full lg:translate-x-0",
         )}
         style={{
@@ -142,18 +142,24 @@ export function Sidebar({
         }}
       >
         {/* Brand Header */}
-        <div className="flex items-center justify-between px-4 h-16 border-b border-border/60 shrink-0">
+        <div
+          className={cn(
+            "relative flex items-center justify-between px-4 h-16 border-b border-sidebar-border shrink-0",
+            // Thu gọn chỉ còn 72px: căn giữa logo, nút toggle nổi ra mép để không bóp logo
+            !isTablet && !isExpanded && "justify-center px-0",
+          )}
+        >
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center font-bold text-base shadow-xs shrink-0">
               L
             </div>
             {(isExpanded || isMobileOpen) && (
               <div className="flex flex-col min-w-0 transition-opacity duration-200">
-                <span className="font-semibold text-sm text-foreground truncate tracking-tight">
+                <span className="font-semibold text-sm text-sidebar-foreground truncate tracking-tight">
                   Lock.R Admin
                 </span>
-                <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1 truncate">
-                  <Shield size={10} className="text-muted-foreground" />
+                <span className="text-[11px] text-sidebar-muted-foreground font-medium flex items-center gap-1 truncate">
+                  <Shield size={10} className="text-sidebar-muted-foreground" />
                   Admin Portal
                 </span>
               </div>
@@ -165,15 +171,16 @@ export function Sidebar({
             <button
               onClick={toggleSidebar}
               className={cn(
-                "p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
-                !isExpanded && "mx-auto",
+                "p-1.5 rounded-md text-sidebar-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors",
+                !isExpanded &&
+                  "absolute -right-3 top-1/2 -translate-y-1/2 z-10 p-1 rounded-full border border-sidebar-border bg-sidebar-background shadow-xs",
               )}
               aria-label={isExpanded ? t("shared.layout.collapse") : t("shared.layout.expand")}
             >
               {isExpanded ? (
                 <ChevronLeft size={16} />
               ) : (
-                <ChevronRight size={16} />
+                <ChevronRight size={14} />
               )}
             </button>
           )}
@@ -182,7 +189,7 @@ export function Sidebar({
           {isTablet && isMobileOpen && (
             <button
               onClick={() => setIsMobileOpen(false)}
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
+              className="p-1.5 rounded-md text-sidebar-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
             >
               <X size={18} />
             </button>
@@ -203,8 +210,8 @@ export function Sidebar({
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors relative group",
                   isActive
-                    ? "bg-accent text-foreground font-medium shadow-xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-xs"
+                    : "text-sidebar-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                   !isExpanded && !isMobileOpen && "justify-center px-2",
                 )}
               >
@@ -212,16 +219,12 @@ export function Sidebar({
                   size={18}
                   className={cn(
                     "shrink-0 transition-colors",
-                    isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground",
+                    isActive ? "text-sidebar-primary-foreground" : "text-sidebar-muted-foreground group-hover:text-sidebar-accent-foreground",
                   )}
                 />
 
                 {(isExpanded || isMobileOpen) && (
                   <span className="truncate flex-1">{label}</span>
-                )}
-
-                {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                 )}
               </NavLink>
             );
@@ -243,25 +246,25 @@ export function Sidebar({
         </nav>
 
         {/* User Profile / Menu Footer */}
-        <div className="p-3 border-t border-border/60 shrink-0">
+        <div className="p-3 border-t border-sidebar-border shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-accent transition-colors text-left group",
+                  "w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-sidebar-accent transition-colors text-left group",
                   !isExpanded && !isMobileOpen && "justify-center p-1.5",
                 )}
               >
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-foreground font-medium text-xs shrink-0 border border-border">
+                <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground font-medium text-xs shrink-0 border border-sidebar-border">
                   <User size={15} />
                 </div>
 
                 {(isExpanded || isMobileOpen) && (
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate">
+                    <p className="text-xs font-semibold text-sidebar-foreground truncate">
                       {displayName}
                     </p>
-                    <p className="text-[11px] text-muted-foreground truncate">
+                    <p className="text-[11px] text-sidebar-muted-foreground truncate">
                       {displayRole}
                     </p>
                   </div>
@@ -270,7 +273,7 @@ export function Sidebar({
                 {(isExpanded || isMobileOpen) && (
                   <ChevronsUpDown
                     size={14}
-                    className="text-muted-foreground group-hover:text-foreground shrink-0"
+                    className="text-sidebar-muted-foreground group-hover:text-sidebar-foreground shrink-0"
                   />
                 )}
               </button>
