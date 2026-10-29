@@ -320,6 +320,11 @@ export default function DroneIncidentDetailPage() {
           refundShippingFee:
             resolutionType === "FREE_REDELIVERY" ? false : refundShippingFee,
           overrideReason: overrideReason.trim() || undefined,
+          // Thỏa thuận riêng: ghi chú là nội dung khách đọc trước khi đồng ý.
+          resolutionNote:
+            resolutionType === "MANUAL_RESOLUTION"
+              ? overrideReason.trim() || undefined
+              : undefined,
         }).unwrap(),
       "Đã gửi đề xuất phương án bồi thường cho khách hàng!",
     );
@@ -1512,7 +1517,7 @@ export default function DroneIncidentDetailPage() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-bold text-slate-900">
-                        Phiên bản {proposal.proposalVersion} ·{" "}
+                        Phiên bản {proposal.version ?? proposal.proposalVersion} ·{" "}
                         {proposal.resolutionType.replaceAll("_", " ")}
                       </span>
                       <Status value={proposal.status} />
@@ -1525,6 +1530,12 @@ export default function DroneIncidentDetailPage() {
                       </b>
                       {proposal.policyVersion && ` · Chính sách: ${proposal.policyVersion}`}
                     </div>
+
+                    {proposal.resolutionNote && (
+                      <div className="p-2 rounded bg-white border text-[11px] text-slate-700">
+                        <b>Nội dung gửi khách:</b> {proposal.resolutionNote}
+                      </div>
+                    )}
 
                     {proposal.customerResponseNote && (
                       <div className="p-2 rounded bg-amber-50 border border-amber-200 text-amber-900 text-[11px]">

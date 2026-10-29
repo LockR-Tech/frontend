@@ -28,13 +28,17 @@ export interface DroneIncidentTimelineItem {
 
 export interface DroneIncidentProposal {
   id: number;
-  proposalVersion: number;
+  /** order-service trả `version`; giữ `proposalVersion` cho dữ liệu mẫu cũ. */
+  version?: number;
+  proposalVersion?: number;
   resolutionType: string;
   redeliveryOffered: boolean;
   compensationAmount: number | null;
   refundShippingFee: boolean;
   policyVersion: string;
   overrideReason: string | null;
+  /** Nội dung phương án gửi khách (bắt buộc với thỏa thuận riêng). */
+  resolutionNote?: string | null;
   proposedByUserId: number;
   status: string;
   customerResponseNote: string | null;
@@ -150,6 +154,7 @@ export const droneIncidentApi = baseApi.injectEndpoints({
         compensationAmount: number;
         refundShippingFee: boolean;
         overrideReason?: string;
+        resolutionNote?: string;
       }
     >({
       query: ({ id, ...body }) => ({

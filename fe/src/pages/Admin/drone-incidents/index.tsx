@@ -827,7 +827,7 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
             <div className="flex justify-between">
               <b>
                 {t("admin.droneIncidents.detail.proposalVersion", {
-                  version: proposal.proposalVersion,
+                  version: proposal.version ?? proposal.proposalVersion,
                 })}{" "}
                 ·{" "}
                 {RESOLUTION_LABELS[proposal.resolutionType]
