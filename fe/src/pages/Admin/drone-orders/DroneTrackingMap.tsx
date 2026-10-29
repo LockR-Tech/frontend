@@ -3,23 +3,13 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, Polyline, TileLayer, Tooltip } from "react-leaflet";
 import { useTranslation } from "react-i18next";
-import { useWebSocket } from "~/hooks/useWebSocket";
 import { deliveryStageMeta } from "~/components/shared/reporting";
 import { formatTime } from "~/lib/datetime";
 import type { DroneOrderTracking } from "~/stores/apis/admin/droneOrders";
 import { bearing, distanceKm, durationLabel, kmLabel, stageProgress } from "./journey";
+import { isDroneInFlight, type PositionSnapshot } from "./livePosition";
 
 const IN_FLIGHT = new Set(["LAUNCHING", "DEPARTED", "EN_ROUTE", "APPROACHING", "ARRIVED"]);
-
-/** Snapshot `/topic/deliveries/{orderId}/position` của notification-service. */
-interface PositionSnapshot {
-  lat: number;
-  lng: number;
-  heading?: number | null;
-  etaMinutes?: number | null;
-  speed?: number | null;
-  ts?: number | null;
-}
 
 function pointIcon(label: string, color: string) {
   return L.divIcon({
@@ -58,13 +48,18 @@ const CRASH_ICON = crashIcon();
  * đã bay và vị trí drone. Đơn đang bay thì nghe vị trí trực tiếp qua STOMP; chưa có
  * snapshot nào (vd drone thật chưa có telemetry) thì đặt drone theo chặng hiện tại.
  */
-export function DroneTrackingMap({ order }: { order: DroneOrderTracking }) {
+export function DroneTrackingMap({
+  order,
+  live,
+}: {
+  order: DroneOrderTracking;
+  /** Bản tin vị trí trực tiếp — trang cha nghe một lần (`useLivePosition`) rồi chia cho bản đồ và ô toạ độ. */
+  live: PositionSnapshot | null;
+}) {
   const { t } = useTranslation();
   const source = order.sourceLocker;
   const destination = order.destinationLocker;
-  const inFlight = !["COMPLETED", "CANCELED", "EXPIRED"].includes(order.status)
-    && IN_FLIGHT.has(order.deliveryStage ?? "");
-  const live = useLivePosition(order.orderId, inFlight);
+  const inFlight = isDroneInFlight(order);
   const [, tick] = useState(0);
 
   // Đồng hồ đếm ngược ETA chạy theo giây giữa hai snapshot.
@@ -223,32 +218,3 @@ function arrival(snapshot: PositionSnapshot, remainingKm: number | null): Date |
   return null;
 }
 
-/** Vị trí trực tiếp của một đơn qua STOMP; chỉ kết nối khi drone đang bay. */
-function useLivePosition(orderId: number, enabled: boolean): PositionSnapshot | null {
-  const { connected, connect, disconnect, subscribe } = useWebSocket();
-  // Gắn snapshot với đơn của nó để đổi sang đơn khác không hiện nhầm vị trí cũ.
-  const [latest, setLatest] = useState<{ orderId: number; snapshot: PositionSnapshot } | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (!enabled) return;
-    connect();
-    return () => disconnect();
-  }, [orderId, enabled, connect, disconnect]);
-
-  useEffect(() => {
-    if (!enabled || !connected) return;
-    const subscription = subscribe<PositionSnapshot>(
-      `/topic/deliveries/${orderId}/position`,
-      (next) => {
-        if (typeof next?.lat === "number" && typeof next?.lng === "number") {
-          setLatest({ orderId, snapshot: next });
-        }
-      },
-    );
-    return () => subscription?.unsubscribe();
-  }, [orderId, enabled, connected, subscribe]);
-
-  return enabled && latest?.orderId === orderId ? latest.snapshot : null;
-}

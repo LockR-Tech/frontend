@@ -70,6 +70,12 @@
       "partial": "Deleted {{deleted}}/{{total}} {{noun}}",
       "failedReason": "{{count}} item(s) could not be deleted: {{reason}}"
     },
+    "coordinates": {
+      "copy": "Copy coordinates",
+      "copied": "Copied {{value}}",
+      "copyFailed": "Copy failed — select and copy manually",
+      "openMap": "Open this point in Google Maps"
+    },
     "loading": "Loading...",
     "noData": "No data",
     "mockData": "Using mock data",
@@ -611,6 +617,19 @@
           "total": "Total due",
           "basePrice": "Price excluding overtime fee: {{amount}}",
           "promotions": "Promotions: {{codes}}"
+        },
+        "droneInfo": {
+          "surchargeIncluded": "Of which: weight-difference surcharge",
+          "promotion": "Voucher {{code}}",
+          "promotionNoCode": "Voucher",
+          "pointsUsed": "{{points}} points used",
+          "amountPaid": "Amount to pay",
+          "amountDue": "Still owed by customer",
+          "pickupTitle": "Sender & home pickup",
+          "senderOnOrder": "Sender on the order",
+          "coordinates": "Pickup coordinates",
+          "openJourney": "View drone journey",
+          "loadFailed": "Could not load the drone-specific data (pickup, fees, payment codes) — the cards below show generic order data and may be incomplete."
         },
         "parcel": {
           "title": "Parcel & Notes",
@@ -2311,6 +2330,12 @@
         "compartmentLocked": "Cargo compartment locked",
         "loadingNote": "Loading note",
         "batteryAtLaunch": "Battery at takeoff",
+        "currentPosition": "Current drone position",
+        "positionLive": "Reported by the drone at {{time}}",
+        "positionSimulated": "Simulated from the flight stage (DEMO order)",
+        "positionAtLocker": "At the destination locker — parcel deposited",
+        "positionTelemetry": "From drone telemetry",
+        "positionNone": "No position yet — not launched or signal lost",
         "currentLatitude": "Current latitude",
         "currentLongitude": "Current longitude",
         "landedAt": "Arrived at receiving locker at",

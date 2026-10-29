@@ -53,6 +53,12 @@ export interface DroneOrderTracking {
   weightSurcharge?: number | null;
   /** Phần khách còn phải trả. */
   amountDue?: number | null;
+  /** Giá gốc trước giảm: totalPrice = max(originalPrice − discount − pointsDiscount, 0); phụ thu cân lệch đã cộng vào cả hai. */
+  originalPrice?: number | null;
+  discount?: number | null;
+  promotionCode?: string | null;
+  pointsUsed?: number | null;
+  pointsDiscount?: number | null;
   createdAt: string | null;
   updatedAt: string | null;
   fulfillmentMode: string | null;

@@ -33,10 +33,14 @@ import {
 import { DroneJourneyTimeline } from "./DroneJourneyTimeline";
 import { useGetAdminDroneOrderListQuery } from "./droneOrderListApi";
 import { DroneTrackingMap } from "./DroneTrackingMap";
+import { isDroneInFlight, useLivePosition } from "./livePosition";
+import { DronePositionValue } from "./DronePosition";
+import { Coordinates } from "~/components/shared/Coordinates";
 import { LiveCameraPanel } from "./LiveCameraPanel";
 import { isPickupCodeEvent, pickupCodeEvent, sentAt, stageTimes } from "./journey";
 import { PickupPanel, IncidentBlockBanner, CloseAsFailedForm, FailurePanel } from "./HomePickupPanels";
 import { canCloseAsFailed } from "./homePickupRules";
+import { CANCEL_REASON_LABELS, PARCEL_CATEGORY_LABELS, grams, parcelSize, routeDistance } from "./format";
 import { LockerWeatherOverview, RouteWeatherPanel } from "./WeatherPanels";
 
 /** Danh sách hỏi lại server sau mỗi khoảng này để chặng mới tự hiện, không cần tải lại trang. */
@@ -120,14 +124,6 @@ function getIncidentStatusBadgeClass(incident: DroneParcelIncident): string {
 const IN_FLIGHT_STAGES = new Set(["LAUNCHING", "DEPARTED", "EN_ROUTE", "APPROACHING", "ARRIVED"]);
 
 // Khớp DroneOrderMaintenanceService.cancelReasonLabel ở backend. Giá trị là khoá i18n.
-const CANCEL_REASON_LABELS: Record<number, string> = {
-  1: "admin.droneOrders.cancelReason.badWeather",
-  2: "admin.droneOrders.cancelReason.droneFault",
-  3: "admin.droneOrders.cancelReason.landingPadUnavailable",
-  4: "admin.droneOrders.cancelReason.operational",
-  5: "admin.droneOrders.cancelReason.other",
-};
-
 function isFinished(order: DroneOrderTracking): boolean {
   return FINISHED_STATUSES.has(order.status);
 }
@@ -139,26 +135,6 @@ function isFinished(order: DroneOrderTracking): boolean {
 /** Đơn đã đóng nhưng kiện còn chờ trả cho người gửi vẫn là việc đang phải làm. */
 function needsAction(order: DroneOrderTracking): boolean {
   return !isFinished(order) || order.parcelReturnPending === true;
-}
-
-// Giá trị là khoá i18n; dịch lúc render.
-const PARCEL_CATEGORY_LABELS: Record<string, string> = {
-  DOCUMENT: "admin.droneOrders.parcelCategory.document",
-  FOOD: "admin.droneOrders.parcelCategory.food",
-  CLOTHING: "admin.droneOrders.parcelCategory.clothing",
-  ELECTRONICS: "admin.droneOrders.parcelCategory.electronics",
-  COSMETICS: "admin.droneOrders.parcelCategory.cosmetics",
-  OTHER: "admin.droneOrders.parcelCategory.other",
-};
-
-function parcelSize(order: DroneOrderTracking): string | null {
-  const { parcelLengthCm: l, parcelWidthCm: w, parcelHeightCm: h } = order;
-  return l && w && h ? `${l} × ${w} × ${h} cm` : null;
-}
-
-function routeDistance(meters: number | null | undefined): string | null {
-  if (meters === null || meters === undefined) return null;
-  return meters < 1000 ? `${meters} m` : `${(meters / 1000).toFixed(1)} km`;
 }
 
 function isFlightFailure(order: DroneOrderTracking): boolean {
@@ -185,11 +161,6 @@ function lockerName(
   return fallbackId
     ? t("admin.droneOrders.locker.nameNotFound")
     : t("admin.droneOrders.undetermined");
-}
-
-function grams(value: number | null): string | null {
-  if (value === null || value === undefined) return null;
-  return `${value.toLocaleString("vi-VN")} g`;
 }
 
 function checklist(value: boolean | null, t: TFunction): string {
@@ -449,6 +420,8 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
   });
   const order = data?.data;
   const incidents = incidentResp?.data ?? [];
+  // Một kết nối STOMP cho cả bản đồ và ô "Vị trí drone hiện tại".
+  const live = useLivePosition(orderId, Boolean(order && isDroneInFlight(order)));
 
   const latestIncident = useMemo(() => {
     if (!order) return null;
@@ -595,7 +568,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
             {!isFlightEnded(order) && <RouteWeatherPanel orderId={order.orderId} />}
 
             <Section title={t("admin.droneOrders.section.map")}>
-              <DroneTrackingMap order={order} />
+              <DroneTrackingMap order={order} live={live} />
             </Section>
 
             {!isFinished(order) && IN_FLIGHT_STAGES.has(order.deliveryStage ?? "") && (
@@ -753,11 +726,8 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                         : order.missionStatus)
                     : t("admin.droneOrders.fields.notInitialized")}
                 </LabelValue>
-                <LabelValue label={t("admin.droneOrders.fields.currentLatitude")} mono>
-                  {order.currentLatitude?.toFixed(6)}
-                </LabelValue>
-                <LabelValue label={t("admin.droneOrders.fields.currentLongitude")} mono>
-                  {order.currentLongitude?.toFixed(6)}
+                <LabelValue label={t("admin.droneOrders.fields.currentPosition")} className="col-span-2">
+                  <DronePositionValue order={order} live={live} />
                 </LabelValue>
                 <LabelValue label={t("admin.droneOrders.fields.actualWeight")}>{grams(order.payloadWeightGrams)}</LabelValue>
                 {order.weightSurcharge ? (
@@ -948,6 +918,11 @@ function LockerBlock({
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="text-sm font-semibold">{lockerName(point, fallbackId, t)}</p>
       {point?.address && <p className="text-xs text-muted-foreground">{point.address}</p>}
+      {point?.latitude != null && point?.longitude != null && (
+        <p className="mt-1 text-xs">
+          <Coordinates lat={point.latitude} lng={point.longitude} />
+        </p>
+      )}
       {extras
         .filter((extra): extra is string => Boolean(extra))
         .map((extra) => (

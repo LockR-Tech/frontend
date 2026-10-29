@@ -27,6 +27,7 @@ import {
   useGetDroneIncidentsQuery,
   type DroneParcelIncident,
 } from "~/stores/apis/admin/droneIncidents";
+import { useGetDroneOrderQuery, type DroneOrderTracking } from "~/stores/apis/admin/droneOrders";
 import {
   LabelValue,
   MetaBadge,
@@ -43,6 +44,14 @@ import { EMPTY_VALUE, formatCurrency, formatNumber } from "~/lib/report-format";
 import { useOrderDetail } from "./hooks/useOrderDetail";
 import { OrderTimeline } from "./components/OrderTimeline";
 import { OrderStatusUpdateModal } from "./components/OrderStatusUpdateModal";
+import {
+  DroneCurrentPosition,
+  DroneFeesCard,
+  DroneJourneyLink,
+  DroneParcelCard,
+  DronePaymentCodes,
+  DronePickupCard,
+} from "./components/DroneOrderSections";
 import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
 
@@ -312,7 +321,7 @@ function LockerCard({ order }: { order: AdminOrder }) {
   );
 }
 
-function PaymentCard({ order }: { order: AdminOrder }) {
+function PaymentCard({ order, drone }: { order: AdminOrder; drone?: DroneOrderTracking | null }) {
   const { t } = useTranslation();
   const payment = order.payment;
   return (
@@ -332,6 +341,13 @@ function PaymentCard({ order }: { order: AdminOrder }) {
             </span>
           )}
         </div>
+
+        {drone && (
+          <>
+            <DronePaymentCodes drone={drone} />
+            <Separator />
+          </>
+        )}
 
         {/* `payment = null` nghĩa là payment-service không trả lời, không phải "chưa trả đồng nào". */}
         {payment === null ? (
@@ -417,9 +433,11 @@ function PaymentCard({ order }: { order: AdminOrder }) {
 function DroneCard({
   order,
   parcelDropIncident,
+  droneOrder,
 }: {
   order: AdminOrder;
   parcelDropIncident?: DroneParcelIncident | null;
+  droneOrder?: DroneOrderTracking | null;
 }) {
   const { t } = useTranslation();
   const drone = order.drone;
@@ -431,6 +449,9 @@ function DroneCard({
         <CardTitle className="flex items-center gap-2 text-sm">
           <Plane className="h-4 w-4" />
           {t("admin.orders.detail.drone.title")}
+          <span className="ml-auto font-normal">
+            <DroneJourneyLink orderId={order.id} />
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -495,6 +516,7 @@ function DroneCard({
             <LabelValue label={t("admin.orders.detail.updatedAt")}>
               {drone.updatedAt ? formatDateTime(drone.updatedAt) : null}
             </LabelValue>
+            {droneOrder && <DroneCurrentPosition drone={droneOrder} />}
           </div>
         )}
       </CardContent>
@@ -513,6 +535,13 @@ export default function OrderDetailPage() {
     pollingInterval: 15000,
   });
   const incidents = droneIncidentsData?.data ?? [];
+
+  // Đơn drone: phần riêng (lấy hàng, kiện, phí, mã thanh toán) đọc cùng nguồn với app khách.
+  const droneQuery = useGetDroneOrderQuery(order?.id ?? 0, {
+    skip: !order || !isDroneOrder(order),
+    pollingInterval: 15000,
+  });
+  const droneOrder = order && isDroneOrder(order) ? droneQuery.data?.data ?? null : null;
   const parcelDropIncident = useMemo(() => {
     if (!order) return null;
     return (
@@ -621,6 +650,12 @@ export default function OrderDetailPage() {
         </span>
       </div>
 
+      {isDroneOrder(order) && droneQuery.isError && (
+        <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+          {t("admin.orders.detail.droneInfo.loadFailed")}
+        </p>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start">
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Mốc thời gian nghiệp vụ */}
@@ -665,6 +700,9 @@ export default function OrderDetailPage() {
           </Card>
 
           {/* Phí */}
+          {droneOrder ? (
+            <DroneFeesCard drone={droneOrder} />
+          ) : (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
@@ -715,8 +753,15 @@ export default function OrderDetailPage() {
               )}
             </CardContent>
           </Card>
+          )}
 
           {/* Hàng hoá & ghi chú */}
+          {droneOrder ? (
+            <>
+              <DroneParcelCard order={order} drone={droneOrder} />
+              <DronePickupCard drone={droneOrder} />
+            </>
+          ) : (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
@@ -792,6 +837,7 @@ export default function OrderDetailPage() {
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Lịch sử trạng thái */}
           <Card>
@@ -810,8 +856,8 @@ export default function OrderDetailPage() {
         <div className="flex flex-col gap-4">
           <CustomerCard order={order} />
           <LockerCard order={order} />
-          <PaymentCard order={order} />
-          <DroneCard order={order} parcelDropIncident={parcelDropIncident} />
+          <PaymentCard order={order} drone={droneOrder} />
+          <DroneCard order={order} parcelDropIncident={parcelDropIncident} droneOrder={droneOrder} />
 
           {/* Khối này trước đây liệt kê 6 dòng mã số thô (`#701`, `#7`, `#3`) — nhìn vào
               không biết là tủ nào, cửa hàng nào. Nay hiện tên và số ô mà API chi tiết
