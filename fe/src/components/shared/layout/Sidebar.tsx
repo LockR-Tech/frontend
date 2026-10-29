@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   LogOut,
   Settings,
   User,
@@ -16,7 +18,7 @@ import { cn } from "~/lib/utils";
 import { useAuth } from "~/context/auth-context";
 import { useSidebar } from "~/context/sidebar-context";
 import { useTranslation } from "react-i18next";
-import type { NavItem } from "~/types/common/sidebar";
+import type { NavGroup, NavItem } from "~/types/common/sidebar";
 import {
   Tooltip,
   TooltipContent,
@@ -34,12 +36,26 @@ import {
 
 interface SidebarProps {
   items: NavItem[];
+  /// Nhóm thu/mở được, vẽ dưới các mục trên cùng (đã lọc quyền, nhóm rỗng đã bỏ).
+  groups?: NavGroup[];
   userName?: string;
   onSettingsClick?: () => void;
 }
 
+const OPEN_GROUPS_KEY = "admin.sidebar.openGroups";
+
+function readOpenGroups(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(OPEN_GROUPS_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+  } catch {
+    return {};
+  }
+}
+
 export function Sidebar({
   items,
+  groups = [],
   userName = "Admin",
   onSettingsClick,
 }: SidebarProps) {
@@ -106,6 +122,80 @@ export function Sidebar({
     },
     [location.pathname],
   );
+
+  // Nhóm chưa từng đóng thì mở; lựa chọn đóng/mở được nhớ trên trình duyệt này.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(readOpenGroups);
+  const isGroupOpen = (groupId: string) => openGroups[groupId] !== false;
+
+  const setGroupOpen = useCallback((groupId: string, open: boolean) => {
+    setOpenGroups((prev) => {
+      if ((prev[groupId] !== false) === open) return prev;
+      const next = { ...prev, [groupId]: open };
+      try {
+        localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify(next));
+      } catch {
+        // Không lưu được (chế độ riêng tư…) thì chỉ nhớ trong phiên này.
+      }
+      return next;
+    });
+  }, []);
+
+  // Mở trang nằm trong nhóm đang đóng (từ ô tìm kiếm, link…) ⇒ mở nhóm đó để thấy mục đang chọn.
+  // Chỉ chạy khi đổi trang: người dùng tự đóng nhóm chứa trang hiện tại thì để yên.
+  const activeGroupId = groups.find((group) =>
+    group.items.some((item) => isItemActive(item.path)),
+  )?.id;
+  useEffect(() => {
+    if (activeGroupId) {
+      setGroupOpen(activeGroupId, true);
+    }
+  }, [location.pathname, activeGroupId, setGroupOpen]);
+
+  const showLabels = isExpanded || isMobileOpen;
+
+  const renderItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const isActive = isItemActive(item.path);
+    const label = t(item.label);
+
+    const linkContent = (
+      <NavLink
+        to={item.path}
+        onClick={() => isTablet && setIsMobileOpen(false)}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors relative group",
+          isActive
+            ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-xs"
+            : "text-sidebar-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
+          !showLabels && "justify-center px-2",
+        )}
+      >
+        <Icon
+          size={18}
+          className={cn(
+            "shrink-0 transition-colors",
+            isActive ? "text-sidebar-primary-foreground" : "text-sidebar-muted-foreground group-hover:text-sidebar-accent-foreground",
+          )}
+        />
+
+        {showLabels && <span className="truncate flex-1">{label}</span>}
+      </NavLink>
+    );
+
+    // If sidebar is collapsed, wrap with Tooltip
+    if (!showLabels && !isTablet) {
+      return (
+        <Tooltip key={item.path}>
+          <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+          <TooltipContent side="right" sideOffset={12} className="text-xs font-medium">
+            {label}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return <div key={item.path}>{linkContent}</div>;
+  };
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -198,50 +288,51 @@ export function Sidebar({
 
         {/* Navigation List */}
         <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">
-          {items.map((item) => {
-            const Icon = item.icon;
-            const isActive = isItemActive(item.path);
-            const label = t(item.label);
+          {items.map((item) => renderItem(item))}
 
-            const linkContent = (
-              <NavLink
-                to={item.path}
-                onClick={() => isTablet && setIsMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors relative group",
-                  isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-xs"
-                    : "text-sidebar-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
-                  !isExpanded && !isMobileOpen && "justify-center px-2",
-                )}
-              >
-                <Icon
-                  size={18}
-                  className={cn(
-                    "shrink-0 transition-colors",
-                    isActive ? "text-sidebar-primary-foreground" : "text-sidebar-muted-foreground group-hover:text-sidebar-accent-foreground",
-                  )}
-                />
-
-                {(isExpanded || isMobileOpen) && (
-                  <span className="truncate flex-1">{label}</span>
-                )}
-              </NavLink>
-            );
-
-            // If sidebar is collapsed, wrap with Tooltip
-            if (!isExpanded && !isMobileOpen && !isTablet) {
+          {groups.map((group, index) => {
+            if (!showLabels) {
+              // Thu gọn: chỉ còn icon, mỗi nhóm cách nhau một vạch kẻ.
               return (
-                <Tooltip key={item.path}>
-                  <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={12} className="text-xs font-medium">
-                    {label}
-                  </TooltipContent>
-                </Tooltip>
+                <div key={group.id} className="space-y-1">
+                  <div className="my-2 border-t border-sidebar-border" />
+                  {group.items.map((item) => renderItem(item))}
+                </div>
               );
             }
 
-            return <div key={item.path}>{linkContent}</div>;
+            const GroupIcon = group.icon;
+            const open = isGroupOpen(group.id);
+            const hasActive = group.items.some((item) => isItemActive(item.path));
+
+            return (
+              <div key={group.id}>
+                {index === 0 && <div className="my-3 border-t border-sidebar-border" />}
+                <button
+                  type="button"
+                  onClick={() => setGroupOpen(group.id, !open)}
+                  aria-expanded={open}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors",
+                    "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    !open && hasActive && "bg-sidebar-accent",
+                  )}
+                >
+                  <GroupIcon size={18} className="shrink-0" />
+                  <span className="truncate flex-1 text-left">{t(group.label)}</span>
+                  {open ? (
+                    <ChevronUp size={14} className="shrink-0 text-sidebar-muted-foreground" />
+                  ) : (
+                    <ChevronDown size={14} className="shrink-0 text-sidebar-muted-foreground" />
+                  )}
+                </button>
+                {open && (
+                  <div className="ml-[1.3rem] mt-1 mb-2 pl-2 border-l border-sidebar-border space-y-1">
+                    {group.items.map((item) => renderItem(item))}
+                  </div>
+                )}
+              </div>
+            );
           })}
         </nav>
 

@@ -164,7 +164,14 @@
       "businessSettings": "Business rules",
       "knowledge": "Knowledge base",
       "droneLogs": "Drone & Locker Logs",
-      "flightControl": "Weather & flights"
+      "flightControl": "Weather & flights",
+      "groups": {
+        "operations": "Lockers & operations",
+        "drone": "Drone",
+        "finance": "Finance",
+        "customers": "Customers",
+        "system": "System"
+      }
     },
     "dashboard": {
       "title": "Overview",
@@ -4302,7 +4309,7 @@
       },
       "stations": {
         "title": "Flight stations",
-        "description": "Lockers with a drone landing pad: current weather and pause state of each station. A paused station is not used as a source, does not receive drones, and the flight team cannot accept or launch through it.",
+        "description": "Lockers with a drone landing pad: current weather and pause state of each station. A paused station is not used as a source, does not receive drones, and the flight team cannot accept or launch through it. Only drone orders are affected — send and rental orders at this locker work as usual.",
         "loadFailed": "Could not load stations.",
         "suspend": "Pause station",
         "resume": "Resume station",
@@ -4317,7 +4324,7 @@
       },
       "suspendDialog": {
         "title": "Pause flights at {{name}}",
-        "description": "New orders pick another station near the sender (if any); paid orders using this station are blocked and the customer and flight team are notified.",
+        "description": "New orders pick another station near the sender (if any); paid orders using this station are blocked and the customer and flight team are notified. Send and rental orders at this locker are not affected.",
         "reason": "Reason",
         "note": "Note",
         "notePlaceholder": "e.g. Local thunderstorm in Thu Duc",

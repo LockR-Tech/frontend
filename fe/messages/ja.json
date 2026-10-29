@@ -124,7 +124,14 @@
       "droneOrders": "ドローン配送の追跡",
       "droneIncidents": "荷物落下インシデント",
       "businessSettings": "業務ルール設定",
-      "knowledge": "ナレッジベース"
+      "knowledge": "ナレッジベース",
+      "groups": {
+        "operations": "ロッカー・運用",
+        "drone": "ドローン",
+        "finance": "財務",
+        "customers": "顧客",
+        "system": "システム"
+      }
     },
     "dashboard": {
       "title": "概要",
