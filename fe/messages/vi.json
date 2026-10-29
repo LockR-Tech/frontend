@@ -4302,7 +4302,7 @@
       },
       "stations": {
         "title": "Các trạm bay",
-        "description": "Tủ có bãi đáp drone: thời tiết hiện tại và lệnh dừng bay của từng trạm. Trạm đang dừng không làm tủ gửi, không nhận drone tới, đội bay không nhận đơn và không phóng qua trạm đó.",
+        "description": "Tủ có bãi đáp drone: thời tiết hiện tại và lệnh dừng bay của từng trạm. Trạm đang dừng không làm tủ gửi, không nhận drone tới, đội bay không nhận đơn và không phóng qua trạm đó. Chỉ ảnh hưởng đơn drone — gửi hàng, thuê tủ tại tủ này vẫn đặt bình thường.",
         "loadFailed": "Không tải được danh sách trạm.",
         "suspend": "Tạm dừng trạm",
         "resume": "Mở lại trạm",
@@ -4317,7 +4317,7 @@
       },
       "suspendDialog": {
         "title": "Tạm dừng bay ở {{name}}",
-        "description": "Đơn mới sẽ chọn trạm khác gần người gửi (nếu có); đơn đã trả tiền đang dùng trạm này bị chặn và được báo cho khách, đội bay.",
+        "description": "Đơn mới sẽ chọn trạm khác gần người gửi (nếu có); đơn drone đã trả tiền đang dùng trạm này bị chặn và được báo cho khách, đội bay. Đơn gửi hàng, thuê tủ tại tủ này không bị ảnh hưởng.",
         "reason": "Lý do",
         "note": "Ghi chú",
         "notePlaceholder": "VD: Mưa giông cục bộ khu Thủ Đức",
