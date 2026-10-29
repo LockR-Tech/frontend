@@ -70,6 +70,12 @@
       "partial": "Đã xoá {{deleted}}/{{total}} {{noun}}",
       "failedReason": "{{count}} mục không xoá được: {{reason}}"
     },
+    "coordinates": {
+      "copy": "Copy toạ độ",
+      "copied": "Đã copy toạ độ {{value}}",
+      "copyFailed": "Không copy được — hãy bôi đen và copy tay",
+      "openMap": "Mở vị trí trên Google Maps"
+    },
     "loading": "Đang tải...",
     "noData": "Không có dữ liệu",
     "mockData": "Đang sử dụng mock data",
@@ -611,6 +617,19 @@
           "total": "Tổng phải trả",
           "basePrice": "Giá chưa gồm phí quá hạn: {{amount}}",
           "promotions": "Khuyến mãi: {{codes}}"
+        },
+        "droneInfo": {
+          "surchargeIncluded": "Trong đó thu thêm do cân lệch",
+          "promotion": "Mã giảm giá {{code}}",
+          "promotionNoCode": "Mã giảm giá",
+          "pointsUsed": "Dùng {{points}} điểm",
+          "amountPaid": "Số tiền thanh toán",
+          "amountDue": "Khách còn phải trả",
+          "pickupTitle": "Người gửi & lấy hàng tận nơi",
+          "senderOnOrder": "Người gửi ghi trên đơn",
+          "coordinates": "Toạ độ lấy hàng",
+          "openJourney": "Xem hành trình drone",
+          "loadFailed": "Không tải được dữ liệu riêng của đơn drone (lấy hàng, phí, mã thanh toán) — các khối dưới đây đang hiện số liệu chung, có thể thiếu."
         },
         "parcel": {
           "title": "Kiện hàng & ghi chú",
@@ -2311,6 +2330,12 @@
         "compartmentLocked": "Khoang hàng đã khoá",
         "loadingNote": "Ghi chú nạp hàng",
         "batteryAtLaunch": "Pin lúc cất cánh",
+        "currentPosition": "Vị trí drone hiện tại",
+        "positionLive": "Drone gửi về lúc {{time}}",
+        "positionSimulated": "Mô phỏng theo chặng bay (đơn DEMO)",
+        "positionAtLocker": "Tại tủ nhận — kiện đã vào ô",
+        "positionTelemetry": "Theo telemetry của drone",
+        "positionNone": "Chưa có vị trí — drone chưa cất cánh hoặc mất tín hiệu",
         "currentLatitude": "Vĩ độ hiện tại",
         "currentLongitude": "Kinh độ hiện tại",
         "landedAt": "Tới tủ nhận lúc",
