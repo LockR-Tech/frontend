@@ -5,7 +5,7 @@ import { Header } from "~/components/shared/layout/Header";
 import { MockBanner } from "~/components/shared/mock-indicator";
 import { useAuth } from "~/context/auth-context";
 import { SidebarProvider, useSidebar } from "~/context/sidebar-context";
-import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
+import { ADMIN_NAV_GROUPS, ADMIN_NAV_TOP } from "~/constants/sidebar";
 import { useInitialPrefetch } from "~/hooks/use-route-prefetch";
 import { useAdminRealtimeSync } from "~/hooks/useAdminRealtimeSync";
 import PreferencesModal from "./preferences-modal";
@@ -32,9 +32,13 @@ function AdminLayoutInner() {
     return () => window.removeEventListener("resize", checkScreen);
   }, []);
 
-  const visibleNavItems = ADMIN_NAV_ITEMS.filter(
-    (item) => !item.permission || hasPermission(item.permission),
-  );
+  const canSee = (item: { permission?: string }) =>
+    !item.permission || hasPermission(item.permission);
+  const visibleNavItems = ADMIN_NAV_TOP.filter(canSee);
+  const visibleNavGroups = ADMIN_NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(canSee),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,6 +48,7 @@ function AdminLayoutInner() {
       {/* Sidebar - Fixed position */}
       <Sidebar
         items={visibleNavItems}
+        groups={visibleNavGroups}
         onSettingsClick={() => setIsSettingsOpen(true)}
       />
 

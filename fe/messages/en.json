@@ -164,7 +164,14 @@
       "businessSettings": "Business rules",
       "knowledge": "Knowledge base",
       "droneLogs": "Drone & Locker Logs",
-      "flightControl": "Weather & flights"
+      "flightControl": "Weather & flights",
+      "groups": {
+        "operations": "Lockers & operations",
+        "drone": "Drone",
+        "finance": "Finance",
+        "customers": "Customers",
+        "system": "System"
+      }
     },
     "dashboard": {
       "title": "Overview",
