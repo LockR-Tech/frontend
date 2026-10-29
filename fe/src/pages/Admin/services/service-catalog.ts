@@ -110,6 +110,14 @@ export const SERVICE_CATALOG: ServiceDefinition[] = [
           OrderSettingsKeys.DRONE_MIN_PREFLIGHT_BATTERY,
         ],
       },
+      {
+        titleKey: "admin.services.ruleGroup.flightRange",
+        keys: [
+          OrderSettingsKeys.DRONE_MAX_PICKUP_METERS,
+          OrderSettingsKeys.DRONE_MAX_ROUTE_METERS,
+          OrderSettingsKeys.DRONE_MIN_ROUTE_METERS,
+        ],
+      },
       { titleKey: "admin.services.ruleGroup.overtime", keys: OVERTIME_KEYS },
       {
         titleKey: "admin.services.ruleGroup.simulation",

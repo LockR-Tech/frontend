@@ -2122,6 +2122,7 @@
         "rentalHours": "Rental Hours",
         "extension": "Extension",
         "parcelSafety": "Parcel & Flight Safety",
+        "flightRange": "Flight range",
         "shared": "Applies to All Services",
         "simulation": "Simulation & ArUco Test Mode"
       }

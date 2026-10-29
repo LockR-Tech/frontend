@@ -37,6 +37,9 @@ export const OrderSettingsKeys = {
 
   DRONE_DEFAULT_PARCEL_WEIGHT: "app.order.drone-default-parcel-weight-grams",
   DRONE_MIN_PREFLIGHT_BATTERY: "app.order.drone-min-preflight-battery-percent",
+  DRONE_MAX_PICKUP_METERS: "app.order.drone-max-pickup-meters",
+  DRONE_MAX_ROUTE_METERS: "app.order.drone-max-route-meters",
+  DRONE_MIN_ROUTE_METERS: "app.order.drone-min-route-meters",
 
   DRONE_DEMO_INDOOR_ARUCO_ENABLED: "app.drone.demo.indoor-aruco-enabled",
   DRONE_DEMO_HOLD_OPEN_SECONDS: "app.drone.demo.hold-open-seconds",

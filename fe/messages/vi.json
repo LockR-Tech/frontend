@@ -2122,6 +2122,7 @@
         "rentalHours": "Số giờ thuê",
         "extension": "Gia hạn",
         "parcelSafety": "Kiện hàng & an toàn bay",
+        "flightRange": "Phạm vi bay",
         "shared": "Áp dụng cho mọi dịch vụ",
         "simulation": "Chế độ mô phỏng & Thử nghiệm ArUco"
       }
