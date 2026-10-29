@@ -652,7 +652,7 @@ export default function DroneIncidentDetailPage() {
                   variant="outline"
                   className="bg-sky-50 text-sky-800 border-sky-300 text-[10px] font-bold"
                 >
-                  {(incident.compensationRate * 100).toFixed(0)}%
+                  {formatCompensationRate(incident.compensationRate)}
                 </Badge>
               )}
             </div>
