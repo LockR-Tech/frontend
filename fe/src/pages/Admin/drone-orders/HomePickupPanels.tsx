@@ -5,6 +5,7 @@ import { Loader2, TriangleAlert, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { LabelValue } from "~/components/shared/reporting";
+import { Coordinates } from "~/components/shared/Coordinates";
 import { PhotoGallery } from "~/components/shared/media";
 import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency } from "~/lib/report-format";
@@ -118,6 +119,9 @@ export function PickupPanel({ order }: { order: DroneOrderTracking }) {
               </a>
             </>
           ) : null}
+        </LabelValue>
+        <LabelValue label={t("admin.orders.detail.droneInfo.coordinates")} className="col-span-2 sm:col-span-3">
+          <Coordinates lat={pickup.latitude} lng={pickup.longitude} />
         </LabelValue>
         <LabelValue label={t("admin.droneOrders.pickup.note")}>{pickup.note}</LabelValue>
         <LabelValue label={t("admin.droneOrders.pickup.technicianNote")}>{pickup.technicianNote}</LabelValue>
