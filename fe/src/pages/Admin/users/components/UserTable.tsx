@@ -15,6 +15,7 @@ import {
   Wallet,
   Trash2,
 } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "~/components/shared/data-table";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
@@ -50,6 +51,8 @@ interface UserTableProps {
   totalElements: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  /// Cột ô tích chọn dòng (xoá hàng loạt).
+  selectColumn?: ColumnDef<AdminUserRow, unknown>;
 }
 
 const columnHelper = createColumnHelper<AdminUserRow>();
@@ -121,6 +124,7 @@ export function UserTable({
   totalElements,
   onPageChange,
   onPageSizeChange,
+  selectColumn,
 }: UserTableProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -359,7 +363,7 @@ export function UserTable({
   return (
     <>
       <DataTable
-        columns={columns}
+        columns={selectColumn ? [selectColumn, ...(columns as ColumnDef<AdminUserRow, unknown>[])] : columns}
         data={users}
         isLoading={isLoading}
         emptyMessage={t("common.noData")}

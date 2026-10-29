@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useGetAllUsersQuery } from "~/stores/apis/adminApi";
+import { useDeleteUserMutation } from "~/stores/apis/admin";
 import type { AdminUserResponse } from "~/types";
 
 export type UserStatus = "ALL" | "ACTIVE" | "INACTIVE";
@@ -85,6 +86,8 @@ export function useUsers() {
 
   const { data: apiData, isLoading, error, refetch } = useGetAllUsersQuery(ALL_USERS_ARGS);
 
+  const [deleteUser] = useDeleteUserMutation();
+
   const users: AdminUserRow[] = useMemo(() => {
     // Chấp nhận cả List (hiện tại) lẫn Page (nếu backend đổi sau này).
     const raw = apiData?.data as unknown;
@@ -149,6 +152,7 @@ export function useUsers() {
 
   return {
     users: pagedUsers,
+    deleteOne: (id: number) => deleteUser(id).unwrap(),
     totalElements,
     totalPages,
     isLoading,

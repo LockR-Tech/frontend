@@ -2,7 +2,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
-import { TableToolbar } from "~/components/shared/data-table";
+import { BatchDeleteBar, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
 import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { StoreTable } from "./components/StoreTable";
 import { StoreFilters } from "./components/StoreFilters";
@@ -42,7 +42,16 @@ export default function StoresPage() {
     setPageSize,
     totalPages,
     totalElements,
+    filteredIds,
+    deleteOne,
   } = useStores();
+
+  const selection = useRowSelection(stores);
+  const deleteIds = async (ids: number[]) => {
+    const result = await deleteMany(ids, deleteOne);
+    selection.remove(result.deleted);
+    return result;
+  };
 
   const deleteStats = deleteTarget ? storeRevenue.byStoreId.get(deleteTarget.id) : undefined;
 
@@ -83,7 +92,18 @@ export default function StoresPage() {
             </p>
           )}
 
+          <BatchDeleteBar
+            noun={t("admin.stores.batchNoun")}
+            selectedCount={selection.selectedIds.length}
+            onClearSelection={selection.clear}
+            onDeleteSelected={() => deleteIds(selection.selectedIds)}
+            allCount={filteredIds.length}
+            onDeleteAll={() => deleteIds(filteredIds)}
+            note={t("admin.stores.batchNote")}
+          />
+
           <StoreTable
+            selectColumn={selection.selectColumn}
             stores={stores}
             isLoading={isLoading}
             onEdit={handleEdit}

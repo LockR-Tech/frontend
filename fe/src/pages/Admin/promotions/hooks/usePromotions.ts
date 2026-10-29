@@ -263,6 +263,9 @@ export function usePromotions() {
 
   return {
     promotions: pagedPromotions,
+    /// Mọi dòng khớp bộ lọc (mọi trang) — cho "Xoá tất cả".
+    filteredIds: filteredPromotions.map((p) => p.id),
+    deleteOne: (id: number) => deletePromotion(id).unwrap(),
     totalElements,
     totalPages,
     isLoading,

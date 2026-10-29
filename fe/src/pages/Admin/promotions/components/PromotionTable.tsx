@@ -18,6 +18,7 @@ import {
   Globe,
   MapPin,
 } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "~/components/shared/data-table";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -45,6 +46,8 @@ interface PromotionTableProps {
   totalElements: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  /// Cột ô tích chọn dòng (xoá hàng loạt).
+  selectColumn?: ColumnDef<PromotionRow, unknown>;
 }
 
 const columnHelper = createColumnHelper<PromotionRow>();
@@ -140,6 +143,7 @@ export function PromotionTable({
   totalElements,
   onPageChange,
   onPageSizeChange,
+  selectColumn,
 }: PromotionTableProps) {
   const { t } = useTranslation();
   const columns = [
@@ -354,7 +358,7 @@ export function PromotionTable({
 
   return (
     <DataTable
-      columns={columns}
+      columns={selectColumn ? [selectColumn, ...(columns as ColumnDef<PromotionRow, unknown>[])] : columns}
       data={promotions}
       isLoading={isLoading}
       emptyMessage={t("admin.promotions.emptyMessage")}

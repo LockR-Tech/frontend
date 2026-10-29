@@ -945,6 +945,15 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: TAG, id: 'gateways' }],
     }),
 
+    // Xoá hẳn Pi khỏi danh sách (Pi cũ, đã thay). Backend từ chối khi Pi còn gắn tủ.
+    forgetGateway: builder.mutation<ApiResponse<void>, number>({
+      query: (gatewayId) => ({
+        url: `/api/admin/iot/gateways/${gatewayId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: TAG, id: 'gateways' }],
+    }),
+
     rediscoverGateway: builder.mutation<ApiResponse<void>, number>({
       query: (gatewayId) => ({
         url: `/api/admin/iot/gateways/${gatewayId}/discover`,
@@ -1135,6 +1144,7 @@ export const {
   useGetGatewaysQuery,
   useAssignGatewayMutation,
   useUnassignGatewayMutation,
+  useForgetGatewayMutation,
   useRediscoverGatewayMutation,
   useGetBleTestGrantsQuery,
   useGrantBleTestMutation,

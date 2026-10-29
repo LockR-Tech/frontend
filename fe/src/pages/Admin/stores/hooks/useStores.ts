@@ -160,6 +160,9 @@ export function useStores() {
 
   return {
     stores: pagedStores,
+    /// Mọi dòng khớp bộ lọc (mọi trang) — cho "Xoá tất cả".
+    filteredIds: filteredStores.map((s) => s.id),
+    deleteOne: (id: number) => deleteStore(id).unwrap(),
     totalElements,
     totalPages,
     isLoading,

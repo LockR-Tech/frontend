@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, Cpu, Loader2, RadioTower, RefreshCw, Unplug } from "lucide-react";
+import { AlertTriangle, Cpu, Loader2, RadioTower, RefreshCw, Trash2, Unplug } from "lucide-react";
 import { toast } from "sonner";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -26,6 +26,7 @@ import {
   useGetGatewaysQuery,
   useRediscoverGatewayMutation,
   useUnassignGatewayMutation,
+  useForgetGatewayMutation,
 } from "~/stores/apis/admin/lockerOps";
 
 // Trạng thái lệnh setup gửi tới Pi — iot-service GatewayDevice.setupStatus (ADR-0008).
@@ -85,9 +86,11 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
   const [assignTarget, setAssignTarget] = useState<GatewayDeviceResponse | null>(null);
   const [testDoors, setTestDoors] = useState(true);
   const [confirmUnassign, setConfirmUnassign] = useState(false);
+  const [forgetTarget, setForgetTarget] = useState<GatewayDeviceResponse | null>(null);
 
   const [assignGateway, { isLoading: assigning }] = useAssignGatewayMutation();
   const [unassignGateway, { isLoading: unassigning }] = useUnassignGatewayMutation();
+  const [forgetGateway, { isLoading: forgetting }] = useForgetGatewayMutation();
   const [rediscoverGateway, { isLoading: rediscovering }] = useRediscoverGatewayMutation();
 
   const openAssign = (g: GatewayDeviceResponse | undefined) => {
@@ -118,6 +121,18 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
       setConfirmUnassign(false);
     } catch (err) {
       toast.error(t("admin.lockers.gateway.toast.unassignFailed"), { description: apiError(err, t("common.pleaseRetry")) });
+    }
+  };
+
+  const handleForget = async () => {
+    if (!forgetTarget) return;
+    try {
+      await forgetGateway(forgetTarget.id).unwrap();
+      toast.success(t("admin.lockers.gateway.toast.forgotten", { mac: forgetTarget.macAddress }));
+      setForgetTarget(null);
+      setChoice("");
+    } catch (err) {
+      toast.error(t("admin.lockers.gateway.toast.forgetFailed"), { description: apiError(err, t("common.pleaseRetry")) });
     }
   };
 
@@ -236,6 +251,16 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
                 >
                   {t("admin.lockers.gateway.assign")}
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 text-rose-600 hover:text-rose-700"
+                  disabled={!choice}
+                  onClick={() => setForgetTarget(free.find((g) => String(g.id) === choice) ?? null)}
+                  title={t("admin.lockers.gateway.forgetHint")}
+                >
+                  <Trash2 className="w-4 h-4 mr-1.5" /> {t("admin.lockers.gateway.forget")}
+                </Button>
                 <Button size="sm" variant="ghost" className="h-9" onClick={() => refetch()} disabled={isFetching}>
                   <RefreshCw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />
                 </Button>
@@ -337,6 +362,17 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
         destructive
         loading={unassigning}
         onConfirm={handleUnassign}
+      />
+
+      <ConfirmActionDialog
+        open={forgetTarget != null}
+        onOpenChange={(open) => !open && setForgetTarget(null)}
+        title={t("admin.lockers.gateway.forgetTitle")}
+        description={<p>{t("admin.lockers.gateway.forgetDesc", { mac: forgetTarget?.macAddress ?? "" })}</p>}
+        actionLabel={t("admin.lockers.gateway.forget")}
+        destructive
+        loading={forgetting}
+        onConfirm={handleForget}
       />
     </Card>
   );

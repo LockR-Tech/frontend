@@ -225,6 +225,9 @@ export function useNotifications() {
 
   return {
     notifications: pagedNotifications,
+    /// Mọi thông báo khớp bộ lọc (mọi trang) — cho "Xoá tất cả".
+    filteredIds: filteredNotifications.map((n) => n.id),
+    deleteOne: (id: number) => deleteNotification(id).unwrap(),
     totalElements,
     totalPages,
     stats,

@@ -10,6 +10,7 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "~/components/shared/data-table";
 import { Button } from "~/components/ui/button";
 import { Switch } from "~/components/ui/switch";
@@ -45,6 +46,8 @@ interface StoreTableProps {
   totalElements: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  /// Cột ô tích chọn dòng (xoá hàng loạt).
+  selectColumn?: ColumnDef<StoreRecord, unknown>;
 }
 
 const columnHelper = createColumnHelper<StoreRecord>();
@@ -115,6 +118,7 @@ export function StoreTable({
   totalElements,
   onPageChange,
   onPageSizeChange,
+  selectColumn,
 }: StoreTableProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -278,7 +282,7 @@ export function StoreTable({
 
   return (
     <DataTable
-      columns={columns}
+      columns={selectColumn ? [selectColumn, ...(columns as ColumnDef<StoreRecord, unknown>[])] : columns}
       data={stores}
       isLoading={isLoading}
       emptyMessage={t("common.noData")}
