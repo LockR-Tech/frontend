@@ -164,7 +164,14 @@
       "businessSettings": "Cấu hình nghiệp vụ",
       "knowledge": "Kho tri thức",
       "droneLogs": "Nhật ký Drone & Tủ",
-      "flightControl": "Thời tiết & bay"
+      "flightControl": "Thời tiết & bay",
+      "groups": {
+        "operations": "Tủ & vận hành",
+        "drone": "Drone",
+        "finance": "Tài chính",
+        "customers": "Khách hàng",
+        "system": "Hệ thống"
+      }
     },
     "dashboard": {
       "title": "Tổng quan",
