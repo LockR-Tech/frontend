@@ -55,6 +55,21 @@
     "reload": "Tải lại"
   },
   "common": {
+    "batchDelete": {
+      "hint": "Tích ô đầu dòng để xoá nhiều {{noun}} một lúc",
+      "selected": "Đã chọn {{count}}",
+      "clear": "Bỏ chọn",
+      "deleteSelected": "Xoá đã chọn",
+      "deleteAll": "Xoá tất cả ({{count}})",
+      "selectPage": "Chọn cả trang",
+      "selectRow": "Chọn dòng",
+      "confirmSelectedTitle": "Xoá {{count}} {{noun}} đã chọn?",
+      "confirmAllTitle": "Xoá tất cả {{count}} {{noun}}?",
+      "confirmDesc": "{{count}} {{noun}} sẽ bị xoá vĩnh viễn, không hoàn tác được. Nếu đang lọc, chỉ các mục khớp bộ lọc bị xoá.",
+      "done": "Đã xoá {{count}} {{noun}}",
+      "partial": "Đã xoá {{deleted}}/{{total}} {{noun}}",
+      "failedReason": "{{count}} mục không xoá được: {{reason}}"
+    },
     "loading": "Đang tải...",
     "noData": "Không có dữ liệu",
     "mockData": "Đang sử dụng mock data",
@@ -417,7 +432,9 @@
         "removeAvatarTitle": "Xoá ảnh đại diện?",
         "removeAvatarDesc": "Ảnh đại diện hiện tại của người dùng sẽ bị gỡ và xoá khỏi kho lưu trữ ảnh.",
         "removing": "Đang xoá..."
-      }
+      },
+      "batchNoun": "người dùng",
+      "batchNote": "Tài khoản bị xoá không đăng nhập lại được và không khôi phục được. Tài khoản ADMIN và tài khoản của bạn không chọn được."
     },
     "orders": {
       "title": "Quản lý đơn hàng",
@@ -814,7 +831,9 @@
         "addFirstBox": "Thêm ngăn đầu tiên",
         "boxTitle": "Ngăn #{{number}} — {{status}} (nhấn để chỉnh)",
         "addNewBox": "Thêm ngăn mới"
-      }
+      },
+      "batchNoun": "địa điểm",
+      "batchNote": "Địa điểm còn tủ sẽ không xoá được — chuyển tủ sang địa điểm khác hoặc xoá tủ trước."
     },
     "lockers": {
       "title": "Quản lý Kiosk",
@@ -976,7 +995,9 @@
           "unassigned": "Đã gỡ bộ điều khiển khỏi tủ",
           "unassignFailed": "Không gỡ được",
           "rediscovered": "Đã yêu cầu Pi báo lại",
-          "rediscoverFailed": "Không gửi được yêu cầu"
+          "rediscoverFailed": "Không gửi được yêu cầu",
+          "forgotten": "Đã xoá bộ điều khiển {{mac}}",
+          "forgetFailed": "Không xoá được bộ điều khiển"
         },
         "title": "Bộ điều khiển tủ",
         "hardwareSlots": "{{count}} ô phần cứng",
@@ -1000,7 +1021,11 @@
         "tooManyBoxesDevice": "Tủ có ô số {{highest}} nhưng thiết bị chỉ có {{slots}} ô — iot-service sẽ từ chối.",
         "send": "Gửi sơ đồ",
         "unassignTitle": "Gỡ bộ điều khiển khỏi tủ?",
-        "unassignDesc": "Pi {{mac}} sẽ xoá sơ đồ ô và thôi nhận lệnh của tủ #{{id}}. App và kiosk sẽ không mở được ô thật cho tới khi gán lại."
+        "unassignDesc": "Pi {{mac}} sẽ xoá sơ đồ ô và thôi nhận lệnh của tủ #{{id}}. App và kiosk sẽ không mở được ô thật cho tới khi gán lại.",
+        "forget": "Xoá",
+        "forgetHint": "Xoá hẳn bộ điều khiển đang chọn khỏi danh sách (Pi cũ, đã thay)",
+        "forgetTitle": "Xoá bộ điều khiển?",
+        "forgetDesc": "Bộ điều khiển {{mac}} sẽ bị xoá khỏi danh sách. Nếu Pi này còn chạy, nó sẽ tự báo lại và hiện lại trong danh sách."
       },
       "bluetoothTest": {
         "title": "Thử mở ô qua Bluetooth",
@@ -1912,7 +1937,8 @@
       "deleteDialog": {
         "title": "Xoá thông báo?",
         "desc": "Thông báo #{{id}} «{{title}}» sẽ bị xoá khỏi hộp thư của người nhận. Không hoàn tác được."
-      }
+      },
+      "batchNoun": "thông báo"
     },
     "promotions": {
       "pointsCostBadge": "Đổi {{points}} điểm",
@@ -2027,7 +2053,9 @@
         "title": "Không thể xoá mã đã có lịch sử",
         "desc": "Mã <b>{{code}}</b> đã có lượt sử dụng hoặc đã được lưu vào ví khách hàng nên không xoá được (để giữ lịch sử giảm giá của các đơn).",
         "hint": "Ngưng áp dụng sẽ chuyển mã sang trạng thái INACTIVE — khách không dùng được nữa."
-      }
+      },
+      "batchNoun": "khuyến mãi",
+      "batchNote": "Mã đã có người dùng hoặc đã lưu vào ví sẽ không xoá được — hãy chuyển sang Ngừng hoạt động."
     },
     "breadcrumb": {
       "admin": "Quản trị",

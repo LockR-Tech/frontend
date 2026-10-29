@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Megaphone } from "lucide-react";
 import { Card, CardContent } from "~/components/ui/card";
-import { TableToolbar } from "~/components/shared/data-table";
+import { BatchDeleteBar, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -51,7 +51,16 @@ export default function NotificationsPage() {
     pageSize,
     setPageSize,
     totalPages,
+    filteredIds,
+    deleteOne,
   } = useNotifications();
+
+  const selection = useRowSelection(notifications);
+  const deleteIds = async (ids: number[]) => {
+    const result = await deleteMany(ids, deleteOne);
+    selection.remove(result.deleted);
+    return result;
+  };
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -154,7 +163,17 @@ export default function NotificationsPage() {
             />
           </div>
 
+          <BatchDeleteBar
+            noun={t("admin.notifications.batchNoun")}
+            selectedCount={selection.selectedIds.length}
+            onClearSelection={selection.clear}
+            onDeleteSelected={() => deleteIds(selection.selectedIds)}
+            allCount={filteredIds.length}
+            onDeleteAll={() => deleteIds(filteredIds)}
+          />
+
           <NotificationTable
+            selectColumn={selection.selectColumn}
             notifications={notifications}
             isLoading={isLoading}
             pendingIds={pendingIds}

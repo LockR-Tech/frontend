@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
-import { TableToolbar } from "~/components/shared/data-table";
+import { BatchDeleteBar, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
+import { useAuth } from "~/context/auth-context";
 import { UserTable } from "./components/UserTable";
 import { UserFilters } from "./components/UserFilters";
 import { CreateUserModal } from "./components/CreateUserModal";
-import { useUsers } from "./hooks/useUsers";
+import { useUsers, type AdminUserRow } from "./hooks/useUsers";
 
 export default function UsersPage() {
   const { t } = useTranslation();
@@ -29,7 +30,21 @@ export default function UsersPage() {
     setPageSize,
     totalPages,
     totalElements,
+    deleteOne,
   } = useUsers();
+
+  // Không cho tích tài khoản ADMIN và chính mình: xoá người dùng là vĩnh viễn.
+  const { user: me } = useAuth();
+  const canSelect = useCallback(
+    (row: AdminUserRow) => !row.roles?.includes("ADMIN") && String(row.id) !== me?.id,
+    [me?.id],
+  );
+  const selection = useRowSelection(users, canSelect);
+  const deleteIds = async (ids: number[]) => {
+    const result = await deleteMany(ids, deleteOne);
+    selection.remove(result.deleted);
+    return result;
+  };
 
   return (
     <div className="space-y-6">
@@ -62,7 +77,16 @@ export default function UsersPage() {
             />
           </div>
 
+          <BatchDeleteBar
+            noun={t("admin.users.batchNoun")}
+            selectedCount={selection.selectedIds.length}
+            onClearSelection={selection.clear}
+            onDeleteSelected={() => deleteIds(selection.selectedIds)}
+            note={t("admin.users.batchNote")}
+          />
+
           <UserTable
+            selectColumn={selection.selectColumn}
             users={users}
             isLoading={isLoading}
             page={page}

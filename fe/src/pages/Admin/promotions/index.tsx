@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { TableToolbar } from "~/components/shared/data-table";
+import { BatchDeleteBar, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
 import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { PromotionTable } from "./components/PromotionTable";
 import { PromotionModal } from "./components/PromotionModal";
@@ -107,7 +107,16 @@ export default function PromotionsPage() {
     pageSize,
     setPageSize,
     totalPages,
+    filteredIds,
+    deleteOne,
   } = usePromotions();
+
+  const selection = useRowSelection(promotions);
+  const deleteIds = async (ids: number[]) => {
+    const result = await deleteMany(ids, deleteOne);
+    selection.remove(result.deleted);
+    return result;
+  };
 
   return (
     <div className="space-y-6">
@@ -206,7 +215,18 @@ export default function PromotionsPage() {
             />
           </div>
 
+          <BatchDeleteBar
+            noun={t("admin.promotions.batchNoun")}
+            selectedCount={selection.selectedIds.length}
+            onClearSelection={selection.clear}
+            onDeleteSelected={() => deleteIds(selection.selectedIds)}
+            allCount={filteredIds.length}
+            onDeleteAll={() => deleteIds(filteredIds)}
+            note={t("admin.promotions.batchNote")}
+          />
+
           <PromotionTable
+            selectColumn={selection.selectColumn}
             promotions={promotions}
             isLoading={isLoading}
             onEdit={handleEdit}

@@ -55,6 +55,21 @@
     "reload": "Reload"
   },
   "common": {
+    "batchDelete": {
+      "hint": "Tick the box at the start of a row to delete several {{noun}} at once",
+      "selected": "{{count}} selected",
+      "clear": "Clear",
+      "deleteSelected": "Delete selected",
+      "deleteAll": "Delete all ({{count}})",
+      "selectPage": "Select page",
+      "selectRow": "Select row",
+      "confirmSelectedTitle": "Delete {{count}} selected {{noun}}?",
+      "confirmAllTitle": "Delete all {{count}} {{noun}}?",
+      "confirmDesc": "{{count}} {{noun}} will be permanently deleted. This cannot be undone. When a filter is active, only matching items are deleted.",
+      "done": "Deleted {{count}} {{noun}}",
+      "partial": "Deleted {{deleted}}/{{total}} {{noun}}",
+      "failedReason": "{{count}} item(s) could not be deleted: {{reason}}"
+    },
     "loading": "Loading...",
     "noData": "No data",
     "mockData": "Using mock data",
@@ -417,7 +432,9 @@
         "removeAvatarTitle": "Remove profile photo?",
         "removeAvatarDesc": "The user's current profile photo will be removed and deleted from image storage.",
         "removing": "Removing..."
-      }
+      },
+      "batchNoun": "users",
+      "batchNote": "Deleted accounts cannot sign in again and cannot be restored. ADMIN accounts and your own account cannot be selected."
     },
     "orders": {
       "title": "Order Management",
@@ -814,7 +831,9 @@
         "addFirstBox": "Add First Box",
         "boxTitle": "Box #{{number}} — {{status}} (click to edit)",
         "addNewBox": "Add new box"
-      }
+      },
+      "batchNoun": "locations",
+      "batchNote": "Locations that still have lockers cannot be deleted — move or delete their lockers first."
     },
     "lockers": {
       "title": "Locker Management",
@@ -976,7 +995,9 @@
           "unassigned": "Controller removed from the locker",
           "unassignFailed": "Couldn't remove the controller",
           "rediscovered": "Asked the Pi to report again",
-          "rediscoverFailed": "Couldn't send the request"
+          "rediscoverFailed": "Couldn't send the request",
+          "forgotten": "Deleted controller {{mac}}",
+          "forgetFailed": "Could not delete the controller"
         },
         "title": "Locker Controller",
         "hardwareSlots": "{{count}} hardware slot(s)",
@@ -1000,7 +1021,11 @@
         "tooManyBoxesDevice": "The locker has box number {{highest}} but the device only has {{slots}} slot(s) — iot-service will reject it.",
         "send": "Send Layout",
         "unassignTitle": "Remove the controller from this locker?",
-        "unassignDesc": "Pi {{mac}} will clear its box layout and stop accepting commands for locker #{{id}}. The app and kiosk won't be able to open real boxes until it is reassigned."
+        "unassignDesc": "Pi {{mac}} will clear its box layout and stop accepting commands for locker #{{id}}. The app and kiosk won't be able to open real boxes until it is reassigned.",
+        "forget": "Delete",
+        "forgetHint": "Remove the selected controller from the list (old or replaced Pi)",
+        "forgetTitle": "Delete controller?",
+        "forgetDesc": "Controller {{mac}} will be removed from the list. If this Pi is still running it will report again and reappear."
       },
       "bluetoothTest": {
         "title": "Bluetooth open test",
@@ -1912,7 +1937,8 @@
       "deleteDialog": {
         "title": "Delete notification?",
         "desc": "Notification #{{id}} «{{title}}» will be removed from the recipient's inbox. This cannot be undone."
-      }
+      },
+      "batchNoun": "notifications"
     },
     "promotions": {
       "pointsCostBadge": "{{points}} points",
@@ -2027,7 +2053,9 @@
         "title": "Can't delete a code with usage history",
         "desc": "Code <b>{{code}}</b> has been used or saved to a customer's wallet, so it can't be deleted (to keep the orders' discount history).",
         "hint": "Deactivating sets the code to INACTIVE — customers can no longer use it."
-      }
+      },
+      "batchNoun": "promotions",
+      "batchNote": "Codes that were used or saved to a wallet cannot be deleted — set them to Inactive instead."
     },
     "breadcrumb": {
       "admin": "Admin",

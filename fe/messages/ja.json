@@ -54,6 +54,21 @@
     "logout": "ログアウト"
   },
   "common": {
+    "batchDelete": {
+      "hint": "行頭のチェックで複数の{{noun}}をまとめて削除",
+      "selected": "{{count}} 件選択中",
+      "clear": "選択解除",
+      "deleteSelected": "選択を削除",
+      "deleteAll": "すべて削除 ({{count}})",
+      "selectPage": "このページを選択",
+      "selectRow": "行を選択",
+      "confirmSelectedTitle": "選択した{{noun}} {{count}} 件を削除しますか？",
+      "confirmAllTitle": "{{noun}} {{count}} 件をすべて削除しますか？",
+      "confirmDesc": "{{noun}} {{count}} 件が完全に削除され、元に戻せません。フィルター中は一致する項目のみ削除されます。",
+      "done": "{{noun}} {{count}} 件を削除しました",
+      "partial": "{{noun}} {{deleted}}/{{total}} 件を削除しました",
+      "failedReason": "{{count}} 件は削除できませんでした: {{reason}}"
+    },
     "loading": "読み込み中...",
     "noData": "データなし",
     "mockData": "モックデータを使用中",
@@ -180,7 +195,9 @@
           "redeem": "ポイント交換"
         },
         "lifetimePoints": "累計獲得ポイント"
-      }
+      },
+      "batchNoun": "ユーザー",
+      "batchNote": "削除したアカウントは再ログイン・復元できません。ADMIN アカウントと自分のアカウントは選択できません。"
     },
     "orders": {
       "title": "注文管理",
@@ -251,7 +268,9 @@
         "editSuccess": "店舗を更新しました！",
         "createFailed": "店舗の作成に失敗しました",
         "editFailed": "店舗の更新に失敗しました"
-      }
+      },
+      "batchNoun": "拠点",
+      "batchNote": "ロッカーが残っている拠点は削除できません。先にロッカーを移動または削除してください。"
     },
     "lockers": {
       "title": "ロッカー管理",
@@ -446,7 +465,8 @@
         "errorMsg": "通知の送信に失敗しました",
         "invalidRecipient": "無効な受信者ID",
         "requiredFields": "タイトルと内容を入力してください"
-      }
+      },
+      "batchNoun": "通知"
     },
     "promotions": {
       "pointsCostBadge": "{{points}} ポイント",
@@ -527,7 +547,9 @@
         "requiredCode": "コードとキャンペーン名を入力してください",
         "requiredDates": "開始日と終了日を選択してください",
         "invalidDates": "終了日は開始日より後でなければなりません"
-      }
+      },
+      "batchNoun": "プロモーション",
+      "batchNote": "利用済み・ウォレット保存済みのコードは削除できません。無効に切り替えてください。"
     },
     "breadcrumb": {
       "admin": "管理",

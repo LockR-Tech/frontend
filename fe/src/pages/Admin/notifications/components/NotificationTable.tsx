@@ -9,6 +9,7 @@ import {
   BookOpen,
   Loader2,
 } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "~/components/shared/data-table";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -37,6 +38,8 @@ interface NotificationTableProps {
   totalElements: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  /// Cột ô tích chọn dòng (xoá hàng loạt).
+  selectColumn?: ColumnDef<NotificationRow, unknown>;
 }
 
 const columnHelper = createColumnHelper<NotificationRow>();
@@ -67,6 +70,7 @@ export function NotificationTable({
   totalElements,
   onPageChange,
   onPageSizeChange,
+  selectColumn,
 }: NotificationTableProps) {
   const { t } = useTranslation();
   const columns = [
@@ -190,7 +194,7 @@ export function NotificationTable({
 
   return (
     <DataTable
-      columns={columns}
+      columns={selectColumn ? [selectColumn, ...(columns as ColumnDef<NotificationRow, unknown>[])] : columns}
       data={notifications}
       isLoading={isLoading}
       emptyMessage={t("admin.notifications.emptyMessage")}
