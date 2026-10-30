@@ -193,85 +193,6 @@ function timestampOf(value?: string | null): number {
   return parseBackendDateTime(value)?.getTime() ?? 0;
 }
 
-export const SAMPLE_DRONE_DROP_REPORT: LockerReportResponse = {
-  id: 9991,
-  reportCode: "DRN-DROP-2026-001", // Mã phiếu sự cố đặc biệt khác với RPT-xxx thông thường
-  isDroneDrop: true,
-  category: "DRONE",
-  lockerId: 1,
-  lockerCode: "CAB-DEMO-01",
-  lockerName: "Tủ thông minh FPT-01 (ĐH FPT)",
-  boxId: null,
-  boxNumber: null,
-  cellType: "DRONE",
-  userId: 1,
-  title: "Sự cố Drone rơi khẩn cấp — Rơi kiện hàng ORD-2026-8801 cách điểm đáp 350m",
-  description:
-    "Cảm biến gia tốc phát hiện drone rơi tự do từ độ cao 28m do mất lực nâng cánh quạt số 3. Kiện hàng và drone rơi tại bãi cỏ khuôn viên ĐH FPT (Toạ độ 10.841550, 106.810200). Hệ thống đã kích hoạt quét tìm kiếm KTV Kiosk & Drone gần nhất trong bán kính R.",
-  status: "OPEN",
-  assignedToUserId: null,
-  assignedAt: null,
-  resolvedByUserId: null,
-  resolvedAt: null,
-  createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-  updatedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-  lockerAddress: "Khuôn viên Đại học FPT, Đường D1, Khu Công nghệ cao, TP. Thủ Đức",
-  lockerLatitude: 10.8411,
-  lockerLongitude: 106.8097,
-  slaHours: 2,
-  slaDueAt: new Date(Date.now() + 95 * 60 * 1000).toISOString(),
-  overdue: false,
-  reporterName: "Hệ thống Telemetry Drone AI",
-  reporterPhone: "0909000999",
-  droneUnitId: 101,
-  droneCode: "DRN-HCMC-09",
-  dropLatitude: 10.84155,
-  dropLongitude: 106.8102,
-  orderId: 8801,
-  orderCode: "ORD-2026-8801",
-  incidentCode: "INC-2026-DROP-001",
-  attachments: [
-    {
-      id: 901,
-      reportId: 9991,
-      repairLogId: null,
-      stage: "REPORT",
-      url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800",
-      thumbnailUrl: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800",
-      publicId: "drone_snap_001",
-      format: "jpg",
-      bytes: 204800,
-      width: 1200,
-      height: 800,
-      caption: "Snapshot camera drone ghi lại khoảnh khắc tiếp đất",
-      latitude: 10.84155,
-      longitude: 106.8102,
-      capturedAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-      uploadedByUserId: 1,
-      createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-    },
-    {
-      id: 902,
-      reportId: 9991,
-      repairLogId: null,
-      stage: "REPORT",
-      url: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800",
-      thumbnailUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800",
-      publicId: "drone_scene_001",
-      format: "jpg",
-      bytes: 204800,
-      width: 1200,
-      height: 800,
-      caption: "Ảnh hiện trường bãi cỏ quanh vị trí rơi",
-      latitude: 10.84159,
-      longitude: 106.81024,
-      capturedAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-      uploadedByUserId: 12,
-      createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-    },
-  ],
-};
-
 export default function MaintenanceAdminPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -300,7 +221,6 @@ export default function MaintenanceAdminPage() {
     category: "KIOSK",
     count: 0,
   });
-  const [dismissedSampleReportIds, setDismissedSampleReportIds] = useState<number[]>([]);
 
   // Drone fleet queries & mutations
   const dronesQuery = useGetDronesQuery(undefined, { pollingInterval: 15000 });
@@ -374,17 +294,8 @@ export default function MaintenanceAdminPage() {
     () => reportList.filter((r) => !isDroneReport(r)),
     [reportList]
   );
-  const droneReportList = useMemo(() => {
-    const list = reportList.filter(isDroneReport);
-    const filteredList = list.filter((r) => !dismissedSampleReportIds.includes(r.id));
-    if (dismissedSampleReportIds.includes(SAMPLE_DRONE_DROP_REPORT.id)) {
-      return filteredList;
-    }
-    const hasDropReport = filteredList.some(
-      (r) => r.id === SAMPLE_DRONE_DROP_REPORT.id || r.reportCode === SAMPLE_DRONE_DROP_REPORT.reportCode
-    );
-    return hasDropReport ? filteredList : [SAMPLE_DRONE_DROP_REPORT, ...filteredList];
-  }, [reportList, dismissedSampleReportIds]);
+  // Chỉ phiếu thật: trước đây ghim phiếu giả DRN-DROP-2026-001 lên đầu kèm đồng hồ SLA (test 2026-10-29).
+  const droneReportList = useMemo(() => reportList.filter(isDroneReport), [reportList]);
   // Có phiếu cần mở: chuyển đúng tab, bỏ bộ lọc đang che nó, cuộn tới và mở chi tiết.
   // Chờ danh sách phiếu tải xong; mỗi reportId chỉ xử lý một lần để người dùng lọc lại được.
   useEffect(() => {
@@ -815,18 +726,11 @@ export default function MaintenanceAdminPage() {
   // --- Handler xóa 1 phiếu sự cố ---
   const handleDeleteSingleReport = async () => {
     if (!reportToDelete) return;
-    const isMock = reportToDelete.id === SAMPLE_DRONE_DROP_REPORT.id;
     try {
-      if (isMock) {
-        setDismissedSampleReportIds((prev) => [...prev, reportToDelete.id]);
-        setSelectedDroneIds((prev) => prev.filter((id) => id !== reportToDelete.id));
-        toast.success(`Đã xóa thành công phiếu ${reportToDelete.reportCode || `RPT-${reportToDelete.id}`}`);
-      } else {
-        await deleteReportMutation(reportToDelete.id).unwrap();
-        toast.success(`Đã xóa thành công phiếu ${reportToDelete.reportCode || `RPT-${reportToDelete.id}`}`);
-        setSelectedKioskIds((prev) => prev.filter((id) => id !== reportToDelete.id));
-        setSelectedDroneIds((prev) => prev.filter((id) => id !== reportToDelete.id));
-      }
+      await deleteReportMutation(reportToDelete.id).unwrap();
+      toast.success(`Đã xóa thành công phiếu ${reportToDelete.reportCode || `RPT-${reportToDelete.id}`}`);
+      setSelectedKioskIds((prev) => prev.filter((id) => id !== reportToDelete.id));
+      setSelectedDroneIds((prev) => prev.filter((id) => id !== reportToDelete.id));
       setReportToDelete(null);
     } catch (err: any) {
       toast.error("Không thể xóa phiếu sự cố", {
@@ -848,28 +752,19 @@ export default function MaintenanceAdminPage() {
           category: isKiosk ? "KIOSK" : "DRONE",
         }).unwrap();
         const count = res.data?.deletedCount ?? 0;
-        if (!isKiosk) {
-          setDismissedSampleReportIds((prev) => [...prev, SAMPLE_DRONE_DROP_REPORT.id]);
-        }
         toast.success(
           `Đã xóa thành công tất cả ${count} phiếu sự cố ${isKiosk ? "Kiosk" : "Drone"}`
         );
         if (isKiosk) setSelectedKioskIds([]);
         else setSelectedDroneIds([]);
       } else {
-        const realIds = selectedIds.filter((id) => id !== SAMPLE_DRONE_DROP_REPORT.id);
-        const hasMock = selectedIds.includes(SAMPLE_DRONE_DROP_REPORT.id);
         let count = 0;
-        if (realIds.length > 0) {
+        if (selectedIds.length > 0) {
           const res = await deleteReportsBatchMutation({
-            reportIds: realIds,
+            reportIds: selectedIds,
             category: isKiosk ? "KIOSK" : "DRONE",
           }).unwrap();
-          count = res.data?.deletedCount ?? realIds.length;
-        }
-        if (hasMock) {
-          setDismissedSampleReportIds((prev) => [...prev, SAMPLE_DRONE_DROP_REPORT.id]);
-          count += 1;
+          count = res.data?.deletedCount ?? selectedIds.length;
         }
         toast.success(
           `Đã xóa thành công ${count} phiếu sự cố ${isKiosk ? "Kiosk" : "Drone"}`
@@ -2023,8 +1918,7 @@ export default function MaintenanceAdminPage() {
                     const isNew = report.status === "OPEN";
                     const isDropIncident = Boolean(
                       report.isDroneDrop ||
-                      report.reportCode?.startsWith("DRN-DROP") ||
-                      report.id === SAMPLE_DRONE_DROP_REPORT.id
+                      report.reportCode?.startsWith("DRN-DROP")
                     );
                     const displayCode = report.reportCode || `RPT-${report.id}`;
                     const isSelected = selectedDroneIds.includes(report.id);

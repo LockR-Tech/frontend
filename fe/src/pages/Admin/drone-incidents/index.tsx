@@ -68,7 +68,6 @@ import {
   useGetDroneIncidentsQuery,
   useVerifyDroneRecoveryMutation,
   type DroneParcelIncident,
-  SAMPLE_DRONE_INCIDENTS,
 } from "~/stores/apis/admin/droneIncidents";
 import { useGetDroneOrderQuery } from "~/stores/apis/admin/droneOrders";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
@@ -269,13 +268,10 @@ export default function DroneIncidentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const orderFilter = searchParams.get("order")?.trim() || null;
   const apiIncidents = data?.data ?? [];
+  // Chỉ dữ liệu thật: trước đây trộn 2 sự cố mẫu (INC-2026-DROP-001/002) vào danh sách, admin thao tác được
+  // lên sự cố không tồn tại (test 2026-10-29).
   const incidents = useMemo(() => {
-    const existingCodes = new Set(apiIncidents.map((i) => i.incidentCode));
-    const samplesToAdd = SAMPLE_DRONE_INCIDENTS.filter(
-      (s) => !existingCodes.has(s.incidentCode),
-    );
-    const combined = [...samplesToAdd, ...apiIncidents];
-    return combined.sort((a, b) => {
+    return [...apiIncidents].sort((a, b) => {
       const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
       const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
       return timeB - timeA;
@@ -565,14 +561,11 @@ function IncidentDetail({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const isSample = id === 999 || id === 998;
   const { data, isLoading } = useGetDroneIncidentQuery(id ?? 0, {
-    skip: id == null || isSample,
+    skip: id == null,
     pollingInterval: 8_000,
   });
-  const incident =
-    (isSample ? SAMPLE_DRONE_INCIDENTS.find((i) => i.id === id) : data?.data) ??
-    SAMPLE_DRONE_INCIDENTS.find((i) => i.id === id);
+  const incident = data?.data;
   return (
     <Dialog open={id != null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">

@@ -694,13 +694,17 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                 <LabelValue label={t("admin.droneOrders.fields.declaredValue")}>
                   {order.declaredValue != null ? formatCurrency(order.declaredValue) : null}
                 </LabelValue>
-                <LabelValue label={t("admin.droneOrders.fields.droppedAt")}>
-                  {order.parcelDroppedAt
-                    ? formatDateTime(order.parcelDroppedAt)
-                    : order.status === "AWAITING_DISPATCH" && order.deliveryStage === "AWAITING_DISPATCH"
-                      ? t("admin.droneOrders.fields.notDropped")
-                      : null}
-                </LabelValue>
+                {/* Lấy hàng tận nhà: khách không bỏ kiện vào ô gửi — giờ KTV nhận kiện ở khối "Lấy hàng tận nhà"
+                    (test 2026-10-29 ghi "Người gửi chưa bỏ kiện"). */}
+                {!order.pickup && (
+                  <LabelValue label={t("admin.droneOrders.fields.droppedAt")}>
+                    {order.parcelDroppedAt
+                      ? formatDateTime(order.parcelDroppedAt)
+                      : order.status === "AWAITING_DISPATCH" && order.deliveryStage === "AWAITING_DISPATCH"
+                        ? t("admin.droneOrders.fields.notDropped")
+                        : null}
+                  </LabelValue>
+                )}
                 <LabelValue label={t("admin.droneOrders.fields.flightDistance")}>{routeDistance(order.routeDistanceMeters)}</LabelValue>
                 <LabelValue label={t("admin.droneOrders.fields.flightMode")}>
                   {order.fulfillmentMode === "DEMO"

@@ -170,12 +170,19 @@ export function PickupPanel({ order }: { order: DroneOrderTracking }) {
           />
         </LabelValue>
       ) : null}
-      {assignable ? <AssignTechnician orderId={order.orderId} current={pickup.technicianId ?? null} /> : null}
+      {assignable ? (
+        <AssignTechnician
+          orderId={order.orderId}
+          current={pickup.technicianId ?? null}
+          accepted={pickup.status === "ACCEPTED"}
+        />
+      ) : null}
     </Panel>
   );
 }
 
-function AssignTechnician({ orderId, current }: { orderId: number; current: number | null }) {
+/** KTV đã nhận việc thì đây là đổi người, không phải gán mới (test 2026-10-29 vẫn ghi "gán tay"). */
+function AssignTechnician({ orderId, current, accepted }: { orderId: number; current: number | null; accepted: boolean }) {
   const { t } = useTranslation();
   const { data, isFetching, isError, refetch } = useGetDronePickupCandidatesQuery(orderId, { pollingInterval: 15000 });
   const [assign, { isLoading }] = useAssignDronePickupMutation();
@@ -198,7 +205,9 @@ function AssignTechnician({ orderId, current }: { orderId: number; current: numb
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3">
       <span className="text-sm text-muted-foreground">
-        {t("admin.droneOrders.pickup.assignHint", { onDuty: candidates.filter((c) => c.onDuty).length })}
+        {accepted
+          ? t("admin.droneOrders.pickup.reassignHint")
+          : t("admin.droneOrders.pickup.assignHint", { onDuty: candidates.filter((c) => c.onDuty).length })}
       </span>
       <select
         disabled={isLoading || isFetching || isError}
@@ -225,7 +234,7 @@ function AssignTechnician({ orderId, current }: { orderId: number; current: numb
       {isError && <Button variant="outline" size="sm" onClick={refetch}>{t("common.retry")}</Button>}
       <Button size="sm" disabled={isLoading || isFetching || isError || !available.some(c => c.technicianId === selected)} onClick={submit}>
         {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <UserCheck className="mr-1 h-4 w-4" />}
-        {t("admin.droneOrders.pickup.assign")}
+        {accepted ? t("admin.droneOrders.pickup.reassign") : t("admin.droneOrders.pickup.assign")}
       </Button>
     </div>
   );

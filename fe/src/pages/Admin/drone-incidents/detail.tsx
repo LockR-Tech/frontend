@@ -62,9 +62,9 @@ import {
   useVerifyDroneRecoveryMutation,
   useCreateDroneIncidentProposalMutation,
   useCompleteDroneIncidentRedeliveryMutation,
+  useConfirmDroneIncidentReturnMutation,
   useApproveDroneIncidentCompensationMutation,
   type DroneParcelIncident,
-  SAMPLE_DRONE_INCIDENTS,
 } from "~/stores/apis/admin/droneIncidents";
 import { useConfirmDroneParcelHubHandoverMutation } from "./hubHandoverApi";
 import { distanceKm } from "../drone-orders/journey";
@@ -81,7 +81,13 @@ import {
 import { RecoveryDispatchInlineMap } from "./RecoveryDispatchInlineMap";
 
 // Bảng tra cứu trạng thái Sự cố rõ ràng bằng Tiếng Việt
-function formatIncidentStatus(status: string): { label: string; className: string } {
+function formatIncidentStatus(
+  status: string,
+  recoveryStatus?: string,
+): { label: string; className: string } {
+  if (status === "AWAITING_ADMIN_REVIEW" && ["VERIFIED", "CLOSED"].includes(recoveryStatus ?? "")) {
+    return { label: "Sự cố: Chờ lập phương án", className: "bg-amber-100 text-amber-800 border-amber-300" };
+  }
   switch (status) {
     case "CLOSED":
       return { label: "Sự cố: Đã đóng", className: "bg-slate-100 text-slate-800 border-slate-300" };
@@ -157,6 +163,15 @@ function formatParcelStatus(status: string): { label: string; className: string 
 }
 
 // Bảng dịch chi tiết Dòng thời gian Tiếng Việt để lên trước
+const RETURN_FLIGHT_LABELS: Record<string, string> = {
+  RETURN_REQUESTED: "Đã yêu cầu quay về",
+  COMMAND_ACCEPTED: "Drone đã nhận lệnh",
+  RETURNING: "Đang bay về trạm",
+  COMPLETED: "Đã về trạm",
+  FAILED: "Quay về thất bại",
+  MANUAL_INTERVENTION_REQUIRED: "Cần đưa drone về tay",
+};
+
 const TIMELINE_EVENT_INFO: Record<
   string,
   { labelVi: string; description?: string }
@@ -225,6 +240,42 @@ const TIMELINE_EVENT_INFO: Record<
     labelVi: "Hoàn tiền bồi thường thành công",
     description: "Hệ thống đã chuyển khoản bồi thường vào tài khoản khách",
   },
+  RECOVERY_ACCEPT: {
+    labelVi: "KTV tiếp nhận nhiệm vụ",
+    description: "Kỹ thuật viên đã nhận lệnh tìm kiếm thực địa",
+  },
+  RECOVERY_START_SEARCHING: {
+    labelVi: "Bắt đầu tìm kiếm thực địa",
+    description: "Kỹ thuật viên tới hiện trường và tiến hành tìm kiện",
+  },
+  RESOLUTION_PROPOSED: {
+    labelVi: "Gửi phương án cho khách",
+    description: "Đề xuất bồi thường / giao lại đã gửi cho khách",
+  },
+  CUSTOMER_ACCEPT: {
+    labelVi: "Khách đồng ý phương án",
+  },
+  CUSTOMER_REQUEST_REVIEW: {
+    labelVi: "Khách yêu cầu xem xét lại",
+  },
+  REDELIVERY_REQUESTED: {
+    labelVi: "Tạo đơn giao lại",
+  },
+  REDELIVERY_INTEGRATION_UNAVAILABLE: {
+    labelVi: "Chưa tạo được đơn giao lại",
+  },
+  COMPENSATION_SUBMITTED: {
+    labelVi: "Tạo phiếu chi bồi thường",
+  },
+  COMPENSATION_PAYMENT_FAILED: {
+    labelVi: "Chi bồi thường không thành công",
+  },
+  RETURN_FLIGHT_CONFIRMED: {
+    labelVi: "Xác nhận drone đã về trạm",
+  },
+  INCIDENT_RESOLVED: {
+    labelVi: "Hoàn tất xử lý sự cố",
+  },
   INCIDENT_CLOSED: {
     labelVi: "Đóng hồ sơ sự cố",
     description: "Toàn bộ quy trình xử lý sự cố rơi kiện đã kết thúc",
@@ -236,25 +287,22 @@ export default function DroneIncidentDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const incidentId = Number(id);
-  const isSample = incidentId === 999 || incidentId === 998;
 
   const { data, isLoading, isFetching, refetch } = useGetDroneIncidentQuery(
     incidentId || 0,
     {
-      skip: !incidentId || isSample,
+      skip: !incidentId,
       pollingInterval: 10_000,
     },
   );
 
-  const incident =
-    (isSample
-      ? SAMPLE_DRONE_INCIDENTS.find((i) => i.id === incidentId)
-      : data?.data) ?? SAMPLE_DRONE_INCIDENTS.find((i) => i.id === incidentId);
+  const incident = data?.data;
 
   // Các mutations xử lý nghiệp vụ
   const [verify, verifyState] = useVerifyDroneRecoveryMutation();
   const [completeRedelivery, completeRedeliveryState] =
     useCompleteDroneIncidentRedeliveryMutation();
+  const [confirmReturn, confirmReturnState] = useConfirmDroneIncidentReturnMutation();
   const [propose, proposalState] = useCreateDroneIncidentProposalMutation();
   const [approveCompensation, approvalState] =
     useApproveDroneIncidentCompensationMutation();
@@ -374,7 +422,7 @@ export default function DroneIncidentDetailPage() {
   const canHandover =
     incident.recoveryStatus === "VERIFIED" && incident.recoveryOutcome === "FOUND";
 
-  const incStatus = formatIncidentStatus(incident.status);
+  const incStatus = formatIncidentStatus(incident.status, incident.recoveryStatus);
   const recStatus = formatRecoveryStatus(incident.recoveryStatus);
   const prcStatus = formatParcelStatus(incident.parcelStatus);
 
@@ -633,8 +681,26 @@ export default function DroneIncidentDetailPage() {
             </div>
             <div className="pt-1">
               <span className="text-xs text-slate-600 font-medium">
-                Quay về: {incident.returnFlightStatus || "—"}
+                Quay về: {RETURN_FLIGHT_LABELS[incident.returnFlightStatus] ?? incident.returnFlightStatus ?? "—"}
               </span>
+              {["RETURN_REQUESTED", "COMMAND_ACCEPTED", "RETURNING", "FAILED", "MANUAL_INTERVENTION_REQUIRED"].includes(
+                incident.returnFlightStatus,
+              ) && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-1.5 h-7 w-full text-[11px]"
+                  disabled={confirmReturnState.isLoading}
+                  onClick={() =>
+                    handleAction(
+                      () => confirmReturn({ id: incident.id }).unwrap(),
+                      "Đã xác nhận drone về trạm",
+                    )
+                  }
+                >
+                  Xác nhận drone đã về trạm
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -652,7 +718,7 @@ export default function DroneIncidentDetailPage() {
                   variant="outline"
                   className="bg-sky-50 text-sky-800 border-sky-300 text-[10px] font-bold"
                 >
-                  {(incident.compensationRate * 100).toFixed(0)}%
+                  {formatCompensationRate(incident.compensationRate)}
                 </Badge>
               )}
             </div>
@@ -699,7 +765,9 @@ export default function DroneIncidentDetailPage() {
                           ? "Đã nộp kết quả tìm hàng"
                           : incident.recoveryStatus === "VERIFIED"
                             ? "Đã xác minh thu hồi"
-                            : "KTV đã tiếp nhận nhiệm vụ"}
+                            : incident.recoveryStatus === "CLOSED"
+                              ? "Đã bàn giao về Hub"
+                              : "KTV đã tiếp nhận nhiệm vụ"}
                     </Badge>
                   </CardTitle>
                   <CardDescription className="text-xs text-emerald-800">
@@ -1282,6 +1350,12 @@ export default function DroneIncidentDetailPage() {
             </CardHeader>
 
             <CardContent className="p-4 space-y-3.5">
+              {/* Đang chờ khách / khách đã đồng ý: không cho gửi thêm phiên bản (test 2026-10-29 form vẫn mở
+                  sau khi khách đồng ý, dễ gửi nhầm phiên bản 2). */}
+              {!["AWAITING_CUSTOMER_RESPONSE", "RESOLUTION_IN_PROGRESS", "RESOLVED", "CLOSED"].includes(
+                incident.status,
+              ) ? (
+              <>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700">
                   Phương án giải quyết đề xuất:
@@ -1291,6 +1365,9 @@ export default function DroneIncidentDetailPage() {
                   onValueChange={(val) => {
                     setResolutionType(val);
                     setShowProposalError(true);
+                    setRefundShippingFee(
+                      REDELIVERY_TYPES.has(val) ? false : incident.refundShippingFeeAllowed !== false,
+                    );
                     if (val === "FREE_REDELIVERY") {
                       setAmount("0");
                     } else if (amount.trim() === "" || Number(amount) === 0) {
@@ -1422,6 +1499,14 @@ export default function DroneIncidentDetailPage() {
                 )}
                 Gửi đề xuất phương án cho khách
               </Button>
+              </>
+              ) : (
+                <p className="rounded border bg-slate-50 p-2.5 text-xs text-slate-600">
+                  {incident.status === "AWAITING_CUSTOMER_RESPONSE"
+                    ? "Đã gửi phương án, đang chờ khách phản hồi. Khách yêu cầu xem xét lại thì gửi được phương án mới."
+                    : "Khách đã chọn phương án — không gửi thêm đề xuất."}
+                </p>
+              )}
 
               {/* Tiến trình giao lại nếu khách đã đồng ý */}
               {["PREPARING", "IN_PROGRESS"].includes(incident.redeliveryStatus) && (
@@ -1448,11 +1533,13 @@ export default function DroneIncidentDetailPage() {
                     </div>
                   )}
                   <p className="text-xs text-indigo-900">
-                    Kiện hàng đã được điều phối giao lại từ Hub. Khi kiện đã giao thành công tới tay khách, bấm nút dưới để hoàn tất toàn bộ sự cố:
+                    Kiện hàng đã được điều phối giao lại từ Hub. Khi người nhận lấy hàng ở đơn giao lại, sự cố tự đóng phần giao lại.
+                    Chỉ bấm tay khi đơn giao lại đã hoàn tất mà sự cố chưa cập nhật.
                   </p>
                   <Button
                     size="sm"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs gap-1.5 font-semibold"
+                    variant="outline"
+                    className="w-full border-indigo-300 text-indigo-800 text-xs gap-1.5 font-semibold"
                     disabled={completeRedeliveryState.isLoading}
                     onClick={() =>
                       handleAction(
@@ -1462,7 +1549,7 @@ export default function DroneIncidentDetailPage() {
                     }
                   >
                     <CheckCircle2 className="h-4 w-4" />
-                    Xác nhận đã giao lại thành công & hoàn tất sự cố
+                    Đóng phần giao lại (đơn giao lại đã hoàn tất)
                   </Button>
                 </div>
               )}

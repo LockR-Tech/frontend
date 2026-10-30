@@ -107,6 +107,18 @@ interface RefundTableProps {
   pendingCount?: number;
 }
 
+/// Phiếu chi bồi thường sự cố rơi kiện: payment-service ghi lý do "[Bồi thường sự cố DPI-…] …".
+function compensationIncidentCode(reason?: string | null): string | null {
+  const match = (reason || "").match(/\[Bồi thường sự cố ([^\]]+)\]/);
+  return match ? match[1].trim() : null;
+}
+
+/// Nội dung chuyển khoản: bồi thường ghi mã sự cố, hoàn tiền ghi mã đơn.
+function transferContentOf(refund: AdminRefund): string {
+  const incident = compensationIncidentCode(refund.reason);
+  return incident ? `BOITHUONG ${incident}` : `HOANTIEN ${refund.order?.orderCode || refund.id}`;
+}
+
 export function RefundTable({
   statusFilter: controlledStatus,
   onStatusFilterChange,
@@ -330,9 +342,7 @@ export function RefundTable({
   // Tạo URL VietQR chuẩn
   const getVietQrUrl = (refund: AdminRefund) => {
     if (!refund.bankCode || !refund.accountNumber) return null;
-    const addInfo = encodeURIComponent(
-      `HOANTIEN ${refund.order?.orderCode || refund.id}`,
-    );
+    const addInfo = encodeURIComponent(transferContentOf(refund));
     const accountName = refund.accountHolderName
       ? `&accountName=${encodeURIComponent(refund.accountHolderName)}`
       : "";
@@ -403,9 +413,9 @@ export function RefundTable({
             <p className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 font-mono">
               {formatCurrency(row.original.amount)}
             </p>
-            {isCompensation && pctMatch ? (
-              <span className="inline-block text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded font-mono">
-                {pctMatch[0]}
+            {isCompensation ? (
+              <span className="inline-block text-[10px] font-semibold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
+                Bồi thường sự cố{pctMatch ? ` · ${pctMatch[0]}` : ""}
               </span>
             ) : (
               <p className="text-[11px] text-muted-foreground font-mono">
@@ -564,9 +574,8 @@ export function RefundTable({
   ];
 
   const qrUrl = selectedRefund ? getVietQrUrl(selectedRefund) : null;
-  const transferContent = selectedRefund
-    ? `HOANTIEN ${selectedRefund.order?.orderCode || selectedRefund.id}`
-    : "";
+  const transferContent = selectedRefund ? transferContentOf(selectedRefund) : "";
+  const selectedIncidentCode = selectedRefund ? compensationIncidentCode(selectedRefund.reason) : null;
 
   return (
     <div className="space-y-4">
@@ -1011,7 +1020,16 @@ export function RefundTable({
                 <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs">
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                   <p className="leading-relaxed text-[11px]">
-                    Hành động này sẽ cập nhật đơn hàng thành <strong>ĐÃ HOÀN TIỀN</strong> và gửi thông báo kèm ảnh minh chứng chuyển khoản tới khách hàng.
+                    {selectedIncidentCode ? (
+                      <>
+                        Hành động này ghi nhận <strong>đã chi bồi thường</strong> cho sự cố {selectedIncidentCode} (không đổi
+                        trạng thái hoàn tiền của đơn), cập nhật sự cố và gửi thông báo kèm ảnh minh chứng tới khách hàng.
+                      </>
+                    ) : (
+                      <>
+                        Hành động này sẽ cập nhật đơn hàng thành <strong>ĐÃ HOÀN TIỀN</strong> và gửi thông báo kèm ảnh minh chứng chuyển khoản tới khách hàng.
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
