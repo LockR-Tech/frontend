@@ -86,29 +86,42 @@ function incidentLink(order: DroneOrderTracking): string {
   return `/admin/drone-incidents?order=${encodeURIComponent(order.orderCode)}`;
 }
 
+// Trạng thái của sự cố (phương án, khiếu nại, đã xong) xét trước trạng thái thu hồi: trước đây kiện đã xác
+// minh / đã về kho che mất "Chờ khách phản hồi", "Khách khiếu nại", "Đang thực hiện phương án".
 function getIncidentReadableStatus(incident: DroneParcelIncident): string {
   if (incident.status === "CLOSED") return "Đã đóng sự cố";
   if (incident.status === "RESOLVED") return "Đã giải quyết";
+  if (incident.status === "DISPUTED") return "Khách yêu cầu xem xét lại";
+  if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE")
+    return "Chờ khách phản hồi phương án";
+  if (incident.status === "RESOLUTION_IN_PROGRESS")
+    return incident.compensationStatus === "PROCESSING" ? "Đang chi trả bồi thường" : "Đang thực hiện phương án";
+  if (incident.status === "MANUAL_INTERVENTION_REQUIRED") return "Cần can thiệp thủ công";
   if (incident.recoveryStatus === "SUBMITTED") return "Chờ Admin xác minh";
+  if (incident.parcelStatus === "RETURNED_TO_HUB") return "Kiện đã về trạm — chờ lập phương án";
+  if (incident.recoveryStatus === "VERIFIED") return "Đã xác minh — chờ lập phương án";
   if (incident.recoveryStatus === "SEARCHING") return "KTV đang tìm thực địa";
-  if (incident.recoveryStatus === "VERIFIED") return "Đã xác minh thu hồi";
-  if (incident.parcelStatus === "RETURNED_TO_HUB") return "Kiện đã về kho Hub";
   if (incident.recoveryStatus === "ACCEPTED") return "KTV đã nhận tìm kiếm";
   if (incident.recoveryStatus === "ASSIGNED") return "Đã phân công (Chờ KTV nhận)";
-  if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE")
-    return "Chờ khách chọn bồi thường";
-  if (incident.status === "RESOLUTION_IN_PROGRESS" || incident.compensationStatus === "PROCESSING")
-    return "Đang chi trả bồi thường";
   if (incident.recoveryStatus === "AWAITING_ASSIGNMENT" || incident.recoveryStatus === "OPEN" || incident.status === "REPORTED")
     return "Chờ điều phối tìm kiếm";
   return incident.status;
 }
 
 function getIncidentStatusBadgeClass(incident: DroneParcelIncident): string {
-  if (incident.status === "RESOLVED" || incident.status === "CLOSED" || incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB") {
+  if (incident.status === "RESOLVED" || incident.status === "CLOSED") {
     return "bg-emerald-100 text-emerald-800 border-emerald-300";
   }
-  if (incident.recoveryStatus === "ASSIGNED" || incident.recoveryStatus === "SUBMITTED" || incident.status === "AWAITING_ADMIN_REVIEW" || incident.status === "AWAITING_CUSTOMER_RESPONSE") {
+  if (incident.status === "DISPUTED" || incident.status === "MANUAL_INTERVENTION_REQUIRED") {
+    return "bg-rose-100 text-rose-800 border-rose-300";
+  }
+  if (incident.status === "RESOLUTION_IN_PROGRESS") {
+    return "bg-purple-100 text-purple-800 border-purple-300";
+  }
+  if (incident.recoveryStatus === "ASSIGNED" || incident.recoveryStatus === "SUBMITTED"
+    || incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB"
+    || incident.status === "AWAITING_ADMIN_REVIEW" || incident.status === "AWAITING_CUSTOMER_RESPONSE"
+    || incident.status === "RESOLUTION_PROPOSED") {
     return "bg-amber-100 text-amber-800 border-amber-300";
   }
   if (incident.recoveryStatus === "SEARCHING" || incident.recoveryStatus === "ACCEPTED") {
