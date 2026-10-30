@@ -99,6 +99,15 @@ export interface DroneParcelIncident {
   recoverySlaHours?: number | null;
   approvalRequired?: boolean;
   incidentPolicyEnabled?: boolean;
+  /** Trạm bay kiện đã tìm thấy được điều phối về (= recoveryLockerId) lúc admin xác minh. */
+  recoveryStationName?: string | null;
+  recoveryStationAddress?: string | null;
+  recoveryStationLatitude?: number | null;
+  recoveryStationLongitude?: number | null;
+  recoveryStationDistanceM?: number | null;
+  /** false ⇒ trạm đang hết drone, kiện chờ drone tại trạm. */
+  recoveryStationDroneAvailable?: boolean | null;
+  recoveryStationDispatchedAt?: string | null;
   disputeAllowed?: boolean;
   createdAt: string;
   updatedAt: string;

@@ -313,6 +313,8 @@ function notificationRoute(n: Notification): string | null {
   const ref = n.referenceId ?? n.orderId ?? null;
   const refType = (n.referenceType ?? "").toUpperCase();
   const type = (n.type ?? "").toUpperCase();
+  // Thông báo cho admin mang referenceType DRONE_INCIDENT + id sự cố ⇒ mở thẳng chi tiết sự cố.
+  if (refType === "DRONE_INCIDENT" && ref != null) return `/admin/drone-incidents/${ref}`;
   if (refType === "DRONE_INCIDENT" || type.startsWith("DRONE_PARCEL") || type.startsWith("DRONE_INCIDENT")) {
     return "/admin/drone-incidents";
   }
