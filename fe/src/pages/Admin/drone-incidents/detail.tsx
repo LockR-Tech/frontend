@@ -102,7 +102,11 @@ function formatIncidentStatus(
     case "AWAITING_CUSTOMER_RESPONSE":
       return { label: "Sự cố: Chờ khách phản hồi", className: "bg-amber-100 text-amber-800 border-amber-300" };
     case "RESOLUTION_IN_PROGRESS":
-      return { label: "Sự cố: Đang xử lý bồi thường", className: "bg-purple-100 text-purple-800 border-purple-300" };
+      return { label: "Sự cố: Đang thực hiện phương án", className: "bg-purple-100 text-purple-800 border-purple-300" };
+    case "INVESTIGATING":
+      return { label: "Sự cố: Đang điều phối thu hồi", className: "bg-red-50 text-red-700 border-red-200" };
+    case "EVIDENCE_PENDING":
+      return { label: "Sự cố: Chờ bổ sung bằng chứng", className: "bg-amber-50 text-amber-800 border-amber-300" };
     case "DISPUTED":
       return { label: "Sự cố: Khách khiếu nại", className: "bg-red-100 text-red-800 border-red-300" };
     case "MANUAL_INTERVENTION_REQUIRED":
@@ -208,9 +212,21 @@ const TIMELINE_EVENT_INFO: Record<
     labelVi: "Admin duyệt xác minh hiện trường",
     description: "Quản trị viên đã kiểm tra toạ độ và đối soát kết quả tìm kiếm",
   },
+  RECOVERY_STATION_DISPATCHED: {
+    labelVi: "Điều phối kiện về trạm bay",
+    description: "Hệ thống chọn trạm gần nơi tìm thấy nhất còn drone để bay giao lại",
+  },
+  RECOVERY_STATION_UNAVAILABLE: {
+    labelVi: "Chưa điều phối được trạm",
+    description: "Không trạm bay nào nhận được kiện — admin điều phối tay",
+  },
+  RECOVERY_TICKETS_UNAVAILABLE: {
+    labelVi: "Chưa tạo được phiếu thu hồi",
+    description: "Hệ thống tủ chưa phản hồi — admin phân công KTV thu hồi bằng tay",
+  },
   PARCEL_RETURNED_TO_HUB: {
-    labelVi: "Bàn giao kiện hàng về kho Hub",
-    description: "Kiện hàng đã được KTV vận chuyển về Hub an toàn",
+    labelVi: "Bàn giao kiện hàng về trạm",
+    description: "Kiện hàng đã được KTV vận chuyển về trạm / Hub an toàn",
   },
   PROPOSAL_CREATED: {
     labelVi: "Tạo đề xuất phương án xử lý",
@@ -675,8 +691,10 @@ export default function DroneIncidentDetailPage() {
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 {incident.returnedToHubAt
-                  ? `Về Hub lúc: ${formatDateTime(incident.returnedToHubAt)}`
-                  : "Chưa bàn giao về Hub"}
+                  ? `Về ${incident.recoveryStationName ?? "Hub"} lúc: ${formatDateTime(incident.returnedToHubAt)}`
+                  : incident.recoveryStationName
+                    ? `Chờ bàn giao tại trạm ${incident.recoveryStationName}`
+                    : "Chưa bàn giao về Hub"}
               </p>
             </div>
             <div className="pt-1">
@@ -849,13 +867,53 @@ export default function DroneIncidentDetailPage() {
               </div>
             )}
 
+            {/* Trạm bay hệ thống điều phối kiện về lúc admin xác minh (gần nơi tìm thấy nhất còn drone) */}
+            {incident.recoveryStationName && (
+              <div
+                className={`p-3 rounded-lg border text-xs space-y-1 ${
+                  incident.recoveryStationDroneAvailable === false
+                    ? "border-amber-300 bg-amber-50/70 text-amber-950"
+                    : "border-indigo-200 bg-indigo-50/60 text-indigo-950"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4" />
+                    Trạm nhận kiện: {incident.recoveryStationName}
+                  </span>
+                  {incident.recoveryStationLatitude != null && incident.recoveryStationLongitude != null && (
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${incident.recoveryStationLatitude},${incident.recoveryStationLongitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 font-semibold underline"
+                    >
+                      Chỉ đường <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+                {incident.recoveryStationAddress && <p>{incident.recoveryStationAddress}</p>}
+                <p className="text-[11px] opacity-80">
+                  {incident.recoveryStationDistanceM != null
+                    ? `Cách nơi tìm thấy ~${(incident.recoveryStationDistanceM / 1000).toFixed(1)} km · `
+                    : ""}
+                  {incident.recoveryStationDroneAvailable === false
+                    ? "Trạm đang hết drone sẵn sàng — kiện chờ drone tại trạm."
+                    : "Trạm còn drone sẵn sàng — đơn giao lại sẽ bay từ trạm này."}
+                  {incident.recoveryStationDispatchedAt
+                    ? ` · Điều phối lúc ${formatDateTime(incident.recoveryStationDispatchedAt)}`
+                    : ""}
+                </p>
+              </div>
+            )}
+
             {/* Nút bàn giao về Hub khi đã xác minh */}
             {atHub ? (
               <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/70 text-xs text-emerald-950 flex items-center gap-2">
                 <PackageCheck className="h-4 w-4 text-emerald-600" />
                 <span>
                   {incident.returnedToHubAt
-                    ? `Kiện hàng đã về trạm Hub an toàn lúc: ${formatDateTime(incident.returnedToHubAt)}`
+                    ? `Kiện hàng đã về ${incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "trạm Hub"} an toàn lúc: ${formatDateTime(incident.returnedToHubAt)}`
                     : "Kiện hàng đã được bàn giao an toàn về trạm Hub."}
                 </span>
               </div>
@@ -864,7 +922,7 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sky-950 flex items-center gap-1.5">
                     <PackageCheck className="h-4 w-4 text-sky-600" />
-                    Xác nhận bàn giao kiện về Hub
+                    Xác nhận bàn giao kiện về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"}
                   </span>
                   <Button
                     size="sm"
@@ -872,11 +930,11 @@ export default function DroneIncidentDetailPage() {
                     onClick={() => setConfirmHandover(true)}
                     className="h-8 text-xs bg-sky-600 hover:bg-sky-700 text-white"
                   >
-                    Xác nhận kiện đã về Hub
+                    Xác nhận kiện đã về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"}
                   </Button>
                 </div>
                 <p className="text-sky-800 text-[11px]">
-                  Kiện hàng đã được KTV vận chuyển về trạm Hub. Bấm xác nhận để mở khoá phương án giao lại miễn phí cho khách hàng.
+                  Kiện hàng đã được KTV vận chuyển về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"}. Bấm xác nhận để mở khoá phương án giao lại miễn phí cho khách hàng.
                 </p>
               </div>
             ) : null}
@@ -1020,9 +1078,9 @@ export default function DroneIncidentDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận kiện hàng đã về kho Hub</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận kiện hàng đã về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn kiện hàng của đơn {incident.orderCode ?? `#${incident.orderId}`} đã được vận chuyển an toàn về kho Hub không?
+              Bạn có chắc chắn kiện hàng của đơn {incident.orderCode ?? `#${incident.orderId}`} đã được vận chuyển an toàn về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"} không?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

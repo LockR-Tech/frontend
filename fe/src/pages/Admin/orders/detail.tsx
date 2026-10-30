@@ -56,15 +56,19 @@ import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
 
 function getIncidentShortStatus(incident: DroneParcelIncident): string {
+  // Trạng thái sự cố trước, trạng thái thu hồi sau — khớp trang Đơn drone (drone-orders/index.tsx).
   if (incident.status === "CLOSED") return "Đã đóng";
   if (incident.status === "RESOLVED") return "Đã giải quyết";
+  if (incident.status === "DISPUTED") return "Khách yêu cầu xem xét lại";
+  if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE") return "Chờ khách phản hồi phương án";
+  if (incident.status === "RESOLUTION_IN_PROGRESS")
+    return incident.compensationStatus === "PROCESSING" ? "Đang bồi thường" : "Đang thực hiện phương án";
+  if (incident.status === "MANUAL_INTERVENTION_REQUIRED") return "Cần can thiệp thủ công";
   if (incident.recoveryStatus === "SUBMITTED") return "Chờ duyệt thu hồi";
-  if (incident.recoveryStatus === "SEARCHING") return "Đang tìm kiếm";
   if (incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB") return "Đã thu hồi";
+  if (incident.recoveryStatus === "SEARCHING") return "Đang tìm kiếm";
   if (incident.recoveryStatus === "ACCEPTED") return "KTV đã nhận";
   if (incident.recoveryStatus === "ASSIGNED") return "Chờ KTV nhận";
-  if (incident.status === "RESOLUTION_IN_PROGRESS" || incident.compensationStatus === "PROCESSING") return "Đang bồi thường";
-  if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE") return "Chờ khách chọn bồi thường";
   if (incident.recoveryStatus === "AWAITING_ASSIGNMENT" || incident.status === "REPORTED" || incident.recoveryStatus === "OPEN") return "Chờ điều phối";
   return incident.status;
 }

@@ -1953,7 +1953,7 @@ export default function MaintenanceAdminPage() {
                                 type="button"
                                 onClick={() =>
                                   navigate(
-                                    `/admin/drone-incidents?order=${report.orderCode ?? report.orderId ?? "ORD-2026-8801"}`,
+                                    `/admin/drone-incidents?order=${encodeURIComponent(String(report.orderCode ?? report.orderId ?? ""))}`,
                                   )
                                 }
                                 className="font-mono font-bold text-xs px-2.5 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-300 shadow-xs tracking-wide hover:bg-red-200 cursor-pointer inline-flex items-center gap-1"
@@ -2045,7 +2045,7 @@ export default function MaintenanceAdminPage() {
                             <Button
                               size="sm"
                               className="h-8 text-xs gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold shadow-xs"
-                              onClick={() => navigate(`/admin/drone-incidents?order=${report.orderCode ?? 'ORD-2026-8801'}`)}
+                              onClick={() => navigate(`/admin/drone-incidents?order=${encodeURIComponent(String(report.orderCode ?? report.orderId ?? ""))}`)}
                             >
                               <Radio className="w-3.5 h-3.5 animate-pulse" />
                               Điều phối KTV bán kính R
