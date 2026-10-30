@@ -218,7 +218,7 @@ const TIMELINE_EVENT_INFO: Record<
   },
   RECOVERY_STATION_UNAVAILABLE: {
     labelVi: "Chưa điều phối được trạm",
-    description: "Không trạm bay nào nhận được kiện — admin điều phối tay",
+    description: "Không trạm bay nào nhận được kiện — giữ nơi bàn giao cũ",
   },
   RECOVERY_TICKETS_UNAVAILABLE: {
     labelVi: "Chưa tạo được phiếu thu hồi",
@@ -328,12 +328,15 @@ export default function DroneIncidentDetailPage() {
   const [confirmHandover, setConfirmHandover] = useState(false);
 
   const atHub = incident?.parcelStatus === "RETURNED_TO_HUB";
+  const badlyDamaged = ["MAJOR_DAMAGE", "UNUSABLE"].includes(incident?.parcelCondition ?? "");
+  const canRedeliver = atHub && !badlyDamaged;
+  const redeliveryHint = badlyDamaged ? "(Kiện hư nặng)" : "(Cần kiện về Hub)";
   const suggested = incident ? suggestedCompensationOf(incident) : null;
   const [resolutionType, setResolutionType] = useState<string>(
-    atHub ? "FREE_REDELIVERY" : "COMPENSATION_ONLY",
+    canRedeliver ? "FREE_REDELIVERY" : "COMPENSATION_ONLY",
   );
   const [amount, setAmount] = useState<string>(
-    atHub ? "0" : suggested != null && suggested > 0 ? String(suggested) : "",
+    canRedeliver ? "0" : suggested != null && suggested > 0 ? String(suggested) : "",
   );
   const [overrideReason, setOverrideReason] = useState("");
   const [refundShippingFee, setRefundShippingFee] = useState<boolean>(true);
@@ -1437,11 +1440,11 @@ export default function DroneIncidentDetailPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="FREE_REDELIVERY" className="text-xs" disabled={!atHub}>
-                      Giao lại miễn phí toàn bộ cước phí {!atHub && "(Cần kiện về Hub)"}
+                    <SelectItem value="FREE_REDELIVERY" className="text-xs" disabled={!canRedeliver}>
+                      Giao lại miễn phí toàn bộ cước phí {!canRedeliver && redeliveryHint}
                     </SelectItem>
-                    <SelectItem value="REDELIVERY_PARTIAL_COMPENSATION" className="text-xs" disabled={!atHub}>
-                      Giao lại kiện + Bồi thường một phần {!atHub && "(Cần kiện về Hub)"}
+                    <SelectItem value="REDELIVERY_PARTIAL_COMPENSATION" className="text-xs" disabled={!canRedeliver}>
+                      Giao lại kiện + Bồi thường một phần {!canRedeliver && redeliveryHint}
                     </SelectItem>
                     <SelectItem value="COMPENSATION_ONLY" className="text-xs">
                       Chỉ bồi thường qua tài khoản ngân hàng (Không giao lại)
