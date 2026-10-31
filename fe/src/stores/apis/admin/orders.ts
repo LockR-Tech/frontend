@@ -10,6 +10,7 @@ import type {
   RevenueReportResponse,
   AdminOrder,
   AdminOrderSearchParams,
+  CustomerOrderView,
   ReportEnvelope,
   ReportPage,
   UpdateAdminOrderStatusRequest,
@@ -42,6 +43,12 @@ export const orderManagementApi = baseApi.injectEndpoints({
       }),
       keepUnusedDataFor: 0,
       providesTags: [TAGS.ORDERS],
+    }),
+
+    /** Đơn như app khách thấy (mốc thời gian, kiện, ủy quyền, số còn phải trả, mã QR đã ký…). */
+    getOrderCustomerView: builder.query<ApiResponse<CustomerOrderView>, number>({
+      query: (id) => ADMIN_ENDPOINTS.ORDER_CUSTOMER_VIEW(id),
+      providesTags: (result, error, id) => [{ type: TAGS.ORDERS, id: `customer-${id}` }],
     }),
 
     getOrderById: builder.query<ApiResponse<OrderResponse>, number>({
@@ -132,6 +139,7 @@ export const orderManagementApi = baseApi.injectEndpoints({
 export const {
   useGetAllOrdersQuery,
   useGetOrderByIdQuery,
+  useGetOrderCustomerViewQuery,
   useUpdateOrderStatusMutation,
   useGetOrderStatisticsQuery,
   useGetRevenueReportQuery,

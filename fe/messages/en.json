@@ -584,7 +584,18 @@
           "refunded": "Refunded",
           "paymentCount": "Number of payments",
           "lastPaid": "Last collected",
-          "latestTransaction": "Latest transaction (any status)"
+          "latestTransaction": "Latest transaction (any status)",
+          "orderTotal": "Order total",
+          "attempt": "Attempt {{n}}",
+          "createdAt": "Created at",
+          "transferContent": "Transfer content",
+          "refundNo": "Refund #{{id}}",
+          "refundReason": "Reason",
+          "refundRequestedAt": "Requested at",
+          "refundProcessedAt": "Completed at",
+          "transactions": "Payments",
+          "refunds": "Refunds",
+          "freeOrder": "No payment transaction: the order total is 0 (free, a redelivery after an incident, or fully covered by points/voucher)."
         },
         "drone": {
           "title": "Drone Flight",
@@ -650,11 +661,81 @@
           "deliveryAddress": "Delivery address",
           "nextAction": "Next action",
           "cancelReason": "Cancellation reason",
-          "cancelReasonCode": "Code {{code}}"
+          "cancelReasonCode": "Code {{code}}",
+          "notDeclared": "The customer did not declare the parcel.",
+          "description": "Description",
+          "category": "Category",
+          "weight": "Weight",
+          "size": "Size",
+          "fragile": "Fragile",
+          "fragileYes": "Yes — handle with care",
+          "fragileNo": "No",
+          "declaredValue": "Declared value",
+          "prohibitedDeclared": "No-prohibited-items pledge",
+          "services": "Services"
         },
         "links": {
           "title": "Links Summary",
           "type": "Type"
+        },
+        "view": {
+          "title": "Order information",
+          "subtitle": "The same rows the customer sees on the app's order detail screen.",
+          "createdAt": "Ordered at",
+          "rentalHours": "Rental duration",
+          "deadline": "Pickup / rental deadline",
+          "intendedReceive": "Expected pickup by receiver",
+          "droppedAt": "Parcel dropped / handed to technician at",
+          "deliveryAddress": "Delivery address",
+          "overtimeFee": "Overtime fee (estimate)",
+          "overtimeRate": "Overtime rate",
+          "perHour": "{{amount}}/hour",
+          "accessBlock": "Opening the box by code",
+          "block": {
+            "none": "Allowed",
+            "ORDER_UNPAID": "Blocked — order unpaid",
+            "RENTAL_EXPIRED": "Blocked — rental expired",
+            "RENTAL_UNPAID": "Blocked — rental unpaid",
+            "OVERTIME_FEE_UNPAID": "Blocked — overtime fee unpaid",
+            "BOX_INCIDENT_OPEN": "Blocked — box incident open, waiting for a technician"
+          },
+          "receiver": "Receiver",
+          "delegate": "Pickup delegated to",
+          "delegateNote": "Delegation message",
+          "delegatedAt": "Delegated at",
+          "sourceLocker": "Sent from locker (drone station)",
+          "routeDistance": "Flight distance",
+          "incidents": "Incidents",
+          "blocked": "Paused",
+          "failed": "Delivery not completed",
+          "parcelReturned": "Parcel returned to sender",
+          "boxIncident": "Box incident since",
+          "milestones": "Milestones the customer sees"
+        },
+        "code": {
+          "title": "Pickup code",
+          "holderDelegate": "Code belongs to the delegated person: {{name}}",
+          "holderRenter": "The renter opens the box with this code",
+          "holderReceiver": "The receiver uses this code (PIN or QR) at the locker",
+          "usable": "Can open the box now",
+          "closed": "Order closed — the code no longer opens the box",
+          "blocked": "Not usable yet: {{reason}}",
+          "notYet": "Not usable yet — the parcel is not in the box",
+          "qrNote": "QR code",
+          "qrSigned": "Same QR the customer scans in the app",
+          "none": "No box-opening code has been issued for this order.",
+          "homePickup": "Home pickup code (sender reads it to the technician)",
+          "homePickupUsed": "Used — the technician has the parcel or the order ended"
+        }
+      },
+      "location": {
+        "source": {
+          "PICKUP_ADDRESS": "Sender's pinned pickup point",
+          "TECHNICIAN": "Technician's location at the time",
+          "SOURCE_LOCKER": "At the station / sending locker",
+          "DRONE": "Drone position (GPS)",
+          "DRONE_SIMULATED": "Drone position (simulated)",
+          "DESTINATION_LOCKER": "At the receiving locker"
         }
       }
     },

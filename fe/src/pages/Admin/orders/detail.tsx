@@ -7,12 +7,10 @@ import {
   ArrowLeft,
   Box,
   Clock,
-  CreditCard,
   Edit3,
   ExternalLink,
   KeyRound,
   MapPin,
-  Package,
   Plane,
   Receipt,
   Store,
@@ -36,11 +34,9 @@ import {
   orderPaymentStatusMeta,
   orderStatusMeta,
   orderTypeMeta,
-  paymentMethodMeta,
-  paymentStatusMeta,
 } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
-import { EMPTY_VALUE, formatCurrency, formatNumber } from "~/lib/report-format";
+import { formatCurrency, formatNumber } from "~/lib/report-format";
 import { useOrderDetail } from "./hooks/useOrderDetail";
 import { OrderTimeline } from "./components/OrderTimeline";
 import { OrderStatusUpdateModal } from "./components/OrderStatusUpdateModal";
@@ -49,9 +45,15 @@ import {
   DroneFeesCard,
   DroneJourneyLink,
   DroneParcelCard,
-  DronePaymentCodes,
   DronePickupCard,
 } from "./components/DroneOrderSections";
+import {
+  OrderInfoCard,
+  ParcelNotesCard,
+  PaymentFullCard,
+  PickupCodeCard,
+} from "./components/OrderDetailSections";
+import { useOrderExtras } from "./hooks/useOrderExtras";
 import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
 
@@ -304,131 +306,7 @@ function LockerCard({ order }: { order: AdminOrder }) {
         <LabelValue label={t("admin.orders.detail.locker.storeContact")} mono>
           {store?.contactPhone}
         </LabelValue>
-
-        <Separator />
-
-        <div className="grid grid-cols-2 gap-3">
-          <LabelValue label={t("admin.orders.detail.locker.pinCode")} mono>
-            {order.pinCode ? (
-              <span className="tracking-widest font-bold">{order.pinCode}</span>
-            ) : null}
-          </LabelValue>
-          <LabelValue label={t("admin.orders.detail.locker.pinIssuedAt")}>
-            {order.pinCodeIssuedAt ? formatDateTime(order.pinCodeIssuedAt) : null}
-          </LabelValue>
-        </div>
-        <LabelValue label={t("admin.orders.detail.locker.qrCode")} mono>
-          {order.qrToken}
-        </LabelValue>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PaymentCard({ order, drone }: { order: AdminOrder; drone?: DroneOrderTracking | null }) {
-  const { t } = useTranslation();
-  const payment = order.payment;
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <CreditCard className="h-4 w-4" />
-          {t("common.payment")}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center gap-2">
-          <MetaBadge meta={orderPaymentStatusMeta(order.paymentStatus)} />
-          {order.paymentRequired === false && (
-            <span className="text-[11px] text-muted-foreground">
-              {t("admin.orders.detail.payment.noMoreDue")}
-            </span>
-          )}
-        </div>
-
-        {drone && (
-          <>
-            <DronePaymentCodes drone={drone} />
-            <Separator />
-          </>
-        )}
-
-        {/* `payment = null` nghĩa là payment-service không trả lời, không phải "chưa trả đồng nào". */}
-        {payment === null ? (
-          <p className="text-xs text-muted-foreground">
-            {t("admin.orders.detail.payment.unavailable")}
-          </p>
-        ) : payment.paymentCount === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            {t("admin.orders.detail.payment.noPayments")}
-          </p>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3">
-              <LabelValue label={t("admin.orders.detail.payment.paid")}>
-                {formatCurrency(payment.paidAmount)}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.payment.outstanding")}>
-                <span
-                  className={
-                    (payment.outstandingAmount ?? 0) > 0
-                      ? "text-amber-600 dark:text-amber-400"
-                      : undefined
-                  }
-                >
-                  {formatCurrency(payment.outstandingAmount)}
-                </span>
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.payment.refunded")}>
-                {formatCurrency(payment.refundedAmount)}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.payment.paymentCount")}>
-                {formatNumber(payment.paymentCount)}
-              </LabelValue>
-            </div>
-
-            <Separator />
-
-            <LabelValue label={t("admin.orders.detail.payment.lastPaid")}>
-              {payment.lastPaidAt ? (
-                <span>
-                  {formatDateTime(payment.lastPaidAt)}
-                  {payment.lastPaidMethod
-                    ? ` · ${paymentMethodMeta(payment.lastPaidMethod).label}`
-                    : ""}
-                </span>
-              ) : null}
-            </LabelValue>
-
-            <div className="space-y-1.5">
-              <p className="text-[11px] text-muted-foreground">
-                {t("admin.orders.detail.payment.latestTransaction")}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                {payment.latestStatus && (
-                  <MetaBadge
-                    meta={paymentStatusMeta(payment.latestStatus)}
-                    hideIcon
-                  />
-                )}
-                {payment.latestMethod && (
-                  <MetaBadge
-                    meta={paymentMethodMeta(payment.latestMethod)}
-                    hideIcon
-                  />
-                )}
-                <span className="text-xs font-medium">
-                  {formatCurrency(payment.latestAmount)}
-                </span>
-              </div>
-              <p className="text-[11px] text-muted-foreground font-mono">
-                {payment.latestCreatedAt
-                  ? formatDateTime(payment.latestCreatedAt)
-                  : EMPTY_VALUE}
-              </p>
-            </div>
-          </>
-        )}
+        {/* PIN và QR nằm ở khối "Mã lấy hàng". */}
       </CardContent>
     </Card>
   );
@@ -546,6 +424,8 @@ export default function OrderDetailPage() {
     pollingInterval: 15000,
   });
   const droneOrder = order && isDroneOrder(order) ? droneQuery.data?.data ?? null : null;
+  // Đơn như app khách thấy + giao dịch/hoàn tiền của đơn (khối thông tin, mã lấy hàng, thanh toán, kiện).
+  const extras = useOrderExtras(order?.id);
   const parcelDropIncident = useMemo(() => {
     if (!order) return null;
     return (
@@ -662,6 +542,8 @@ export default function OrderDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start">
         <div className="lg:col-span-2 flex flex-col gap-6">
+          <OrderInfoCard order={order} view={extras.view} drone={droneOrder} />
+
           {/* Mốc thời gian nghiệp vụ */}
           <Card>
             <CardHeader className="pb-3">
@@ -759,88 +641,14 @@ export default function OrderDetailPage() {
           </Card>
           )}
 
-          {/* Hàng hoá & ghi chú */}
+          {/* Kiện hàng & ghi chú — như khối "Kiện hàng" trên app khách */}
           {droneOrder ? (
             <>
-              <DroneParcelCard order={order} drone={droneOrder} />
+              <DroneParcelCard order={order} drone={droneOrder} view={extras.view} />
               <DronePickupCard drone={droneOrder} />
             </>
           ) : (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Package className="h-4 w-4" />
-                {t("admin.orders.detail.parcel.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <LabelValue label={t("admin.orders.detail.parcel.serviceCategory")}>{order.serviceCategory}</LabelValue>
-                <LabelValue label={t("admin.orders.detail.parcel.declaredWeight")}>
-                  {order.parcelWeightGrams !== null
-                    ? `${formatNumber(order.parcelWeightGrams)} g`
-                    : null}
-                </LabelValue>
-                <LabelValue label={t("admin.orders.detail.parcel.measuredWeight")}>
-                  {order.actualWeight !== null
-                    ? `${formatNumber(order.actualWeight)} ${order.weightUnit ?? ""}`
-                    : null}
-                </LabelValue>
-                <LabelValue label={t("admin.orders.detail.parcel.rentalHours")}>
-                  {order.rentalDurationHours !== null
-                    ? t("admin.orders.detail.parcel.hours", {
-                        hours: formatNumber(order.rentalDurationHours),
-                      })
-                    : null}
-                </LabelValue>
-              </div>
-
-              {order.orderDetails && order.orderDetails.length > 0 && (
-                <div className="space-y-2">
-                  {/* `price` của dòng đã là thành tiền (đơn giá × số lượng) — không nhân lại. */}
-                  {order.orderDetails.map((line, index) => (
-                    <div
-                      key={`${line.serviceId ?? "line"}-${index}`}
-                      className="flex items-center justify-between gap-3 rounded-lg bg-muted/30 p-2.5 text-sm"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {line.description || t("admin.orders.detail.parcel.noDescription")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("admin.orders.detail.parcel.quantity", {
-                            quantity: formatNumber(line.quantity),
-                          })}
-                        </p>
-                      </div>
-                      <span className="font-medium shrink-0">
-                        {formatCurrency(line.price)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <LabelValue label={t("admin.orders.detail.parcel.customerNote")}>
-                  {order.customerNote}
-                </LabelValue>
-                <LabelValue label={t("admin.orders.detail.parcel.staffNote")}>{order.staffNote}</LabelValue>
-                <LabelValue label={t("common.description")}>{order.description}</LabelValue>
-                <LabelValue label={t("admin.orders.detail.parcel.deliveryAddress")}>
-                  {order.deliveryAddress}
-                </LabelValue>
-                <LabelValue label={t("admin.orders.detail.parcel.nextAction")}>
-                  {order.nextActionMessage ?? order.nextAction}
-                </LabelValue>
-                <LabelValue label={t("admin.orders.detail.parcel.cancelReason")} mono>
-                  {order.cancelReason !== null
-                    ? t("admin.orders.detail.parcel.cancelReasonCode", { code: order.cancelReason })
-                    : null}
-                </LabelValue>
-              </div>
-            </CardContent>
-          </Card>
+            <ParcelNotesCard order={order} view={extras.view} />
           )}
 
           {/* Lịch sử trạng thái */}
@@ -860,7 +668,15 @@ export default function OrderDetailPage() {
         <div className="flex flex-col gap-4">
           <CustomerCard order={order} />
           <LockerCard order={order} />
-          <PaymentCard order={order} drone={droneOrder} />
+          <PickupCodeCard order={order} view={extras.view} drone={droneOrder} />
+          <PaymentFullCard
+            order={order}
+            view={extras.view}
+            drone={droneOrder}
+            payments={extras.payments}
+            paymentsError={extras.paymentsError}
+            refunds={extras.refunds}
+          />
           <DroneCard order={order} parcelDropIncident={parcelDropIncident} droneOrder={droneOrder} />
 
           {/* Khối này trước đây liệt kê 6 dòng mã số thô (`#701`, `#7`, `#3`) — nhìn vào
