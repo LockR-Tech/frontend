@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import type { DeleteManyResult } from "./delete-many";
 import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
+import { DeleteReasonDialog } from "./DeleteReasonDialog";
 
 // ============================================
 // Xoá theo tích / xoá tất cả cho các bảng admin
@@ -15,12 +16,14 @@ interface BatchDeleteBarProps {
   noun: string;
   selectedCount: number;
   onClearSelection: () => void;
-  onDeleteSelected: () => Promise<DeleteManyResult>;
+  onDeleteSelected: (reason: string) => Promise<DeleteManyResult>;
   /// Số mục khớp bộ lọc hiện tại; không truyền `onDeleteAll` thì không có nút "Xoá tất cả".
   allCount?: number;
-  onDeleteAll?: () => Promise<DeleteManyResult>;
+  onDeleteAll?: (reason: string) => Promise<DeleteManyResult>;
   /// Ghi chú hiện trong hộp xác nhận (mục nào backend sẽ từ chối xoá).
   note?: string;
+  /// Xoá mềm: hỏi lý do trước khi xoá, lý do được truyền vào `onDeleteSelected`/`onDeleteAll`.
+  requireReason?: boolean;
 }
 
 export function BatchDeleteBar({
@@ -31,18 +34,19 @@ export function BatchDeleteBar({
   allCount = 0,
   onDeleteAll,
   note,
+  requireReason,
 }: BatchDeleteBarProps) {
   const { t } = useTranslation();
   const [confirm, setConfirm] = useState<"selected" | "all" | null>(null);
   const [running, setRunning] = useState(false);
 
-  const run = async () => {
+  const run = async (reason = "") => {
     const action = confirm === "all" ? onDeleteAll : onDeleteSelected;
     if (!action) return;
     const total = confirm === "all" ? allCount : selectedCount;
     setRunning(true);
     try {
-      const { deleted, failed } = await action();
+      const { deleted, failed } = await action(reason);
       if (failed.length === 0) {
         toast.success(t("common.batchDelete.done", { count: deleted.length, noun }));
       } else {
@@ -106,6 +110,20 @@ export function BatchDeleteBar({
         )}
       </div>
 
+      {requireReason ? (
+        <DeleteReasonDialog
+          open={confirm !== null}
+          onOpenChange={(open) => !open && setConfirm(null)}
+          title={t(confirm === "all" ? "common.batchDelete.confirmAllTitle" : "common.batchDelete.confirmSelectedTitle", {
+            count,
+            noun,
+          })}
+          note={note}
+          actionLabel={t("common.delete")}
+          loading={running}
+          onConfirm={(reason) => void run(reason)}
+        />
+      ) : (
       <ConfirmActionDialog
         open={confirm !== null}
         onOpenChange={(open) => !open && setConfirm(null)}
@@ -124,6 +142,7 @@ export function BatchDeleteBar({
         loading={running}
         onConfirm={() => void run()}
       />
+      )}
     </>
   );
 }
