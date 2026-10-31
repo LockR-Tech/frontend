@@ -35,12 +35,18 @@ import {
   RevenueOrdersModal,
   type RevenueOrdersTarget,
 } from "./components/RevenueOrdersModal";
+import {
+  RevenueEntriesModal,
+  type RevenueEntriesTarget,
+} from "./components/RevenueEntriesModal";
 
 export default function RevenuePage() {
   const { t } = useTranslation();
   const { range, setRange, valid, skip } = useRevenueRange();
   const [selectedTarget, setSelectedTarget] =
     useState<RevenueOrdersTarget | null>(null);
+  const [entriesTarget, setEntriesTarget] =
+    useState<RevenueEntriesTarget | null>(null);
 
   const {
     data: summaryData,
@@ -59,6 +65,8 @@ export default function RevenuePage() {
   const summary = summaryData?.data;
   const current = summary?.current;
   const changes = summary?.changes;
+  const showEntries = (kind: RevenueEntriesTarget["kind"], label: string) =>
+    setEntriesTarget({ kind, label, range });
 
   return (
     <div className="space-y-6">
@@ -106,6 +114,7 @@ export default function RevenuePage() {
             hint={`${formatDayLabel(range.from)} – ${formatDayLabel(range.to)}`}
             icon={TrendingUp}
             changePct={changes?.totalRevenuePct}
+            onClick={() => showEntries("PAYMENTS", t("admin.revenue.summary.periodRevenue"))}
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
@@ -116,6 +125,7 @@ export default function RevenuePage() {
             })}
             icon={Wallet}
             changePct={changes?.netRevenuePct}
+            onClick={() => showEntries("NET", t("admin.revenue.netAfterRefund"))}
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
@@ -124,6 +134,7 @@ export default function RevenuePage() {
             hint={t("admin.revenue.summary.refundHint")}
             icon={Undo2}
             changePct={changes?.refundAmountPct}
+            onClick={() => showEntries("REFUNDS", t("admin.revenue.summary.refundAmount"))}
             invertChangeColor
             isLoading={isSummaryLoading}
           />
@@ -133,6 +144,7 @@ export default function RevenuePage() {
             hint={t("admin.revenue.summary.aovHint")}
             icon={ShoppingBag}
             changePct={changes?.averageOrderValuePct}
+            onClick={() => showEntries("PAYMENTS", t("admin.revenue.summary.aov"))}
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
@@ -144,6 +156,9 @@ export default function RevenuePage() {
             })}
             icon={Receipt}
             changePct={changes?.orderCountPct}
+            onClick={() =>
+              setSelectedTarget({ type: "CREATED", label: t("admin.revenue.columns.newOrders") })
+            }
             isLoading={isSummaryLoading}
           />
           <ReportStatCard
@@ -154,6 +169,7 @@ export default function RevenuePage() {
             })}
             icon={CreditCard}
             changePct={changes?.paidOrderCountPct}
+            onClick={() => showEntries("PAYMENTS", t("admin.revenue.columns.paidOrders"))}
             isLoading={isSummaryLoading}
           />
         </div>
@@ -167,9 +183,17 @@ export default function RevenuePage() {
             { labelKey: "admin.revenue.quick.thisWeek", period: summary.thisWeek },
             { labelKey: "admin.revenue.quick.thisMonth", period: summary.thisMonth },
           ].map(({ labelKey, period }) => (
-            <div
+            <button
               key={labelKey}
-              className="rounded-xl border border-border bg-card p-3 flex items-center gap-3"
+              type="button"
+              onClick={() =>
+                setEntriesTarget({
+                  kind: "PAYMENTS",
+                  label: t(labelKey),
+                  range: { from: period.from, to: period.to },
+                })
+              }
+              className="rounded-xl border border-border bg-card p-3 flex items-center gap-3 text-left transition-shadow hover:shadow-md"
             >
               <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
               <div className="min-w-0">
@@ -183,10 +207,12 @@ export default function RevenuePage() {
                   })}
                 </p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
+
+      <RevenueEntriesModal target={entriesTarget} onClose={() => setEntriesTarget(null)} />
 
       <RevenueDailyChart
         data={dailyData?.data}

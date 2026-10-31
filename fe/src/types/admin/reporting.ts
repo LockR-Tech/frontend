@@ -457,6 +457,31 @@ export interface AdminPaymentSearchParams {
   sort?: string;
 }
 
+export type RevenueEntryKind = "PAYMENTS" | "REFUNDS" | "NET";
+
+/** Một khoản thu hoặc hoàn tạo nên số trên thẻ doanh thu; khoản hoàn mang dấu âm khi kind = NET. */
+export interface RevenueEntry {
+  kind: RevenueEntryKind;
+  orderId: number | null;
+  orderCode: string | null;
+  orderType: string | null;
+  userId: number | null;
+  customerName: string | null;
+  customerPhone: string | null;
+  amount: number;
+  method: AdminPaymentMethod | null;
+  at: string;
+}
+
+export interface RevenueEntriesResponse {
+  from: string;
+  to: string;
+  kind: RevenueEntryKind;
+  total: number;
+  orderCount: number;
+  entries: RevenueEntry[];
+}
+
 export interface AdminRefundSearchParams {
   page?: number;
   size?: number;

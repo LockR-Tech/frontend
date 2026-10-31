@@ -45,6 +45,11 @@ import type {
 
 export type RevenueOrdersTarget =
   | {
+      /// Mọi đơn tạo trong kỳ — thẻ "Đơn tạo mới".
+      type: "CREATED";
+      label: string;
+    }
+  | {
       type: "METHOD";
       method: AdminPaymentMethod;
       label: string;
@@ -283,7 +288,7 @@ export function RevenueOrdersModal({
         },
       }),
       paymentColumnHelper.accessor("amount", {
-        header: t("common.amount"),
+        header: t("admin.payments.amount"),
         cell: ({ row }) => (
           <span className="font-semibold text-xs text-emerald-600 dark:text-emerald-400">
             {formatCurrency(row.original.amount)}
@@ -418,7 +423,7 @@ export function RevenueOrdersModal({
         },
       }),
       orderColumnHelper.accessor("totalPrice", {
-        header: t("common.amount"),
+        header: t("admin.payments.amount"),
         cell: ({ row }) => (
           <span className="font-semibold text-xs">
             {formatCurrency(row.original.totalPrice)}
