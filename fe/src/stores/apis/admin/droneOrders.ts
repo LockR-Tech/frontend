@@ -23,6 +23,11 @@ export interface DroneJourneyEvent {
   actorName: string | null;
   note: string | null;
   occurredAt: string;
+  /** Vị trí của kiện lúc ghi mốc (chỉ đơn drone); null ở mốc cũ hoặc khi không có số đo. */
+  latitude?: number | null;
+  longitude?: number | null;
+  /** PICKUP_ADDRESS | TECHNICIAN | SOURCE_LOCKER | DRONE | DRONE_SIMULATED | DESTINATION_LOCKER */
+  locationSource?: string | null;
 }
 
 export interface DroneOrderTracking {

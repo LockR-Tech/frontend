@@ -42,6 +42,7 @@ import { PickupPanel, IncidentBlockBanner, CloseAsFailedForm, FailurePanel } fro
 import { canCloseAsFailed } from "./homePickupRules";
 import { CANCEL_REASON_LABELS, PARCEL_CATEGORY_LABELS, grams, parcelSize, routeDistance } from "./format";
 import { LockerWeatherOverview, RouteWeatherPanel } from "./WeatherPanels";
+import { HistoryLocation } from "../orders/components/HistoryLocation";
 
 /** Danh sách hỏi lại server sau mỗi khoảng này để chặng mới tự hiện, không cần tải lại trang. */
 const LIST_POLL_MS = 5000;
@@ -814,6 +815,11 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                           {event.actorName ??
                             (event.actorUserId ? t("admin.droneOrders.log.staff") : t("common.system"))}
                         </p>
+                        <HistoryLocation
+                          latitude={event.latitude}
+                          longitude={event.longitude}
+                          source={event.locationSource}
+                        />
                       </div>
                     </li>
                   ))}
