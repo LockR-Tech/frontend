@@ -370,6 +370,7 @@ export function UserTable({
         data={users}
         isLoading={isLoading}
         emptyMessage={t("common.noData")}
+        onRowClick={(user) => navigate(`/admin/users/${user.id}`)}
         serverPagination={{
           pageIndex: page,
           pageSize,

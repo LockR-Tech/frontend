@@ -38,7 +38,12 @@ interface DataTableProps<TData, TValue> {
   emptyMessage?: string;
   isLoading?: boolean;
   serverPagination?: ServerPaginationProps;
+  /** Bấm vào dòng (trừ các nút, ô tích, công tắc nằm trong dòng). */
+  onRowClick?: (row: TData) => void;
 }
+
+const INTERACTIVE_IN_ROW =
+  'a, button, input, label, [role="checkbox"], [role="switch"], [role="menuitem"]';
 
 export function DataTable<TData, TValue>({
   columns,
@@ -48,6 +53,7 @@ export function DataTable<TData, TValue>({
   emptyMessage,
   isLoading = false,
   serverPagination,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -196,9 +202,21 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={
+                    onRowClick
+                      ? (event) => {
+                          const target = event.target as HTMLElement;
+                          // Menu/dialog mở qua portal vẫn nổi bọt theo cây React tới dòng này.
+                          if (!event.currentTarget.contains(target)) return;
+                          if (target.closest(INTERACTIVE_IN_ROW)) return;
+                          onRowClick(row.original);
+                        }
+                      : undefined
+                  }
                   className={cn(
                     "border-b border-border/60 transition-colors duration-150 bg-card",
                     "hover:bg-secondary/50",
+                    onRowClick && "cursor-pointer",
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
