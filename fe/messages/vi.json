@@ -125,7 +125,12 @@
     "location": "Địa điểm",
     "document": "Tài liệu",
     "disconnected": "Mất kết nối",
-    "overdue": "Quá hạn"
+    "overdue": "Quá hạn",
+    "deleteReason": {
+      "label": "Lý do xoá",
+      "placeholder": "Nhập lý do xoá để lưu lại",
+      "softNote": "Bản ghi chỉ ẩn khỏi giao diện, dữ liệu vẫn được giữ trong hệ thống cùng lý do xoá."
+    }
   },
   "header": {
     "language": "Ngôn ngữ",
@@ -330,7 +335,7 @@
         "deleteFailed": "Không xoá được người dùng",
         "wallet": "Ví",
         "deleteTitle": "Xoá người dùng?",
-        "deleteDesc": "Hồ sơ của <b>{{name}}</b> sẽ bị xoá khỏi user-service. Thao tác không hoàn tác được.",
+        "deleteDesc": "Người dùng <b>{{name}}</b> sẽ bị xoá và không đăng nhập được nữa.",
         "deleteHint": "Nếu chỉ muốn chặn đăng nhập, hãy tắt trạng thái hoạt động thay vì xoá.",
         "deleteAction": "Xoá người dùng"
       },
@@ -437,10 +442,87 @@
         "confirmSave": "Xác nhận lưu",
         "removeAvatarTitle": "Xoá ảnh đại diện?",
         "removeAvatarDesc": "Ảnh đại diện hiện tại của người dùng sẽ bị gỡ và xoá khỏi kho lưu trữ ảnh.",
-        "removing": "Đang xoá..."
+        "removing": "Đang xoá...",
+        "birthday": "Ngày sinh",
+        "technicianProfile": "Hồ sơ kỹ thuật viên",
+        "password": "Mật khẩu",
+        "passwordSet": "Đã đặt",
+        "passwordNotSet": "Chưa đặt",
+        "lastLogin": "Đăng nhập gần nhất",
+        "termsTitle": "Điều khoản dịch vụ",
+        "termsAccepted": "Đã đồng ý",
+        "termsNotAccepted": "Chưa đồng ý",
+        "termsAcceptedAt": "Thời điểm đồng ý",
+        "termsVersion": "Phiên bản",
+        "termsNotAcceptedHint": "Người dùng chưa bấm đồng ý trên app. App sẽ hỏi ở lần mở tiếp theo.",
+        "walletBalance": "Số dư ví",
+        "walletBalanceHint": "Số dư hiện tại",
+        "loyaltyPoints": "Điểm thưởng",
+        "loyaltyPointsHint": "Điểm hiện có"
       },
       "batchNoun": "người dùng",
-      "batchNote": "Tài khoản bị xoá không đăng nhập lại được và không khôi phục được. Tài khoản ADMIN và tài khoản của bạn không chọn được."
+      "batchNote": "Tài khoản bị xoá không đăng nhập lại được. Không chọn được tài khoản của chính bạn.",
+      "stats": {
+        "total": "Tổng người dùng",
+        "totalHint": "{{customers}} khách hàng · {{staff}} nhân sự",
+        "active": "Đang hoạt động",
+        "inactive": "Đã vô hiệu",
+        "newThisMonth": "Mới trong tháng",
+        "newThisMonthHint": "Tài khoản tạo từ đầu tháng này",
+        "emailVerified": "Đã xác thực email",
+        "termsAccepted": "Đã đồng ý điều khoản",
+        "ofTotal": "{{percent}} tổng số"
+      },
+      "activity": {
+        "tabs": {
+          "orders": "Đơn đã đặt",
+          "received": "Đơn nhận",
+          "payments": "Thanh toán",
+          "refunds": "Hoàn tiền",
+          "wallet": "Ví",
+          "loyalty": "Điểm thưởng",
+          "feedback": "Đánh giá",
+          "reports": "Báo cáo sự cố",
+          "notifications": "Thông báo",
+          "assistant": "Trợ lý AI"
+        },
+        "loadFailed": "Không tải được dữ liệu của mục này",
+        "orderCode": "Mã đơn",
+        "type": "Loại",
+        "paymentStatus": "Thanh toán",
+        "amount": "Số tiền",
+        "paymentCode": "Mã giao dịch",
+        "method": "Phương thức",
+        "refundCode": "Mã hoàn tiền",
+        "reason": "Lý do",
+        "requestedAt": "Ngày yêu cầu",
+        "source": "Nguồn",
+        "balanceAfter": "Số dư sau",
+        "description": "Mô tả",
+        "feedbackCode": "Mã đánh giá",
+        "rating": "Điểm",
+        "comment": "Nội dung",
+        "resolved": "Đã xử lý",
+        "unresolved": "Chờ xử lý",
+        "reportCode": "Mã phiếu",
+        "reportTitle": "Tiêu đề",
+        "locker": "Tủ",
+        "box": "Ô {{number}}",
+        "notificationTitle": "Tiêu đề",
+        "notificationMessage": "Nội dung",
+        "conversationCode": "Mã hội thoại",
+        "conversationTitle": "Chủ đề",
+        "messageCount": "Số tin nhắn",
+        "emptyOrders": "Người dùng chưa đặt đơn nào",
+        "emptyReceived": "Người dùng chưa nhận đơn nào",
+        "emptyPayments": "Chưa có giao dịch thanh toán",
+        "emptyRefunds": "Chưa có yêu cầu hoàn tiền",
+        "emptyWallet": "Chưa có biến động ví",
+        "emptyFeedback": "Người dùng chưa gửi đánh giá",
+        "emptyReports": "Người dùng chưa báo sự cố",
+        "emptyNotifications": "Chưa có thông báo",
+        "emptyAssistant": "Người dùng chưa trò chuyện với trợ lý"
+      }
     },
     "orders": {
       "title": "Quản lý đơn hàng",
@@ -988,12 +1070,12 @@
         "selectedCount": "Đã chọn {{count}} tủ",
         "deleteSelected": "Xóa tủ đã chọn",
         "deleteSelectedTitle": "Xác nhận xóa {{count}} tủ đã chọn?",
-        "deleteSelectedDesc": "Tất cả các tủ đã chọn và các ô con bên trong chưa có đơn hàng sẽ bị xóa vĩnh viễn. Thao tác này không thể hoàn tác.",
+        "deleteSelectedDesc": "Các tủ đã chọn và các ô bên trong sẽ bị xoá.",
         "deleteAllLockers": "Xóa tất cả tủ",
         "deleteAllLockersTitle": "Xác nhận XÓA TẤT CẢ tủ đồ?",
-        "deleteAllLockersDesc": "Toàn bộ {{total}} tủ đồ và các ô con bên trong chưa có đơn hàng sẽ bị xóa sạch khỏi hệ thống. Thao tác này KHÔNG THỂ HOÀN TÁC.",
+        "deleteAllLockersDesc": "Toàn bộ {{total}} tủ và các ô bên trong sẽ bị xoá.",
         "deleteSingleTitle": "Xác nhận xóa tủ {{code}}?",
-        "deleteSingleDesc": "Tủ '{{name}}' ({{code}}) và các ô con bên trong sẽ bị xóa vĩnh viễn khỏi hệ thống. Thao tác này không thể hoàn tác.",
+        "deleteSingleDesc": "Tủ '{{name}}' ({{code}}) và các ô bên trong sẽ bị xoá.",
         "hint": "Chọn ô bên trái từng tủ để xóa hàng loạt",
         "deleteLocker": "Xóa tủ"
       },
@@ -1038,7 +1120,7 @@
         "updateFailed": "Không thể cập nhật thông tin ô tủ",
         "deleted": "Đã xóa ô #{{number}} khỏi tủ",
         "deleteFailed": "Không thể xóa ô tủ",
-        "deleteDesc": "Hành động này sẽ xóa vĩnh viễn ô #{{number}} (ID: {{id}}) khỏi sơ đồ tủ. Thao tác này không thể hoàn tác.",
+        "deleteDesc": "Ô #{{number}} (ID: {{id}}) sẽ bị xoá khỏi sơ đồ tủ. Dữ liệu ô vẫn được giữ trong hệ thống cùng lý do xoá.",
         "deleting": "Đang xóa...",
         "confirmDelete": "Xác nhận xóa",
         "title": "Chỉnh sửa công năng ô #{{number}}",
@@ -1288,7 +1370,7 @@
           "clearFaultDesc": "Đóng phiếu sự cố đang mở của ô (nếu có) và trả ô về trạng thái trước khi hỏng — ô còn hàng sẽ về \"Có đồ\".",
           "clearFaultConfirm": "Khôi phục ô tủ",
           "deleteTitle": "Xác nhận xóa ô #{{number}}?",
-          "deleteDesc": "Ô tủ #{{number}} sẽ bị xóa khỏi tủ {{locker}}. Sơ đồ sẽ được cập nhật đồng bộ sang ứng dụng KTV và Kiosk ngay lập tức. Thao tác này không thể hoàn tác.",
+          "deleteDesc": "Ô tủ #{{number}} sẽ bị xoá khỏi tủ {{locker}}. Sơ đồ được cập nhật ngay trên ứng dụng KTV và Kiosk; dữ liệu ô vẫn được giữ trong hệ thống cùng lý do xoá.",
           "deleteConfirm": "Xác nhận xóa ô",
           "unlocked": "Đã mở khóa ô #{{number}}",
           "openFailed": "Không mở được ô #{{number}}",
@@ -1317,7 +1399,7 @@
         "addBox": "Thêm ô tủ",
         "deleteAllBoxes": "Xóa tất cả ô",
         "deleteAllBoxesTitle": "Xác nhận xóa tất cả ô tủ?",
-        "deleteAllBoxesDesc": "Toàn bộ {{count}} ô tủ trong trạm này sẽ bị xóa. Thao tác này không thể hoàn tác.",
+        "deleteAllBoxesDesc": "Toàn bộ {{count}} ô tủ trong trạm này sẽ bị xoá.",
         "deleteAllBoxesWarning": "Lưu ý: Các ô đang chứa đồ hoặc đã được khách đặt chỗ (OCCUPIED / RESERVED) sẽ được bảo vệ và không bị xóa.",
         "deleteAllBoxesConfirm": "Xác nhận xóa tất cả",
         "deleteAllSuccess": "Đã xóa thành công {{count}} ô tủ!",
@@ -1367,6 +1449,12 @@
           "doorsOpen": "Cửa đang mở ({{boxes}})",
           "doorsClosed": "Cửa đã đóng ({{count}})",
           "pendingCheck": "Chờ KTV kiểm tra ({{boxes}})"
+        },
+        "tabs": {
+          "grid": "Sơ đồ ô tủ",
+          "operations": "Phụ trách & vị trí",
+          "devices": "Thiết bị",
+          "logs": "Nhật ký"
         }
       },
       "boxType": {
@@ -2190,13 +2278,48 @@
         "average": "Điểm TB / thành viên",
         "median": "Điểm trung vị / thành viên",
         "transactions": "Tổng giao dịch điểm",
-        "pointsValue": "{{value}} điểm"
+        "pointsValue": "{{value}} điểm",
+        "averageHint": "{{points}} điểm ÷ {{members}} thành viên",
+        "medianHint": "Mức điểm của người đứng giữa danh sách"
       },
       "thisMonth": "Tháng này",
       "month": {
         "issued": "Điểm đã phát",
         "redeemed": "Điểm đã dùng",
         "newMembers": "Thành viên mới"
+      },
+      "list": {
+        "membersTitle": "Danh sách thành viên",
+        "transactionsTitle": "Nguồn gốc số điểm",
+        "searchPlaceholder": "Tìm theo tên, email, số điện thoại…",
+        "hasPoints": "Đang có điểm",
+        "member": "Thành viên",
+        "tier": "Hạng",
+        "points": "Điểm",
+        "lifetimePoints": "Tổng đã tích",
+        "redeemed": "Đã dùng",
+        "transactions": "Giao dịch",
+        "joinedAt": "Tham gia",
+        "lastTransaction": "Giao dịch gần nhất",
+        "time": "Thời gian",
+        "source": "Nguồn",
+        "deletedUser": "Đã xoá",
+        "membersSummary": "{{count}} thành viên · tổng {{points}} điểm đang giữ",
+        "transactionsSummary": "{{count}} giao dịch · tổng {{points}} điểm",
+        "bySource": "Theo nguồn",
+        "byMember": "Theo thành viên (tối đa 20 người nhiều nhất)",
+        "transactionCount": "{{count}} giao dịch",
+        "plusPoints": "Điểm cộng (+)",
+        "minusPoints": "Điểm trừ (−)",
+        "allOrderTypes": "Tất cả loại đơn"
+      },
+      "period": {
+        "issued": "Điểm cộng trong kỳ",
+        "redeemed": "Điểm trừ trong kỳ",
+        "net": "Chênh lệch trong kỳ",
+        "hint": "Bấm để xem từng giao dịch",
+        "netHint": "Điểm cộng trừ điểm trừ · bấm để xem",
+        "inRange": "trong kỳ"
       }
     },
     "services": {
@@ -2778,10 +2901,10 @@
         },
         "renamed": "Đã đổi mã Drone thành {{code}}",
         "batteryRecorded": "Đã ghi nhận mức pin {{percent}}% cho {{code}}",
-        "decommissioned": "Đã ngừng hoạt động Drone {{code}}",
+        "decommissioned": "Đã xoá Drone {{code}}",
         "renameFailed": "Không đổi được mã Drone",
         "batteryFailed": "Không cập nhật được mức pin",
-        "decommissionFailed": "Không ngừng hoạt động được Drone",
+        "decommissionFailed": "Không xoá được Drone",
         "renameTitle": "Đổi mã Drone?",
         "renameDescription": "Mã <code>{{from}}</code> sẽ đổi thành <code>{{to}}</code>. Ứng dụng KTV và thiết bị bay phải dùng mã mới sau khi đổi.",
         "rename": "Đổi mã",
@@ -2789,20 +2912,19 @@
         "batteryDescription": "Đặt mức pin của <b>{{code}}</b> thành <b>{{percent}}%</b>. Thao tác được ghi vào nhật ký vận hành.",
         "batteryFullNote": "Mức 100% đồng thời ghi nhận lần sạc gần nhất là thời điểm này.",
         "updateBattery": "Cập nhật pin",
-        "decommissionTitle": "Ngừng hoạt động {{code}}?",
-        "decommissionDescription": "Drone bị ẩn khỏi danh sách vận hành, gỡ KTV phụ trách và chuyển sang trạng thái bảo trì. Nhật ký và lịch sử chuyến bay vẫn được giữ.",
-        "decommissionWarning": "Web quản trị chưa có thao tác kích hoạt lại — chỉ ngừng khi Drone thực sự không còn dùng.",
-        "decommission": "Ngừng hoạt động",
-        "decommissionButton": "Ngừng hoạt động Drone",
-        "retiredTitle": "Drone đã ngừng hoạt động",
-        "retiredDescription": "Drone không còn xuất hiện trong danh sách vận hành; trang này chỉ còn để tra cứu lịch sử.",
+        "decommissionTitle": "Xoá {{code}}?",
+        "decommissionDescription": "Drone biến khỏi danh sách vận hành, gỡ KTV phụ trách và nhả bộ điều khiển. Nhật ký và lịch sử chuyến bay vẫn được giữ.",
+        "decommission": "Xoá Drone",
+        "decommissionButton": "Xoá Drone",
         "title": "Thao tác quản trị",
         "activeMissionHint": "Drone đang làm nhiệm vụ — chỉ ghi nhận pin được; đổi mã và ngừng hoạt động bị khoá.",
         "hint": "Mọi thao tác đều cần xác nhận và được ghi vào nhật ký vận hành.",
         "batteryLabel": "Ghi nhận mức pin (0–100%)",
         "batteryPlaceholder": "VD: 80",
         "batteryInvalid": "Nhập số nguyên từ 0 đến 100."
-      }
+      },
+      "batchNoun": "drone",
+      "batchNote": "Drone đang giữ chỗ hoặc đang bay sẽ không xoá được."
     },
     "droneIncidents": {
       "title": "Sự cố rơi kiện Drone",
@@ -4420,6 +4542,9 @@
         "targetStore": "Cửa hàng: {{name}}",
         "targetCustomer": "Khách hàng: {{name}}",
         "targetService": "Dịch vụ: {{name}}"
+      },
+      "entries": {
+        "summary": "Tổng {{total}} · {{entries}} khoản · {{orders}} đơn"
       }
     },
     "flightControl": {

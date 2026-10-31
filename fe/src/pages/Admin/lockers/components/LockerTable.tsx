@@ -12,10 +12,8 @@ import {
   Power,
   UserCheck,
   Trash2,
-  AlertTriangle,
-  RefreshCw,
 } from "lucide-react";
-import { DataTable } from "~/components/shared/data-table";
+import { DataTable, DeleteReasonDialog } from "~/components/shared/data-table";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -32,14 +30,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
 import { LockerStatus } from "~/types/admin/enums";
 import type { AdminLockerResponse } from "~/types/admin/locker";
 import { Link, useNavigate } from "react-router-dom";
@@ -50,9 +40,9 @@ interface LockerTableProps {
   isLoading: boolean;
   onMaintenance: (lockerId: number) => void;
   onActivate: (lockerId: number) => void;
-  onDelete?: (lockerId: number) => Promise<boolean>;
-  onDeleteBatch?: (lockerIds: number[]) => Promise<boolean>;
-  onDeleteAll?: () => Promise<boolean>;
+  onDelete?: (lockerId: number, reason: string) => Promise<boolean>;
+  onDeleteBatch?: (lockerIds: number[], reason: string) => Promise<boolean>;
+  onDeleteAll?: (reason: string) => Promise<boolean>;
   isDeleting?: boolean;
   page: number;
   pageSize: number;
@@ -201,31 +191,25 @@ export function LockerTable({
   const someCurrentPageSelected =
     lockers.some((l) => selectedLockerIds.includes(l.id)) && !allCurrentPageSelected;
 
-  const handleConfirmSingleDelete = async () => {
-    if (!deleteSingleTarget || !onDelete) return;
-    const ok = await onDelete(deleteSingleTarget.id);
-    if (ok) {
-      setSelectedLockerIds((prev) => prev.filter((id) => id !== deleteSingleTarget.id));
-      setDeleteSingleTarget(null);
-    }
+  const closeDeleteDialogs = () => {
+    setDeleteSingleTarget(null);
+    setShowBatchDeleteConfirm(false);
+    setShowDeleteAllConfirm(false);
   };
 
-  const handleConfirmBatchDelete = async () => {
-    if (!selectedLockerIds.length || !onDeleteBatch) return;
-    const ok = await onDeleteBatch(selectedLockerIds);
-    if (ok) {
-      setSelectedLockerIds([]);
-      setShowBatchDeleteConfirm(false);
+  const handleConfirmDelete = async (reason: string) => {
+    let ok = false;
+    if (deleteSingleTarget && onDelete) {
+      ok = await onDelete(deleteSingleTarget.id, reason);
+      if (ok) setSelectedLockerIds((prev) => prev.filter((id) => id !== deleteSingleTarget.id));
+    } else if (showBatchDeleteConfirm && onDeleteBatch) {
+      ok = await onDeleteBatch(selectedLockerIds, reason);
+      if (ok) setSelectedLockerIds([]);
+    } else if (showDeleteAllConfirm && onDeleteAll) {
+      ok = await onDeleteAll(reason);
+      if (ok) setSelectedLockerIds([]);
     }
-  };
-
-  const handleConfirmDeleteAll = async () => {
-    if (!onDeleteAll) return;
-    const ok = await onDeleteAll();
-    if (ok) {
-      setSelectedLockerIds([]);
-      setShowDeleteAllConfirm(false);
-    }
+    if (ok) closeDeleteDialogs();
   };
 
   const columns = [
@@ -537,178 +521,39 @@ export function LockerTable({
         }}
       />
 
-      {/* Confirmation Dialog: Delete Single Locker */}
-      <Dialog
-        open={Boolean(deleteSingleTarget)}
-        onOpenChange={(open) => !open && setDeleteSingleTarget(null)}
-      >
-        <DialogContent className="sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" />
-              {t("admin.lockers.batch.deleteSingleTitle", {
-                code: deleteSingleTarget?.code,
-              })}
-            </DialogTitle>
-            <DialogDescription asChild>
-              <div className="space-y-2 pt-2 text-sm text-muted-foreground">
-                <p>
-                  {t("admin.lockers.batch.deleteSingleDesc", {
-                    name: deleteSingleTarget?.name,
-                    code: deleteSingleTarget?.code,
-                  })}
-                </p>
-                <div className="text-xs text-muted-foreground bg-muted/60 p-2.5 rounded-lg border">
-                  {t(
-                    "admin.lockers.batch.protectWarning",
-                    "Lưu ý: Nếu có ô con đang chứa đơn hàng của khách, hệ thống sẽ bảo vệ và từ chối xóa tủ."
-                  )}
-                </div>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteSingleTarget(null)}
-              disabled={isDeleting}
-            >
-              {t("button.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmSingleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  {t("common.deleting", "Đang xóa...")}
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {t("admin.lockers.batch.deleteLocker", "Xóa tủ")}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Confirmation Dialog: Batch Delete Selected Lockers */}
-      <Dialog
-        open={showBatchDeleteConfirm}
-        onOpenChange={setShowBatchDeleteConfirm}
-      >
-        <DialogContent className="sm:max-w-[460px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" />
-              {t("admin.lockers.batch.deleteSelectedTitle", {
-                count: selectedLockerIds.length,
-              })}
-            </DialogTitle>
-            <DialogDescription asChild>
-              <div className="space-y-2 pt-2 text-sm text-muted-foreground">
-                <p>
-                  {t("admin.lockers.batch.deleteSelectedDesc", {
-                    count: selectedLockerIds.length,
-                  })}
-                </p>
-                <div className="text-xs text-muted-foreground bg-muted/60 p-2.5 rounded-lg border">
-                  {t(
-                    "admin.lockers.batch.protectWarning",
-                    "Lưu ý: Nếu có ô con đang chứa đơn hàng của khách, hệ thống sẽ bảo vệ và từ chối xóa tủ."
-                  )}
-                </div>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowBatchDeleteConfirm(false)}
-              disabled={isDeleting}
-            >
-              {t("button.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmBatchDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  {t("common.deleting", "Đang xóa...")}
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {t("admin.lockers.batch.deleteSelected", "Xóa các tủ đã chọn")}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Confirmation Dialog: Delete ALL Lockers */}
-      <Dialog
-        open={showDeleteAllConfirm}
-        onOpenChange={setShowDeleteAllConfirm}
-      >
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" />
-              {t("admin.lockers.batch.deleteAllLockersTitle")}
-            </DialogTitle>
-            <DialogDescription asChild>
-              <div className="space-y-2 pt-2 text-sm text-muted-foreground">
-                <p>
-                  {t("admin.lockers.batch.deleteAllLockersDesc", {
-                    total: totalElements,
-                  })}
-                </p>
-                <div className="text-xs text-muted-foreground bg-muted/60 p-2.5 rounded-lg border">
-                  {t(
-                    "admin.lockers.batch.protectWarning",
-                    "Lưu ý: Nếu có ô con đang chứa đơn hàng của khách, hệ thống sẽ bảo vệ và từ chối xóa tủ."
-                  )}
-                </div>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteAllConfirm(false)}
-              disabled={isDeleting}
-            >
-              {t("button.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDeleteAll}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  {t("common.deleting", "Đang xóa...")}
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {t("admin.lockers.batch.deleteAllLockers", "Xóa tất cả tủ")}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteReasonDialog
+        open={Boolean(deleteSingleTarget) || showBatchDeleteConfirm || showDeleteAllConfirm}
+        onOpenChange={(open) => !open && closeDeleteDialogs()}
+        title={
+          deleteSingleTarget
+            ? t("admin.lockers.batch.deleteSingleTitle", { code: deleteSingleTarget.code })
+            : showDeleteAllConfirm
+              ? t("admin.lockers.batch.deleteAllLockersTitle")
+              : t("admin.lockers.batch.deleteSelectedTitle", { count: selectedLockerIds.length })
+        }
+        description={
+          <p>
+            {deleteSingleTarget
+              ? t("admin.lockers.batch.deleteSingleDesc", {
+                  name: deleteSingleTarget.name,
+                  code: deleteSingleTarget.code,
+                })
+              : showDeleteAllConfirm
+                ? t("admin.lockers.batch.deleteAllLockersDesc", { total: totalElements })
+                : t("admin.lockers.batch.deleteSelectedDesc", { count: selectedLockerIds.length })}
+          </p>
+        }
+        note={t("admin.lockers.batch.protectWarning")}
+        actionLabel={
+          deleteSingleTarget
+            ? t("admin.lockers.batch.deleteLocker")
+            : showDeleteAllConfirm
+              ? t("admin.lockers.batch.deleteAllLockers")
+              : t("admin.lockers.batch.deleteSelected")
+        }
+        loading={isDeleting}
+        onConfirm={(reason) => void handleConfirmDelete(reason)}
+      />
     </div>
   );
 }

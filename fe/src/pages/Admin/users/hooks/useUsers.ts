@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useGetAllUsersQuery } from "~/stores/apis/adminApi";
 import { useDeleteUserMutation } from "~/stores/apis/admin";
+import { formatDate } from "~/lib/datetime";
 import type { AdminUserResponse } from "~/types";
 
 export type UserStatus = "ALL" | "ACTIVE" | "INACTIVE";
@@ -20,12 +21,20 @@ export type AdminUserRow = Omit<
   createdAt: string | null;
   updatedAt: string | null;
   status?: string;
+  termsAccepted: boolean;
+  termsAcceptedAt: string | null;
+  termsVersion: string | null;
+  birthday: string | null;
+  /** false = tài khoản Google/OTP chưa tự đặt mật khẩu; null = không tra được auth-service. */
+  hasPassword: boolean | null;
+  lastLoginAt: string | null;
 };
 
 /**
- * `/api/admin/users` trả List<AdminUserView>, `/api/admin/users/{id}` trả UserSummary:
- * `{ id, email, phoneNumber, fullName, status, roles, imageUrl, createdAt?, updatedAt?,
- * provider?, emailVerified? }` — không phân trang, tên trường khác bảng nên map ở đây.
+ * `/api/admin/users` và `/api/admin/users/{id}` đều trả AdminUserView:
+ * `{ id, email, phoneNumber, fullName, status, roles, imageUrl, createdAt, updatedAt,
+ * provider?, emailVerified?, hasPassword?, lastLoginAt?, termsAccepted, termsAcceptedAt?,
+ * termsVersion?, birthday? }` — không phân trang, tên trường khác bảng nên map ở đây.
  */
 export interface BackendUserSummary {
   id: number;
@@ -40,6 +49,12 @@ export interface BackendUserSummary {
   provider?: string | null;
   emailVerified?: boolean | null;
   imageUrl?: string | null;
+  termsAccepted?: boolean | null;
+  termsAcceptedAt?: string | null;
+  termsVersion?: string | null;
+  birthday?: string | null;
+  hasPassword?: boolean | null;
+  lastLoginAt?: string | null;
 }
 
 export function mapUser(u: BackendUserSummary): AdminUserRow {
@@ -57,6 +72,29 @@ export function mapUser(u: BackendUserSummary): AdminUserRow {
     createdAt: u.createdAt ?? null,
     updatedAt: u.updatedAt ?? null,
     phoneNumber: u.phoneNumber ?? undefined,
+    termsAccepted: u.termsAccepted ?? false,
+    termsAcceptedAt: u.termsAcceptedAt ?? null,
+    termsVersion: u.termsVersion ?? null,
+    birthday: u.birthday ?? null,
+    hasPassword: u.hasPassword ?? null,
+    lastLoginAt: u.lastLoginAt ?? null,
+  };
+}
+
+/** Số liệu cho hàng thẻ thống kê — tính trên toàn bộ người dùng, không theo bộ lọc. */
+export function computeUserStats(users: AdminUserRow[]) {
+  // "dd/MM/yyyy" giờ Việt Nam ⇒ bỏ ngày còn tháng/năm.
+  const thisMonth = formatDate(new Date()).slice(3);
+  const customers = users.filter((u) => u.roles.some((r) => r === "CUSTOMER" || r === "USER")).length;
+  return {
+    total: users.length,
+    customers,
+    staff: users.length - customers,
+    active: users.filter((u) => u.enabled).length,
+    inactive: users.filter((u) => !u.enabled).length,
+    newThisMonth: users.filter((u) => u.createdAt && formatDate(u.createdAt).slice(3) === thisMonth).length,
+    emailVerified: users.filter((u) => u.emailVerified === true).length,
+    termsAccepted: users.filter((u) => u.termsAccepted).length,
   };
 }
 
@@ -142,6 +180,8 @@ export function useUsers() {
     [users],
   );
 
+  const stats = useMemo(() => computeUserStats(users), [users]);
+
   const clearFilters = () => {
     setStatusState("ALL");
     setSearchQueryState("");
@@ -152,7 +192,7 @@ export function useUsers() {
 
   return {
     users: pagedUsers,
-    deleteOne: (id: number) => deleteUser(id).unwrap(),
+    deleteOne: (id: number, reason: string) => deleteUser({ id, reason }).unwrap(),
     totalElements,
     totalPages,
     isLoading,
@@ -169,5 +209,6 @@ export function useUsers() {
     clearFilters,
     hasActiveFilters,
     statusCounts,
+    stats,
   };
 }

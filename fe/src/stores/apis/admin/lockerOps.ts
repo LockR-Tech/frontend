@@ -400,6 +400,7 @@ export interface BatchDeleteBoxesRequest {
   boxIds?: number[];
   boxNumbers?: number[];
   deleteAll?: boolean;
+  reason: string;
 }
 
 export interface TechnicianPresenceResponse {
@@ -741,10 +742,11 @@ export const lockerOpsApi = baseApi.injectEndpoints({
     }),
 
     // Admin delete box by ID
-    deleteBox: builder.mutation<ApiResponse<void>, number>({
-      query: (boxId) => ({
+    deleteBox: builder.mutation<ApiResponse<void>, { boxId: number; reason: string }>({
+      query: ({ boxId, reason }) => ({
         url: `/api/admin/lockers/boxes/${boxId}`,
         method: 'DELETE',
+        params: { reason },
       }),
       invalidatesTags: [TAG],
     }),
@@ -752,11 +754,12 @@ export const lockerOpsApi = baseApi.injectEndpoints({
     // Admin delete box by box number in locker
     deleteBoxByNumber: builder.mutation<
       ApiResponse<void>,
-      { lockerId: number; boxNumber: number }
+      { lockerId: number; boxNumber: number; reason: string }
     >({
-      query: ({ lockerId, boxNumber }) => ({
+      query: ({ lockerId, boxNumber, reason }) => ({
         url: `/api/admin/lockers/${lockerId}/boxes/by-number/${boxNumber}`,
         method: 'DELETE',
+        params: { reason },
       }),
       invalidatesTags: [TAG],
     }),
@@ -777,11 +780,12 @@ export const lockerOpsApi = baseApi.injectEndpoints({
     // Admin delete all boxes in locker (xóa tất cả các ô trong tủ)
     deleteAllBoxes: builder.mutation<
       ApiResponse<{ deletedCount: number }>,
-      number
+      { lockerId: number; reason: string }
     >({
-      query: (lockerId) => ({
+      query: ({ lockerId, reason }) => ({
         url: `/api/admin/lockers/${lockerId}/boxes/all`,
         method: 'DELETE',
+        params: { reason },
       }),
       invalidatesTags: [TAG],
     }),

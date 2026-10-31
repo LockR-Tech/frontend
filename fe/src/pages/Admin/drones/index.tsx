@@ -9,12 +9,14 @@ import {
   Loader2,
   Wrench,
   Power,
+  Trash2,
   UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
+import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -32,9 +34,11 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { PageHeader } from "~/components/shared/page-header";
+import { BatchDeleteBar, DeleteReasonDialog, deleteMany } from "~/components/shared/data-table";
 import {
   useGetDronesQuery,
   useCreateDroneMutation,
+  useDecommissionDroneMutation,
   useUpdateDroneStatusMutation,
 } from "~/stores/apis/admin/drones";
 import { useGetLockerStatsQuery } from "~/stores/apis/admin/lockerOps";
@@ -71,6 +75,9 @@ const STATUS_BADGE: Record<string, string> = {
   FAULT: "bg-red-100 text-red-800 border-red-300",
 };
 
+// Backend từ chối xoá drone đang có nhiệm vụ bay.
+const ACTIVE_MISSION_STATUSES = ["RESERVED", "IN_FLIGHT"];
+
 function apiErrorMessage(error: unknown, fallback: string): string {
   const candidate = error as
     { data?: { message?: string }; message?: string } | undefined;
@@ -96,6 +103,9 @@ export default function DronesPage() {
 
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [decommissionDrone, decommissionState] = useDecommissionDroneMutation();
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; code: string } | null>(null);
 
   const technicianNameById = useMemo(() => {
     const m = new Map<number, string>();
@@ -135,6 +145,30 @@ export default function DronesPage() {
   const filtered = statusFilter
     ? drones.filter((d) => d.status === statusFilter)
     : drones;
+
+  const deletableIds = filtered
+    .filter((d) => !ACTIVE_MISSION_STATUSES.includes(d.status))
+    .map((d) => d.id);
+
+  const deleteDrones = async (ids: number[], reason: string) => {
+    const result = await deleteMany(ids, (id) => decommissionDrone({ id, reason }).unwrap());
+    setSelectedIds((prev) => prev.filter((id) => !result.deleted.includes(id)));
+    return result;
+  };
+
+  const confirmDeleteOne = async (reason: string) => {
+    if (!deleteTarget) return;
+    try {
+      await decommissionDrone({ id: deleteTarget.id, reason }).unwrap();
+      toast.success(t("admin.drones.actions.decommissioned", { code: deleteTarget.code }));
+      setSelectedIds((prev) => prev.filter((id) => id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (error) {
+      toast.error(t("admin.drones.actions.decommissionFailed"), {
+        description: apiErrorMessage(error, t("common.pleaseRetry")),
+      });
+    }
+  };
 
   const openCreate = () => {
     setFormOpen(true);
@@ -247,6 +281,17 @@ export default function DronesPage() {
         </CardContent>
       </Card>
 
+      <BatchDeleteBar
+        noun={t("admin.drones.batchNoun")}
+        selectedCount={selectedIds.length}
+        onClearSelection={() => setSelectedIds([])}
+        onDeleteSelected={(reason) => deleteDrones(selectedIds, reason)}
+        allCount={deletableIds.length}
+        onDeleteAll={(reason) => deleteDrones(deletableIds, reason)}
+        note={t("admin.drones.batchNote")}
+        requireReason
+      />
+
       {/* Drone list */}
       {isLoading ? (
         <div className="flex justify-center py-16 text-muted-foreground">
@@ -265,11 +310,22 @@ export default function DronesPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((d) => {
             const battery = d.batteryPercent ?? 0;
+            const onMission = ACTIVE_MISSION_STATUSES.includes(d.status);
             return (
               <Card key={d.id} className="border-0 shadow-sm">
                 <CardContent className="space-y-3 p-4">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={selectedIds.includes(d.id)}
+                        disabled={onMission}
+                        onCheckedChange={(checked) =>
+                          setSelectedIds((prev) =>
+                            checked ? [...prev, d.id] : prev.filter((id) => id !== d.id),
+                          )
+                        }
+                        aria-label={t("common.batchDelete.selectRow")}
+                      />
                       <Plane className="h-4 w-4 text-primary" />
                       <span className="font-semibold text-foreground">
                         {d.code}
@@ -368,6 +424,17 @@ export default function DronesPage() {
                         ? t("dropdown.activate")
                         : t("dropdown.maintenance")}
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="ml-auto text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                      disabled={onMission}
+                      title={onMission ? t("admin.drones.actions.errors.activeMission") : undefined}
+                      onClick={() => setDeleteTarget({ id: d.id, code: d.code })}
+                    >
+                      <Trash2 className="mr-1 h-3.5 w-3.5" />
+                      {t("button.delete")}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -375,6 +442,16 @@ export default function DronesPage() {
           })}
         </div>
       )}
+
+      <DeleteReasonDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={t("admin.drones.actions.decommissionTitle", { code: deleteTarget?.code })}
+        description={<p>{t("admin.drones.actions.decommissionDescription")}</p>}
+        actionLabel={t("admin.drones.actions.decommission")}
+        loading={decommissionState.isLoading}
+        onConfirm={(reason) => void confirmDeleteOne(reason)}
+      />
 
       <DroneFormDialog
         open={formOpen}

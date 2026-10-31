@@ -51,6 +51,15 @@ const updateUserValidator = createValidator(UpdateUserRequestSchema);
 const updateUserStatusValidator = createValidator(UpdateUserStatusRequestSchema);
 const updateUserRolesValidator = createValidator(UpdateUserRolesRequestSchema);
 
+export interface DeletedUser {
+  id: number;
+  email: string | null;
+  phoneNumber: string | null;
+  fullName: string;
+  deletedAt: string;
+  deletedReason: string | null;
+}
+
 export const userManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // `role`: user-service lọc theo vai trò (vd LOCKER_TECHNICIAN); page/size bị bỏ qua (trả cả danh sách).
@@ -131,12 +140,20 @@ export const userManagementApi = baseApi.injectEndpoints({
       invalidatesTags: (result, error, { id }) => [{ type: TAGS.USERS, id }, TAGS.USERS],
     }),
 
-    deleteUser: builder.mutation<ApiResponse<void>, number>({
-      query: (id) => ({
+    // Xoá mềm, bắt buộc có lý do.
+    deleteUser: builder.mutation<ApiResponse<void>, { id: number; reason: string }>({
+      query: ({ id, reason }) => ({
         url: ADMIN_ENDPOINTS.USER_BY_ID(id),
         method: 'DELETE',
+        params: { reason },
       }),
       invalidatesTags: [TAGS.USERS],
+    }),
+
+    // Người dùng đã xoá mềm: để hiện tên chủ giao dịch điểm cũ.
+    getDeletedUsers: builder.query<ApiResponse<DeletedUser[]>, void>({
+      query: () => `${ADMIN_ENDPOINTS.USERS}/deleted`,
+      providesTags: [TAGS.USERS],
     }),
 
     // Ảnh đại diện (admin đổi hộ): body là MediaUpload (purpose AVATAR), trả về UserSummary
@@ -164,6 +181,7 @@ export const userManagementApi = baseApi.injectEndpoints({
 
 export const {
   useGetAllUsersQuery,
+  useGetDeletedUsersQuery,
   useGetUserByIdQuery,
   useCreateUserMutation,
   useUpdateUserMutation,

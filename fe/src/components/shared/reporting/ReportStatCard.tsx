@@ -21,6 +21,8 @@ interface ReportStatCardProps {
   className?: string;
   /** Thu nhỏ chữ khi giá trị dài, ví dụ một mốc thời gian đầy đủ. */
   valueClassName?: string;
+  /** Bấm vào thẻ để xem dữ liệu tạo nên con số. */
+  onClick?: () => void;
 }
 
 /**
@@ -38,6 +40,7 @@ export function ReportStatCard({
   isLoading = false,
   className,
   valueClassName,
+  onClick,
 }: ReportStatCardProps) {
   const { t } = useTranslation();
   const direction = changeDirection(changePct);
@@ -50,7 +53,21 @@ export function ReportStatCard({
     direction === "up" ? ArrowUpRight : direction === "down" ? ArrowDownRight : Minus;
 
   return (
-    <Card className={cn("border border-border bg-card", className)}>
+    <Card
+      className={cn(
+        "border border-border bg-card",
+        onClick && "cursor-pointer transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring",
+        className,
+      )}
+      {...(onClick
+        ? {
+            role: "button",
+            tabIndex: 0,
+            onClick,
+            onKeyDown: (e: React.KeyboardEvent) => e.key === "Enter" && onClick(),
+          }
+        : {})}
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2">
           <p className="text-xs font-medium text-muted-foreground">{label}</p>

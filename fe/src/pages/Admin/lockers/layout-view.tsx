@@ -41,9 +41,11 @@ import { toast } from "sonner";
 import { Trans, useTranslation } from "react-i18next";
 import {
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
 } from "~/components/ui/tabs";
+import { DeleteReasonDialog } from "~/components/shared/data-table";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -323,49 +325,17 @@ function CellTile({
 
   return (
     <div
-      className={`relative h-full rounded-xl border p-3.5 flex flex-col gap-1 overflow-hidden shadow-xs hover:shadow-md transition-all ${bgClass} ${borderClass} ${doorRingClass} ${textClass}`}
+      className={`relative h-full rounded-xl border p-3 flex flex-col gap-1.5 overflow-hidden shadow-xs hover:shadow-md transition-all ${bgClass} ${borderClass} ${doorRingClass} ${textClass}`}
       title={cell.faultReason ?? undefined}
     >
-      {/* Decorative handle */}
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-border/80 rounded-full" />
-      
-      <div className="flex items-start justify-between gap-2 z-10">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="font-bold text-sm tracking-tight">{t("admin.lockers.boxLabel", { number: cell.boxNumber })}</span>
-          {isDrone && (
-            <>
-              <Badge className="bg-indigo-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
-                Drone
-              </Badge>
-              {cell.arucoMarkerId !== null && cell.arucoMarkerId !== undefined ? (
-                <Badge className="bg-sky-700 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4 font-mono shadow-xs">
-                  ArUco #{cell.arucoMarkerId}
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="text-amber-600 border-amber-400 bg-amber-50 dark:bg-amber-950/30 text-[9px] font-semibold px-1 py-0 h-4">
-                  Chưa gán ArUco
-                </Badge>
-              )}
-            </>
-          )}
-          {isXl && (
-            <Badge className="bg-cyan-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
-              {t("admin.lockers.cell.xlBadge")}
-            </Badge>
-          )}
-          {/* Badge trạng thái cửa mở/đóng đồng bộ Mobile */}
-          {doorOpen ? (
-            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-400 font-bold text-[10px] px-1.5 py-0 h-4.5 flex items-center gap-1 animate-pulse">
-              <DoorOpen className="w-3 h-3 text-amber-600 dark:text-amber-400" /> {t("admin.lockers.cell.doorOpen")}
-            </Badge>
-          ) : (
-            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 px-1 py-0.5 bg-background/50 rounded border border-border/40">
-              <DoorClosed className="w-2.5 h-2.5 text-slate-400" /> {t("admin.lockers.cell.doorClosed")}
-            </span>
-          )}
+      <div className="flex items-center justify-between gap-2 z-10">
+        <div className="flex items-center gap-1.5 min-w-0">
+          {isDrone && <Plane className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" />}
+          {isXl && <Luggage className="w-4 h-4 shrink-0 text-cyan-600 dark:text-cyan-400" />}
+          {!isDrone && !isXl && <BoxIcon className="w-4 h-4 shrink-0 text-sky-700 dark:text-sky-300" />}
+          <span className="font-bold text-sm tracking-tight truncate">{t("admin.lockers.boxLabel", { number: cell.boxNumber })}</span>
         </div>
-        {/* Góc phải: [QR][loại ô] / [⋯ thao tác khác] nằm ngay dưới QR cho dễ bấm */}
-        <div className="grid grid-cols-[auto_auto] items-center justify-items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           <Button
             size="sm"
             variant="ghost"
@@ -378,15 +348,12 @@ function CellTile({
           >
             <QrCode className="w-3.5 h-3.5" />
           </Button>
-          {isDrone && <Plane className="w-5 h-5 text-indigo-600 dark:text-indigo-400 opacity-95 drop-shadow-xs" />}
-          {isXl && <Luggage className="w-5 h-5 text-cyan-600 dark:text-cyan-400 opacity-90" />}
-          {!isDrone && !isXl && <BoxIcon className="w-5 h-5 text-sky-700 dark:text-sky-300 opacity-80" />}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
-                variant="outline"
-                className="h-6 w-6 p-0 border border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-700 dark:text-slate-200"
+                variant="ghost"
+                className="h-6 w-6 p-0 hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 rounded"
                 disabled={busy}
                 title={t("admin.lockers.cell.moreActions")}
               >
@@ -418,39 +385,17 @@ function CellTile({
                     <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-500" /> {t("admin.lockers.cell.sendToCleaning")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
-                    <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
-                  </DropdownMenuItem>
                 </>
               )}
-              {(cell.status === "OCCUPIED" || cell.status === "RESERVED") && (
-                <>
-                  <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
-                    <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
-                  </DropdownMenuItem>
-                </>
+              {(cell.status === "FAULT" || cell.status === "PENDING_CHECK" || cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING") && (
+                <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
+                  <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
+                </DropdownMenuItem>
               )}
-              {(cell.status === "FAULT" || cell.status === "PENDING_CHECK") && (
-                <>
-                  <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
-                    <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
-                  </DropdownMenuItem>
-                </>
-              )}
-              {cell.status === "PENDING_CHECK" && (
+              {cell.status !== "FAULT" && (
                 <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
                   <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
                 </DropdownMenuItem>
-              )}
-              {(cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING") && (
-                <>
-                  <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
-                    <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
-                    <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
-                  </DropdownMenuItem>
-                </>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -465,6 +410,31 @@ function CellTile({
           </DropdownMenu>
         </div>
       </div>
+      {(isDrone || isXl || doorOpen) && (
+        <div className="flex flex-wrap items-center gap-1 z-10">
+          {isDrone && (
+            cell.arucoMarkerId !== null && cell.arucoMarkerId !== undefined ? (
+              <Badge className="bg-sky-700 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4 font-mono">
+                ArUco #{cell.arucoMarkerId}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-amber-600 border-amber-400 bg-amber-50 dark:bg-amber-950/30 text-[10px] font-semibold px-1.5 py-0 h-4">
+                Chưa gán ArUco
+              </Badge>
+            )
+          )}
+          {isXl && (
+            <Badge className="bg-cyan-600 text-white border-0 text-[10px] font-bold px-1.5 py-0 h-4">
+              {t("admin.lockers.cell.xlBadge")}
+            </Badge>
+          )}
+          {doorOpen && (
+            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-400 font-bold text-[10px] px-1.5 py-0 h-4 flex items-center gap-1">
+              <DoorOpen className="w-3 h-3 text-amber-600 dark:text-amber-400" /> {t("admin.lockers.cell.doorOpen")}
+            </Badge>
+          )}
+        </div>
+      )}
       {statusBadge}
       {hasOpenReport && (
         <Link
@@ -482,33 +452,26 @@ function CellTile({
         </span>
       )}
 
-      {/* Đơn đang giữ ô: sáng khi có đơn, mờ khi ô trống — bấm để xem mã đơn */}
-      <div className="mt-auto pt-2 z-10">
-        <Button
-          size="sm"
-          variant="outline"
-          className={`h-6 px-2 text-[10px] font-semibold shadow-2xs ${
-            hasOrder
-              ? "border-violet-300 text-violet-700 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800"
-              : "border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 text-slate-500"
-          }`}
-          disabled={!hasOrder}
-          onClick={() => onShowOrders(cell)}
-        >
-          <PackageSearch className="w-3 h-3 mr-1" />
-          {hasOrder && orders.length > 1
-            ? t("admin.lockers.cell.holdingOrdersCount", { count: orders.length })
-            : t("admin.lockers.cell.holdingOrder")}
-        </Button>
-      </div>
-
-      {/* Clean, ergonomic action controls */}
-      <div className="flex items-center justify-between gap-1.5 pt-1.5 z-10">
+      {/* Hàng thao tác: đơn đang giữ ô (chỉ hiện khi có) và thao tác chính theo trạng thái */}
+      <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-2 z-10">
+        {hasOrder && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-[10px] font-semibold border-violet-300 text-violet-700 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800"
+            onClick={() => onShowOrders(cell)}
+          >
+            <PackageSearch className="w-3 h-3 mr-1" />
+            {orders.length > 1
+              ? t("admin.lockers.cell.holdingOrdersCount", { count: orders.length })
+              : t("admin.lockers.cell.holdingOrder")}
+          </Button>
+        )}
         {cell.status === "FAULT" || cell.status === "PENDING_CHECK" ? (
           <Button
             size="sm"
             variant="outline"
-            className="h-6 px-2 text-[10px] font-semibold border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 shadow-2xs"
+            className="h-6 px-2 text-[10px] font-semibold border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
             disabled={busy}
             onClick={() => onAction(cell, "CLEAR_FAULT")}
           >
@@ -518,7 +481,7 @@ function CellTile({
           <Button
             size="sm"
             variant="outline"
-            className="h-6 px-2 text-[10px] font-semibold border-indigo-300 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 shadow-2xs"
+            className="h-6 px-2 text-[10px] font-semibold border-indigo-300 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800"
             disabled={busy}
             onClick={() => onAction(cell, "RETURN")}
           >
@@ -528,7 +491,7 @@ function CellTile({
           <Button
             size="sm"
             variant="outline"
-            className="h-6 px-2 text-[10px] font-semibold border border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-800 dark:text-slate-100 shadow-2xs"
+            className="h-6 px-2 text-[10px] font-semibold border-slate-300/80 dark:border-slate-600 bg-white/95 dark:bg-slate-800 hover:bg-white text-slate-800 dark:text-slate-100"
             disabled={busy}
             onClick={() => onAction(cell, "FORCE_OPEN")}
           >
@@ -552,6 +515,40 @@ function baseSlot(cell: CellResponse) {
   return { row, col };
 }
 
+/**
+ * Chỗ vẽ từng ô. Ô được lưu trùng Màn hình Kiosk (1, 1) hoặc trùng ô khác được đẩy sang chỗ trống
+ * kế tiếp để không vẽ đè lên nhau; dữ liệu giữ nguyên, cảnh báo và "Tự sắp xếp" sửa hẳn.
+ */
+function placeCells(cells: CellResponse[], cols: number) {
+  const taken = new Set(["1:1"]);
+  const placed = new Map<number, { row: number; col: number }>();
+  const displaced: CellResponse[] = [];
+  for (const cell of [...cells].sort((a, b) => a.boxNumber - b.boxNumber)) {
+    const slot = baseSlot(cell);
+    const key = `${slot.row}:${slot.col}`;
+    if (taken.has(key)) {
+      displaced.push(cell);
+    } else {
+      taken.add(key);
+      placed.set(cell.id, slot);
+    }
+  }
+  for (const cell of displaced) {
+    let row = 1;
+    let col = 1;
+    while (taken.has(`${row}:${col}`)) {
+      col += 1;
+      if (col > cols) {
+        col = 1;
+        row += 1;
+      }
+    }
+    taken.add(`${row}:${col}`);
+    placed.set(cell.id, { row, col });
+  }
+  return placed;
+}
+
 function occupiedSlots(cells: CellResponse[]) {
   return new Set(cells.map((c) => {
     const { row, col } = baseSlot(c);
@@ -565,17 +562,16 @@ function occupiedSlots(cells: CellResponse[]) {
  * cùng cỡ cửa với ô thường (lưới đều, ô bên dưới đã có chủ) thì vẽ đúng một ô — trước đây
  * luôn kéo 2 hàng nên đè lên ô bên dưới dù dữ liệu hàng/cột đúng.
  */
-function rowSpanOf(cell: CellResponse, occupied: Set<string>, maxRows: number) {
+function rowSpanOf(cell: CellResponse, occupied: Set<string>, maxRows: number, slot = baseSlot(cell)) {
   if (!isXlCell(cell)) return 1;
-  const { row, col } = baseSlot(cell);
+  const { row, col } = slot;
   const wanted = col === 1 && row === 2 ? Math.max(1, maxRows - 1) : 2;
   let span = 1;
   while (span < wanted && !occupied.has(`${row + span}:${col}`)) span += 1;
   return span;
 }
 
-function getBoxGridStyle(cell: CellResponse, rowSpan: number) {
-  const { row, col } = baseSlot(cell);
+function getBoxGridStyle({ row, col }: { row: number; col: number }, rowSpan: number) {
   return {
     gridColumn: `${col}`,
     gridRow: rowSpan > 1 ? `${row} / span ${rowSpan}` : `${row}`,
@@ -643,29 +639,18 @@ export default function LockerLayoutPage() {
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [pendingBox, setPendingBox] = useState<number | null>(null);
 
-  const handleDeleteAllBoxes = async () => {
+  const handleDeleteAllBoxes = async (reason: string) => {
     if (!id || !cells.length) return;
     setIsDeletingAll(true);
     try {
       const boxIds = cells.map((c) => c.id);
-      // Gọi batch-delete đã có sẵn trên backend
-      const res = await deleteBoxesBatch({ lockerId: id, data: { boxIds } }).unwrap();
+      const res = await deleteBoxesBatch({ lockerId: id, data: { boxIds, reason } }).unwrap();
       const count = res?.data?.deletedCount ?? cells.length;
       toast.success(t("admin.lockers.layout.deleteAllSuccess", { count }));
       setShowDeleteAllBoxesModal(false);
       refetch();
     } catch (err: any) {
-      // Fallback: nếu batch-delete bị lỗi, xóa từng ô bằng deleteBox (đã có sẵn trên backend)
-      try {
-        await Promise.all(cells.map((c) => deleteBox(c.id).unwrap()));
-        toast.success(t("admin.lockers.layout.deleteAllSuccess", { count: cells.length }));
-        setShowDeleteAllBoxesModal(false);
-        refetch();
-      } catch (fallbackErr: any) {
-        toast.error(
-          fallbackErr?.data?.message || err?.data?.message || fallbackErr?.message || err?.message || t("admin.lockers.layout.deleteAllFailed", "Không thể xóa tất cả ô tủ")
-        );
-      }
+      toast.error(err?.data?.message || err?.message || t("admin.lockers.layout.deleteAllFailed", "Không thể xóa tất cả ô tủ"));
     } finally {
       setIsDeletingAll(false);
     }
@@ -882,7 +867,12 @@ export default function LockerLayoutPage() {
   }, [cells]);
 
   const overlapGroups = useMemo(() => findOverlappingBoxes(cells, maxRows), [cells, maxRows]);
-  const occupied = useMemo(() => occupiedSlots(cells), [cells]);
+  const placement = useMemo(() => placeCells(cells, Math.max(3, Math.max(0, ...cells.map((c) => c.colIndex ?? 0)))), [cells]);
+  const occupied = useMemo(() => new Set([...placement.values()].map(({ row, col }) => `${row}:${col}`)), [placement]);
+  const gridRows = useMemo(
+    () => Math.max(maxRows, 0, ...[...placement.values()].map(({ row }) => row)),
+    [maxRows, placement],
+  );
 
   const maxCols = useMemo(() => {
     if (!cells.length) return 3;
@@ -1215,6 +1205,7 @@ export default function LockerLayoutPage() {
           title: t("admin.lockers.layout.action.deleteTitle", { number: cell.boxNumber }),
           description: t("admin.lockers.layout.action.deleteDesc", { number: cell.boxNumber, locker: layout?.name || "" }),
           reason: "",
+          requireReason: true,
           confirmLabel: t("admin.lockers.layout.action.deleteConfirm"),
           variant: "destructive",
         });
@@ -1266,7 +1257,7 @@ export default function LockerLayoutPage() {
             : t("admin.lockers.layout.action.restoredDesc"),
         });
       } else if (type === "DELETE_BOX") {
-        await deleteBox(cell.id).unwrap();
+        await deleteBox({ boxId: cell.id, reason: reason.trim() }).unwrap();
         toast.success(t("admin.lockers.layout.action.deleted", { number: cell.boxNumber }));
       }
     } catch (err: any) {
@@ -1320,56 +1311,49 @@ export default function LockerLayoutPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowLocationModal(true)}
-            className="shadow-xs border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40"
-          >
-            <MapPin className="w-4 h-4 mr-1.5 text-sky-600 dark:text-sky-400" />
-            {staffLocker?.latitude != null && staffLocker?.longitude != null ? "Vị trí & Tọa độ" : "Ghim tọa độ tủ"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setSelectedQrCell(cells[0] || null);
-              setShowQrModal(true);
-            }}
-            disabled={cells.length === 0}
-            title={cells.length === 0 ? t("admin.lockers.layout.noBoxesToPrint") : undefined}
-            className="shadow-xs"
-          >
-            <QrCode className="w-4 h-4 mr-1.5 text-primary" /> {t("admin.lockers.layout.qrAndPrint")}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setShowOpenQrSheet(true)}
-            disabled={cells.length === 0}
-            className="shadow-xs border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-          >
-            <Unlock className="w-4 h-4 mr-1.5" /> {t("admin.lockers.openQr.button", "QR mở ô (thử tủ)")}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={openArrange}
-            disabled={cells.length === 0}
-            className="shadow-xs"
-          >
-            <LayoutGrid className="w-4 h-4 mr-1.5 text-primary" /> {t("admin.lockers.layout.autoArrange")}
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} /> {t("button.refresh")}
           </Button>
           <Button onClick={openAddModal} className="bg-primary text-primary-foreground shadow-xs">
             <Plus className="w-4 h-4 mr-1.5" /> {t("admin.lockers.layout.addBox")}
           </Button>
-          <Button
-            variant="outline"
-            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive shadow-xs font-semibold"
-            onClick={() => setShowDeleteAllBoxesModal(true)}
-            disabled={cells.length === 0 || isDeletingAll || isDeletingBatch || isDeletingBox}
-          >
-            <Trash2 className="w-4 h-4 mr-1.5" /> {t("admin.lockers.layout.deleteAllBoxes", "Xóa tất cả ô")}
-          </Button>
-          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} /> {t("button.refresh")}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" title={t("admin.lockers.cell.moreActions")}>
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => setShowLocationModal(true)}>
+                <MapPin className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400" />
+                {staffLocker?.latitude != null && staffLocker?.longitude != null ? "Vị trí & Tọa độ" : "Ghim tọa độ tủ"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                disabled={cells.length === 0}
+                onClick={() => {
+                  setSelectedQrCell(cells[0] || null);
+                  setShowQrModal(true);
+                }}
+              >
+                <QrCode className="w-4 h-4 mr-2 text-primary" /> {t("admin.lockers.layout.qrAndPrint")}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={() => setShowOpenQrSheet(true)}>
+                <Unlock className="w-4 h-4 mr-2 text-amber-600" /> {t("admin.lockers.openQr.button", "QR mở ô (thử tủ)")}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={openArrange}>
+                <LayoutGrid className="w-4 h-4 mr-2 text-primary" /> {t("admin.lockers.layout.autoArrange")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer text-destructive focus:text-destructive"
+                disabled={cells.length === 0 || isDeletingAll || isDeletingBatch || isDeletingBox}
+                onClick={() => setShowDeleteAllBoxesModal(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> {t("admin.lockers.layout.deleteAllBoxes", "Xóa tất cả ô")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -1394,6 +1378,251 @@ export default function LockerLayoutPage() {
         </div>
       )}
 
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.totalBoxes")}</p>
+            <p className="text-2xl font-bold">{cells.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.emptyBoxes")}</p>
+            <p className="text-2xl font-bold text-emerald-600">
+              {cells.filter((c) => c.status === "AVAILABLE").length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.inUse")}</p>
+            <p className="text-2xl font-bold text-amber-600">
+              {cells.filter((c) => c.status === "OCCUPIED" || c.status === "RESERVED" || c.status === "IN_USE").length}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.faultyBoxes")}</p>
+            <p className="text-2xl font-bold text-destructive">
+              {cells.filter((c) => c.status === "FAULT").length}
+            </p>
+            {cells.some((c) => c.status === "PENDING_CHECK") && (
+              <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mt-0.5">
+                {t("admin.lockers.layout.kpi.pendingCheckBoxes")}: {cells.filter((c) => c.status === "PENDING_CHECK").length}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Cảnh báo cửa đang mở (đồng bộ Mobile) */}
+      {cells.some((c) => isDoorOpen(c)) && (
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2.5">
+            <DoorOpen className="w-5 h-5 text-amber-600 animate-pulse shrink-0" />
+            <div>
+              <p className="text-xs font-bold">
+                {t("admin.lockers.layout.doorWarning.title", {
+                  count: cells.filter((c) => isDoorOpen(c)).length,
+                  boxes: cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(", "),
+                })}
+              </p>
+              <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
+                {t("admin.lockers.layout.doorWarning.desc")}
+              </p>
+            </div>
+          </div>
+          <Badge className="bg-amber-500 text-white font-bold text-xs px-2.5 py-0.5 animate-pulse border-0">
+            {t("admin.lockers.layout.doorWarning.badge")}
+          </Badge>
+        </div>
+      )}
+
+      <Tabs defaultValue="grid" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="grid">{t("admin.lockers.layout.tabs.grid")}</TabsTrigger>
+          <TabsTrigger value="operations">{t("admin.lockers.layout.tabs.operations")}</TabsTrigger>
+          <TabsTrigger value="devices">{t("admin.lockers.layout.tabs.devices")}</TabsTrigger>
+          <TabsTrigger value="logs">{t("admin.lockers.layout.tabs.logs")}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="grid" className="mt-0">
+      <Card className="border border-border/80 shadow-xs overflow-hidden">
+        <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Plane className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            {t("admin.lockers.layout.gridTitle")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 p-5">
+          {/* Cảnh báo ô lưu trùng hàng/cột: trên lưới các ô này vẽ đè lên nhau nên dễ bị bỏ sót */}
+          {overlapGroups.length > 0 && (
+            <div className="p-3.5 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-1 text-xs">
+                  <p className="font-semibold text-sm text-amber-900 dark:text-amber-200">
+                    {t("admin.lockers.layout.overlap.title")}
+                  </p>
+                  <p className="text-amber-800 dark:text-amber-300">
+                    {overlapGroups.some((g) => g.kiosk)
+                      ? t("admin.lockers.layout.overlap.bodyKiosk", { groups: overlapLabel })
+                      : t("admin.lockers.layout.overlap.body", { groups: overlapLabel })}
+                  </p>
+                </div>
+              </div>
+              {overlapGroups.some((g) => !g.kiosk) && (
+                <Button size="sm" variant="outline" onClick={openArrange} className="shrink-0 h-8 text-xs">
+                  <LayoutGrid className="w-3.5 h-3.5 mr-1.5" /> {t("admin.lockers.layout.autoArrange")}
+                </Button>
+              )}
+            </div>
+          )}
+          <div className="overflow-x-auto">
+          <div
+            className="grid gap-3 p-4 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border border-slate-300/90 dark:border-slate-700"
+            style={{
+              gridTemplateColumns: `repeat(${maxCols}, minmax(200px, 1fr))`,
+              gridTemplateRows: `repeat(${gridRows}, minmax(130px, auto))`,
+            }}
+          >
+            {/* Màn hình cảm ứng 7 inch (Waveshare 1024x600 HDMI/Touch) cố định ở hàng 1 cột 1 */}
+            <div
+              style={{ gridColumn: "1", gridRow: "1" }}
+              className="flex flex-col h-full shadow-xs transition-all hover:shadow-md"
+            >
+              <div
+                onClick={() => setShowScreenModal(true)}
+                className={`relative h-full rounded-xl border-2 p-3.5 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md cursor-pointer transition-all group ${
+                  isKioskScreenOnline
+                    ? "border-slate-700/80 hover:border-sky-500 bg-slate-950"
+                    : "border-slate-800 hover:border-rose-500/60 bg-slate-950/90"
+                }`}
+                title={
+                  isKioskScreenOnline
+                    ? t("admin.lockers.layout.screen.tooltipOnline")
+                    : t("admin.lockers.layout.screen.tooltipOffline")
+                }
+              >
+                {/* Gloss reflection overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none" />
+
+                {/* Screen Header */}
+                <div className="flex items-center justify-between z-10">
+                  <div className="flex items-center gap-1.5">
+                    <Monitor
+                      className={`w-4 h-4 transition-transform group-hover:scale-110 ${
+                        isKioskScreenOnline ? "text-sky-400" : "text-slate-400"
+                      }`}
+                    />
+                    <span className="font-bold text-sm text-white tracking-tight">{t("admin.lockers.layout.screen.name")}</span>
+                    <Badge className="bg-sky-950/80 border border-sky-500/50 text-sky-300 text-[10px] px-1.5 py-0 h-4 font-mono">
+                      1024×600
+                    </Badge>
+                  </div>
+                  {isKioskScreenOnline ? (
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-500/50" />
+                      <span className="text-[11px] font-semibold text-emerald-400">Online</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+                      <span className="text-[11px] font-semibold text-rose-400">{t("common.disconnected")}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Screen Mockup Body */}
+                {isKioskScreenOnline ? (
+                  <div className="z-10 bg-slate-900/90 rounded-lg p-2 border border-slate-800 text-center space-y-0.5 my-1">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-100">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Lock.R Kiosk Touch UI
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-mono">Waveshare HDMI LCD (C) · :3002</p>
+                  </div>
+                ) : (
+                  <div className="z-10 bg-slate-900/60 rounded-lg p-2 border border-rose-950/50 text-center space-y-0.5 my-1">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> {t("admin.lockers.layout.screen.noPower")}
+                    </div>
+                    <p className="text-[10px] text-rose-400/80 font-mono">{t("admin.lockers.layout.screen.waitingPower")}</p>
+                  </div>
+                )}
+
+                {/* Screen Footer Action */}
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 z-10 text-[11px]">
+                  <span className={isKioskScreenOnline ? "text-slate-400" : "text-slate-500"}>
+                    {isKioskScreenOnline ? t("admin.lockers.layout.screen.touch5") : t("admin.lockers.layout.screen.notPowered")}
+                  </span>
+                  <span
+                    className={`font-medium inline-flex items-center gap-0.5 ${
+                      isKioskScreenOnline
+                        ? "text-sky-400 group-hover:text-sky-300"
+                        : "text-rose-400 group-hover:text-rose-300"
+                    }`}
+                  >
+                    {isKioskScreenOnline ? t("admin.lockers.layout.screen.data") : t("admin.lockers.layout.screen.specs")}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {cells.map((cell) => {
+              const slot = placement.get(cell.id) ?? baseSlot(cell);
+              const gridStyle = getBoxGridStyle(slot, rowSpanOf(cell, occupied, gridRows, slot));
+              return (
+                <div
+                  key={cell.id}
+                  style={gridStyle}
+                  className="flex flex-col h-full shadow-xs transition-all hover:shadow-md"
+                >
+                  <CellTile
+                    cell={cell}
+                    orders={ordersByBox.get(cell.id) ?? []}
+                    openReports={openReportsByBox.get(cell.id) ?? []}
+                    onAction={handleOpenAction}
+                    onEdit={handleOpenEdit}
+                    onShowQr={handleOpenQr}
+                    onShowOrders={setOrdersCell}
+                    busy={
+                      (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) &&
+                      pendingBox === cell.id
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+            {[
+              { label: t("admin.lockers.boxStatus.available"), dot: "bg-sky-500", match: (c: CellResponse) => c.status === "AVAILABLE" },
+              { label: t("admin.lockers.layout.kpi.inUse"), dot: "bg-amber-500", match: (c: CellResponse) => ["OCCUPIED", "IN_USE", "RESERVED"].includes(c.status) },
+              { label: t("admin.lockers.boxStatus.fault"), dot: "bg-rose-500", match: (c: CellResponse) => c.status === "FAULT" },
+              { label: t("admin.lockers.boxStatus.pendingCheck"), dot: "bg-orange-500", match: (c: CellResponse) => c.status === "PENDING_CHECK" },
+              { label: t("admin.lockers.boxStatus.suspended"), dot: "bg-slate-400", match: (c: CellResponse) => c.status === "OUT_OF_SERVICE" || c.status === "CLEANING" },
+              { label: "Drone", dot: "bg-indigo-500", match: isDroneCell },
+              { label: "XL", dot: "bg-cyan-500", match: isXlCell },
+              { label: t("admin.lockers.cell.doorOpen"), dot: "bg-amber-400 ring-2 ring-amber-200", match: isDoorOpen },
+            ].map(({ label, dot, match }) => {
+              const matched = cells.filter(match);
+              return (
+                <span key={label} className="inline-flex items-center gap-1.5" title={matched.map((c) => `#${c.boxNumber}`).join(", ")}>
+                  <span className={`w-2 h-2 rounded-full ${dot}`} />
+                  {label} <span className="font-semibold text-foreground">{matched.length}</span>
+                </span>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+        </TabsContent>
+
+        <TabsContent value="operations" className="mt-0">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Kỹ thuật viên phụ trách */}
         <Card className="border border-border/80 shadow-xs">
@@ -1516,265 +1745,23 @@ export default function LockerLayoutPage() {
         </Card>
       </div>
 
-      <GatewayPanel
-        lockerId={id}
-        cellCount={cells.length}
-        highestBoxNumber={cells.reduce((max, c) => Math.max(max, c.boxNumber ?? 0), 0)}
-      />
+        </TabsContent>
 
-      <BluetoothTestPanel lockerId={id} />
+        <TabsContent value="devices" className="mt-0 space-y-4">
+          <GatewayPanel
+            lockerId={id}
+            cellCount={cells.length}
+            highestBoxNumber={cells.reduce((max, c) => Math.max(max, c.boxNumber ?? 0), 0)}
+          />
+          <BluetoothTestPanel lockerId={id} />
+          {/* Kiểm tra beacon Bluetooth của tủ và mở thử từng ô */}
+          <LockerBluetoothPanel lockerId={id} lockerCode={layout.code} cells={cells} />
+        </TabsContent>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.totalBoxes")}</p>
-            <p className="text-2xl font-bold">{cells.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.emptyBoxes")}</p>
-            <p className="text-2xl font-bold text-emerald-600">
-              {cells.filter((c) => c.status === "AVAILABLE").length}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.inUse")}</p>
-            <p className="text-2xl font-bold text-amber-600">
-              {cells.filter((c) => c.status === "OCCUPIED" || c.status === "RESERVED" || c.status === "IN_USE").length}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.faultyBoxes")}</p>
-            <p className="text-2xl font-bold text-destructive">
-              {cells.filter((c) => c.status === "FAULT").length}
-            </p>
-            {cells.some((c) => c.status === "PENDING_CHECK") && (
-              <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mt-0.5">
-                {t("admin.lockers.layout.kpi.pendingCheckBoxes")}: {cells.filter((c) => c.status === "PENDING_CHECK").length}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Cảnh báo cửa đang mở (đồng bộ Mobile) */}
-      {cells.some((c) => isDoorOpen(c)) && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200">
-          <div className="flex items-center gap-2.5">
-            <DoorOpen className="w-5 h-5 text-amber-600 animate-pulse shrink-0" />
-            <div>
-              <p className="text-xs font-bold">
-                {t("admin.lockers.layout.doorWarning.title", {
-                  count: cells.filter((c) => isDoorOpen(c)).length,
-                  boxes: cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(", "),
-                })}
-              </p>
-              <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
-                {t("admin.lockers.layout.doorWarning.desc")}
-              </p>
-            </div>
-          </div>
-          <Badge className="bg-amber-500 text-white font-bold text-xs px-2.5 py-0.5 animate-pulse border-0">
-            {t("admin.lockers.layout.doorWarning.badge")}
-          </Badge>
-        </div>
-      )}
-
-      <Card className="border border-border/80 shadow-xs overflow-hidden">
-        <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Plane className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-            {t("admin.lockers.layout.gridTitle")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 p-5">
-          {/* Cảnh báo ô lưu trùng hàng/cột: trên lưới các ô này vẽ đè lên nhau nên dễ bị bỏ sót */}
-          {overlapGroups.length > 0 && (
-            <div className="p-3.5 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div className="space-y-1 text-xs">
-                  <p className="font-semibold text-sm text-amber-900 dark:text-amber-200">
-                    {t("admin.lockers.layout.overlap.title")}
-                  </p>
-                  <p className="text-amber-800 dark:text-amber-300">
-                    {overlapGroups.some((g) => g.kiosk)
-                      ? t("admin.lockers.layout.overlap.bodyKiosk", { groups: overlapLabel })
-                      : t("admin.lockers.layout.overlap.body", { groups: overlapLabel })}
-                  </p>
-                </div>
-              </div>
-              {overlapGroups.some((g) => !g.kiosk) && (
-                <Button size="sm" variant="outline" onClick={openArrange} className="shrink-0 h-8 text-xs">
-                  <LayoutGrid className="w-3.5 h-3.5 mr-1.5" /> {t("admin.lockers.layout.autoArrange")}
-                </Button>
-              )}
-            </div>
-          )}
-          <div
-            className="grid gap-3.5 p-5 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border-2 border-slate-300/90 dark:border-slate-700 shadow-inner"
-            style={{
-              gridTemplateColumns: `repeat(${maxCols}, minmax(190px, 1fr))`,
-              gridTemplateRows: `repeat(${maxRows}, minmax(135px, auto))`,
-            }}
-          >
-            {/* Màn hình cảm ứng 7 inch (Waveshare 1024x600 HDMI/Touch) cố định ở hàng 1 cột 1 */}
-            <div
-              style={{ gridColumn: "1", gridRow: "1" }}
-              className="flex flex-col h-full shadow-xs transition-all hover:shadow-md"
-            >
-              <div
-                onClick={() => setShowScreenModal(true)}
-                className={`relative h-full rounded-xl border-2 p-3.5 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md cursor-pointer transition-all group ${
-                  isKioskScreenOnline
-                    ? "border-slate-700/80 hover:border-sky-500 bg-slate-950"
-                    : "border-slate-800 hover:border-rose-500/60 bg-slate-950/90"
-                }`}
-                title={
-                  isKioskScreenOnline
-                    ? t("admin.lockers.layout.screen.tooltipOnline")
-                    : t("admin.lockers.layout.screen.tooltipOffline")
-                }
-              >
-                {/* Gloss reflection overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none" />
-
-                {/* Screen Header */}
-                <div className="flex items-center justify-between z-10">
-                  <div className="flex items-center gap-1.5">
-                    <Monitor
-                      className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                        isKioskScreenOnline ? "text-sky-400" : "text-slate-400"
-                      }`}
-                    />
-                    <span className="font-bold text-sm text-white tracking-tight">{t("admin.lockers.layout.screen.name")}</span>
-                    <Badge className="bg-sky-950/80 border border-sky-500/50 text-sky-300 text-[10px] px-1.5 py-0 h-4 font-mono">
-                      1024×600
-                    </Badge>
-                  </div>
-                  {isKioskScreenOnline ? (
-                    <div className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-500/50" />
-                      <span className="text-[11px] font-semibold text-emerald-400">Online</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
-                      <span className="text-[11px] font-semibold text-rose-400">{t("common.disconnected")}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Screen Mockup Body */}
-                {isKioskScreenOnline ? (
-                  <div className="z-10 bg-slate-900/90 rounded-lg p-2 border border-slate-800 text-center space-y-0.5 my-1">
-                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-100">
-                      <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Lock.R Kiosk Touch UI
-                    </div>
-                    <p className="text-[10px] text-slate-400 font-mono">Waveshare HDMI LCD (C) · :3002</p>
-                  </div>
-                ) : (
-                  <div className="z-10 bg-slate-900/60 rounded-lg p-2 border border-rose-950/50 text-center space-y-0.5 my-1">
-                    <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> {t("admin.lockers.layout.screen.noPower")}
-                    </div>
-                    <p className="text-[10px] text-rose-400/80 font-mono">{t("admin.lockers.layout.screen.waitingPower")}</p>
-                  </div>
-                )}
-
-                {/* Screen Footer Action */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 z-10 text-[11px]">
-                  <span className={isKioskScreenOnline ? "text-slate-400" : "text-slate-500"}>
-                    {isKioskScreenOnline ? t("admin.lockers.layout.screen.touch5") : t("admin.lockers.layout.screen.notPowered")}
-                  </span>
-                  <span
-                    className={`font-medium inline-flex items-center gap-0.5 ${
-                      isKioskScreenOnline
-                        ? "text-sky-400 group-hover:text-sky-300"
-                        : "text-rose-400 group-hover:text-rose-300"
-                    }`}
-                  >
-                    {isKioskScreenOnline ? t("admin.lockers.layout.screen.data") : t("admin.lockers.layout.screen.specs")}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {cells.map((cell) => {
-              const gridStyle = getBoxGridStyle(cell, rowSpanOf(cell, occupied, maxRows));
-              return (
-                <div
-                  key={cell.id}
-                  style={gridStyle}
-                  className="flex flex-col h-full shadow-xs transition-all hover:shadow-md"
-                >
-                  <CellTile
-                    cell={cell}
-                    orders={ordersByBox.get(cell.id) ?? []}
-                    openReports={openReportsByBox.get(cell.id) ?? []}
-                    onAction={handleOpenAction}
-                    onEdit={handleOpenEdit}
-                    onShowQr={handleOpenQr}
-                    onShowOrders={setOrdersCell}
-                    busy={
-                      (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) &&
-                      pendingBox === cell.id
-                    }
-                  />
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-            <span
-              onClick={() => setShowScreenModal(true)}
-              className={`inline-flex items-center gap-1.5 font-semibold px-2.5 py-1 rounded-md border cursor-pointer transition-colors ${
-                isKioskScreenOnline
-                  ? "text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 border-sky-300 dark:border-sky-700 hover:bg-sky-100"
-                  : "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:bg-slate-200"
-              }`}
-            >
-              <Monitor className="w-3.5 h-3.5" /> {t("admin.lockers.layout.screen.name")} ({isKioskScreenOnline ? "Online" : t("common.disconnected")})
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-indigo-800 dark:text-indigo-300 bg-indigo-100/90 dark:bg-indigo-950/70 px-2.5 py-1 rounded-md border border-indigo-300 dark:border-indigo-700">
-              <Plane className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> {t("admin.lockers.layout.legend.drone", { boxes: cells.filter((c) => isDroneCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-cyan-800 dark:text-cyan-300 bg-cyan-100/90 dark:bg-cyan-950/70 px-2.5 py-1 rounded-md border border-cyan-300 dark:border-cyan-700">
-              <Luggage className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" /> {t("admin.lockers.layout.legend.xl", { boxes: cells.filter((c) => isXlCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 px-2.5 py-1 rounded-md border border-sky-300 dark:border-sky-700">
-              <span className="w-2 h-2 rounded-full bg-sky-500" /> {t("admin.lockers.layout.legend.available", { boxes: cells.filter((c) => c.status === 'AVAILABLE' && !isDroneCell(c)).map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-300 dark:border-amber-700">
-              <span className="w-2 h-2 rounded-full bg-amber-500" /> {t("admin.lockers.layout.legend.inUse", { boxes: cells.filter((c) => c.status === 'OCCUPIED' || c.status === 'IN_USE' || c.status === 'RESERVED').map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-1 rounded-md border border-rose-300 dark:border-rose-700">
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> {t("admin.lockers.layout.legend.fault", { boxes: cells.filter((c) => c.status === 'FAULT').map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-orange-800 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/50 px-2.5 py-1 rounded-md border border-orange-300 dark:border-orange-700">
-              <AlertTriangle className="w-3.5 h-3.5 text-orange-500" /> {t("admin.lockers.layout.legend.pendingCheck", { boxes: cells.filter((c) => c.status === 'PENDING_CHECK').map((c) => `#${c.boxNumber}`).join(', ') || t("admin.lockers.layout.legend.none") })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/80 px-2.5 py-1 rounded-md border border-amber-400">
-              <DoorOpen className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> {t("admin.lockers.layout.legend.doorsOpen", { boxes: cells.filter((c) => isDoorOpen(c)).map((c) => `#${c.boxNumber}`).join(', ') || '0' })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700">
-              <DoorClosed className="w-3.5 h-3.5 text-slate-500" /> {t("admin.lockers.layout.legend.doorsClosed", { count: cells.filter((c) => !isDoorOpen(c)).length })}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Kiểm tra beacon Bluetooth của tủ và mở thử từng ô */}
-      <LockerBluetoothPanel lockerId={id} lockerCode={layout.code} cells={cells} />
-
-      {/* 1) Xem nhật ký của tủ */}
-      <LockerLogsPanel lockerId={id} lockerCode={layout.code} cells={cells} gateway={currentGateway} />
+        <TabsContent value="logs" className="mt-0">
+          <LockerLogsPanel lockerId={id} lockerCode={layout.code} cells={cells} gateway={currentGateway} />
+        </TabsContent>
+      </Tabs>
 
       {/* Action Dialog (Replaces browser prompt/confirm) */}
       <Dialog
@@ -1802,13 +1789,14 @@ export default function LockerLayoutPage() {
           {actionDialog.requireReason && (
             <div className="space-y-2 py-2">
               <Label htmlFor="actionReason" className="text-xs font-semibold">
-                {t("admin.lockers.layout.action.reasonLabel")}
+                {actionDialog.type === "DELETE_BOX" ? t("common.deleteReason.label") : t("admin.lockers.layout.action.reasonLabel")}
               </Label>
               <Input
                 id="actionReason"
                 value={actionDialog.reason}
                 onChange={(e) => setActionDialog((prev) => ({ ...prev, reason: e.target.value }))}
-                placeholder={t("admin.lockers.layout.action.reasonPlaceholder")}
+                placeholder={actionDialog.type === "DELETE_BOX" ? t("common.deleteReason.placeholder") : t("admin.lockers.layout.action.reasonPlaceholder")}
+                maxLength={500}
                 className="text-xs h-9"
               />
             </div>
@@ -2266,59 +2254,16 @@ export default function LockerLayoutPage() {
       />
 
       {/* 5) Modal xác nhận Xóa tất cả ô tủ */}
-      <Dialog open={showDeleteAllBoxesModal} onOpenChange={setShowDeleteAllBoxesModal}>
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" />
-              {t("admin.lockers.layout.deleteAllBoxesTitle", "Xác nhận xóa tất cả ô tủ?")}
-            </DialogTitle>
-            <DialogDescription asChild>
-              <div className="space-y-2 pt-2 text-sm text-muted-foreground">
-                <p>
-                  {t(
-                    "admin.lockers.layout.deleteAllBoxesDesc",
-                    "Toàn bộ {{count}} ô tủ trong trạm này sẽ bị xóa. Thao tác này không thể hoàn tác.",
-                    { count: cells.length }
-                  )}
-                </p>
-                <div className="text-xs text-muted-foreground bg-muted/60 p-2.5 rounded-lg border">
-                  {t(
-                    "admin.lockers.layout.deleteAllBoxesWarning",
-                    "Lưu ý: Các ô đang chứa đồ hoặc đã được khách đặt chỗ (OCCUPIED / RESERVED) sẽ được bảo vệ và không bị xóa."
-                  )}
-                </div>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteAllBoxesModal(false)}
-              disabled={isDeletingAll}
-            >
-              {t("button.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteAllBoxes}
-              disabled={isDeletingAll}
-            >
-              {isDeletingAll ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  {t("common.deleting", "Đang xóa...")}
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {t("admin.lockers.layout.deleteAllBoxesConfirm", "Xác nhận xóa tất cả")}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteReasonDialog
+        open={showDeleteAllBoxesModal}
+        onOpenChange={setShowDeleteAllBoxesModal}
+        title={t("admin.lockers.layout.deleteAllBoxesTitle", "Xác nhận xóa tất cả ô tủ?")}
+        description={<p>{t("admin.lockers.layout.deleteAllBoxesDesc", { count: cells.length })}</p>}
+        note={t("admin.lockers.layout.deleteAllBoxesWarning")}
+        actionLabel={t("admin.lockers.layout.deleteAllBoxesConfirm", "Xác nhận xóa tất cả")}
+        loading={isDeletingAll}
+        onConfirm={(reason) => void handleDeleteAllBoxes(reason)}
+      />
 
       {/* 6) Modal chọn vị trí và toạ độ GPS chuẩn Grab / Xanh SM */}
       {staffLocker && (

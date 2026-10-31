@@ -125,7 +125,12 @@
     "location": "Location",
     "document": "Document",
     "disconnected": "Disconnected",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "deleteReason": {
+      "label": "Reason for deletion",
+      "placeholder": "Enter the reason so it is kept on record",
+      "softNote": "The record is only hidden from the interface; its data and this reason stay in the system."
+    }
   },
   "header": {
     "language": "Language",
@@ -330,7 +335,7 @@
         "deleteFailed": "Couldn't delete user",
         "wallet": "Wallet",
         "deleteTitle": "Delete user?",
-        "deleteDesc": "The profile of <b>{{name}}</b> will be deleted from user-service. This cannot be undone.",
+        "deleteDesc": "User <b>{{name}}</b> will be deleted and can no longer sign in.",
         "deleteHint": "To only block sign-in, turn off the active status instead of deleting.",
         "deleteAction": "Delete User"
       },
@@ -437,10 +442,87 @@
         "confirmSave": "Confirm Save",
         "removeAvatarTitle": "Remove profile photo?",
         "removeAvatarDesc": "The user's current profile photo will be removed and deleted from image storage.",
-        "removing": "Removing..."
+        "removing": "Removing...",
+        "birthday": "Date of birth",
+        "technicianProfile": "Technician profile",
+        "password": "Password",
+        "passwordSet": "Set",
+        "passwordNotSet": "Not set",
+        "lastLogin": "Last sign-in",
+        "termsTitle": "Terms of service",
+        "termsAccepted": "Accepted",
+        "termsNotAccepted": "Not accepted",
+        "termsAcceptedAt": "Accepted at",
+        "termsVersion": "Version",
+        "termsNotAcceptedHint": "The user has not accepted in the app yet. The app asks the next time it opens.",
+        "walletBalance": "Wallet balance",
+        "walletBalanceHint": "Current balance",
+        "loyaltyPoints": "Loyalty points",
+        "loyaltyPointsHint": "Points available"
       },
       "batchNoun": "users",
-      "batchNote": "Deleted accounts cannot sign in again and cannot be restored. ADMIN accounts and your own account cannot be selected."
+      "batchNote": "Deleted accounts can no longer sign in. Your own account cannot be selected.",
+      "stats": {
+        "total": "Total users",
+        "totalHint": "{{customers}} customers · {{staff}} staff",
+        "active": "Active",
+        "inactive": "Disabled",
+        "newThisMonth": "New this month",
+        "newThisMonthHint": "Accounts created since the 1st",
+        "emailVerified": "Email verified",
+        "termsAccepted": "Accepted terms",
+        "ofTotal": "{{percent}} of total"
+      },
+      "activity": {
+        "tabs": {
+          "orders": "Orders placed",
+          "received": "Orders received",
+          "payments": "Payments",
+          "refunds": "Refunds",
+          "wallet": "Wallet",
+          "loyalty": "Loyalty",
+          "feedback": "Feedback",
+          "reports": "Issue reports",
+          "notifications": "Notifications",
+          "assistant": "AI assistant"
+        },
+        "loadFailed": "Could not load this section",
+        "orderCode": "Order code",
+        "type": "Type",
+        "paymentStatus": "Payment",
+        "amount": "Amount",
+        "paymentCode": "Transaction",
+        "method": "Method",
+        "refundCode": "Refund",
+        "reason": "Reason",
+        "requestedAt": "Requested at",
+        "source": "Source",
+        "balanceAfter": "Balance after",
+        "description": "Description",
+        "feedbackCode": "Feedback",
+        "rating": "Rating",
+        "comment": "Comment",
+        "resolved": "Resolved",
+        "unresolved": "Pending",
+        "reportCode": "Ticket",
+        "reportTitle": "Title",
+        "locker": "Locker",
+        "box": "Box {{number}}",
+        "notificationTitle": "Title",
+        "notificationMessage": "Message",
+        "conversationCode": "Conversation",
+        "conversationTitle": "Topic",
+        "messageCount": "Messages",
+        "emptyOrders": "This user has not placed any orders",
+        "emptyReceived": "This user has not received any orders",
+        "emptyPayments": "No payments yet",
+        "emptyRefunds": "No refund requests",
+        "emptyWallet": "No wallet activity",
+        "emptyFeedback": "This user has not left any feedback",
+        "emptyReports": "This user has not reported any issues",
+        "emptyNotifications": "No notifications yet",
+        "emptyAssistant": "This user has not chatted with the assistant"
+      }
     },
     "orders": {
       "title": "Order Management",
@@ -988,12 +1070,12 @@
         "selectedCount": "{{count}} lockers selected",
         "deleteSelected": "Delete Selected",
         "deleteSelectedTitle": "Delete {{count}} selected lockers?",
-        "deleteSelectedDesc": "All selected lockers and their boxes without active orders will be permanently deleted. This action cannot be undone.",
+        "deleteSelectedDesc": "The selected lockers and their boxes will be deleted.",
         "deleteAllLockers": "Delete All Lockers",
         "deleteAllLockersTitle": "Delete ALL lockers?",
-        "deleteAllLockersDesc": "All {{total}} lockers and their boxes without active orders will be permanently wiped out. This action CANNOT be undone.",
+        "deleteAllLockersDesc": "All {{total}} lockers and their boxes will be deleted.",
         "deleteSingleTitle": "Delete locker {{code}}?",
-        "deleteSingleDesc": "Locker '{{name}}' ({{code}}) and all empty boxes inside will be permanently deleted. This action cannot be undone.",
+        "deleteSingleDesc": "Locker '{{name}}' ({{code}}) and its boxes will be deleted.",
         "hint": "Check boxes on the left to perform batch actions",
         "deleteLocker": "Delete Locker"
       },
@@ -1038,7 +1120,7 @@
         "updateFailed": "Couldn't update the box",
         "deleted": "Box #{{number}} removed from the locker",
         "deleteFailed": "Couldn't delete the box",
-        "deleteDesc": "This will permanently delete box #{{number}} (ID: {{id}}) from the locker layout. This action cannot be undone.",
+        "deleteDesc": "Box #{{number}} (ID: {{id}}) will be removed from the locker layout. Its data and the reason stay in the system.",
         "deleting": "Deleting...",
         "confirmDelete": "Confirm Delete",
         "title": "Edit Box #{{number}} Settings",
@@ -1288,7 +1370,7 @@
           "clearFaultDesc": "Closes the box's open incident report (if any) and returns the box to its status before the fault — a box still holding items goes back to \"Occupied\".",
           "clearFaultConfirm": "Restore Box",
           "deleteTitle": "Delete box #{{number}}?",
-          "deleteDesc": "Box #{{number}} will be removed from locker {{locker}}. The layout will sync to the technician app and the kiosk immediately. This action cannot be undone.",
+          "deleteDesc": "Box #{{number}} will be removed from locker {{locker}}. The layout updates at once in the technician app and the kiosk; its data and the reason stay in the system.",
           "deleteConfirm": "Delete Box",
           "unlocked": "Box #{{number}} unlocked",
           "openFailed": "Couldn't open box #{{number}}",
@@ -1317,7 +1399,7 @@
         "addBox": "Add Box",
         "deleteAllBoxes": "Delete All Boxes",
         "deleteAllBoxesTitle": "Delete all boxes?",
-        "deleteAllBoxesDesc": "All {{count}} boxes in this locker will be permanently deleted. This action cannot be undone.",
+        "deleteAllBoxesDesc": "All {{count}} boxes in this locker will be deleted.",
         "deleteAllBoxesWarning": "Note: Boxes currently holding parcels or reserved by customers (OCCUPIED / RESERVED) will be protected and not deleted.",
         "deleteAllBoxesConfirm": "Confirm Delete All",
         "deleteAllSuccess": "Successfully deleted {{count}} boxes!",
@@ -1367,6 +1449,12 @@
           "doorsOpen": "Doors open ({{boxes}})",
           "doorsClosed": "Doors closed ({{count}})",
           "pendingCheck": "Awaiting technician check ({{boxes}})"
+        },
+        "tabs": {
+          "grid": "Box layout",
+          "operations": "Technician & location",
+          "devices": "Devices",
+          "logs": "Logs"
         }
       },
       "boxType": {
@@ -2190,13 +2278,48 @@
         "average": "Avg. Points / Member",
         "median": "Median Points / Member",
         "transactions": "Total Points Transactions",
-        "pointsValue": "{{value}} points"
+        "pointsValue": "{{value}} points",
+        "averageHint": "{{points}} points ÷ {{members}} members",
+        "medianHint": "Points of the member in the middle of the list"
       },
       "thisMonth": "This Month",
       "month": {
         "issued": "Points Issued",
         "redeemed": "Points Redeemed",
         "newMembers": "New Members"
+      },
+      "list": {
+        "membersTitle": "Members",
+        "transactionsTitle": "Where the points come from",
+        "searchPlaceholder": "Search by name, email or phone…",
+        "hasPoints": "Holding points",
+        "member": "Member",
+        "tier": "Tier",
+        "points": "Points",
+        "lifetimePoints": "Lifetime points",
+        "redeemed": "Redeemed",
+        "transactions": "Transactions",
+        "joinedAt": "Joined",
+        "lastTransaction": "Last transaction",
+        "time": "Time",
+        "source": "Source",
+        "deletedUser": "Deleted",
+        "membersSummary": "{{count}} members · {{points}} points held",
+        "transactionsSummary": "{{count}} transactions · {{points}} points in total",
+        "bySource": "By source",
+        "byMember": "By member (top 20)",
+        "transactionCount": "{{count}} transactions",
+        "plusPoints": "Points added (+)",
+        "minusPoints": "Points deducted (−)",
+        "allOrderTypes": "All order types"
+      },
+      "period": {
+        "issued": "Points added in period",
+        "redeemed": "Points deducted in period",
+        "net": "Net change in period",
+        "hint": "Click to see each transaction",
+        "netHint": "Added minus deducted · click to see",
+        "inRange": "in period"
       }
     },
     "services": {
@@ -2778,10 +2901,10 @@
         },
         "renamed": "Drone code changed to {{code}}",
         "batteryRecorded": "Battery level {{percent}}% recorded for {{code}}",
-        "decommissioned": "Drone {{code}} decommissioned",
+        "decommissioned": "Drone {{code}} deleted",
         "renameFailed": "Could not change the drone code",
         "batteryFailed": "Could not update the battery level",
-        "decommissionFailed": "Could not decommission the drone",
+        "decommissionFailed": "Could not delete the drone",
         "renameTitle": "Change drone code?",
         "renameDescription": "Code <code>{{from}}</code> will change to <code>{{to}}</code>. The technician app and the flight device must use the new code afterwards.",
         "rename": "Change Code",
@@ -2789,20 +2912,19 @@
         "batteryDescription": "Set the battery level of <b>{{code}}</b> to <b>{{percent}}%</b>. The action is recorded in the operation log.",
         "batteryFullNote": "100% also records this moment as the last charge time.",
         "updateBattery": "Update Battery",
-        "decommissionTitle": "Decommission {{code}}?",
-        "decommissionDescription": "The drone is hidden from the operations list, its assigned technician is removed and it is set to maintenance status. Logs and flight history are kept.",
-        "decommissionWarning": "The admin web cannot reactivate it yet — only decommission when the drone is truly no longer used.",
-        "decommission": "Decommission",
-        "decommissionButton": "Decommission Drone",
-        "retiredTitle": "Drone decommissioned",
-        "retiredDescription": "The drone no longer appears in the operations list; this page is kept for history lookup only.",
+        "decommissionTitle": "Delete {{code}}?",
+        "decommissionDescription": "The drone leaves the operating list, its technician is removed and its controller is released. Logs and flight history are kept.",
+        "decommission": "Delete drone",
+        "decommissionButton": "Delete drone",
         "title": "Admin Actions",
         "activeMissionHint": "The drone is on a mission — only the battery can be recorded; code change and decommissioning are locked.",
         "hint": "Every action requires confirmation and is recorded in the operation log.",
         "batteryLabel": "Record battery level (0–100%)",
         "batteryPlaceholder": "E.g. 80",
         "batteryInvalid": "Enter a whole number from 0 to 100."
-      }
+      },
+      "batchNoun": "drones",
+      "batchNote": "Drones that are reserved or in flight cannot be deleted."
     },
     "droneIncidents": {
       "title": "Drone Parcel Drop Incidents",
@@ -4420,6 +4542,9 @@
         "targetStore": "Store: {{name}}",
         "targetCustomer": "Customer: {{name}}",
         "targetService": "Service: {{name}}"
+      },
+      "entries": {
+        "summary": "Total {{total}} · {{entries}} entries · {{orders}} orders"
       }
     },
     "flightControl": {

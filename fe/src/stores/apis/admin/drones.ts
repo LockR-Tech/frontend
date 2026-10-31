@@ -147,10 +147,12 @@ export const droneManagementApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
-    decommissionDrone: builder.mutation<ApiResponse<void>, number>({
-      query: (id) => ({
+    // Xoá mềm, bắt buộc có lý do.
+    decommissionDrone: builder.mutation<ApiResponse<void>, { id: number; reason: string }>({
+      query: ({ id, reason }) => ({
         url: `/api/admin/drones/${id}`,
         method: "DELETE",
+        params: { reason },
       }),
       invalidatesTags: [TAG],
     }),

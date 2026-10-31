@@ -12,6 +12,8 @@ import type {
   RevenueByServiceResponse,
   RevenueByStoreResponse,
   RevenueDailyResponse,
+  RevenueEntriesResponse,
+  RevenueEntryKind,
   RevenueSummaryResponse,
 } from "../../../types";
 import { toQueryParams } from "./reporting-params";
@@ -31,6 +33,18 @@ const TAGS = {
 
 export const revenueReportApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    /** Các khoản thu/hoàn đã cộng vào số trên thẻ doanh thu. */
+    getRevenueEntries: builder.query<
+      ReportEnvelope<RevenueEntriesResponse>,
+      DateRange & { kind: RevenueEntryKind }
+    >({
+      query: (params) => ({
+        url: ADMIN_ENDPOINTS.REVENUE_ENTRIES,
+        params: toQueryParams({ ...params }),
+      }),
+      providesTags: [TAGS.REVENUE],
+    }),
+
     /** KPI kỳ hiện tại, kỳ trước, % thay đổi và các mốc hôm nay / tuần / tháng (§ 3.2). */
     getRevenueSummary: builder.query<
       ReportEnvelope<RevenueSummaryResponse>,
@@ -133,6 +147,7 @@ export const revenueReportApi = baseApi.injectEndpoints({
 
 export const {
   useGetRevenueSummaryQuery,
+  useGetRevenueEntriesQuery,
   useGetRevenueDailyQuery,
   useGetRevenueByServiceQuery,
   useGetRevenueByMethodQuery,

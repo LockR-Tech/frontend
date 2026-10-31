@@ -31,6 +31,7 @@ const updateBoxStatusValidator = createValidator(UpdateBoxStatusRequestSchema);
 export interface BatchDeleteLockersRequest {
   lockerIds?: number[];
   deleteAll?: boolean;
+  reason: string;
 }
 
 export const lockerManagementApi = baseApi.injectEndpoints({
@@ -130,10 +131,12 @@ export const lockerManagementApi = baseApi.injectEndpoints({
       invalidatesTags: [TAGS.LOCKERS],
     }),
 
-    deleteLocker: builder.mutation<ApiResponse<void>, number>({
-      query: (id) => ({
+    // Xoá mềm, bắt buộc có lý do.
+    deleteLocker: builder.mutation<ApiResponse<void>, { id: number; reason: string }>({
+      query: ({ id, reason }) => ({
         url: ADMIN_ENDPOINTS.LOCKER_BY_ID(id),
         method: 'DELETE',
+        params: { reason },
       }),
       invalidatesTags: [TAGS.LOCKERS],
     }),
@@ -152,11 +155,12 @@ export const lockerManagementApi = baseApi.injectEndpoints({
 
     deleteAllLockers: builder.mutation<
       ApiResponse<{ deletedCount: number }>,
-      void
+      string
     >({
-      query: () => ({
-        url: `${ADMIN_ENDPOINTS.LOCKERS}?all=true`,
-        method: 'DELETE',
+      query: (reason) => ({
+        url: ADMIN_ENDPOINTS.LOCKERS_BATCH_DELETE,
+        method: 'POST',
+        body: { deleteAll: true, reason },
       }),
       invalidatesTags: [TAGS.LOCKERS],
     }),

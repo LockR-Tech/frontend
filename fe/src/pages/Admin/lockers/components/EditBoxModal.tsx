@@ -10,6 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -69,6 +70,7 @@ export function EditBoxModal({
   const [status, setStatus] = useState<string>("AVAILABLE");
   const [description, setDescription] = useState<string>("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
 
   useEffect(() => {
     if (cell) {
@@ -122,7 +124,7 @@ export function EditBoxModal({
 
   const handleDelete = async () => {
     try {
-      await deleteBox(cell.id).unwrap();
+      await deleteBox({ boxId: cell.id, reason: deleteReason.trim() }).unwrap();
       toast.success(t("admin.lockers.editBox.deleted", { number: cell.boxNumber }));
       setShowDeleteConfirm(false);
       onOpenChange(false);
@@ -146,6 +148,20 @@ export function EditBoxModal({
               </DialogDescription>
             </DialogHeader>
 
+            <div className="space-y-2">
+              <Label htmlFor="deleteBoxReason" className="text-xs font-semibold">
+                {t("common.deleteReason.label")} <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="deleteBoxReason"
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder={t("common.deleteReason.placeholder")}
+                maxLength={500}
+                rows={3}
+              />
+            </div>
+
             <DialogFooter className="gap-2 sm:gap-0 pt-4">
               <Button
                 type="button"
@@ -161,7 +177,7 @@ export function EditBoxModal({
                 variant="destructive"
                 size="sm"
                 onClick={handleDelete}
-                disabled={isDeleting}
+                disabled={isDeleting || deleteReason.trim() === ""}
               >
                 {isDeleting ? t("admin.lockers.editBox.deleting") : t("admin.lockers.editBox.confirmDelete")}
               </Button>

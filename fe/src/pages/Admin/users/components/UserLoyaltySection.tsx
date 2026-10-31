@@ -43,7 +43,7 @@ const TIER_META: Record<string, { labelKey: string; cls: string }> = {
 };
 
 // Mọi loại giao dịch loyalty-service ghi; loại lạ hiện nguyên mã.
-const TX_LABEL_KEY: Record<string, string> = {
+export const TX_LABEL_KEY: Record<string, string> = {
   ORDER_EARN: "admin.users.loyalty.txType.orderEarn",
   ORDER_REDEEM: "admin.users.loyalty.txType.orderRedeem",
   ORDER_REDEEM_REFUND: "admin.users.loyalty.txType.orderRedeemRefund",

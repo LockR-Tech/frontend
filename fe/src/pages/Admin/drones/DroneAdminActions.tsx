@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { BatteryCharging, Loader2, PencilLine, PowerOff, ShieldAlert } from "lucide-react";
+import { BatteryCharging, Loader2, PencilLine, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { DeleteReasonDialog } from "~/components/shared/data-table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -42,16 +44,15 @@ function errorMessage(error: unknown, fallback: string, t: TFunction) {
 
 type PendingAction =
   | { kind: "rename"; code: string }
-  | { kind: "battery"; percent: number }
-  | { kind: "decommission" };
+  | { kind: "battery"; percent: number };
 
 interface DroneAdminActionsProps {
   drone: DroneResponse;
-  /** Drone đang RESERVED/IN_FLIGHT: backend chặn đổi mã và ngừng hoạt động */
+  /** Drone đang RESERVED/IN_FLIGHT: backend chặn đổi mã và xoá */
   activeMission: boolean;
 }
 
-/** Thao tác quản trị trên một Drone: đổi mã, ghi nhận pin, ngừng hoạt động — đều qua hộp xác nhận. */
+/** Thao tác quản trị trên một Drone: đổi mã, ghi nhận pin, xoá — đều qua hộp xác nhận. */
 export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsProps) {
   const { t } = useTranslation();
   const [updateDrone, updateState] = useUpdateDroneMutation();
@@ -61,8 +62,9 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
   const [codeDraft, setCodeDraft] = useState<string | null>(null);
   const [batteryDraft, setBatteryDraft] = useState("");
   const [pending, setPending] = useState<PendingAction | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const retired = drone.active === false;
   const code = codeDraft ?? drone.code;
   const trimmedCode = code.trim();
   const codeChanged = trimmedCode !== "" && trimmedCode !== drone.code;
@@ -81,29 +83,37 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
         await updateDrone({ id: drone.id, code: pending.code }).unwrap();
         setCodeDraft(null);
         toast.success(t("admin.drones.actions.renamed", { code: pending.code }));
-      } else if (pending.kind === "battery") {
+      } else {
         await updateBattery({ id: drone.id, batteryPercent: pending.percent }).unwrap();
         setBatteryDraft("");
         toast.success(t("admin.drones.actions.batteryRecorded", { percent: pending.percent, code: drone.code }));
-      } else {
-        await decommission(drone.id).unwrap();
-        toast.success(t("admin.drones.actions.decommissioned", { code: drone.code }));
       }
       setPending(null);
     } catch (error) {
       const title =
         pending.kind === "rename"
           ? t("admin.drones.actions.renameFailed")
-          : pending.kind === "battery"
-            ? t("admin.drones.actions.batteryFailed")
-            : t("admin.drones.actions.decommissionFailed");
+          : t("admin.drones.actions.batteryFailed");
       toast.error(title, { description: errorMessage(error, t("common.pleaseRetry"), t) });
+    }
+  };
+
+  const confirmDelete = async (reason: string) => {
+    try {
+      await decommission({ id: drone.id, reason }).unwrap();
+      toast.success(t("admin.drones.actions.decommissioned", { code: drone.code }));
+      // Drone đã xoá không còn trang chi tiết.
+      navigate("/admin/drones");
+    } catch (error) {
+      toast.error(t("admin.drones.actions.decommissionFailed"), {
+        description: errorMessage(error, t("common.pleaseRetry"), t),
+      });
     }
   };
 
   const strong = <span className="font-semibold text-foreground" />;
   const mono = <span className="font-mono font-semibold text-foreground" />;
-  const dialog: { title: string; description: ReactNode; action: string; destructive?: boolean } | null =
+  const dialog: { title: string; description: ReactNode; action: string } | null =
     pending == null
       ? null
       : pending.kind === "rename"
@@ -121,55 +131,25 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
             ),
             action: t("admin.drones.actions.rename"),
           }
-        : pending.kind === "battery"
-          ? {
-              title: t("admin.drones.actions.batteryTitle"),
-              description: (
-                <>
-                  <p>
-                    <Trans
-                      t={t}
-                      i18nKey="admin.drones.actions.batteryDescription"
-                      values={{ code: drone.code, percent: pending.percent }}
-                      components={{ b: strong }}
-                    />
-                  </p>
-                  {pending.percent === 100 && (
-                    <p>{t("admin.drones.actions.batteryFullNote")}</p>
-                  )}
-                </>
-              ),
-              action: t("admin.drones.actions.updateBattery"),
-            }
-          : {
-              title: t("admin.drones.actions.decommissionTitle", { code: drone.code }),
-              description: (
-                <>
-                  <p>{t("admin.drones.actions.decommissionDescription")}</p>
-                  <p className="font-medium text-rose-700">
-                    {t("admin.drones.actions.decommissionWarning")}
-                  </p>
-                </>
-              ),
-              action: t("admin.drones.actions.decommission"),
-              destructive: true,
-            };
-
-  if (retired) {
-    return (
-      <Card className="border border-rose-200 bg-rose-50/60 shadow-xs">
-        <CardContent className="flex items-start gap-3 p-4 text-sm text-rose-800">
-          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-          <div>
-            <p className="font-semibold">{t("admin.drones.actions.retiredTitle")}</p>
-            <p className="text-xs">
-              {t("admin.drones.actions.retiredDescription")}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+        : {
+            title: t("admin.drones.actions.batteryTitle"),
+            description: (
+              <>
+                <p>
+                  <Trans
+                    t={t}
+                    i18nKey="admin.drones.actions.batteryDescription"
+                    values={{ code: drone.code, percent: pending.percent }}
+                    components={{ b: strong }}
+                  />
+                </p>
+                {pending.percent === 100 && (
+                  <p>{t("admin.drones.actions.batteryFullNote")}</p>
+                )}
+              </>
+            ),
+            action: t("admin.drones.actions.updateBattery"),
+          };
 
   return (
     <Card className="border border-border/80 shadow-xs">
@@ -244,7 +224,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
 
         <div className="space-y-1.5">
           <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <PowerOff className="h-3.5 w-3.5" />
+            <Trash2 className="h-3.5 w-3.5" />
             {t("admin.drones.actions.decommission")}
           </p>
           <Button
@@ -253,7 +233,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
             variant="outline"
             className="h-9 w-full border-rose-300 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
             disabled={activeMission || busy}
-            onClick={() => setPending({ kind: "decommission" })}
+            onClick={() => setDeleteOpen(true)}
           >
             {t("admin.drones.actions.decommissionButton")}
           </Button>
@@ -274,7 +254,6 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
             <Button
               onClick={() => void confirm()}
               disabled={busy}
-              className={dialog?.destructive ? "bg-rose-600 text-white hover:bg-rose-700" : undefined}
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
               {dialog?.action}
@@ -282,6 +261,16 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <DeleteReasonDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={t("admin.drones.actions.decommissionTitle", { code: drone.code })}
+        description={<p>{t("admin.drones.actions.decommissionDescription")}</p>}
+        actionLabel={t("admin.drones.actions.decommission")}
+        loading={decommissionState.isLoading}
+        onConfirm={(reason) => void confirmDelete(reason)}
+      />
     </Card>
   );
 }
