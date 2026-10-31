@@ -1,5 +1,22 @@
+import { useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { createColumnHelper } from "@tanstack/react-table";
 import { PageHeader } from "~/components/shared/page-header";
+import { DataTable } from "~/components/shared/data-table";
+import {
+  DateRangeFilter,
+  ReportStatCard,
+  defaultReportRange,
+  type DateRangeValue,
+} from "~/components/shared/reporting";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -12,16 +29,28 @@ import {
   Coins,
   Award,
   Activity,
+  Minus,
+  Plus,
+  Scale,
+  Receipt,
+  Search,
 } from "lucide-react";
-import { useGetLoyaltyStatisticsQuery } from "~/stores/apis/admin";
-import type { LoyaltyTier } from "~/types/admin/loyalty";
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-// Thiếu trường (backend cũ) thì hiện "—" chứ không vẽ số 0.
-function fmtNum(n?: number | null, digits = 0) {
-  if (n === null || n === undefined || !Number.isFinite(n)) return "—";
-  return n.toLocaleString("vi-VN", { maximumFractionDigits: digits });
-}
+import {
+  useGetAllUsersQuery,
+  useGetDeletedUsersQuery,
+  useGetLoyaltyMembersQuery,
+  useGetLoyaltyPeriodSummaryQuery,
+  useGetLoyaltyStatisticsQuery,
+} from "~/stores/apis/admin";
+import { extractList } from "~/lib/extract-list";
+import { formatDateTime } from "~/lib/datetime";
+import { LoyaltyTransactionsPanel } from "./components/LoyaltyTransactionsPanel";
+import { FilterChip, UserCell, fmtNum, type UserInfo } from "./components/loyalty-shared";
+import type {
+  LoyaltyMemberDTO,
+  LoyaltyTier,
+  LoyaltyTransactionScope,
+} from "~/types/admin/loyalty";
 
 const TIERS: LoyaltyTier[] = ["PLATINUM", "GOLD", "SILVER", "BRONZE"];
 
@@ -48,6 +77,29 @@ const TIER_META: Record<LoyaltyTier, { labelKey: string; cls: string; bar: strin
   },
 };
 
+type MemberSegment = "ALL" | "NEW" | "ACTIVE" | "OUTSTANDING" | LoyaltyTier;
+
+const SEGMENTS: { value: MemberSegment; labelKey: string }[] = [
+  { value: "ALL", labelKey: "common.all" },
+  { value: "NEW", labelKey: "admin.loyalty.stats.newThisMonth" },
+  { value: "ACTIVE", labelKey: "admin.loyalty.stats.active30d" },
+  { value: "OUTSTANDING", labelKey: "admin.loyalty.list.hasPoints" },
+  ...TIERS.map((tier) => ({ value: tier, labelKey: TIER_META[tier].labelKey })),
+];
+
+const SEGMENT_FILTER: Record<MemberSegment, (member: LoyaltyMemberDTO) => boolean> = {
+  ALL: () => true,
+  NEW: (member) => member.newThisMonth,
+  ACTIVE: (member) => member.active30Days,
+  OUTSTANDING: (member) => member.points > 0,
+  BRONZE: (member) => member.tier === "BRONZE",
+  SILVER: (member) => member.tier === "SILVER",
+  GOLD: (member) => member.tier === "GOLD",
+  PLATINUM: (member) => member.tier === "PLATINUM",
+};
+
+const MEMBER_PAGE_SIZE = 10;
+
 function StatCard({
   icon: Icon,
   label,
@@ -56,17 +108,25 @@ function StatCard({
   iconCls,
   bgCls,
   loading,
+  onClick,
 }: {
   icon: React.ElementType;
   label: string;
   value: string;
-  sub?: string;
+  sub?: React.ReactNode;
   iconCls: string;
   bgCls: string;
   loading?: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <Card className="border-0 shadow-sm">
+    <Card
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => e.key === "Enter" && onClick?.()}
+      className="cursor-pointer border-0 shadow-sm transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <div
@@ -81,7 +141,7 @@ function StatCard({
               <p className="text-xl font-bold text-foreground">{value}</p>
             )}
             <p className="text-sm text-muted-foreground">{label}</p>
-            {sub && !loading && <p className="text-xs text-muted-foreground/70">{sub}</p>}
+            {sub && !loading && <div className="mt-0.5 text-xs text-muted-foreground/70">{sub}</div>}
           </div>
         </div>
       </CardContent>
@@ -93,7 +153,7 @@ function MetricRows({
   rows,
   loading,
 }: {
-  rows: { label: string; value: string }[];
+  rows: { label: string; value: string; hint?: string; onClick: () => void }[];
   loading: boolean;
 }) {
   if (loading) {
@@ -107,14 +167,19 @@ function MetricRows({
   }
   return (
     <>
-      {rows.map(({ label, value }) => (
-        <div
+      {rows.map(({ label, value, hint, onClick }) => (
+        <button
           key={label}
-          className="flex items-center justify-between py-2 border-b border-border/20 last:border-0"
+          type="button"
+          onClick={onClick}
+          className="flex w-full items-center justify-between gap-3 border-b border-border/20 py-2 text-left last:border-0 hover:bg-muted/40"
         >
-          <span className="text-sm text-muted-foreground">{label}</span>
+          <span className="text-sm text-muted-foreground">
+            {label}
+            {hint && <span className="block text-xs text-muted-foreground/70">{hint}</span>}
+          </span>
           <span className="text-sm font-semibold text-foreground">{value}</span>
-        </div>
+        </button>
       ))}
     </>
   );
@@ -130,6 +195,145 @@ export default function LoyaltyPage() {
   const tierTotal = tiers
     ? Object.values(tiers).reduce((sum, n) => sum + (Number(n) || 0), 0)
     : 0;
+
+  const membersQuery = useGetLoyaltyMembersQuery();
+  const members = useMemo(() => membersQuery.data?.data ?? [], [membersQuery.data]);
+  const [segment, setSegment] = useState<MemberSegment>("ALL");
+  const [search, setSearch] = useState("");
+  const [memberPage, setMemberPage] = useState(0);
+
+  const [range, setRange] = useState<DateRangeValue>(defaultReportRange);
+  const { data: periodData, isLoading: isPeriodLoading } = useGetLoyaltyPeriodSummaryQuery(range, {
+    skip: !range.from || !range.to,
+  });
+  const period = periodData?.data;
+  // Đổi key ⇒ bảng giao dịch mở lại đúng bộ lọc của con số vừa bấm.
+  const [panelRequest, setPanelRequest] = useState<{
+    key: number;
+    scope: LoyaltyTransactionScope;
+    range: DateRangeValue;
+  }>({ key: 0, scope: "ALL", range });
+  const [selectedMember, setSelectedMember] = useState<{
+    member: LoyaltyMemberDTO;
+    scope: LoyaltyTransactionScope;
+  } | null>(null);
+
+  const membersRef = useRef<HTMLDivElement>(null);
+  const transactionsRef = useRef<HTMLDivElement>(null);
+
+  // Cùng tham số với các trang khác để dùng chung cache; người đã xoá lấy riêng để vẫn hiện được tên.
+  const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
+  const { data: deletedUsersData } = useGetDeletedUsersQuery();
+  const userById = useMemo(() => {
+    const map = new Map<number, UserInfo>();
+    for (const u of deletedUsersData?.data ?? []) {
+      map.set(u.id, { name: u.fullName, contact: u.email || u.phoneNumber || "", deleted: true });
+    }
+    for (const u of extractList<{ id: number; fullName?: string; name?: string; email?: string; phoneNumber?: string }>(usersData?.data)) {
+      map.set(u.id, {
+        name: (u.fullName || u.name || "").trim(),
+        contact: u.email || u.phoneNumber || "",
+        deleted: false,
+      });
+    }
+    return map;
+  }, [usersData, deletedUsersData]);
+
+  const showMembers = (next: MemberSegment) => {
+    setSegment(next);
+    setSearch("");
+    setMemberPage(0);
+    membersRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const showTransactions = (scope: LoyaltyTransactionScope, nextRange: DateRangeValue) => {
+    setPanelRequest((prev) => ({ key: prev.key + 1, scope, range: nextRange }));
+    transactionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const allTime: DateRangeValue = { from: "", to: "" };
+  const signedPoints = (member: LoyaltyMemberDTO, scope: LoyaltyTransactionScope, value: number) => (
+    <button
+      type="button"
+      onClick={() => setSelectedMember({ member, scope })}
+      className={`font-semibold hover:underline ${scope === "ISSUED" ? "text-emerald-600" : "text-rose-600"}`}
+    >
+      {scope === "ISSUED" ? "+" : "−"}
+      {fmtNum(value)}
+    </button>
+  );
+
+  const segmentMembers = useMemo(() => members.filter(SEGMENT_FILTER[segment]), [members, segment]);
+  const filteredMembers = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return segmentMembers;
+    return segmentMembers.filter((member) => {
+      const user = userById.get(member.userId);
+      return (
+        String(member.userId).includes(query) ||
+        user?.name.toLowerCase().includes(query) ||
+        user?.contact.toLowerCase().includes(query)
+      );
+    });
+  }, [segmentMembers, search, userById]);
+  const pagedMembers = filteredMembers.slice(memberPage * MEMBER_PAGE_SIZE, (memberPage + 1) * MEMBER_PAGE_SIZE);
+  const segmentPoints = filteredMembers.reduce((sum, member) => sum + member.points, 0);
+
+  const memberColumn = createColumnHelper<LoyaltyMemberDTO>();
+  const memberColumns = [
+    memberColumn.display({
+      id: "rank",
+      header: "#",
+      cell: ({ row }) => <span className="text-muted-foreground">{memberPage * MEMBER_PAGE_SIZE + row.index + 1}</span>,
+    }),
+    memberColumn.accessor("userId", {
+      header: t("admin.loyalty.list.member"),
+      cell: ({ row }) => <UserCell userId={row.original.userId} user={userById.get(row.original.userId)} />,
+    }),
+    memberColumn.accessor("tier", {
+      header: t("admin.loyalty.list.tier"),
+      cell: ({ row }) => {
+        const meta = TIER_META[row.original.tier];
+        return <Badge className={`text-xs ${meta?.cls ?? ""}`}>{meta ? t(meta.labelKey) : row.original.tier}</Badge>;
+      },
+    }),
+    memberColumn.accessor("points", {
+      header: t("admin.loyalty.list.points"),
+      cell: ({ row }) => <span className="font-semibold">{fmtNum(row.original.points)}</span>,
+    }),
+    memberColumn.accessor("lifetimePoints", {
+      header: t("admin.loyalty.list.lifetimePoints"),
+      cell: ({ row }) => fmtNum(row.original.lifetimePoints),
+    }),
+    memberColumn.accessor("pointsIssued", {
+      header: t("admin.loyalty.list.plusPoints"),
+      cell: ({ row }) => signedPoints(row.original, "ISSUED", row.original.pointsIssued),
+    }),
+    memberColumn.accessor("pointsRedeemed", {
+      header: t("admin.loyalty.list.minusPoints"),
+      cell: ({ row }) => signedPoints(row.original, "REDEEMED", row.original.pointsRedeemed),
+    }),
+    memberColumn.accessor("transactionCount", {
+      header: t("admin.loyalty.list.transactions"),
+      cell: ({ row }) => (
+        <button
+          type="button"
+          onClick={() => setSelectedMember({ member: row.original, scope: "ALL" })}
+          className="font-medium text-primary hover:underline"
+        >
+          {fmtNum(row.original.transactionCount)}
+        </button>
+      ),
+    }),
+    memberColumn.accessor("joinedAt", {
+      header: t("admin.loyalty.list.joinedAt"),
+      cell: ({ row }) => <span className="text-xs">{formatDateTime(row.original.joinedAt)}</span>,
+    }),
+    memberColumn.accessor("lastTransactionAt", {
+      header: t("admin.loyalty.list.lastTransaction"),
+      cell: ({ row }) => (
+        <span className="text-xs">{row.original.lastTransactionAt ? formatDateTime(row.original.lastTransactionAt) : "—"}</span>
+      ),
+    }),
+  ];
 
   return (
     <div className="space-y-6">
@@ -151,6 +355,47 @@ export default function LoyaltyPage() {
         </div>
       )}
 
+      {/* ── Điểm cộng/trừ trong kỳ ──────────────────────────────────────── */}
+      <DateRangeFilter value={range} onChange={setRange} />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <ReportStatCard
+          label={t("admin.loyalty.period.issued")}
+          value={`+${fmtNum(period?.current.issued)}`}
+          icon={Plus}
+          changePct={period?.issuedPct}
+          hint={t("admin.loyalty.period.hint")}
+          isLoading={isPeriodLoading}
+          onClick={() => showTransactions("ISSUED", range)}
+        />
+        <ReportStatCard
+          label={t("admin.loyalty.period.redeemed")}
+          value={`−${fmtNum(period?.current.redeemed)}`}
+          icon={Minus}
+          changePct={period?.redeemedPct}
+          hint={t("admin.loyalty.period.hint")}
+          isLoading={isPeriodLoading}
+          onClick={() => showTransactions("REDEEMED", range)}
+        />
+        <ReportStatCard
+          label={t("admin.loyalty.period.net")}
+          value={fmtNum(period?.current.net)}
+          icon={Scale}
+          changePct={period?.netPct}
+          hint={t("admin.loyalty.period.netHint")}
+          isLoading={isPeriodLoading}
+          onClick={() => showTransactions("ALL", range)}
+        />
+        <ReportStatCard
+          label={t("admin.loyalty.metrics.transactions")}
+          value={fmtNum(period?.current.transactions)}
+          icon={Receipt}
+          changePct={period?.transactionsPct}
+          hint={t("admin.loyalty.period.hint")}
+          isLoading={isPeriodLoading}
+          onClick={() => showTransactions("ALL", range)}
+        />
+      </div>
+
       {/* ── Overview KPI ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -160,6 +405,7 @@ export default function LoyaltyPage() {
           iconCls="text-blue-600"
           bgCls="bg-blue-50"
           loading={isLoading}
+          onClick={() => showMembers("ALL")}
         />
         <StatCard
           icon={UserPlus}
@@ -168,6 +414,7 @@ export default function LoyaltyPage() {
           iconCls="text-emerald-600"
           bgCls="bg-emerald-50"
           loading={isLoading}
+          onClick={() => showMembers("NEW")}
         />
         <StatCard
           icon={Activity}
@@ -176,14 +423,43 @@ export default function LoyaltyPage() {
           iconCls="text-green-600"
           bgCls="bg-green-50"
           loading={isLoading}
+          onClick={() => showMembers("ACTIVE")}
         />
         <StatCard
           icon={Coins}
           label={t("admin.loyalty.stats.outstanding")}
           value={fmtNum(s?.totalPointsOutstanding)}
+          sub={
+            period && (
+              <span className="flex flex-wrap gap-x-2">
+                <button
+                  type="button"
+                  className="font-semibold text-emerald-600 hover:underline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showTransactions("ISSUED", range);
+                  }}
+                >
+                  +{fmtNum(period.current.issued)}
+                </button>
+                <button
+                  type="button"
+                  className="font-semibold text-rose-600 hover:underline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showTransactions("REDEEMED", range);
+                  }}
+                >
+                  −{fmtNum(period.current.redeemed)}
+                </button>
+                <span>{t("admin.loyalty.period.inRange")}</span>
+              </span>
+            )
+          }
           iconCls="text-yellow-600"
           bgCls="bg-yellow-50"
           loading={isLoading}
+          onClick={() => showMembers("OUTSTANDING")}
         />
       </div>
 
@@ -207,7 +483,12 @@ export default function LoyaltyPage() {
                 const pct = tierTotal > 0 ? (count / tierTotal) * 100 : 0;
                 const meta = TIER_META[tier];
                 return (
-                  <div key={tier} className="flex items-center gap-3">
+                  <button
+                    key={tier}
+                    type="button"
+                    onClick={() => showMembers(tier)}
+                    className="flex w-full items-center gap-3 rounded-md p-1 text-left hover:bg-muted/40"
+                  >
                     <Badge className={`w-20 justify-center text-xs ${meta.cls}`}>
                       {t(meta.labelKey)}
                     </Badge>
@@ -223,7 +504,7 @@ export default function LoyaltyPage() {
                     <span className="text-xs text-muted-foreground/70 w-12">
                       {pct.toFixed(1)}%
                     </span>
-                  </div>
+                  </button>
                 );
               })
             )}
@@ -241,14 +522,27 @@ export default function LoyaltyPage() {
             <MetricRows
               loading={isLoading}
               rows={[
-                { label: t("admin.loyalty.metrics.issued"), value: fmtNum(s?.pointsIssued) },
-                { label: t("admin.loyalty.metrics.redeemed"), value: fmtNum(s?.pointsRedeemed) },
+                {
+                  label: t("admin.loyalty.metrics.issued"),
+                  value: fmtNum(s?.pointsIssued),
+                  onClick: () => showTransactions("ISSUED", allTime),
+                },
+                {
+                  label: t("admin.loyalty.metrics.redeemed"),
+                  value: fmtNum(s?.pointsRedeemed),
+                  onClick: () => showTransactions("REDEEMED", allTime),
+                },
                 {
                   label: t("admin.loyalty.metrics.average"),
                   value:
                     s?.averagePoints != null
                       ? t("admin.loyalty.metrics.pointsValue", { value: fmtNum(s.averagePoints, 2) })
                       : "—",
+                  hint: t("admin.loyalty.metrics.averageHint", {
+                    points: fmtNum(s?.totalPointsOutstanding),
+                    members: fmtNum(totalMembers),
+                  }),
+                  onClick: () => showMembers("ALL"),
                 },
                 {
                   label: t("admin.loyalty.metrics.median"),
@@ -256,8 +550,14 @@ export default function LoyaltyPage() {
                     s?.medianPoints != null
                       ? t("admin.loyalty.metrics.pointsValue", { value: fmtNum(s.medianPoints, 2) })
                       : "—",
+                  hint: t("admin.loyalty.metrics.medianHint"),
+                  onClick: () => showMembers("ALL"),
                 },
-                { label: t("admin.loyalty.metrics.transactions"), value: fmtNum(s?.transactions) },
+                {
+                  label: t("admin.loyalty.metrics.transactions"),
+                  value: fmtNum(s?.transactions),
+                  onClick: () => showTransactions("ALL", allTime),
+                },
               ]}
             />
           </CardContent>
@@ -274,18 +574,150 @@ export default function LoyaltyPage() {
             {isLoading
               ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)
               : [
-                  { label: t("admin.loyalty.month.issued"), value: fmtNum(s?.pointsIssuedThisMonth) },
-                  { label: t("admin.loyalty.month.redeemed"), value: fmtNum(s?.pointsRedeemedThisMonth) },
-                  { label: t("admin.loyalty.month.newMembers"), value: fmtNum(s?.newMembersThisMonth) },
-                ].map(({ label, value }) => (
-                  <div key={label} className="text-center p-2 bg-muted/30 rounded-lg">
+                  {
+                    label: t("admin.loyalty.month.issued"),
+                    value: fmtNum(s?.pointsIssuedThisMonth),
+                    onClick: () => showTransactions("ISSUED", defaultReportRange()),
+                  },
+                  {
+                    label: t("admin.loyalty.month.redeemed"),
+                    value: fmtNum(s?.pointsRedeemedThisMonth),
+                    onClick: () => showTransactions("REDEEMED", defaultReportRange()),
+                  },
+                  {
+                    label: t("admin.loyalty.month.newMembers"),
+                    value: fmtNum(s?.newMembersThisMonth),
+                    onClick: () => showMembers("NEW"),
+                  },
+                ].map(({ label, value, onClick }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={onClick}
+                    className="rounded-lg bg-muted/30 p-2 text-center hover:bg-muted/60"
+                  >
                     <p className="text-base font-bold text-foreground">{value}</p>
                     <p className="text-xs text-muted-foreground">{label}</p>
-                  </div>
+                  </button>
                 ))}
           </CardContent>
         </Card>
       </div>
+
+      {/* ── Danh sách thành viên sau các con số ─────────────────────────── */}
+      <div ref={membersRef} className="scroll-mt-20">
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="space-y-3 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <Users size={16} className="text-blue-500" /> {t("admin.loyalty.list.membersTitle")}
+              </CardTitle>
+              <div className="relative w-full sm:w-64">
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setMemberPage(0);
+                  }}
+                  placeholder={t("admin.loyalty.list.searchPlaceholder")}
+                  className="h-8 pl-8 text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {SEGMENTS.map(({ value, labelKey }) => (
+                <FilterChip
+                  key={value}
+                  active={segment === value}
+                  label={t(labelKey)}
+                  count={members.filter(SEGMENT_FILTER[value]).length}
+                  onClick={() => {
+                    setSegment(value);
+                    setMemberPage(0);
+                  }}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("admin.loyalty.list.membersSummary", {
+                count: filteredMembers.length,
+                points: fmtNum(segmentPoints),
+              })}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              columns={memberColumns as never}
+              data={pagedMembers}
+              isLoading={membersQuery.isLoading}
+              emptyMessage={t("common.noData")}
+              serverPagination={{
+                pageIndex: memberPage,
+                pageSize: MEMBER_PAGE_SIZE,
+                pageCount: Math.max(1, Math.ceil(filteredMembers.length / MEMBER_PAGE_SIZE)),
+                totalRows: filteredMembers.length,
+                onPageChange: setMemberPage,
+                onPageSizeChange: () => undefined,
+              }}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Giao dịch tạo nên số điểm ───────────────────────────────────── */}
+      <div ref={transactionsRef} className="scroll-mt-20">
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <Coins size={16} className="text-yellow-500" /> {t("admin.loyalty.list.transactionsTitle")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LoyaltyTransactionsPanel
+              key={panelRequest.key}
+              initialScope={panelRequest.scope}
+              initialRange={panelRequest.range}
+              userById={userById}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Từng đơn của một thành viên ─────────────────────────────────── */}
+      <Dialog open={selectedMember !== null} onOpenChange={(open) => !open && setSelectedMember(null)}>
+        <DialogContent className="flex max-h-[90vh] max-w-5xl flex-col">
+          {selectedMember && (
+            <>
+              <DialogHeader className="shrink-0">
+                <DialogTitle className="text-base font-bold">
+                  {userById.get(selectedMember.member.userId)?.name || `#${selectedMember.member.userId}`}
+                </DialogTitle>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span>
+                    {t("admin.loyalty.list.points")}:{" "}
+                    <span className="font-semibold text-foreground">{fmtNum(selectedMember.member.points)}</span>
+                  </span>
+                  <span>
+                    {t("admin.loyalty.list.lifetimePoints")}:{" "}
+                    <span className="font-semibold text-foreground">{fmtNum(selectedMember.member.lifetimePoints)}</span>
+                  </span>
+                  <span className="font-semibold text-emerald-600">+{fmtNum(selectedMember.member.pointsIssued)}</span>
+                  <span className="font-semibold text-rose-600">−{fmtNum(selectedMember.member.pointsRedeemed)}</span>
+                </div>
+              </DialogHeader>
+              <div className="flex-1 overflow-y-auto">
+                <LoyaltyTransactionsPanel
+                  key={`${selectedMember.member.userId}-${selectedMember.scope}`}
+                  userId={selectedMember.member.userId}
+                  initialScope={selectedMember.scope}
+                  userById={userById}
+                />
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

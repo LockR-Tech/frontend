@@ -63,3 +63,76 @@ export interface LoyaltyStatisticsDTO {
   pointsIssuedThisMonth?: number;
   pointsRedeemedThisMonth?: number;
 }
+
+// ─── GET /api/admin/loyalty/members — LoyaltyMemberResponse ──────────────────
+export interface LoyaltyMemberDTO {
+  userId: number;
+  points: number;
+  lifetimePoints: number;
+  stamps: number;
+  tier: LoyaltyTier;
+  joinedAt: string;
+  transactionCount: number;
+  pointsIssued: number;
+  pointsRedeemed: number;
+  lastTransactionAt: string | null;
+  newThisMonth: boolean;
+  active30Days: boolean;
+}
+
+// ─── GET /api/admin/loyalty/transactions — LoyaltyTransactionsResponse ───────
+export type LoyaltyTransactionScope = "ALL" | "ISSUED" | "REDEEMED";
+
+export interface LoyaltyTransactionsParams {
+  scope: LoyaltyTransactionScope;
+  userId?: number;
+  /** yyyy-MM-dd theo giờ Việt Nam. */
+  from?: string;
+  to?: string;
+  orderType?: string;
+  page: number;
+  size: number;
+}
+
+export interface LoyaltyTransactionRow extends PointTransactionDTO {
+  orderCode: string | null;
+  orderType: string | null;
+  /** Mã lần đổi voucher. */
+  reference: string | null;
+  amount: number | null;
+}
+
+export interface LoyaltyPeriodTotals {
+  issued: number;
+  redeemed: number;
+  net: number;
+  transactions: number;
+}
+
+// ─── GET /api/admin/loyalty/period-summary ───────────────────────────────────
+export interface LoyaltyPeriodSummaryDTO {
+  from: string;
+  to: string;
+  previousFrom: string;
+  previousTo: string;
+  current: LoyaltyPeriodTotals;
+  previous: LoyaltyPeriodTotals;
+  /** null khi kỳ trước bằng 0. */
+  issuedPct: number | null;
+  redeemedPct: number | null;
+  netPct: number | null;
+  transactionsPct: number | null;
+}
+
+export interface LoyaltyTransactionsDTO {
+  content: LoyaltyTransactionRow[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+  /** Với REDEEMED là số dương, khớp "Tổng điểm đã dùng". */
+  totalPoints: number;
+  byType: { type: string; transactions: number; points: number }[];
+  /** Tối đa 20 người có tổng điểm lớn nhất. */
+  topUsers: { userId: number; transactions: number; points: number }[];
+}

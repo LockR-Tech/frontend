@@ -114,6 +114,7 @@ export const ADMIN_ENDPOINTS = {
   // Báo cáo doanh thu theo tiền thực thu
   // (docs/01-overview/admin-reporting-api.md § 3 — KHÁC quy tắc cũ của ORDER_REVENUE)
   REVENUE_SUMMARY: `${ROOT_URI.ADMIN}/revenue/summary`,
+  REVENUE_ENTRIES: `${ROOT_URI.ADMIN}/revenue/entries`,
   REVENUE_DAILY: `${ROOT_URI.ADMIN}/revenue/daily`,
   REVENUE_BY_SERVICE: `${ROOT_URI.ADMIN}/revenue/by-service`,
   REVENUE_BY_METHOD: `${ROOT_URI.ADMIN}/revenue/by-method`,
@@ -139,6 +140,9 @@ export const ADMIN_ENDPOINTS = {
 
   // Loyalty Management (real endpoints only)
   LOYALTY_STATISTICS: `${ROOT_URI.ADMIN}/loyalty/statistics`,
+  LOYALTY_MEMBERS: `${ROOT_URI.ADMIN}/loyalty/members`,
+  LOYALTY_PERIOD_SUMMARY: `${ROOT_URI.ADMIN}/loyalty/period-summary`,
+  LOYALTY_TRANSACTIONS: `${ROOT_URI.ADMIN}/loyalty/transactions`,
   LOYALTY_USER_SUMMARY: (userId: number) =>
     `${ROOT_URI.ADMIN}/loyalty/users/${userId}`,
   LOYALTY_USER_ADJUST_POINTS: (userId: number) =>
