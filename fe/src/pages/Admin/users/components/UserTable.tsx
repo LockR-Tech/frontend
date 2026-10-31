@@ -16,7 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "~/components/shared/data-table";
+import { DataTable, DeleteReasonDialog } from "~/components/shared/data-table";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -37,7 +37,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { getRoleLabel } from "~/constants";
 import { useDeleteUserMutation, useUpdateUserStatusMutation } from "~/stores/apis/admin";
 import { formatDate, formatTime } from "~/lib/datetime";
-import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
+import { useAuth } from "~/context/auth-context";
 import type { AdminUserRow } from "../hooks/useUsers";
 import { WalletModal } from "./WalletModal";
 import { toast } from "sonner";
@@ -134,10 +134,12 @@ export function UserTable({
   const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
-  const handleDelete = async () => {
+  const { user: me } = useAuth();
+
+  const handleDelete = async (reason: string) => {
     if (!deleteTarget) return;
     try {
-      await deleteUser(deleteTarget.id).unwrap();
+      await deleteUser({ id: deleteTarget.id, reason }).unwrap();
       toast.success(t("admin.users.table.deleted"));
       setDeleteTarget(null);
     } catch (err) {
@@ -350,6 +352,7 @@ export function UserTable({
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer text-red-600 focus:text-red-600"
+              disabled={String(row.original.id) === me?.id}
               onClick={() => setDeleteTarget(row.original)}
             >
               <Trash2 className="mr-2 h-4 w-4" /> {t("button.delete")}
@@ -384,7 +387,7 @@ export function UserTable({
           userName={walletUser.name || walletUser.email}
         />
       )}
-      <ConfirmActionDialog
+      <DeleteReasonDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title={t("admin.users.table.deleteTitle")}
@@ -403,9 +406,8 @@ export function UserTable({
           </>
         }
         actionLabel={t("admin.users.table.deleteAction")}
-        destructive
         loading={isDeleting}
-        onConfirm={() => void handleDelete()}
+        onConfirm={(reason) => void handleDelete(reason)}
       />
     </>
   );

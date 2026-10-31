@@ -33,15 +33,12 @@ export default function UsersPage() {
     deleteOne,
   } = useUsers();
 
-  // Không cho tích tài khoản ADMIN và chính mình: xoá người dùng là vĩnh viễn.
+  // Không cho tích tài khoản của chính mình; admin khác xoá được.
   const { user: me } = useAuth();
-  const canSelect = useCallback(
-    (row: AdminUserRow) => !row.roles?.includes("ADMIN") && String(row.id) !== me?.id,
-    [me?.id],
-  );
+  const canSelect = useCallback((row: AdminUserRow) => String(row.id) !== me?.id, [me?.id]);
   const selection = useRowSelection(users, canSelect);
-  const deleteIds = async (ids: number[]) => {
-    const result = await deleteMany(ids, deleteOne);
+  const deleteIds = async (ids: number[], reason: string) => {
+    const result = await deleteMany(ids, (id) => deleteOne(id, reason));
     selection.remove(result.deleted);
     return result;
   };
@@ -81,8 +78,9 @@ export default function UsersPage() {
             noun={t("admin.users.batchNoun")}
             selectedCount={selection.selectedIds.length}
             onClearSelection={selection.clear}
-            onDeleteSelected={() => deleteIds(selection.selectedIds)}
+            onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
             note={t("admin.users.batchNote")}
+            requireReason
           />
 
           <UserTable

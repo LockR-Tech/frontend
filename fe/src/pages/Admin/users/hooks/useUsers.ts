@@ -152,7 +152,7 @@ export function useUsers() {
 
   return {
     users: pagedUsers,
-    deleteOne: (id: number) => deleteUser(id).unwrap(),
+    deleteOne: (id: number, reason: string) => deleteUser({ id, reason }).unwrap(),
     totalElements,
     totalPages,
     isLoading,
