@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -8,10 +8,18 @@ import {
   Mail,
   Phone,
   Calendar,
+  Cake,
+  Coins,
+  FileCheck2,
+  KeyRound,
+  LogIn,
   ShoppingBag,
   DollarSign,
   AlertCircle,
   Save,
+  ShieldCheck,
+  Wallet,
+  Wrench,
   X,
   Trash2,
 } from "lucide-react";
@@ -32,14 +40,18 @@ import {
 import { useUserDetail } from "./hooks/useUserDetail";
 import {
   useDeleteUserAvatarMutation,
+  useGetUserLoyaltySummaryQuery,
+  useGetUserWalletQuery,
   useUpdateUserAvatarMutation,
   useUpdateUserMutation,
 } from "~/stores/apis/admin";
-import { UserLoyaltySection } from "./components/UserLoyaltySection";
+import { UserActivityTabs } from "./components/UserActivityTabs";
+import { WalletModal } from "./components/WalletModal";
 import { ImageUploadButton } from "~/components/shared/media";
+import { ReportStatCard } from "~/components/shared/reporting";
 import { getRoleLabel } from "~/constants";
 import { getMediaErrorMessage, pickImageUrl } from "~/lib/media";
-import { formatDateTime } from "~/lib/datetime";
+import { formatDate, formatDateTime } from "~/lib/datetime";
 import { formatCurrency, formatDayLabel, formatNumber } from "~/lib/report-format";
 import { toReportError } from "~/lib/report-error";
 import { apiGet } from "~/utils/api";
@@ -65,6 +77,28 @@ const splitFullName = (fullName: string) => {
     : { firstName: trimmed.slice(0, idx), lastName: trimmed.slice(idx + 1) };
 };
 
+const TECHNICIAN_ROLES = ["DRONE_TECHNICIAN", "LOCKER_TECHNICIAN"];
+
+function AccountRow({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ElementType;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3 text-sm">
+      <span className="flex items-center gap-2 text-muted-foreground">
+        <Icon className="h-4 w-4 shrink-0" />
+        {label}
+      </span>
+      <span className="font-medium text-right">{children}</span>
+    </div>
+  );
+}
+
 export default function UserDetailPage() {
   const { t } = useTranslation();
   const { userId } = useParams<{ userId: string }>();
@@ -81,7 +115,10 @@ export default function UserDetailPage() {
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showWallet, setShowWallet] = useState(false);
   const [updateUser] = useUpdateUserMutation();
+  const wallet = useGetUserWalletQuery(numUserId, { skip: !numUserId });
+  const loyalty = useGetUserLoyaltySummaryQuery(numUserId, { skip: !numUserId });
   // Ảnh đại diện cập nhật tại chỗ sau PUT/DELETE …/avatar (không reload để giữ dữ liệu form)
   const [avatarOverride, setAvatarOverride] = useState<string | null | undefined>(undefined);
   const [showRemoveAvatar, setShowRemoveAvatar] = useState(false);
@@ -253,6 +290,20 @@ export default function UserDetailPage() {
               </Button>
             </>
           )}
+          {!isDirty && user.roles.some((role) => TECHNICIAN_ROLES.includes(role)) && (
+            <Button variant="outline" size="sm" className="gap-2" asChild>
+              <Link to={`/admin/technicians/${user.id}`}>
+                <Wrench className="h-4 w-4" />
+                {t("admin.users.detail.technicianProfile")}
+              </Link>
+            </Button>
+          )}
+          {!isDirty && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowWallet(true)}>
+              <Wallet className="h-4 w-4" />
+              {t("admin.users.table.wallet")}
+            </Button>
+          )}
           {!isDirty && user && (
             <Badge
               variant="outline"
@@ -373,6 +424,15 @@ export default function UserDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">
+                    <Cake className="inline h-4 w-4 mr-1" />
+                    {t("admin.users.detail.birthday")}
+                  </p>
+                  <p className="font-medium text-sm">
+                    {user.birthday ? formatDate(user.birthday) : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
                     {t("admin.users.detail.emailVerified")}
                   </p>
                   <p className="font-medium">
@@ -388,58 +448,6 @@ export default function UserDetailPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Activity & Stats — /api/admin/revenue/customers/{userId}, 12 tháng gần nhất */}
-          <div className="grid grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <ShoppingBag className="h-5 w-5" />
-                  {t("admin.users.detail.orders")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">
-                  {revenue.isLoading
-                    ? "…"
-                    : revenueError
-                      ? "—"
-                      : formatNumber(revenue.data?.orderCount)}
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {t("admin.users.detail.ordersRange", {
-                    from: formatDayLabel(revenue.range.from),
-                    to: formatDayLabel(revenue.range.to),
-                  })}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <DollarSign className="h-5 w-5" />
-                  {t("admin.users.detail.totalSpent")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-foreground">
-                  {revenue.isLoading
-                    ? "…"
-                    : revenueError
-                      ? "—"
-                      : formatCurrency(revenue.data?.totalSpent)}
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {t("admin.users.detail.totalSpentHint")}
-                </p>
-              </CardContent>
-            </Card>
-            {revenueError && (
-              <p className="col-span-2 text-xs text-destructive -mt-3">
-                {t("admin.users.detail.revenueLoadFailed", { message: revenueError.message })}
-              </p>
-            )}
-          </div>
         </div>
 
         {/* Right Column */}
@@ -448,59 +456,113 @@ export default function UserDetailPage() {
             <CardHeader>
               <CardTitle className="text-base">{t("admin.users.detail.accountInfo")}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">{t("common.status")}</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <span
-                    className={`relative inline-flex rounded-full h-2 w-2 ${
-                      user.enabled ? "bg-emerald-500" : "bg-muted-foreground/50"
-                    }`}
-                  ></span>
-                  <span className="font-medium text-sm">
-                    {user.enabled ? t("admin.users.status.active") : t("admin.users.detail.locked")}
-                  </span>
-                </div>
-              </div>
-              <div className="border-t border-border/60 pt-4">
-                <p className="text-sm text-muted-foreground">{t("admin.users.detail.userId")}</p>
-                <p className="font-mono text-sm font-medium mt-2 bg-secondary p-2 rounded-md border border-border/50">
-                  {user.id}
-                </p>
-              </div>
+            <CardContent className="space-y-3">
+              <AccountRow icon={ShieldCheck} label={t("common.status")}>
+                {user.enabled ? t("admin.users.status.active") : t("admin.users.detail.locked")}
+              </AccountRow>
+              <AccountRow icon={User} label={t("admin.users.detail.userId")}>
+                <span className="font-mono">{user.id}</span>
+              </AccountRow>
+              <AccountRow icon={KeyRound} label={t("admin.users.detail.password")}>
+                {user.hasPassword == null
+                  ? "—"
+                  : t(user.hasPassword ? "admin.users.detail.passwordSet" : "admin.users.detail.passwordNotSet")}
+              </AccountRow>
+              <AccountRow icon={LogIn} label={t("admin.users.detail.lastLogin")}>
+                {formatDateTime(user.lastLoginAt)}
+              </AccountRow>
+              <AccountRow icon={Calendar} label={t("common.createdAt")}>
+                {formatDateTime(user.createdAt)}
+              </AccountRow>
+              <AccountRow icon={Calendar} label={t("admin.users.detail.lastUpdated")}>
+                {formatDateTime(user.updatedAt)}
+              </AccountRow>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{t("admin.users.detail.history")}</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <FileCheck2 className="h-4 w-4" />
+                {t("admin.users.detail.termsTitle")}
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{t("common.createdAt")}</span>
-                </div>
-                <p className="font-medium text-sm mt-2">
-                  {formatDateTime(user.createdAt)}
-                </p>
-              </div>
-              <div className="border-t border-border/60 pt-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{t("admin.users.detail.lastUpdated")}</span>
-                </div>
-                <p className="font-medium text-sm mt-2">
-                  {formatDateTime(user.updatedAt)}
-                </p>
-              </div>
+            <CardContent className="space-y-3">
+              <Badge
+                variant="outline"
+                className={
+                  user.termsAccepted
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                    : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+                }
+              >
+                {t(user.termsAccepted ? "admin.users.detail.termsAccepted" : "admin.users.detail.termsNotAccepted")}
+              </Badge>
+              {user.termsAccepted ? (
+                <>
+                  <AccountRow icon={Calendar} label={t("admin.users.detail.termsAcceptedAt")}>
+                    {formatDateTime(user.termsAcceptedAt)}
+                  </AccountRow>
+                  <AccountRow icon={FileCheck2} label={t("admin.users.detail.termsVersion")}>
+                    {user.termsVersion ?? "—"}
+                  </AccountRow>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("admin.users.detail.termsNotAcceptedHint")}</p>
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Loyalty Section */}
-      <UserLoyaltySection userId={numUserId} />
+      {/* Số đơn/chi tiêu lấy từ /api/admin/revenue/customers/{userId}, 12 tháng gần nhất */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <ReportStatCard
+          label={t("admin.users.detail.orders")}
+          value={revenueError ? "—" : formatNumber(revenue.data?.orderCount)}
+          hint={t("admin.users.detail.ordersRange", {
+            from: formatDayLabel(revenue.range.from),
+            to: formatDayLabel(revenue.range.to),
+          })}
+          icon={ShoppingBag}
+          isLoading={revenue.isLoading}
+        />
+        <ReportStatCard
+          label={t("admin.users.detail.totalSpent")}
+          value={revenueError ? "—" : formatCurrency(revenue.data?.totalSpent)}
+          hint={t("admin.users.detail.totalSpentHint")}
+          icon={DollarSign}
+          isLoading={revenue.isLoading}
+        />
+        <ReportStatCard
+          label={t("admin.users.detail.walletBalance")}
+          value={wallet.isError ? "—" : formatCurrency(wallet.data?.data?.balance)}
+          hint={t("admin.users.detail.walletBalanceHint")}
+          icon={Wallet}
+          isLoading={wallet.isLoading}
+        />
+        <ReportStatCard
+          label={t("admin.users.detail.loyaltyPoints")}
+          value={loyalty.isError ? "—" : formatNumber(loyalty.data?.data?.points)}
+          hint={t("admin.users.detail.loyaltyPointsHint")}
+          icon={Coins}
+          isLoading={loyalty.isLoading}
+        />
+        {revenueError && (
+          <p className="col-span-full text-xs text-destructive">
+            {t("admin.users.detail.revenueLoadFailed", { message: revenueError.message })}
+          </p>
+        )}
+      </div>
+
+      <UserActivityTabs userId={numUserId} />
+
+      <WalletModal
+        open={showWallet}
+        onClose={() => setShowWallet(false)}
+        userId={numUserId}
+        userName={user.name || user.email}
+      />
 
       {/* Confirm Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>

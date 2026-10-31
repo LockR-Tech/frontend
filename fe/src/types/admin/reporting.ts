@@ -363,6 +363,8 @@ export interface AdminOrderSearchParams {
   from?: string;
   to?: string;
   userId?: number;
+  /** Đơn người này là người nhận (có tài khoản). */
+  receiverUserId?: number;
   lockerId?: number;
   storeId?: number;
   q?: string;

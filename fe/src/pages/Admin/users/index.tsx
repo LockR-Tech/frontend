@@ -7,6 +7,7 @@ import { BatchDeleteBar, TableToolbar, deleteMany, useRowSelection } from "~/com
 import { useAuth } from "~/context/auth-context";
 import { UserTable } from "./components/UserTable";
 import { UserFilters } from "./components/UserFilters";
+import { UserStats } from "./components/UserStats";
 import { CreateUserModal } from "./components/CreateUserModal";
 import { useUsers, type AdminUserRow } from "./hooks/useUsers";
 
@@ -21,6 +22,7 @@ export default function UsersPage() {
     searchQuery,
     setSearchQuery,
     statusCounts,
+    stats,
     refetch,
     clearFilters,
     hasActiveFilters,
@@ -49,6 +51,8 @@ export default function UsersPage() {
         title={t("admin.users.title")}
         description={t("admin.users.description")}
       />
+
+      <UserStats stats={stats} isLoading={isLoading} />
 
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6">

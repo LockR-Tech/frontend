@@ -26,6 +26,7 @@ export const feedbackManagementApi = baseApi.injectEndpoints({
         minRating?: number;
         maxRating?: number;
         isResolved?: boolean;
+        userId?: number;
       }
     >({
       query: ({
@@ -34,6 +35,7 @@ export const feedbackManagementApi = baseApi.injectEndpoints({
         minRating,
         maxRating,
         isResolved,
+        userId,
       } = {}) => ({
         url: ADMIN_ENDPOINTS.FEEDBACK,
         params: {
@@ -42,6 +44,7 @@ export const feedbackManagementApi = baseApi.injectEndpoints({
           ...(minRating !== undefined && { minRating }),
           ...(maxRating !== undefined && { maxRating }),
           ...(isResolved !== undefined && { isResolved }),
+          ...(userId !== undefined && { userId }),
         },
       }),
       providesTags: ["Notifications"],
