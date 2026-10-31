@@ -579,7 +579,18 @@
           "refunded": "Đã hoàn",
           "paymentCount": "Số lần thanh toán",
           "lastPaid": "Lần thu gần nhất",
-          "latestTransaction": "Giao dịch mới nhất (mọi trạng thái)"
+          "latestTransaction": "Giao dịch mới nhất (mọi trạng thái)",
+          "orderTotal": "Tổng tiền đơn",
+          "attempt": "Lần {{n}}",
+          "createdAt": "Tạo lúc",
+          "transferContent": "Nội dung chuyển khoản",
+          "refundNo": "Hoàn tiền #{{id}}",
+          "refundReason": "Lý do",
+          "refundRequestedAt": "Yêu cầu lúc",
+          "refundProcessedAt": "Hoàn tất lúc",
+          "transactions": "Các lần thanh toán",
+          "refunds": "Hoàn tiền",
+          "freeOrder": "Đơn không phát sinh giao dịch: tổng 0đ (miễn phí, đơn giao lại sau sự cố hoặc trả hết bằng điểm/voucher)."
         },
         "drone": {
           "title": "Chuyến bay drone",
@@ -645,11 +656,81 @@
           "deliveryAddress": "Địa chỉ giao",
           "nextAction": "Việc cần làm tiếp",
           "cancelReason": "Lý do huỷ",
-          "cancelReasonCode": "Mã {{code}}"
+          "cancelReasonCode": "Mã {{code}}",
+          "notDeclared": "Khách không khai báo kiện.",
+          "description": "Mô tả",
+          "category": "Loại hàng",
+          "weight": "Cân nặng",
+          "size": "Kích thước",
+          "fragile": "Hàng dễ vỡ",
+          "fragileYes": "Có — nhẹ tay",
+          "fragileNo": "Không",
+          "declaredValue": "Giá trị khai báo",
+          "prohibitedDeclared": "Cam kết không hàng cấm",
+          "services": "Dịch vụ"
         },
         "links": {
           "title": "Tóm tắt liên kết",
           "type": "Loại hình"
+        },
+        "view": {
+          "title": "Thông tin đơn",
+          "subtitle": "Đúng các dòng khách thấy ở màn \"Chi tiết đơn\" trên app.",
+          "createdAt": "Ngày đặt",
+          "rentalHours": "Thời gian thuê",
+          "deadline": "Hạn lấy / hạn thuê",
+          "intendedReceive": "Dự kiến người nhận lấy",
+          "droppedAt": "Bỏ kiện vào ô / KTV nhận kiện lúc",
+          "deliveryAddress": "Địa chỉ giao",
+          "overtimeFee": "Phí quá giờ tạm tính",
+          "overtimeRate": "Đơn giá quá giờ",
+          "perHour": "{{amount}}/giờ",
+          "accessBlock": "Mở ô bằng mã",
+          "block": {
+            "none": "Được mở",
+            "ORDER_UNPAID": "Chặn — đơn chưa thanh toán",
+            "RENTAL_EXPIRED": "Chặn — hết hạn thuê",
+            "RENTAL_UNPAID": "Chặn — chưa trả tiền thuê",
+            "OVERTIME_FEE_UNPAID": "Chặn — chưa nộp phí quá giờ",
+            "BOX_INCIDENT_OPEN": "Chặn — ô đang báo sự cố, chờ KTV"
+          },
+          "receiver": "Người nhận",
+          "delegate": "Ủy quyền lấy hộ cho",
+          "delegateNote": "Lời nhắn ủy quyền",
+          "delegatedAt": "Ủy quyền lúc",
+          "sourceLocker": "Gửi từ tủ (trạm bay)",
+          "routeDistance": "Quãng đường bay",
+          "incidents": "Sự cố",
+          "blocked": "Đang tạm dừng",
+          "failed": "Giao không hoàn tất",
+          "parcelReturned": "Đã trả kiện cho người gửi",
+          "boxIncident": "Ô báo sự cố từ",
+          "milestones": "Mốc thời gian khách thấy"
+        },
+        "code": {
+          "title": "Mã lấy hàng",
+          "holderDelegate": "Mã thuộc người được ủy quyền lấy hộ: {{name}}",
+          "holderRenter": "Khách thuê dùng mã này mở ô",
+          "holderReceiver": "Người nhận dùng mã này (PIN hoặc quét QR) tại tủ",
+          "usable": "Đang dùng được để mở ô",
+          "closed": "Đơn đã đóng — mã không còn mở được ô",
+          "blocked": "Tạm chưa mở được: {{reason}}",
+          "notYet": "Chưa dùng được — hàng chưa vào ô",
+          "qrNote": "Mã QR",
+          "qrSigned": "Đúng mã QR khách quét trên app",
+          "none": "Chưa phát mã mở ô cho đơn này.",
+          "homePickup": "Mã lấy hàng tận nơi (người gửi đọc cho KTV)",
+          "homePickupUsed": "Đã dùng — KTV đã nhận kiện hoặc đơn đã kết thúc"
+        }
+      },
+      "location": {
+        "source": {
+          "PICKUP_ADDRESS": "Điểm lấy hàng người gửi ghim",
+          "TECHNICIAN": "Vị trí KTV lúc đó",
+          "SOURCE_LOCKER": "Tại trạm/tủ gửi",
+          "DRONE": "Vị trí drone (GPS)",
+          "DRONE_SIMULATED": "Vị trí drone (mô phỏng)",
+          "DESTINATION_LOCKER": "Tại tủ nhận"
         }
       }
     },

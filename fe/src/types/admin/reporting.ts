@@ -193,6 +193,74 @@ export interface AdminOrderTimelineEntry {
   changedByName: string | null;
   note: string | null;
   createdAt: string;
+  /** Vị trí của kiện lúc ghi mốc (chỉ đơn drone); null ở mốc cũ hoặc khi không có số đo. */
+  latitude?: number | null;
+  longitude?: number | null;
+  /** PICKUP_ADDRESS | TECHNICIAN | SOURCE_LOCKER | DRONE | DRONE_SIMULATED | DESTINATION_LOCKER */
+  locationSource?: string | null;
+}
+
+/** Khai báo kiện như app khách thấy (`OrderParcelView`). */
+export interface CustomerOrderParcel {
+  description: string | null;
+  weightGrams: number | null;
+  actualWeight: number | null;
+  weightUnit: string | null;
+  lengthCm: number | null;
+  widthCm: number | null;
+  heightCm: number | null;
+  category: string | null;
+  declaredValue: number | null;
+  fragile: boolean | null;
+  prohibitedItemsDeclaredAt: string | null;
+}
+
+/**
+ * Đơn đúng như app khách nhận (`GET /api/orders/{id}`, admin được phép đọc) — chỉ các field trang chi
+ * tiết admin dùng để hiện giống màn "Chi tiết đơn" của khách.
+ */
+export interface CustomerOrderView {
+  id: number;
+  type: string;
+  status: string;
+  pinCode: string | null;
+  /** Token QR đã ký — đúng mã khách quét ở tủ. */
+  qrToken: string | null;
+  totalPrice: number | null;
+  receiverName: string | null;
+  receiverPhone: string | null;
+  receiverEmail: string | null;
+  customerNote: string | null;
+  deliveryAddress: string | null;
+  rentalDurationHours: number | null;
+  accessBlockReason: string | null;
+  pickupOvertimeFee: number | null;
+  paidAmount: number | null;
+  amountDue: number | null;
+  milestones: { code: string; label: string; occurredAt: string | null }[] | null;
+  parcel: CustomerOrderParcel | null;
+  paidAt: string | null;
+  dropOpenedAt: string | null;
+  intendedReceiveAt: string | null;
+  delegateName: string | null;
+  delegatePhone: string | null;
+  delegateNote: string | null;
+  delegatedAt: string | null;
+  sourceLockerId: number | null;
+  destinationLockerId: number | null;
+  routeDistanceMeters: number | null;
+  parcelDroppedAt: string | null;
+  parcelReturnedAt: string | null;
+  deliveryBlockReasonLabel: string | null;
+  deliveryBlockedAt: string | null;
+  failureReasonLabel: string | null;
+  failedAt: string | null;
+  pointsUsed: number | null;
+  pointsDiscount: number | null;
+  overtimeRatePerHour: number | null;
+  boxIncidentOpenedAt: string | null;
+  /** Mã khách đọc cho KTV khi lấy hàng tận nhà; chỉ có trước khi KTV cầm kiện. */
+  dronePickupCode: string | null;
 }
 
 /** Một dòng kiện hàng (`OrderDetailResponse`). `price` đã là thành tiền của cả dòng. */

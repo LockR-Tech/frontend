@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { MetaBadge, orderStatusMeta } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
 import type { AdminOrderTimelineEntry } from "~/types/admin/reporting";
+import { HistoryLocation } from "./HistoryLocation";
 
 interface OrderTimelineProps {
   /** `null` khi đang tải hoặc khi lấy từ danh sách (danh sách không trả timeline). */
@@ -58,6 +59,11 @@ export function OrderTimeline({ timeline }: OrderTimelineProps) {
             {entry.note && (
               <p className="text-xs text-foreground/80">{entry.note}</p>
             )}
+            <HistoryLocation
+              latitude={entry.latitude}
+              longitude={entry.longitude}
+              source={entry.locationSource}
+            />
           </div>
         </li>
       ))}

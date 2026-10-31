@@ -8,7 +8,7 @@ import { Coordinates } from "~/components/shared/Coordinates";
 import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency, formatNumber } from "~/lib/report-format";
 import type { DroneOrderTracking } from "~/stores/apis/admin/droneOrders";
-import type { AdminOrder } from "~/types/admin/reporting";
+import type { AdminOrder, CustomerOrderView } from "~/types/admin/reporting";
 import {
   CANCEL_REASON_LABELS,
   PARCEL_CATEGORY_LABELS,
@@ -105,7 +105,16 @@ export function DroneFeesCard({ drone }: { drone: DroneOrderTracking }) {
   );
 }
 
-export function DroneParcelCard({ order, drone }: { order: AdminOrder; drone: DroneOrderTracking }) {
+export function DroneParcelCard({
+  order,
+  drone,
+  view,
+}: {
+  order: AdminOrder;
+  drone: DroneOrderTracking;
+  /** Đơn như app khách thấy — ghi chú của khách và cam kết không hàng cấm. */
+  view?: CustomerOrderView | null;
+}) {
   const { t } = useTranslation();
   const category = drone.parcelCategory
     ? PARCEL_CATEGORY_LABELS[drone.parcelCategory]
@@ -162,6 +171,12 @@ export function DroneParcelCard({ order, drone }: { order: AdminOrder; drone: Dr
           {drone.description ?? order.description}
         </LabelValue>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <LabelValue label={t("admin.orders.detail.parcel.customerNote")}>
+            {view?.customerNote ?? order.customerNote}
+          </LabelValue>
+          <LabelValue label={t("admin.orders.detail.parcel.prohibitedDeclared")}>
+            {view?.parcel?.prohibitedItemsDeclaredAt ? formatDateTime(view.parcel.prohibitedItemsDeclaredAt) : null}
+          </LabelValue>
           <LabelValue label={t("admin.orders.detail.parcel.staffNote")}>{order.staffNote}</LabelValue>
           <LabelValue label={t("admin.orders.detail.parcel.cancelReason")}>
             {[cancelReason, drone.cancelNote].filter(Boolean).join(" · ") || null}

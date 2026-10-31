@@ -91,6 +91,8 @@ export const ADMIN_ENDPOINTS = {
   // (docs/01-overview/admin-reporting-api.md § 1)
   ORDERS_SEARCH: `${ROOT_URI.ADMIN}/orders/search`,
   ORDER_DETAIL: (id: number) => `${ROOT_URI.ADMIN}/orders/${id}/detail`,
+  /** Đơn đúng như app khách nhận — order-service cho ADMIN đọc mọi đơn. */
+  ORDER_CUSTOMER_VIEW: (id: number) => `/api/orders/${id}`,
 
   // Payments Management
   PAYMENTS: `${ROOT_URI.ADMIN}/payments`,
