@@ -464,14 +464,21 @@
       "batchNote": "Deleted accounts can no longer sign in. Your own account cannot be selected.",
       "stats": {
         "total": "Total users",
-        "totalHint": "{{customers}} customers · {{staff}} staff",
         "active": "Active",
         "inactive": "Disabled",
         "newThisMonth": "New this month",
         "newThisMonthHint": "Accounts created since the 1st",
         "emailVerified": "Email verified",
         "termsAccepted": "Accepted terms",
-        "ofTotal": "{{percent}} of total"
+        "ofTotal": "{{percent}} of total",
+        "customers": "{{value}} customers",
+        "staff": "{{value}} staff",
+        "segment": {
+          "customer": "Customers",
+          "staff": "Staff",
+          "showing": "Showing: {{label}} · {{count}} users",
+          "clear": "Show all"
+        }
       },
       "activity": {
         "tabs": {

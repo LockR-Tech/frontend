@@ -7,6 +7,22 @@ import type { AdminUserResponse } from "~/types";
 
 export type UserStatus = "ALL" | "ACTIVE" | "INACTIVE";
 
+/** Nhóm người dùng sau từng con số trên hàng thẻ thống kê. */
+export type UserSegment =
+  | "CUSTOMER"
+  | "STAFF"
+  | "ACTIVE"
+  | "INACTIVE"
+  | "NEW_THIS_MONTH"
+  | "EMAIL_VERIFIED"
+  | "TERMS_ACCEPTED";
+
+const isCustomer = (user: AdminUserRow) => user.roles.some((r) => r === "CUSTOMER" || r === "USER");
+
+function isUserSegment(value: string | null): value is UserSegment {
+  return value !== null && value in segmentFilters();
+}
+
 /**
  * Dòng bảng người dùng. Khác `AdminUserResponse` ở chỗ các trường backend có thể
  * không gửi (provider/emailVerified khi auth-service lỗi, createdAt/updatedAt ở bản cũ)
@@ -81,20 +97,34 @@ export function mapUser(u: BackendUserSummary): AdminUserRow {
   };
 }
 
-/** Số liệu cho hàng thẻ thống kê — tính trên toàn bộ người dùng, không theo bộ lọc. */
-export function computeUserStats(users: AdminUserRow[]) {
+/** Thẻ và danh sách dùng chung điều kiện này nên số trên thẻ luôn khớp số dòng khi bấm vào. */
+function segmentFilters(): Record<UserSegment, (user: AdminUserRow) => boolean> {
   // "dd/MM/yyyy" giờ Việt Nam ⇒ bỏ ngày còn tháng/năm.
   const thisMonth = formatDate(new Date()).slice(3);
-  const customers = users.filter((u) => u.roles.some((r) => r === "CUSTOMER" || r === "USER")).length;
+  return {
+    CUSTOMER: isCustomer,
+    STAFF: (user) => !isCustomer(user),
+    ACTIVE: (user) => user.enabled,
+    INACTIVE: (user) => !user.enabled,
+    NEW_THIS_MONTH: (user) => Boolean(user.createdAt) && formatDate(user.createdAt).slice(3) === thisMonth,
+    EMAIL_VERIFIED: (user) => user.emailVerified === true,
+    TERMS_ACCEPTED: (user) => user.termsAccepted,
+  };
+}
+
+/** Số liệu cho hàng thẻ thống kê — tính trên toàn bộ người dùng, không theo bộ lọc. */
+export function computeUserStats(users: AdminUserRow[]) {
+  const filters = segmentFilters();
+  const count = (segment: UserSegment) => users.filter(filters[segment]).length;
   return {
     total: users.length,
-    customers,
-    staff: users.length - customers,
-    active: users.filter((u) => u.enabled).length,
-    inactive: users.filter((u) => !u.enabled).length,
-    newThisMonth: users.filter((u) => u.createdAt && formatDate(u.createdAt).slice(3) === thisMonth).length,
-    emailVerified: users.filter((u) => u.emailVerified === true).length,
-    termsAccepted: users.filter((u) => u.termsAccepted).length,
+    customers: count("CUSTOMER"),
+    staff: count("STAFF"),
+    active: count("ACTIVE"),
+    inactive: count("INACTIVE"),
+    newThisMonth: count("NEW_THIS_MONTH"),
+    emailVerified: count("EMAIL_VERIFIED"),
+    termsAccepted: count("TERMS_ACCEPTED"),
   };
 }
 
@@ -107,6 +137,9 @@ export function useUsers() {
   const [urlParams, setUrlParams] = useSearchParams();
   const page = Math.max(0, Number(urlParams.get("page") ?? "0") || 0);
   const pageSize = Math.max(1, Number(urlParams.get("size") ?? "10") || 10);
+  // Giữ trên URL để xem chi tiết xong bấm quay lại vẫn đúng danh sách đang lọc.
+  const segmentParam = urlParams.get("segment");
+  const segment = isUserSegment(segmentParam) ? segmentParam : null;
   const setPage = (newPage: number) =>
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(newPage)); return next; });
   const setPageSize = (newSize: number) =>
@@ -116,6 +149,17 @@ export function useUsers() {
   const setStatus = (value: UserStatus) => {
     setStatusState(value);
     setPage(0);
+  };
+  const setSegment = (value: UserSegment | null) => {
+    setStatusState("ALL");
+    setSearchQueryState("");
+    setUrlParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value) next.set("segment", value);
+      else next.delete("segment");
+      next.set("page", "0");
+      return next;
+    });
   };
   const setSearchQuery = (value: string) => {
     setSearchQueryState(value);
@@ -136,7 +180,7 @@ export function useUsers() {
   }, [apiData]);
 
   const filteredUsers = useMemo(() => {
-    let result = users;
+    let result = segment ? users.filter(segmentFilters()[segment]) : users;
 
     if (status !== "ALL") {
       result = result.filter((user) => (status === "ACTIVE" ? user.enabled : !user.enabled));
@@ -154,7 +198,7 @@ export function useUsers() {
     }
 
     return result;
-  }, [users, status, searchQuery]);
+  }, [users, segment, status, searchQuery]);
 
   // Phân trang tại client sau khi lọc.
   const totalElements = filteredUsers.length;
@@ -183,12 +227,10 @@ export function useUsers() {
   const stats = useMemo(() => computeUserStats(users), [users]);
 
   const clearFilters = () => {
-    setStatusState("ALL");
-    setSearchQueryState("");
-    setPage(0);
+    setSegment(null);
   };
 
-  const hasActiveFilters = status !== "ALL" || searchQuery !== "";
+  const hasActiveFilters = status !== "ALL" || searchQuery !== "" || segment !== null;
 
   return {
     users: pagedUsers,
@@ -199,6 +241,8 @@ export function useUsers() {
     error,
     status,
     setStatus,
+    segment,
+    setSegment,
     searchQuery,
     setSearchQuery,
     page,

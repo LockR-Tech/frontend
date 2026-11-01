@@ -2,15 +2,36 @@ import { FileCheck2, MailCheck, UserCheck, UserPlus, UserX, Users } from "lucide
 import { useTranslation } from "react-i18next";
 import { ReportStatCard } from "~/components/shared/reporting";
 import { formatNumber, formatPercent } from "~/lib/report-format";
-import type { computeUserStats } from "../hooks/useUsers";
+import type { UserSegment, computeUserStats } from "../hooks/useUsers";
 
 interface UserStatsProps {
   stats: ReturnType<typeof computeUserStats>;
   isLoading: boolean;
+  segment: UserSegment | null;
+  /// Bấm thẻ để xem những người tạo nên con số; null = tất cả.
+  onSelect: (segment: UserSegment | null) => void;
 }
 
-export function UserStats({ stats, isLoading }: UserStatsProps) {
+const SELECTED_CARD = "ring-2 ring-primary";
+
+export function UserStats({ stats, isLoading, segment, onSelect }: UserStatsProps) {
   const { t } = useTranslation();
+  const selectable = (value: UserSegment) => ({
+    onClick: () => onSelect(value),
+    className: segment === value ? SELECTED_CARD : undefined,
+  });
+  const hintLink = (value: UserSegment, label: string) => (
+    <button
+      type="button"
+      className={`hover:underline ${segment === value ? "font-semibold text-foreground" : ""}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(value);
+      }}
+    >
+      {label}
+    </button>
+  );
   const ofTotal = (count: number) =>
     t("admin.users.stats.ofTotal", {
       percent: formatPercent(stats.total > 0 ? (count * 100) / stats.total : 0),
@@ -21,12 +42,16 @@ export function UserStats({ stats, isLoading }: UserStatsProps) {
       <ReportStatCard
         label={t("admin.users.stats.total")}
         value={formatNumber(stats.total)}
-        hint={t("admin.users.stats.totalHint", {
-          customers: formatNumber(stats.customers),
-          staff: formatNumber(stats.staff),
-        })}
+        hint={
+          <>
+            {hintLink("CUSTOMER", t("admin.users.stats.customers", { count: stats.customers, value: formatNumber(stats.customers) }))}
+            {" · "}
+            {hintLink("STAFF", t("admin.users.stats.staff", { count: stats.staff, value: formatNumber(stats.staff) }))}
+          </>
+        }
         icon={Users}
         isLoading={isLoading}
+        onClick={() => onSelect(null)}
       />
       <ReportStatCard
         label={t("admin.users.stats.active")}
@@ -34,6 +59,7 @@ export function UserStats({ stats, isLoading }: UserStatsProps) {
         hint={ofTotal(stats.active)}
         icon={UserCheck}
         isLoading={isLoading}
+        {...selectable("ACTIVE")}
       />
       <ReportStatCard
         label={t("admin.users.stats.inactive")}
@@ -41,6 +67,7 @@ export function UserStats({ stats, isLoading }: UserStatsProps) {
         hint={ofTotal(stats.inactive)}
         icon={UserX}
         isLoading={isLoading}
+        {...selectable("INACTIVE")}
       />
       <ReportStatCard
         label={t("admin.users.stats.newThisMonth")}
@@ -48,6 +75,7 @@ export function UserStats({ stats, isLoading }: UserStatsProps) {
         hint={t("admin.users.stats.newThisMonthHint")}
         icon={UserPlus}
         isLoading={isLoading}
+        {...selectable("NEW_THIS_MONTH")}
       />
       <ReportStatCard
         label={t("admin.users.stats.emailVerified")}
@@ -55,6 +83,7 @@ export function UserStats({ stats, isLoading }: UserStatsProps) {
         hint={ofTotal(stats.emailVerified)}
         icon={MailCheck}
         isLoading={isLoading}
+        {...selectable("EMAIL_VERIFIED")}
       />
       <ReportStatCard
         label={t("admin.users.stats.termsAccepted")}
@@ -62,6 +91,7 @@ export function UserStats({ stats, isLoading }: UserStatsProps) {
         hint={ofTotal(stats.termsAccepted)}
         icon={FileCheck2}
         isLoading={isLoading}
+        {...selectable("TERMS_ACCEPTED")}
       />
     </div>
   );
