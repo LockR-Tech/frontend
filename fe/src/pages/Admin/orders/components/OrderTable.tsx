@@ -240,6 +240,7 @@ export function OrderTable({
       data={orders}
       isLoading={isLoading}
       emptyMessage={t("admin.orders.table.empty")}
+      onRowClick={(order) => navigate(`/admin/orders/${order.id}`)}
       serverPagination={{
         pageIndex: page,
         pageSize,

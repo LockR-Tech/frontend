@@ -464,14 +464,21 @@
       "batchNote": "Tài khoản bị xoá không đăng nhập lại được. Không chọn được tài khoản của chính bạn.",
       "stats": {
         "total": "Tổng người dùng",
-        "totalHint": "{{customers}} khách hàng · {{staff}} nhân sự",
         "active": "Đang hoạt động",
         "inactive": "Đã vô hiệu",
         "newThisMonth": "Mới trong tháng",
         "newThisMonthHint": "Tài khoản tạo từ đầu tháng này",
         "emailVerified": "Đã xác thực email",
         "termsAccepted": "Đã đồng ý điều khoản",
-        "ofTotal": "{{percent}} tổng số"
+        "ofTotal": "{{percent}} tổng số",
+        "customers": "{{value}} khách hàng",
+        "staff": "{{value}} nhân sự",
+        "segment": {
+          "customer": "Khách hàng",
+          "staff": "Nhân sự",
+          "showing": "Đang xem: {{label}} · {{count}} người dùng",
+          "clear": "Xem tất cả"
+        }
       },
       "activity": {
         "tabs": {
