@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, RotateCcw, TrendingUp } from "lucide-react";
@@ -14,6 +14,10 @@ import { PaymentStats } from "./components/PaymentStats";
 import { PaymentDetailModal } from "./components/PaymentDetailModal";
 import { WalletTransactionTab } from "./components/WalletTransactionTab";
 import { WithdrawalTab } from "./components/WithdrawalTab";
+import {
+  RevenueEntriesModal,
+  type RevenueEntriesTarget,
+} from "../revenue/components/RevenueEntriesModal";
 import { usePayments } from "./hooks/usePayments";
 import { formatNumber } from "~/lib/report-format";
 
@@ -31,6 +35,7 @@ export default function PaymentsPage() {
     statsError,
     statsRange,
     setStatsRange,
+    showInTable,
     filters,
     setFilter,
     setDateRange,
@@ -46,6 +51,15 @@ export default function PaymentsPage() {
   const { t } = useTranslation();
 
   const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
+  const [entriesTarget, setEntriesTarget] = useState<RevenueEntriesTarget | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  // Tô sáng thẻ khi bảng đang lọc đúng khoảng ngày và đúng một giá trị của thẻ đó.
+  const matchesStatsRange = filters.from === statsRange.from && filters.to === statsRange.to;
+  const selectedStat =
+    tab === "payments" && matchesStatsRange && filters.status.length <= 1 && filters.method.length <= 1
+      ? { status: filters.status[0], method: filters.method[0] }
+      : null;
 
   return (
     <div className="space-y-6">
@@ -78,9 +92,15 @@ export default function PaymentsPage() {
         range={statsRange}
         onRangeChange={setStatsRange}
         onRetry={refetch}
+        selected={selectedStat}
+        onSelect={(filter) => {
+          showInTable(filter);
+          tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+        onShowEntries={(kind, label) => setEntriesTarget({ kind, label, range: statsRange })}
       />
 
-      <Card className="border-0 shadow-sm">
+      <Card ref={tableRef} className="scroll-mt-20 border-0 shadow-sm">
         <CardContent className="p-6">
           <Tabs value={tab} onValueChange={value => {
             const next = new URLSearchParams(searchParams);
@@ -146,6 +166,8 @@ export default function PaymentsPage() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <RevenueEntriesModal target={entriesTarget} onClose={() => setEntriesTarget(null)} />
 
       <PaymentDetailModal
         paymentId={selectedPaymentId}

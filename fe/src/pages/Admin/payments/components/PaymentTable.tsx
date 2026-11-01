@@ -218,6 +218,7 @@ export function PaymentTable({
 
   return (
     <DataTable
+      onRowClick={(payment) => onViewDetail(payment.id)}
       columns={columns}
       data={payments}
       isLoading={isLoading}

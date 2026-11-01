@@ -112,6 +112,22 @@ export function usePayments() {
     [patchParams],
   );
 
+  // Bấm thẻ thống kê: bảng giao dịch lọc đúng khoảng ngày của thẻ. /stats và bảng cùng tính theo
+  // createdAt nên số dòng khớp số trên thẻ.
+  const showInTable = useCallback(
+    ({ status, method }: { status?: string; method?: string }) =>
+      patchParams({
+        from: statsRange.from,
+        to: statsRange.to,
+        status: status ?? "",
+        method: method ?? "",
+        kind: "",
+        q: "",
+        tab: "",
+      }),
+    [patchParams, statsRange],
+  );
+
   const setPage = useCallback(
     (newPage: number) => patchParams({ page: newPage }, false),
     [patchParams],
@@ -184,6 +200,7 @@ export function usePayments() {
     statsError,
     statsRange,
     setStatsRange,
+    showInTable,
     filters,
     setFilter,
     setDateRange,

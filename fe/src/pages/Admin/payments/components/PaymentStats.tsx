@@ -34,7 +34,15 @@ interface PaymentStatsProps {
   range: { from: string; to: string };
   onRangeChange: (range: { from: string; to: string }) => void;
   onRetry: () => void;
+  /// Thẻ/hàng ứng với bộ lọc đang áp cho bảng giao dịch, để tô sáng.
+  selected: { status?: string; method?: string } | null;
+  /// Bấm để bảng giao dịch hiện những giao dịch tạo nên con số.
+  onSelect: (filter: { status?: string; method?: string }) => void;
+  /// Thẻ tiền hoàn và thực thu không phải danh sách giao dịch, mở hộp các khoản.
+  onShowEntries: (kind: "REFUNDS" | "NET", label: string) => void;
 }
+
+const SELECTED_CARD = "ring-2 ring-primary";
 
 /**
  * Thẻ tổng quan giao dịch. Mọi mức thay đổi lấy từ `changes` của backend (kỳ hiện tại
@@ -47,10 +55,18 @@ export function PaymentStats({
   range,
   onRangeChange,
   onRetry,
+  selected,
+  onSelect,
+  onShowEntries,
 }: PaymentStatsProps) {
   const { t } = useTranslation();
   const current = stats?.current;
   const changes = stats?.changes;
+  const isSelected = (status?: string) => selected !== null && !selected.method && selected.status === status;
+  const statusCard = (status?: string) => ({
+    onClick: () => onSelect({ status }),
+    className: isSelected(status) ? SELECTED_CARD : undefined,
+  });
 
   return (
     <div className="space-y-3">
@@ -83,6 +99,7 @@ export function PaymentStats({
             icon={CreditCard}
             changePct={changes?.totalCountPct}
             isLoading={isLoading}
+            {...statusCard()}
           />
           <ReportStatCard
             label={t("common.success")}
@@ -91,6 +108,7 @@ export function PaymentStats({
             icon={CheckCircle}
             changePct={changes?.completedCountPct}
             isLoading={isLoading}
+            {...statusCard("COMPLETED")}
           />
           <ReportStatCard
             label={t("admin.payments.stats.pending")}
@@ -98,6 +116,7 @@ export function PaymentStats({
             hint={formatCurrency(current?.pendingAmount)}
             icon={Clock}
             isLoading={isLoading}
+            {...statusCard("PENDING")}
           />
           <ReportStatCard
             label={t("common.failed")}
@@ -105,6 +124,7 @@ export function PaymentStats({
             hint={formatCurrency(current?.failedAmount)}
             icon={AlertCircle}
             isLoading={isLoading}
+            {...statusCard("FAILED")}
           />
           <ReportStatCard
             label={t("admin.payments.stats.successRate")}
@@ -114,6 +134,7 @@ export function PaymentStats({
             changePct={changes?.successRatePoints}
             changeLabel={formatPercentPoints(changes?.successRatePoints)}
             isLoading={isLoading}
+            onClick={() => onSelect({ status: "COMPLETED" })}
           />
           <ReportStatCard
             label={t("admin.payments.refunds")}
@@ -125,6 +146,7 @@ export function PaymentStats({
             changePct={changes?.refundAmountPct}
             invertChangeColor
             isLoading={isLoading}
+            onClick={() => onShowEntries("REFUNDS", t("admin.payments.refunds"))}
           />
           <ReportStatCard
             label={t("admin.payments.stats.netCollected")}
@@ -133,6 +155,7 @@ export function PaymentStats({
             icon={Wallet}
             changePct={changes?.netCollectedAmountPct}
             isLoading={isLoading}
+            onClick={() => onShowEntries("NET", t("admin.payments.stats.netCollected"))}
           />
         </div>
       )}
@@ -144,12 +167,16 @@ export function PaymentStats({
             rows={current.byStatus}
             icon={CreditCard}
             formatKey={(key) => paymentStatusMeta(key).label}
+            selectedKey={selected?.method ? undefined : selected?.status}
+            onSelect={(status) => onSelect({ status })}
           />
           <StatsBreakdown
             title={t("admin.payments.stats.byMethod")}
             rows={current.byMethod}
             icon={PiggyBank}
             formatKey={(key) => paymentMethodMeta(key).label}
+            selectedKey={selected?.method}
+            onSelect={(method) => onSelect({ method })}
           />
         </div>
       )}
@@ -162,12 +189,16 @@ function StatsBreakdown({
   rows,
   icon: Icon,
   formatKey,
+  selectedKey,
+  onSelect,
 }: {
   title: string;
   rows: { key: string; count: number; amount: number; completedAmount: number }[];
   icon: React.ElementType;
   /** Đổi mã enum backend sang nhãn tiếng Việt. */
   formatKey: (key: string) => string;
+  selectedKey?: string;
+  onSelect: (key: string) => void;
 }) {
   const { t } = useTranslation();
   if (rows.length === 0) return null;
@@ -181,7 +212,14 @@ function StatsBreakdown({
       </p>
       <div className="space-y-2.5">
         {rows.map((row) => (
-          <div key={row.key} className="space-y-1">
+          <button
+            key={row.key}
+            type="button"
+            onClick={() => onSelect(row.key)}
+            className={`block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50 ${
+              selectedKey === row.key ? "bg-muted" : ""
+            }`}
+          >
             <div className="flex items-center justify-between gap-2 text-xs">
               <span className="font-medium text-foreground truncate" title={row.key}>
                 {formatKey(row.key)}
@@ -204,7 +242,7 @@ function StatsBreakdown({
                 amount: formatCurrency(row.completedAmount),
               })}
             </p>
-          </div>
+          </button>
         ))}
       </div>
     </div>
