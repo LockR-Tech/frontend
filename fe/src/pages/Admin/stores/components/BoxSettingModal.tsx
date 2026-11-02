@@ -113,7 +113,7 @@ export function BoxSettingModal({
 
   const handleSaveStatus = async () => {
     if (holdsOrder) {
-      toast.error("Không thể thay đổi trạng thái khi ô đang có hàng hoặc giữ chỗ");
+      toast.error(t("admin.stores.boxSettingUi.holdsOrderError"));
       return;
     }
     if (status === box.status) {
@@ -123,7 +123,7 @@ export function BoxSettingModal({
     setSaving(true);
     try {
       await apiPut(`/api/admin/lockers/boxes/${box.id}/status`, { status });
-      toast.success(`Đã cập nhật trạng thái ô #${box.boxNumber}`);
+      toast.success(t("admin.stores.boxSettingUi.statusUpdated", { number: box.boxNumber }));
       onRefresh();
       onClose();
     } catch (err: any) {
@@ -184,10 +184,12 @@ export function BoxSettingModal({
                 <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <div className="text-xs space-y-1">
                   <p className="font-semibold">
-                    {isOccupied ? "Ô đang chứa hàng của đơn hàng" : "Ô đang được giữ chỗ cho đơn hàng"}
+                    {isOccupied
+                      ? t("admin.stores.boxSettingUi.occupiedTitle")
+                      : t("admin.stores.boxSettingUi.reservedTitle")}
                   </p>
                   <p className="text-muted-foreground leading-relaxed">
-                    Trạng thái ô được quản lý tự động bởi luồng đơn hàng và phiếu xử lý sự cố. Không thể đổi trạng thái thủ công khi ô đang có hàng.
+                    {t("admin.stores.boxSettingUi.autoManaged")}
                   </p>
                 </div>
               </div>

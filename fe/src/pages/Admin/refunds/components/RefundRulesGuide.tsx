@@ -41,103 +41,103 @@ export function RefundRulesGuide() {
   const scenarios: ScenarioItem[] = [
     {
       id: "locker-fault",
-      title: "1. Sự cố ô tủ Lock.R (Kẹt cửa, hỏng chốt, mất nguồn/mạng)",
+      title: t("admin.refunds.page.guide.scenarios.lockerFault.title"),
       icon: Box,
       color: "text-amber-600 bg-amber-500/10 border-amber-200 dark:border-amber-900/50",
-      badge: "Sự cố phần cứng",
-      refundRate: "100% Cước phí đơn",
+      badge: t("admin.refunds.page.guide.scenarios.lockerFault.badge"),
+      refundRate: t("admin.refunds.page.guide.scenarios.lockerFault.refundRate"),
       conditions: [
-        "Khách không thể mở tủ để cất đồ hoặc lấy đồ do sự cố tủ.",
-        "KTV xác nhận ô tủ gặp lỗi chốt, mất kết nối BLE/MQTT hoặc cúp điện kéo dài > 30 phút.",
-        "Không có ô trống khác cùng kích cỡ để điều chuyển ô tự động.",
+        t("admin.refunds.page.guide.scenarios.lockerFault.conditions.c1"),
+        t("admin.refunds.page.guide.scenarios.lockerFault.conditions.c2"),
+        t("admin.refunds.page.guide.scenarios.lockerFault.conditions.c3"),
       ],
       evidence: [
-        "Phiếu báo cáo sự cố của KTV (Maintenance Report ID).",
-        "Nhật ký lệnh mở tủ thất bại trên hệ thống IoT/Locker.",
+        t("admin.refunds.page.guide.scenarios.lockerFault.evidence.e1"),
+        t("admin.refunds.page.guide.scenarios.lockerFault.evidence.e2"),
       ],
       adminCheck: [
-        "Đối chiếu mã đơn hàng và số ô tủ trên báo cáo sự cố.",
-        "Xác nhận khách chưa lấy được hàng hoặc giao dịch bị gián đoạn hoàn toàn.",
+        t("admin.refunds.page.guide.scenarios.lockerFault.adminCheck.a1"),
+        t("admin.refunds.page.guide.scenarios.lockerFault.adminCheck.a2"),
       ],
     },
     {
       id: "drone-fault",
-      title: "2. Sự cố giao hàng Drone (Rơi đồ, hủy chuyến bay, giao trễ)",
+      title: t("admin.refunds.page.guide.scenarios.droneFault.title"),
       icon: Plane,
       color: "text-sky-600 bg-sky-500/10 border-sky-200 dark:border-sky-900/50",
-      badge: "Sự cố Drone",
-      refundRate: "100% Cước phí + Bồi thường",
+      badge: t("admin.refunds.page.guide.scenarios.droneFault.badge"),
+      refundRate: t("admin.refunds.page.guide.scenarios.droneFault.refundRate"),
       conditions: [
-        "Drone phải hạ cánh khẩn cấp hoặc hủy bay do thời tiết xấu/mưa bão.",
-        "Drone gặp sự cố rơi kiện hàng hoặc kiện hàng bị va đập hư hỏng.",
-        "Giao trễ vượt quá thời gian cam kết của hệ thống Drone delivery.",
+        t("admin.refunds.page.guide.scenarios.droneFault.conditions.c1"),
+        t("admin.refunds.page.guide.scenarios.droneFault.conditions.c2"),
+        t("admin.refunds.page.guide.scenarios.droneFault.conditions.c3"),
       ],
       evidence: [
-        "Mã chuyến bay Drone, tọa độ và thời gian xảy ra sự cố.",
-        "Ảnh chụp snapshot camera Drone hoặc biên bản KTV thu hồi kiện hàng.",
+        t("admin.refunds.page.guide.scenarios.droneFault.evidence.e1"),
+        t("admin.refunds.page.guide.scenarios.droneFault.evidence.e2"),
       ],
       adminCheck: [
-        "Kiểm tra trạng thái đơn Drone (DROPPED, CANCELLED, TIMED_OUT).",
-        "Nếu hàng hóa bị hỏng, kiểm tra mức đền bù theo quy định bảo hiểm vận chuyển.",
+        t("admin.refunds.page.guide.scenarios.droneFault.adminCheck.a1"),
+        t("admin.refunds.page.guide.scenarios.droneFault.adminCheck.a2"),
       ],
     },
     {
       id: "user-cancel",
-      title: "3. Khách hàng huỷ đơn hợp lệ trước khi sử dụng",
+      title: t("admin.refunds.page.guide.scenarios.userCancel.title"),
       icon: RotateCcw,
       color: "text-emerald-600 bg-emerald-500/10 border-emerald-200 dark:border-emerald-900/50",
-      badge: "Huỷ đơn tự nguyện",
-      refundRate: "100% (theo điều kiện)",
+      badge: t("admin.refunds.page.guide.scenarios.userCancel.badge"),
+      refundRate: t("admin.refunds.page.guide.scenarios.userCancel.refundRate"),
       conditions: [
-        "Khách đã thanh toán nhưng chưa đặt đồ vào tủ (chưa phát sinh sự kiện ITEM_PLACED).",
-        `Yêu cầu huỷ và hoàn tiền trong vòng ${refundMaxDays} ngày kể từ khi thanh toán thành công.`,
-        "Với đơn thuê tủ dài ngày: chưa hết hạn và chưa nhận bàn giao ô.",
+        t("admin.refunds.page.guide.scenarios.userCancel.conditions.c1"),
+        t("admin.refunds.page.guide.scenarios.userCancel.conditions.c2", { days: refundMaxDays }),
+        t("admin.refunds.page.guide.scenarios.userCancel.conditions.c3"),
       ],
       evidence: [
-        "Lịch sử trạng thái đơn hàng (Order Timeline): không có lượt mở tủ cất đồ.",
-        "Thời gian thanh toán hợp lệ (không vượt quá thời hạn cấu hình refundMaxDays).",
+        t("admin.refunds.page.guide.scenarios.userCancel.evidence.e1"),
+        t("admin.refunds.page.guide.scenarios.userCancel.evidence.e2"),
       ],
       adminCheck: [
-        "Xác nhận ô tủ vẫn đang trống và mã PIN chưa từng được sử dụng để cất đồ.",
+        t("admin.refunds.page.guide.scenarios.userCancel.adminCheck.a1"),
       ],
     },
     {
       id: "double-pay",
-      title: "4. Lỗi cổng thanh toán / Trừ tiền 2 lần (Double Billing)",
+      title: t("admin.refunds.page.guide.scenarios.doublePay.title"),
       icon: CreditCard,
       color: "text-purple-600 bg-purple-500/10 border-purple-200 dark:border-purple-900/50",
-      badge: "Lỗi thanh toán",
-      refundRate: "100% Số tiền trừ trùng",
+      badge: t("admin.refunds.page.guide.scenarios.doublePay.badge"),
+      refundRate: t("admin.refunds.page.guide.scenarios.doublePay.refundRate"),
       conditions: [
-        "Khách hàng bị trừ tiền 2 lần cho cùng một mã đơn hoặc dịch vụ phát sinh.",
-        "Ngân hàng đã trừ tiền nhưng cổng SePay phản hồi timeout hoặc lỗi mạng.",
+        t("admin.refunds.page.guide.scenarios.doublePay.conditions.c1"),
+        t("admin.refunds.page.guide.scenarios.doublePay.conditions.c2"),
       ],
       evidence: [
-        "Sao kê giao dịch ngân hàng / biên lai trừ tiền có mã đối chiếu trùng khớp.",
-        "Bảng PaymentRecord trên hệ thống hiển thị nhiều giao dịch cho cùng orderId.",
+        t("admin.refunds.page.guide.scenarios.doublePay.evidence.e1"),
+        t("admin.refunds.page.guide.scenarios.doublePay.evidence.e2"),
       ],
       adminCheck: [
-        "So sánh referenceId và referenceTransactionId giữa các lượt thanh toán.",
-        "Chỉ hoàn khoản tiền bị trừ thừa/trùng lặp, giữ lại khoản thanh toán chính thức.",
+        t("admin.refunds.page.guide.scenarios.doublePay.adminCheck.a1"),
+        t("admin.refunds.page.guide.scenarios.doublePay.adminCheck.a2"),
       ],
     },
     {
       id: "laundry-fault",
-      title: "5. Sự cố dịch vụ Giặt ủi (Mất đồ, hỏng đồ, tiệm từ chối)",
+      title: t("admin.refunds.page.guide.scenarios.laundryFault.title"),
       icon: Shirt,
       color: "text-rose-600 bg-rose-500/10 border-rose-200 dark:border-rose-900/50",
-      badge: "Dịch vụ giặt ủi",
-      refundRate: "100% Tiền giặt + Đền bù",
+      badge: t("admin.refunds.page.guide.scenarios.laundryFault.badge"),
+      refundRate: t("admin.refunds.page.guide.scenarios.laundryFault.refundRate"),
       conditions: [
-        "Tiệm giặt đối tác từ chối nhận giặt do vượt quá tải trọng hoặc chất liệu không phù hợp.",
-        "Quần áo bị thất lạc hoặc hư hỏng rách/phai màu nghiêm trọng do tiệm giặt.",
+        t("admin.refunds.page.guide.scenarios.laundryFault.conditions.c1"),
+        t("admin.refunds.page.guide.scenarios.laundryFault.conditions.c2"),
       ],
       evidence: [
-        "Ảnh chụp tình trạng đồ trước và sau khi nhận từ tiệm giặt.",
-        "Biên bản đối soát bồi hoàn giữa Admin và Chủ tiệm giặt đối tác.",
+        t("admin.refunds.page.guide.scenarios.laundryFault.evidence.e1"),
+        t("admin.refunds.page.guide.scenarios.laundryFault.evidence.e2"),
       ],
       adminCheck: [
-        "Xác nhận với bên đối tác tiệm giặt về tình trạng đơn hàng trước khi bấm hoàn tiền.",
+        t("admin.refunds.page.guide.scenarios.laundryFault.adminCheck.a1"),
       ],
     },
   ];
@@ -150,11 +150,11 @@ export function RefundRulesGuide() {
           <div className="flex items-center gap-2 text-primary">
             <ShieldAlert className="w-5 h-5" />
             <CardTitle className="text-base font-semibold">
-              Quy tắc đối chiếu & Hướng dẫn xét duyệt hoàn tiền
+              {t("admin.refunds.page.guide.title")}
             </CardTitle>
           </div>
           <CardDescription className="text-xs">
-            Admin vui lòng tra cứu các tình huống bên dưới trước khi duyệt và thực hiện chuyển khoản cho khách hàng.
+            {t("admin.refunds.page.guide.description")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-1">
@@ -162,35 +162,35 @@ export function RefundRulesGuide() {
           <div className="p-3.5 rounded-xl bg-card border border-border/80 shadow-2xs space-y-2.5">
             <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
               <FileCheck2 className="w-4 h-4 text-emerald-600" />
-              <span>Quy trình 4 bước chuẩn dành cho Quản trị viên:</span>
+              <span>{t("admin.refunds.page.guide.steps.title")}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
               <div className="p-2.5 rounded-lg bg-muted/50 border border-border/50 space-y-1">
-                <span className="font-bold text-primary font-mono">Bước 1:</span>
-                <p className="font-medium text-foreground">Kiểm tra thông tin STK</p>
+                <span className="font-bold text-primary font-mono">{t("admin.refunds.page.guide.steps.step", { n: 1 })}</span>
+                <p className="font-medium text-foreground">{t("admin.refunds.page.guide.steps.s1.title")}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  So khớp Tên chủ tài khoản và STK với thông tin khách đã đăng ký.
+                  {t("admin.refunds.page.guide.steps.s1.description")}
                 </p>
               </div>
               <div className="p-2.5 rounded-lg bg-muted/50 border border-border/50 space-y-1">
-                <span className="font-bold text-primary font-mono">Bước 2:</span>
-                <p className="font-medium text-foreground">Quét mã VietQR chuyển tiền</p>
+                <span className="font-bold text-primary font-mono">{t("admin.refunds.page.guide.steps.step", { n: 2 })}</span>
+                <p className="font-medium text-foreground">{t("admin.refunds.page.guide.steps.s2.title")}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Mở app Mobile Banking quét mã QR để điền tự động STK, số tiền & nội dung.
+                  {t("admin.refunds.page.guide.steps.s2.description")}
                 </p>
               </div>
               <div className="p-2.5 rounded-lg bg-muted/50 border border-border/50 space-y-1">
-                <span className="font-bold text-primary font-mono">Bước 3:</span>
-                <p className="font-medium text-foreground">Tải ảnh chụp minh chứng</p>
+                <span className="font-bold text-primary font-mono">{t("admin.refunds.page.guide.steps.step", { n: 3 })}</span>
+                <p className="font-medium text-foreground">{t("admin.refunds.page.guide.steps.s3.title")}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Chụp lại màn hình chuyển khoản thành công và tải lên modal để lưu vết đối soát.
+                  {t("admin.refunds.page.guide.steps.s3.description")}
                 </p>
               </div>
               <div className="p-2.5 rounded-lg bg-muted/50 border border-border/50 space-y-1">
-                <span className="font-bold text-primary font-mono">Bước 4:</span>
-                <p className="font-medium text-foreground">Xác nhận hoàn tiền</p>
+                <span className="font-bold text-primary font-mono">{t("admin.refunds.page.guide.steps.step", { n: 4 })}</span>
+                <p className="font-medium text-foreground">{t("admin.refunds.page.guide.steps.s4.title")}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Hệ thống ghi nhận trạng thái ĐÃ HOÀN TIỀN và gửi thông báo kèm ảnh đến khách.
+                  {t("admin.refunds.page.guide.steps.s4.description")}
                 </p>
               </div>
             </div>
@@ -200,10 +200,10 @@ export function RefundRulesGuide() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Các tình huống áp dụng hoàn tiền:
+                {t("admin.refunds.page.guide.scenariosTitle")}
               </span>
               <span className="text-xs text-muted-foreground">
-                (Nhấn vào từng tình huống để xem chi tiết điều kiện)
+                {t("admin.refunds.page.guide.scenariosHint")}
               </span>
             </div>
 
@@ -239,7 +239,7 @@ export function RefundRulesGuide() {
                               {sc.badge}
                             </Badge>
                             <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                              Mức hoàn: {sc.refundRate}
+                              {t("admin.refunds.page.guide.refundRate", { rate: sc.refundRate })}
                             </span>
                           </div>
                         </div>
@@ -259,7 +259,7 @@ export function RefundRulesGuide() {
                         <div className="space-y-1.5 p-2.5 rounded-lg bg-card border border-border/50">
                           <p className="font-semibold text-foreground flex items-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            Điều kiện chấp thuận:
+                            {t("admin.refunds.page.guide.conditionsTitle")}
                           </p>
                           <ul className="list-disc list-inside space-y-1 text-muted-foreground text-[11px] leading-relaxed">
                             {sc.conditions.map((item, idx) => (
@@ -271,7 +271,7 @@ export function RefundRulesGuide() {
                         <div className="space-y-1.5 p-2.5 rounded-lg bg-card border border-border/50">
                           <p className="font-semibold text-foreground flex items-center gap-1.5">
                             <Info className="w-3.5 h-3.5 text-blue-600" />
-                            Chứng từ / Dữ liệu cần có:
+                            {t("admin.refunds.page.guide.evidenceTitle")}
                           </p>
                           <ul className="list-disc list-inside space-y-1 text-muted-foreground text-[11px] leading-relaxed">
                             {sc.evidence.map((item, idx) => (
@@ -283,7 +283,7 @@ export function RefundRulesGuide() {
                         <div className="space-y-1.5 p-2.5 rounded-lg bg-card border border-border/50">
                           <p className="font-semibold text-foreground flex items-center gap-1.5">
                             <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                            Admin cần đối chiếu:
+                            {t("admin.refunds.page.guide.adminCheckTitle")}
                           </p>
                           <ul className="list-disc list-inside space-y-1 text-muted-foreground text-[11px] leading-relaxed">
                             {sc.adminCheck.map((item, idx) => (

@@ -56,122 +56,122 @@ interface DroneIotLogsPanelProps {
   device?: DroneDeviceResponse | null;
 }
 
-// Cấu hình nhãn và icon cho các thành phần phần cứng IoT của Drone
+// Cấu hình nhãn và icon cho các thành phần phần cứng IoT của Drone (labelKey là khoá i18n, dịch lúc render)
 const COMPONENT_CONFIG: Record<
   string,
-  { label: string; icon: React.ElementType; cls: string }
+  { labelKey: string; icon: React.ElementType; cls: string }
 > = {
   PI_CONTROLLER: {
-    label: "Pi Controller",
+    labelKey: "admin.drones.hardware.iot.component.piController",
     icon: Cpu,
     cls: "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800",
   },
   PIXHAWK: {
-    label: "Pixhawk Autopilot",
+    labelKey: "admin.drones.hardware.iot.component.pixhawk",
     icon: Compass,
     cls: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800",
   },
   CARGO_HOOK: {
-    label: "Móc treo hàng",
+    labelKey: "admin.drones.hardware.iot.component.cargoHook",
     icon: Package,
     cls: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800",
   },
   VISION_CAMERA: {
-    label: "Camera AI thị giác",
+    labelKey: "admin.drones.hardware.iot.component.visionCamera",
     icon: Camera,
     cls: "bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-300 dark:border-teal-800",
   },
   BATTERY_POWER: {
-    label: "Nguồn & Pin",
+    labelKey: "admin.drones.hardware.iot.component.batteryPower",
     icon: BatteryCharging,
     cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800",
   },
   TELEMETRY: {
-    label: "Viễn thông Telemetry",
+    labelKey: "admin.drones.hardware.iot.component.telemetry",
     icon: RadioTower,
     cls: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800",
   },
 };
 
-// Cấu hình nhãn cho loại sự kiện
-const EVENT_TYPE_LABELS: Record<string, { label: string; icon: React.ElementType }> = {
-  POWER_CONNECTED: { label: "Cắm nguồn trực tuyến", icon: Zap },
-  POWER_DISCONNECTED: { label: "Rút nguồn / Ngắt điện", icon: Unplug },
-  TELEMETRY_ONLINE: { label: "Telemetry kết nối", icon: RadioTower },
-  TELEMETRY_LOST: { label: "Mất tín hiệu Telemetry", icon: Unplug },
-  PIXHAWK_CONNECTED: { label: "Pi kết nối Pixhawk", icon: Compass },
-  PIXHAWK_DISCONNECTED: { label: "Pi mất kết nối Pixhawk", icon: AlertTriangle },
-  DETECT_TARGET: { label: "Detect mã ô/tủ", icon: Scan },
-  MARKER_MISMATCH: { label: "Mã ô không khớp", icon: AlertTriangle },
-  HOOK_ATTACH: { label: "Móc ngậm hàng", icon: Package },
-  HOOK_RELEASE: { label: "Móc thả hàng", icon: Package },
-  HOOK_JAMMED: { label: "Kẹt móc treo hàng", icon: AlertTriangle },
-  MANUAL_OVERRIDE: { label: "Can thiệp thủ công (User/KTV)", icon: Wrench },
-  ARMED: { label: "Khởi động động cơ (ARMED)", icon: Zap },
-  DISARMED: { label: "Khóa an toàn (DISARMED)", icon: CheckCircle2 },
-  FLIGHT_MODE_CHANGED: { label: "Đổi chế độ bay", icon: Compass },
-  FAILSAFE_TRIGGERED: { label: "Kích hoạt Failsafe", icon: AlertTriangle },
+// Cấu hình nhãn cho loại sự kiện (labelKey là khoá i18n)
+const EVENT_TYPE_LABELS: Record<string, { labelKey: string; icon: React.ElementType }> = {
+  POWER_CONNECTED: { labelKey: "admin.drones.hardware.iot.event.powerConnected", icon: Zap },
+  POWER_DISCONNECTED: { labelKey: "admin.drones.hardware.iot.event.powerDisconnected", icon: Unplug },
+  TELEMETRY_ONLINE: { labelKey: "admin.drones.hardware.iot.event.telemetryOnline", icon: RadioTower },
+  TELEMETRY_LOST: { labelKey: "admin.drones.hardware.iot.event.telemetryLost", icon: Unplug },
+  PIXHAWK_CONNECTED: { labelKey: "admin.drones.hardware.iot.event.pixhawkConnected", icon: Compass },
+  PIXHAWK_DISCONNECTED: { labelKey: "admin.drones.hardware.iot.event.pixhawkDisconnected", icon: AlertTriangle },
+  DETECT_TARGET: { labelKey: "admin.drones.hardware.iot.event.detectTarget", icon: Scan },
+  MARKER_MISMATCH: { labelKey: "admin.drones.hardware.iot.event.markerMismatch", icon: AlertTriangle },
+  HOOK_ATTACH: { labelKey: "admin.drones.hardware.iot.event.hookAttach", icon: Package },
+  HOOK_RELEASE: { labelKey: "admin.drones.hardware.iot.event.hookRelease", icon: Package },
+  HOOK_JAMMED: { labelKey: "admin.drones.hardware.iot.event.hookJammed", icon: AlertTriangle },
+  MANUAL_OVERRIDE: { labelKey: "admin.drones.hardware.iot.event.manualOverride", icon: Wrench },
+  ARMED: { labelKey: "admin.drones.hardware.iot.event.armed", icon: Zap },
+  DISARMED: { labelKey: "admin.drones.hardware.iot.event.disarmed", icon: CheckCircle2 },
+  FLIGHT_MODE_CHANGED: { labelKey: "admin.drones.hardware.iot.event.flightModeChanged", icon: Compass },
+  FAILSAFE_TRIGGERED: { labelKey: "admin.drones.hardware.iot.event.failsafeTriggered", icon: AlertTriangle },
 };
 
-// Cấu hình nhãn kết quả
-const RESULT_CONFIG: Record<string, { label: string; cls: string; icon: React.ElementType }> = {
+// Cấu hình nhãn kết quả (labelKey là khoá i18n)
+const RESULT_CONFIG: Record<string, { labelKey: string; cls: string; icon: React.ElementType }> = {
   ONLINE: {
-    label: "Trực tuyến",
+    labelKey: "admin.drones.hardware.online",
     cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-400/50",
     icon: RadioTower,
   },
   OFFLINE: {
-    label: "Mất kết nối",
+    labelKey: "common.disconnected",
     cls: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-400/50",
     icon: Unplug,
   },
   CONNECTED: {
-    label: "Đã kết nối",
+    labelKey: "admin.drones.hardware.iot.result.connected",
     cls: "bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-400/50",
     icon: CheckCircle2,
   },
   DISCONNECTED: {
-    label: "Mất MAVLink",
+    labelKey: "admin.drones.hardware.iot.result.mavlinkLost",
     cls: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-400/50",
     icon: Unplug,
   },
   SUCCESS: {
-    label: "Thành công",
+    labelKey: "common.success",
     cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800",
     icon: CheckCircle2,
   },
   FAILED: {
-    label: "Thất bại",
+    labelKey: "common.failed",
     cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800",
     icon: XCircle,
   },
   RELEASED: {
-    label: "Đã thả hàng",
+    labelKey: "admin.drones.hardware.iot.result.released",
     cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/50",
     icon: CheckCircle2,
   },
   LOCKED: {
-    label: "Đã khóa chốt",
+    labelKey: "admin.drones.hardware.iot.result.locked",
     cls: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-400/50",
     icon: Package,
   },
   DETECTED: {
-    label: "Đã nhận diện",
+    labelKey: "admin.drones.hardware.iot.result.detected",
     cls: "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-400/50",
     icon: Scan,
   },
   JAMMED: {
-    label: "Bị kẹt cơ khí",
+    labelKey: "admin.drones.hardware.iot.result.jammed",
     cls: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-400/50",
     icon: AlertTriangle,
   },
   TIMEOUT: {
-    label: "Hết thời gian",
+    labelKey: "admin.drones.hardware.iot.result.timeout",
     cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300",
     icon: Clock,
   },
   WARNING: {
-    label: "Cảnh báo",
+    labelKey: "admin.drones.hardware.iot.result.warning",
     cls: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-400/50",
     icon: AlertTriangle,
   },
@@ -263,8 +263,8 @@ export function DroneIotLogsPanel({
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-sm">
                   {device.online
-                    ? `Drone ${droneCode} đang trực tuyến (Cắm nguồn & Kết nối)`
-                    : `Drone ${droneCode} đang ngoại tuyến (Rút nguồn hoặc Mất mạng)`}
+                    ? t("admin.drones.hardware.iot.banner.online", { code: droneCode })
+                    : t("admin.drones.hardware.iot.banner.offline", { code: droneCode })}
                 </span>
                 <Badge
                   variant="outline"
@@ -274,17 +274,28 @@ export function DroneIotLogsPanel({
                       : "bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-400"
                   }`}
                 >
-                  {device.online ? "TRỰC TUYẾN" : "NGOẠI TUYẾN"}
+                  {device.online
+                    ? t("admin.drones.hardware.iot.banner.onlineBadge")
+                    : t("admin.drones.hardware.iot.banner.offlineBadge")}
                 </Badge>
               </div>
               <p className="text-[11px] text-muted-foreground">
                 {device.online
-                  ? `Pi Controller: ${device.ipAddress || "—"} · MAVLink Pixhawk: ${
-                      device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED"
-                        ? "MAVLink OK"
-                        : device.mavlinkStatus || "Chưa kết nối"
-                    } · Cập nhật: ${device.lastSeenAt ? formatDateTime(device.lastSeenAt) : "Vừa xong"}`
-                  : `Lần cuối kết nối: ${device.lastSeenAt ? formatDateTime(device.lastSeenAt) : "Chưa có tín hiệu gần đây"}`}
+                  ? t("admin.drones.hardware.iot.banner.onlineDetail", {
+                      ip: device.ipAddress || "—",
+                      mavlink:
+                        device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED"
+                          ? "MAVLink OK"
+                          : device.mavlinkStatus || t("admin.drones.hardware.notConnected"),
+                      time: device.lastSeenAt
+                        ? formatDateTime(device.lastSeenAt)
+                        : t("admin.maintenance.relativeTime.justNow"),
+                    })
+                  : t("admin.drones.hardware.iot.banner.lastSeen", {
+                      time: device.lastSeenAt
+                        ? formatDateTime(device.lastSeenAt)
+                        : t("admin.drones.hardware.iot.banner.noRecentSignal"),
+                    })}
               </p>
             </div>
           </div>
@@ -297,8 +308,8 @@ export function DroneIotLogsPanel({
                 {device.online
                   ? device.mavlinkStatus === "connected" || device.mavlinkStatus === "CONNECTED"
                     ? "Pixhawk OK"
-                    : device.mavlinkStatus || "Chưa kết nối"
-                  : "Ngoại tuyến"}
+                    : device.mavlinkStatus || t("admin.drones.hardware.notConnected")
+                  : t("admin.drones.hardware.offline")}
               </span>
             </div>
           </div>
@@ -310,7 +321,7 @@ export function DroneIotLogsPanel({
         <div className="relative flex-1 min-w-[200px]">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Tìm theo nội dung, đơn hàng #, KTV, lỗi, IP, MAC..."
+            placeholder={t("admin.drones.hardware.iot.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-8 pl-8 text-xs"
@@ -320,56 +331,56 @@ export function DroneIotLogsPanel({
         {/* Lọc theo Bộ phận phần cứng */}
         <Select value={selectedComponent} onValueChange={setSelectedComponent}>
           <SelectTrigger className="w-[180px] h-8 text-xs">
-            <SelectValue placeholder="Bộ phận phần cứng" />
+            <SelectValue placeholder={t("admin.drones.hardware.iot.filter.componentPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">Tất cả bộ phận</SelectItem>
-            <SelectItem value="PI_CONTROLLER">Bộ xử lý Pi Controller</SelectItem>
-            <SelectItem value="PIXHAWK">Bộ điều khiển Pixhawk</SelectItem>
-            <SelectItem value="CARGO_HOOK">Móc treo hàng (Hook)</SelectItem>
-            <SelectItem value="VISION_CAMERA">Camera AI thị giác</SelectItem>
-            <SelectItem value="BATTERY_POWER">Nguồn & Pin</SelectItem>
-            <SelectItem value="TELEMETRY">Viễn thông Telemetry</SelectItem>
+            <SelectItem value="ALL">{t("admin.drones.hardware.iot.filter.allComponents")}</SelectItem>
+            <SelectItem value="PI_CONTROLLER">{t("admin.drones.hardware.iot.filter.piController")}</SelectItem>
+            <SelectItem value="PIXHAWK">{t("admin.drones.hardware.iot.filter.pixhawk")}</SelectItem>
+            <SelectItem value="CARGO_HOOK">{t("admin.drones.hardware.iot.filter.cargoHook")}</SelectItem>
+            <SelectItem value="VISION_CAMERA">{t("admin.drones.hardware.iot.component.visionCamera")}</SelectItem>
+            <SelectItem value="BATTERY_POWER">{t("admin.drones.hardware.iot.component.batteryPower")}</SelectItem>
+            <SelectItem value="TELEMETRY">{t("admin.drones.hardware.iot.component.telemetry")}</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Lọc theo Loại sự kiện */}
         <Select value={selectedEventType} onValueChange={setSelectedEventType}>
           <SelectTrigger className="w-[190px] h-8 text-xs">
-            <SelectValue placeholder="Loại sự kiện" />
+            <SelectValue placeholder={t("admin.lockers.logs.filter.eventType")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">Tất cả sự kiện</SelectItem>
-            <SelectItem value="POWER_CONNECTED">Cắm nguồn trực tuyến</SelectItem>
-            <SelectItem value="POWER_DISCONNECTED">Rút nguồn / Ngắt điện</SelectItem>
-            <SelectItem value="PIXHAWK_CONNECTED">Pi kết nối Pixhawk</SelectItem>
-            <SelectItem value="PIXHAWK_DISCONNECTED">Pi mất kết nối Pixhawk</SelectItem>
-            <SelectItem value="DETECT_TARGET">Detect mã ô/tủ</SelectItem>
-            <SelectItem value="HOOK_RELEASE">Móc thả hàng</SelectItem>
-            <SelectItem value="HOOK_ATTACH">Móc ngậm hàng</SelectItem>
-            <SelectItem value="HOOK_JAMMED">Kẹt móc treo hàng</SelectItem>
-            <SelectItem value="MANUAL_OVERRIDE">Can thiệp thủ công (User/KTV)</SelectItem>
-            <SelectItem value="ARMED">Khởi động động cơ</SelectItem>
+            <SelectItem value="ALL">{t("admin.drones.hardware.iot.filter.allEvents")}</SelectItem>
+            <SelectItem value="POWER_CONNECTED">{t("admin.drones.hardware.iot.event.powerConnected")}</SelectItem>
+            <SelectItem value="POWER_DISCONNECTED">{t("admin.drones.hardware.iot.event.powerDisconnected")}</SelectItem>
+            <SelectItem value="PIXHAWK_CONNECTED">{t("admin.drones.hardware.iot.event.pixhawkConnected")}</SelectItem>
+            <SelectItem value="PIXHAWK_DISCONNECTED">{t("admin.drones.hardware.iot.event.pixhawkDisconnected")}</SelectItem>
+            <SelectItem value="DETECT_TARGET">{t("admin.drones.hardware.iot.event.detectTarget")}</SelectItem>
+            <SelectItem value="HOOK_RELEASE">{t("admin.drones.hardware.iot.event.hookRelease")}</SelectItem>
+            <SelectItem value="HOOK_ATTACH">{t("admin.drones.hardware.iot.event.hookAttach")}</SelectItem>
+            <SelectItem value="HOOK_JAMMED">{t("admin.drones.hardware.iot.event.hookJammed")}</SelectItem>
+            <SelectItem value="MANUAL_OVERRIDE">{t("admin.drones.hardware.iot.event.manualOverride")}</SelectItem>
+            <SelectItem value="ARMED">{t("admin.drones.hardware.iot.filter.armed")}</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Lọc theo Kết quả */}
         <Select value={selectedResult} onValueChange={setSelectedResult}>
           <SelectTrigger className="w-[150px] h-8 text-xs">
-            <SelectValue placeholder="Kết quả" />
+            <SelectValue placeholder={t("admin.lockers.logs.filter.result")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">Tất cả kết quả</SelectItem>
-            <SelectItem value="ONLINE">Trực tuyến (ONLINE)</SelectItem>
-            <SelectItem value="OFFLINE">Mất kết nối (OFFLINE)</SelectItem>
-            <SelectItem value="CONNECTED">Đã kết nối</SelectItem>
-            <SelectItem value="DISCONNECTED">Mất MAVLink</SelectItem>
-            <SelectItem value="RELEASED">Đã thả hàng</SelectItem>
-            <SelectItem value="LOCKED">Đã khóa chốt</SelectItem>
-            <SelectItem value="DETECTED">Đã nhận diện</SelectItem>
-            <SelectItem value="JAMMED">Bị kẹt cơ khí</SelectItem>
-            <SelectItem value="SUCCESS">Thành công</SelectItem>
-            <SelectItem value="FAILED">Thất bại</SelectItem>
+            <SelectItem value="ALL">{t("admin.lockers.logs.filter.allResults")}</SelectItem>
+            <SelectItem value="ONLINE">{t("admin.drones.hardware.iot.filter.online")}</SelectItem>
+            <SelectItem value="OFFLINE">{t("admin.drones.hardware.iot.filter.offline")}</SelectItem>
+            <SelectItem value="CONNECTED">{t("admin.drones.hardware.iot.result.connected")}</SelectItem>
+            <SelectItem value="DISCONNECTED">{t("admin.drones.hardware.iot.result.mavlinkLost")}</SelectItem>
+            <SelectItem value="RELEASED">{t("admin.drones.hardware.iot.result.released")}</SelectItem>
+            <SelectItem value="LOCKED">{t("admin.drones.hardware.iot.result.locked")}</SelectItem>
+            <SelectItem value="DETECTED">{t("admin.drones.hardware.iot.result.detected")}</SelectItem>
+            <SelectItem value="JAMMED">{t("admin.drones.hardware.iot.result.jammed")}</SelectItem>
+            <SelectItem value="SUCCESS">{t("common.success")}</SelectItem>
+            <SelectItem value="FAILED">{t("common.failed")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -385,7 +396,7 @@ export function DroneIotLogsPanel({
             }}
             className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground"
           >
-            Đặt lại lọc
+            {t("admin.drones.hardware.iot.filter.reset")}
           </Button>
         )}
       </div>
@@ -394,14 +405,14 @@ export function DroneIotLogsPanel({
       {isLoading ? (
         <div className="py-12 text-center text-xs text-muted-foreground">
           <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-primary" />
-          Đang tải dữ liệu nhật ký IoT drone...
+          {t("admin.drones.hardware.iot.loading")}
         </div>
       ) : filteredLogs.length === 0 ? (
         <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed">
           <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
           {allLogs.length === 0
-            ? "Chưa có bản ghi nhật ký IoT nào cho Drone này."
-            : "Không tìm thấy bản ghi IoT nào phù hợp với bộ lọc."}
+            ? t("admin.drones.hardware.iot.empty")
+            : t("admin.drones.hardware.iot.emptyFiltered")}
         </div>
       ) : (
         <div className="rounded-lg border border-border/80 overflow-hidden shadow-2xs">
@@ -409,34 +420,43 @@ export function DroneIotLogsPanel({
             <Table className="text-xs">
               <TableHeader className="bg-muted/40 sticky top-0 z-10">
                 <TableRow>
-                  <TableHead className="w-[145px] font-semibold">Thời gian</TableHead>
-                  <TableHead className="w-[160px] font-semibold">Bộ phận thiết bị</TableHead>
-                  <TableHead className="w-[190px] font-semibold">Loại sự kiện</TableHead>
-                  <TableHead className="w-[130px] font-semibold">Kết quả</TableHead>
-                  <TableHead className="w-[140px] font-semibold">Đối tượng</TableHead>
-                  <TableHead className="font-semibold">Nội dung thông điệp</TableHead>
+                  <TableHead className="w-[145px] font-semibold">{t("common.time")}</TableHead>
+                  <TableHead className="w-[160px] font-semibold">{t("admin.drones.hardware.iot.col.component")}</TableHead>
+                  <TableHead className="w-[190px] font-semibold">{t("admin.lockers.logs.filter.eventType")}</TableHead>
+                  <TableHead className="w-[130px] font-semibold">{t("admin.lockers.logs.filter.result")}</TableHead>
+                  <TableHead className="w-[140px] font-semibold">{t("admin.lockers.logs.col.actor")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.drones.hardware.iot.col.message")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLogs.map((log) => {
-                  const comp = COMPONENT_CONFIG[log.component] ?? {
-                    label: log.component,
-                    icon: Cpu,
-                    cls: "bg-secondary text-foreground border-border",
-                  };
+                  const compCfg = COMPONENT_CONFIG[log.component];
+                  const comp = compCfg
+                    ? { label: t(compCfg.labelKey), icon: compCfg.icon, cls: compCfg.cls }
+                    : {
+                        label: log.component,
+                        icon: Cpu,
+                        cls: "bg-secondary text-foreground border-border",
+                      };
                   const CompIcon = comp.icon;
 
-                  const evt = EVENT_TYPE_LABELS[log.eventType] ?? {
-                    label: log.eventType,
-                    icon: History,
-                  };
+                  const evtCfg = EVENT_TYPE_LABELS[log.eventType];
+                  const evt = evtCfg
+                    ? { label: t(evtCfg.labelKey), icon: evtCfg.icon }
+                    : {
+                        label: log.eventType,
+                        icon: History,
+                      };
                   const EvtIcon = evt.icon;
 
-                  const res = RESULT_CONFIG[log.result?.toUpperCase()] ?? {
-                    label: log.result,
-                    cls: "bg-secondary text-foreground border-border",
-                    icon: CheckCircle2,
-                  };
+                  const resCfg = RESULT_CONFIG[log.result?.toUpperCase()];
+                  const res = resCfg
+                    ? { label: t(resCfg.labelKey), cls: resCfg.cls, icon: resCfg.icon }
+                    : {
+                        label: log.result,
+                        cls: "bg-secondary text-foreground border-border",
+                        icon: CheckCircle2,
+                      };
                   const ResIcon = res.icon;
 
                   const isOffline = log.result?.toUpperCase() === "OFFLINE" || log.result?.toUpperCase() === "DISCONNECTED";
@@ -484,21 +504,21 @@ export function DroneIotLogsPanel({
                         {log.orderId ? (
                           <div className="flex items-center gap-1 font-mono text-[11px] font-semibold text-primary">
                             <ShoppingBag className="w-3 h-3 shrink-0" />
-                            <span>Đơn #{log.orderId}</span>
+                            <span>{t("admin.lockers.logs.orderRef", { id: log.orderId })}</span>
                           </div>
                         ) : log.actorType === "TECHNICIAN" ? (
                           <div className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
                             <Wrench className="w-3 h-3 shrink-0" />
-                            <span>{log.actorId || "Kỹ thuật viên"}</span>
+                            <span>{log.actorId || t("admin.drones.hardware.iot.actor.technician")}</span>
                           </div>
                         ) : log.actorType === "USER" ? (
                           <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
                             <User className="w-3 h-3 shrink-0" />
-                            <span>{log.actorId || "Người dùng"}</span>
+                            <span>{log.actorId || t("admin.drones.hardware.iot.actor.user")}</span>
                           </div>
                         ) : (
                           <span className="text-[11px] font-mono text-muted-foreground">
-                            {log.actorId || "Hệ thống Pi"}
+                            {log.actorId || t("admin.drones.hardware.iot.actor.piSystem")}
                           </span>
                         )}
                       </TableCell>
@@ -543,10 +563,10 @@ export function DroneIotLogsPanel({
               <div>
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <History className="w-4.5 h-4.5 text-primary" />
-                  Nhật ký IoT Drone {droneCode}
+                  {t("admin.drones.hardware.iot.title", { code: droneCode })}
                 </CardTitle>
                 <CardDescription className="text-xs mt-0.5">
-                  Toàn bộ chuỗi sự kiện phần cứng: Pi Controller, Pixhawk MAVLink, Móc treo thả hàng, Camera ArUco và Pin
+                  {t("admin.drones.hardware.iot.description")}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -556,12 +576,12 @@ export function DroneIotLogsPanel({
                   className="h-8 text-xs gap-1.5"
                   onClick={() => {
                     refetch();
-                    toast.success("Đã làm mới nhật ký IoT của drone");
+                    toast.success(t("admin.drones.hardware.iot.refreshed"));
                   }}
                   disabled={isFetching}
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
-                  Làm mới
+                  {t("button.refresh")}
                 </Button>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
   AlertTriangle,
@@ -103,17 +103,18 @@ export function statusText(value: string, t: TFunction): string {
 }
 
 // Nhóm lọc theo trạng thái sự cố (DroneIncidentStates.INCIDENT ở backend)
+// labelKey là khoá i18n; dịch lúc render.
 type IncidentFilter = {
   value: string;
-  label: string;
+  labelKey: string;
   statuses: string[];
 };
 
 const INCIDENT_FILTERS: IncidentFilter[] = [
-  { value: "ALL", label: "Tất cả", statuses: [] },
+  { value: "ALL", labelKey: "common.all", statuses: [] },
   {
     value: "NEEDS_ATTENTION",
-    label: "Cần xử lý",
+    labelKey: "admin.droneIncidents.listPage.filters.needsAttention",
     statuses: [
       "REPORTED",
       "EVIDENCE_PENDING",
@@ -124,25 +125,29 @@ const INCIDENT_FILTERS: IncidentFilter[] = [
   },
   {
     value: "RECOVERING",
-    label: "Đang thu hồi",
+    labelKey: "admin.droneIncidents.status.recoveryInProgress",
     statuses: ["RECOVERY_IN_PROGRESS"],
   },
   {
     value: "ADMIN_REVIEW",
-    label: "Chờ Admin xác minh",
+    labelKey: "admin.droneIncidents.status.awaitingAdminReview",
     statuses: ["AWAITING_ADMIN_REVIEW"],
   },
   {
     value: "CUSTOMER_RESPONSE",
-    label: "Chờ khách phản hồi",
+    labelKey: "admin.droneIncidents.status.awaitingCustomerResponse",
     statuses: ["AWAITING_CUSTOMER_RESPONSE"],
   },
   {
     value: "RESOLVING",
-    label: "Đang xử lý phương án",
+    labelKey: "admin.droneIncidents.status.resolutionInProgress",
     statuses: ["RESOLUTION_PROPOSED", "RESOLUTION_IN_PROGRESS"],
   },
-  { value: "DONE", label: "Đã hoàn tất", statuses: ["RESOLVED", "CLOSED"] },
+  {
+    value: "DONE",
+    labelKey: "admin.droneIncidents.stats.closed",
+    statuses: ["RESOLVED", "CLOSED"],
+  },
 ];
 
 const KNOWN_INCIDENT_STATUSES = new Set(
@@ -236,7 +241,7 @@ export function validateProposal(
     return t("admin.droneIncidents.validation.compensationNeedsAmount");
   }
   if (resolutionType === "MANUAL_RESOLUTION" && !overrideReason.trim()) {
-    return "Thỏa thuận riêng yêu cầu nhập ghi chú chi tiết phương án đã trao đổi với khách.";
+    return t("admin.droneIncidents.listPage.validation.manualNeedsNote");
   }
   const suggested = suggestedCompensationOf(incident);
   if (suggested != null && amount > suggested && !overrideReason.trim()) {
@@ -369,11 +374,13 @@ export default function DroneIncidentsPage() {
             )}
             <label className="grid w-full gap-1.5 sm:w-80">
               <span className="text-xs font-medium text-muted-foreground">
-                Lọc theo trạng thái sự cố
+                {t("admin.droneIncidents.listPage.filters.label")}
               </span>
               <Select value={filter} onValueChange={setFilter}>
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Chọn trạng thái" />
+                  <SelectValue
+                    placeholder={t("admin.payments.detail.selectStatus")}
+                  />
                 </SelectTrigger>
                 <SelectContent
                   side="bottom"
@@ -383,7 +390,7 @@ export default function DroneIncidentsPage() {
                 >
                   {INCIDENT_FILTERS.map((item) => (
                     <SelectItem key={item.value} value={item.value}>
-                      {item.label} ({countForFilter(item.value)})
+                      {t(item.labelKey)} ({countForFilter(item.value)})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -419,7 +426,9 @@ export default function DroneIncidentsPage() {
                   <th className="px-4 py-3">
                     {t("admin.droneIncidents.columns.orderDrone")}
                   </th>
-                  <th className="px-4 py-3">KTV tìm hàng</th>
+                  <th className="px-4 py-3">
+                    {t("admin.droneIncidents.listPage.columns.recoveryTech")}
+                  </th>
                   <th className="px-4 py-3">
                     {t("admin.droneIncidents.columns.incident")}
                   </th>
@@ -429,7 +438,9 @@ export default function DroneIncidentsPage() {
                   <th className="px-4 py-3">
                     {t("admin.droneIncidents.columns.inspection")}
                   </th>
-                  <th className="px-4 py-3">Cập nhật lần cuối</th>
+                  <th className="px-4 py-3">
+                    {t("admin.droneIncidents.listPage.columns.lastUpdated")}
+                  </th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -473,8 +484,8 @@ export default function DroneIncidentsPage() {
                             >
                               {item.recoveryTechnicianRole ===
                               "DRONE_TECHNICIAN"
-                                ? "KTV Drone"
-                                : "KTV Tủ"}
+                                ? t("admin.maintenance.specialty.droneShort")
+                                : t("admin.droneIncidents.listPage.lockerTech")}
                             </Badge>
                           </div>
                           {item.recoveryTechnicianPhone && (
@@ -485,7 +496,7 @@ export default function DroneIncidentsPage() {
                         </div>
                       ) : (
                         <span className="text-xs text-muted-foreground italic">
-                          Chưa phân công
+                          {t("common.unassigned")}
                         </span>
                       )}
                     </td>
@@ -506,7 +517,9 @@ export default function DroneIncidentsPage() {
                         item.createdAt &&
                         item.updatedAt !== item.createdAt && (
                           <div className="text-[10px] text-muted-foreground font-sans">
-                            Tạo: {formatDateTime(item.createdAt)}
+                            {t("admin.maintenance.techDetail.createdAt", {
+                              time: formatDateTime(item.createdAt),
+                            })}
                           </div>
                         )}
                     </td>
@@ -652,12 +665,16 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-emerald-600" />
               <span className="font-semibold text-sm text-slate-900">
-                Báo cáo xác nhận hiện trường từ KTV
+                {t("admin.droneIncidents.listPage.fieldReport.title")}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <Badge variant="outline" className="text-xs bg-white">
-                Kết quả: {incident.recoveryOutcome ?? "Chưa rõ"}
+                {t("admin.droneIncidents.listPage.fieldReport.outcome", {
+                  outcome:
+                    incident.recoveryOutcome ??
+                    t("admin.droneIncidents.listPage.unknown"),
+                })}
               </Badge>
               {incident.parcelCondition && (
                 <Badge variant="secondary" className="text-xs">
@@ -670,12 +687,14 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="p-3 rounded-lg border bg-white space-y-1">
               <span className="text-muted-foreground font-medium">
-                Tọa độ KTV bấm xác nhận:
+                {t("admin.droneIncidents.listPage.fieldReport.techCoords")}
               </span>
               <p className="font-semibold text-slate-800">
                 {incident.recoveredLatitude != null
                   ? `${incident.recoveredLatitude.toFixed(6)}, ${incident.recoveredLongitude?.toFixed(6)}`
-                  : "Chưa có toạ độ xác nhận"}
+                  : t(
+                      "admin.droneIncidents.listPage.fieldReport.noConfirmedCoords",
+                    )}
                 {incident.recoveredGpsAccuracyM != null &&
                   ` (±${incident.recoveredGpsAccuracyM.toFixed(1)} m)`}
               </p>
@@ -703,7 +722,10 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
                           }`}
                         >
                           {isNear ? "✓ " : "⚠️ "}
-                          Độ lệch so với điểm rơi: {deltaMeters} m
+                          {t(
+                            "admin.droneIncidents.listPage.fieldReport.dropOffset",
+                            { meters: deltaMeters },
+                          )}
                         </span>
                       );
                     })()}
@@ -713,12 +735,12 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
 
             <div className="p-3 rounded-lg border bg-white space-y-1">
               <span className="text-muted-foreground font-medium">
-                Ghi chú hiện trường của KTV:
+                {t("admin.droneIncidents.listPage.fieldReport.note")}
               </span>
               <p className="font-medium text-slate-800 italic">
                 {incident.recoveryNote?.trim()
                   ? `"${incident.recoveryNote}"`
-                  : "Không có ghi chú."}
+                  : t("admin.droneIncidents.listPage.fieldReport.noNote")}
               </p>
             </div>
           </div>
@@ -757,7 +779,7 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
                       />
                     ) : (
                       <div className="h-32 w-full flex items-center justify-center bg-slate-200 text-slate-400 text-xs">
-                        Không có ảnh
+                        {t("admin.droneIncidents.listPage.noImage")}
                       </div>
                     )}
                     <p className="p-2 text-xs">{item.caption ?? item.stage}</p>
@@ -849,29 +871,41 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
   );
 }
 
-export function translateParcelCategory(category?: string | null): string {
+// Giá trị là khoá i18n; dịch lúc gọi.
+const PARCEL_CATEGORY_LABELS: Record<string, string> = {
+  DOCUMENT: "admin.droneIncidents.listPage.parcelCategory.document",
+  FOOD: "admin.droneIncidents.listPage.parcelCategory.food",
+  CLOTHING: "admin.droneIncidents.listPage.parcelCategory.clothing",
+  ELECTRONICS: "admin.droneIncidents.listPage.parcelCategory.electronics",
+  COSMETICS: "admin.droneIncidents.listPage.parcelCategory.cosmetics",
+  OTHER: "admin.droneIncidents.listPage.parcelCategory.other",
+};
+
+export function translateParcelCategory(
+  t: TFunction,
+  category?: string | null,
+): string {
   if (!category) return "—";
-  const map: Record<string, string> = {
-    DOCUMENT: "Tài liệu / Giấy tờ",
-    FOOD: "Thực phẩm / Đồ ăn",
-    CLOTHING: "Quần áo / Thời trang",
-    ELECTRONICS: "Thiết bị điện tử",
-    COSMETICS: "Mỹ phẩm / Làm đẹp",
-    OTHER: "Hàng hoá khác",
-  };
-  return map[category] ?? category;
+  const key = PARCEL_CATEGORY_LABELS[category];
+  return key ? t(key) : category;
 }
 
-export function translatePaymentMethod(method?: string | null): string {
+// Giá trị là khoá i18n; dịch lúc gọi.
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  WALLET: "shared.reportMeta.paymentMethod.wallet",
+  SEPAY: "admin.droneIncidents.listPage.paymentMethod.sepay",
+  VNPAY: "admin.droneIncidents.listPage.paymentMethod.vnpay",
+  MOMO: "admin.droneIncidents.listPage.paymentMethod.momo",
+  CASH: "shared.reportMeta.paymentMethod.cash",
+};
+
+export function translatePaymentMethod(
+  t: TFunction,
+  method?: string | null,
+): string {
   if (!method) return "—";
-  const map: Record<string, string> = {
-    WALLET: "Ví Lock.R",
-    SEPAY: "Chuyển khoản SePay (VietQR)",
-    VNPAY: "Cổng VNPAY",
-    MOMO: "Ví MoMo",
-    CASH: "Tiền mặt",
-  };
-  return map[method] ?? method;
+  const key = PAYMENT_METHOD_LABELS[method];
+  return key ? t(key) : method;
 }
 
 /** Dùng read model đơn drone thật để Admin có đủ ngữ cảnh trước khi quyết định
@@ -883,6 +917,7 @@ export function IncidentOrderContext({
   orderId: number;
   inspectionReportId?: number | null;
 }) {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useGetDroneOrderQuery(orderId);
   const order = data?.data;
 
@@ -903,7 +938,7 @@ export function IncidentOrderContext({
           </div>
           <div>
             <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-              Thông tin Đơn hàng
+              {t("admin.droneIncidents.listPage.orderContext.title")}
               {order && (
                 <Link
                   to={`/admin/orders/${order.orderId}`}
@@ -928,7 +963,9 @@ export function IncidentOrderContext({
               to={`/admin/maintenance?reportId=${inspectionReportId}`}
               className="text-xs font-semibold text-sky-700 bg-sky-100 hover:bg-sky-200 border border-sky-300 px-3 py-1.5 rounded-lg inline-flex items-center gap-1 transition-colors"
             >
-              Phiếu kiểm tra drone #{inspectionReportId}
+              {t("admin.droneIncidents.listPage.orderContext.inspectionReport", {
+                id: inspectionReportId,
+              })}
               <ExternalLink className="h-3.5 w-3.5" />
             </Link>
           )}
@@ -936,7 +973,7 @@ export function IncidentOrderContext({
             to={`/admin/drone-orders/${orderId}`}
             className="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1 shadow-2xs transition-colors"
           >
-            Hành trình bay
+            {t("admin.droneIncidents.listPage.orderContext.flightJourney")}
             <ExternalLink className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -946,13 +983,14 @@ export function IncidentOrderContext({
         <div className="flex h-24 items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-sky-600" />
           <span className="ml-2 text-xs text-muted-foreground">
-            Đang tải chi tiết đơn hàng...
+            {t("admin.droneIncidents.listPage.orderContext.loading")}
           </span>
         </div>
       ) : isError || !order ? (
         <p className="rounded-lg border border-dashed bg-white p-3 text-xs text-muted-foreground">
-          Không tải được chi tiết đơn hàng #{orderId}. Bạn vẫn có thể tiếp tục
-          xử lý sự cố.
+          {t("admin.droneIncidents.listPage.orderContext.loadFailed", {
+            id: orderId,
+          })}
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs">
@@ -960,13 +998,15 @@ export function IncidentOrderContext({
           <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5 shadow-2xs">
             <div className="flex items-center gap-1.5 font-bold text-slate-800 border-b pb-1.5">
               <User className="h-3.5 w-3.5 text-sky-600" />
-              <span>Khách hàng gửi & Điểm gửi</span>
+              <span>
+                {t("admin.droneIncidents.listPage.orderContext.senderTitle")}
+              </span>
             </div>
             <div className="space-y-1">
               <p className="font-semibold text-slate-900 text-sm">
                 {order.customerName ||
                   order.sender?.name ||
-                  "Chưa có tên người gửi"}
+                  t("admin.droneIncidents.listPage.orderContext.noSenderName")}
               </p>
               {(order.customerPhone || order.sender?.phone) && (
                 <p className="text-slate-600 flex items-center gap-1">
@@ -991,14 +1031,18 @@ export function IncidentOrderContext({
             </div>
             <div className="pt-1.5 border-t space-y-1 text-[11px] text-slate-600">
               <p>
-                <b>Tủ gửi:</b>{" "}
+                <b>
+                  {t("admin.droneIncidents.listPage.orderContext.sourceLocker")}
+                </b>{" "}
                 {order.sourceLocker?.name || order.sourceLocker?.code || "—"}
                 {order.sourceBoxNumber != null && (
                   <Badge
                     variant="outline"
                     className="ml-1 text-[10px] px-1 py-0"
                   >
-                    Ô #{order.sourceBoxNumber}
+                    {t("admin.lockers.boxLabel", {
+                      number: order.sourceBoxNumber,
+                    })}
                   </Badge>
                 )}
               </p>
@@ -1017,11 +1061,14 @@ export function IncidentOrderContext({
           <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5 shadow-2xs">
             <div className="flex items-center gap-1.5 font-bold text-slate-800 border-b pb-1.5">
               <UserCheck className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Người nhận hàng & Điểm nhận</span>
+              <span>
+                {t("admin.droneIncidents.listPage.orderContext.receiverTitle")}
+              </span>
             </div>
             <div className="space-y-1">
               <p className="font-semibold text-slate-900 text-sm">
-                {order.receiverName || "Chưa có tên người nhận"}
+                {order.receiverName ||
+                  t("admin.droneIncidents.listPage.orderContext.noReceiverName")}
               </p>
               {order.receiverPhone && (
                 <p className="text-slate-600 flex items-center gap-1">
@@ -1046,7 +1093,11 @@ export function IncidentOrderContext({
             </div>
             <div className="pt-1.5 border-t space-y-1 text-[11px] text-slate-600">
               <p>
-                <b>Tủ nhận:</b>{" "}
+                <b>
+                  {t(
+                    "admin.droneIncidents.listPage.orderContext.destinationLocker",
+                  )}
+                </b>{" "}
                 {order.destinationLocker?.name ||
                   order.destinationLocker?.code ||
                   "—"}
@@ -1055,7 +1106,9 @@ export function IncidentOrderContext({
                     variant="outline"
                     className="ml-1 text-[10px] px-1 py-0 bg-emerald-50 text-emerald-800 border-emerald-300"
                   >
-                    Ô nhận #{order.reservedBoxNumber}
+                    {t("admin.droneIncidents.listPage.orderContext.receiveBox", {
+                      number: order.reservedBoxNumber,
+                    })}
                   </Badge>
                 )}
               </p>
@@ -1074,39 +1127,54 @@ export function IncidentOrderContext({
           <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5 shadow-2xs">
             <div className="flex items-center gap-1.5 font-bold text-slate-800 border-b pb-1.5">
               <Box className="h-3.5 w-3.5 text-purple-600" />
-              <span>Kiện hàng & Trọng lượng</span>
+              <span>
+                {t("admin.droneIncidents.listPage.orderContext.parcelTitle")}
+              </span>
             </div>
             <div className="space-y-1 text-[11px]">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Loại hàng:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.category")}
+                </span>
                 <span className="font-semibold text-slate-900">
-                  {translateParcelCategory(order.parcelCategory)}
+                  {translateParcelCategory(t, order.parcelCategory)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Kích thước:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.size")}
+                </span>
                 <span className="font-semibold text-slate-900">
                   {parcelSize}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Cân nặng:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.weight")}
+                </span>
                 <span className="font-semibold text-slate-900">
                   {order.parcelWeightGrams != null
                     ? `${order.parcelWeightGrams} g`
                     : "—"}
                   {order.payloadWeightGrams != null &&
-                    ` (Nạp drone: ${order.payloadWeightGrams} g)`}
+                    ` ${t(
+                      "admin.droneIncidents.listPage.orderContext.payloadWeight",
+                      { grams: order.payloadWeightGrams },
+                    )}`}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Giá trị khai báo:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.declaredValue")}
+                </span>
                 <span className="font-bold text-emerald-700">
                   {formatCurrency(order.declaredValue)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Hàng dễ vỡ:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.fragile")}
+                </span>
                 <span
                   className={
                     order.fragile
@@ -1114,7 +1182,9 @@ export function IncidentOrderContext({
                       : "text-slate-600"
                   }
                 >
-                  {order.fragile ? "Có (Dễ vỡ) ⚠️" : "Không"}
+                  {order.fragile
+                    ? t("admin.droneIncidents.listPage.orderContext.fragileYes")
+                    : t("common.no")}
                 </span>
               </div>
             </div>
@@ -1123,7 +1193,9 @@ export function IncidentOrderContext({
                 className="pt-1 border-t text-[11px] text-muted-foreground italic truncate"
                 title={order.description}
               >
-                Ghi chú: "{order.description}"
+                {t("admin.droneIncidents.listPage.orderContext.note", {
+                  note: order.description,
+                })}
               </p>
             )}
           </div>
@@ -1132,17 +1204,23 @@ export function IncidentOrderContext({
           <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5 shadow-2xs">
             <div className="flex items-center gap-1.5 font-bold text-slate-800 border-b pb-1.5">
               <CreditCard className="h-3.5 w-3.5 text-amber-600" />
-              <span>Cước phí & Vận hành</span>
+              <span>
+                {t("admin.droneIncidents.listPage.orderContext.feesTitle")}
+              </span>
             </div>
             <div className="space-y-1 text-[11px]">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Tổng cước phí:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.totalFee")}
+                </span>
                 <span className="font-bold text-slate-900">
                   {formatCurrency(order.totalPrice)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Đã thanh toán:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.paid")}
+                </span>
                 <span className="font-semibold text-emerald-700">
                   {formatCurrency(
                     order.totalPrice == null
@@ -1152,19 +1230,25 @@ export function IncidentOrderContext({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Còn phải thu:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.due")}
+                </span>
                 <span className="font-semibold text-slate-900">
                   {formatCurrency(order.amountDue)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Phương thức:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.method")}
+                </span>
                 <span className="font-medium text-slate-800">
-                  {translatePaymentMethod(order.paymentMethod)}
+                  {translatePaymentMethod(t, order.paymentMethod)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Drone vận chuyển:</span>
+                <span className="text-muted-foreground">
+                  {t("admin.droneIncidents.listPage.orderContext.drone")}
+                </span>
                 <span className="font-bold text-sky-800 font-mono">
                   {order.droneCode || "—"}
                 </span>
@@ -1172,8 +1256,13 @@ export function IncidentOrderContext({
             </div>
             {order.sealCode && (
               <p className="pt-1 border-t text-[10px] text-muted-foreground font-mono">
-                Niêm phong: <b>{order.sealCode}</b>
-                {order.loadedByName && ` · Nạp bởi: ${order.loadedByName}`}
+                {t("admin.droneIncidents.listPage.orderContext.seal")}{" "}
+                <b>{order.sealCode}</b>
+                {order.loadedByName &&
+                  ` · ${t(
+                    "admin.droneIncidents.listPage.orderContext.loadedBy",
+                    { name: order.loadedByName },
+                  )}`}
               </p>
             )}
           </div>
@@ -1275,7 +1364,10 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
       }
       res.push({
         id,
-        fullName: u?.fullName || p?.userName || `KTV #${id}`,
+        fullName:
+          u?.fullName ||
+          p?.userName ||
+          t("admin.droneIncidents.actions.techFallback", { id }),
         status: u?.status || "ACTIVE",
         roles:
           u?.roles ??
@@ -1293,7 +1385,7 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
       if (b.distanceKm == null) return -1;
       return a.distanceKm - b.distanceKm;
     });
-  }, [raw, presenceByUserId, dropLat, dropLng]);
+  }, [raw, presenceByUserId, dropLat, dropLng, t]);
 
   const [technicianId, setTechnicianId] = useState(
     incident.recoveryAssignedToUserId?.toString() ?? "",
@@ -1344,7 +1436,9 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
       return true;
     } catch (error) {
       if (incident.id === 999 || incident.id === 998) {
-        toast.success(`${success} (Dữ liệu mẫu demo)`);
+        toast.success(
+          t("admin.droneIncidents.listPage.demoSuffix", { message: success }),
+        );
         return true;
       }
       const data = (error as { data?: { code?: string; message?: string } })
@@ -1398,11 +1492,10 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             </div>
             <div>
               <h3 className="font-bold text-sm text-slate-900">
-                Điều phối & Kỹ thuật viên tìm hàng
+                {t("admin.droneIncidents.listPage.dispatch.title")}
               </h3>
               <p className="text-[11px] text-muted-foreground">
-                Theo dõi tiến độ tìm kiếm và điều phối KTV thu hồi kiện tại hiện
-                trường
+                {t("admin.droneIncidents.listPage.dispatch.subtitle")}
               </p>
             </div>
           </div>
@@ -1414,7 +1507,9 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 : "bg-emerald-50 text-emerald-800 border-emerald-300"
             }`}
           >
-            {canAssign ? "Chờ KTV tiếp nhận" : "KTV đã nhận việc"}
+            {canAssign
+              ? t("admin.droneIncidents.recoveryDispatch.awaitingTech")
+              : t("admin.droneOrders.pickup.statusLabel.ACCEPTED")}
           </Badge>
         </div>
 
@@ -1424,7 +1519,7 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <UserCheck className="h-3.5 w-3.5 text-sky-600" />
-                KTV phụ trách tìm hàng
+                {t("admin.droneIncidents.listPage.dispatch.assignedTech")}
               </span>
               {incident.recoveryTechnicianRole && (
                 <Badge
@@ -1436,8 +1531,8 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                   }`}
                 >
                   {incident.recoveryTechnicianRole === "DRONE_TECHNICIAN"
-                    ? "🚁 KTV Drone (Không bận đơn)"
-                    : "🏢 KTV Kiosk / Tủ (GPS gần điểm rơi)"}
+                    ? t("admin.droneIncidents.listPage.dispatch.droneTechBadge")
+                    : t("admin.droneIncidents.listPage.dispatch.kioskTechBadge")}
                 </Badge>
               )}
             </div>
@@ -1457,14 +1552,14 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                       {incident.recoveryTechnicianPhone}
                     </a>
                   ) : (
-                    "Chưa cập nhật SĐT"
+                    t("admin.droneIncidents.listPage.dispatch.noPhone")
                   )}
                 </p>
               </div>
 
               <div className="text-right">
                 <span className="text-[11px] text-muted-foreground block">
-                  Tiến độ thu hồi
+                  {t("admin.droneIncidents.listPage.dispatch.recoveryProgress")}
                 </span>
                 <Badge
                   variant="secondary"
@@ -1479,10 +1574,11 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
           <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 flex items-start gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
             <div>
-              <p className="font-semibold">Chưa có KTV phụ trách tìm hàng</p>
+              <p className="font-semibold">
+                {t("admin.droneIncidents.listPage.dispatch.noTechTitle")}
+              </p>
               <p className="text-amber-800 text-[11px] mt-0.5">
-                Hệ thống chưa tìm thấy KTV rảnh trong bán kính ban đầu. Vui lòng
-                mở bản đồ điều phối để mở rộng bán kính và chọn KTV.
+                {t("admin.droneIncidents.listPage.dispatch.noTechHint")}
               </p>
             </div>
           </div>
@@ -1497,8 +1593,8 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
         >
           <Radio className="h-4 w-4 text-red-500 animate-pulse" />
           {canAssign
-            ? "Bản đồ điều phối tìm KTV theo bán kính R (Kiosk & Drone)"
-            : "Xem bản đồ vị trí KTV & điểm rơi (Chế độ theo dõi)"}
+            ? t("admin.droneIncidents.listPage.dispatch.openMapAssign")
+            : t("admin.droneIncidents.listPage.dispatch.openMapTrack")}
         </Button>
 
         <RecoveryDispatchMapModal
@@ -1514,12 +1610,10 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             <div className="space-y-0.5">
               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <UserCheck className="h-3.5 w-3.5 text-sky-600" />
-                Phân công thủ công (Reassign)
+                {t("admin.droneIncidents.listPage.dispatch.reassignTitle")}
               </span>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Nếu KTV được hệ thống tự động gán không thể nhận nhiệm vụ (do
-                bận việc cá nhân, phương tiện hoặc không liên lạc được), Quản
-                trị viên được phép phân công lại thủ công cho KTV khác dưới đây:
+                {t("admin.droneIncidents.listPage.dispatch.reassignHint")}
               </p>
             </div>
 
@@ -1545,7 +1639,11 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                           t("admin.droneIncidents.actions.techFallback", {
                             id: tech.id,
                           })}{" "}
-                        ({isDrone ? "KTV Drone" : "KTV Tủ"})
+                        (
+                        {isDrone
+                          ? t("admin.maintenance.specialty.droneShort")
+                          : t("admin.droneIncidents.listPage.lockerTech")}
+                        )
                         {tech.distanceKm != null
                           ? ` · ${kmLabel(tech.distanceKm)}`
                           : ""}
@@ -1565,14 +1663,14 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                         id: incident.id,
                         technicianId: Number(technicianId),
                       }).unwrap(),
-                    "Đã phân công lại kỹ thuật viên tìm hàng!",
+                    t("admin.droneIncidents.listPage.dispatch.reassigned"),
                   )
                 }
               >
                 {assignState.isLoading && (
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 )}
-                Phân công
+                {t("admin.droneIncidents.actions.assign")}
               </Button>
             </div>
           </div>
@@ -1581,13 +1679,12 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             <ShieldCheck className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
             <div className="space-y-1">
               <p className="font-bold text-emerald-950 flex items-center gap-1.5">
-                Kỹ thuật viên đã tiếp nhận nhiệm vụ (
-                {statusText(incident.recoveryStatus, t)})
+                {t("admin.droneIncidents.listPage.dispatch.acceptedTitle", {
+                  status: statusText(incident.recoveryStatus, t),
+                })}
               </p>
               <p className="text-emerald-800 text-[11px] leading-relaxed">
-                KTV đã xác nhận nhận lệnh và đang trong quy trình xử lý thực
-                địa. Để đảm bảo tính nhất quán của hiện trường, Quản trị viên
-                không được phép đổi hoặc phân công lại KTV khác.
+                {t("admin.droneIncidents.listPage.dispatch.acceptedHint")}
               </p>
             </div>
           </div>
@@ -1599,33 +1696,33 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-amber-600" />
               <span className="font-bold text-sm text-amber-950">
-                Xác minh kết quả tìm hàng (Admin Review)
+                {t("admin.droneIncidents.listPage.verify.title")}
               </span>
               <Badge className="bg-amber-600 text-white text-[10px]">
-                Chờ Admin duyệt
+                {t("admin.droneIncidents.listPage.verify.pendingBadge")}
               </Badge>
             </div>
             <p className="text-xs text-amber-900 leading-relaxed">
-              KTV đã tìm thấy kiện và nộp báo cáo hiện trường. Admin cần đối
-              chiếu các mục sau trước khi xác minh:
+              {t("admin.droneIncidents.listPage.verify.intro")}
             </p>
             <ul className="text-xs text-amber-950 space-y-1 list-disc list-inside">
+              <li>{t("admin.droneIncidents.listPage.verify.checkPhotos")}</li>
+              <li>{t("admin.droneIncidents.listPage.verify.checkGps")}</li>
               <li>
-                Kiểm tra hình ảnh hiện trường và hiện trạng gói hàng thực tế.
-              </li>
-              <li>
-                Đối soát toạ độ GPS xác nhận từ điện thoại KTV so với toạ độ
-                rơi.
-              </li>
-              <li>
-                Xác nhận tình trạng kiện:{" "}
-                <b>{incident.parcelCondition || "Chưa rõ"}</b>.
+                <Trans
+                  t={t}
+                  i18nKey="admin.droneIncidents.listPage.verify.checkCondition"
+                  values={{
+                    condition:
+                      incident.parcelCondition ||
+                      t("admin.droneIncidents.listPage.unknown"),
+                  }}
+                  components={{ b: <b /> }}
+                />
               </li>
             </ul>
             <p className="text-[11px] text-muted-foreground italic">
-              * Sau khi bấm Duyệt xác minh, kiện hàng được mở khoá để KTV bàn
-              giao về Hub và hệ thống cho phép tạo phương án bồi thường / giao
-              lại cho khách.
+              {t("admin.droneIncidents.listPage.verify.note")}
             </p>
             <Button
               className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs gap-1.5 shadow-sm"
@@ -1633,7 +1730,7 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               onClick={() => setShowVerifyConfirm(true)}
             >
               <CheckCircle2 className="h-4 w-4" />
-              Duyệt xác minh kết quả tìm hàng của KTV
+              {t("admin.droneIncidents.listPage.verify.button")}
             </Button>
           </div>
         )}
@@ -1648,38 +1745,42 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-amber-600" />
-                Xác nhận kết quả tìm hàng ({incident.incidentCode})
+                {t("admin.droneIncidents.listPage.verify.confirmTitle", {
+                  code: incident.incidentCode,
+                })}
               </AlertDialogTitle>
               <AlertDialogDescription className="space-y-2 text-xs">
                 <p>
-                  Bạn đang thực hiện bước{" "}
-                  <b>Xác minh kết quả tìm hàng (Admin Review)</b>. Bước này có ý
-                  nghĩa:
+                  <Trans
+                    t={t}
+                    i18nKey="admin.droneIncidents.listPage.verify.confirmIntro"
+                    components={{ b: <b /> }}
+                  />
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-slate-700">
                   <li>
-                    Xác nhận KTV đã tìm thấy kiện tại thực địa với toạ độ và
-                    hình ảnh đối soát hợp lệ.
+                    {t("admin.droneIncidents.listPage.verify.confirmFound")}
                   </li>
                   <li>
-                    Chuyển trạng thái tìm hàng sang{" "}
-                    <b>ĐÃ XÁC MINH (VERIFIED)</b>.
+                    <Trans
+                      t={t}
+                      i18nKey="admin.droneIncidents.listPage.verify.confirmStatus"
+                      components={{ b: <b /> }}
+                    />
                   </li>
-                  <li>Cho phép KTV vận chuyển kiện hàng bàn giao về Hub.</li>
+                  <li>{t("admin.droneIncidents.listPage.verify.confirmHub")}</li>
                   <li>
-                    Mở khoá chức năng tạo phương án xử lý bồi thường / giao lại
-                    cho khách hàng.
+                    {t("admin.droneIncidents.listPage.verify.confirmUnlock")}
                   </li>
                 </ul>
                 <p className="font-semibold text-slate-900 pt-1">
-                  Bạn đã kiểm tra kỹ hình ảnh hiện trường và toạ độ check-in
-                  chưa?
+                  {t("admin.droneIncidents.listPage.verify.confirmQuestion")}
                 </p>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={verifyState.isLoading}>
-                Xem lại
+                {t("admin.droneIncidents.listPage.verify.review")}
               </AlertDialogCancel>
               <Button
                 className="bg-amber-600 hover:bg-amber-700 text-white"
@@ -1687,7 +1788,7 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 onClick={async () => {
                   const ok = await handle(
                     () => verify(incident.id).unwrap(),
-                    "Đã xác minh kết quả tìm hàng thành công!",
+                    t("admin.droneIncidents.listPage.verify.success"),
                   );
                   if (ok) setShowVerifyConfirm(false);
                 }}
@@ -1695,7 +1796,7 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 {verifyState.isLoading && (
                   <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                 )}
-                Duyệt xác minh
+                {t("admin.droneIncidents.listPage.verify.approve")}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1778,7 +1879,12 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 : "bg-red-50 text-red-800 border-red-300"
             }`}
           >
-            Chính sách: {incident.incidentPolicyEnabled !== false ? "Đang bật" : "Đang tắt"}
+            {t("admin.droneIncidents.listPage.policy.status", {
+              state:
+                incident.incidentPolicyEnabled !== false
+                  ? t("admin.settings.input.on")
+                  : t("admin.settings.input.off"),
+            })}
           </Badge>
         </div>
 
@@ -1787,65 +1893,82 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
           <div className="flex items-center justify-between border-b pb-1.5">
             <span className="font-semibold text-slate-900 flex items-center gap-1.5 text-xs">
               <ShieldCheck className="h-4 w-4 text-primary" />
-              Cấu hình bồi thường áp dụng cho đơn:
+              {t("admin.droneIncidents.listPage.policy.configTitle")}
             </span>
             <Link
               to="/admin/settings"
               target="_blank"
               className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
             >
-              Xem cài đặt
+              {t("admin.droneIncidents.listPage.policy.viewSettings")}
               <ExternalLink className="h-3 w-3" />
             </Link>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
             <div className="p-2 rounded bg-white border">
-              <span className="text-muted-foreground block text-[10px]">Tỷ lệ đề xuất</span>
+              <span className="text-muted-foreground block text-[10px]">
+                {t("admin.droneIncidents.listPage.policy.suggestedRate")}
+              </span>
               <span className="font-bold text-slate-800">
                 {formatCompensationRate(incident.compensationRate)}
               </span>
             </div>
             <div className="p-2 rounded bg-white border">
-              <span className="text-muted-foreground block text-[10px]">Trần bồi thường</span>
+              <span className="text-muted-foreground block text-[10px]">
+                {t("admin.droneIncidents.listPage.policy.cap")}
+              </span>
               <span className="font-bold text-slate-800">
                 {incident.compensationCap && incident.compensationCap > 0
                   ? formatCurrency(incident.compensationCap)
-                  : "Không đặt trần"}
+                  : t("admin.droneIncidents.listPage.policy.noCap")}
               </span>
             </div>
             <div className="p-2 rounded bg-white border">
-              <span className="text-muted-foreground block text-[10px]">SLA thu hồi</span>
+              <span className="text-muted-foreground block text-[10px]">
+                {t("admin.droneIncidents.listPage.policy.recoverySla")}
+              </span>
               <span className="font-bold text-slate-800">
-                {incident.recoverySlaHours ?? 4} giờ
+                {t("admin.droneOrders.duration.hours", {
+                  hours: incident.recoverySlaHours ?? 4,
+                })}
               </span>
             </div>
             <div className="p-2 rounded bg-white border">
-              <span className="text-muted-foreground block text-[10px]">Duyệt chi bồi thường</span>
+              <span className="text-muted-foreground block text-[10px]">
+                {t("admin.droneIncidents.listPage.policy.payoutApproval")}
+              </span>
               <span className="font-bold text-slate-800">
-                {incident.approvalRequired !== false ? "Bắt buộc duyệt" : "Tự động"}
+                {incident.approvalRequired !== false
+                  ? t("admin.droneIncidents.listPage.policy.approvalRequired")
+                  : t("admin.scheduler.auto")}
               </span>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 border-t pt-1.5">
             <span>
-              Giá trị kiện: <b>{formatCurrency(incident.declaredValue ?? 0)}</b>
+              {t("admin.droneIncidents.listPage.policy.parcelValue")}{" "}
+              <b>{formatCurrency(incident.declaredValue ?? 0)}</b>
             </span>
             <span>
-              ⇒ Gợi ý bồi thường:{" "}
+              {t("admin.droneIncidents.listPage.policy.suggestedCompensation")}{" "}
               <b className="text-emerald-700">{formatCurrency(suggested)}</b>
             </span>
             <span>
-              • Hoàn cước ship:{" "}
+              {t("admin.droneIncidents.listPage.policy.refundShipping")}{" "}
               <b className="text-slate-800">
-                {incident.refundShippingFeeAllowed !== false ? "Có" : "Không"}
+                {incident.refundShippingFeeAllowed !== false
+                  ? t("common.yes")
+                  : t("common.no")}
               </b>
             </span>
             <span>
-              • Xem xét lại:{" "}
+              {t("admin.droneIncidents.listPage.policy.dispute")}{" "}
               <b className="text-slate-800">
-                {incident.disputeAllowed !== false ? "Cho phép" : "Không"}
+                {incident.disputeAllowed !== false
+                  ? t("admin.droneIncidents.listPage.policy.allowed")
+                  : t("common.no")}
               </b>
             </span>
           </div>
@@ -1853,7 +1976,7 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
 
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-slate-700">
-            Phương án giải quyết đề xuất:
+            {t("admin.droneIncidents.listPage.policy.resolutionLabel")}
           </label>
           <Select value={resolutionType} onValueChange={changeResolutionType}>
             <SelectTrigger>
@@ -1878,18 +2001,20 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
 
         <div className="rounded bg-slate-50 border p-2 text-[11px] text-muted-foreground leading-relaxed">
           {resolutionType === "FREE_REDELIVERY" &&
-            "• Giao lại miễn phí toàn bộ cước phí sau khi kiện đã an toàn về Hub (Khoản bồi thường = 0đ)."}
+            t("admin.droneIncidents.listPage.resolutionHint.freeRedelivery")}
           {resolutionType === "REDELIVERY_PARTIAL_COMPENSATION" &&
-            "• Giao lại kiện cho khách sau khi đã về Hub, đồng thời tạo phiếu bồi thường một phần giá trị thiệt hại."}
+            t(
+              "admin.droneIncidents.listPage.resolutionHint.redeliveryPartialCompensation",
+            )}
           {resolutionType === "COMPENSATION_ONLY" &&
-            "• Tạo phiếu bồi thường chuyển khoản qua ngân hàng cho khách (không giao lại kiện do mất hoặc hỏng hoàn toàn)."}
+            t("admin.droneIncidents.listPage.resolutionHint.compensationOnly")}
           {resolutionType === "MANUAL_RESOLUTION" &&
-            "• Thoả thuận phương án riêng với khách hàng ngoài quy trình tự động. Nhập biên bản/nội dung thỏa thuận vào ô ghi chú."}
+            t("admin.droneIncidents.listPage.resolutionHint.manualResolution")}
         </div>
 
         <div className="space-y-1">
           <label className="text-xs font-semibold text-slate-700">
-            Số tiền bồi thường (VND):
+            {t("admin.droneIncidents.listPage.policy.amountLabel")}
           </label>
           <Input
             type="number"
@@ -1932,9 +2057,9 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               htmlFor="refundShippingFee"
               className="text-xs font-medium text-slate-800 cursor-pointer select-none leading-none"
             >
-              Hoàn phí giao hàng khi bồi thường
+              {t("admin.droneIncidents.listPage.policy.refundShippingFee")}
               <span className="text-[10px] text-muted-foreground block font-normal mt-0.5">
-                (Khoản hoàn phí vận chuyển được xử lý tách biệt với bồi thường giá trị kiện hàng)
+                {t("admin.droneIncidents.listPage.policy.refundShippingFeeHint")}
               </span>
             </label>
           </div>
@@ -1942,14 +2067,14 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
 
         <div className="space-y-1">
           <label className="text-xs font-semibold text-slate-700">
-            Lý do điều chỉnh / Ghi chú thỏa thuận:
+            {t("admin.droneIncidents.listPage.policy.overrideLabel")}
           </label>
           <Input
             value={overrideReason}
             onChange={(event) => setOverrideReason(event.target.value)}
             placeholder={
               resolutionType === "MANUAL_RESOLUTION"
-                ? "Bắt buộc: Nhập chi tiết phương án đã thỏa thuận với khách..."
+                ? t("admin.droneIncidents.listPage.policy.manualPlaceholder")
                 : t("admin.droneIncidents.actions.overridePlaceholder")
             }
           />
@@ -1975,28 +2100,30 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-indigo-950 flex items-center gap-1.5">
                   <Truck className="h-4 w-4 text-indigo-600" />
-                  Tiến trình giao lại cho khách
+                  {t("admin.droneIncidents.listPage.redelivery.title")}
                 </span>
                 <Badge className="bg-indigo-600 text-white text-[10px]">
-                  Đang giao lại
+                  {t("admin.droneIncidents.listPage.redelivery.badge")}
                 </Badge>
               </div>
               {incident.redeliveryOrderId && (
                 <div className="flex items-center justify-between bg-white/90 p-2 rounded border border-indigo-100 text-xs text-indigo-950">
-                  <span className="text-muted-foreground">Đơn giao lại mới:</span>
+                  <span className="text-muted-foreground">
+                    {t("admin.droneIncidents.listPage.redelivery.newOrder")}
+                  </span>
                   <Link
                     to={`/admin/drone-orders?orderId=${incident.redeliveryOrderId}`}
                     className="font-mono font-bold text-indigo-700 underline flex items-center gap-1 hover:text-indigo-900"
                   >
-                    Đơn #{incident.redeliveryOrderId}
+                    {t("admin.orders.orderNumber", {
+                      id: incident.redeliveryOrderId,
+                    })}
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>
               )}
               <p className="text-xs text-indigo-900">
-                Kiện hàng đã được điều phối giao lại từ Hub. Khi kiện đã giao
-                thành công tới tay khách, bấm nút dưới để hoàn tất toàn bộ sự
-                cố:
+                {t("admin.droneIncidents.listPage.redelivery.hint")}
               </p>
               <Button
                 size="sm"
@@ -2005,12 +2132,12 @@ export function AdminActions({ incident }: { incident: DroneParcelIncident }) {
                 onClick={() =>
                   handle(
                     () => completeRedelivery(incident.id).unwrap(),
-                    "Đã xác nhận giao lại thành công và đóng sự cố!",
+                    t("admin.droneIncidents.listPage.redelivery.success"),
                   )
                 }
               >
                 <CheckCircle2 className="h-4 w-4" />
-                Xác nhận đã giao lại thành công & hoàn tất sự cố
+                {t("admin.droneIncidents.listPage.redelivery.button")}
               </Button>
             </div>
           )}

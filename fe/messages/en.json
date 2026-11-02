@@ -810,6 +810,23 @@
           "none": "No box-opening code has been issued for this order.",
           "homePickup": "Home pickup code (sender reads it to the technician)",
           "homePickupUsed": "Used — the technician has the parcel or the order ended"
+        },
+        "extra": {
+          "incidentStatus": {
+            "disputed": "Customer requested a review",
+            "awaitingCustomer": "Awaiting customer response to resolution plan",
+            "compensating": "Compensation in progress",
+            "executingPlan": "Carrying out resolution plan",
+            "recoveryPendingReview": "Recovery awaiting approval",
+            "recovered": "Recovered",
+            "searching": "Searching",
+            "techAccepted": "Technician accepted",
+            "awaitingTech": "Awaiting technician acceptance",
+            "awaitingDispatch": "Awaiting dispatch"
+          },
+          "dropIncidentWithCode": "Drop incident ({{code}}): {{status}}",
+          "dropIncidentTitle": "Drop incident {{code}} - click to view details",
+          "dropIncident": "Drop incident: {{status}}"
         }
       },
       "location": {
@@ -1022,7 +1039,14 @@
         "addNewBox": "Add new box"
       },
       "batchNoun": "locations",
-      "batchNote": "Locations that still have lockers cannot be deleted — move or delete their lockers first."
+      "batchNote": "Locations that still have lockers cannot be deleted — move or delete their lockers first.",
+      "boxSettingUi": {
+        "holdsOrderError": "Can't change the status while the box holds items or is reserved",
+        "statusUpdated": "Box #{{number}} status updated",
+        "occupiedTitle": "This box holds an order's items",
+        "reservedTitle": "This box is reserved for an order",
+        "autoManaged": "The box status is managed automatically by the order flow and incident tickets. It can't be changed manually while the box holds items."
+      }
     },
     "lockers": {
       "title": "Locker Management",
@@ -1627,6 +1651,213 @@
         "mac": "Pi MAC address:",
         "lastSeen": "Last seen:",
         "noSignal": "No signal yet"
+      },
+      "tools": {
+        "boxQr": {
+          "stickerBadgeXl": "XL LUGGAGE BAY",
+          "stickerBadgeStandard": "MULTI-PURPOSE STANDARD BOX",
+          "stickerPosition": "Position: Row {{row}} · Column {{col}}",
+          "stickerIdentifier": "Identifier: BOX-{{id}}",
+          "stickerDoor": "Door: {{state}}",
+          "stickerStatus": "Status: {{status}}",
+          "stickerScanHint": "Scan the QR code with the Lock.R app to drop off/pick up or check the box",
+          "arucoAssigned": "Assigned ArUco code #{{id}} to box #{{number}}",
+          "arucoNew": "new",
+          "arucoAssignFailed": "Couldn't assign the ArUco code",
+          "arucoUnassignConfirm": "Are you sure you want to unassign the ArUco code from box #{{number}}?",
+          "arucoUnassigned": "Unassigned the ArUco code from box #{{number}}",
+          "arucoUnassignFailed": "Couldn't unassign the ArUco code",
+          "arucoNothingToPrint": "This box has no ArUco code to print",
+          "arucoMatrixNotFound": "No matrix found for ArUco code #{{id}}",
+          "title": "Box QR Codes & Labels",
+          "stationLabel": "Station:",
+          "boxCount": "{{count}} box(es)",
+          "printStandard": "Print-ready decals for smart locker doors",
+          "tabSingle": "Box #{{number}} label",
+          "tabAruco": "Box #{{number}} ArUco",
+          "tabAll": "Print all ({{count}} boxes)",
+          "arucoPreview": "ArUco label preview",
+          "arucoNotAssigned": "No ArUco code assigned",
+          "arucoAssignHint": "Click \"Auto-assign ArUco code\" on the right",
+          "arucoSpecsTitle": "ArUco code specs",
+          "arucoSpecsDesc": "Optical ID for the drone-receiving sliding lid",
+          "notAssigned": "Not assigned",
+          "markerAreaSize": "Code area size:",
+          "quietZone": "Quiet zone:",
+          "arucoAssignPrompt": "This box has no ArUco code yet. Click to have the system assign the lowest unused ID in <strong>DICT_4X4_50</strong>.",
+          "assigning": "Assigning...",
+          "autoAssign": "Auto-assign ArUco code",
+          "unassign": "Unassign code",
+          "reassign": "Assign another code",
+          "printNotesTitle": "Notes for printing at exactly 80 × 80 mm:",
+          "printNoteScale": "In the print dialog, set <strong>Scale</strong> to <strong>100% (Actual size)</strong>.",
+          "printNoteHeaders": "Turn off <strong>Headers & footers</strong>.",
+          "printNotePaper": "Paper size: <strong>A4</strong> (the printout is exactly 1 page, with no overflow).",
+          "decalPreview": "Actual decal print preview",
+          "standardBadge": "STANDARD",
+          "stickerFunction": "FUNCTION",
+          "functionStandard": "Multi-purpose standard box",
+          "stickerSize": "SIZE",
+          "stickerLocation": "PHYSICAL POSITION",
+          "stickerIdLabel": "IDENTIFIER",
+          "scanHint": "Scan the QR code with the Lock.R app to operate or check the box",
+          "downloadStickerPng": "Download label PNG",
+          "downloadQrOnly": "Download QR only",
+          "pickBox": "Select a box to view its label:",
+          "availableCount": "{{count}} box(es) available",
+          "boxWithType": "Box #{{number}} - {{type}}",
+          "specsTitle": "Box #{{number}} specs",
+          "latchStatus": "Latch status:",
+          "latchOpen": "Open",
+          "latchClosed": "Closed",
+          "gridPosition": "Grid position:",
+          "compartmentSize": "Compartment size:",
+          "functionLabel": "Function:",
+          "functionXlShort": "Luggage bay",
+          "functionMulti": "Multi-purpose box",
+          "copiedJson": "Copied",
+          "copyJson": "Copy JSON",
+          "printHint": "Click <strong>\"Print Label\"</strong> at the bottom to open the print dialog or save the decal as a PDF.",
+          "printAllTitle": "Print all labels for this locker ({{count}} boxes)",
+          "printAllDesc": "The system lays the labels out in an A4 grid. Click \"Print all\" to print directly or export a PDF to stick on every physical box door.",
+          "printAllButton": "Print all ({{count}} labels)",
+          "miniPosition": "Row {{row}} · Col {{col}} · ID: {{id}}",
+          "stickerShort": "Label",
+          "footerNote": "Standard 80×100mm labels · Works with thermal decal printers and A4 printers",
+          "printAruco": "Print ArUco Label for Box #{{number}}"
+        },
+        "location": {
+          "geoUnsupported": "This browser doesn't support Geolocation (GPS positioning)",
+          "gpsConnecting": "Connecting to the device GPS for the most accurate coordinates...",
+          "gpsSuccess": "Got accurate GPS coordinates! (Margin: ±{{accuracy}}m)",
+          "gpsFailed": "Couldn't get the current GPS position",
+          "gpsDenied": "Location access was denied. Please allow location access for this site.",
+          "gpsTimeout": "The device GPS timed out.",
+          "movedTo": "Pin moved to: {{place}}",
+          "placeNotFoundToast": "No place found for \"{{query}}\". Try a street name or click \"My GPS location\".",
+          "coordsCopied": "Coordinates copied: {{coords}}",
+          "saveSuccess": "Locker location & coordinates updated!",
+          "saveFailed": "Couldn't save the locker location",
+          "checkNetwork": "Please check your network connection",
+          "title": "Locker location & coordinates:",
+          "description": "Move the pin or drag the map to pick the most accurate coordinates for the Lock.R locker (Grab / Xanh SM style).",
+          "searchPlaceholder": "Enter an address, building or school (e.g. FPT University, Landmark 81, Bitexco...)",
+          "search": "Search",
+          "searching": "Searching the map...",
+          "resultsFound": "Found {{count}} place(s):",
+          "clickToPin": "Click to pin",
+          "noResultTitle": "No place found for \"{{query}}\"",
+          "noResultHint": "Try a street or ward name, or use the \"My GPS location\" button.",
+          "gpsButtonTitle": "Use the device GPS to get real coordinates with the highest accuracy",
+          "locating": "Locating...",
+          "myGps": "My GPS location",
+          "modeTitle": "Switch between pinning at the map center (like ride-hailing apps) and dragging the pin",
+          "modeCenter": "Mode: Map center (Grab)",
+          "modeDrag": "Mode: Drag pin",
+          "moving": "Moving...",
+          "dropHere": "Drop here to pin",
+          "zoomIn": "Zoom in",
+          "zoomOut": "Zoom out",
+          "recenter": "Center the view on the pin",
+          "gpsAccuracy": "GPS accuracy: ±{{accuracy}}m",
+          "addressLabel": "Locker's detailed address",
+          "lookingUpAddress": "(Looking up address...)",
+          "addressHint": "Editable to guide customers / staff",
+          "addressPlaceholder": "e.g. Lobby A, Landmark 81, 720A Dien Bien Phu, Ward 22, Binh Thanh, HCMC",
+          "latitudeLabel": "Latitude - 6 decimal places",
+          "longitudeLabel": "Longitude - 6 decimal places",
+          "copyCoords": "Copy coordinates",
+          "openGoogleMaps": "Check on Google Maps",
+          "coordPrecision": "Coordinate precision: ~0.1m",
+          "resetDone": "Reset to the locker's original coordinates",
+          "reset": "Reset to Original",
+          "savingCoords": "Saving coordinates...",
+          "saveCoords": "Save Coordinates"
+        },
+        "addPreview": {
+          "collisionScreen": "Row 1, Column 1 is the fixed kiosk screen!",
+          "collisionBox": "Row {{row}}, Column {{col}} already has box #{{number}}!",
+          "batchCollisionScreen": "Box #{{number}} overlaps the kiosk screen",
+          "batchCollisionBox": "Box #{{number}} overlaps box #{{existing}}",
+          "title": "Kiosk Layout Preview (Table)",
+          "subtitle": "The kiosk screen is fixed at (Row 1, Column 1). Click any empty cell to pick it.",
+          "nextEmpty": "Pick next empty slot (R{{row}}, C{{col}})",
+          "collisionsFound": "{{count}} box(es) with conflicting positions: {{list}}",
+          "rowColHeader": "Row \\ Col",
+          "colHeader": "Col {{number}}",
+          "rowHeader": "Row {{number}}",
+          "fixed": "Fixed",
+          "cannotChange": "Can't be changed",
+          "overlap": "⚠️ Position conflict!",
+          "typeXl": "XL luggage bay",
+          "cellCoord": "R{{row}} · C{{col}}",
+          "newSlot": "✨ New box",
+          "newBatch": "New box ({{index}}/{{total}})",
+          "emptyTitle": "Click to place a box at Row {{row}}, Column {{col}}",
+          "emptySlot": "Empty (R{{row}}, C{{col}})",
+          "clickToSelect": "Click to select",
+          "legendScreen": "7\" screen (fixed at R1, C1)",
+          "legendExisting": "Existing box",
+          "legendPreview": "New box preview",
+          "legendEmpty": "Empty slot (click to select)",
+          "existingCount": "Existing: <strong>{{count}}</strong> box(es)"
+        },
+        "layout": {
+          "arucoCode": "ArUco code #{{id}}",
+          "assignAruco": "Assign drone ArUco code",
+          "arucoUnassigned": "No ArUco",
+          "screenSlotTaken": "Row 1, Column 1 is the fixed kiosk screen, please choose another position!",
+          "locationMenu": "Location & Coordinates",
+          "pinLocation": "Pin Locker Coordinates",
+          "gpsCardTitle": "Locker GPS Location",
+          "located": "Located",
+          "noGps": "No GPS",
+          "noAddress": "No specific address set",
+          "openGoogleMaps": "Open Google Maps",
+          "editMap": "Edit on Map",
+          "pickOnMap": "Pick on Map"
+        },
+        "ble": {
+          "notFound": "Beacon {{name}} not found (or the picker was closed). Check that the Pi is advertising BLE with a name, and stand near the locker.",
+          "insecure": "The browser blocked Bluetooth: open the page over https or localhost.",
+          "scanFailed": "Bluetooth scan failed: {{message}}",
+          "openSent": "Open command sent to box {{number}}",
+          "openRejected": "The locker rejected the open command for box {{number}}",
+          "openSendFailed": "Couldn't send the open command for box {{number}}",
+          "title": "Bluetooth Check & Test Box Opening",
+          "description": "Scan for the {{name}} beacon broadcast by the locker's Pi; once the right locker is found (and close enough, if signal strength can be measured), test-open each box. The open command still goes through the server to the Pi.",
+          "unsupported": "This browser doesn't support Web Bluetooth. Use Chrome or Edge on a device with Bluetooth.",
+          "scan": "Scan Locker Bluetooth",
+          "adapterOff": "Bluetooth is off on this device",
+          "matched": "Locker found: {{name}}",
+          "otherLocker": "{{name}} is not locker {{code}}",
+          "noRssi": "Can't measure distance (enable chrome://flags/#enable-experimental-web-platform-features to measure it) — opening is allowed as soon as the locker is found.",
+          "tooFar": "Signal is still weak — move closer to the locker (< 2 m) to open a box.",
+          "openBox": "Open box {{number}}"
+        },
+        "openQr": {
+          "button": "Box-Open QR (Locker Test)",
+          "printTitle": "Box-open QR {{code}}",
+          "title": "Box-Open QR Codes for Locker Testing",
+          "description": "Each box's code pops that box open, no order needed. Scan with the Lock.R app (QR scan button on the home screen) using an account on the test list in Settings › iot with test mode on; or scan with a regular camera, then sign in as ADMIN or the locker's assigned technician in the browser.",
+          "baseUrl": "Admin web address the phone can open",
+          "localhostWarning": "This address doesn't matter when scanning with the Lock.R app. With a regular camera the phone can't open localhost: run the web app with `npm run dev -- --host` and enter this machine's LAN IP (same Wi-Fi as the phone), e.g. http://192.168.1.10:3000.",
+          "sheetSub": "Scan with the Lock.R app (locker test mode) or a camera + ADMIN/technician sign-in · {{url}}",
+          "electricalBay": "Electrical bay",
+          "missingBox": "This box number isn't in the system yet",
+          "print": "Print QR Sheet",
+          "openSent": "Open command sent",
+          "openRejected": "The locker rejected the open command",
+          "sendFailed": "Couldn't send the open command — check the account's permissions and the locker's connection",
+          "invalidLink": "Invalid QR code.",
+          "pageTitle": "Open Box by QR Code (Locker Test)",
+          "sending": "Sending open command...",
+          "openAgain": "Open This Box Again",
+          "backToLocker": "Back to Locker"
+        },
+        "table": {
+          "protectWarning": "Note: If any box in the locker holds a customer's order, the system protects it and refuses to delete the locker."
+        }
       }
     },
     "feedback": {
@@ -2615,7 +2846,7 @@
         "eta": "Estimated arrival",
         "etaRemaining": "{{time}} · {{duration}} left",
         "etaApprox": "about {{minutes}} min",
-        "coordinates": "Latitude, longitude: {{lat}}, {{lng}}",
+        "coordinates": "Latitude, longitude: {{lat}}, {{lon}}",
         "coordsLive": "live",
         "coordsEstimated": "estimated from stage (no position signal yet)"
       },
@@ -2750,6 +2981,40 @@
         },
         "suspended": "Station paused: {{reason}}",
         "manage": "Flight control"
+      },
+      "page": {
+        "incidentStatus": {
+          "closed": "Incident closed",
+          "disputed": "Customer requested review",
+          "awaitingCustomer": "Awaiting customer response to resolution plan",
+          "payingCompensation": "Paying compensation",
+          "resolutionInProgress": "Carrying out resolution plan",
+          "returnedToHub": "Parcel returned to Hub — awaiting resolution plan",
+          "verified": "Verified — awaiting resolution plan",
+          "searching": "Technician searching on site",
+          "accepted": "Technician accepted the search",
+          "assigned": "Assigned (awaiting technician acceptance)",
+          "awaitingDispatch": "Awaiting search dispatch"
+        },
+        "dropIncident": "Parcel drop incident:",
+        "dropIncidentDefaultReason": "The parcel was recorded as dropped during the delivery flight.",
+        "searchTechnician": "Search technician:",
+        "updatedAt": "Updated: {{time}}",
+        "viewIncident": "View incident details",
+        "closedByDrop": "Order closed due to a parcel drop incident",
+        "map": {
+          "dropPointTooltip": "Reported drop point ({{lat}}, {{lon}})",
+          "stoppedByIncident": "Delivery stopped due to incident",
+          "dropCoordinates": "Drop point coordinates: {{lat}}, {{lon}} · Drop point on the flight path"
+        },
+        "detail": {
+          "backToList": "Drone journeys",
+          "invalidId": "Invalid order ID."
+        },
+        "timeline": {
+          "incident": "Incident",
+          "dropNote": "The parcel was reported dropped mid-flight — delivery stopped"
+        }
       }
     },
     "drones": {
@@ -2931,7 +3196,185 @@
         "batteryInvalid": "Enter a whole number from 0 to 100."
       },
       "batchNoun": "drones",
-      "batchNote": "Drones that are reserved or in flight cannot be deleted."
+      "batchNote": "Drones that are reserved or in flight cannot be deleted.",
+      "hardware": {
+        "online": "Online",
+        "offline": "Offline",
+        "notConnected": "Not connected",
+        "title": "Controller & hardware ({{code}})",
+        "description": "Monitor this drone's Raspberry Pi companion computer, Pixhawk flight controller and live camera stream.",
+        "unassign": "Remove controller",
+        "toast": {
+          "ipRequired": "Please enter the Raspberry Pi IP address",
+          "ipInvalid": "Invalid IP address format. Example: 192.168.1.15",
+          "ipTaken": "IP address {{ip}} is already assigned to drone {{drone}}. Duplicate assignment is not allowed!",
+          "piNotFoundHttp": "No Raspberry Pi found at IP {{ip}} (HTTP error code: {{status}}). Please check again.",
+          "piUnreachablePort": "Cannot connect to the Raspberry Pi at IP address: {{ip}}. The device does not exist or its service on port 8080 is not running.",
+          "macTaken": "Raspberry Pi device (MAC: {{mac}}) is already assigned to drone {{drone}}. Duplicate assignment is not allowed!",
+          "selectPi": "Please select a Raspberry Pi to assign",
+          "piTaken": "This Raspberry Pi is already assigned to drone {{drone}}. It cannot be assigned twice!",
+          "piNotFound": "No Raspberry Pi found at IP {{ip}} (error code: {{status}}).",
+          "piUnreachable": "Cannot connect to the Raspberry Pi at IP {{ip}}. Please check the IP address.",
+          "assigned": "Controller (IP: {{ip}}) assigned to drone {{code}}",
+          "assignFailed": "Could not assign the controller due to a system error.",
+          "unassigned": "Controller removed from drone {{code}}",
+          "unassignFailed": "Could not remove the controller"
+        },
+        "pi": {
+          "mac": "MAC address:",
+          "ip": "IP address:",
+          "os": "Operating system:",
+          "updated": "Updated:"
+        },
+        "pixhawk": {
+          "signalLost": "Signal lost (Pi powered off)",
+          "notConnected": "Pixhawk not connected",
+          "flightMode": "Flight mode:",
+          "motors": "Motors:",
+          "armed": "ARMED (spinning)",
+          "disarmed": "DISARMED (safe)",
+          "landed": {
+            "inAir": "In the air",
+            "onGround": "On the ground",
+            "landing": "Landing"
+          },
+          "gps": "GPS fix:",
+          "noGpsLock": "No GPS lock",
+          "satellites": "{{n}} satellites"
+        },
+        "power": {
+          "title": "Power & energy",
+          "voltage": "Total voltage:",
+          "current": "Current draw:"
+        },
+        "camera": {
+          "title": "Live camera from drone ({{code}})",
+          "reload": "Reload stream",
+          "openNewTab": "Open in new tab",
+          "enlarge": "Enlarge",
+          "notStreaming": "Drone {{code}} camera is not streaming yet",
+          "serviceOff": "The Raspberry Pi is online but the camera service (port 8080) is not running.",
+          "piOffline": "The Raspberry Pi controller is currently disconnected. The video stream will start automatically when the Pi comes online.",
+          "expectedUrl": "Expected URL: {{url}}"
+        },
+        "empty": {
+          "title": "No controller assigned to drone {{code}}",
+          "hint": "Assign a Raspberry Pi companion computer to monitor the drone's Pixhawk status, battery and live camera stream."
+        },
+        "assign": {
+          "title": "Assign Pi controller",
+          "description": "Pick an active Raspberry Pi from the list or enter an IP address to assign it to this drone.",
+          "discovered": "Discovered Raspberry Pis:",
+          "onlineCount": "{{n}} online",
+          "selectPlaceholder": "Select a Raspberry Pi (name & IP)...",
+          "noIp": "No IP",
+          "assignedTo": "Assigned: {{drone}}",
+          "assignedThis": "Assigned to this drone",
+          "customIp": "Enter another IP address manually...",
+          "selectedInfo": "Selected Raspberry Pi:",
+          "assignedToOther": "Assigned to {{drone}}",
+          "activeOnline": "Active (online)",
+          "piName": "Raspberry Pi name",
+          "ip": "IP address",
+          "mac": "MAC address",
+          "hardwareRole": "Hardware / role",
+          "enterIp": "Enter an IP address for this Pi:",
+          "ipPlaceholder": "e.g. 192.168.1.15 or 10.3.77.123",
+          "ipSaveHint": "The system will connect to the Pi at this IP and save it permanently to the database.",
+          "takenWarning": "This controller is currently assigned to <strong>{{drone}}</strong>. It cannot be assigned to another drone!",
+          "syncHint": "Drone <strong>{{code}}</strong> will sync Pixhawk flight data, battery and the live camera stream from this Pi.",
+          "customIpLabel": "Raspberry Pi IP address:",
+          "required": "* Required",
+          "customIpHint": "The system will check and connect to the API & camera service (port 8080) at this IP address. If the IP does not exist or does not respond, the assignment is rejected.",
+          "probing": "Checking Pi connection...",
+          "submit": "Assign controller"
+        },
+        "iot": {
+          "title": "Drone IoT log {{code}}",
+          "description": "Full hardware event chain: Pi Controller, Pixhawk MAVLink, cargo release hook, ArUco camera and battery",
+          "refreshed": "Drone IoT log refreshed",
+          "searchPlaceholder": "Search by message, order #, technician, error, IP, MAC...",
+          "loading": "Loading drone IoT log...",
+          "empty": "No IoT log entries for this drone yet.",
+          "emptyFiltered": "No IoT entries match the filters.",
+          "banner": {
+            "online": "Drone {{code}} is online (powered & connected)",
+            "offline": "Drone {{code}} is offline (unplugged or network lost)",
+            "onlineBadge": "ONLINE",
+            "offlineBadge": "OFFLINE",
+            "onlineDetail": "Pi Controller: {{ip}} · MAVLink Pixhawk: {{mavlink}} · Updated: {{time}}",
+            "lastSeen": "Last connected: {{time}}",
+            "noRecentSignal": "No recent signal"
+          },
+          "component": {
+            "piController": "Pi Controller",
+            "pixhawk": "Pixhawk Autopilot",
+            "cargoHook": "Cargo hook",
+            "visionCamera": "AI vision camera",
+            "batteryPower": "Power & battery",
+            "telemetry": "Telemetry link"
+          },
+          "event": {
+            "powerConnected": "Powered on (online)",
+            "powerDisconnected": "Unplugged / power lost",
+            "telemetryOnline": "Telemetry connected",
+            "telemetryLost": "Telemetry signal lost",
+            "pixhawkConnected": "Pi connected to Pixhawk",
+            "pixhawkDisconnected": "Pi lost Pixhawk connection",
+            "detectTarget": "Box/locker marker detected",
+            "markerMismatch": "Box marker mismatch",
+            "hookAttach": "Hook gripped parcel",
+            "hookRelease": "Hook released parcel",
+            "hookJammed": "Cargo hook jammed",
+            "manualOverride": "Manual override (user/technician)",
+            "armed": "Motors armed (ARMED)",
+            "disarmed": "Safety lock (DISARMED)",
+            "flightModeChanged": "Flight mode changed",
+            "failsafeTriggered": "Failsafe triggered"
+          },
+          "result": {
+            "connected": "Connected",
+            "mavlinkLost": "MAVLink lost",
+            "released": "Released",
+            "locked": "Latched",
+            "detected": "Detected",
+            "jammed": "Mechanically jammed",
+            "timeout": "Timed out",
+            "warning": "Warning"
+          },
+          "filter": {
+            "componentPlaceholder": "Hardware component",
+            "allComponents": "All components",
+            "piController": "Pi Controller processor",
+            "pixhawk": "Pixhawk flight controller",
+            "cargoHook": "Cargo hook",
+            "allEvents": "All events",
+            "armed": "Motors armed",
+            "online": "Online (ONLINE)",
+            "offline": "Disconnected (OFFLINE)",
+            "reset": "Reset filters"
+          },
+          "col": {
+            "component": "Device component",
+            "message": "Message"
+          },
+          "actor": {
+            "technician": "Technician",
+            "user": "User",
+            "piSystem": "Pi system"
+          }
+        },
+        "detail": {
+          "operating": "In operation",
+          "decommissioned": "Out of service",
+          "techDescription": "Assign a technician to monitor this drone",
+          "techCurrent": "Assigned:",
+          "stationDescription": "Current landing pad and station",
+          "infoDescription": "Lifecycle details & system record",
+          "systemId": "System ID",
+          "missionStatus": "Mission status:"
+        }
+      }
     },
     "droneIncidents": {
       "title": "Drone Parcel Drop Incidents",
@@ -3037,6 +3480,584 @@
         "approveCompensation": "Approve Compensation",
         "retryPayout": "Retry Compensation Payout",
         "payoutNote": "If the compensation payout gateway is not configured, the system keeps the request pending and records Integration Unavailable in the history; it never fakes a completed payment."
+      },
+      "detailPage": {
+        "incidentStatus": {
+          "awaitingPlan": "Incident: Awaiting resolution plan",
+          "closed": "Incident: Closed",
+          "resolved": "Incident: Resolved",
+          "recoveryInProgress": "Incident: Recovering parcel",
+          "awaitingAdminReview": "Incident: Awaiting admin verification",
+          "resolutionProposed": "Incident: Resolution plan proposed",
+          "awaitingCustomerResponse": "Incident: Awaiting customer response",
+          "resolutionInProgress": "Incident: Executing resolution plan",
+          "investigating": "Incident: Coordinating recovery",
+          "evidencePending": "Incident: Awaiting more evidence",
+          "disputed": "Incident: Customer dispute",
+          "manualInterventionRequired": "Incident: Intervention required",
+          "reported": "Incident: Drop just reported",
+          "other": "Incident: {{status}}"
+        },
+        "recoveryStatus": {
+          "closed": "Recovery: Completed",
+          "verified": "Recovery: Verified by admin",
+          "submitted": "Recovery: Awaiting admin approval",
+          "searching": "Recovery: Technician searching on site",
+          "accepted": "Recovery: Technician accepted",
+          "assigned": "Recovery: Assigned (awaiting technician)",
+          "awaitingAssignment": "Recovery: Awaiting technician assignment",
+          "open": "Recovery: Pending",
+          "other": "Recovery: {{status}}"
+        },
+        "parcelStatus": {
+          "returnedToHub": "Parcel: Back at Hub",
+          "dropReported": "Parcel: Dropped on site",
+          "searching": "Parcel: Searching",
+          "found": "Parcel: Found",
+          "damaged": "Parcel: Damaged on site",
+          "lost": "Parcel: Lost",
+          "redelivering": "Parcel: Redelivering",
+          "redelivered": "Parcel: Redelivered successfully",
+          "other": "Parcel: {{status}}"
+        },
+        "returnFlight": {
+          "returnRequested": "Return requested",
+          "commandAccepted": "Drone accepted the command",
+          "returning": "Flying back to station",
+          "completed": "Back at station",
+          "failed": "Return failed",
+          "manualInterventionRequired": "Drone must be retrieved manually"
+        },
+        "timeline": {
+          "title": "Incident timeline ({{count}} events)",
+          "events": {
+            "incidentReported": {
+              "label": "Parcel drop incident reported",
+              "description": "The system recorded a parcel drop from the drone"
+            },
+            "returnRequest": {
+              "label": "Drone return to station requested (RTL)",
+              "description": "Return-to-Launch mode activated for the drone"
+            },
+            "returnFlightUpdated": {
+              "label": "Drone flying back to station (RTL)",
+              "description": "Emergency flight path to a safe landing station updated"
+            },
+            "recoveryAssigned": {
+              "label": "Search technician assigned",
+              "description": "The system or an admin dispatched a technician to take on the search"
+            },
+            "recoveryAccepted": {
+              "label": "Technician accepted the task",
+              "description": "The technician accepted the on-site search order"
+            },
+            "recoverySearching": {
+              "label": "On-site search started",
+              "description": "The technician reached the site and is sweeping the area for the parcel"
+            },
+            "recoverySubmitted": {
+              "label": "Technician submitted site report",
+              "description": "The technician confirmed the actual coordinates and uploaded evidence photos"
+            },
+            "recoveryVerified": {
+              "label": "Admin verified the site report",
+              "description": "An admin checked the coordinates and reconciled the search result"
+            },
+            "recoveryStationDispatched": {
+              "label": "Parcel dispatched to drone station",
+              "description": "The system picked the drone station nearest to where the parcel was found that still has a drone for redelivery"
+            },
+            "recoveryStationUnavailable": {
+              "label": "No station could be dispatched",
+              "description": "No drone station can take the parcel — keeping the previous handover point"
+            },
+            "recoveryTicketsUnavailable": {
+              "label": "Recovery ticket could not be created",
+              "description": "The locker system did not respond — admin assigns a recovery technician manually"
+            },
+            "parcelReturnedToHub": {
+              "label": "Parcel handed over to station",
+              "description": "The technician brought the parcel safely back to the station / Hub"
+            },
+            "proposalCreated": {
+              "label": "Resolution plan proposal created",
+              "description": "Compensation / redelivery proposal sent to the customer"
+            },
+            "proposalAccepted": {
+              "label": "Customer accepted the resolution plan",
+              "description": "The customer confirmed acceptance of the resolution plan"
+            },
+            "proposalDisputed": {
+              "label": "Customer requested a review",
+              "description": "The customer disputed or rejected the compensation plan"
+            },
+            "redeliveryStarted": {
+              "label": "Redelivery to customer started",
+              "description": "The parcel left the Hub for redelivery to the pickup locker"
+            },
+            "redeliveryCompleted": {
+              "label": "Parcel redelivered successfully",
+              "description": "The customer safely received the parcel"
+            },
+            "compensationApproved": {
+              "label": "Compensation refund payout approved",
+              "description": "Admin approved creating the compensation refund ticket"
+            },
+            "compensationPaid": {
+              "label": "Compensation refunded successfully",
+              "description": "The system transferred the compensation to the customer's account"
+            },
+            "recoveryStartSearching": {
+              "description": "The technician reached the site and is searching for the parcel"
+            },
+            "resolutionProposed": {
+              "label": "Resolution plan sent to customer",
+              "description": "Compensation / redelivery proposal sent to the customer"
+            },
+            "customerAccept": {
+              "label": "Customer accepted the plan"
+            },
+            "redeliveryRequested": {
+              "label": "Redelivery order created"
+            },
+            "redeliveryIntegrationUnavailable": {
+              "label": "Redelivery order could not be created"
+            },
+            "compensationSubmitted": {
+              "label": "Compensation payout ticket created"
+            },
+            "compensationPaymentFailed": {
+              "label": "Compensation payout failed"
+            },
+            "returnFlightConfirmed": {
+              "label": "Drone confirmed back at station"
+            },
+            "incidentResolved": {
+              "label": "Incident handling completed"
+            },
+            "incidentClosed": {
+              "label": "Incident case closed",
+              "description": "The whole parcel drop incident process has ended"
+            }
+          }
+        },
+        "hints": {
+          "badlyDamaged": "(Parcel badly damaged)",
+          "needsHub": "(Parcel must be at Hub)"
+        },
+        "toast": {
+          "demoSuffix": "{{message}} (demo data)",
+          "actionFailed": "Action failed. Please try again!",
+          "proposalSent": "Compensation plan proposal sent to the customer!",
+          "returnConfirmed": "Drone confirmed back at station",
+          "verified": "Search result verified successfully!",
+          "handoverConfirmed": "Parcel confirmed back at Hub!",
+          "redeliveryCompleted": "Redelivery confirmed and incident closed!",
+          "compensationApproved": "Compensation refund ticket approved for the customer!"
+        },
+        "loading": "Loading parcel drop incident...",
+        "unknown": "Unknown",
+        "notFound": {
+          "backToList": "Drone incident list",
+          "title": "Incident not found",
+          "description": "Incident #{{id}} does not exist or you do not have access to it.",
+          "back": "Back to list"
+        },
+        "header": {
+          "backToIncidents": "Back to incident list",
+          "incidentCode": "Incident code: {{code}}",
+          "reportedAt": "Drop reported at:",
+          "refresh": "Refresh data"
+        },
+        "kpi": {
+          "dropTitle": "Drop location & Drone",
+          "noCoordinates": "No coordinates yet",
+          "gpsTelemetry": "GPS source: {{source}} · Telemetry:",
+          "stale": "Stale data",
+          "online": "Online",
+          "openOsm": "Open in OpenStreetMap",
+          "techTitle": "Search technician",
+          "techAccepted": "Technician accepted",
+          "techAwaitingAccept": "Awaiting technician acceptance",
+          "roleDrone": "🚁 Drone technician (no active orders)",
+          "roleLocker": "🏢 Kiosk / locker technician (GPS near drop point)",
+          "waitingAccept": "Waiting for the technician to accept",
+          "waitingDispatch": "Waiting for technician dispatch",
+          "noPhone": "No phone number",
+          "parcelTitle": "Parcel & Hub",
+          "parcelFound": "Parcel found",
+          "parcelNotFound": "Parcel not found",
+          "searching": "Searching",
+          "returnedAt": "Back at {{place}} at: {{time}}",
+          "awaitingHandoverAt": "Awaiting handover at station {{station}}",
+          "notHandedOver": "Not yet handed over to Hub",
+          "returnFlight": "Return: {{status}}",
+          "confirmReturn": "Confirm drone is back at station",
+          "compensationTitle": "Compensation",
+          "suggested": "Suggested: {{amount}}",
+          "declared": "Declared: {{amount}}",
+          "status": "Status:"
+        },
+        "tech": {
+          "title": "Technician in charge of parcel recovery",
+          "badgeSearching": "Searching on site",
+          "badgeSubmitted": "Search result submitted",
+          "badgeVerified": "Recovery verified",
+          "badgeClosed": "Handed over to Hub",
+          "badgeAccepted": "Technician accepted the task",
+          "description": "The technician accepted the task and is carrying out the parcel search / recovery. Manual assignment is locked.",
+          "name": "Technician name:",
+          "phone": "Contact phone:",
+          "notUpdated": "Not provided",
+          "specialty": "Specialty:",
+          "roleDrone": "Drone technician",
+          "roleLocker": "Kiosk / locker technician",
+          "roleGeneric": "Technician",
+          "recoveryStatus": "Recovery status:"
+        },
+        "verify": {
+          "title": "Verify search result (Admin Review)",
+          "badge": "Awaiting admin approval",
+          "intro": "The technician submitted a site report. Admins must check the following before verifying:",
+          "checkPhotos": "Check the site photos and the actual condition of the parcel.",
+          "checkGps": "Compare the GPS coordinates confirmed from the technician's phone with the drop coordinates.",
+          "checkCondition": "Confirm parcel condition: <b>{{condition}}</b>.",
+          "footnote": "* After you click Approve verification, the parcel is unlocked for the technician to hand over to the Hub, and the system allows creating a compensation / redelivery plan for the customer.",
+          "button": "Approve the technician's search result"
+        },
+        "station": {
+          "title": "Receiving station: {{name}}",
+          "directions": "Directions",
+          "distance": "~{{km}} km from where the parcel was found",
+          "noDrone": "No drone ready at the station — the parcel waits there for a drone.",
+          "droneReady": "Station has a drone ready — the redelivery order will fly from this station.",
+          "dispatchedAt": "Dispatched at {{time}}"
+        },
+        "place": {
+          "station": "station {{name}}",
+          "hubStation": "the Hub"
+        },
+        "hub": {
+          "arrivedAt": "Parcel arrived safely at {{place}} at: {{time}}",
+          "arrived": "Parcel was handed over safely to the Hub.",
+          "confirmTitle": "Confirm parcel handover to {{place}}",
+          "confirmButton": "Confirm parcel is at {{place}}",
+          "confirmHint": "The technician has brought the parcel to {{place}}. Confirm to unlock the free redelivery plan for the customer."
+        },
+        "dispatch": {
+          "waitingTitle": "Waiting for the technician to accept the task",
+          "notAccepted": "Not accepted",
+          "assignedTech": "System assigned technician:",
+          "reassignHint": "The technician has not accepted the task yet. Admins can reassign it to another technician below if this one is busy.",
+          "noTechTitle": "No search technician yet",
+          "noTechHint": "Check the technicians' locations on the map below and click the nearest technician to assign the search.",
+          "mapTitleReassign": "Reassign search technician (interactive map)",
+          "mapTitle": "Search dispatch & technician assignment (interactive map)",
+          "mapDescription": "The map shows technician locations and names around the drop point. Click a technician on the map or in the list to assign."
+        },
+        "verifyDialog": {
+          "title": "Confirm search result ({{code}})",
+          "intro": "You are performing the <b>Verify search result (Admin Review)</b> step. This step will:",
+          "effectFound": "Confirm the technician found the parcel on site with valid coordinates and photos.",
+          "effectStatus": "Move the search status to <b>VERIFIED</b>.",
+          "effectHandover": "Allow the technician to bring the parcel back to the Hub.",
+          "effectUnlock": "Unlock creating a compensation / redelivery plan for the customer.",
+          "question": "Have you carefully checked the site photos and check-in coordinates?",
+          "review": "Review again",
+          "approve": "Approve verification"
+        },
+        "handoverDialog": {
+          "title": "Confirm the parcel is at {{place}}",
+          "description": "Are you sure the parcel of order {{order}} has been safely brought to {{place}}?",
+          "confirm": "Confirm at Hub"
+        },
+        "report": {
+          "title": "Site report & GPS coordinate check",
+          "outcome": "Result: {{outcome}}",
+          "description": "Actual location the technician confirmed at the drop point using phone GPS",
+          "confirmedCoords": "Technician-confirmed coordinates:",
+          "noConfirmedCoords": "No confirmed coordinates yet",
+          "deviation": "Offset from drop point: {{meters}} m",
+          "techNote": "Technician's site note:",
+          "noNote": "The technician left no additional note.",
+          "evidenceTitle": "On-site evidence photos ({{count}})",
+          "noEvidence": "No evidence photos uploaded yet.",
+          "noImage": "No image",
+          "photoFallback": "Site photo"
+        },
+        "policy": {
+          "title": "Incident compensation policy",
+          "status": "Policy: {{state}}",
+          "on": "On",
+          "off": "Off",
+          "settingsLink": "Settings",
+          "description": "Compensation and shipping refund rules applied by the backend to this order",
+          "rate": "Suggested rate",
+          "cap": "Compensation cap",
+          "noCap": "No cap",
+          "sla": "Recovery SLA",
+          "hours": "{{hours}} h",
+          "approval": "Admin approval",
+          "approvalRequired": "Required",
+          "approvalAuto": "Automatic",
+          "parcelValue": "Parcel value:",
+          "suggested": "⇒ Suggested compensation:",
+          "freeRedelivery": "• Free redelivery:",
+          "allowedAtHub": "Allowed (once at Hub)",
+          "disabled": "Off",
+          "refundShipping": "• Shipping fee refund:",
+          "dispute": "• Disputes allowed:"
+        },
+        "proposal": {
+          "title": "Compensation & redelivery resolution",
+          "rate": "Rate: {{rate}}",
+          "description": "Create a resolution plan proposal for the customer to accept",
+          "typeLabel": "Proposed resolution plan:",
+          "explainFree": "• Free redelivery with all shipping fees waived once the parcel is safely back at the Hub (compensation amount = 0 VND).",
+          "explainPartial": "• Redeliver the parcel to the customer once it is back at the Hub, and create a refund ticket compensating part of the parcel value.",
+          "explainCompensation": "• Create a compensation refund ticket to the customer's bank account (no redelivery because the parcel is lost or badly damaged).",
+          "explainManual": "• Agree on a custom plan with the customer outside the automated flow. The agreement must be written in the note field.",
+          "amountLabel": "Compensation amount (VND):",
+          "amountPlaceholder": "Enter compensation amount...",
+          "suggestedByPolicy": "Suggested by policy ({{rate}}):",
+          "useSuggested": "(Use suggested amount)",
+          "refundShipping": "Refund shipping fee with compensation",
+          "refundShippingHint": "(The shipping fee refund is processed separately from the parcel value compensation)",
+          "noteLabel": "Adjustment reason / agreement note:",
+          "notePlaceholderManual": "Required: enter the details of the plan agreed with the customer...",
+          "notePlaceholder": "Required if compensation exceeds the suggested amount...",
+          "submit": "Send resolution plan to customer",
+          "awaitingCustomer": "Plan sent, awaiting the customer's response. A new plan can be sent if the customer requests a review.",
+          "customerChose": "The customer has chosen a plan — no more proposals can be sent."
+        },
+        "redelivery": {
+          "title": "Redelivery progress",
+          "badge": "Redelivering",
+          "newOrder": "New redelivery order:",
+          "orderLink": "Order #{{id}}",
+          "hint": "The parcel has been dispatched for redelivery from the Hub. When the recipient picks up the redelivery order, the incident closes its redelivery step automatically. Only click manually if the redelivery order is complete but the incident has not updated.",
+          "complete": "Close redelivery step (redelivery order completed)"
+        },
+        "compensation": {
+          "approve": "Approve compensation refund ticket",
+          "retry": "Retry compensation transfer"
+        },
+        "history": {
+          "title": "Resolution plan history ({{count}})",
+          "empty": "No compensation plan has been proposed yet.",
+          "amount": "Compensation:",
+          "policy": "Policy: {{version}}",
+          "sentToCustomer": "Content sent to customer:",
+          "customerResponse": "Customer response:"
+        }
+      },
+      "listPage": {
+        "filters": {
+          "label": "Filter by incident status",
+          "needsAttention": "Needs attention"
+        },
+        "validation": {
+          "manualNeedsNote": "A custom agreement requires a detailed note of the resolution plan agreed with the customer."
+        },
+        "columns": {
+          "recoveryTech": "Recovery technician",
+          "lastUpdated": "Last updated"
+        },
+        "lockerTech": "Locker tech",
+        "unknown": "Unknown",
+        "demoSuffix": "{{message}} (demo sample data)",
+        "noImage": "No image",
+        "fieldReport": {
+          "title": "Technician on-site confirmation report",
+          "outcome": "Outcome: {{outcome}}",
+          "techCoords": "Coordinates where the technician confirmed:",
+          "noConfirmedCoords": "No confirmed coordinates yet",
+          "dropOffset": "Offset from drop point: {{meters}} m",
+          "note": "Technician's on-site note:",
+          "noNote": "No notes."
+        },
+        "parcelCategory": {
+          "document": "Documents / Papers",
+          "food": "Food",
+          "clothing": "Clothing / Fashion",
+          "electronics": "Electronics",
+          "cosmetics": "Cosmetics / Beauty",
+          "other": "Other goods"
+        },
+        "paymentMethod": {
+          "sepay": "SePay bank transfer (VietQR)",
+          "vnpay": "VNPAY gateway",
+          "momo": "MoMo wallet"
+        },
+        "orderContext": {
+          "title": "Order information",
+          "inspectionReport": "Drone inspection report #{{id}}",
+          "flightJourney": "Flight journey",
+          "loading": "Loading order details...",
+          "loadFailed": "Couldn't load details for order #{{id}}. You can still continue handling the incident.",
+          "senderTitle": "Sender & drop-off point",
+          "noSenderName": "No sender name",
+          "sourceLocker": "Sending locker:",
+          "receiverTitle": "Recipient & pickup point",
+          "noReceiverName": "No recipient name",
+          "destinationLocker": "Receiving locker:",
+          "receiveBox": "Receiving box #{{number}}",
+          "parcelTitle": "Parcel & weight",
+          "category": "Category:",
+          "size": "Dimensions:",
+          "weight": "Weight:",
+          "payloadWeight": "(drone payload: {{grams}} g)",
+          "declaredValue": "Declared value:",
+          "fragile": "Fragile:",
+          "fragileYes": "Yes (fragile) ⚠️",
+          "note": "Note: \"{{note}}\"",
+          "feesTitle": "Fees & operations",
+          "totalFee": "Total fee:",
+          "paid": "Paid:",
+          "due": "Amount due:",
+          "method": "Method:",
+          "drone": "Carrier drone:",
+          "seal": "Seal:",
+          "loadedBy": "Loaded by: {{name}}"
+        },
+        "dispatch": {
+          "title": "Dispatch & recovery technician",
+          "subtitle": "Track search progress and dispatch technicians to recover the parcel on site",
+          "assignedTech": "Assigned recovery technician",
+          "droneTechBadge": "🚁 Drone tech (not on a delivery)",
+          "kioskTechBadge": "🏢 Kiosk / locker tech (GPS near drop point)",
+          "noPhone": "No phone number yet",
+          "recoveryProgress": "Recovery progress",
+          "noTechTitle": "No recovery technician assigned yet",
+          "noTechHint": "The system hasn't found an available technician within the initial radius. Open the dispatch map to widen the radius and pick a technician.",
+          "openMapAssign": "Dispatch map: find technicians within radius R (kiosk & drone)",
+          "openMapTrack": "View technician & drop point map (tracking mode)",
+          "reassignTitle": "Manual reassignment",
+          "reassignHint": "If the auto-assigned technician can't take the job (personal matters, transport, or unreachable), admins can manually reassign another technician below:",
+          "reassigned": "Recovery technician reassigned!",
+          "acceptedTitle": "Technician has accepted the job ({{status}})",
+          "acceptedHint": "The technician has confirmed the job and is working on site. To keep the scene consistent, admins can't swap or reassign another technician."
+        },
+        "verify": {
+          "title": "Verify recovery result (admin review)",
+          "pendingBadge": "Awaiting admin approval",
+          "intro": "The technician found the parcel and submitted an on-site report. Check the following before verifying:",
+          "checkPhotos": "Review the on-site photos and the actual condition of the parcel.",
+          "checkGps": "Compare the GPS coordinates confirmed from the technician's phone with the drop coordinates.",
+          "checkCondition": "Confirm the parcel condition: <b>{{condition}}</b>.",
+          "note": "* After you approve verification, the parcel is unlocked for the technician to hand over to the Hub, and a compensation / redelivery resolution plan can be created for the customer.",
+          "button": "Approve technician's recovery result",
+          "confirmTitle": "Confirm recovery result ({{code}})",
+          "confirmIntro": "You are about to <b>verify the recovery result (admin review)</b>. This step will:",
+          "confirmFound": "Confirm the technician found the parcel on site with valid coordinates and photos.",
+          "confirmStatus": "Move the recovery status to <b>VERIFIED</b>.",
+          "confirmHub": "Allow the technician to take the parcel back to the Hub.",
+          "confirmUnlock": "Unlock creating a compensation / redelivery resolution plan for the customer.",
+          "confirmQuestion": "Have you carefully checked the on-site photos and check-in coordinates?",
+          "review": "Review again",
+          "success": "Recovery result verified!",
+          "approve": "Approve verification"
+        },
+        "policy": {
+          "status": "Policy: {{state}}",
+          "configTitle": "Compensation settings applied to this order:",
+          "viewSettings": "View settings",
+          "suggestedRate": "Suggested rate",
+          "cap": "Compensation cap",
+          "noCap": "No cap",
+          "recoverySla": "Recovery SLA",
+          "payoutApproval": "Payout approval",
+          "approvalRequired": "Approval required",
+          "parcelValue": "Parcel value:",
+          "suggestedCompensation": "⇒ Suggested compensation:",
+          "refundShipping": "• Shipping fee refund:",
+          "dispute": "• Review requests:",
+          "allowed": "Allowed",
+          "resolutionLabel": "Proposed resolution plan:",
+          "amountLabel": "Compensation amount (VND):",
+          "refundShippingFee": "Refund the shipping fee with compensation",
+          "refundShippingFeeHint": "(The shipping fee refund is processed separately from the parcel value compensation)",
+          "overrideLabel": "Adjustment reason / agreement note:",
+          "manualPlaceholder": "Required: enter the details of the plan agreed with the customer..."
+        },
+        "resolutionHint": {
+          "freeRedelivery": "• Redeliver free of all shipping fees once the parcel is safely back at the Hub (compensation = 0 VND).",
+          "redeliveryPartialCompensation": "• Redeliver the parcel to the customer once it's back at the Hub, and create a ticket compensating part of the loss.",
+          "compensationOnly": "• Create a bank-transfer compensation ticket for the customer (no redelivery, as the parcel is lost or fully damaged).",
+          "manualResolution": "• Agree on a custom resolution plan with the customer outside the automated flow. Enter the agreement details in the note field."
+        },
+        "redelivery": {
+          "title": "Redelivery progress",
+          "badge": "Redelivering",
+          "newOrder": "New redelivery order:",
+          "hint": "The parcel has been dispatched for redelivery from the Hub. Once it has been delivered to the customer, click below to close the incident:",
+          "success": "Redelivery confirmed and incident closed!",
+          "button": "Confirm successful redelivery & close incident"
+        }
+      },
+      "recoveryDispatch": {
+        "modalTitle": "Technician map & search dispatch",
+        "modalDescription": "Incident: <b>{{code}}</b> · Order: {{order}} · Drop point: {{lat}}, {{lon}}",
+        "assignNearestNow": "Assign nearest technician now ({{distance}})",
+        "trackingBadge": "Technician accepted (tracking mode)",
+        "lockedBanner": "<b>The technician has accepted the job.</b> The map is now in tracking mode, showing the technician's live location and the drop point. Admins can't reassign.",
+        "searchTechOrLocker": "Search technician or locker name...",
+        "assignedToast": "Recovery assigned to {{name}}!",
+        "assignedToastDemo": "Recovery assigned to {{name}} (demo sample data)!",
+        "inlineTitle": "Dispatch map & recovery technician assignment",
+        "awaitingTech": "Awaiting technician acceptance",
+        "acceptedLocked": "Technician accepted (assignment locked)",
+        "inlineHint": "Click a technician on the map or in the list on the right to select and assign",
+        "assignNearest": "Assign nearest technician ({{name}} · {{distance}})",
+        "fitTitle": "Fit the map to show everything",
+        "fitButton": "Fit to view",
+        "acceptedTitle": "Technician {{name}} has accepted the job.",
+        "acceptedHint": "The technician is heading to the site to recover the parcel. For operational safety and scene consistency, admins can't swap in another technician. The map has switched to live location tracking.",
+        "searchTechPhoneLocation": "Search technician, phone, location...",
+        "assignedTechToast": "Technician {{name}} assigned to recover the parcel!",
+        "assignedTechToastDemo": "{{name}} assigned (demo)",
+        "assignFailed": "Couldn't assign the technician. Please try again!",
+        "radius": "Radius:",
+        "onShiftCount": "Technicians on shift:",
+        "mapCount": "On map: <b>{{count}}</b> technician(s)",
+        "dropPoint": "Drop point",
+        "dropPinModal": "🚨 Drone drop point",
+        "dropPinInline": "🚨 Drone parcel drop point",
+        "incidentCode": "Incident code:",
+        "coords": "Coordinates: {{lat}}, {{lon}}",
+        "onDutyTag": "🟢 On duty",
+        "offShiftTag": "⚪ Off shift",
+        "distance": "Distance: {{distance}}",
+        "fromDrop": "From drop point: {{distance}}",
+        "shift": "Shift:",
+        "onShiftLong": "On shift",
+        "onShift": "On shift",
+        "offShift": "Off shift",
+        "assignedLocker": "Assigned locker:",
+        "assignThis": "Assign this technician",
+        "inCharge": "✓ Handling this job",
+        "assignmentLocked": "(Assignment locked)",
+        "listTitle": "Technicians by nearest distance",
+        "listTitleCount": "Technicians by nearest distance ({{count}})",
+        "candidates": "{{count}} candidate(s)",
+        "loadingTechs": "Loading technicians...",
+        "loadingGps": "Loading technician GPS locations...",
+        "noneInRadius": "No technicians found within {{radius}}.",
+        "noneInThisRadius": "No technicians found within this radius.",
+        "noneInRadiusShort": "No technicians found within {{radius}}.",
+        "noneInThisRadiusShort": "No technicians found within this radius.",
+        "expandRadius": "Widen radius (10 km / All)",
+        "viewAll": "Show all technicians",
+        "nearest": "Nearest",
+        "noCoords": "No coordinates",
+        "lockerName": "· Locker: {{name}}",
+        "assignShort": "Assign",
+        "inChargeShort": "✓ In charge",
+        "lockedShort": "Locked",
+        "clickToSelect": "Click to select",
+        "selected": "Selected",
+        "selectedTech": "Selected technician:",
+        "selectPrompt": "Select a technician on the map or in the list to assign"
       }
     },
     "knowledge": {
@@ -4192,6 +5213,110 @@
         "suspendedTag": "[Suspended]",
         "noEligible": "No suitable {{type}} technician yet.",
         "confirm": "Confirm Assignment"
+      },
+      "ui": {
+        "search": {
+          "boxToken": "box {{n}}"
+        },
+        "deleteToast": {
+          "single": "Report {{code}} deleted",
+          "singleFailed": "Could not delete the incident report",
+          "singleFailedDesc": "An error occurred while deleting the report",
+          "allDeleted": "Deleted all {{count}} {{category}} incident report(s)",
+          "batchDeleted": "Deleted {{count}} {{category}} incident report(s)",
+          "batchFailed": "Could not bulk-delete incident reports",
+          "batchFailedDesc": "An error occurred while deleting the reports"
+        },
+        "select": {
+          "allFiltered": "Select all {{count}} filtered report(s)",
+          "selectedCount": "({{count}} selected)",
+          "deleteSelected": "Delete {{count}} selected report(s)",
+          "deleteAll": "Delete all ({{count}})",
+          "selectReport": "Select report {{code}}"
+        },
+        "deleteThisReport": "Delete this incident report",
+        "drop": {
+          "linkTitle": "Click to open the linked parcel drop incident",
+          "emergencyBadge": "🚨 EMERGENCY DRONE DROP INCIDENT",
+          "openStatus": "NEWLY OPENED · SEARCH DISPATCH NEEDED",
+          "coordinates": "Drop coordinates:",
+          "orderCode": "Order code:",
+          "viewOrder": "View order details",
+          "incidentCode": "Drop incident code:",
+          "viewIncident": "View parcel drop incident details",
+          "dispatchRadius": "Dispatch technicians within radius R"
+        },
+        "deleteDialog": {
+          "title": "Delete incident report {{code}}",
+          "confirm": "Are you sure you want to permanently delete incident report <b>{{code}}</b> ({{title}})?",
+          "warning": "⚠️ This action cannot be undone. All related data, including attached photos, technical logs and ratings, will be permanently deleted. If this report is locking a box, the box will be unlocked automatically."
+        },
+        "batchDialog": {
+          "titleAll": "Confirm deleting ALL {{category}} incident reports",
+          "titleSome": "Confirm bulk-deleting {{count}} incident report(s)",
+          "confirmAll": "Are you sure you want to delete <danger>all {{count}} incident report(s)</danger> in the <b>{{category}}</b> category?",
+          "confirmSome": "Are you sure you want to permanently delete the <danger>{{count}} selected</danger> incident report(s)?",
+          "warning": "⚠️ Warning: All selected incident reports, their attached photos in storage and their handling logs will be permanently deleted from the database.",
+          "deleteAll": "Delete all",
+          "deleteCount": "Delete {{count}} report(s)"
+        },
+        "shift": {
+          "onDutyCount": "{{count}} on shift",
+          "filterPlaceholder": "Shift",
+          "all": "All shifts",
+          "onDutyOption": "🟢 On shift ({{count}})",
+          "offDutyOption": "⚪ Off shift ({{count}})",
+          "label": "Shift:",
+          "onDuty": "On shift",
+          "offDuty": "Off shift",
+          "coords": "Coordinates: {{lat}}, {{lon}}",
+          "coordsUpdated": "Coordinates: {{lat}}, {{lon}} (Updated: {{time}})",
+          "noLocation": "No location yet"
+        },
+        "presence": {
+          "title": "Shift & Field Location",
+          "offDuty": "Off shift",
+          "desc": "GPS coordinates and availability for field jobs.",
+          "shiftStart": "Shift started:",
+          "shiftEnd": "Shift ended:",
+          "gps": "GPS coordinates:",
+          "accuracy": "Accuracy:",
+          "meters": "±{{value}} m",
+          "updatedAt": "Updated at:",
+          "openMaps": "Open in Google Maps",
+          "waitingGps": "Waiting for the technician to send GPS coordinates...",
+          "noGps": "No GPS location data yet",
+          "hint": "The location updates when the technician starts a shift in the mobile app."
+        },
+        "devices": {
+          "droneTitle": "Assigned Drones",
+          "kioskTitle": "Assigned Kiosks / Lockers",
+          "droneDesc": "Drones assigned to this technician for upkeep and maintenance.",
+          "kioskDesc": "Kiosk lockers assigned to this technician for incident handling.",
+          "noDrone": "No assigned drones",
+          "noDroneHint": "Assign the technician on the drone detail page.",
+          "battery": "Battery:",
+          "homeStation": "Home station:",
+          "viewDrone": "View drone details",
+          "noKiosk": "No assigned kiosks",
+          "noKioskHint": "Assign the technician on the kiosk detail page.",
+          "freeBoxes": "Free boxes:",
+          "viewKiosk": "View kiosk details"
+        },
+        "cellStatus": {
+          "cleaning": "Cleaning"
+        },
+        "inspection": {
+          "passed": "Meets operating standard",
+          "attention": "Needs further monitoring",
+          "defect": "Defect detected",
+          "failed": "Below standard",
+          "recorded": "Recorded"
+        },
+        "repairTag": {
+          "fieldNote": "[FIELD NOTE]",
+          "accepted": "[ACCEPTANCE PASSED]"
+        }
       }
     },
     "payments": {
@@ -4407,6 +5532,213 @@
         "rejectedSub": "Declined requests",
         "total": "Total Requests",
         "totalSub": "Total refund tickets"
+      },
+      "page": {
+        "rulesButton": "Refund rules",
+        "rulesModalTitle": "Refund verification rules by scenario",
+        "tabs": {
+          "pending": "Pending requests",
+          "history": "Refund history",
+          "rules": "Rules & verification guide"
+        },
+        "pendingTab": {
+          "title": "Refund requests awaiting approval",
+          "description": "Scan the bank QR code or transfer manually, then upload the receipt and confirm",
+          "checkRules": "Check rules"
+        },
+        "historyTab": {
+          "title": "System-wide refund history",
+          "description": "Look up completed or rejected refunds, with transaction IDs and proof images"
+        },
+        "zoom": "Enlarge",
+        "customerReason": "Customer's reason:",
+        "noReasonNote": "No reason provided",
+        "transferProof": "Transfer proof image",
+        "table": {
+          "copied": "Copied: {{text}}",
+          "proofRequiredToast": "Please upload the transfer proof (receipt / transfer order) before confirming",
+          "viewTicketDetail": "Click to view refund details",
+          "viewOrderDetail": "View order details",
+          "compensationBadge": "Incident compensation",
+          "compensationBadgePct": "Incident compensation · Refund {{pct}}",
+          "accountUpdateNotified": "Customer asked to update account number",
+          "transferRef": "Txn ID:",
+          "processedShort": "Processed: {{time}}"
+        },
+        "approve": {
+          "accountInfoTitle": "Receiving account details",
+          "ticketBadge": "Refund #{{id}}",
+          "notUpdated": "Not updated",
+          "copyAccountNumber": "Copy account number",
+          "accountHolderName": "Account holder name:",
+          "copyAccountHolder": "Copy account holder name",
+          "orderInfoTitle": "Order details & refund reason",
+          "orderToRefund": "Order to refund:",
+          "originalPaidAmount": "Original amount paid:",
+          "requestedAmount": "Requested refund amount:",
+          "copyAmount": "Copy amount",
+          "customerAttachment": "Customer attachment:",
+          "customerAttachmentAlt": "Customer attachment",
+          "transferRefPlaceholder": "e.g. FT24100712345678 or the transfer reference",
+          "proofLabel": "Transfer proof (receipt / transfer order)",
+          "proofRequired": "Image required",
+          "proofAlt": "Transfer proof",
+          "clickToEnlarge": "Click to view full size",
+          "proofSelected": "Image selected",
+          "changeImage": "Change image",
+          "uploadPrompt": "Click here to upload the receipt / transfer screenshot",
+          "uploadFormats": "Supports JPG, PNG, WebP (max 10MB)",
+          "vietQrTitle": "VietQR payment code",
+          "vietQrHint": "Scan with any banking app to auto-fill the account number & amount",
+          "openQrLarge": "Open full-size QR",
+          "missingBankInfo": "The customer hasn't provided complete bank/account details. Please check again.",
+          "transferContent": "Transfer content:",
+          "copyContent": "Copy transfer content",
+          "transferAmount": "Transfer amount:",
+          "warningCompensation": "This records the <b>compensation as paid</b> for incident {{code}} (the order's refund status is unchanged), updates the incident and notifies the customer with the proof image.",
+          "warningRefund": "This will mark the order as <b>REFUNDED</b> and notify the customer with the transfer proof image.",
+          "proofMissingHint": "* Upload the receipt / transfer order before confirming"
+        },
+        "reject": {
+          "compensationDropBadge": "🚨 Drop compensation",
+          "customerProof": "Customer's proof image:",
+          "customerAttachmentAlt": "Customer attachment"
+        },
+        "detail": {
+          "orderCode": "Order code:",
+          "bankTransferRef": "Bank txn ID / transfer order:",
+          "noTransferRef": "No transfer order no.",
+          "requestedAt": "Requested at:",
+          "processedAt": "Processed at:",
+          "compensationDropBadge": "🚨 Drop incident compensation",
+          "customerProof": "Customer's proof image",
+          "noCustomerProof": "The customer did not attach an incident proof image",
+          "openOriginal": "Open original image",
+          "noTransferProof": "No transfer proof image attached"
+        },
+        "lightbox": {
+          "title": "Refund transfer proof",
+          "alt": "Proof image",
+          "caption": "Bank transfer proof for reconciliation"
+        },
+        "guide": {
+          "title": "Verification rules & refund review guide",
+          "description": "Admins: please check the scenarios below before approving and transferring the refund to the customer.",
+          "steps": {
+            "title": "Standard 4-step process for administrators:",
+            "step": "Step {{n}}:",
+            "s1": {
+              "title": "Check the account details",
+              "description": "Match the account holder name and account number with the customer's registered details."
+            },
+            "s2": {
+              "title": "Scan the VietQR code to transfer",
+              "description": "Scan the QR code with a mobile banking app to auto-fill the account number, amount & transfer content."
+            },
+            "s3": {
+              "title": "Upload a proof screenshot",
+              "description": "Take a screenshot of the successful transfer and upload it in the dialog as a reconciliation record."
+            },
+            "s4": {
+              "title": "Confirm the refund",
+              "description": "The system records the REFUNDED status and notifies the customer with the image."
+            }
+          },
+          "scenariosTitle": "Refund scenarios:",
+          "scenariosHint": "(Click a scenario to see its conditions)",
+          "refundRate": "Refund rate: {{rate}}",
+          "conditionsTitle": "Approval conditions:",
+          "evidenceTitle": "Required documents / data:",
+          "adminCheckTitle": "Admin must verify:",
+          "scenarios": {
+            "lockerFault": {
+              "title": "1. Lock.R locker box fault (stuck door, broken latch, power/network loss)",
+              "badge": "Hardware incident",
+              "refundRate": "100% of the order fee",
+              "conditions": {
+                "c1": "The customer cannot open the locker to drop off or pick up items because of a locker fault.",
+                "c2": "A technician confirms a latch fault, lost BLE/MQTT connection or a power outage lasting > 30 minutes.",
+                "c3": "No other free box of the same size is available for automatic reassignment."
+              },
+              "evidence": {
+                "e1": "The technician's incident ticket (Maintenance Report ID).",
+                "e2": "Log of failed open commands in the IoT/Locker system."
+              },
+              "adminCheck": {
+                "a1": "Match the order code and box number with the incident report.",
+                "a2": "Confirm the customer has not collected the items or the transaction was fully interrupted."
+              }
+            },
+            "droneFault": {
+              "title": "2. Drone delivery incident (dropped parcel, cancelled flight, late delivery)",
+              "badge": "Drone incident",
+              "refundRate": "100% of the fee + compensation",
+              "conditions": {
+                "c1": "The drone had to make an emergency landing or cancel the flight due to bad weather/storms.",
+                "c2": "The drone dropped the parcel or the parcel was damaged by impact.",
+                "c3": "The delivery was later than the time committed by the drone delivery system."
+              },
+              "evidence": {
+                "e1": "Drone flight ID, coordinates and time of the incident.",
+                "e2": "Drone camera snapshot or the technician's parcel recovery report."
+              },
+              "adminCheck": {
+                "a1": "Check the drone order status (DROPPED, CANCELLED, TIMED_OUT).",
+                "a2": "If the goods are damaged, check the compensation amount under the shipping insurance policy."
+              }
+            },
+            "userCancel": {
+              "title": "3. Valid customer cancellation before use",
+              "badge": "Voluntary cancellation",
+              "refundRate": "100% (conditions apply)",
+              "conditions": {
+                "c1": "The customer has paid but not yet placed items in the locker (no ITEM_PLACED event yet).",
+                "c2": "Cancellation and refund are requested within {{days}} days of successful payment.",
+                "c3": "For long-term locker rentals: not yet expired and the box has not been handed over."
+              },
+              "evidence": {
+                "e1": "Order status history (Order Timeline): no locker opening to drop off items.",
+                "e2": "Valid payment time (within the configured refundMaxDays limit)."
+              },
+              "adminCheck": {
+                "a1": "Confirm the box is still empty and the PIN has never been used to drop off items."
+              }
+            },
+            "doublePay": {
+              "title": "4. Payment gateway error / charged twice (Double Billing)",
+              "badge": "Payment error",
+              "refundRate": "100% of the duplicate charge",
+              "conditions": {
+                "c1": "The customer was charged twice for the same order code or add-on service.",
+                "c2": "The bank debited the money but the SePay gateway returned a timeout or network error."
+              },
+              "evidence": {
+                "e1": "Bank statement / debit receipt with a matching reference code.",
+                "e2": "The PaymentRecord table shows several transactions for the same orderId."
+              },
+              "adminCheck": {
+                "a1": "Compare referenceId and referenceTransactionId across the payments.",
+                "a2": "Refund only the excess/duplicate charge and keep the original payment."
+              }
+            },
+            "laundryFault": {
+              "title": "5. Laundry service incident (lost items, damaged items, shop declined)",
+              "badge": "Laundry service",
+              "refundRate": "100% of the laundry fee + compensation",
+              "conditions": {
+                "c1": "The partner laundry shop declined the order because it was overweight or the fabric was unsuitable.",
+                "c2": "Clothes were lost or seriously torn/faded by the laundry shop."
+              },
+              "evidence": {
+                "e1": "Photos of the items before and after collection from the laundry shop.",
+                "e2": "Reimbursement reconciliation record between the admin and the partner laundry shop owner."
+              },
+              "adminCheck": {
+                "a1": "Confirm the order status with the partner laundry shop before issuing the refund."
+              }
+            }
+          }
+        }
       }
     },
     "revenue": {
@@ -4659,6 +5991,236 @@
         "OPERATIONAL": "Operational",
         "OTHER": "Other"
       }
+    },
+    "droneLogs": {
+      "title": "Drone & Smart Locker communication log",
+      "description": "Live view of MQTT messages, responses and processing status, linked to orders, drones and smart lockers",
+      "toast": {
+        "refreshed": "Drone & locker communication log updated"
+      },
+      "filter": {
+        "orderId": "Order ID",
+        "orderIdPlaceholder": "e.g. 1024",
+        "dronePlaceholder": "e.g. DRONE-S550-07",
+        "allEvents": "All events",
+        "processingStatus": "Processing status"
+      },
+      "status": {
+        "rejected": "Rejected",
+        "error": "Error"
+      },
+      "listTitle": "Communication messages ({{total}})",
+      "col": {
+        "event": "Event",
+        "message": "Message"
+      },
+      "loading": "Loading communication log...",
+      "empty": "No communication messages match the filters.",
+      "lockerLinkTitle": "Open box map & ArUco marker setup",
+      "locker": "Locker {{label}}",
+      "boxTitle": "Box ID #{{id}}",
+      "boxTitleWithNumber": "Box ID #{{id}} (box no. {{n}})",
+      "boxNumber": "Box no. {{n}}",
+      "boxId": "Box #{{id}}",
+      "droneLinkTitle": "Open control & camera page of {{code}} (ID #{{id}})",
+      "droneListTitle": "View drone list ({{code}})",
+      "orderLinkTitle": "View order details",
+      "message": {
+        "lidClosedLocked": "Box sliding lid fully closed and safely locked",
+        "lidOpened": "Box sliding lid fully open",
+        "doorOpened": "Box door opened",
+        "doorClosedLocked": "Box door closed and safely locked",
+        "processingError": "Processing error: {{code}}",
+        "markerDetected": "Camera detected ArUco marker #{{id}}",
+        "distance": "Distance: {{value}}",
+        "offset": "Offset X: {{x}}, Y: {{y}}",
+        "markerValidated": "ArUco marker verified against the target box",
+        "openLidRetry": "Resent box sliding lid open command (attempt {{n}})",
+        "openLidSent": "Box sliding lid open command sent",
+        "lidOpenAccepted": "Locker accepted the open command, sliding lid moving",
+        "lidCloseAccepted": "Locker accepted the close command, sliding lid moving",
+        "targetRequest": "Drone requested its delivery target (target box and ArUco marker)",
+        "lidOpenedReported": "Locker reported the sliding lid is open",
+        "dropPhaseStarted": "Started simulated drone parcel release (lid actually open)",
+        "dropPhaseCompleted": "Simulated drone parcel release completed",
+        "closeLidRetry": "Resent box sliding lid close command (locker reconnected, attempt {{n}})",
+        "closeLidSent": "Sent box sliding lid close request",
+        "deliveryReady": "Delivery completed safely — parcel ready for customer pickup"
+      }
+    },
+    "cabinetControl": {
+      "description": "Open boxes, control lids/sliders and view the locker's hardware status. Commands are sent over MQTT to the locker's Raspberry Pi controller.",
+      "noLockers": "No lockers to control yet.",
+      "safetyWarning": "<b>This controls real hardware.</b> The lid buttons turn the locker's motors. Only run them when you are sure nobody is working at the locker; if a lid grinds or jams, press <b>Stop</b> immediately. Lid commands return right away and the locker moves afterwards — watch the status below.",
+      "lockerLabel": "Locker:",
+      "tabs": {
+        "control": "Control",
+        "hardware": "Hardware config"
+      },
+      "openBoxTitle": "Open boxes",
+      "openBoxLabel": "Open box {{n}}",
+      "box": "Box {{n}}",
+      "noLayout": "Could not load the box layout yet.",
+      "lidAxisLabel": "Lid axis {{axis}}",
+      "jogAxisLabel": "Jog lid axis {{axis}}",
+      "tuneAxisLabel": "Tune lid axis {{axis}}",
+      "noLidStatus": "Could not get the lid status yet. The locker may be offline — press Refresh.",
+      "run": {
+        "sent": "{{label}}: command sent",
+        "failed": "{{label}} failed",
+        "sendFailed": "{{label}} could not be sent — check the connection"
+      },
+      "actions": {
+        "boxOpen": "Open box",
+        "boxTest": "Test box",
+        "lidOpen": "Lid: open fully",
+        "lidClose": "Lid: close fully",
+        "lidHome": "Lid: home",
+        "lidStop": "Lid: stop",
+        "lidJog": "Lid: jog",
+        "lidTune": "Lid: tune parameters",
+        "hwConfig": "Apply hardware config",
+        "bleToken": "Bluetooth: issue box-open code",
+        "boxOpenBle": "Open box via Bluetooth",
+        "bleRejected": "Bluetooth: code rejected"
+      },
+      "tune": {
+        "rps": "Speed (rev/s)",
+        "pulseUs": "Pulse width (µs)",
+        "stepsPerRev": "Pulses per revolution",
+        "maxRevs": "Max revolutions per run"
+      },
+      "log": {
+        "title": "Control log",
+        "help": "<b>Web</b>: commands sent from this page. <b>Locker</b>: what the locker actually did (relay triggers, lid moves) from any source — the locker stores entries while offline and uploads them when it reconnects, so they may appear late but with the correct time.",
+        "empty": "No log entries yet.",
+        "axis": "Axis {{axis}}",
+        "sourceLocker": "Locker",
+        "columns": {
+          "source": "Source",
+          "action": "Action",
+          "target": "Box / axis",
+          "revolutions": "Revolutions",
+          "result": "Result"
+        }
+      },
+      "lid": {
+        "title": "Lid axis {{axis}}",
+        "overBoxes": "· above boxes {{boxes}}",
+        "notEnabled": "Not enabled",
+        "running": "running",
+        "disabledHint": "This axis is not enabled on the locker controller (LID2_ENABLED=false).",
+        "openFully": "Open fully",
+        "closeFully": "Close fully",
+        "home": "Home",
+        "stop": "Stop",
+        "jogLabel": "Jog (revolutions)",
+        "jogOpen": "↑ open",
+        "jogClose": "↓ close",
+        "tuneSummary": "Tune speed / pulses",
+        "saveParams": "Save parameters"
+      },
+      "hardware": {
+        "pins": {
+          "pul": "PUL− (pulse)",
+          "dir": "DIR− (direction)",
+          "home": "Home switch (fully closed)",
+          "end": "End switch (fully open)"
+        },
+        "wiring": {
+          "group": "Group",
+          "from": "Pi pin / from",
+          "wire": "Wire name",
+          "to": "To",
+          "via": "Via"
+        },
+        "pinLabel": "GPIO{{gpio}} · pin {{pin}}",
+        "roles": {
+          "relay": "box {{n}} relay",
+          "door": "box {{n}} door sensor",
+          "axis": "axis {{axis}} {{pin}}"
+        },
+        "problems": {
+          "pinTwice": "GPIO{{pin}} is used twice: {{roles}}",
+          "and": "and",
+          "countMismatch": "The number of relay pins must equal the number of door sensor pins",
+          "unlockRange": "Relay trigger time must be between 100 and 10000 ms",
+          "boxTwoAxes": "Box {{box}} cannot be under both axis {{first}} and axis {{second}}"
+        },
+        "loading": "Loading configuration…",
+        "loadFailed": "Could not load the configuration.",
+        "toast": {
+          "saved": "Hardware config saved. Press Apply to send it to the locker.",
+          "saveFailed": "Could not save the configuration",
+          "applied": "The locker accepted the new config and is restarting its controller (about 10 seconds).",
+          "rejected": "The locker rejected the configuration",
+          "applyFailed": "Could not send the configuration to the locker"
+        },
+        "runningOnLocker": "Running on locker: {{value}}",
+        "on": "on",
+        "off": "off",
+        "title": "Hardware configuration",
+        "defaultTemplate": "Not saved for this locker yet — showing the TU01 locker template",
+        "savedAt": "Saved at {{time}}",
+        "appliedAt": "Applied {{time}}: {{status}}",
+        "unsaved": "Unsaved changes",
+        "diffs": "The saved config differs from the one running on the locker in {{count}} place(s) — each difference is marked \"Running on locker\" right below the field.",
+        "synced": "The saved config matches the one running on the locker.",
+        "noRunning": "Could not read the config running on the locker (locker offline or old controller version).",
+        "readOnly": "View only. Only administrators can edit and apply the configuration.",
+        "boxesTitle": "Boxes: relays and door sensors",
+        "addBox": "Add box",
+        "removeLastBox": "Remove last box",
+        "columns": {
+          "box": "Box",
+          "relayTerminal": "Relay terminal",
+          "relayPin": "Relay control pin",
+          "doorPin": "Door sensor pin"
+        },
+        "optionsTitle": "Relay, sensors, drone",
+        "relayActiveLevel": "Relay triggers on",
+        "levelHighJumper": "High level (jumper H)",
+        "levelLowJumper": "Low level (jumper L)",
+        "levelHighJumperLower": "high level (jumper H)",
+        "levelLowJumperLower": "low level (jumper L)",
+        "unlockMs": "Relay unlock pulse time (ms, 100–10000)",
+        "doorClosedLevel": "Door sensor reports closed on",
+        "doorLowClosed": "Low level = door closed",
+        "doorHighClosed": "High level = door closed",
+        "doorLowClosedLower": "low level = door closed",
+        "doorHighClosedLower": "high level = door closed",
+        "requireDoorSensor": "Only report a box as opened when the sensor sees the door open",
+        "requireDoorSensorHint": "(turn off when the sensor is not wired)",
+        "lidBypass": "Drone lid commands are simulated only; motors do not turn",
+        "lidTitle": "Sliding lid axis {{axis}}",
+        "wired": "Connected",
+        "wiredLower": "connected",
+        "notWiredLower": "not connected",
+        "openDirection": "Open direction",
+        "dirHighOpen": "DIR high = open",
+        "dirLowOpen": "DIR low = open",
+        "limitPressed": "Limit switch when pressed",
+        "limitLow": "Reports low level",
+        "limitHigh": "Reports high level (3-wire module)",
+        "limitLowLower": "reports low level",
+        "limitHighLower": "reports high level",
+        "lidBoxes": "Lid covers boxes (drone commands for these boxes slide the axis {{axis}} lid)",
+        "wiringTitle": "Wiring diagram",
+        "addRow": "Add row",
+        "wiringHelp": "Notes for tracing wires at the locker. The controller does not use this table — the real pins come from the sections above.",
+        "deleteRow": "Delete row",
+        "saving": "Saving…",
+        "saveBeforeApply": "Save before applying",
+        "sending": "Sending…",
+        "applyToLocker": "Apply to locker",
+        "applyConfirm": "The locker will restart its controller for about 10 seconds and run with the new pin map.",
+        "applyNow": "Apply now",
+        "loadRunning": "Load config running on locker",
+        "discard": "Discard changes"
+      }
+    },
+    "technicians": {
+      "description": "See shift status, GPS location, SLA performance and device assignments for kiosk and drone technicians"
     }
   },
   "dropdown": {

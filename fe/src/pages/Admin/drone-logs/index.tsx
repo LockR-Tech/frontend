@@ -15,6 +15,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { PageHeader } from '~/components/shared/page-header';
 import { StandalonePagination } from '~/components/shared/data-table/DataTablePagination';
 import { Badge } from '~/components/ui/badge';
@@ -59,7 +61,7 @@ function parsePayloadObject(log: DroneLockerCommLog): Record<string, any> | null
   }
 }
 
-function translateRawMessage(raw: string): string {
+function translateRawMessage(raw: string, t: TFunction): string {
   const text = raw.trim();
   const lower = text.toLowerCase();
 
@@ -67,43 +69,43 @@ function translateRawMessage(raw: string): string {
     lower.includes('sliding lid close simulated successfully') ||
     lower === 'sliding lid closed completely and verified'
   ) {
-    return 'Nắp trượt ô tủ đã đóng hoàn toàn và khóa an toàn';
+    return t('admin.droneLogs.message.lidClosedLocked');
   }
   if (
     lower.includes('sliding lid open simulated successfully') ||
     lower === 'sliding lid opened completely'
   ) {
-    return 'Nắp trượt ô tủ đã mở hoàn toàn';
+    return t('admin.droneLogs.message.lidOpened');
   }
   if (lower === 'door opened') {
-    return 'Đã mở cửa ô tủ';
+    return t('admin.droneLogs.message.doorOpened');
   }
   if (lower === 'door is closed and locked') {
-    return 'Cửa ô tủ đã đóng và khóa an toàn';
+    return t('admin.droneLogs.message.doorClosedLocked');
   }
 
   return text.replace(/\s*\(DICT_[A-Z0-9_]+\)/gi, '');
 }
 
-function resolveLogMessage(log: DroneLockerCommLog): string {
+function resolveLogMessage(log: DroneLockerCommLog, t: TFunction): string {
   const isErr = isErrorStatus(log);
 
   // Khi có lỗi hoặc bị từ chối: hiển thị nguyên nhân lỗi cụ thể
   if (isErr) {
     if (log.errorMessage && log.errorMessage.trim()) {
-      return translateRawMessage(log.errorMessage);
+      return translateRawMessage(log.errorMessage, t);
     }
     const parsed = parsePayloadObject(log);
     if (parsed) {
       if (typeof parsed.errorMessage === 'string' && parsed.errorMessage.trim()) {
-        return translateRawMessage(parsed.errorMessage);
+        return translateRawMessage(parsed.errorMessage, t);
       }
       if (typeof parsed.message === 'string' && parsed.message.trim()) {
-        return translateRawMessage(parsed.message);
+        return translateRawMessage(parsed.message, t);
       }
     }
     if (log.errorCode) {
-      return `Lỗi xử lý: ${log.errorCode}`;
+      return t('admin.droneLogs.message.processingError', { code: log.errorCode });
     }
   }
 
@@ -122,50 +124,50 @@ function resolveLogMessage(log: DroneLockerCommLog): string {
         typeof parsed?.offsetY === 'number'
           ? `${parsed.offsetY >= 0 ? '+' : ''}${parsed.offsetY.toFixed(2)}m`
           : null;
-      const parts = [`Camera phát hiện mã ArUco #${mid}`];
-      if (dist) parts.push(`Khoảng cách: ${dist}`);
-      if (ox && oy) parts.push(`Lệch X: ${ox}, Y: ${oy}`);
+      const parts = [t('admin.droneLogs.message.markerDetected', { id: mid })];
+      if (dist) parts.push(t('admin.droneLogs.message.distance', { value: dist }));
+      if (ox && oy) parts.push(t('admin.droneLogs.message.offset', { x: ox, y: oy }));
       return parts.join(' · ');
     }
     case 'MARKER_VALIDATED':
-      return 'Xác thực mã ArUco hợp lệ với ô tủ đích';
+      return t('admin.droneLogs.message.markerValidated');
     case 'OPEN_LID_REQUESTED':
       if (log.errorMessage && log.errorMessage.trim()) {
-        return translateRawMessage(log.errorMessage);
+        return translateRawMessage(log.errorMessage, t);
       }
       return log.retryCount > 0
-        ? `Gửi lại lệnh mở nắp trượt ô tủ (lần ${log.retryCount})`
-        : 'Đã gửi lệnh mở nắp trượt ô tủ';
+        ? t('admin.droneLogs.message.openLidRetry', { n: log.retryCount })
+        : t('admin.droneLogs.message.openLidSent');
     case 'LID_OPEN_ACCEPTED':
-      return 'Tủ đã nhận lệnh mở, nắp trượt đang chạy';
+      return t('admin.droneLogs.message.lidOpenAccepted');
     case 'LID_CLOSE_ACCEPTED':
-      return 'Tủ đã nhận lệnh đóng, nắp trượt đang chạy';
+      return t('admin.droneLogs.message.lidCloseAccepted');
     case 'TARGET_REQUEST':
       if (log.errorMessage && log.errorMessage.trim()) {
-        return translateRawMessage(log.errorMessage);
+        return translateRawMessage(log.errorMessage, t);
       }
-      return 'Drone hỏi mục tiêu giao hàng (ô đích và mã ArUco)';
+      return t('admin.droneLogs.message.targetRequest');
     case 'LID_OPENED':
       if (log.errorMessage && log.errorMessage.trim()) {
-        return translateRawMessage(log.errorMessage);
+        return translateRawMessage(log.errorMessage, t);
       }
-      return 'Tủ báo nắp trượt đã mở';
+      return t('admin.droneLogs.message.lidOpenedReported');
     case 'DROP_PHASE_STARTED':
       if (log.errorMessage && log.errorMessage.trim()) {
-        return translateRawMessage(log.errorMessage);
+        return translateRawMessage(log.errorMessage, t);
       }
-      return 'Bắt đầu giả lập drone nhả hàng (nắp đã mở thật)';
+      return t('admin.droneLogs.message.dropPhaseStarted');
     case 'DROP_PHASE_COMPLETED':
-      return 'Hoàn tất giả lập drone nhả hàng';
+      return t('admin.droneLogs.message.dropPhaseCompleted');
     case 'CLOSE_LID_REQUESTED':
-      return 'Gửi lệnh yêu cầu đóng nắp trượt ô tủ';
+      return t('admin.droneLogs.message.closeLidSent');
     case 'LID_CLOSED':
-      return 'Nắp trượt ô tủ đã đóng hoàn toàn và khóa an toàn';
+      return t('admin.droneLogs.message.lidClosedLocked');
     case 'DELIVERY_READY':
-      return 'Giao hàng hoàn tất an toàn — Kiện hàng sẵn sàng để khách nhận';
+      return t('admin.droneLogs.message.deliveryReady');
     default:
       if (log.errorMessage && log.errorMessage.trim()) {
-        return translateRawMessage(log.errorMessage);
+        return translateRawMessage(log.errorMessage, t);
       }
       return '—';
   }
@@ -197,6 +199,8 @@ function getEventActorType(log: DroneLockerCommLog): 'LOCKER' | 'DRONE' {
 }
 
 export default function DroneLogsPage() {
+  const { t } = useTranslation();
+
   // Filters
   const [orderIdInput, setOrderIdInput] = useState<string>('');
   const [droneIdInput, setDroneIdInput] = useState<string>('');
@@ -271,7 +275,7 @@ export default function DroneLogsPage() {
 
   const handleRefreshAll = () => {
     refetchLogs();
-    toast.success('Đã cập nhật nhật ký giao tiếp Drone & Tủ');
+    toast.success(t('admin.droneLogs.toast.refreshed'));
   };
 
   const renderEventBadge = (type: string) => {
@@ -321,7 +325,7 @@ export default function DroneLogsPage() {
             variant="outline"
             className="text-emerald-600 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-[11px]"
           >
-            <CheckCircle2 className="w-3 h-3 mr-1" /> Thành công
+            <CheckCircle2 className="w-3 h-3 mr-1" /> {t('common.success')}
           </Badge>
         );
       case 'PROCESSING':
@@ -331,7 +335,7 @@ export default function DroneLogsPage() {
             variant="outline"
             className="text-amber-600 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-[11px]"
           >
-            <Clock className="w-3 h-3 mr-1" /> Đang xử lý
+            <Clock className="w-3 h-3 mr-1" /> {t('admin.lockers.logs.result.pending')}
           </Badge>
         );
       case 'REJECTED':
@@ -343,7 +347,8 @@ export default function DroneLogsPage() {
             variant="outline"
             className="text-rose-600 border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/40 text-[11px]"
           >
-            <XCircle className="w-3 h-3 mr-1" /> {normalized === 'REJECTED' ? 'Từ chối' : 'Lỗi'}
+            <XCircle className="w-3 h-3 mr-1" />{' '}
+            {normalized === 'REJECTED' ? t('admin.droneLogs.status.rejected') : t('admin.droneLogs.status.error')}
           </Badge>
         );
       default:
@@ -355,10 +360,10 @@ export default function DroneLogsPage() {
     <div className="space-y-4 w-full">
       {/* Header */}
       <PageHeader
-        title="Nhật ký giao tiếp Drone & Tủ Smart Locker"
-        description="Theo dõi trực tiếp thông điệp MQTT, nội dung phản hồi, trạng thái xử lý và liên kết tới Đơn hàng, Drone, Tủ thông minh"
+        title={t('admin.droneLogs.title')}
+        description={t('admin.droneLogs.description')}
         action={{
-          label: logsFetching ? 'Đang cập nhật...' : 'Làm mới',
+          label: logsFetching ? t('admin.stores.detail.updating') : t('button.refresh'),
           onClick: handleRefreshAll,
           icon: RefreshCw,
         }}
@@ -369,11 +374,11 @@ export default function DroneLogsPage() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Mã đơn hàng (ID)</label>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">{t('admin.droneLogs.filter.orderId')}</label>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
                 <Input
-                  placeholder="Ví dụ: 1024"
+                  placeholder={t('admin.droneLogs.filter.orderIdPlaceholder')}
                   value={orderIdInput}
                   onChange={(e) => {
                     setOrderIdInput(e.target.value);
@@ -385,9 +390,9 @@ export default function DroneLogsPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Mã Drone</label>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">{t('admin.drones.detail.info.code')}</label>
               <Input
-                placeholder="Ví dụ: DRONE-S550-07"
+                placeholder={t('admin.droneLogs.filter.dronePlaceholder')}
                 value={droneIdInput}
                 onChange={(e) => {
                   setDroneIdInput(e.target.value);
@@ -398,7 +403,7 @@ export default function DroneLogsPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Loại sự kiện</label>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">{t('admin.lockers.logs.filter.eventType')}</label>
               <Select
                 value={eventType}
                 onValueChange={(val) => {
@@ -407,10 +412,10 @@ export default function DroneLogsPage() {
                 }}
               >
                 <SelectTrigger className="text-xs h-8">
-                  <SelectValue placeholder="Tất cả sự kiện" />
+                  <SelectValue placeholder={t('admin.droneLogs.filter.allEvents')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tất cả sự kiện</SelectItem>
+                  <SelectItem value="ALL">{t('admin.droneLogs.filter.allEvents')}</SelectItem>
                   <SelectItem value="TARGET_REQUEST">TARGET_REQUEST</SelectItem>
                   <SelectItem value="MARKER_DETECTED">MARKER_DETECTED</SelectItem>
                   <SelectItem value="MARKER_VALIDATED">MARKER_VALIDATED</SelectItem>
@@ -430,7 +435,7 @@ export default function DroneLogsPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Trạng thái xử lý</label>
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">{t('admin.droneLogs.filter.processingStatus')}</label>
               <Select
                 value={status}
                 onValueChange={(val) => {
@@ -439,14 +444,14 @@ export default function DroneLogsPage() {
                 }}
               >
                 <SelectTrigger className="text-xs h-8">
-                  <SelectValue placeholder="Tất cả trạng thái" />
+                  <SelectValue placeholder={t('admin.feedback.filters.allStatuses')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="SUCCESS">Thành công</SelectItem>
-                  <SelectItem value="PENDING">Đang xử lý</SelectItem>
-                  <SelectItem value="REJECTED">Từ chối</SelectItem>
-                  <SelectItem value="FAILED">Lỗi</SelectItem>
+                  <SelectItem value="ALL">{t('admin.feedback.filters.allStatuses')}</SelectItem>
+                  <SelectItem value="SUCCESS">{t('common.success')}</SelectItem>
+                  <SelectItem value="PENDING">{t('admin.lockers.logs.result.pending')}</SelectItem>
+                  <SelectItem value="REJECTED">{t('admin.droneLogs.status.rejected')}</SelectItem>
+                  <SelectItem value="FAILED">{t('admin.droneLogs.status.error')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -459,7 +464,7 @@ export default function DroneLogsPage() {
         <CardHeader className="py-3 px-4 border-b">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Layers className="w-4 h-4 text-sky-500" />
-            Danh sách thông điệp giao tiếp ({totalElements})
+            {t('admin.droneLogs.listTitle', { total: totalElements })}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -467,12 +472,12 @@ export default function DroneLogsPage() {
             <table className="w-full text-xs">
               <thead className="bg-muted/40 border-b border-border text-muted-foreground">
                 <tr>
-                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Thời gian</th>
-                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Đối tượng</th>
-                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Sự kiện</th>
-                  <th className="py-2.5 px-4 text-left font-semibold">Nội dung thông điệp (Message)</th>
+                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">{t('common.time')}</th>
+                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">{t('admin.lockers.logs.col.actor')}</th>
+                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">{t('admin.droneLogs.col.event')}</th>
+                  <th className="py-2.5 px-4 text-left font-semibold">{t('admin.droneLogs.col.message')}</th>
                   <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">ArUco Marker</th>
-                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">Trạng thái</th>
+                  <th className="py-2.5 px-4 text-left font-semibold whitespace-nowrap">{t('common.status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -480,13 +485,13 @@ export default function DroneLogsPage() {
                   <tr>
                     <td colSpan={6} className="py-8 text-center text-muted-foreground">
                       <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-2" />
-                      Đang tải danh sách nhật ký giao tiếp...
+                      {t('admin.droneLogs.loading')}
                     </td>
                   </tr>
                 ) : logs.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                      Không có thông điệp giao tiếp nào phù hợp với bộ lọc.
+                      {t('admin.droneLogs.empty')}
                     </td>
                   </tr>
                 ) : (
@@ -505,7 +510,7 @@ export default function DroneLogsPage() {
                     const resolvedBoxNumber = orderInfo?.reservedBoxNumber ?? null;
 
                     const actorType = getEventActorType(log);
-                    const messageText = resolveLogMessage(log);
+                    const messageText = resolveLogMessage(log, t);
                     const isErr = isErrorStatus(log);
                     const parsedPayload = parsePayloadObject(log);
 
@@ -527,11 +532,13 @@ export default function DroneLogsPage() {
                                 <Link
                                   to={`/admin/lockers/${resolvedLockerId}`}
                                   className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
-                                  title="Mở sơ đồ ô tủ & cấu hình mã ArUco"
+                                  title={t('admin.droneLogs.lockerLinkTitle')}
                                 >
                                   <Boxes className="w-3 h-3" />
                                   <span>
-                                    Tủ {lockerInfo?.code ? ` ${lockerInfo.code}` : `#${resolvedLockerId}`}
+                                    {t('admin.droneLogs.locker', {
+                                      label: lockerInfo?.code ? lockerInfo.code : `#${resolvedLockerId}`,
+                                    })}
                                   </span>
                                   <ExternalLink className="w-2.5 h-2.5 opacity-70" />
                                 </Link>
@@ -539,11 +546,18 @@ export default function DroneLogsPage() {
                                   <Link
                                     to={`/admin/lockers/${resolvedLockerId}`}
                                     className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-muted text-foreground hover:bg-muted/80 font-mono text-[10px]"
-                                    title={`Ô tủ ID #${resolvedCompartmentId}${
-                                      resolvedBoxNumber ? ` (Ô số ${resolvedBoxNumber})` : ''
-                                    }`}
+                                    title={
+                                      resolvedBoxNumber
+                                        ? t('admin.droneLogs.boxTitleWithNumber', {
+                                            id: resolvedCompartmentId,
+                                            n: resolvedBoxNumber,
+                                          })
+                                        : t('admin.droneLogs.boxTitle', { id: resolvedCompartmentId })
+                                    }
                                   >
-                                    Ô {resolvedBoxNumber ? ` số ${resolvedBoxNumber}` : `#${resolvedCompartmentId}`}
+                                    {resolvedBoxNumber
+                                      ? t('admin.droneLogs.boxNumber', { n: resolvedBoxNumber })
+                                      : t('admin.droneLogs.boxId', { id: resolvedCompartmentId })}
                                   </Link>
                                 )}
                               </div>
@@ -558,8 +572,11 @@ export default function DroneLogsPage() {
                                   className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-400 hover:underline font-medium"
                                   title={
                                     resolvedDroneUnitId
-                                      ? `Mở trang điều khiển & camera của ${resolvedDroneCode} (ID #${resolvedDroneUnitId})`
-                                      : `Xem danh sách Drone (${resolvedDroneCode})`
+                                      ? t('admin.droneLogs.droneLinkTitle', {
+                                          code: resolvedDroneCode,
+                                          id: resolvedDroneUnitId,
+                                        })
+                                      : t('admin.droneLogs.droneListTitle', { code: resolvedDroneCode })
                                   }
                                 >
                                   <Plane className="w-3 h-3" />
@@ -575,11 +592,13 @@ export default function DroneLogsPage() {
                                 <Link
                                   to={`/admin/orders/${log.orderId}`}
                                   className="inline-flex items-center gap-1 font-semibold text-sky-600 dark:text-sky-400 hover:underline"
-                                  title="Xem chi tiết đơn hàng"
+                                  title={t('admin.droneLogs.orderLinkTitle')}
                                 >
                                   <Package className="w-3 h-3" />
                                   <span>
-                                    Đơn #{orderInfo?.orderCode ? orderInfo.orderCode : log.orderId}
+                                    {t('admin.lockers.logs.orderRef', {
+                                      id: orderInfo?.orderCode ? orderInfo.orderCode : log.orderId,
+                                    })}
                                   </span>
                                   <ExternalLink className="w-2.5 h-2.5 opacity-70" />
                                 </Link>

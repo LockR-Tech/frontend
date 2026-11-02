@@ -78,9 +78,9 @@ export function DroneJourneyTimeline({ order }: { order: DroneOrderTracking }) {
     }
     details.DROP_REPORTED = [
       {
-        label: "Sự cố",
+        label: t("admin.droneOrders.page.timeline.incident"),
         at: dropTime,
-        note: dropEvent?.note || "Kiện hàng bị báo rơi giữa chặng bay — đã dừng giao hàng",
+        note: dropEvent?.note || t("admin.droneOrders.page.timeline.dropNote"),
       },
     ];
   }

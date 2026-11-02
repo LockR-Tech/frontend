@@ -84,11 +84,8 @@ export default function RefundsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <PageHeader
-          title={t("admin.refunds.title", "Quản lý hoàn tiền")}
-          description={t(
-            "admin.refunds.description",
-            "Theo dõi, xét duyệt và thực hiện chuyển khoản hoàn tiền cho khách hàng",
-          )}
+          title={t("admin.refunds.title")}
+          description={t("admin.refunds.description")}
         />
         <div className="flex items-center gap-2">
           <Button
@@ -98,13 +95,13 @@ export default function RefundsPage() {
             onClick={() => setIsRulesModalOpen(true)}
           >
             <BookOpen className="w-3.5 h-3.5 text-primary" />
-            <span>Quy tắc hoàn tiền</span>
+            <span>{t("admin.refunds.page.rulesButton")}</span>
           </Button>
 
           <Link to="/admin/payments">
             <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
               <CreditCard className="w-3.5 h-3.5" />
-              {t("admin.refunds.viewPayments", "Quản lý thanh toán")}
+              {t("admin.refunds.viewPayments")}
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </Link>
@@ -123,10 +120,7 @@ export default function RefundsPage() {
                 {t("admin.refunds.pendingAlert", { count: pendingCount })}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t(
-                  "admin.refunds.stats.pendingSub",
-                  "Chờ admin duyệt & chuyển khoản",
-                )}
+                {t("admin.refunds.stats.pendingSub")}
               </p>
             </div>
           </div>
@@ -139,7 +133,7 @@ export default function RefundsPage() {
               setStatusFilter("PENDING");
             }}
           >
-            {t("admin.refunds.pendingAlertAction", "Xử lý ngay")}
+            {t("admin.refunds.pendingAlertAction")}
           </Button>
         </div>
       )}
@@ -160,7 +154,7 @@ export default function RefundsPage() {
         <TabsList className="bg-muted/70 p-1 rounded-xl">
           <TabsTrigger value="pending" className="text-xs font-semibold gap-1.5 px-4 py-2">
             <Clock className="w-3.5 h-3.5 text-amber-600" />
-            <span>Yêu cầu chờ xử lý</span>
+            <span>{t("admin.refunds.page.tabs.pending")}</span>
             {pendingCount > 0 && (
               <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-pulse">
                 {pendingCount}
@@ -170,7 +164,7 @@ export default function RefundsPage() {
 
           <TabsTrigger value="history" className="text-xs font-semibold gap-1.5 px-4 py-2">
             <History className="w-3.5 h-3.5 text-primary" />
-            <span>Lịch sử hoàn tiền</span>
+            <span>{t("admin.refunds.page.tabs.history")}</span>
             <span className="ml-1 text-[11px] text-muted-foreground font-normal">
               ({formatNumber(completedCount + rejectedCount)})
             </span>
@@ -178,7 +172,7 @@ export default function RefundsPage() {
 
           <TabsTrigger value="rules" className="text-xs font-semibold gap-1.5 px-4 py-2">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Quy tắc & Hướng dẫn đối chiếu</span>
+            <span>{t("admin.refunds.page.tabs.rules")}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -190,10 +184,10 @@ export default function RefundsPage() {
                 <div>
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Clock className="w-4 h-4 text-amber-600" />
-                    Danh sách yêu cầu hoàn tiền đang chờ duyệt
+                    {t("admin.refunds.page.pendingTab.title")}
                   </h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Quét mã QR ngân hàng hoặc chuyển khoản thủ công, sau đó tải ảnh biên lai và xác nhận
+                    {t("admin.refunds.page.pendingTab.description")}
                   </p>
                 </div>
                 <Button
@@ -203,7 +197,7 @@ export default function RefundsPage() {
                   onClick={() => setIsRulesModalOpen(true)}
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
-                  Đối chiếu quy tắc
+                  {t("admin.refunds.page.pendingTab.checkRules")}
                 </Button>
               </div>
 
@@ -223,10 +217,10 @@ export default function RefundsPage() {
               <div className="mb-4 pb-3 border-b">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <History className="w-4 h-4 text-primary" />
-                  Lịch sử hoàn tiền toàn hệ thống
+                  {t("admin.refunds.page.historyTab.title")}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Tra cứu lại các giao dịch đã hoàn tiền thành công hoặc bị từ chối, kèm mã giao dịch và ảnh minh chứng
+                  {t("admin.refunds.page.historyTab.description")}
                 </p>
               </div>
 
@@ -251,7 +245,7 @@ export default function RefundsPage() {
           <DialogHeader className="pb-2 border-b">
             <DialogTitle className="text-base font-semibold flex items-center gap-2 text-primary">
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              Quy tắc đối chiếu hoàn tiền cho các tình huống
+              {t("admin.refunds.page.rulesModalTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="py-2">

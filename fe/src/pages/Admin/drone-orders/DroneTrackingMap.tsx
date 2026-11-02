@@ -142,7 +142,11 @@ export function DroneTrackingMap({
           {isDrop && dropPoint ? (
             <Marker position={dropPoint} icon={CRASH_ICON}>
               <Tooltip direction="top">
-                {order.droneCode ?? "Drone"} · Điểm báo rơi kiện ({dropPoint[0].toFixed(5)}, {dropPoint[1].toFixed(5)})
+                {order.droneCode ?? "Drone"} ·{" "}
+                {t("admin.droneOrders.page.map.dropPointTooltip", {
+                  lat: dropPoint[0].toFixed(5),
+                  lon: dropPoint[1].toFixed(5),
+                })}
               </Tooltip>
             </Marker>
           ) : drone ? (
@@ -157,13 +161,13 @@ export function DroneTrackingMap({
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Metric label={t("admin.droneOrders.map.currentStage")} value={isDrop ? "Báo rơi kiện" : stage.label} />
+        <Metric label={t("admin.droneOrders.map.currentStage")} value={isDrop ? t("shared.reportMeta.deliveryStage.dropReported") : stage.label} />
         <Metric label={t("admin.droneOrders.map.distanceAB")} value={kmLabel(totalKm)} />
         <Metric
           label={t("admin.droneOrders.map.remaining")}
           value={
             isDrop
-              ? "Đã dừng giao do sự cố"
+              ? t("admin.droneOrders.page.map.stoppedByIncident")
               : remainingKm === null
                 ? (delivered ? t("admin.droneOrders.map.arrived") : "—")
                 : kmLabel(remainingKm)
@@ -188,10 +192,13 @@ export function DroneTrackingMap({
       {drone && (
         <p className="font-mono text-[11px] text-muted-foreground">
           {isDrop
-            ? `Toạ độ điểm rơi: ${drone[0].toFixed(6)}, ${drone[1].toFixed(6)} · Điểm rơi trên hành trình bay`
+            ? t("admin.droneOrders.page.map.dropCoordinates", {
+                lat: drone[0].toFixed(6),
+                lon: drone[1].toFixed(6),
+              })
             : `${t("admin.droneOrders.map.coordinates", {
                 lat: drone[0].toFixed(6),
-                lng: drone[1].toFixed(6),
+                lon: drone[1].toFixed(6),
               })}${live ? ` · ${t("admin.droneOrders.map.coordsLive")}` : ` · ${t("admin.droneOrders.map.coordsEstimated")}`}`}
         </p>
       )}

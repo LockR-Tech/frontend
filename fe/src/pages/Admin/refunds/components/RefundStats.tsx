@@ -28,12 +28,9 @@ export function RefundStats({
   const cards = [
     {
       key: "PENDING",
-      title: t("admin.refunds.stats.pending", "Chờ xử lý"),
+      title: t("admin.refunds.stats.pending"),
       count: pendingCount,
-      description: t(
-        "admin.refunds.stats.pendingSub",
-        "Chờ admin duyệt & chuyển khoản",
-      ),
+      description: t("admin.refunds.stats.pendingSub"),
       icon: Clock,
       color: "text-amber-600 dark:text-amber-400",
       bgColor: "bg-amber-500/10 dark:bg-amber-500/20",
@@ -45,12 +42,9 @@ export function RefundStats({
     },
     {
       key: "COMPLETED",
-      title: t("admin.refunds.stats.completed", "Đã hoàn tiền"),
+      title: t("admin.refunds.stats.completed"),
       count: completedCount,
-      description: t(
-        "admin.refunds.stats.completedSub",
-        "Đã chuyển khoản thành công",
-      ),
+      description: t("admin.refunds.stats.completedSub"),
       icon: CheckCircle2,
       color: "text-emerald-600 dark:text-emerald-400",
       bgColor: "bg-emerald-500/10 dark:bg-emerald-500/20",
@@ -58,12 +52,9 @@ export function RefundStats({
     },
     {
       key: "REJECTED",
-      title: t("admin.refunds.stats.rejected", "Đã từ chối"),
+      title: t("admin.refunds.stats.rejected"),
       count: rejectedCount,
-      description: t(
-        "admin.refunds.stats.rejectedSub",
-        "Yêu cầu bị từ chối",
-      ),
+      description: t("admin.refunds.stats.rejectedSub"),
       icon: XCircle,
       color: "text-rose-600 dark:text-rose-400",
       bgColor: "bg-rose-500/10 dark:bg-rose-500/20",
@@ -71,12 +62,9 @@ export function RefundStats({
     },
     {
       key: "ALL",
-      title: t("admin.refunds.stats.total", "Tổng yêu cầu"),
+      title: t("admin.refunds.stats.total"),
       count: totalCount,
-      description: t(
-        "admin.refunds.stats.totalSub",
-        "Tổng số lượt yêu cầu hoàn tiền",
-      ),
+      description: t("admin.refunds.stats.totalSub"),
       icon: RotateCcw,
       color: "text-blue-600 dark:text-blue-400",
       bgColor: "bg-blue-500/10 dark:bg-blue-500/20",

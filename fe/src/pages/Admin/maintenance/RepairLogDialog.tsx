@@ -34,6 +34,15 @@ import { formatDateTime as formatDT } from "~/lib/datetime";
 import { calculateDurationText as calcDuration, getUserPhotos } from "./maintenancePhotos";
 import { DroneOrdersByTicket } from "../drone-orders/HomePickupPanels";
 
+// Thẻ đầu ghi chú do trang tự gắn. Chuỗi tiếng Việt là mã nội bộ (logic tô màu dò theo nó);
+// chỉ nhãn hiển thị được dịch qua TAG_LABEL_KEYS. Thẻ khác lấy nguyên từ ghi chú của server.
+const FIELD_NOTE_TAG = "[GHI CHÚ HIỆN TRƯỜNG]";
+const ACCEPTED_TAG = "[NGHIỆM THU THÀNH CÔNG]";
+const TAG_LABEL_KEYS: Record<string, string> = {
+  [FIELD_NOTE_TAG]: "admin.maintenance.ui.repairTag.fieldNote",
+  [ACCEPTED_TAG]: "admin.maintenance.ui.repairTag.accepted",
+};
+
 /// Nút "Nhật ký" + hộp thoại đầy đủ thông tin phiếu (Chế độ xem Quản trị viên - Read-only):
 /// - Chi tiết phiếu: Kiosk, ô tủ, nội dung khách báo, KTV phụ trách, các mốc thời gian SLA
 /// - Nhật ký xử lý từng bước (work-log) với ảnh trong quá trình sửa do KTV cập nhật trên Mobile
@@ -371,9 +380,9 @@ export function RepairLogDialog({
                       const images = logPhotos(l);
                       let displayNote = l.attachments?.length ? l.note : stripImages(l.note);
                       if (displayNote) {
-                        displayNote = displayNote.replace(/^\[(?:SỬA TẠI CHỖ THÀNH CÔNG|XỬ LÝ TẠI CHỖ)\]/i, "[GHI CHÚ HIỆN TRƯỜNG]");
+                        displayNote = displayNote.replace(/^\[(?:SỬA TẠI CHỖ THÀNH CÔNG|XỬ LÝ TẠI CHỖ)\]/i, FIELD_NOTE_TAG);
                         if (!displayNote.startsWith("[") && l.attachments?.some((a) => a.stage === "RESOLUTION")) {
-                          displayNote = `[NGHIỆM THU THÀNH CÔNG] ${displayNote}`;
+                          displayNote = `${ACCEPTED_TAG} ${displayNote}`;
                         }
                       }
                       const isSlaExtension = displayNote?.includes("[GIA HẠN SLA]");
@@ -410,7 +419,7 @@ export function RepairLogDialog({
                           {tag && !isSlaExtension ? (
                             <div className="space-y-1">
                               <Badge variant="outline" className={`font-bold text-[10.5px] px-2 py-0.5 ${tagBadgeClass}`}>
-                                {tag}
+                                {TAG_LABEL_KEYS[tag.toUpperCase()] ? t(TAG_LABEL_KEYS[tag.toUpperCase()]) : tag}
                               </Badge>
                               {restText && (
                                 <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{restText}</p>

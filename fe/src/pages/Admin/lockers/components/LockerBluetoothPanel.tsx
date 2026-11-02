@@ -122,14 +122,10 @@ export function LockerBluetoothPanel({ lockerId, lockerCode, cells }: LockerBlue
         kind: "error",
         message:
           name === "NotFoundError"
-            ? t(
-                "admin.lockers.ble.notFound",
-                "Không thấy beacon {{name}} (hoặc đã đóng hộp chọn). Kiểm tra Pi đang phát BLE có tên, và đứng gần tủ.",
-                { name: expectedName }
-              )
+            ? t("admin.lockers.tools.ble.notFound", { name: expectedName })
             : name === "SecurityError"
-              ? t("admin.lockers.ble.insecure", "Trình duyệt chặn Bluetooth: cần mở trang qua https hoặc localhost.")
-              : t("admin.lockers.ble.scanFailed", "Không quét được Bluetooth: {{message}}", {
+              ? t("admin.lockers.tools.ble.insecure")
+              : t("admin.lockers.tools.ble.scanFailed", {
                   message: (err as Error)?.message ?? String(err),
                 }),
       });
@@ -146,10 +142,14 @@ export function LockerBluetoothPanel({ lockerId, lockerCode, cells }: LockerBlue
     try {
       const res = await openBox({ lockerId, boxId: cell.id }).unwrap();
       const body = res?.data;
-      if (body?.accepted) toast.success(body.message || `Đã gửi lệnh mở ô ${cell.boxNumber}`);
-      else toast.error(body?.message || `Tủ không nhận lệnh mở ô ${cell.boxNumber}`);
+      if (body?.accepted)
+        toast.success(body.message || t("admin.lockers.tools.ble.openSent", { number: cell.boxNumber }));
+      else toast.error(body?.message || t("admin.lockers.tools.ble.openRejected", { number: cell.boxNumber }));
     } catch (err) {
-      toast.error((err as { data?: { message?: string } })?.data?.message || `Không gửi được lệnh mở ô ${cell.boxNumber}`);
+      toast.error(
+        (err as { data?: { message?: string } })?.data?.message ||
+          t("admin.lockers.tools.ble.openSendFailed", { number: cell.boxNumber })
+      );
     } finally {
       setOpeningBoxId(null);
     }
@@ -160,24 +160,17 @@ export function LockerBluetoothPanel({ lockerId, lockerCode, cells }: LockerBlue
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Bluetooth className="w-4.5 h-4.5 text-blue-600" />
-          {t("admin.lockers.ble.title", "Kiểm tra Bluetooth & mở thử ô")}
+          {t("admin.lockers.tools.ble.title")}
         </CardTitle>
         <CardDescription className="text-xs">
-          {t(
-            "admin.lockers.ble.description",
-            "Quét beacon {{name}} mà Pi của tủ phát; thấy đúng tủ (và đủ gần nếu đo được sóng) thì mở thử từng ô. Lệnh mở vẫn gửi qua máy chủ tới Pi.",
-            { name: expectedName }
-          )}
+          {t("admin.lockers.tools.ble.description", { name: expectedName })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {!supported ? (
           <p className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400">
             <BluetoothOff className="w-4 h-4 shrink-0" />
-            {t(
-              "admin.lockers.ble.unsupported",
-              "Trình duyệt này không hỗ trợ Web Bluetooth. Dùng Chrome hoặc Edge trên máy có Bluetooth."
-            )}
+            {t("admin.lockers.tools.ble.unsupported")}
           </p>
         ) : (
           <>
@@ -188,11 +181,11 @@ export function LockerBluetoothPanel({ lockerId, lockerCode, cells }: LockerBlue
                 ) : (
                   <Radar className="w-4 h-4 mr-1.5" />
                 )}
-                {t("admin.lockers.ble.scan", "Quét Bluetooth tủ")}
+                {t("admin.lockers.tools.ble.scan")}
               </Button>
               {available === false && (
                 <Badge variant="outline" className="text-[11px] border-rose-300 text-rose-700">
-                  {t("admin.lockers.ble.adapterOff", "Máy này chưa bật Bluetooth")}
+                  {t("admin.lockers.tools.ble.adapterOff")}
                 </Badge>
               )}
               {scan.kind === "found" && (
@@ -203,8 +196,8 @@ export function LockerBluetoothPanel({ lockerId, lockerCode, cells }: LockerBlue
                   }`}
                 >
                   {scan.matches
-                    ? t("admin.lockers.ble.matched", "Đã thấy tủ: {{name}}", { name: scan.name })
-                    : t("admin.lockers.ble.otherLocker", "{{name}} không phải tủ {{code}}", {
+                    ? t("admin.lockers.tools.ble.matched", { name: scan.name })
+                    : t("admin.lockers.tools.ble.otherLocker", {
                         name: scan.name || "?",
                         code: lockerCode,
                       })}
@@ -223,15 +216,12 @@ export function LockerBluetoothPanel({ lockerId, lockerCode, cells }: LockerBlue
             {scan.kind === "error" && <p className="text-xs text-rose-700 dark:text-rose-400">{scan.message}</p>}
             {found && !rssiSupported && (
               <p className="text-[11px] text-muted-foreground">
-                {t(
-                  "admin.lockers.ble.noRssi",
-                  "Không đo được khoảng cách (bật chrome://flags/#enable-experimental-web-platform-features để đo) — cho mở ngay khi thấy tủ."
-                )}
+                {t("admin.lockers.tools.ble.noRssi")}
               </p>
             )}
             {found && near === false && (
               <p className="text-[11px] text-amber-700 dark:text-amber-400">
-                {t("admin.lockers.ble.tooFar", "Sóng còn yếu — lại gần tủ (< 2 m) để mở ô.")}
+                {t("admin.lockers.tools.ble.tooFar")}
               </p>
             )}
 
@@ -250,7 +240,7 @@ export function LockerBluetoothPanel({ lockerId, lockerCode, cells }: LockerBlue
                   ) : (
                     <Unlock className="w-3.5 h-3.5 mr-1" />
                   )}
-                  {t("admin.lockers.ble.openBox", "Mở ô {{number}}", { number: cell.boxNumber })}
+                  {t("admin.lockers.tools.ble.openBox", { number: cell.boxNumber })}
                 </Button>
               ))}
             </div>

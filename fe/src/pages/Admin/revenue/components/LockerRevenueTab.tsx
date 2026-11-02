@@ -101,7 +101,7 @@ export function LockerRevenueTab({ range, skip, onViewOrders }: LockerRevenueTab
       id: "actions",
       header: () => (
         <span className="text-right block">
-          {t("admin.revenue.actions.header", "Hành động")}
+          {t("admin.revenue.actions.header")}
         </span>
       ),
       cell: ({ row }) => {
@@ -130,7 +130,7 @@ export function LockerRevenueTab({ range, skip, onViewOrders }: LockerRevenueTab
               }
             >
               <Eye className="h-3.5 w-3.5" />
-              <span>{t("admin.revenue.actions.viewOrders", "Xem đơn")}</span>
+              <span>{t("admin.revenue.actions.viewOrders")}</span>
             </Button>
           </div>
         );

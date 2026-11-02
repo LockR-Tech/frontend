@@ -25,6 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Trans, useTranslation } from "react-i18next";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -268,6 +269,7 @@ export function RecoveryDispatchMapModal({
   incident,
   onAssigned,
 }: RecoveryDispatchMapModalProps) {
+  const { t } = useTranslation();
   const [radiusKm, setRadiusKm] = useState<number>(3);
   const [dutyFilter, setDutyFilter] = useState<"ALL" | "ON_DUTY">("ALL");
   const [selectedTechId, setSelectedTechId] = useState<number | null>(
@@ -368,7 +370,9 @@ export function RecoveryDispatchMapModal({
       if (presence?.onDuty !== true) continue;
 
       const techRole = isDrone ? "DRONE_TECHNICIAN" : "LOCKER_TECHNICIAN";
-      const techRoleLabel = isDrone ? "KTV Drone" : "KTV Kiosk";
+      const techRoleLabel = isDrone
+        ? t("admin.maintenance.specialty.droneShort")
+        : t("admin.maintenance.specialty.kioskShort");
       const locker = lockerByTechId.get(u.id);
 
       let lat: number | null =
@@ -388,7 +392,11 @@ export function RecoveryDispatchMapModal({
 
       techs.push({
         id: u.id,
-        fullName: u.fullName || u.name || presence?.userName || `KTV #${u.id}`,
+        fullName:
+          u.fullName ||
+          u.name ||
+          presence?.userName ||
+          t("admin.droneIncidents.actions.techFallback", { id: u.id }),
         phoneNumber: u.phoneNumber ?? null,
         role: techRole,
         roleLabel: techRoleLabel,
@@ -409,7 +417,7 @@ export function RecoveryDispatchMapModal({
       if (b.distanceKm == null) return -1;
       return a.distanceKm - b.distanceKm;
     });
-  }, [usersData, presenceByUserId, lockerByTechId, dropLat, dropLng]);
+  }, [usersData, presenceByUserId, lockerByTechId, dropLat, dropLng, t]);
 
   const onDutyCount = useMemo(
     () => candidateTechs.filter((t) => t.onDuty).length,
@@ -455,17 +463,25 @@ export function RecoveryDispatchMapModal({
         id: incident.id,
         technicianId,
       }).unwrap();
-      toast.success(`Đã phân công thu hồi sự cố cho ${technicianName}!`);
+      toast.success(
+        t("admin.droneIncidents.recoveryDispatch.assignedToast", {
+          name: technicianName,
+        }),
+      );
       onAssigned?.();
       onOpenChange(false);
     } catch {
       if (incident.id === 999 || incident.id === 998) {
-        toast.success(`Đã phân công thu hồi sự cố cho ${technicianName} (Dữ liệu mẫu demo)!`);
+        toast.success(
+          t("admin.droneIncidents.recoveryDispatch.assignedToastDemo", {
+            name: technicianName,
+          }),
+        );
         onAssigned?.();
         onOpenChange(false);
         return;
       }
-      toast.error("Không thể phân công KTV. Vui lòng thử lại!");
+      toast.error(t("admin.droneIncidents.recoveryDispatch.assignFailed"));
     }
   };
 
@@ -480,7 +496,7 @@ export function RecoveryDispatchMapModal({
               </div>
               <div>
                 <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                  Bản đồ vị trí KTV & Điều phối tìm kiếm
+                  {t("admin.droneIncidents.recoveryDispatch.modalTitle")}
                   <Badge
                     variant={canAssign ? "destructive" : "outline"}
                     className={
@@ -489,13 +505,23 @@ export function RecoveryDispatchMapModal({
                         : "ml-1 text-xs bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold"
                     }
                   >
-                    {canAssign ? "Khẩn cấp" : "Đã tiếp nhận"}
+                    {canAssign
+                      ? t("admin.maintenance.schedules.priority.urgent")
+                      : t("admin.droneOrders.list.accepted")}
                   </Badge>
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                  Sự cố: <span className="font-semibold">{incident.incidentCode}</span> · Đơn:{" "}
-                  {incident.orderCode ?? `#${incident.orderId}`} · Điểm rơi:{" "}
-                  {dropLat.toFixed(6)}, {dropLng.toFixed(6)}
+                  <Trans
+                    t={t}
+                    i18nKey="admin.droneIncidents.recoveryDispatch.modalDescription"
+                    values={{
+                      code: incident.incidentCode,
+                      order: incident.orderCode ?? `#${incident.orderId}`,
+                      lat: dropLat.toFixed(6),
+                      lon: dropLng.toFixed(6),
+                    }}
+                    components={{ b: <span className="font-semibold" /> }}
+                  />
                 </DialogDescription>
               </div>
             </div>
@@ -509,7 +535,9 @@ export function RecoveryDispatchMapModal({
                   onClick={() => handleAssign(nearestTech.id, nearestTech.fullName)}
                 >
                   <Zap className="mr-1.5 h-4 w-4" />
-                  Gán ngay KTV gần nhất ({kmLabel(nearestTech.distanceKm!)})
+                  {t("admin.droneIncidents.recoveryDispatch.assignNearestNow", {
+                    distance: kmLabel(nearestTech.distanceKm!),
+                  })}
                 </Button>
               )
             ) : (
@@ -518,7 +546,7 @@ export function RecoveryDispatchMapModal({
                 className="bg-emerald-50 text-emerald-800 border-emerald-300 py-1.5 px-3 font-semibold text-xs flex items-center gap-1.5"
               >
                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                KTV đã tiếp nhận (Chế độ theo dõi)
+                {t("admin.droneIncidents.recoveryDispatch.trackingBadge")}
               </Badge>
             )}
           </div>
@@ -528,7 +556,11 @@ export function RecoveryDispatchMapModal({
           <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs flex items-center gap-2 mt-2">
             <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
             <span>
-              <b>Kỹ thuật viên đã tiếp nhận nhiệm vụ.</b> Bản đồ hiện ở chế độ theo dõi vị trí thực tế của KTV và điểm rơi. Quản trị viên không thể phân công lại.
+              <Trans
+                t={t}
+                i18nKey="admin.droneIncidents.recoveryDispatch.lockedBanner"
+                components={{ b: <b /> }}
+              />
             </span>
           </div>
         )}
@@ -538,7 +570,8 @@ export function RecoveryDispatchMapModal({
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-1.5">
               <span className="font-semibold text-slate-700 flex items-center gap-1">
-                <Crosshair className="h-3.5 w-3.5 text-red-500" /> Bán kính:
+                <Crosshair className="h-3.5 w-3.5 text-red-500" />{" "}
+                {t("admin.droneIncidents.recoveryDispatch.radius")}
               </span>
               <div className="flex items-center gap-1">
                 {RADIUS_OPTIONS.map((r) => (
@@ -551,7 +584,7 @@ export function RecoveryDispatchMapModal({
                     }`}
                     onClick={() => setRadiusKm(r)}
                   >
-                    {r === 0 ? "Tất cả" : `${r} km`}
+                    {r === 0 ? t("common.all") : `${r} km`}
                   </Button>
                 ))}
               </div>
@@ -560,7 +593,8 @@ export function RecoveryDispatchMapModal({
             <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
               <span className="text-xs text-emerald-800 font-medium flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                KTV đang trong ca: <b>{candidateTechs.length}</b>
+                {t("admin.droneIncidents.recoveryDispatch.onShiftCount")}{" "}
+                <b>{candidateTechs.length}</b>
               </span>
             </div>
           </div>
@@ -569,14 +603,21 @@ export function RecoveryDispatchMapModal({
             <div className="relative w-56 sm:w-64">
               <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder="Tìm tên KTV hoặc tên tủ..."
+                placeholder={t(
+                  "admin.droneIncidents.recoveryDispatch.searchTechOrLocker",
+                )}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-8 text-xs pl-8"
               />
             </div>
             <span className="text-xs text-muted-foreground whitespace-nowrap">
-              Bản đồ: <b className="text-slate-900">{mappableTechs.length}</b> KTV
+              <Trans
+                t={t}
+                i18nKey="admin.droneIncidents.recoveryDispatch.mapCount"
+                values={{ count: mappableTechs.length }}
+                components={{ b: <b className="text-slate-900" /> }}
+              />
             </span>
           </div>
         </div>
@@ -607,10 +648,18 @@ export function RecoveryDispatchMapModal({
                 <Popup>
                   <div className="text-xs space-y-1">
                     <p className="font-bold text-red-600 flex items-center gap-1">
-                      🚨 Điểm Drone rơi
+                      {t("admin.droneIncidents.recoveryDispatch.dropPinModal")}
                     </p>
-                    <p>Mã sự cố: <b>{incident.incidentCode}</b></p>
-                    <p>Tọa độ: {dropLat.toFixed(6)}, {dropLng.toFixed(6)}</p>
+                    <p>
+                      {t("admin.droneIncidents.recoveryDispatch.incidentCode")}{" "}
+                      <b>{incident.incidentCode}</b>
+                    </p>
+                    <p>
+                      {t("admin.droneIncidents.recoveryDispatch.coords", {
+                        lat: dropLat.toFixed(6),
+                        lon: dropLng.toFixed(6),
+                      })}
+                    </p>
                   </div>
                 </Popup>
               </Marker>
@@ -664,12 +713,16 @@ export function RecoveryDispatchMapModal({
                                 : "text-slate-500"
                             }
                           >
-                            {tech.onDuty ? "🟢 Đang trực" : "⚪ Ngoài ca"}
+                            {tech.onDuty
+                              ? t("admin.droneIncidents.recoveryDispatch.onDutyTag")
+                              : t("admin.droneIncidents.recoveryDispatch.offShiftTag")}
                           </span>
                         </p>
                         {tech.distanceKm != null && (
                           <p className="text-[11px] text-emerald-700 font-semibold">
-                            Khoảng cách: {kmLabel(tech.distanceKm)}
+                            {t("admin.droneIncidents.recoveryDispatch.distance", {
+                              distance: kmLabel(tech.distanceKm),
+                            })}
                           </p>
                         )}
                       </div>
@@ -695,22 +748,27 @@ export function RecoveryDispatchMapModal({
                         {tech.distanceKm != null && (
                           <p className="text-emerald-700 font-semibold flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            Cách điểm rơi: {kmLabel(tech.distanceKm)}
+                            {t("admin.droneIncidents.recoveryDispatch.fromDrop", {
+                              distance: kmLabel(tech.distanceKm),
+                            })}
                           </p>
                         )}
                         <p className="text-[11px] text-muted-foreground">
-                          Ca trực:{" "}
+                          {t("admin.droneIncidents.recoveryDispatch.shift")}{" "}
                           <b
                             className={
                               tech.onDuty ? "text-emerald-700" : "text-slate-500"
                             }
                           >
-                            {tech.onDuty ? "Đang trong ca trực" : "Ngoài ca"}
+                            {tech.onDuty
+                              ? t("admin.droneIncidents.recoveryDispatch.onShiftLong")
+                              : t("admin.droneIncidents.recoveryDispatch.offShift")}
                           </b>
                         </p>
                         {tech.lockerName && (
                           <p className="text-[11px] text-muted-foreground">
-                            Tủ trực: <b>{tech.lockerName}</b>
+                            {t("admin.droneIncidents.recoveryDispatch.assignedLocker")}{" "}
+                            <b>{tech.lockerName}</b>
                           </p>
                         )}
                         {tech.phoneNumber && (
@@ -726,15 +784,15 @@ export function RecoveryDispatchMapModal({
                             onClick={() => handleAssign(tech.id, tech.fullName)}
                           >
                             <UserCheck className="mr-1 h-3.5 w-3.5" />
-                            Phân công KTV này
+                            {t("admin.droneIncidents.recoveryDispatch.assignThis")}
                           </Button>
                         ) : tech.id === incident.recoveryAssignedToUserId ? (
                           <div className="mt-2 text-center py-1 px-2 rounded bg-emerald-100 text-emerald-800 font-bold text-[11px]">
-                            ✓ Đang phụ trách nhiệm vụ
+                            {t("admin.droneIncidents.recoveryDispatch.inCharge")}
                           </div>
                         ) : (
                           <div className="mt-2 text-center text-muted-foreground italic text-[11px]">
-                            (Đã khóa phân công)
+                            {t("admin.droneIncidents.recoveryDispatch.assignmentLocked")}
                           </div>
                         )}
                       </div>
@@ -748,15 +806,15 @@ export function RecoveryDispatchMapModal({
             <div className="absolute bottom-2 left-2 z-[1000] bg-white/95 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-slate-200 text-xs shadow-sm flex items-center gap-3.5 select-none">
               <span className="flex items-center gap-1.5 text-slate-700 font-medium">
                 <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shadow-2xs"></span>
-                Điểm rơi
+                {t("admin.droneIncidents.recoveryDispatch.dropPoint")}
               </span>
               <span className="flex items-center gap-1.5 text-slate-700 font-medium">
                 <span className="inline-block w-2.5 h-2.5 rounded-full bg-sky-500 shadow-2xs"></span>
-                KTV Kiosk
+                {t("admin.maintenance.specialty.kioskShort")}
               </span>
               <span className="flex items-center gap-1.5 text-slate-700 font-medium">
                 <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-500 shadow-2xs"></span>
-                KTV Drone
+                {t("admin.maintenance.specialty.droneShort")}
               </span>
             </div>
           </div>
@@ -766,23 +824,29 @@ export function RecoveryDispatchMapModal({
             <div className="p-3 border-b bg-muted/40 flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
                 <Navigation className="h-3.5 w-3.5 text-primary" />
-                Danh sách KTV theo cự ly gần nhất
+                {t("admin.droneIncidents.recoveryDispatch.listTitle")}
               </span>
               <Badge variant="outline" className="text-[11px]">
-                {visibleTechs.length} ứng viên
+                {t("admin.droneIncidents.recoveryDispatch.candidates", {
+                  count: visibleTechs.length,
+                })}
               </Badge>
             </div>
 
             <div className="flex-1 overflow-y-auto p-2 space-y-2">
               {usersLoading ? (
                 <div className="py-12 text-center text-xs text-muted-foreground">
-                  Đang tải danh sách kỹ thuật viên...
+                  {t("admin.droneIncidents.recoveryDispatch.loadingTechs")}
                 </div>
               ) : visibleTechs.length === 0 ? (
                 <div className="py-12 text-center space-y-2">
                   <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto opacity-70" />
                   <p className="text-xs font-medium text-muted-foreground">
-                    Không tìm thấy KTV nào trong bán kính {radiusKm > 0 ? `${radiusKm} km` : "này"}.
+                    {radiusKm > 0
+                      ? t("admin.droneIncidents.recoveryDispatch.noneInRadius", {
+                          radius: `${radiusKm} km`,
+                        })
+                      : t("admin.droneIncidents.recoveryDispatch.noneInThisRadius")}
                   </p>
                   <Button
                     size="sm"
@@ -790,7 +854,7 @@ export function RecoveryDispatchMapModal({
                     className="text-xs h-7"
                     onClick={() => setRadiusKm(radiusKm === 10 ? 0 : 10)}
                   >
-                    Mở rộng bán kính (10 km / Tất cả)
+                    {t("admin.droneIncidents.recoveryDispatch.expandRadius")}
                   </Button>
                 </div>
               ) : (
@@ -821,7 +885,11 @@ export function RecoveryDispatchMapModal({
                             className={`w-2 h-2 rounded-full shrink-0 ${
                               tech.onDuty ? "bg-emerald-500" : "bg-slate-300"
                             }`}
-                            title={tech.onDuty ? "Đang trong ca" : "Ngoài ca"}
+                            title={
+                              tech.onDuty
+                                ? t("admin.droneIncidents.recoveryDispatch.onShift")
+                                : t("admin.droneIncidents.recoveryDispatch.offShift")
+                            }
                           />
                           <span className="font-bold text-slate-900 truncate">
                             {tech.fullName}
@@ -843,7 +911,7 @@ export function RecoveryDispatchMapModal({
                           </Badge>
                           {isNearest && (
                             <Badge className="bg-emerald-600 text-white text-[9px] px-1 py-0">
-                              Gần nhất
+                              {t("admin.droneIncidents.recoveryDispatch.nearest")}
                             </Badge>
                           )}
                         </div>
@@ -855,10 +923,16 @@ export function RecoveryDispatchMapModal({
                               {kmLabel(tech.distanceKm)}
                             </span>
                           ) : (
-                            <span className="text-slate-400">Chưa có toạ độ</span>
+                            <span className="text-slate-400">
+                              {t("admin.droneIncidents.recoveryDispatch.noCoords")}
+                            </span>
                           )}
                           {tech.lockerName && (
-                            <span className="truncate">· Tủ: {tech.lockerName}</span>
+                            <span className="truncate">
+                              {t("admin.droneIncidents.recoveryDispatch.lockerName", {
+                                name: tech.lockerName,
+                              })}
+                            </span>
                           )}
                           {tech.phoneNumber && <span>· {tech.phoneNumber}</span>}
                         </div>
@@ -880,15 +954,15 @@ export function RecoveryDispatchMapModal({
                           }}
                         >
                           <UserCheck className="mr-1 h-3 w-3" />
-                          Gán việc
+                          {t("admin.droneIncidents.recoveryDispatch.assignShort")}
                         </Button>
                       ) : tech.id === incident.recoveryAssignedToUserId ? (
                         <Badge className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 whitespace-nowrap">
-                          ✓ Đang phụ trách
+                          {t("admin.droneIncidents.recoveryDispatch.inChargeShort")}
                         </Badge>
                       ) : (
                         <span className="text-[11px] text-muted-foreground italic whitespace-nowrap">
-                          Đã khóa gán
+                          {t("admin.droneIncidents.recoveryDispatch.lockedShort")}
                         </span>
                       )}
                     </div>

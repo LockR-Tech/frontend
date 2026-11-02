@@ -10,7 +10,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import {
   QrCode,
   Printer,
@@ -183,10 +183,14 @@ export function BoxQrModal({
       // Số ô cực lớn nổi bật
       ctx.fillStyle = "#0284c7";
       ctx.font = "bold 56px Inter, Arial, sans-serif";
-      ctx.fillText(`Ô #${c.boxNumber}`, canvas.width / 2, 185);
+      ctx.fillText(t("admin.lockers.boxLabel", { number: c.boxNumber }), canvas.width / 2, 185);
 
       // Nhãn phân loại
-      const cellBadge = isDroneCell(c) ? "DRONE DELIVERY PAD" : isXlCell(c) ? "KHOANG VALI XL" : "Ô CHUẨN ĐA NĂNG";
+      const cellBadge = isDroneCell(c)
+        ? "DRONE DELIVERY PAD"
+        : isXlCell(c)
+          ? t("admin.lockers.tools.boxQr.stickerBadgeXl")
+          : t("admin.lockers.tools.boxQr.stickerBadgeStandard");
       ctx.font = "bold 14px Inter, Arial, sans-serif";
       ctx.fillStyle = "#0f172a";
       ctx.fillText(`[ ${cellBadge} · SIZE ${c.size || "M"} ]`, canvas.width / 2, 222);
@@ -210,18 +214,30 @@ export function BoxQrModal({
         ctx.fillStyle = "#475569";
         ctx.font = "14px Inter, Arial, sans-serif";
         ctx.textAlign = "left";
-        ctx.fillText(`Vị trí: Hàng ${c.rowIndex ?? 1} · Cột ${c.colIndex ?? 1}`, 54, boxY + 36);
-        ctx.fillText(`Mã định danh: BOX-${c.id}`, 54, boxY + 74);
+        ctx.fillText(
+          t("admin.lockers.tools.boxQr.stickerPosition", { row: c.rowIndex ?? 1, col: c.colIndex ?? 1 }),
+          54,
+          boxY + 36
+        );
+        ctx.fillText(t("admin.lockers.tools.boxQr.stickerIdentifier", { id: c.id }), 54, boxY + 74);
 
         ctx.textAlign = "right";
-        ctx.fillText(`Cửa: ${c.doorOpen ? "OPEN" : "CLOSED"}`, canvas.width - 54, boxY + 36);
-        ctx.fillText(`Trạng thái: ${c.status || "AVAILABLE"}`, canvas.width - 54, boxY + 74);
+        ctx.fillText(
+          t("admin.lockers.tools.boxQr.stickerDoor", { state: c.doorOpen ? "OPEN" : "CLOSED" }),
+          canvas.width - 54,
+          boxY + 36
+        );
+        ctx.fillText(
+          t("admin.lockers.tools.boxQr.stickerStatus", { status: c.status || "AVAILABLE" }),
+          canvas.width - 54,
+          boxY + 74
+        );
 
         // Chân trang hướng dẫn quét
         ctx.fillStyle = "#64748b";
         ctx.font = "italic 13px Inter, Arial, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("Quét mã QR bằng ứng dụng Lock.R để thao tác gửi/nhận hoặc kiểm tra ô", canvas.width / 2, 735);
+        ctx.fillText(t("admin.lockers.tools.boxQr.stickerScanHint"), canvas.width / 2, 735);
 
         ctx.font = "11px monospace";
         ctx.fillStyle = "#94a3b8";
@@ -265,7 +281,7 @@ export function BoxQrModal({
         a.download = `QR-Code-${lockerCode}-O-${c.boxNumber}.png`;
         a.href = canvas.toDataURL("image/png");
         a.click();
-        toast.success(`Đã tải ảnh mã QR ô #${c.boxNumber}`);
+        toast.success(t("admin.lockers.boxQr.downloaded", { number: c.boxNumber }));
       };
       img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
     } catch {
@@ -278,33 +294,38 @@ export function BoxQrModal({
     if (!currentCell) return;
     try {
       const res = await assignArucoMutation({ boxId: currentCell.id }).unwrap();
-      toast.success(`Đã gán mã ArUco #${res.data?.arucoMarkerId ?? "mới"} cho ô #${currentCell.boxNumber}`);
+      toast.success(
+        t("admin.lockers.tools.boxQr.arucoAssigned", {
+          id: res.data?.arucoMarkerId ?? t("admin.lockers.tools.boxQr.arucoNew"),
+          number: currentCell.boxNumber,
+        })
+      );
     } catch (err: any) {
-      toast.error(err?.data?.message || "Không thể gán mã ArUco");
+      toast.error(err?.data?.message || t("admin.lockers.tools.boxQr.arucoAssignFailed"));
     }
   };
 
   const handleUnassignAruco = async () => {
     if (!currentCell) return;
-    if (!window.confirm(`Bạn có chắc muốn hủy gán mã ArUco cho ô #${currentCell.boxNumber}?`)) return;
+    if (!window.confirm(t("admin.lockers.tools.boxQr.arucoUnassignConfirm", { number: currentCell.boxNumber }))) return;
     try {
       await unassignArucoMutation({ boxId: currentCell.id }).unwrap();
-      toast.success(`Đã hủy gán mã ArUco cho ô #${currentCell.boxNumber}`);
+      toast.success(t("admin.lockers.tools.boxQr.arucoUnassigned", { number: currentCell.boxNumber }));
     } catch (err: any) {
-      toast.error(err?.data?.message || "Không thể hủy gán mã ArUco");
+      toast.error(err?.data?.message || t("admin.lockers.tools.boxQr.arucoUnassignFailed"));
     }
   };
 
   const handlePrintAruco = () => {
     if (!currentCell || currentCell.arucoMarkerId === null || currentCell.arucoMarkerId === undefined) {
-      toast.error("Ô tủ chưa có mã ArUco để in");
+      toast.error(t("admin.lockers.tools.boxQr.arucoNothingToPrint"));
       return;
     }
 
     const dict = arucoDictData as Record<string, number[][]>;
     const grid6x6 = dict[String(currentCell.arucoMarkerId)];
     if (!grid6x6) {
-      toast.error(`Không tìm thấy ma trận cho mã ArUco #${currentCell.arucoMarkerId}`);
+      toast.error(t("admin.lockers.tools.boxQr.arucoMatrixNotFound", { id: currentCell.arucoMarkerId }));
       return;
     }
 
@@ -492,7 +513,7 @@ export function BoxQrModal({
           </div>
         </div>
         <div class="header-right">
-          <div class="box-badge">Ô #${boxNumber}</div>
+          <div class="box-badge">${t("admin.lockers.boxLabel", { number: boxNumber })}</div>
           <div class="locker-info">${displayLockerName} (${lockerCode})</div>
         </div>
       </div>
@@ -548,17 +569,17 @@ export function BoxQrModal({
                 <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400">
                   <QrCode className="w-4 h-4" />
                 </div>
-                <span>Mã QR & Tem dán ô tủ</span>
+                <span>{t("admin.lockers.tools.boxQr.title")}</span>
                 <Badge variant="outline" className="font-mono text-xs ml-1 bg-background font-semibold">
                   {lockerCode}
                 </Badge>
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                <span>Trạm: <strong>{displayLockerName}</strong></span>
+                <span>{t("admin.lockers.tools.boxQr.stationLabel")} <strong>{displayLockerName}</strong></span>
                 <span>•</span>
-                <span>{cells.length} ô tủ</span>
+                <span>{t("admin.lockers.tools.boxQr.boxCount", { count: cells.length })}</span>
                 <span>•</span>
-                <span>Chuẩn in ấn decal dán cánh tủ thông minh</span>
+                <span>{t("admin.lockers.tools.boxQr.printStandard")}</span>
               </DialogDescription>
             </div>
 
@@ -574,7 +595,7 @@ export function BoxQrModal({
                 onClick={() => setPrintMode("single")}
               >
                 <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-                <span>Tem ô #{currentCell.boxNumber}</span>
+                <span>{t("admin.lockers.tools.boxQr.tabSingle", { number: currentCell.boxNumber })}</span>
               </button>
               {isDrone && (
                 <button
@@ -587,7 +608,7 @@ export function BoxQrModal({
                   onClick={() => setPrintMode("aruco")}
                 >
                   <Plane className="w-3.5 h-3.5 text-sky-500" />
-                  <span>Mã ArUco ô #{currentCell.boxNumber}</span>
+                  <span>{t("admin.lockers.tools.boxQr.tabAruco", { number: currentCell.boxNumber })}</span>
                 </button>
               )}
               <button
@@ -600,7 +621,7 @@ export function BoxQrModal({
                 onClick={() => setPrintMode("all")}
               >
                 <Layers className="w-3.5 h-3.5 text-indigo-500" />
-                <span>In tất cả ({cells.length} ô)</span>
+                <span>{t("admin.lockers.tools.boxQr.tabAll", { count: cells.length })}</span>
               </button>
             </div>
           </div>
@@ -617,7 +638,7 @@ export function BoxQrModal({
                   <div className="w-full flex items-center justify-between text-[11px] font-semibold text-muted-foreground mb-2.5 px-1">
                     <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
                       <Plane className="w-3.5 h-3.5 text-sky-500" />
-                      Mô phỏng tem ArUco
+                      {t("admin.lockers.tools.boxQr.arucoPreview")}
                     </span>
                     <span className="font-mono text-[10px] bg-background/80 px-2 py-0.5 rounded-md border border-border/60 text-sky-700 dark:text-sky-400 font-bold">
                       Marker: 80 × 80 mm
@@ -649,7 +670,7 @@ export function BoxQrModal({
                       {/* Thông tin số ô & Tên tủ */}
                       <div className="text-right">
                         <span className="font-mono text-xs font-black text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                          Ô #{currentCell.boxNumber}
+                          {t("admin.lockers.boxLabel", { number: currentCell.boxNumber })}
                         </span>
                         <p className="text-[9px] text-slate-500 font-medium truncate max-w-[150px] mt-0.5" title={`${displayLockerName} (${lockerCode})`}>
                           {displayLockerName} ({lockerCode})
@@ -679,8 +700,8 @@ export function BoxQrModal({
                     ) : (
                       <div className="w-[200px] h-[200px] flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 text-muted-foreground p-4">
                         <Plane className="w-8 h-8 text-slate-400 mb-2" />
-                        <p className="text-xs font-semibold text-slate-700">Chưa gán mã ArUco</p>
-                        <p className="text-[10px] text-slate-500 mt-1">Bấm "Gán mã ArUco tự động" bên phải</p>
+                        <p className="text-xs font-semibold text-slate-700">{t("admin.lockers.tools.boxQr.arucoNotAssigned")}</p>
+                        <p className="text-[10px] text-slate-500 mt-1">{t("admin.lockers.tools.boxQr.arucoAssignHint")}</p>
                       </div>
                     )}
 
@@ -701,10 +722,10 @@ export function BoxQrModal({
                   <div>
                     <h3 className="text-sm font-bold flex items-center gap-2">
                       <Plane className="w-4 h-4 text-sky-500" />
-                      Thông số mã ArUco
+                      {t("admin.lockers.tools.boxQr.arucoSpecsTitle")}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Định danh quang học nắp trượt tiếp nhận Drone
+                      {t("admin.lockers.tools.boxQr.arucoSpecsDesc")}
                     </p>
                   </div>
 
@@ -722,16 +743,16 @@ export function BoxQrModal({
                         {currentCell.arucoMarkerId !== null && currentCell.arucoMarkerId !== undefined ? (
                           `#${currentCell.arucoMarkerId}`
                         ) : (
-                          <span className="text-amber-600 text-xs font-normal">Chưa gán</span>
+                          <span className="text-amber-600 text-xs font-normal">{t("admin.lockers.tools.boxQr.notAssigned")}</span>
                         )}
                       </strong>
                     </div>
                     <div className="flex justify-between items-center py-0.5 border-b border-border/60">
-                      <span className="text-muted-foreground">Kích thước vùng mã:</span>
+                      <span className="text-muted-foreground">{t("admin.lockers.tools.boxQr.markerAreaSize")}</span>
                       <strong className="font-semibold text-emerald-700 dark:text-emerald-400">80 × 80 mm (8 × 8 cm)</strong>
                     </div>
                     <div className="flex justify-between items-center py-0.5">
-                      <span className="text-muted-foreground">Vùng an toàn (Quiet Zone):</span>
+                      <span className="text-muted-foreground">{t("admin.lockers.tools.boxQr.quietZone")}</span>
                       <span className="font-mono text-muted-foreground">1 module (13.3 mm)</span>
                     </div>
                   </div>
@@ -740,7 +761,7 @@ export function BoxQrModal({
                   {currentCell.arucoMarkerId === null || currentCell.arucoMarkerId === undefined ? (
                     <div className="p-3.5 rounded-xl border border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/30 space-y-2.5">
                       <p className="text-xs text-sky-900 dark:text-sky-200">
-                        Ô này chưa có mã ArUco. Bấm để hệ thống tự động cấp phát ID nhỏ nhất chưa dùng trong <strong>DICT_4X4_50</strong>.
+                        <Trans i18nKey="admin.lockers.tools.boxQr.arucoAssignPrompt" components={{ strong: <strong /> }} />
                       </p>
                       <Button
                         size="sm"
@@ -749,7 +770,9 @@ export function BoxQrModal({
                         className="w-full gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs cursor-pointer"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
-                        {isAssigningAruco ? "Đang gán..." : "Gán mã ArUco tự động"}
+                        {isAssigningAruco
+                          ? t("admin.lockers.tools.boxQr.assigning")
+                          : t("admin.lockers.tools.boxQr.autoAssign")}
                       </Button>
                     </div>
                   ) : (
@@ -762,7 +785,7 @@ export function BoxQrModal({
                         className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        Hủy gán mã
+                        {t("admin.lockers.tools.boxQr.unassign")}
                       </Button>
                       <Button
                         variant="outline"
@@ -772,7 +795,7 @@ export function BoxQrModal({
                         className="text-xs gap-1.5 text-muted-foreground cursor-pointer"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
-                        Cấp lại mã khác
+                        {t("admin.lockers.tools.boxQr.reassign")}
                       </Button>
                     </div>
                   )}
@@ -781,12 +804,18 @@ export function BoxQrModal({
                   <div className="p-3 bg-sky-50 dark:bg-sky-950/30 rounded-xl border border-sky-200 dark:border-sky-800 text-xs space-y-1.5">
                     <p className="font-bold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
                       <Info className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                      Lưu ý khi in chuẩn kích thước 80 × 80 mm:
+                      {t("admin.lockers.tools.boxQr.printNotesTitle")}
                     </p>
                     <ul className="list-disc pl-4 space-y-1 text-slate-700 dark:text-slate-300 text-[11px]">
-                      <li>Trong hộp thoại in, mục <strong>Tỷ lệ (Scale)</strong>: Chọn <strong>100% (Actual size)</strong>.</li>
-                      <li>Tắt mục <strong>Tiêu đề và chân trang (Headers & footers)</strong>.</li>
-                      <li>Khổ giấy: <strong>A4</strong> (Bản in chỉ có đúng 1 trang và không bị tràn trang).</li>
+                      <li>
+                        <Trans i18nKey="admin.lockers.tools.boxQr.printNoteScale" components={{ strong: <strong /> }} />
+                      </li>
+                      <li>
+                        <Trans i18nKey="admin.lockers.tools.boxQr.printNoteHeaders" components={{ strong: <strong /> }} />
+                      </li>
+                      <li>
+                        <Trans i18nKey="admin.lockers.tools.boxQr.printNotePaper" components={{ strong: <strong /> }} />
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -802,7 +831,7 @@ export function BoxQrModal({
                   <div className="w-full flex items-center justify-between text-[11px] font-semibold text-muted-foreground mb-2.5 px-1">
                     <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
                       <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-                      Mô phỏng tem in decal thực tế
+                      {t("admin.lockers.tools.boxQr.decalPreview")}
                     </span>
                     <span className="font-mono text-[10px] bg-background/80 px-2 py-0.5 rounded-md border border-border/60">
                       80 × 100 mm
@@ -844,7 +873,7 @@ export function BoxQrModal({
                       </p>
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-4xl font-black tracking-tight text-slate-950 font-sans">
-                          Ô #{currentCell.boxNumber}
+                          {t("admin.lockers.boxLabel", { number: currentCell.boxNumber })}
                         </span>
                         {isDrone ? (
                           <Badge className="bg-sky-600 hover:bg-sky-600 text-white border-0 text-[10px] font-bold px-2 py-0.5 gap-1 shadow-xs">
@@ -852,11 +881,11 @@ export function BoxQrModal({
                           </Badge>
                         ) : isXl ? (
                           <Badge className="bg-violet-700 hover:bg-violet-700 text-white border-0 text-[10px] font-bold px-2 py-0.5 gap-1 shadow-xs">
-                            <Luggage className="w-3 h-3" /> VALI XL
+                            <Luggage className="w-3 h-3" /> {t("admin.lockers.boxQr.xlBadge")}
                           </Badge>
                         ) : (
                           <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white border-0 text-[10px] font-bold px-2 py-0.5 gap-1 shadow-xs">
-                            <Box className="w-3 h-3" /> TIÊU CHUẨN
+                            <Box className="w-3 h-3" /> {t("admin.lockers.tools.boxQr.standardBadge")}
                           </Badge>
                         )}
                       </div>
@@ -882,25 +911,40 @@ export function BoxQrModal({
                     {/* Bảng thông số kỹ thuật gọn gàng */}
                     <div className="w-full bg-slate-50 rounded-xl p-2.5 text-[11px] border border-slate-200 grid grid-cols-2 gap-2 text-left">
                       <div>
-                        <span className="text-slate-500 block text-[10px] font-medium">CÔNG NĂNG</span>
+                        <span className="text-slate-500 block text-[10px] font-medium">
+                          {t("admin.lockers.tools.boxQr.stickerFunction")}
+                        </span>
                         <span className="font-bold text-slate-900 text-xs">
-                          {isDrone ? "Tiếp nhận Drone" : isXl ? "Khoang Vali (XL)" : "Ô chuẩn đa năng"}
+                          {isDrone
+                            ? t("admin.lockers.boxQr.functionDrone")
+                            : isXl
+                              ? t("admin.lockers.boxQr.functionXl")
+                              : t("admin.lockers.tools.boxQr.functionStandard")}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px] font-medium">KÍCH CỠ</span>
+                        <span className="text-slate-500 block text-[10px] font-medium">
+                          {t("admin.lockers.tools.boxQr.stickerSize")}
+                        </span>
                         <span className="font-bold text-slate-900 text-xs">
                           Size {currentCell.size || "M"}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px] font-medium">VỊ TRÍ VẬT LÝ</span>
+                        <span className="text-slate-500 block text-[10px] font-medium">
+                          {t("admin.lockers.tools.boxQr.stickerLocation")}
+                        </span>
                         <span className="font-semibold text-slate-800 text-xs">
-                          Hàng {currentCell.rowIndex ?? 1} · Cột {currentCell.colIndex ?? 1}
+                          {t("admin.lockers.boxQr.positionValue", {
+                            row: currentCell.rowIndex ?? 1,
+                            col: currentCell.colIndex ?? 1,
+                          })}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px] font-medium">MÃ ĐỊNH DANH</span>
+                        <span className="text-slate-500 block text-[10px] font-medium">
+                          {t("admin.lockers.tools.boxQr.stickerIdLabel")}
+                        </span>
                         <span className="font-mono font-bold text-slate-900 text-xs">
                           BOX-{currentCell.id}
                         </span>
@@ -910,7 +954,7 @@ export function BoxQrModal({
                     {/* Chân tem nhãn */}
                     <div className="w-full pt-1.5 pb-0.5 border-t border-slate-200">
                       <p className="text-[10px] text-slate-500 italic">
-                        Quét mã QR bằng ứng dụng Lock.R để thao tác hoặc kiểm tra ô tủ
+                        {t("admin.lockers.tools.boxQr.scanHint")}
                       </p>
                     </div>
                   </div>
@@ -925,7 +969,7 @@ export function BoxQrModal({
                       onClick={() => handleDownloadFullSticker(currentCell)}
                     >
                       <Download className="w-3.5 h-3.5 text-sky-600" />
-                      Tải tem PNG
+                      {t("admin.lockers.tools.boxQr.downloadStickerPng")}
                     </Button>
                     <Button
                       type="button"
@@ -935,7 +979,7 @@ export function BoxQrModal({
                       onClick={() => handleDownloadQrOnly(currentCell)}
                     >
                       <FileDown className="w-3.5 h-3.5 text-emerald-600" />
-                      Tải chỉ mã QR
+                      {t("admin.lockers.tools.boxQr.downloadQrOnly")}
                     </Button>
                   </div>
                 </div>
@@ -949,10 +993,10 @@ export function BoxQrModal({
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <Box className="w-3.5 h-3.5 text-sky-500" />
-                        Chọn ô tủ để xem tem:
+                        {t("admin.lockers.tools.boxQr.pickBox")}
                       </span>
                       <span className="text-[11px] text-muted-foreground font-mono">
-                        {cells.length} ô khả dụng
+                        {t("admin.lockers.tools.boxQr.availableCount", { count: cells.length })}
                       </span>
                     </div>
 
@@ -970,12 +1014,12 @@ export function BoxQrModal({
                           }`}
                         >
                           {ft === "ALL"
-                            ? "Tất cả"
+                            ? t("common.all")
                             : ft === "DRONE"
                             ? "Drone"
                             : ft === "XL"
-                            ? "Vali XL"
-                            : "Tiêu chuẩn"}
+                            ? t("admin.lockers.cell.xlBadge")
+                            : t("admin.lockers.boxQr.standardShort")}
                         </button>
                       ))}
                     </div>
@@ -997,9 +1041,14 @@ export function BoxQrModal({
                                 ? "bg-sky-600 text-white shadow-sm scale-105 ring-2 ring-sky-400/50"
                                 : "bg-background hover:bg-muted text-foreground border border-border/70"
                             }`}
-                            title={`Ô #${c.boxNumber} - ${
-                              isDroneBox ? "Drone" : isXlBox ? "Vali XL" : "Tiêu chuẩn"
-                            }`}
+                            title={t("admin.lockers.tools.boxQr.boxWithType", {
+                              number: c.boxNumber,
+                              type: isDroneBox
+                                ? "Drone"
+                                : isXlBox
+                                  ? t("admin.lockers.cell.xlBadge")
+                                  : t("admin.lockers.boxQr.standardShort"),
+                            })}
                           >
                             <span>#{c.boxNumber}</span>
                             {isDroneBox && (
@@ -1027,7 +1076,7 @@ export function BoxQrModal({
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <Cpu className="w-3.5 h-3.5 text-sky-500" />
-                        Thông số kỹ thuật ô #{currentCell.boxNumber}
+                        {t("admin.lockers.tools.boxQr.specsTitle", { number: currentCell.boxNumber })}
                       </p>
                       <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
                         ID: {currentCell.id}
@@ -1036,36 +1085,51 @@ export function BoxQrModal({
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-[11px] text-muted-foreground block">Trạng thái chốt:</span>
+                        <span className="text-[11px] text-muted-foreground block">
+                          {t("admin.lockers.tools.boxQr.latchStatus")}
+                        </span>
                         <div className="flex items-center gap-1 mt-0.5">
                           {currentCell.doorOpen ? (
                             <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] gap-1 font-semibold">
-                              <Unlock className="w-3 h-3" /> Đang mở
+                              <Unlock className="w-3 h-3" /> {t("admin.lockers.tools.boxQr.latchOpen")}
                             </Badge>
                           ) : (
                             <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] gap-1 font-semibold">
-                              <Lock className="w-3 h-3" /> Đã đóng
+                              <Lock className="w-3 h-3" /> {t("admin.lockers.tools.boxQr.latchClosed")}
                             </Badge>
                           )}
                         </div>
                       </div>
 
                       <div>
-                        <span className="text-[11px] text-muted-foreground block">Tọa độ ma trận:</span>
+                        <span className="text-[11px] text-muted-foreground block">
+                          {t("admin.lockers.tools.boxQr.gridPosition")}
+                        </span>
                         <span className="font-semibold text-foreground">
-                          Hàng {currentCell.rowIndex ?? 1} · Cột {currentCell.colIndex ?? 1}
+                          {t("admin.lockers.boxQr.positionValue", {
+                            row: currentCell.rowIndex ?? 1,
+                            col: currentCell.colIndex ?? 1,
+                          })}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-[11px] text-muted-foreground block">Kích cỡ khoang:</span>
+                        <span className="text-[11px] text-muted-foreground block">
+                          {t("admin.lockers.tools.boxQr.compartmentSize")}
+                        </span>
                         <span className="font-semibold text-foreground">Size {currentCell.size || "M"}</span>
                       </div>
 
                       <div>
-                        <span className="text-[11px] text-muted-foreground block">Công năng:</span>
+                        <span className="text-[11px] text-muted-foreground block">
+                          {t("admin.lockers.tools.boxQr.functionLabel")}
+                        </span>
                         <span className="font-semibold text-foreground">
-                          {isDrone ? "Tiếp nhận Drone" : isXl ? "Khoang Vali" : "Ô đa năng"}
+                          {isDrone
+                            ? t("admin.lockers.boxQr.functionDrone")
+                            : isXl
+                              ? t("admin.lockers.tools.boxQr.functionXlShort")
+                              : t("admin.lockers.tools.boxQr.functionMulti")}
                         </span>
                       </div>
                     </div>
@@ -1076,7 +1140,7 @@ export function BoxQrModal({
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-muted-foreground flex items-center gap-1">
                         <Info className="w-3.5 h-3.5" />
-                        Payload mã QR (JSON):
+                        {t("admin.lockers.boxQr.payload")}
                       </span>
                       <Button
                         variant="ghost"
@@ -1085,7 +1149,7 @@ export function BoxQrModal({
                         onClick={handleCopy}
                       >
                         {copied ? <Check className="w-3 h-3 mr-1 text-emerald-600" /> : <Copy className="w-3 h-3 mr-1" />}
-                        {copied ? "Đã sao chép" : "Sao chép JSON"}
+                        {copied ? t("admin.lockers.tools.boxQr.copiedJson") : t("admin.lockers.tools.boxQr.copyJson")}
                       </Button>
                     </div>
                     <pre className="font-mono text-[10px] p-2.5 bg-muted/60 dark:bg-slate-900 rounded-xl border border-border/80 overflow-x-auto text-muted-foreground max-h-24 whitespace-pre-wrap break-all">
@@ -1098,7 +1162,7 @@ export function BoxQrModal({
                 <div className="p-3 rounded-xl bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-800/60 flex items-center gap-2.5 text-xs text-sky-900 dark:text-sky-200">
                   <Printer className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
                   <span className="text-[11px] leading-relaxed">
-                    Bấm <strong>"In tem nhãn"</strong> ở góc dưới để mở bảng điều khiển in hoặc lưu file PDF decal.
+                    <Trans i18nKey="admin.lockers.tools.boxQr.printHint" components={{ strong: <strong /> }} />
                   </span>
                 </div>
               </div>
@@ -1113,10 +1177,10 @@ export function BoxQrModal({
                   </div>
                   <div>
                     <p className="font-bold text-sm text-sky-950 dark:text-sky-100">
-                      In toàn bộ tem nhãn của trạm tủ ({cells.length} ô)
+                      {t("admin.lockers.tools.boxQr.printAllTitle", { count: cells.length })}
                     </p>
                     <p className="text-xs text-sky-800 dark:text-sky-300 mt-0.5">
-                      Hệ thống tự động sắp xếp lưới tem nhãn chuẩn khổ giấy A4. Bấm "In tất cả" để in trực tiếp hoặc xuất PDF dán lên toàn bộ các cánh tủ vật lý.
+                      {t("admin.lockers.tools.boxQr.printAllDesc")}
                     </p>
                   </div>
                 </div>
@@ -1127,7 +1191,7 @@ export function BoxQrModal({
                   onClick={handlePrint}
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  In tất cả ({cells.length} tem)
+                  {t("admin.lockers.tools.boxQr.printAllButton", { count: cells.length })}
                 </Button>
               </div>
 
@@ -1149,7 +1213,9 @@ export function BoxQrModal({
                       {/* Mini Header */}
                       <div className="w-full flex items-center justify-between border-b pb-1 text-[10px] border-slate-200 font-bold">
                         <span className="font-mono">{lockerCode}</span>
-                        <span className="text-sky-700 font-extrabold text-xs">Ô #{c.boxNumber}</span>
+                        <span className="text-sky-700 font-extrabold text-xs">
+                          {t("admin.lockers.boxLabel", { number: c.boxNumber })}
+                        </span>
                       </div>
 
                       {/* Mini QR */}
@@ -1160,10 +1226,19 @@ export function BoxQrModal({
                       {/* Mini Specs */}
                       <div className="w-full text-[10px] text-left bg-slate-50 p-1.5 rounded-lg border border-slate-200 space-y-0.5">
                         <p className="font-bold truncate text-slate-900">
-                          {isCellDrone ? "Drone Pad" : isCellXl ? "Vali XL" : "Tiêu chuẩn"} · Size {c.size || "M"}
+                          {isCellDrone
+                            ? "Drone Pad"
+                            : isCellXl
+                              ? t("admin.lockers.cell.xlBadge")
+                              : t("admin.lockers.boxQr.standardShort")}{" "}
+                          · Size {c.size || "M"}
                         </p>
                         <p className="text-[9px] text-slate-500 font-mono">
-                          Hàng {c.rowIndex ?? 1} · Cột {c.colIndex ?? 1} · ID: {c.id}
+                          {t("admin.lockers.tools.boxQr.miniPosition", {
+                            row: c.rowIndex ?? 1,
+                            col: c.colIndex ?? 1,
+                            id: c.id,
+                          })}
                         </p>
                       </div>
 
@@ -1175,7 +1250,7 @@ export function BoxQrModal({
                           className="h-6 text-[10px] gap-1"
                           onClick={() => handleDownloadFullSticker(c)}
                         >
-                          <Download className="w-2.5 h-2.5" /> Tem
+                          <Download className="w-2.5 h-2.5" /> {t("admin.lockers.tools.boxQr.stickerShort")}
                         </Button>
                         <Button
                           type="button"
@@ -1198,7 +1273,7 @@ export function BoxQrModal({
         {/* Footer Modal duy nhất */}
         <DialogFooter className="p-3 px-6 border-t border-border/80 bg-muted/20 flex flex-row items-center justify-between shrink-0">
           <p className="text-[11px] text-muted-foreground hidden sm:block">
-            Tem nhãn kích thước chuẩn 80×100mm · Hỗ trợ máy in nhiệt decal và máy in A4
+            {t("admin.lockers.tools.boxQr.footerNote")}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -1208,7 +1283,7 @@ export function BoxQrModal({
               className="text-xs"
               onClick={() => onOpenChange(false)}
             >
-              Đóng
+              {t("button.close")}
             </Button>
             <Button
               type="button"
@@ -1218,10 +1293,10 @@ export function BoxQrModal({
             >
               <Printer className="w-3.5 h-3.5" />
               {printMode === "aruco" && isDrone
-                ? `In tem ArUco ô #${currentCell.boxNumber}`
+                ? t("admin.lockers.tools.boxQr.printAruco", { number: currentCell.boxNumber })
                 : printMode === "single" || !isDrone
-                ? `In tem nhãn ô #${currentCell.boxNumber}`
-                : `In tất cả ${cells.length} tem nhãn`}
+                ? t("admin.lockers.boxQr.printOne", { number: currentCell.boxNumber })
+                : t("admin.lockers.boxQr.printAll", { count: cells.length })}
             </Button>
           </div>
         </DialogFooter>
