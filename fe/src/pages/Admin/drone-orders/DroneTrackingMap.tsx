@@ -51,8 +51,11 @@ const CRASH_ICON = crashIcon();
 export function DroneTrackingMap({
   order,
   live,
+  track = [],
 }: {
   order: DroneOrderTracking;
+  /** Đường bay đã lưu (cũ → mới); có từ 2 điểm thì vẽ đúng đường drone đã đi. */
+  track?: [number, number][];
   /** Bản tin vị trí trực tiếp — trang cha nghe một lần (`useLivePosition`) rồi chia cho bản đồ và ô toạ độ. */
   live: PositionSnapshot | null;
 }) {
@@ -127,6 +130,9 @@ export function DroneTrackingMap({
           ) : (drone || delivered) ? (
             <Polyline positions={[a, drone ?? b]} pathOptions={{ color: "#1e5a8a", weight: 4 }} />
           ) : null}
+          {track.length >= 2 && (
+            <Polyline positions={track} pathOptions={{ color: "#16a34a", weight: 3 }} />
+          )}
           <Marker position={a} icon={SOURCE_ICON}>
             <Tooltip direction="top">
               {t("admin.droneOrders.map.sourceTooltip", { name: source?.name ?? source?.code ?? "" })}

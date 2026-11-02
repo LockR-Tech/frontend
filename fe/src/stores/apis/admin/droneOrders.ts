@@ -30,6 +30,20 @@ export interface DroneJourneyEvent {
   locationSource?: string | null;
 }
 
+/** Một điểm trong nhật ký vị trí bay. `source` = DRONE (telemetry thật) hoặc DRONE_SIMULATED (đơn DEMO). */
+export interface DroneFlightTrackPoint {
+  recordedAt: string;
+  stage: string;
+  latitude: number;
+  longitude: number;
+  altitudeM: number | null;
+  headingDeg: number | null;
+  speedMps: number | null;
+  batteryPercent: number | null;
+  droneCode: string | null;
+  source: "DRONE" | "DRONE_SIMULATED";
+}
+
 export interface DroneOrderTracking {
   pickup?: DronePickupView | null;
   sender?: { name: string | null; phone: string | null; email: string | null } | null;
@@ -288,6 +302,12 @@ export const droneOrderApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, orderId) => [{ type: TAG, id: orderId }],
     }),
 
+    // Đường bay đã lưu, cũ → mới. Đơn đang bay thì trang tự hỏi lại theo chu kỳ.
+    getDroneFlightTrack: builder.query<ApiResponse<DroneFlightTrackPoint[]>, number>({
+      query: (orderId) => `/api/admin/drone-orders/${orderId}/flight-track`,
+      providesTags: (_result, _error, orderId) => [{ type: TAG, id: orderId }],
+    }),
+
     // Không gắn tag: thời tiết tự làm mới theo chu kỳ, không theo thao tác trên đơn.
     getDroneRouteWeather: builder.query<ApiResponse<DroneRouteWeather>, number>({
       query: (orderId) => `/api/admin/drone-orders/${orderId}/weather`,
@@ -354,6 +374,7 @@ export const {
   useGetDroneOrdersByTicketQuery,
   useGetDroneOrdersQuery,
   useGetDroneOrderQuery,
+  useGetDroneFlightTrackQuery,
   useGetDroneCameraQuery,
   useGetDroneRouteWeatherQuery,
   useGetDroneLockerWeatherQuery,
