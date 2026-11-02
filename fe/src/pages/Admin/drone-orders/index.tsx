@@ -26,6 +26,7 @@ import {
 import {
   useConfirmDroneParcelReturnMutation,
   useGetDroneOrderQuery,
+  useGetDroneFlightTrackQuery,
   type DroneJourneyEvent,
   type DroneLockerPoint,
   type DroneOrderTracking,
@@ -33,6 +34,7 @@ import {
 import { DroneJourneyTimeline } from "./DroneJourneyTimeline";
 import { useGetAdminDroneOrderListQuery } from "./droneOrderListApi";
 import { DroneTrackingMap } from "./DroneTrackingMap";
+import { DroneFlightTrackPanel } from "./DroneFlightTrackPanel";
 import { isDroneInFlight, useLivePosition } from "./livePosition";
 import { DronePositionValue } from "./DronePosition";
 import { Coordinates } from "~/components/shared/Coordinates";
@@ -438,6 +440,15 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
   const incidents = incidentResp?.data ?? [];
   // Một kết nối STOMP cho cả bản đồ và ô "Vị trí drone hiện tại".
   const live = useLivePosition(orderId, Boolean(order && isDroneInFlight(order)));
+  // Đơn đang bay thì đường bay còn dài thêm: hỏi lại mỗi 5 giây.
+  const flightTrackQuery = useGetDroneFlightTrackQuery(orderId, {
+    pollingInterval: order && isDroneInFlight(order) ? 5000 : 0,
+  });
+  const flightTrack = useMemo(() => flightTrackQuery.data?.data ?? [], [flightTrackQuery.data]);
+  const flightPath = useMemo(
+    () => flightTrack.map((p) => [p.latitude, p.longitude] as [number, number]),
+    [flightTrack],
+  );
 
   const latestIncident = useMemo(() => {
     if (!order) return null;
@@ -584,7 +595,15 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
             {!isFlightEnded(order) && <RouteWeatherPanel orderId={order.orderId} />}
 
             <Section title={t("admin.droneOrders.section.map")}>
-              <DroneTrackingMap order={order} live={live} />
+              <DroneTrackingMap order={order} live={live} track={flightPath} />
+            </Section>
+
+            <Section title={t("admin.droneOrders.section.flightTrack")}>
+              <DroneFlightTrackPanel
+                orderCode={order.orderCode ?? `#${order.orderId}`}
+                points={flightTrack}
+                isLoading={flightTrackQuery.isLoading}
+              />
             </Section>
 
             {!isFinished(order) && IN_FLIGHT_STAGES.has(order.deliveryStage ?? "") && (

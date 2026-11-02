@@ -836,7 +836,8 @@
           "SOURCE_LOCKER": "Tại trạm/tủ gửi",
           "DRONE": "Vị trí drone (GPS)",
           "DRONE_SIMULATED": "Vị trí drone (mô phỏng)",
-          "DESTINATION_LOCKER": "Tại tủ nhận"
+          "DESTINATION_LOCKER": "Tại tủ nhận",
+          "ESTIMATED_ROUTE": "Ước theo chặng (đơn cũ, không có GPS)"
         }
       }
     },
@@ -2717,7 +2718,8 @@
         "parcelReturn": "Kiện chờ trả cho người gửi",
         "flightIncident": "Sự cố chuyến bay",
         "pickup": "Lấy hàng tận nhà",
-        "closeAsFailed": "Xác nhận giao không hoàn tất"
+        "closeAsFailed": "Xác nhận giao không hoàn tất",
+        "flightTrack": "Nhật ký vị trí bay · mới nhất trước"
       },
       "lockerBlock": {
         "source": "Tủ gửi · Locker A",
@@ -3015,6 +3017,20 @@
           "incident": "Sự cố",
           "dropNote": "Kiện hàng bị báo rơi giữa chặng bay — đã dừng giao hàng"
         }
+      },
+      "flightTrack": {
+        "time": "Thời gian",
+        "stage": "Chặng",
+        "coordinates": "Vĩ độ, kinh độ",
+        "altitude": "Độ cao (m)",
+        "speed": "Tốc độ (m/s)",
+        "battery": "Pin",
+        "source": "Nguồn",
+        "sourceDrone": "GPS drone",
+        "sourceSimulated": "Mô phỏng (DEMO)",
+        "summary": "{{count}} điểm đã lưu, cứ 2 giây một điểm trong lúc bay",
+        "empty": "Chưa có điểm nào. Vị trí được lưu từ lúc drone cất cánh; đơn bay trước ngày có nhật ký này không có số liệu.",
+        "downloadCsv": "Tải CSV"
       }
     },
     "drones": {

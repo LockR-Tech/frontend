@@ -836,7 +836,8 @@
           "SOURCE_LOCKER": "At the station / sending locker",
           "DRONE": "Drone position (GPS)",
           "DRONE_SIMULATED": "Drone position (simulated)",
-          "DESTINATION_LOCKER": "At the receiving locker"
+          "DESTINATION_LOCKER": "At the receiving locker",
+          "ESTIMATED_ROUTE": "Estimated from the stage (older order, no GPS)"
         }
       }
     },
@@ -2717,7 +2718,8 @@
         "parcelReturn": "Parcel Awaiting Return to Sender",
         "flightIncident": "Flight Incident",
         "pickup": "Home pickup",
-        "closeAsFailed": "Confirm unsuccessful delivery"
+        "closeAsFailed": "Confirm unsuccessful delivery",
+        "flightTrack": "Flight position log · newest first"
       },
       "lockerBlock": {
         "source": "Sending locker · Locker A",
@@ -3015,6 +3017,20 @@
           "incident": "Incident",
           "dropNote": "The parcel was reported dropped mid-flight — delivery stopped"
         }
+      },
+      "flightTrack": {
+        "time": "Time",
+        "stage": "Stage",
+        "coordinates": "Latitude, longitude",
+        "altitude": "Altitude (m)",
+        "speed": "Speed (m/s)",
+        "battery": "Battery",
+        "source": "Source",
+        "sourceDrone": "Drone GPS",
+        "sourceSimulated": "Simulated (DEMO)",
+        "summary": "{{count}} points saved, one every 2 seconds in flight",
+        "empty": "No points yet. Positions are saved from take-off; flights before this log existed have no data.",
+        "downloadCsv": "Download CSV"
       }
     },
     "drones": {
