@@ -368,8 +368,8 @@ function CellTile({
                 <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium text-sky-600 dark:text-sky-400">
                   <Plane className="w-3.5 h-3.5 mr-2 text-sky-500" />
                   {cell.arucoMarkerId !== null && cell.arucoMarkerId !== undefined
-                    ? `Mã ArUco #${cell.arucoMarkerId}`
-                    : "Gán mã ArUco Drone"}
+                    ? t("admin.lockers.tools.layout.arucoCode", { id: cell.arucoMarkerId })
+                    : t("admin.lockers.tools.layout.assignAruco")}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={() => onEdit(cell)} className="cursor-pointer font-medium">
@@ -419,7 +419,7 @@ function CellTile({
               </Badge>
             ) : (
               <Badge variant="outline" className="text-amber-600 border-amber-400 bg-amber-50 dark:bg-amber-950/30 text-[10px] font-semibold px-1.5 py-0 h-4">
-                Chưa gán ArUco
+                {t("admin.lockers.tools.layout.arucoUnassigned")}
               </Badge>
             )
           )}
@@ -650,7 +650,7 @@ export default function LockerLayoutPage() {
       setShowDeleteAllBoxesModal(false);
       refetch();
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || t("admin.lockers.layout.deleteAllFailed", "Không thể xóa tất cả ô tủ"));
+      toast.error(err?.data?.message || err?.message || t("admin.lockers.layout.deleteAllFailed"));
     } finally {
       setIsDeletingAll(false);
     }
@@ -1014,7 +1014,7 @@ export default function LockerLayoutPage() {
       const targetR = Number(newRowIndex);
       const targetC = Number(newColIndex);
       if (targetR === 1 && targetC === 1) {
-        toast.error("Vị trí Hàng 1, Cột 1 là Màn hình Kiosk cố định, vui lòng chọn vị trí khác!");
+        toast.error(t("admin.lockers.tools.layout.screenSlotTaken"));
         return;
       }
       try {
@@ -1326,7 +1326,9 @@ export default function LockerLayoutPage() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem className="cursor-pointer" onClick={() => setShowLocationModal(true)}>
                 <MapPin className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400" />
-                {staffLocker?.latitude != null && staffLocker?.longitude != null ? "Vị trí & Tọa độ" : "Ghim tọa độ tủ"}
+                {staffLocker?.latitude != null && staffLocker?.longitude != null
+                  ? t("admin.lockers.tools.layout.locationMenu")
+                  : t("admin.lockers.tools.layout.pinLocation")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
@@ -1339,7 +1341,7 @@ export default function LockerLayoutPage() {
                 <QrCode className="w-4 h-4 mr-2 text-primary" /> {t("admin.lockers.layout.qrAndPrint")}
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={() => setShowOpenQrSheet(true)}>
-                <Unlock className="w-4 h-4 mr-2 text-amber-600" /> {t("admin.lockers.openQr.button", "QR mở ô (thử tủ)")}
+                <Unlock className="w-4 h-4 mr-2 text-amber-600" /> {t("admin.lockers.tools.openQr.button")}
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={openArrange}>
                 <LayoutGrid className="w-4 h-4 mr-2 text-primary" /> {t("admin.lockers.layout.autoArrange")}
@@ -1350,7 +1352,7 @@ export default function LockerLayoutPage() {
                 disabled={cells.length === 0 || isDeletingAll || isDeletingBatch || isDeletingBox}
                 onClick={() => setShowDeleteAllBoxesModal(true)}
               >
-                <Trash2 className="w-4 h-4 mr-2" /> {t("admin.lockers.layout.deleteAllBoxes", "Xóa tất cả ô")}
+                <Trash2 className="w-4 h-4 mr-2" /> {t("admin.lockers.layout.deleteAllBoxes")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1698,19 +1700,19 @@ export default function LockerLayoutPage() {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold">Vị trí & Tọa độ GPS tủ</p>
+                  <p className="text-sm font-semibold">{t("admin.lockers.tools.layout.gpsCardTitle")}</p>
                   {staffLocker?.latitude != null && staffLocker?.longitude != null ? (
                     <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 text-[10px] px-1.5 py-0 font-medium">
-                      Đã định vị
+                      {t("admin.lockers.tools.layout.located")}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] px-1.5 py-0">
-                      Chưa có GPS
+                      {t("admin.lockers.tools.layout.noGps")}
                     </Badge>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-xs" title={staffLocker?.address || undefined}>
-                  {staffLocker?.address || "Chưa thiết lập địa chỉ cụ thể"}
+                  {staffLocker?.address || t("admin.lockers.tools.layout.noAddress")}
                 </p>
                 {staffLocker?.latitude != null && staffLocker?.longitude != null && (
                   <p className="text-[11px] font-mono text-sky-700 dark:text-sky-400 mt-0.5">
@@ -1725,7 +1727,7 @@ export default function LockerLayoutPage() {
                   size="icon"
                   variant="outline"
                   className="h-9 w-9 text-muted-foreground hover:text-foreground"
-                  title="Mở Google Maps"
+                  title={t("admin.lockers.tools.layout.openGoogleMaps")}
                   onClick={() => window.open(`https://www.google.com/maps?q=${staffLocker.latitude},${staffLocker.longitude}`, "_blank")}
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -1738,7 +1740,9 @@ export default function LockerLayoutPage() {
                 onClick={() => setShowLocationModal(true)}
               >
                 <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                {staffLocker?.latitude != null ? "Chỉnh sửa bản đồ" : "Chọn vị trí bản đồ"}
+                {staffLocker?.latitude != null
+                  ? t("admin.lockers.tools.layout.editMap")
+                  : t("admin.lockers.tools.layout.pickOnMap")}
               </Button>
             </div>
           </CardContent>
@@ -2257,10 +2261,10 @@ export default function LockerLayoutPage() {
       <DeleteReasonDialog
         open={showDeleteAllBoxesModal}
         onOpenChange={setShowDeleteAllBoxesModal}
-        title={t("admin.lockers.layout.deleteAllBoxesTitle", "Xác nhận xóa tất cả ô tủ?")}
+        title={t("admin.lockers.layout.deleteAllBoxesTitle")}
         description={<p>{t("admin.lockers.layout.deleteAllBoxesDesc", { count: cells.length })}</p>}
         note={t("admin.lockers.layout.deleteAllBoxesWarning")}
-        actionLabel={t("admin.lockers.layout.deleteAllBoxesConfirm", "Xác nhận xóa tất cả")}
+        actionLabel={t("admin.lockers.layout.deleteAllBoxesConfirm")}
         loading={isDeletingAll}
         onConfirm={(reason) => void handleDeleteAllBoxes(reason)}
       />

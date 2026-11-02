@@ -232,12 +232,12 @@ export function useLockers() {
   const handleDeleteLocker = async (lockerId: number, reason: string) => {
     try {
       await deleteLockerMutation({ id: lockerId, reason }).unwrap();
-      toast.success(t("admin.lockers.toast.deleteSuccess", "Đã xóa tủ thành công"));
+      toast.success(t("admin.lockers.toast.deleteSuccess"));
       refetch();
       return true;
     } catch (err: any) {
       toast.error(
-        err?.data?.message || err?.message || t("admin.lockers.toast.deleteFailed", "Không thể xóa tủ")
+        err?.data?.message || err?.message || t("admin.lockers.toast.deleteFailed")
       );
       return false;
     }
@@ -253,7 +253,7 @@ export function useLockers() {
       return true;
     } catch (err: any) {
       toast.error(
-        err?.data?.message || err?.message || t("admin.lockers.toast.deleteBatchFailed", "Không thể xóa các tủ đã chọn")
+        err?.data?.message || err?.message || t("admin.lockers.toast.deleteBatchFailed")
       );
       return false;
     }
@@ -269,7 +269,7 @@ export function useLockers() {
       return true;
     } catch (err: any) {
       toast.error(
-        err?.data?.message || err?.message || t("admin.lockers.toast.deleteAllFailed", "Không thể xóa tất cả tủ")
+        err?.data?.message || err?.message || t("admin.lockers.toast.deleteAllFailed")
       );
       return false;
     }

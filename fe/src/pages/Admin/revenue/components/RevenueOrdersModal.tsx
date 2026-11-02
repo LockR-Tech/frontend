@@ -487,7 +487,7 @@ export function RevenueOrdersModal({
             </div>
             <div>
               <DialogTitle className="text-base sm:text-lg font-bold">
-                {t("admin.revenue.ordersModal.title", "Danh sách đơn hàng")} —{" "}
+                {t("admin.revenue.ordersModal.title")} —{" "}
                 <span className="text-primary">{target?.label}</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
@@ -519,10 +519,7 @@ export function RevenueOrdersModal({
               columns={paymentColumns}
               data={paymentData?.data?.content ?? []}
               isLoading={isLoading}
-              emptyMessage={t(
-                "admin.revenue.ordersModal.empty",
-                "Không có đơn hàng nào khớp bộ lọc trong kỳ này",
-              )}
+              emptyMessage={t("admin.revenue.ordersModal.empty")}
               serverPagination={{
                 pageIndex: page,
                 pageSize,
@@ -540,10 +537,7 @@ export function RevenueOrdersModal({
               columns={orderColumns}
               data={orderData?.data?.content ?? []}
               isLoading={isLoading}
-              emptyMessage={t(
-                "admin.revenue.ordersModal.empty",
-                "Không có đơn hàng nào khớp bộ lọc trong kỳ này",
-              )}
+              emptyMessage={t("admin.revenue.ordersModal.empty")}
               serverPagination={{
                 pageIndex: page,
                 pageSize,
@@ -569,20 +563,14 @@ export function RevenueOrdersModal({
           >
             <span>
               {isMethodTarget
-                ? t(
-                    "admin.revenue.ordersModal.openInPayments",
-                    "Mở trang Thanh toán",
-                  )
-                : t(
-                    "admin.revenue.ordersModal.openInOrders",
-                    "Mở trang Đơn hàng",
-                  )}
+                ? t("admin.revenue.ordersModal.openInPayments")
+                : t("admin.revenue.ordersModal.openInOrders")}
             </span>
             <ExternalLink className="w-3.5 h-3.5" />
           </Button>
 
           <Button type="button" size="sm" onClick={onClose} className="text-xs">
-            {t("button.close", "Đóng")}
+            {t("button.close")}
           </Button>
         </DialogFooter>
       </DialogContent>

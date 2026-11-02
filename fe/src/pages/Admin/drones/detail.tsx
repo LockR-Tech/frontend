@@ -400,11 +400,11 @@ export default function DroneDetailPage() {
               <span>
                 {drone.active !== false ? (
                   <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                    Đang vận hành
+                    {t("admin.drones.hardware.detail.operating")}
                   </span>
                 ) : (
                   <span className="font-medium text-rose-600 dark:text-rose-400">
-                    Đã ngừng hoạt động
+                    {t("admin.drones.hardware.detail.decommissioned")}
                   </span>
                 )}
               </span>
@@ -446,7 +446,7 @@ export default function DroneDetailPage() {
                   {t("admin.drones.detail.tech.title")}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Phân công kỹ thuật viên theo dõi
+                  {t("admin.drones.hardware.detail.techDescription")}
                 </CardDescription>
               </div>
             </div>
@@ -456,7 +456,7 @@ export default function DroneDetailPage() {
               {assignedTechId != null ? (
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 font-medium text-foreground">
-                    <span className="text-muted-foreground">Đang phụ trách:</span>
+                    <span className="text-muted-foreground">{t("admin.drones.hardware.detail.techCurrent")}</span>
                     <Link
                       to={`/admin/technicians/${assignedTechId}`}
                       className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
@@ -537,7 +537,7 @@ export default function DroneDetailPage() {
                   {t("admin.drones.detail.station.title")}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Bãi đáp và trạm đỗ hiện tại
+                  {t("admin.drones.hardware.detail.stationDescription")}
                 </CardDescription>
               </div>
             </div>
@@ -610,7 +610,7 @@ export default function DroneDetailPage() {
                     {t("admin.drones.detail.info.title")}
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Thông số vòng đời & hồ sơ hệ thống
+                    {t("admin.drones.hardware.detail.infoDescription")}
                   </CardDescription>
                 </div>
               </div>
@@ -618,7 +618,9 @@ export default function DroneDetailPage() {
                 variant={drone.active !== false ? "outline" : "destructive"}
                 className={`text-[10px] font-medium ${drone.active !== false ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400" : ""}`}
               >
-                {drone.active !== false ? "Đang vận hành" : "Ngừng hoạt động"}
+                {drone.active !== false
+                  ? t("admin.drones.hardware.detail.operating")
+                  : t("admin.stores.detail.inactive")}
               </Badge>
             </div>
           </CardHeader>
@@ -631,7 +633,7 @@ export default function DroneDetailPage() {
                 </p>
               </div>
               <div>
-                <p className="text-[11px] text-muted-foreground">Mã ID hệ thống</p>
+                <p className="text-[11px] text-muted-foreground">{t("admin.drones.hardware.detail.systemId")}</p>
                 <p className="mt-0.5 font-mono text-xs font-medium text-foreground">
                   #{drone.id}
                 </p>
@@ -651,7 +653,7 @@ export default function DroneDetailPage() {
             </div>
 
             <div className="flex items-center justify-between px-1 text-[11px] text-muted-foreground">
-              <span>Trạng thái nhiệm vụ:</span>
+              <span>{t("admin.drones.hardware.detail.missionStatus")}</span>
               <span className="font-semibold text-foreground">
                 {STATUS_LABELS[drone.status] ? t(STATUS_LABELS[drone.status]) : drone.status}
               </span>

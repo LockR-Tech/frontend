@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Monitor, Lock, Plus, Plane, Luggage, Box as BoxIcon, AlertTriangle, Sparkles, CheckCircle2, Wand2 } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -37,6 +38,7 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
   newSize,
   onSelectSlot,
 }) => {
+  const { t } = useTranslation();
   // Bản đồ các ô hiện có trong trạm
   const cellMap = useMemo(() => {
     const map = new Map<string, CellResponse>();
@@ -131,30 +133,38 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
     const r = Number(newRowIndex);
     const c = Number(newColIndex);
     if (r === 1 && c === 1) {
-      return { type: "SCREEN", message: "Vị trí Hàng 1, Cột 1 là Màn hình Kiosk cố định!" };
+      return { type: "SCREEN", message: t("admin.lockers.tools.addPreview.collisionScreen") };
     }
     const existing = cellMap.get(`${r}:${c}`);
     if (existing) {
-      return { type: "BOX", message: `Vị trí Hàng ${r}, Cột ${c} đã có Ô #${existing.boxNumber}!` };
+      return {
+        type: "BOX",
+        message: t("admin.lockers.tools.addPreview.collisionBox", { row: r, col: c, number: existing.boxNumber }),
+      };
     }
     return null;
-  }, [mode, newRowIndex, newColIndex, cellMap]);
+  }, [mode, newRowIndex, newColIndex, cellMap, t]);
 
   const batchCollisions = useMemo(() => {
     if (mode !== "batch") return [];
     const list: string[] = [];
     batchSlots.forEach((slot) => {
       if (slot.row === 1 && slot.col === 1) {
-        list.push(`Ô #${slot.boxNumber} trùng Màn hình Kiosk`);
+        list.push(t("admin.lockers.tools.addPreview.batchCollisionScreen", { number: slot.boxNumber }));
       } else {
         const existing = cellMap.get(`${slot.row}:${slot.col}`);
         if (existing) {
-          list.push(`Ô #${slot.boxNumber} trùng với Ô #${existing.boxNumber}`);
+          list.push(
+            t("admin.lockers.tools.addPreview.batchCollisionBox", {
+              number: slot.boxNumber,
+              existing: existing.boxNumber,
+            })
+          );
         }
       }
     });
     return list;
-  }, [mode, batchSlots, cellMap]);
+  }, [mode, batchSlots, cellMap, t]);
 
   return (
     <div className="flex flex-col h-full space-y-3">
@@ -163,10 +173,10 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
         <div>
           <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-primary" />
-            Mô phỏng sơ đồ Kiosk (Word Table)
+            {t("admin.lockers.tools.addPreview.title")}
           </h4>
           <p className="text-[11px] text-muted-foreground">
-            Màn hình Kiosk cố định ở (Hàng 1, Cột 1). Nhấn ô trống bất kỳ để chọn nhanh.
+            {t("admin.lockers.tools.addPreview.subtitle")}
           </p>
         </div>
 
@@ -178,7 +188,7 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
           className="h-7 text-[11px] bg-primary/5 hover:bg-primary/10 border-primary/30 text-primary font-medium"
         >
           <Wand2 className="w-3.5 h-3.5 mr-1 text-primary" />
-          Chọn ô trống kế tiếp (H{firstEmptySlot.row}, C{firstEmptySlot.col})
+          {t("admin.lockers.tools.addPreview.nextEmpty", { row: firstEmptySlot.row, col: firstEmptySlot.col })}
         </Button>
       </div>
 
@@ -194,7 +204,10 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
         <div className="flex items-center gap-2 p-2 rounded-lg bg-rose-500/10 border border-rose-500/40 text-rose-600 dark:text-rose-300 text-xs font-medium">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>
-            Phát hiện {batchCollisions.length} ô bị trùng vị trí: {batchCollisions.slice(0, 3).join(", ")}
+            {t("admin.lockers.tools.addPreview.collisionsFound", {
+              count: batchCollisions.length,
+              list: batchCollisions.slice(0, 3).join(", "),
+            })}
             {batchCollisions.length > 3 ? "..." : ""}
           </span>
         </div>
@@ -207,13 +220,13 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
           <thead>
             <tr className="bg-muted/60 border-b border-border/70 text-muted-foreground text-[11px]">
               <th className="p-2 w-16 text-center font-semibold border-r border-border/70 bg-muted/80">
-                Hàng \ Cột
+                {t("admin.lockers.tools.addPreview.rowColHeader")}
               </th>
               {Array.from({ length: displayCols }, (_, cIdx) => {
                 const colNum = cIdx + 1;
                 return (
                   <th key={colNum} className="p-2 text-center font-semibold border-r border-border/60 min-w-[110px]">
-                    Cột {colNum}
+                    {t("admin.lockers.tools.addPreview.colHeader", { number: colNum })}
                   </th>
                 );
               })}
@@ -226,7 +239,7 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
                 <tr key={rowNum} className="border-b border-border/60">
                   {/* Left Column Header: Hàng 1, Hàng 2, ... */}
                   <td className="p-2 text-center font-semibold text-muted-foreground bg-muted/40 border-r border-border/70 text-[11px]">
-                    Hàng {rowNum}
+                    {t("admin.lockers.tools.addPreview.rowHeader", { number: rowNum })}
                   </td>
 
                   {/* Matrix Cells */}
@@ -250,17 +263,19 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
                           <div className="relative rounded-lg p-2.5 bg-slate-900 border border-slate-700 text-slate-100 flex flex-col items-center justify-center text-center gap-1 shadow-inner min-h-[82px]">
                             <div className="flex items-center gap-1.5">
                               <Monitor className="w-4 h-4 text-sky-400" />
-                              <span className="font-bold text-xs tracking-tight text-white">Màn hình 7"</span>
+                              <span className="font-bold text-xs tracking-tight text-white">
+                                {t("admin.lockers.layout.screen.name")}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <Badge className="bg-sky-950 text-sky-300 border border-sky-600/40 text-[9px] px-1 py-0 h-3.5 font-mono">
                                 1024×600
                               </Badge>
                               <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 border-slate-600 text-slate-300 flex items-center gap-0.5">
-                                <Lock className="w-2.5 h-2.5" /> Cố định
+                                <Lock className="w-2.5 h-2.5" /> {t("admin.lockers.tools.addPreview.fixed")}
                               </Badge>
                             </div>
-                            <span className="text-[9px] text-slate-400">Không thể đổi</span>
+                            <span className="text-[9px] text-slate-400">{t("admin.lockers.tools.addPreview.cannotChange")}</span>
                           </div>
                         </td>
                       );
@@ -324,16 +339,20 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
 
                             {hasCollision ? (
                               <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4 animate-bounce">
-                                ⚠️ Trùng vị trí!
+                                {t("admin.lockers.tools.addPreview.overlap")}
                               </Badge>
                             ) : (
                               <span className="text-[10px] text-muted-foreground font-medium">
-                                {isDrone ? "Tiếp nhận Drone" : isXl ? "Khoang Vali XL" : "Tiêu chuẩn"}
+                                {isDrone
+                                  ? t("admin.lockers.boxQr.functionDrone")
+                                  : isXl
+                                    ? t("admin.lockers.tools.addPreview.typeXl")
+                                    : t("admin.lockers.boxQr.standardShort")}
                               </span>
                             )}
 
                             <span className="text-[9px] text-muted-foreground/80 font-mono">
-                              H{rowNum} · C{colNum}
+                              {t("admin.lockers.tools.addPreview.cellCoord", { row: rowNum, col: colNum })}
                             </span>
                           </div>
                         </td>
@@ -356,11 +375,11 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
                             </div>
 
                             <Badge variant="outline" className="text-[10px] border-primary text-primary font-bold px-1.5 py-0 h-4">
-                              ✨ Ô sắp tạo
+                              {t("admin.lockers.tools.addPreview.newSlot")}
                             </Badge>
 
                             <span className="text-[9px] text-primary/80 font-mono font-semibold">
-                              H{rowNum} · C{colNum}
+                              {t("admin.lockers.tools.addPreview.cellCoord", { row: rowNum, col: colNum })}
                             </span>
                           </div>
                         </td>
@@ -382,11 +401,14 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
                             </div>
 
                             <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold">
-                              Ô mới ({batchItem.index}/{batchNumbers.length})
+                              {t("admin.lockers.tools.addPreview.newBatch", {
+                                index: batchItem.index,
+                                total: batchNumbers.length,
+                              })}
                             </span>
 
                             <span className="text-[9px] text-emerald-600/80 font-mono font-semibold">
-                              H{rowNum} · C{colNum}
+                              {t("admin.lockers.tools.addPreview.cellCoord", { row: rowNum, col: colNum })}
                             </span>
                           </div>
                         </td>
@@ -400,14 +422,14 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
                           type="button"
                           onClick={() => onSelectSlot(rowNum, colNum)}
                           className="w-full h-full rounded-lg p-2 border-2 border-dashed border-border/70 hover:border-primary hover:bg-primary/10 transition-all flex flex-col justify-center items-center text-center gap-1 min-h-[82px] group cursor-pointer"
-                          title={`Nhấn để đặt ô tủ tại Hàng ${rowNum}, Cột ${colNum}`}
+                          title={t("admin.lockers.tools.addPreview.emptyTitle", { row: rowNum, col: colNum })}
                         >
                           <Plus className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:scale-125 transition-all" />
                           <span className="text-[11px] font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                            Trống (H{rowNum}, C{colNum})
+                            {t("admin.lockers.tools.addPreview.emptySlot", { row: rowNum, col: colNum })}
                           </span>
                           <span className="text-[9px] text-primary font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-                            Bấm để chọn
+                            {t("admin.lockers.tools.addPreview.clickToSelect")}
                           </span>
                         </button>
                       </td>
@@ -424,21 +446,28 @@ export const LockerAddBoxPreview: React.FC<LockerAddBoxPreviewProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-muted-foreground">
         <div className="flex flex-wrap items-center gap-3">
           <span className="inline-flex items-center gap-1 font-medium">
-            <span className="w-2.5 h-2.5 rounded bg-slate-900 border border-slate-700" /> Màn hình 7" (Cố định H1, C1)
+            <span className="w-2.5 h-2.5 rounded bg-slate-900 border border-slate-700" />{" "}
+            {t("admin.lockers.tools.addPreview.legendScreen")}
           </span>
           <span className="inline-flex items-center gap-1 font-medium">
-            <span className="w-2.5 h-2.5 rounded bg-slate-200 dark:bg-slate-700" /> Ô hiện có
+            <span className="w-2.5 h-2.5 rounded bg-slate-200 dark:bg-slate-700" />{" "}
+            {t("admin.lockers.tools.addPreview.legendExisting")}
           </span>
           <span className="inline-flex items-center gap-1 font-medium text-primary">
-            <span className="w-2.5 h-2.5 rounded bg-primary" /> Ô mới xem trước
+            <span className="w-2.5 h-2.5 rounded bg-primary" /> {t("admin.lockers.tools.addPreview.legendPreview")}
           </span>
           <span className="inline-flex items-center gap-1 font-medium">
-            <span className="w-2.5 h-2.5 rounded border border-dashed border-slate-400" /> Ô trống (Bấm để chọn)
+            <span className="w-2.5 h-2.5 rounded border border-dashed border-slate-400" />{" "}
+            {t("admin.lockers.tools.addPreview.legendEmpty")}
           </span>
         </div>
 
         <span className="text-[10px] text-muted-foreground">
-          Hiện có: <strong>{cells.length}</strong> ô tủ
+          <Trans
+            i18nKey="admin.lockers.tools.addPreview.existingCount"
+            values={{ count: cells.length }}
+            components={{ strong: <strong /> }}
+          />
         </span>
       </div>
     </div>

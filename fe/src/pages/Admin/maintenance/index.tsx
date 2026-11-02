@@ -619,7 +619,12 @@ export default function MaintenanceAdminPage() {
           (r.description || "").toLowerCase().includes(q) ||
           (r.lockerName || "").toLowerCase().includes(q) ||
           (r.lockerCode || "").toLowerCase().includes(q) ||
-          (r.boxNumber ? `ô ${r.boxNumber}` : r.boxId ? `ô ${r.boxId}` : "").includes(q) ||
+          (r.boxNumber
+            ? t("admin.maintenance.ui.search.boxToken", { n: r.boxNumber })
+            : r.boxId
+              ? t("admin.maintenance.ui.search.boxToken", { n: r.boxId })
+              : ""
+          ).toLowerCase().includes(q) ||
           (r.reporterName || "").toLowerCase().includes(q) ||
           (r.reporterPhone || "").toLowerCase().includes(q);
         if (!match) return false;
@@ -662,6 +667,7 @@ export default function MaintenanceAdminPage() {
     dateFilter,
     searchQuery,
     sortBy,
+    t,
   ]);
 
   // Phiếu OPEN chưa ai nhận: chờ KTV phụ trách tủ (routedToUserId) hoặc đã báo mọi KTV tủ (null).
@@ -728,13 +734,15 @@ export default function MaintenanceAdminPage() {
     if (!reportToDelete) return;
     try {
       await deleteReportMutation(reportToDelete.id).unwrap();
-      toast.success(`Đã xóa thành công phiếu ${reportToDelete.reportCode || `RPT-${reportToDelete.id}`}`);
+      toast.success(
+        t("admin.maintenance.ui.deleteToast.single", { code: reportToDelete.reportCode || `RPT-${reportToDelete.id}` })
+      );
       setSelectedKioskIds((prev) => prev.filter((id) => id !== reportToDelete.id));
       setSelectedDroneIds((prev) => prev.filter((id) => id !== reportToDelete.id));
       setReportToDelete(null);
     } catch (err: any) {
-      toast.error("Không thể xóa phiếu sự cố", {
-        description: err?.data?.message || err?.message || "Đã xảy ra lỗi khi xóa phiếu",
+      toast.error(t("admin.maintenance.ui.deleteToast.singleFailed"), {
+        description: err?.data?.message || err?.message || t("admin.maintenance.ui.deleteToast.singleFailedDesc"),
       });
     }
   };
@@ -753,7 +761,7 @@ export default function MaintenanceAdminPage() {
         }).unwrap();
         const count = res.data?.deletedCount ?? 0;
         toast.success(
-          `Đã xóa thành công tất cả ${count} phiếu sự cố ${isKiosk ? "Kiosk" : "Drone"}`
+          t("admin.maintenance.ui.deleteToast.allDeleted", { count, category: isKiosk ? "Kiosk" : "Drone" })
         );
         if (isKiosk) setSelectedKioskIds([]);
         else setSelectedDroneIds([]);
@@ -767,15 +775,15 @@ export default function MaintenanceAdminPage() {
           count = res.data?.deletedCount ?? selectedIds.length;
         }
         toast.success(
-          `Đã xóa thành công ${count} phiếu sự cố ${isKiosk ? "Kiosk" : "Drone"}`
+          t("admin.maintenance.ui.deleteToast.batchDeleted", { count, category: isKiosk ? "Kiosk" : "Drone" })
         );
         if (isKiosk) setSelectedKioskIds([]);
         else setSelectedDroneIds([]);
       }
       setBatchDeleteConfirm({ open: false, category: "KIOSK", count: 0 });
     } catch (err: any) {
-      toast.error("Không thể xóa hàng loạt phiếu sự cố", {
-        description: err?.data?.message || err?.message || "Đã xảy ra lỗi khi xóa các phiếu",
+      toast.error(t("admin.maintenance.ui.deleteToast.batchFailed"), {
+        description: err?.data?.message || err?.message || t("admin.maintenance.ui.deleteToast.batchFailedDesc"),
       });
     }
   };
@@ -1157,10 +1165,10 @@ export default function MaintenanceAdminPage() {
                       htmlFor="select-all-kiosk"
                       className="text-xs font-medium cursor-pointer select-none text-foreground flex items-center gap-1.5"
                     >
-                      Chọn tất cả {filteredReports.length} phiếu đang lọc
+                      {t("admin.maintenance.ui.select.allFiltered", { count: filteredReports.length })}
                       {selectedKioskIds.length > 0 && (
                         <Badge variant="outline" className="text-[11px] font-mono bg-rose-50 text-rose-700 border-rose-300">
-                          (Đã chọn {selectedKioskIds.length})
+                          {t("admin.maintenance.ui.select.selectedCount", { count: selectedKioskIds.length })}
                         </Badge>
                       )}
                     </label>
@@ -1174,7 +1182,7 @@ export default function MaintenanceAdminPage() {
                         onClick={() => setSelectedKioskIds([])}
                         className="h-7 text-xs text-muted-foreground hover:text-foreground"
                       >
-                        Bỏ chọn
+                        {t("common.batchDelete.clear")}
                       </Button>
                     )}
                     {selectedKioskIds.length > 0 && (
@@ -1193,7 +1201,7 @@ export default function MaintenanceAdminPage() {
                         }
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        Xóa {selectedKioskIds.length} phiếu đã chọn
+                        {t("admin.maintenance.ui.select.deleteSelected", { count: selectedKioskIds.length })}
                       </Button>
                     )}
                     {kioskReportList.length > 0 && (
@@ -1211,7 +1219,7 @@ export default function MaintenanceAdminPage() {
                         }
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        Xóa toàn bộ ({kioskReportList.length})
+                        {t("admin.maintenance.ui.select.deleteAll", { count: kioskReportList.length })}
                       </Button>
                     )}
                   </div>
@@ -1294,7 +1302,7 @@ export default function MaintenanceAdminPage() {
                             checked={isSelected}
                             onCheckedChange={() => handleToggleKioskReport(r.id)}
                             className="mt-1 data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 shrink-0"
-                            aria-label={`Chọn phiếu ${r.reportCode || `RPT-${r.id}`}`}
+                            aria-label={t("admin.maintenance.ui.select.selectReport", { code: r.reportCode || `RPT-${r.id}` })}
                           />
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
@@ -1464,7 +1472,7 @@ export default function MaintenanceAdminPage() {
                           size="sm"
                           variant="ghost"
                           className="h-8 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50"
-                          title="Xóa phiếu sự cố này"
+                          title={t("admin.maintenance.ui.deleteThisReport")}
                           onClick={() => setReportToDelete(r)}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1812,10 +1820,10 @@ export default function MaintenanceAdminPage() {
                       htmlFor="select-all-drone"
                       className="text-xs font-medium cursor-pointer select-none text-foreground flex items-center gap-1.5"
                     >
-                      Chọn tất cả {filteredDroneReports.length} phiếu đang lọc
+                      {t("admin.maintenance.ui.select.allFiltered", { count: filteredDroneReports.length })}
                       {selectedDroneIds.length > 0 && (
                         <Badge variant="outline" className="text-[11px] font-mono bg-rose-50 text-rose-700 border-rose-300">
-                          (Đã chọn {selectedDroneIds.length})
+                          {t("admin.maintenance.ui.select.selectedCount", { count: selectedDroneIds.length })}
                         </Badge>
                       )}
                     </label>
@@ -1829,7 +1837,7 @@ export default function MaintenanceAdminPage() {
                         onClick={() => setSelectedDroneIds([])}
                         className="h-7 text-xs text-muted-foreground hover:text-foreground"
                       >
-                        Bỏ chọn
+                        {t("common.batchDelete.clear")}
                       </Button>
                     )}
                     {selectedDroneIds.length > 0 && (
@@ -1848,7 +1856,7 @@ export default function MaintenanceAdminPage() {
                         }
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        Xóa {selectedDroneIds.length} phiếu đã chọn
+                        {t("admin.maintenance.ui.select.deleteSelected", { count: selectedDroneIds.length })}
                       </Button>
                     )}
                     {droneReportList.length > 0 && (
@@ -1866,7 +1874,7 @@ export default function MaintenanceAdminPage() {
                         }
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        Xóa toàn bộ ({droneReportList.length})
+                        {t("admin.maintenance.ui.select.deleteAll", { count: droneReportList.length })}
                       </Button>
                     )}
                   </div>
@@ -1944,7 +1952,7 @@ export default function MaintenanceAdminPage() {
                             checked={isSelected}
                             onCheckedChange={() => handleToggleDroneReport(report.id)}
                             className="mt-1 data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 shrink-0"
-                            aria-label={`Chọn phiếu ${displayCode}`}
+                            aria-label={t("admin.maintenance.ui.select.selectReport", { code: displayCode })}
                           />
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
@@ -1957,7 +1965,7 @@ export default function MaintenanceAdminPage() {
                                   )
                                 }
                                 className="font-mono font-bold text-xs px-2.5 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-300 shadow-xs tracking-wide hover:bg-red-200 cursor-pointer inline-flex items-center gap-1"
-                                title="Bấm để mở Sự cố rơi kiện liên kết"
+                                title={t("admin.maintenance.ui.drop.linkTitle")}
                               >
                                 {report.incidentCode
                                   ? `${report.incidentCode} (${displayCode})`
@@ -1971,7 +1979,7 @@ export default function MaintenanceAdminPage() {
                             {isDropIncident && (
                               <Badge className="bg-red-600 text-white border-red-700 font-bold text-xs shadow-xs animate-pulse flex items-center gap-1.5">
                                 <Radio className="w-3 h-3 animate-ping" />
-                                🚨 SỰ CỐ RƠI DRONE KHẨN CẤP
+                                {t("admin.maintenance.ui.drop.emergencyBadge")}
                               </Badge>
                             )}
                             <Badge
@@ -1984,7 +1992,7 @@ export default function MaintenanceAdminPage() {
                             >
                               {report.status === "OPEN"
                                 ? isDropIncident
-                                  ? "MỚI MỞ · CẦN ĐIỀU PHỐI TÌM KIẾM"
+                                  ? t("admin.maintenance.ui.drop.openStatus")
                                   : t("admin.maintenance.status.openAwaitingDroneTech")
                                 : report.status === "IN_PROGRESS"
                                   ? t("admin.maintenance.status.inProgress")
@@ -2005,16 +2013,16 @@ export default function MaintenanceAdminPage() {
                             {" · "}<span className="font-medium text-foreground">{droneCode ? `Drone ${droneCode}` : report.lockerName ?? t("admin.maintenance.reports.flyingDevice")}</span>
                             {report.dropLatitude != null && (
                               <>
-                                {" · "}Tọa độ rơi: <span className="font-mono text-red-700 font-semibold">{report.dropLatitude.toFixed(6)}, {report.dropLongitude?.toFixed(6)}</span>
+                                {" · "}{t("admin.maintenance.ui.drop.coordinates")} <span className="font-mono text-red-700 font-semibold">{report.dropLatitude.toFixed(6)}, {report.dropLongitude?.toFixed(6)}</span>
                               </>
                             )}
                             {report.orderCode && (
                               <>
-                                {" · "}Mã đơn:{" "}
+                                {" · "}{t("admin.maintenance.ui.drop.orderCode")}{" "}
                                 <Link
                                   to={`/admin/orders/${report.orderId ?? report.orderCode}`}
                                   className="font-mono text-primary font-semibold hover:underline inline-flex items-center gap-0.5"
-                                  title="Xem chi tiết đơn hàng"
+                                  title={t("admin.maintenance.ui.drop.viewOrder")}
                                 >
                                   {report.orderCode}
                                   <ExternalLink className="w-2.5 h-2.5" />
@@ -2023,11 +2031,11 @@ export default function MaintenanceAdminPage() {
                             )}
                             {report.incidentCode && (
                               <>
-                                {" · "}Mã sự cố rơi:{" "}
+                                {" · "}{t("admin.maintenance.ui.drop.incidentCode")}{" "}
                                 <Link
                                   to={`/admin/drone-incidents?order=${report.orderCode ?? report.orderId ?? ""}`}
                                   className="font-mono text-red-600 font-semibold hover:underline inline-flex items-center gap-0.5"
-                                  title="Xem chi tiết sự cố rơi kiện"
+                                  title={t("admin.maintenance.ui.drop.viewIncident")}
                                 >
                                   {report.incidentCode}
                                   <ExternalLink className="w-2.5 h-2.5" />
@@ -2048,7 +2056,7 @@ export default function MaintenanceAdminPage() {
                               onClick={() => navigate(`/admin/drone-incidents?order=${encodeURIComponent(String(report.orderCode ?? report.orderId ?? ""))}`)}
                             >
                               <Radio className="w-3.5 h-3.5 animate-pulse" />
-                              Điều phối KTV bán kính R
+                              {t("admin.maintenance.ui.drop.dispatchRadius")}
                             </Button>
                           )}
                           <RepairLogDialog reportId={report.id} defaultOpen={isFocused} title={`${displayCode} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
@@ -2074,7 +2082,7 @@ export default function MaintenanceAdminPage() {
                             size="sm"
                             variant="ghost"
                             className="h-8 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50"
-                            title="Xóa phiếu sự cố này"
+                            title={t("admin.maintenance.ui.deleteThisReport")}
                             onClick={() => setReportToDelete(report)}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2555,23 +2563,26 @@ export default function MaintenanceAdminPage() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
               <Trash2 className="w-5 h-5" />
-              Xóa phiếu sự cố {reportToDelete?.reportCode || `RPT-${reportToDelete?.id}`}
+              {t("admin.maintenance.ui.deleteDialog.title", { code: reportToDelete?.reportCode || `RPT-${reportToDelete?.id}` })}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2 text-sm text-muted-foreground">
               <p>
-                Bạn có chắc chắn muốn xóa vĩnh viễn phiếu sự cố{" "}
-                <span className="font-semibold text-foreground">
-                  {reportToDelete?.reportCode || `RPT-${reportToDelete?.id}`}
-                </span>{" "}
-                ({reportToDelete?.title}) không?
+                <Trans
+                  i18nKey="admin.maintenance.ui.deleteDialog.confirm"
+                  values={{
+                    code: reportToDelete?.reportCode || `RPT-${reportToDelete?.id}`,
+                    title: reportToDelete?.title,
+                  }}
+                  components={{ b: <span className="font-semibold text-foreground" /> }}
+                />
               </p>
               <div className="rounded-md bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 leading-relaxed">
-                ⚠️ Hành động này không thể hoàn tác. Mọi dữ liệu liên quan bao gồm hình ảnh đính kèm, nhật ký kỹ thuật và đánh giá sẽ bị xóa hoàn toàn. Nếu phiếu này đang khóa ô tủ, ô tủ sẽ tự động được mở khóa.
+                {t("admin.maintenance.ui.deleteDialog.warning")}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeletingSingle}>Hủy bỏ</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeletingSingle}>{t("common.cancelAction")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-rose-600 hover:bg-rose-700 text-white"
               disabled={isDeletingSingle}
@@ -2581,7 +2592,7 @@ export default function MaintenanceAdminPage() {
               }}
             >
               {isDeletingSingle ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1.5" />}
-              Xác nhận xóa
+              {t("admin.maintenance.schedules.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -2599,32 +2610,40 @@ export default function MaintenanceAdminPage() {
             <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
               <Trash2 className="w-5 h-5" />
               {batchDeleteConfirm.all
-                ? `Xác nhận xóa TOÀN BỘ phiếu sự cố ${batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone"}`
-                : `Xác nhận xóa hàng loạt ${batchDeleteConfirm.count} phiếu sự cố`}
+                ? t("admin.maintenance.ui.batchDialog.titleAll", {
+                    category: batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone",
+                  })
+                : t("admin.maintenance.ui.batchDialog.titleSome", { count: batchDeleteConfirm.count })}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2 text-sm text-muted-foreground">
               <p>
                 {batchDeleteConfirm.all ? (
-                  <>
-                    Bạn có chắc chắn muốn xóa <span className="font-bold text-rose-600">toàn bộ {batchDeleteConfirm.count} phiếu sự cố</span> thuộc danh mục{" "}
-                    <span className="font-semibold text-foreground">
-                      {batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone"}
-                    </span>{" "}
-                    không?
-                  </>
+                  <Trans
+                    i18nKey="admin.maintenance.ui.batchDialog.confirmAll"
+                    values={{
+                      count: batchDeleteConfirm.count,
+                      category: batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone",
+                    }}
+                    components={{
+                      danger: <span className="font-bold text-rose-600" />,
+                      b: <span className="font-semibold text-foreground" />,
+                    }}
+                  />
                 ) : (
-                  <>
-                    Bạn có chắc chắn muốn xóa vĩnh viễn <span className="font-bold text-rose-600">{batchDeleteConfirm.count} phiếu</span> sự cố đã chọn không?
-                  </>
+                  <Trans
+                    i18nKey="admin.maintenance.ui.batchDialog.confirmSome"
+                    values={{ count: batchDeleteConfirm.count }}
+                    components={{ danger: <span className="font-bold text-rose-600" /> }}
+                  />
                 )}
               </p>
               <div className="rounded-md bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 leading-relaxed">
-                ⚠️ Cảnh báo: Tất cả phiếu sự cố được chọn, hình ảnh đính kèm trên hệ thống lưu trữ và nhật ký xử lý sẽ bị xóa vĩnh viễn khỏi cơ sở dữ liệu.
+                {t("admin.maintenance.ui.batchDialog.warning")}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeletingBatch}>Hủy bỏ</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeletingBatch}>{t("common.cancelAction")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-rose-600 hover:bg-rose-700 text-white"
               disabled={isDeletingBatch}
@@ -2634,7 +2653,9 @@ export default function MaintenanceAdminPage() {
               }}
             >
               {isDeletingBatch ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1.5" />}
-              {batchDeleteConfirm.all ? "Xóa toàn bộ" : `Xóa ${batchDeleteConfirm.count} phiếu`}
+              {batchDeleteConfirm.all
+                ? t("admin.maintenance.ui.batchDialog.deleteAll")
+                : t("admin.maintenance.ui.batchDialog.deleteCount", { count: batchDeleteConfirm.count })}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

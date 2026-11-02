@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AlertTriangle, DoorOpen, Gauge, RotateCcw, Square, ArrowUp, ArrowDown, Home, ScrollText } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
@@ -23,19 +23,20 @@ import {
   type LidStatus,
 } from "~/stores/apis/admin/cabinetControl";
 
-const ACTION_LABELS: Record<string, string> = {
-  BOX_OPEN: "Mở ô",
-  BOX_TEST: "Thử ô",
-  LID_OPEN: "Nắp: mở hết",
-  LID_CLOSE: "Nắp: đóng hết",
-  LID_HOME: "Nắp: về gốc",
-  LID_STOP: "Nắp: dừng",
-  LID_JOG: "Nắp: chạy thử",
-  LID_TUNE: "Nắp: chỉnh thông số",
-  HW_CONFIG: "Áp dụng cấu hình phần cứng",
-  BLE_TOKEN: "Bluetooth: cấp mã mở ô",
-  BOX_OPEN_BLE: "Mở ô qua Bluetooth",
-  BLE_REJECTED: "Bluetooth: mã bị từ chối",
+// Lưu khoá i18n; dịch lúc render bằng t()
+const ACTION_LABEL_KEYS: Record<string, string> = {
+  BOX_OPEN: "admin.cabinetControl.actions.boxOpen",
+  BOX_TEST: "admin.cabinetControl.actions.boxTest",
+  LID_OPEN: "admin.cabinetControl.actions.lidOpen",
+  LID_CLOSE: "admin.cabinetControl.actions.lidClose",
+  LID_HOME: "admin.cabinetControl.actions.lidHome",
+  LID_STOP: "admin.cabinetControl.actions.lidStop",
+  LID_JOG: "admin.cabinetControl.actions.lidJog",
+  LID_TUNE: "admin.cabinetControl.actions.lidTune",
+  HW_CONFIG: "admin.cabinetControl.actions.hwConfig",
+  BLE_TOKEN: "admin.cabinetControl.actions.bleToken",
+  BOX_OPEN_BLE: "admin.cabinetControl.actions.boxOpenBle",
+  BLE_REJECTED: "admin.cabinetControl.actions.bleRejected",
 };
 
 function statusClass(status: string) {
@@ -53,11 +54,11 @@ function statusClass(status: string) {
   }
 }
 
-const TUNE_FIELDS: { key: string; label: string; step?: number }[] = [
-  { key: "rps", label: "Tốc độ (vòng/giây)", step: 0.1 },
-  { key: "pulse_us", label: "Độ rộng xung (µs)", step: 50 },
-  { key: "steps_per_rev", label: "Số xung mỗi vòng", step: 100 },
-  { key: "max_revs", label: "Giới hạn vòng mỗi lần", step: 1 },
+const TUNE_FIELDS: { key: string; labelKey: string; step?: number }[] = [
+  { key: "rps", labelKey: "admin.cabinetControl.tune.rps", step: 0.1 },
+  { key: "pulse_us", labelKey: "admin.cabinetControl.tune.pulseUs", step: 50 },
+  { key: "steps_per_rev", labelKey: "admin.cabinetControl.tune.stepsPerRev", step: 100 },
+  { key: "max_revs", labelKey: "admin.cabinetControl.tune.maxRevs", step: 1 },
 ];
 
 function stateColor(state?: string) {
@@ -110,11 +111,11 @@ export default function CabinetControlPage() {
     try {
       const res = await p;
       const body = (res as { data?: { data?: { accepted?: boolean; message?: string } } }).data?.data;
-      if (body?.accepted) toast.success(body.message || `${label}: đã gửi lệnh`);
-      else toast.error(body?.message || `${label} không thành công`);
+      if (body?.accepted) toast.success(body.message || t("admin.cabinetControl.run.sent", { label }));
+      else toast.error(body?.message || t("admin.cabinetControl.run.failed", { label }));
       refetchPanel();
     } catch {
-      toast.error(`${label} không gửi được — kiểm tra kết nối`);
+      toast.error(t("admin.cabinetControl.run.sendFailed", { label }));
     }
     refetchLogs();
   };
@@ -122,8 +123,8 @@ export default function CabinetControlPage() {
   if (lockerId == null) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t("admin.sidebar.cabinetControl", { defaultValue: "Điều khiển tủ" })} description="" />
-        <p className="text-sm text-muted-foreground">Chưa có tủ nào để điều khiển.</p>
+        <PageHeader title={t("admin.sidebar.cabinetControl")} description="" />
+        <p className="text-sm text-muted-foreground">{t("admin.cabinetControl.noLockers")}</p>
       </div>
     );
   }
@@ -131,23 +132,21 @@ export default function CabinetControlPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("admin.sidebar.cabinetControl", { defaultValue: "Điều khiển tủ" })}
-        description={t("admin.cabinetControl.description", {
-          defaultValue: "Mở ô, điều khiển nắp/thanh trượt và xem trạng thái phần cứng của tủ. Lệnh gửi qua MQTT tới bộ điều khiển Raspberry Pi của tủ.",
-        })}
+        title={t("admin.sidebar.cabinetControl")}
+        description={t("admin.cabinetControl.description")}
       />
 
       {/* Cảnh báo an toàn */}
       <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
         <div>
-          <b>Điều khiển phần cứng thật.</b> Nút nắp quay động cơ của tủ. Chỉ chạy khi chắc chắn không ai đang thao tác tại tủ; nếu nắp kêu hoặc kẹt, bấm <b>Dừng</b> ngay. Lệnh chạy nắp trả về ngay rồi tủ mới chạy — theo dõi trạng thái bên dưới.
+          <Trans i18nKey="admin.cabinetControl.safetyWarning" components={{ b: <b /> }} />
         </div>
       </div>
 
       {/* Chọn tủ */}
       <div className="flex flex-wrap items-center gap-3">
-        <label className="text-sm font-medium">Tủ:</label>
+        <label className="text-sm font-medium">{t("admin.cabinetControl.lockerLabel")}</label>
         <select
           className="rounded-md border border-border bg-background px-3 py-2 text-sm"
           value={lockerId}
@@ -163,14 +162,14 @@ export default function CabinetControlPage() {
           onClick={() => refetchPanel()}
           className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent"
         >
-          <RotateCcw className={`h-4 w-4 ${panelLoading ? "animate-spin" : ""}`} /> Làm mới
+          <RotateCcw className={`h-4 w-4 ${panelLoading ? "animate-spin" : ""}`} /> {t("button.refresh")}
         </button>
       </div>
 
       <Tabs defaultValue="control" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="control">Điều khiển</TabsTrigger>
-          <TabsTrigger value="hardware">Cấu hình phần cứng</TabsTrigger>
+          <TabsTrigger value="control">{t("admin.cabinetControl.tabs.control")}</TabsTrigger>
+          <TabsTrigger value="hardware">{t("admin.cabinetControl.tabs.hardware")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hardware">
@@ -180,22 +179,22 @@ export default function CabinetControlPage() {
         <TabsContent value="control" className="space-y-6">
       {/* Mở ô */}
       <section className="rounded-xl border border-border p-4">
-        <h2 className="mb-3 text-base font-semibold">Mở ô tủ</h2>
+        <h2 className="mb-3 text-base font-semibold">{t("admin.cabinetControl.openBoxTitle")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {boxes.map((b) => (
             <button
               key={b.id}
-              onClick={() => run(`Mở ô ${b.boxNumber}`, openBox({ lockerId, boxId: b.id }).unwrap().then((d) => ({ data: d })))}
+              onClick={() => run(t("admin.cabinetControl.openBoxLabel", { n: b.boxNumber }), openBox({ lockerId, boxId: b.id }).unwrap().then((d) => ({ data: d })))}
               className="flex flex-col items-center gap-1 rounded-lg border border-border bg-card p-3 text-sm hover:border-primary hover:bg-accent"
             >
               <DoorOpen className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Ô {b.boxNumber}</span>
+              <span className="font-semibold">{t("admin.cabinetControl.box", { n: b.boxNumber })}</span>
               <span className="text-[11px] text-muted-foreground">
                 {b.cellType === "DRONE" ? "Drone" : b.cellType} · {b.status}
               </span>
             </button>
           ))}
-          {boxes.length === 0 && <p className="text-sm text-muted-foreground">Chưa lấy được sơ đồ ô.</p>}
+          {boxes.length === 0 && <p className="text-sm text-muted-foreground">{t("admin.cabinetControl.noLayout")}</p>}
         </div>
       </section>
 
@@ -208,14 +207,14 @@ export default function CabinetControlPage() {
             enabled={lid.enabled}
             boxes={lid.boxes ?? []}
             status={lid.status}
-            onAction={(action) => run(`Nắp trục ${lid.axis}`, controlLid({ lockerId, axis: lid.axis, action }).unwrap().then((d) => ({ data: d })))}
-            onJog={(revolutions, direction) => run(`Chạy nắp trục ${lid.axis}`, jogLid({ lockerId, axis: lid.axis, revolutions, direction }).unwrap().then((d) => ({ data: d })))}
-            onTune={(changes) => run(`Chỉnh nắp trục ${lid.axis}`, tuneLid({ lockerId, axis: lid.axis, changes }).unwrap().then((d) => ({ data: d })))}
+            onAction={(action) => run(t("admin.cabinetControl.lidAxisLabel", { axis: lid.axis }), controlLid({ lockerId, axis: lid.axis, action }).unwrap().then((d) => ({ data: d })))}
+            onJog={(revolutions, direction) => run(t("admin.cabinetControl.jogAxisLabel", { axis: lid.axis }), jogLid({ lockerId, axis: lid.axis, revolutions, direction }).unwrap().then((d) => ({ data: d })))}
+            onTune={(changes) => run(t("admin.cabinetControl.tuneAxisLabel", { axis: lid.axis }), tuneLid({ lockerId, axis: lid.axis, changes }).unwrap().then((d) => ({ data: d })))}
           />
         ))}
         {lids.length === 0 && (
           <p className="text-sm text-muted-foreground">
-            Chưa lấy được trạng thái nắp. Tủ có thể đang mất kết nối — bấm Làm mới.
+            {t("admin.cabinetControl.noLidStatus")}
           </p>
         )}
       </section>
@@ -233,36 +232,36 @@ function CabinetLogSection({
   logs: CabinetControlLog[];
   boxNumberById: Map<number, number>;
 }) {
+  const { t } = useTranslation();
   const target = (log: CabinetControlLog) => {
     const box = log.boxNumber ?? (log.boxId != null ? boxNumberById.get(log.boxId) : undefined);
-    if (box != null) return `Ô ${box}`;
-    if (log.axis != null) return `Trục ${log.axis}`;
+    if (box != null) return t("admin.cabinetControl.box", { n: box });
+    if (log.axis != null) return t("admin.cabinetControl.log.axis", { axis: log.axis });
     return "—";
   };
 
   return (
     <section className="rounded-xl border border-border p-4">
       <h2 className="mb-1 flex items-center gap-2 text-base font-semibold">
-        <ScrollText className="h-4 w-4" /> Nhật ký điều khiển
+        <ScrollText className="h-4 w-4" /> {t("admin.cabinetControl.log.title")}
       </h2>
       <p className="mb-3 text-xs text-muted-foreground">
-        <b>Web</b>: lệnh gửi từ trang này. <b>Tủ</b>: việc tủ thực sự làm (kích relay, chạy nắp) từ mọi nguồn —
-        tủ lưu lại khi mất mạng và gửi lên khi có mạng lại, nên có thể hiện muộn nhưng đúng giờ xảy ra.
+        <Trans i18nKey="admin.cabinetControl.log.help" components={{ b: <b /> }} />
       </p>
       {logs.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Chưa có nhật ký.</p>
+        <p className="text-sm text-muted-foreground">{t("admin.cabinetControl.log.empty")}</p>
       ) : (
         <div className="max-h-120 overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-background text-left text-xs text-muted-foreground">
               <tr>
-                <th className="py-2 pr-3 font-medium">Thời gian</th>
-                <th className="py-2 pr-3 font-medium">Nguồn</th>
-                <th className="py-2 pr-3 font-medium">Hành động</th>
-                <th className="py-2 pr-3 font-medium">Ô / trục</th>
-                <th className="py-2 pr-3 font-medium">Số vòng</th>
-                <th className="py-2 pr-3 font-medium">Kết quả</th>
-                <th className="py-2 font-medium">Ghi chú</th>
+                <th className="py-2 pr-3 font-medium">{t("common.time")}</th>
+                <th className="py-2 pr-3 font-medium">{t("admin.cabinetControl.log.columns.source")}</th>
+                <th className="py-2 pr-3 font-medium">{t("admin.cabinetControl.log.columns.action")}</th>
+                <th className="py-2 pr-3 font-medium">{t("admin.cabinetControl.log.columns.target")}</th>
+                <th className="py-2 pr-3 font-medium">{t("admin.cabinetControl.log.columns.revolutions")}</th>
+                <th className="py-2 pr-3 font-medium">{t("admin.cabinetControl.log.columns.result")}</th>
+                <th className="py-2 font-medium">{t("common.note")}</th>
               </tr>
             </thead>
             <tbody>
@@ -272,9 +271,9 @@ function CabinetLogSection({
                   <td className="py-2 pr-3">
                     {log.source === "WEB"
                       ? `Web${log.actorUserId != null ? ` · #${log.actorUserId}` : ""}`
-                      : "Tủ"}
+                      : t("admin.cabinetControl.log.sourceLocker")}
                   </td>
-                  <td className="whitespace-nowrap py-2 pr-3">{ACTION_LABELS[log.action] ?? log.action}</td>
+                  <td className="whitespace-nowrap py-2 pr-3">{ACTION_LABEL_KEYS[log.action] ? t(ACTION_LABEL_KEYS[log.action]) : log.action}</td>
                   <td className="py-2 pr-3">{target(log)}</td>
                   <td className="py-2 pr-3 tabular-nums">{log.revolutions != null ? log.revolutions : "—"}</td>
                   <td className="py-2 pr-3">
@@ -304,6 +303,7 @@ function LidPanel({
   onJog: (revolutions: number, direction: "open" | "close") => void;
   onTune: (changes: Record<string, number>) => void;
 }) {
+  const { t } = useTranslation();
   const [revs, setRevs] = useState(2);
   const [tune, setTune] = useState<Record<string, string>>({});
 
@@ -314,47 +314,47 @@ function LidPanel({
     <div className={`rounded-xl border p-4 ${disabled ? "border-dashed border-border opacity-70" : "border-border"}`}>
       <div className="mb-3 flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-base font-semibold">
-          <Gauge className="h-4 w-4" /> Trục nắp {axis}
+          <Gauge className="h-4 w-4" /> {t("admin.cabinetControl.lid.title", { axis })}
           {boxes.length > 0 && (
-            <span className="text-sm font-normal text-muted-foreground">· trên ô {boxes.join(", ")}</span>
+            <span className="text-sm font-normal text-muted-foreground">{t("admin.cabinetControl.lid.overBoxes", { boxes: boxes.join(", ") })}</span>
           )}
         </h3>
         <span className={`text-sm font-semibold ${stateColor(status?.state)}`}>
-          {disabled ? "Chưa bật" : (status?.state ?? "—")}
-          {status?.busy ? " · đang chạy" : ""}
+          {disabled ? t("admin.cabinetControl.lid.notEnabled") : (status?.state ?? "—")}
+          {status?.busy ? ` · ${t("admin.cabinetControl.lid.running")}` : ""}
         </span>
       </div>
 
       {disabled ? (
-        <p className="text-sm text-muted-foreground">Trục này chưa bật trên bộ điều khiển của tủ (LID2_ENABLED=false).</p>
+        <p className="text-sm text-muted-foreground">{t("admin.cabinetControl.lid.disabledHint")}</p>
       ) : (
         <>
           <div className="grid grid-cols-4 gap-2">
-            <ActBtn onClick={() => onAction("open")} icon={<ArrowUp className="h-4 w-4" />} label="Mở hết" />
-            <ActBtn onClick={() => onAction("close")} icon={<ArrowDown className="h-4 w-4" />} label="Đóng hết" />
-            <ActBtn onClick={() => onAction("home")} icon={<Home className="h-4 w-4" />} label="Về gốc" />
-            <ActBtn onClick={() => onAction("stop")} icon={<Square className="h-4 w-4" />} label="Dừng" danger />
+            <ActBtn onClick={() => onAction("open")} icon={<ArrowUp className="h-4 w-4" />} label={t("admin.cabinetControl.lid.openFully")} />
+            <ActBtn onClick={() => onAction("close")} icon={<ArrowDown className="h-4 w-4" />} label={t("admin.cabinetControl.lid.closeFully")} />
+            <ActBtn onClick={() => onAction("home")} icon={<Home className="h-4 w-4" />} label={t("admin.cabinetControl.lid.home")} />
+            <ActBtn onClick={() => onAction("stop")} icon={<Square className="h-4 w-4" />} label={t("admin.cabinetControl.lid.stop")} danger />
           </div>
 
           <div className="mt-3 flex items-end gap-2">
             <div className="flex-1">
-              <label className="text-xs text-muted-foreground">Chạy thử (số vòng)</label>
+              <label className="text-xs text-muted-foreground">{t("admin.cabinetControl.lid.jogLabel")}</label>
               <input
                 type="number" min={0.5} step={0.5} value={revs}
                 onChange={(e) => setRevs(Number(e.target.value))}
                 className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm"
               />
             </div>
-            <button onClick={() => onJog(revs, "open")} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent">↑ mở</button>
-            <button onClick={() => onJog(revs, "close")} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent">↓ đóng</button>
+            <button onClick={() => onJog(revs, "open")} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent">{t("admin.cabinetControl.lid.jogOpen")}</button>
+            <button onClick={() => onJog(revs, "close")} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent">{t("admin.cabinetControl.lid.jogClose")}</button>
           </div>
 
           <details className="mt-3">
-            <summary className="cursor-pointer text-sm font-medium text-muted-foreground">Chỉnh tốc độ / xung</summary>
+            <summary className="cursor-pointer text-sm font-medium text-muted-foreground">{t("admin.cabinetControl.lid.tuneSummary")}</summary>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {TUNE_FIELDS.map((f) => (
                 <div key={f.key}>
-                  <label className="text-xs text-muted-foreground">{f.label}</label>
+                  <label className="text-xs text-muted-foreground">{t(f.labelKey)}</label>
                   <input
                     type="number" step={f.step}
                     placeholder={String((cfg as Record<string, number>)[f.key] ?? "")}
@@ -376,7 +376,7 @@ function LidPanel({
               }}
               className="mt-2 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
             >
-              Lưu thông số
+              {t("admin.cabinetControl.lid.saveParams")}
             </button>
           </details>
         </>

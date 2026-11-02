@@ -57,21 +57,26 @@ import { useOrderExtras } from "./hooks/useOrderExtras";
 import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
 
-function getIncidentShortStatus(incident: DroneParcelIncident): string {
+function getIncidentShortStatus(incident: DroneParcelIncident, t: TFunction): string {
   // Trạng thái sự cố trước, trạng thái thu hồi sau — khớp trang Đơn drone (drone-orders/index.tsx).
-  if (incident.status === "CLOSED") return "Đã đóng";
-  if (incident.status === "RESOLVED") return "Đã giải quyết";
-  if (incident.status === "DISPUTED") return "Khách yêu cầu xem xét lại";
-  if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE") return "Chờ khách phản hồi phương án";
+  if (incident.status === "CLOSED") return t("admin.droneIncidents.status.closed");
+  if (incident.status === "RESOLVED") return t("admin.droneIncidents.status.resolved");
+  if (incident.status === "DISPUTED") return t("admin.orders.detail.extra.incidentStatus.disputed");
+  if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE")
+    return t("admin.orders.detail.extra.incidentStatus.awaitingCustomer");
   if (incident.status === "RESOLUTION_IN_PROGRESS")
-    return incident.compensationStatus === "PROCESSING" ? "Đang bồi thường" : "Đang thực hiện phương án";
-  if (incident.status === "MANUAL_INTERVENTION_REQUIRED") return "Cần can thiệp thủ công";
-  if (incident.recoveryStatus === "SUBMITTED") return "Chờ duyệt thu hồi";
-  if (incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB") return "Đã thu hồi";
-  if (incident.recoveryStatus === "SEARCHING") return "Đang tìm kiếm";
-  if (incident.recoveryStatus === "ACCEPTED") return "KTV đã nhận";
-  if (incident.recoveryStatus === "ASSIGNED") return "Chờ KTV nhận";
-  if (incident.recoveryStatus === "AWAITING_ASSIGNMENT" || incident.status === "REPORTED" || incident.recoveryStatus === "OPEN") return "Chờ điều phối";
+    return incident.compensationStatus === "PROCESSING"
+      ? t("admin.orders.detail.extra.incidentStatus.compensating")
+      : t("admin.orders.detail.extra.incidentStatus.executingPlan");
+  if (incident.status === "MANUAL_INTERVENTION_REQUIRED") return t("admin.droneIncidents.status.manualInterventionRequired");
+  if (incident.recoveryStatus === "SUBMITTED") return t("admin.orders.detail.extra.incidentStatus.recoveryPendingReview");
+  if (incident.recoveryStatus === "VERIFIED" || incident.parcelStatus === "RETURNED_TO_HUB")
+    return t("admin.orders.detail.extra.incidentStatus.recovered");
+  if (incident.recoveryStatus === "SEARCHING") return t("admin.orders.detail.extra.incidentStatus.searching");
+  if (incident.recoveryStatus === "ACCEPTED") return t("admin.orders.detail.extra.incidentStatus.techAccepted");
+  if (incident.recoveryStatus === "ASSIGNED") return t("admin.orders.detail.extra.incidentStatus.awaitingTech");
+  if (incident.recoveryStatus === "AWAITING_ASSIGNMENT" || incident.status === "REPORTED" || incident.recoveryStatus === "OPEN")
+    return t("admin.orders.detail.extra.incidentStatus.awaitingDispatch");
   return incident.status;
 }
 
@@ -352,13 +357,18 @@ function DroneCard({
           <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50/70 p-2.5 text-xs text-red-900">
             <div className="flex items-center gap-1.5 font-medium truncate">
               <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
-              <span>Sự cố rơi ({parcelDropIncident.incidentCode}): {getIncidentShortStatus(parcelDropIncident)}</span>
+              <span>
+                {t("admin.orders.detail.extra.dropIncidentWithCode", {
+                  code: parcelDropIncident.incidentCode,
+                  status: getIncidentShortStatus(parcelDropIncident, t),
+                })}
+              </span>
             </div>
             <Link
               to={`/admin/drone-incidents/${parcelDropIncident.id}`}
               className="font-semibold text-red-700 hover:underline inline-flex items-center gap-1 shrink-0 ml-2"
             >
-              Chi tiết <ExternalLink className="h-3 w-3" />
+              {t("button.detail")} <ExternalLink className="h-3 w-3" />
             </Link>
           </div>
         )}
@@ -514,11 +524,11 @@ export default function OrderDetailPage() {
         {parcelDropIncident && (
           <Link
             to={`/admin/drone-incidents/${parcelDropIncident.id}`}
-            title={`Sự cố rơi ${parcelDropIncident.incidentCode} - Nhấp để xem chi tiết`}
+            title={t("admin.orders.detail.extra.dropIncidentTitle", { code: parcelDropIncident.incidentCode })}
             className="inline-flex items-center gap-1.5 rounded-full border border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 shadow-xs hover:bg-red-100 hover:border-red-400 transition-colors"
           >
             <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />
-            <span>Sự cố rơi: {getIncidentShortStatus(parcelDropIncident)}</span>
+            <span>{t("admin.orders.detail.extra.dropIncident", { status: getIncidentShortStatus(parcelDropIncident, t) })}</span>
             <ExternalLink className="h-3 w-3 text-red-500 opacity-70" />
           </Link>
         )}

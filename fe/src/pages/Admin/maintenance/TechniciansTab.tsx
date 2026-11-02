@@ -387,7 +387,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               <span className="text-blue-600">{t("admin.maintenance.techTab.workingDesc")}</span>
               <span className="text-emerald-700 font-semibold flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {onDutyCount} trực ca
+                {t("admin.maintenance.ui.shift.onDutyCount", { count: onDutyCount })}
               </span>
             </div>
           </CardContent>
@@ -483,12 +483,12 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
               <Select value={shiftFilter} onValueChange={(val: any) => setShiftFilter(val)}>
                 <SelectTrigger className="w-40 h-8 text-xs bg-background">
-                  <SelectValue placeholder="Ca trực" />
+                  <SelectValue placeholder={t("admin.maintenance.ui.shift.filterPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tất cả ca trực</SelectItem>
-                  <SelectItem value="ON_DUTY">🟢 Đang trong ca ({onDutyCount})</SelectItem>
-                  <SelectItem value="OFF_DUTY">⚪ Ngoài ca ({technicians.length - onDutyCount})</SelectItem>
+                  <SelectItem value="ALL">{t("admin.maintenance.ui.shift.all")}</SelectItem>
+                  <SelectItem value="ON_DUTY">{t("admin.maintenance.ui.shift.onDutyOption", { count: onDutyCount })}</SelectItem>
+                  <SelectItem value="OFF_DUTY">{t("admin.maintenance.ui.shift.offDutyOption", { count: technicians.length - onDutyCount })}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -674,7 +674,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                                     : "bg-slate-300"
                                 }`}
                               />
-                              Ca trực:
+                              {t("admin.maintenance.ui.shift.label")}
                             </span>
                             <Badge
                               variant="outline"
@@ -684,7 +684,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                                   : "bg-slate-50 text-slate-600 border-slate-200"
                               }`}
                             >
-                              {presence?.onDuty ? "Đang trong ca" : "Ngoài ca"}
+                              {presence?.onDuty ? t("admin.maintenance.ui.shift.onDuty") : t("admin.maintenance.ui.shift.offDuty")}
                             </Badge>
                           </div>
 
@@ -695,9 +695,15 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                               rel="noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               className="pt-1.5 border-t border-border/40 flex items-start gap-1.5 text-[11px] text-sky-700 hover:text-sky-800 hover:underline group cursor-pointer"
-                              title={`Tọa độ: ${presence.latitude}, ${presence.longitude}${
-                                presence.lastLocatedAt ? ` (Cập nhật: ${formatDateTime(presence.lastLocatedAt)})` : ""
-                              }`}
+                              title={
+                                presence.lastLocatedAt
+                                  ? t("admin.maintenance.ui.shift.coordsUpdated", {
+                                      lat: presence.latitude,
+                                      lon: presence.longitude,
+                                      time: formatDateTime(presence.lastLocatedAt),
+                                    })
+                                  : t("admin.maintenance.ui.shift.coords", { lat: presence.latitude, lon: presence.longitude })
+                              }
                             >
                               <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                               <span className="font-mono text-[11px] font-medium text-sky-700 hover:text-sky-800 dark:text-sky-400">
@@ -707,7 +713,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                           ) : (
                             <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground flex items-center gap-1.5">
                               <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span>Chưa có vị trí</span>
+                              <span>{t("admin.maintenance.ui.shift.noLocation")}</span>
                             </div>
                           )}
                         </div>

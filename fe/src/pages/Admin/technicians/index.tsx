@@ -12,10 +12,7 @@ export default function TechniciansPage() {
     <div className="space-y-6">
       <PageHeader
         title={t("admin.sidebar.technicians")}
-        description={t("admin.technicians.description", {
-          defaultValue:
-            "Xem trạng thái ca trực, vị trí tọa độ GPS, hiệu suất SLA và phân công thiết bị cho KTV kiosk và drone",
-        })}
+        description={t("admin.technicians.description")}
       />
 
       <TechniciansTab

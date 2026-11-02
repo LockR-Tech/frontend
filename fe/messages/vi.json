@@ -810,6 +810,23 @@
           "none": "Chưa phát mã mở ô cho đơn này.",
           "homePickup": "Mã lấy hàng tận nơi (người gửi đọc cho KTV)",
           "homePickupUsed": "Đã dùng — KTV đã nhận kiện hoặc đơn đã kết thúc"
+        },
+        "extra": {
+          "incidentStatus": {
+            "disputed": "Khách yêu cầu xem xét lại",
+            "awaitingCustomer": "Chờ khách phản hồi phương án",
+            "compensating": "Đang bồi thường",
+            "executingPlan": "Đang thực hiện phương án",
+            "recoveryPendingReview": "Chờ duyệt thu hồi",
+            "recovered": "Đã thu hồi",
+            "searching": "Đang tìm kiếm",
+            "techAccepted": "KTV đã nhận",
+            "awaitingTech": "Chờ KTV nhận",
+            "awaitingDispatch": "Chờ điều phối"
+          },
+          "dropIncidentWithCode": "Sự cố rơi ({{code}}): {{status}}",
+          "dropIncidentTitle": "Sự cố rơi {{code}} - Nhấp để xem chi tiết",
+          "dropIncident": "Sự cố rơi: {{status}}"
         }
       },
       "location": {
@@ -1022,7 +1039,14 @@
         "addNewBox": "Thêm ngăn mới"
       },
       "batchNoun": "địa điểm",
-      "batchNote": "Địa điểm còn tủ sẽ không xoá được — chuyển tủ sang địa điểm khác hoặc xoá tủ trước."
+      "batchNote": "Địa điểm còn tủ sẽ không xoá được — chuyển tủ sang địa điểm khác hoặc xoá tủ trước.",
+      "boxSettingUi": {
+        "holdsOrderError": "Không thể thay đổi trạng thái khi ô đang có hàng hoặc giữ chỗ",
+        "statusUpdated": "Đã cập nhật trạng thái ô #{{number}}",
+        "occupiedTitle": "Ô đang chứa hàng của đơn hàng",
+        "reservedTitle": "Ô đang được giữ chỗ cho đơn hàng",
+        "autoManaged": "Trạng thái ô được quản lý tự động bởi luồng đơn hàng và phiếu xử lý sự cố. Không thể đổi trạng thái thủ công khi ô đang có hàng."
+      }
     },
     "lockers": {
       "title": "Quản lý Kiosk",
@@ -1627,6 +1651,213 @@
         "mac": "Địa chỉ MAC Pi:",
         "lastSeen": "Thấy lần cuối:",
         "noSignal": "Chưa có tín hiệu"
+      },
+      "tools": {
+        "boxQr": {
+          "stickerBadgeXl": "KHOANG VALI XL",
+          "stickerBadgeStandard": "Ô CHUẨN ĐA NĂNG",
+          "stickerPosition": "Vị trí: Hàng {{row}} · Cột {{col}}",
+          "stickerIdentifier": "Mã định danh: BOX-{{id}}",
+          "stickerDoor": "Cửa: {{state}}",
+          "stickerStatus": "Trạng thái: {{status}}",
+          "stickerScanHint": "Quét mã QR bằng ứng dụng Lock.R để thao tác gửi/nhận hoặc kiểm tra ô",
+          "arucoAssigned": "Đã gán mã ArUco #{{id}} cho ô #{{number}}",
+          "arucoNew": "mới",
+          "arucoAssignFailed": "Không thể gán mã ArUco",
+          "arucoUnassignConfirm": "Bạn có chắc muốn hủy gán mã ArUco cho ô #{{number}}?",
+          "arucoUnassigned": "Đã hủy gán mã ArUco cho ô #{{number}}",
+          "arucoUnassignFailed": "Không thể hủy gán mã ArUco",
+          "arucoNothingToPrint": "Ô tủ chưa có mã ArUco để in",
+          "arucoMatrixNotFound": "Không tìm thấy ma trận cho mã ArUco #{{id}}",
+          "title": "Mã QR & Tem dán ô tủ",
+          "stationLabel": "Trạm:",
+          "boxCount": "{{count}} ô tủ",
+          "printStandard": "Chuẩn in ấn decal dán cánh tủ thông minh",
+          "tabSingle": "Tem ô #{{number}}",
+          "tabAruco": "Mã ArUco ô #{{number}}",
+          "tabAll": "In tất cả ({{count}} ô)",
+          "arucoPreview": "Mô phỏng tem ArUco",
+          "arucoNotAssigned": "Chưa gán mã ArUco",
+          "arucoAssignHint": "Bấm \"Gán mã ArUco tự động\" bên phải",
+          "arucoSpecsTitle": "Thông số mã ArUco",
+          "arucoSpecsDesc": "Định danh quang học nắp trượt tiếp nhận Drone",
+          "notAssigned": "Chưa gán",
+          "markerAreaSize": "Kích thước vùng mã:",
+          "quietZone": "Vùng an toàn (Quiet Zone):",
+          "arucoAssignPrompt": "Ô này chưa có mã ArUco. Bấm để hệ thống tự động cấp phát ID nhỏ nhất chưa dùng trong <strong>DICT_4X4_50</strong>.",
+          "assigning": "Đang gán...",
+          "autoAssign": "Gán mã ArUco tự động",
+          "unassign": "Hủy gán mã",
+          "reassign": "Cấp lại mã khác",
+          "printNotesTitle": "Lưu ý khi in chuẩn kích thước 80 × 80 mm:",
+          "printNoteScale": "Trong hộp thoại in, mục <strong>Tỷ lệ (Scale)</strong>: Chọn <strong>100% (Actual size)</strong>.",
+          "printNoteHeaders": "Tắt mục <strong>Tiêu đề và chân trang (Headers & footers)</strong>.",
+          "printNotePaper": "Khổ giấy: <strong>A4</strong> (Bản in chỉ có đúng 1 trang và không bị tràn trang).",
+          "decalPreview": "Mô phỏng tem in decal thực tế",
+          "standardBadge": "TIÊU CHUẨN",
+          "stickerFunction": "CÔNG NĂNG",
+          "functionStandard": "Ô chuẩn đa năng",
+          "stickerSize": "KÍCH CỠ",
+          "stickerLocation": "VỊ TRÍ VẬT LÝ",
+          "stickerIdLabel": "MÃ ĐỊNH DANH",
+          "scanHint": "Quét mã QR bằng ứng dụng Lock.R để thao tác hoặc kiểm tra ô tủ",
+          "downloadStickerPng": "Tải tem PNG",
+          "downloadQrOnly": "Tải chỉ mã QR",
+          "pickBox": "Chọn ô tủ để xem tem:",
+          "availableCount": "{{count}} ô khả dụng",
+          "boxWithType": "Ô #{{number}} - {{type}}",
+          "specsTitle": "Thông số kỹ thuật ô #{{number}}",
+          "latchStatus": "Trạng thái chốt:",
+          "latchOpen": "Đang mở",
+          "latchClosed": "Đã đóng",
+          "gridPosition": "Tọa độ ma trận:",
+          "compartmentSize": "Kích cỡ khoang:",
+          "functionLabel": "Công năng:",
+          "functionXlShort": "Khoang Vali",
+          "functionMulti": "Ô đa năng",
+          "copiedJson": "Đã sao chép",
+          "copyJson": "Sao chép JSON",
+          "printHint": "Bấm <strong>\"In tem nhãn\"</strong> ở góc dưới để mở bảng điều khiển in hoặc lưu file PDF decal.",
+          "printAllTitle": "In toàn bộ tem nhãn của trạm tủ ({{count}} ô)",
+          "printAllDesc": "Hệ thống tự động sắp xếp lưới tem nhãn chuẩn khổ giấy A4. Bấm \"In tất cả\" để in trực tiếp hoặc xuất PDF dán lên toàn bộ các cánh tủ vật lý.",
+          "printAllButton": "In tất cả ({{count}} tem)",
+          "miniPosition": "Hàng {{row}} · Cột {{col}} · ID: {{id}}",
+          "stickerShort": "Tem",
+          "footerNote": "Tem nhãn kích thước chuẩn 80×100mm · Hỗ trợ máy in nhiệt decal và máy in A4",
+          "printAruco": "In tem ArUco ô #{{number}}"
+        },
+        "location": {
+          "geoUnsupported": "Trình duyệt không hỗ trợ Geolocation (định vị GPS)",
+          "gpsConnecting": "Đang kết nối GPS thiết bị để lấy tọa độ chính xác nhất...",
+          "gpsSuccess": "Đã lấy tọa độ GPS chính xác! (Độ lệch: ±{{accuracy}}m)",
+          "gpsFailed": "Không thể lấy vị trí GPS hiện tại",
+          "gpsDenied": "Quyền truy cập vị trí bị từ chối. Vui lòng cấp quyền vị trí cho trang web.",
+          "gpsTimeout": "Quá thời gian kết nối GPS thiết bị.",
+          "movedTo": "Đã di chuyển ghim đến: {{place}}",
+          "placeNotFoundToast": "Không tìm thấy địa điểm \"{{query}}\". Hãy thử nhập tên đường hoặc bấm \"GPS vị trí của tôi\".",
+          "coordsCopied": "Đã sao chép tọa độ: {{coords}}",
+          "saveSuccess": "Cập nhật vị trí & tọa độ tủ thành công!",
+          "saveFailed": "Lưu vị trí tủ thất bại",
+          "checkNetwork": "Vui lòng kiểm tra lại kết nối mạng",
+          "title": "Vị trí & Tọa độ tủ:",
+          "description": "Di chuyển icon ghim hoặc kéo bản đồ để chọn tọa độ chính xác nhất cho tủ Lock.R (chuẩn Grab / Xanh SM).",
+          "searchPlaceholder": "Nhập địa chỉ, tòa nhà, trường học (VD: FPT University, Landmark 81, Bitexco...)",
+          "search": "Tìm",
+          "searching": "Đang tìm kiếm trên bản đồ...",
+          "resultsFound": "Tìm thấy {{count}} địa điểm:",
+          "clickToPin": "Bấm để ghim ngay",
+          "noResultTitle": "Không tìm thấy địa điểm \"{{query}}\"",
+          "noResultHint": "Thử nhập tên đường, phường hoặc sử dụng nút \"GPS vị trí của tôi\".",
+          "gpsButtonTitle": "Kích hoạt GPS thiết bị để lấy tọa độ thực tế có độ chính xác cao nhất",
+          "locating": "Đang dò GPS...",
+          "myGps": "GPS vị trí của tôi",
+          "modeTitle": "Chuyển chế độ ghim theo tâm bản đồ như app gọi xe hoặc kéo thả icon",
+          "modeCenter": "Chế độ: Tâm bản đồ (Grab)",
+          "modeDrag": "Chế độ: Kéo thả ghim",
+          "moving": "Đang di chuyển vị trí...",
+          "dropHere": "Thả tại đây để ghim",
+          "zoomIn": "Phóng to",
+          "zoomOut": "Thu nhỏ",
+          "recenter": "Đưa ghim về giữa tầm nhìn",
+          "gpsAccuracy": "Độ chính xác GPS: ±{{accuracy}}m",
+          "addressLabel": "Địa chỉ chi tiết của tủ",
+          "lookingUpAddress": "(Đang tra địa chỉ...)",
+          "addressHint": "Có thể chỉnh sửa để hướng dẫn khách hàng / nhân viên",
+          "addressPlaceholder": "VD: Sảnh A, Tòa Landmark 81, 720A Điện Biên Phủ, Phường 22, Bình Thạnh, TP.HCM",
+          "latitudeLabel": "Vĩ độ (Latitude) - chuẩn 6 chữ số thập phân",
+          "longitudeLabel": "Kinh độ (Longitude) - chuẩn 6 chữ số thập phân",
+          "copyCoords": "Sao chép tọa độ",
+          "openGoogleMaps": "Kiểm tra trên Google Maps",
+          "coordPrecision": "Độ chính xác tọa độ: ~0.1m",
+          "resetDone": "Đã đặt lại tọa độ gốc của tủ",
+          "reset": "Đặt lại tọa độ gốc",
+          "savingCoords": "Đang lưu tọa độ...",
+          "saveCoords": "Lưu tọa độ tủ"
+        },
+        "addPreview": {
+          "collisionScreen": "Vị trí Hàng 1, Cột 1 là Màn hình Kiosk cố định!",
+          "collisionBox": "Vị trí Hàng {{row}}, Cột {{col}} đã có Ô #{{number}}!",
+          "batchCollisionScreen": "Ô #{{number}} trùng Màn hình Kiosk",
+          "batchCollisionBox": "Ô #{{number}} trùng với Ô #{{existing}}",
+          "title": "Mô phỏng sơ đồ Kiosk (Word Table)",
+          "subtitle": "Màn hình Kiosk cố định ở (Hàng 1, Cột 1). Nhấn ô trống bất kỳ để chọn nhanh.",
+          "nextEmpty": "Chọn ô trống kế tiếp (H{{row}}, C{{col}})",
+          "collisionsFound": "Phát hiện {{count}} ô bị trùng vị trí: {{list}}",
+          "rowColHeader": "Hàng \\ Cột",
+          "colHeader": "Cột {{number}}",
+          "rowHeader": "Hàng {{number}}",
+          "fixed": "Cố định",
+          "cannotChange": "Không thể đổi",
+          "overlap": "⚠️ Trùng vị trí!",
+          "typeXl": "Khoang Vali XL",
+          "cellCoord": "H{{row}} · C{{col}}",
+          "newSlot": "✨ Ô sắp tạo",
+          "newBatch": "Ô mới ({{index}}/{{total}})",
+          "emptyTitle": "Nhấn để đặt ô tủ tại Hàng {{row}}, Cột {{col}}",
+          "emptySlot": "Trống (H{{row}}, C{{col}})",
+          "clickToSelect": "Bấm để chọn",
+          "legendScreen": "Màn hình 7\" (Cố định H1, C1)",
+          "legendExisting": "Ô hiện có",
+          "legendPreview": "Ô mới xem trước",
+          "legendEmpty": "Ô trống (Bấm để chọn)",
+          "existingCount": "Hiện có: <strong>{{count}}</strong> ô tủ"
+        },
+        "layout": {
+          "arucoCode": "Mã ArUco #{{id}}",
+          "assignAruco": "Gán mã ArUco Drone",
+          "arucoUnassigned": "Chưa gán ArUco",
+          "screenSlotTaken": "Vị trí Hàng 1, Cột 1 là Màn hình Kiosk cố định, vui lòng chọn vị trí khác!",
+          "locationMenu": "Vị trí & Tọa độ",
+          "pinLocation": "Ghim tọa độ tủ",
+          "gpsCardTitle": "Vị trí & Tọa độ GPS tủ",
+          "located": "Đã định vị",
+          "noGps": "Chưa có GPS",
+          "noAddress": "Chưa thiết lập địa chỉ cụ thể",
+          "openGoogleMaps": "Mở Google Maps",
+          "editMap": "Chỉnh sửa bản đồ",
+          "pickOnMap": "Chọn vị trí bản đồ"
+        },
+        "ble": {
+          "notFound": "Không thấy beacon {{name}} (hoặc đã đóng hộp chọn). Kiểm tra Pi đang phát BLE có tên, và đứng gần tủ.",
+          "insecure": "Trình duyệt chặn Bluetooth: cần mở trang qua https hoặc localhost.",
+          "scanFailed": "Không quét được Bluetooth: {{message}}",
+          "openSent": "Đã gửi lệnh mở ô {{number}}",
+          "openRejected": "Tủ không nhận lệnh mở ô {{number}}",
+          "openSendFailed": "Không gửi được lệnh mở ô {{number}}",
+          "title": "Kiểm tra Bluetooth & mở thử ô",
+          "description": "Quét beacon {{name}} mà Pi của tủ phát; thấy đúng tủ (và đủ gần nếu đo được sóng) thì mở thử từng ô. Lệnh mở vẫn gửi qua máy chủ tới Pi.",
+          "unsupported": "Trình duyệt này không hỗ trợ Web Bluetooth. Dùng Chrome hoặc Edge trên máy có Bluetooth.",
+          "scan": "Quét Bluetooth tủ",
+          "adapterOff": "Máy này chưa bật Bluetooth",
+          "matched": "Đã thấy tủ: {{name}}",
+          "otherLocker": "{{name}} không phải tủ {{code}}",
+          "noRssi": "Không đo được khoảng cách (bật chrome://flags/#enable-experimental-web-platform-features để đo) — cho mở ngay khi thấy tủ.",
+          "tooFar": "Sóng còn yếu — lại gần tủ (< 2 m) để mở ô.",
+          "openBox": "Mở ô {{number}}"
+        },
+        "openQr": {
+          "button": "QR mở ô (thử tủ)",
+          "printTitle": "QR mở ô {{code}}",
+          "title": "Mã QR mở ô để thử tủ",
+          "description": "Mã của ô nào thì ô đó bật ra, không cần đặt đơn. Quét bằng app Lock.R (nút quét QR ở trang chủ) với tài khoản có trong danh sách thử ở Cài đặt › iot và chế độ thử đang bật; hoặc quét bằng camera thường rồi đăng nhập ADMIN/KTV phụ trách tủ trên trình duyệt.",
+          "baseUrl": "Địa chỉ web admin mà điện thoại mở được",
+          "localhostWarning": "Quét bằng app Lock.R thì địa chỉ này không quan trọng. Quét bằng camera thường thì điện thoại không mở được localhost: chạy web bằng `npm run dev -- --host` rồi nhập IP mạng LAN của máy (cùng Wi-Fi với điện thoại), ví dụ http://192.168.1.10:3000.",
+          "sheetSub": "Quét bằng app Lock.R (chế độ thử tủ) hoặc camera + đăng nhập ADMIN/KTV · {{url}}",
+          "electricalBay": "Khoang điện",
+          "missingBox": "Chưa có ô số này trong hệ thống",
+          "print": "In tờ QR",
+          "openSent": "Đã gửi lệnh mở ô",
+          "openRejected": "Tủ không nhận lệnh mở ô",
+          "sendFailed": "Không gửi được lệnh mở ô — kiểm tra quyền tài khoản và kết nối của tủ",
+          "invalidLink": "Mã QR không hợp lệ.",
+          "pageTitle": "Mở ô bằng mã QR (thử tủ)",
+          "sending": "Đang gửi lệnh mở ô...",
+          "openAgain": "Mở lại ô này",
+          "backToLocker": "Về trang tủ"
+        },
+        "table": {
+          "protectWarning": "Lưu ý: Nếu có ô con đang chứa đơn hàng của khách, hệ thống sẽ bảo vệ và từ chối xóa tủ."
+        }
       }
     },
     "feedback": {
@@ -2615,7 +2846,7 @@
         "eta": "Dự kiến đến",
         "etaRemaining": "{{time}} · còn {{duration}}",
         "etaApprox": "khoảng {{minutes}} phút",
-        "coordinates": "Vĩ độ, kinh độ: {{lat}}, {{lng}}",
+        "coordinates": "Vĩ độ, kinh độ: {{lat}}, {{lon}}",
         "coordsLive": "trực tiếp",
         "coordsEstimated": "ước theo chặng (chưa có tín hiệu vị trí)"
       },
@@ -2750,6 +2981,40 @@
         },
         "suspended": "Trạm đang tạm dừng bay: {{reason}}",
         "manage": "Điều khiển bay"
+      },
+      "page": {
+        "incidentStatus": {
+          "closed": "Đã đóng sự cố",
+          "disputed": "Khách yêu cầu xem xét lại",
+          "awaitingCustomer": "Chờ khách phản hồi phương án",
+          "payingCompensation": "Đang chi trả bồi thường",
+          "resolutionInProgress": "Đang thực hiện phương án",
+          "returnedToHub": "Kiện đã về trạm — chờ lập phương án",
+          "verified": "Đã xác minh — chờ lập phương án",
+          "searching": "KTV đang tìm thực địa",
+          "accepted": "KTV đã nhận tìm kiếm",
+          "assigned": "Đã phân công (Chờ KTV nhận)",
+          "awaitingDispatch": "Chờ điều phối tìm kiếm"
+        },
+        "dropIncident": "Sự cố rơi kiện:",
+        "dropIncidentDefaultReason": "Kiện hàng được ghi nhận rơi trong quá trình bay vận chuyển.",
+        "searchTechnician": "KTV tìm kiếm:",
+        "updatedAt": "Cập nhật: {{time}}",
+        "viewIncident": "Xem chi tiết sự cố",
+        "closedByDrop": "Đơn hàng đã đóng do sự cố rơi kiện",
+        "map": {
+          "dropPointTooltip": "Điểm báo rơi kiện ({{lat}}, {{lon}})",
+          "stoppedByIncident": "Đã dừng giao do sự cố",
+          "dropCoordinates": "Toạ độ điểm rơi: {{lat}}, {{lon}} · Điểm rơi trên hành trình bay"
+        },
+        "detail": {
+          "backToList": "Danh sách hành trình drone",
+          "invalidId": "Mã đơn không hợp lệ."
+        },
+        "timeline": {
+          "incident": "Sự cố",
+          "dropNote": "Kiện hàng bị báo rơi giữa chặng bay — đã dừng giao hàng"
+        }
       }
     },
     "drones": {
@@ -2931,7 +3196,185 @@
         "batteryInvalid": "Nhập số nguyên từ 0 đến 100."
       },
       "batchNoun": "drone",
-      "batchNote": "Drone đang giữ chỗ hoặc đang bay sẽ không xoá được."
+      "batchNote": "Drone đang giữ chỗ hoặc đang bay sẽ không xoá được.",
+      "hardware": {
+        "online": "Trực tuyến",
+        "offline": "Ngoại tuyến",
+        "notConnected": "Chưa kết nối",
+        "title": "Bộ điều khiển & Thiết bị phần cứng ({{code}})",
+        "description": "Theo dõi máy tính nhúng Raspberry Pi, mạch điều khiển bay Pixhawk và luồng camera trực tiếp của riêng drone này.",
+        "unassign": "Gỡ bộ điều khiển",
+        "toast": {
+          "ipRequired": "Vui lòng nhập địa chỉ IP của Raspberry Pi",
+          "ipInvalid": "Địa chỉ IP không đúng định dạng. Ví dụ: 192.168.1.15",
+          "ipTaken": "Địa chỉ IP {{ip}} đã được gán cho drone {{drone}}. Không được gán trùng!",
+          "piNotFoundHttp": "Không tìm thấy Raspberry Pi tại IP {{ip}} (Mã lỗi HTTP: {{status}}). Vui lòng kiểm tra lại.",
+          "piUnreachablePort": "Không thể kết nối đến Raspberry Pi tại địa chỉ IP: {{ip}}. Thiết bị không tồn tại hoặc chưa khởi động dịch vụ trên cổng 8080.",
+          "macTaken": "Thiết bị Raspberry Pi (MAC: {{mac}}) đã được gán cho drone {{drone}}. Không được gán trùng!",
+          "selectPi": "Vui lòng chọn Raspberry Pi để gán",
+          "piTaken": "Raspberry Pi này đã được gán cho drone {{drone}}. Không thể gán trùng!",
+          "piNotFound": "Không tìm thấy Raspberry Pi tại IP {{ip}} (Mã lỗi: {{status}}).",
+          "piUnreachable": "Không thể kết nối đến Raspberry Pi tại IP {{ip}}. Vui lòng kiểm tra lại địa chỉ IP.",
+          "assigned": "Đã gán bộ điều khiển (IP: {{ip}}) thành công vào drone {{code}}",
+          "assignFailed": "Không thể gán bộ điều khiển do lỗi hệ thống.",
+          "unassigned": "Đã gỡ bộ điều khiển khỏi drone {{code}}",
+          "unassignFailed": "Không thể gỡ bộ điều khiển"
+        },
+        "pi": {
+          "mac": "Địa chỉ MAC:",
+          "ip": "Địa chỉ IP:",
+          "os": "Hệ điều hành:",
+          "updated": "Cập nhật:"
+        },
+        "pixhawk": {
+          "signalLost": "Mất tín hiệu (Pi tắt nguồn)",
+          "notConnected": "Chưa kết nối Pixhawk",
+          "flightMode": "Chế độ bay:",
+          "motors": "Động cơ:",
+          "armed": "ARMED (Đang quay)",
+          "disarmed": "DISARMED (An toàn)",
+          "landed": {
+            "inAir": "Đang bay trên không",
+            "onGround": "Đậu trên mặt đất",
+            "landing": "Đang hạ cánh"
+          },
+          "gps": "Định vị GPS:",
+          "noGpsLock": "Chưa khóa GPS",
+          "satellites": "{{n}} vệ tinh"
+        },
+        "power": {
+          "title": "Nguồn & Năng lượng",
+          "voltage": "Điện áp tổng:",
+          "current": "Dòng xả hiện tại:"
+        },
+        "camera": {
+          "title": "Camera Trực tiếp từ Drone ({{code}})",
+          "reload": "Tải lại stream",
+          "openNewTab": "Mở tab mới",
+          "enlarge": "Phóng to",
+          "notStreaming": "Camera của drone {{code}} chưa phát luồng trực tiếp",
+          "serviceOff": "Raspberry Pi đang trực tuyến nhưng dịch vụ camera (cổng 8080) chưa được bật.",
+          "piOffline": "Bộ điều khiển Raspberry Pi hiện đang mất kết nối. Luồng video sẽ tự động phát khi Pi trực tuyến.",
+          "expectedUrl": "URL dự kiến: {{url}}"
+        },
+        "empty": {
+          "title": "Chưa gán bộ điều khiển cho drone {{code}}",
+          "hint": "Gán máy tính nhúng Raspberry Pi để theo dõi trạng thái Pixhawk, pin và luồng camera trực tiếp của drone."
+        },
+        "assign": {
+          "title": "Gán bộ điều khiển Pi",
+          "description": "Chọn Raspberry Pi đang hoạt động từ danh sách hoặc nhập địa chỉ IP để gán vào drone này.",
+          "discovered": "Danh sách Raspberry Pi phát hiện được:",
+          "onlineCount": "{{n}} trực tuyến",
+          "selectPlaceholder": "Chọn Raspberry Pi (Tên & IP)...",
+          "noIp": "Chưa có IP",
+          "assignedTo": "Đang gán: {{drone}}",
+          "assignedThis": "Đang gán drone này",
+          "customIp": "Tự nhập địa chỉ IP khác...",
+          "selectedInfo": "Thông tin Raspberry Pi được chọn:",
+          "assignedToOther": "Đang được gán cho {{drone}}",
+          "activeOnline": "Đang hoạt động (Trực tuyến)",
+          "piName": "Tên Raspberry Pi",
+          "ip": "Địa chỉ IP",
+          "mac": "Địa chỉ MAC",
+          "hardwareRole": "Phần cứng / Vai trò",
+          "enterIp": "Nhập địa chỉ IP cho Pi này:",
+          "ipPlaceholder": "Ví dụ: 192.168.1.15 hoặc 10.3.77.123",
+          "ipSaveHint": "Hệ thống sẽ kết nối với Pi tại IP này và lưu vĩnh viễn vào cơ sở dữ liệu.",
+          "takenWarning": "Bộ điều khiển này hiện đang được gán cho <strong>{{drone}}</strong>. Không thể gán trùng vào drone khác!",
+          "syncHint": "Drone <strong>{{code}}</strong> sẽ đồng bộ dữ liệu bay Pixhawk, pin và luồng camera trực tiếp từ Pi này.",
+          "customIpLabel": "Địa chỉ IP của Raspberry Pi:",
+          "required": "* Bắt buộc",
+          "customIpHint": "Hệ thống sẽ kiểm tra và kết nối với dịch vụ API & Camera (cổng 8080) tại địa chỉ IP này. Nếu IP không tồn tại hoặc không phản hồi, hệ thống sẽ từ chối gán.",
+          "probing": "Đang kiểm tra kết nối Pi...",
+          "submit": "Gán bộ điều khiển"
+        },
+        "iot": {
+          "title": "Nhật ký IoT Drone {{code}}",
+          "description": "Toàn bộ chuỗi sự kiện phần cứng: Pi Controller, Pixhawk MAVLink, Móc treo thả hàng, Camera ArUco và Pin",
+          "refreshed": "Đã làm mới nhật ký IoT của drone",
+          "searchPlaceholder": "Tìm theo nội dung, đơn hàng #, KTV, lỗi, IP, MAC...",
+          "loading": "Đang tải dữ liệu nhật ký IoT drone...",
+          "empty": "Chưa có bản ghi nhật ký IoT nào cho Drone này.",
+          "emptyFiltered": "Không tìm thấy bản ghi IoT nào phù hợp với bộ lọc.",
+          "banner": {
+            "online": "Drone {{code}} đang trực tuyến (Cắm nguồn & Kết nối)",
+            "offline": "Drone {{code}} đang ngoại tuyến (Rút nguồn hoặc Mất mạng)",
+            "onlineBadge": "TRỰC TUYẾN",
+            "offlineBadge": "NGOẠI TUYẾN",
+            "onlineDetail": "Pi Controller: {{ip}} · MAVLink Pixhawk: {{mavlink}} · Cập nhật: {{time}}",
+            "lastSeen": "Lần cuối kết nối: {{time}}",
+            "noRecentSignal": "Chưa có tín hiệu gần đây"
+          },
+          "component": {
+            "piController": "Pi Controller",
+            "pixhawk": "Pixhawk Autopilot",
+            "cargoHook": "Móc treo hàng",
+            "visionCamera": "Camera AI thị giác",
+            "batteryPower": "Nguồn & Pin",
+            "telemetry": "Viễn thông Telemetry"
+          },
+          "event": {
+            "powerConnected": "Cắm nguồn trực tuyến",
+            "powerDisconnected": "Rút nguồn / Ngắt điện",
+            "telemetryOnline": "Telemetry kết nối",
+            "telemetryLost": "Mất tín hiệu Telemetry",
+            "pixhawkConnected": "Pi kết nối Pixhawk",
+            "pixhawkDisconnected": "Pi mất kết nối Pixhawk",
+            "detectTarget": "Detect mã ô/tủ",
+            "markerMismatch": "Mã ô không khớp",
+            "hookAttach": "Móc ngậm hàng",
+            "hookRelease": "Móc thả hàng",
+            "hookJammed": "Kẹt móc treo hàng",
+            "manualOverride": "Can thiệp thủ công (User/KTV)",
+            "armed": "Khởi động động cơ (ARMED)",
+            "disarmed": "Khóa an toàn (DISARMED)",
+            "flightModeChanged": "Đổi chế độ bay",
+            "failsafeTriggered": "Kích hoạt Failsafe"
+          },
+          "result": {
+            "connected": "Đã kết nối",
+            "mavlinkLost": "Mất MAVLink",
+            "released": "Đã thả hàng",
+            "locked": "Đã khóa chốt",
+            "detected": "Đã nhận diện",
+            "jammed": "Bị kẹt cơ khí",
+            "timeout": "Hết thời gian",
+            "warning": "Cảnh báo"
+          },
+          "filter": {
+            "componentPlaceholder": "Bộ phận phần cứng",
+            "allComponents": "Tất cả bộ phận",
+            "piController": "Bộ xử lý Pi Controller",
+            "pixhawk": "Bộ điều khiển Pixhawk",
+            "cargoHook": "Móc treo hàng (Hook)",
+            "allEvents": "Tất cả sự kiện",
+            "armed": "Khởi động động cơ",
+            "online": "Trực tuyến (ONLINE)",
+            "offline": "Mất kết nối (OFFLINE)",
+            "reset": "Đặt lại lọc"
+          },
+          "col": {
+            "component": "Bộ phận thiết bị",
+            "message": "Nội dung thông điệp"
+          },
+          "actor": {
+            "technician": "Kỹ thuật viên",
+            "user": "Người dùng",
+            "piSystem": "Hệ thống Pi"
+          }
+        },
+        "detail": {
+          "operating": "Đang vận hành",
+          "decommissioned": "Đã ngừng hoạt động",
+          "techDescription": "Phân công kỹ thuật viên theo dõi",
+          "techCurrent": "Đang phụ trách:",
+          "stationDescription": "Bãi đáp và trạm đỗ hiện tại",
+          "infoDescription": "Thông số vòng đời & hồ sơ hệ thống",
+          "systemId": "Mã ID hệ thống",
+          "missionStatus": "Trạng thái nhiệm vụ:"
+        }
+      }
     },
     "droneIncidents": {
       "title": "Sự cố rơi kiện Drone",
@@ -3037,6 +3480,584 @@
         "approveCompensation": "Duyệt bồi thường",
         "retryPayout": "Thử lại chi bồi thường",
         "payoutNote": "Nếu cổng chi bồi thường chưa được cấu hình, hệ thống giữ trạng thái chờ và ghi rõ Integration Unavailable trong lịch sử; không giả lập đã thanh toán."
+      },
+      "detailPage": {
+        "incidentStatus": {
+          "awaitingPlan": "Sự cố: Chờ lập phương án",
+          "closed": "Sự cố: Đã đóng",
+          "resolved": "Sự cố: Đã giải quyết",
+          "recoveryInProgress": "Sự cố: Đang thu hồi kiện",
+          "awaitingAdminReview": "Sự cố: Chờ Admin xác minh",
+          "resolutionProposed": "Sự cố: Đã đề xuất phương án",
+          "awaitingCustomerResponse": "Sự cố: Chờ khách phản hồi",
+          "resolutionInProgress": "Sự cố: Đang thực hiện phương án",
+          "investigating": "Sự cố: Đang điều phối thu hồi",
+          "evidencePending": "Sự cố: Chờ bổ sung bằng chứng",
+          "disputed": "Sự cố: Khách khiếu nại",
+          "manualInterventionRequired": "Sự cố: Cần can thiệp",
+          "reported": "Sự cố: Mới báo rơi",
+          "other": "Sự cố: {{status}}"
+        },
+        "recoveryStatus": {
+          "closed": "Thu hồi: Hoàn tất thu hồi",
+          "verified": "Thu hồi: Admin đã xác minh",
+          "submitted": "Thu hồi: Chờ Admin duyệt",
+          "searching": "Thu hồi: KTV đang tìm thực địa",
+          "accepted": "Thu hồi: KTV đã tiếp nhận",
+          "assigned": "Thu hồi: Đã phân công (Chờ KTV nhận)",
+          "awaitingAssignment": "Thu hồi: Chờ phân công KTV",
+          "open": "Thu hồi: Chờ xử lý",
+          "other": "Thu hồi: {{status}}"
+        },
+        "parcelStatus": {
+          "returnedToHub": "Kiện hàng: Đã về kho Hub",
+          "dropReported": "Kiện hàng: Rơi tại hiện trường",
+          "searching": "Kiện hàng: Đang tìm kiếm",
+          "found": "Kiện hàng: Đã tìm thấy",
+          "damaged": "Kiện hàng: Hư hại tại hiện trường",
+          "lost": "Kiện hàng: Thất lạc",
+          "redelivering": "Kiện hàng: Đang giao lại",
+          "redelivered": "Kiện hàng: Đã giao lại thành công",
+          "other": "Kiện hàng: {{status}}"
+        },
+        "returnFlight": {
+          "returnRequested": "Đã yêu cầu quay về",
+          "commandAccepted": "Drone đã nhận lệnh",
+          "returning": "Đang bay về trạm",
+          "completed": "Đã về trạm",
+          "failed": "Quay về thất bại",
+          "manualInterventionRequired": "Cần đưa drone về tay"
+        },
+        "timeline": {
+          "title": "Dòng thời gian sự cố ({{count}} sự kiện)",
+          "events": {
+            "incidentReported": {
+              "label": "Báo cáo sự cố rơi kiện",
+              "description": "Hệ thống ghi nhận sự cố rơi kiện từ drone"
+            },
+            "returnRequest": {
+              "label": "Yêu cầu drone quay về trạm (RTL)",
+              "description": "Kích hoạt chế độ Return-to-Launch cho drone"
+            },
+            "returnFlightUpdated": {
+              "label": "Drone đang bay về trạm (RTL)",
+              "description": "Cập nhật hành trình bay khẩn cấp về trạm hạ cánh an toàn"
+            },
+            "recoveryAssigned": {
+              "label": "Phân công KTV tìm kiếm",
+              "description": "Hệ thống hoặc Quản trị viên điều phối KTV tiếp nhận tìm kiếm"
+            },
+            "recoveryAccepted": {
+              "label": "KTV tiếp nhận nhiệm vụ",
+              "description": "Kỹ thuật viên đã nhận lệnh tìm kiếm thực địa"
+            },
+            "recoverySearching": {
+              "label": "Bắt đầu tìm kiếm thực địa",
+              "description": "Kỹ thuật viên tới hiện trường và tiến hành quét tìm kiện"
+            },
+            "recoverySubmitted": {
+              "label": "KTV nộp báo cáo hiện trường",
+              "description": "KTV xác nhận toạ độ thực tế và tải ảnh bằng chứng"
+            },
+            "recoveryVerified": {
+              "label": "Admin duyệt xác minh hiện trường",
+              "description": "Quản trị viên đã kiểm tra toạ độ và đối soát kết quả tìm kiếm"
+            },
+            "recoveryStationDispatched": {
+              "label": "Điều phối kiện về trạm bay",
+              "description": "Hệ thống chọn trạm gần nơi tìm thấy nhất còn drone để bay giao lại"
+            },
+            "recoveryStationUnavailable": {
+              "label": "Chưa điều phối được trạm",
+              "description": "Không trạm bay nào nhận được kiện — giữ nơi bàn giao cũ"
+            },
+            "recoveryTicketsUnavailable": {
+              "label": "Chưa tạo được phiếu thu hồi",
+              "description": "Hệ thống tủ chưa phản hồi — admin phân công KTV thu hồi bằng tay"
+            },
+            "parcelReturnedToHub": {
+              "label": "Bàn giao kiện hàng về trạm",
+              "description": "Kiện hàng đã được KTV vận chuyển về trạm / Hub an toàn"
+            },
+            "proposalCreated": {
+              "label": "Tạo đề xuất phương án xử lý",
+              "description": "Đã gửi đề xuất bồi thường / giao lại cho khách hàng"
+            },
+            "proposalAccepted": {
+              "label": "Khách hàng đồng ý phương án",
+              "description": "Khách xác nhận chấp thuận phương án giải quyết"
+            },
+            "proposalDisputed": {
+              "label": "Khách yêu cầu xem xét lại",
+              "description": "Khách khiếu nại hoặc từ chối phương án bồi thường"
+            },
+            "redeliveryStarted": {
+              "label": "Bắt đầu giao lại kiện cho khách",
+              "description": "Kiện hàng xuất kho Hub để giao lại tới tủ nhận"
+            },
+            "redeliveryCompleted": {
+              "label": "Hoàn tất giao lại kiện thành công",
+              "description": "Khách hàng đã nhận lại kiện hàng an toàn"
+            },
+            "compensationApproved": {
+              "label": "Duyệt chi trả hoàn tiền bồi thường",
+              "description": "Admin phê duyệt tạo phiếu hoàn tiền bồi thường"
+            },
+            "compensationPaid": {
+              "label": "Hoàn tiền bồi thường thành công",
+              "description": "Hệ thống đã chuyển khoản bồi thường vào tài khoản khách"
+            },
+            "recoveryStartSearching": {
+              "description": "Kỹ thuật viên tới hiện trường và tiến hành tìm kiện"
+            },
+            "resolutionProposed": {
+              "label": "Gửi phương án cho khách",
+              "description": "Đề xuất bồi thường / giao lại đã gửi cho khách"
+            },
+            "customerAccept": {
+              "label": "Khách đồng ý phương án"
+            },
+            "redeliveryRequested": {
+              "label": "Tạo đơn giao lại"
+            },
+            "redeliveryIntegrationUnavailable": {
+              "label": "Chưa tạo được đơn giao lại"
+            },
+            "compensationSubmitted": {
+              "label": "Tạo phiếu chi bồi thường"
+            },
+            "compensationPaymentFailed": {
+              "label": "Chi bồi thường không thành công"
+            },
+            "returnFlightConfirmed": {
+              "label": "Xác nhận drone đã về trạm"
+            },
+            "incidentResolved": {
+              "label": "Hoàn tất xử lý sự cố"
+            },
+            "incidentClosed": {
+              "label": "Đóng hồ sơ sự cố",
+              "description": "Toàn bộ quy trình xử lý sự cố rơi kiện đã kết thúc"
+            }
+          }
+        },
+        "hints": {
+          "badlyDamaged": "(Kiện hư nặng)",
+          "needsHub": "(Cần kiện về Hub)"
+        },
+        "toast": {
+          "demoSuffix": "{{message}} (Dữ liệu demo)",
+          "actionFailed": "Thao tác thất bại. Vui lòng thử lại!",
+          "proposalSent": "Đã gửi đề xuất phương án bồi thường cho khách hàng!",
+          "returnConfirmed": "Đã xác nhận drone về trạm",
+          "verified": "Đã xác minh kết quả tìm hàng thành công!",
+          "handoverConfirmed": "Đã xác nhận kiện hàng về Hub thành công!",
+          "redeliveryCompleted": "Đã xác nhận giao lại thành công và đóng sự cố!",
+          "compensationApproved": "Đã phê duyệt tạo phiếu hoàn tiền bồi thường cho khách!"
+        },
+        "loading": "Đang tải thông tin sự cố rơi kiện...",
+        "unknown": "Chưa rõ",
+        "notFound": {
+          "backToList": "Danh sách sự cố drone",
+          "title": "Không tìm thấy sự cố",
+          "description": "Mã sự cố #{{id}} không tồn tại hoặc bạn không có quyền truy cập.",
+          "back": "Quay lại danh sách"
+        },
+        "header": {
+          "backToIncidents": "Quay lại danh sách sự cố",
+          "incidentCode": "Mã sự cố: {{code}}",
+          "reportedAt": "Thời điểm báo rơi:",
+          "refresh": "Làm mới dữ liệu"
+        },
+        "kpi": {
+          "dropTitle": "Vị trí rơi & Drone",
+          "noCoordinates": "Chưa có toạ độ",
+          "gpsTelemetry": "Nguồn GPS: {{source}} · Telemetry:",
+          "stale": "Dữ liệu cũ",
+          "online": "Trực tuyến",
+          "openOsm": "Mở bản đồ OpenStreetMap",
+          "techTitle": "KTV tìm hàng",
+          "techAccepted": "KTV đã nhận việc",
+          "techAwaitingAccept": "Chờ KTV bấm nhận",
+          "roleDrone": "🚁 KTV Drone (Không bận đơn)",
+          "roleLocker": "🏢 KTV Kiosk / Tủ (GPS gần điểm rơi)",
+          "waitingAccept": "Đang chờ KTV bấm nhận việc",
+          "waitingDispatch": "Đang chờ điều phối KTV",
+          "noPhone": "Chưa có số điện thoại",
+          "parcelTitle": "Kiện hàng & Hub",
+          "parcelFound": "Đã tìm thấy kiện",
+          "parcelNotFound": "Không tìm thấy kiện",
+          "searching": "Đang tìm kiếm",
+          "returnedAt": "Về {{place}} lúc: {{time}}",
+          "awaitingHandoverAt": "Chờ bàn giao tại trạm {{station}}",
+          "notHandedOver": "Chưa bàn giao về Hub",
+          "returnFlight": "Quay về: {{status}}",
+          "confirmReturn": "Xác nhận drone đã về trạm",
+          "compensationTitle": "Mức bồi thường",
+          "suggested": "Đề xuất: {{amount}}",
+          "declared": "Khai báo: {{amount}}",
+          "status": "Trạng thái:"
+        },
+        "tech": {
+          "title": "Kỹ thuật viên phụ trách thu hồi kiện",
+          "badgeSearching": "Đang tìm kiếm thực địa",
+          "badgeSubmitted": "Đã nộp kết quả tìm hàng",
+          "badgeVerified": "Đã xác minh thu hồi",
+          "badgeClosed": "Đã bàn giao về Hub",
+          "badgeAccepted": "KTV đã tiếp nhận nhiệm vụ",
+          "description": "KTV đã bấm nhận nhiệm vụ và đang tiến hành quy trình tìm kiếm / thu hồi kiện hàng. Phân công thủ công đã được khóa.",
+          "name": "Họ tên KTV:",
+          "phone": "Số điện thoại liên hệ:",
+          "notUpdated": "Chưa cập nhật",
+          "specialty": "Chuyên môn:",
+          "roleDrone": "KTV Drone",
+          "roleLocker": "KTV Kiosk / Tủ",
+          "roleGeneric": "Kỹ thuật viên",
+          "recoveryStatus": "Trạng thái thu hồi:"
+        },
+        "verify": {
+          "title": "Xác minh kết quả tìm hàng (Admin Review)",
+          "badge": "Chờ Admin duyệt",
+          "intro": "KTV đã nộp báo cáo hiện trường. Quản trị viên cần đối soát các mục sau trước khi xác minh:",
+          "checkPhotos": "Kiểm tra hình ảnh hiện trường và hiện trạng gói hàng thực tế.",
+          "checkGps": "Đối soát toạ độ GPS xác nhận từ điện thoại KTV so với toạ độ rơi.",
+          "checkCondition": "Xác nhận tình trạng kiện: <b>{{condition}}</b>.",
+          "footnote": "* Sau khi bấm Duyệt xác minh, kiện hàng được mở khoá để KTV bàn giao về Hub và hệ thống cho phép tạo phương án bồi thường / giao lại cho khách.",
+          "button": "Duyệt xác minh kết quả tìm hàng của KTV"
+        },
+        "station": {
+          "title": "Trạm nhận kiện: {{name}}",
+          "directions": "Chỉ đường",
+          "distance": "Cách nơi tìm thấy ~{{km}} km",
+          "noDrone": "Trạm đang hết drone sẵn sàng — kiện chờ drone tại trạm.",
+          "droneReady": "Trạm còn drone sẵn sàng — đơn giao lại sẽ bay từ trạm này.",
+          "dispatchedAt": "Điều phối lúc {{time}}"
+        },
+        "place": {
+          "station": "trạm {{name}}",
+          "hubStation": "trạm Hub"
+        },
+        "hub": {
+          "arrivedAt": "Kiện hàng đã về {{place}} an toàn lúc: {{time}}",
+          "arrived": "Kiện hàng đã được bàn giao an toàn về trạm Hub.",
+          "confirmTitle": "Xác nhận bàn giao kiện về {{place}}",
+          "confirmButton": "Xác nhận kiện đã về {{place}}",
+          "confirmHint": "Kiện hàng đã được KTV vận chuyển về {{place}}. Bấm xác nhận để mở khoá phương án giao lại miễn phí cho khách hàng."
+        },
+        "dispatch": {
+          "waitingTitle": "Đang chờ KTV bấm nhận nhiệm vụ",
+          "notAccepted": "Chưa nhận",
+          "assignedTech": "Hệ thống đã chỉ định KTV:",
+          "reassignHint": "KTV chưa bấm xác nhận nhận việc. Quản trị viên có toàn quyền phân công lại cho KTV khác bên dưới nếu KTV này bận.",
+          "noTechTitle": "Chưa có kỹ thuật viên tìm hàng",
+          "noTechHint": "Vui lòng quan sát vị trí các kỹ thuật viên trên bản đồ bên dưới và bấm trực tiếp vào KTV gần nhất để phân công tìm kiếm.",
+          "mapTitleReassign": "Phân công lại kỹ thuật viên tìm kiếm (Bản đồ tương tác)",
+          "mapTitle": "Điều phối tìm kiếm & Phân công kỹ thuật viên (Bản đồ tương tác)",
+          "mapDescription": "Bản đồ hiển thị các điểm vị trí và tên kỹ thuật viên quanh điểm rơi. Admin bấm trực tiếp vào KTV trên bản đồ hoặc danh sách để phân công."
+        },
+        "verifyDialog": {
+          "title": "Xác nhận kết quả tìm hàng ({{code}})",
+          "intro": "Bạn đang thực hiện bước <b>Xác minh kết quả tìm hàng (Admin Review)</b>. Bước này có ý nghĩa:",
+          "effectFound": "Xác nhận KTV đã tìm thấy kiện tại thực địa với toạ độ và hình ảnh đối soát hợp lệ.",
+          "effectStatus": "Chuyển trạng thái tìm hàng sang <b>ĐÃ XÁC MINH (VERIFIED)</b>.",
+          "effectHandover": "Cho phép KTV vận chuyển kiện hàng bàn giao về Hub.",
+          "effectUnlock": "Mở khoá chức năng tạo phương án xử lý bồi thường / giao lại cho khách hàng.",
+          "question": "Bạn đã kiểm tra kỹ hình ảnh hiện trường và toạ độ check-in chưa?",
+          "review": "Xem lại",
+          "approve": "Duyệt xác minh"
+        },
+        "handoverDialog": {
+          "title": "Xác nhận kiện hàng đã về {{place}}",
+          "description": "Bạn có chắc chắn kiện hàng của đơn {{order}} đã được vận chuyển an toàn về {{place}} không?",
+          "confirm": "Xác nhận về Hub"
+        },
+        "report": {
+          "title": "Báo cáo hiện trường & Đối chiếu tọa độ GPS",
+          "outcome": "Kết quả: {{outcome}}",
+          "description": "Dữ liệu KTV bấm xác nhận vị trí thực tế tại điểm rơi bằng GPS điện thoại",
+          "confirmedCoords": "Tọa độ KTV bấm xác nhận:",
+          "noConfirmedCoords": "Chưa có toạ độ xác nhận",
+          "deviation": "Độ lệch so với điểm rơi: {{meters}} mét",
+          "techNote": "Ghi chú hiện trường của KTV:",
+          "noNote": "KTV không để lại ghi chú thêm.",
+          "evidenceTitle": "Ảnh chụp bằng chứng tại hiện trường ({{count}})",
+          "noEvidence": "Chưa có ảnh bằng chứng nào được tải lên.",
+          "noImage": "Không có ảnh",
+          "photoFallback": "Ảnh hiện trường"
+        },
+        "policy": {
+          "title": "Cấu hình chính sách bồi thường sự cố",
+          "status": "Chính sách: {{state}}",
+          "on": "Đang bật",
+          "off": "Đang tắt",
+          "settingsLink": "Cài đặt",
+          "description": "Quy tắc xử lý bồi thường và hoàn cước áp dụng từ backend cho đơn hàng này",
+          "rate": "Tỷ lệ đề xuất",
+          "cap": "Trần bồi thường",
+          "noCap": "Không đặt trần",
+          "sla": "SLA thu hồi",
+          "hours": "{{hours}} giờ",
+          "approval": "Phê duyệt Admin",
+          "approvalRequired": "Bắt buộc duyệt",
+          "approvalAuto": "Tự động",
+          "parcelValue": "Giá trị kiện:",
+          "suggested": "⇒ Mức gợi ý bồi thường:",
+          "freeRedelivery": "• Giao lại miễn phí:",
+          "allowedAtHub": "Cho phép (khi về Hub)",
+          "disabled": "Tắt",
+          "refundShipping": "• Hoàn cước ship:",
+          "dispute": "• Cho phép khiếu nại (Dispute):"
+        },
+        "proposal": {
+          "title": "Xử lý phương án bồi thường & Giao lại",
+          "rate": "Tỷ lệ: {{rate}}",
+          "description": "Tạo đề xuất phương án giải quyết gửi cho khách hàng chấp thuận",
+          "typeLabel": "Phương án giải quyết đề xuất:",
+          "explainFree": "• Giao lại miễn phí toàn bộ cước phí sau khi kiện đã an toàn về Hub (Số tiền bồi thường = 0đ).",
+          "explainPartial": "• Giao lại kiện cho khách sau khi đã về Hub, đồng thời tạo phiếu hoàn tiền bồi thường một phần giá trị kiện hàng.",
+          "explainCompensation": "• Tạo phiếu hoàn tiền bồi thường qua tài khoản ngân hàng của khách (không giao lại kiện do thất lạc hoặc hư hỏng nặng).",
+          "explainManual": "• Thỏa thuận phương án riêng với khách hàng ngoài quy trình tự động. Bắt buộc ghi rõ nội dung thỏa thuận vào ô ghi chú.",
+          "amountLabel": "Số tiền bồi thường (VND):",
+          "amountPlaceholder": "Nhập số tiền bồi thường...",
+          "suggestedByPolicy": "Gợi ý theo cấu hình ({{rate}}):",
+          "useSuggested": "(Dùng mức gợi ý)",
+          "refundShipping": "Hoàn phí giao hàng khi bồi thường",
+          "refundShippingHint": "(Khoản hoàn phí vận chuyển được xử lý tách biệt với bồi thường giá trị kiện hàng)",
+          "noteLabel": "Lý do điều chỉnh / Ghi chú thỏa thuận:",
+          "notePlaceholderManual": "Bắt buộc: Nhập chi tiết phương án đã thỏa thuận với khách...",
+          "notePlaceholder": "Bắt buộc nếu bồi thường vượt mức gợi ý...",
+          "submit": "Gửi đề xuất phương án cho khách",
+          "awaitingCustomer": "Đã gửi phương án, đang chờ khách phản hồi. Khách yêu cầu xem xét lại thì gửi được phương án mới.",
+          "customerChose": "Khách đã chọn phương án — không gửi thêm đề xuất."
+        },
+        "redelivery": {
+          "title": "Tiến trình giao lại cho khách",
+          "badge": "Đang giao lại",
+          "newOrder": "Đơn giao lại mới:",
+          "orderLink": "Đơn #{{id}}",
+          "hint": "Kiện hàng đã được điều phối giao lại từ Hub. Khi người nhận lấy hàng ở đơn giao lại, sự cố tự đóng phần giao lại. Chỉ bấm tay khi đơn giao lại đã hoàn tất mà sự cố chưa cập nhật.",
+          "complete": "Đóng phần giao lại (đơn giao lại đã hoàn tất)"
+        },
+        "compensation": {
+          "approve": "Phê duyệt phiếu hoàn tiền bồi thường",
+          "retry": "Thử lại lệnh chuyển khoản bồi thường"
+        },
+        "history": {
+          "title": "Lịch sử đề xuất phương án ({{count}})",
+          "empty": "Chưa có phương án bồi thường nào được đề xuất.",
+          "amount": "Mức bồi thường:",
+          "policy": "Chính sách: {{version}}",
+          "sentToCustomer": "Nội dung gửi khách:",
+          "customerResponse": "Phản hồi của khách:"
+        }
+      },
+      "listPage": {
+        "filters": {
+          "label": "Lọc theo trạng thái sự cố",
+          "needsAttention": "Cần xử lý"
+        },
+        "validation": {
+          "manualNeedsNote": "Thỏa thuận riêng yêu cầu nhập ghi chú chi tiết phương án đã trao đổi với khách."
+        },
+        "columns": {
+          "recoveryTech": "KTV tìm hàng",
+          "lastUpdated": "Cập nhật lần cuối"
+        },
+        "lockerTech": "KTV Tủ",
+        "unknown": "Chưa rõ",
+        "demoSuffix": "{{message}} (Dữ liệu mẫu demo)",
+        "noImage": "Không có ảnh",
+        "fieldReport": {
+          "title": "Báo cáo xác nhận hiện trường từ KTV",
+          "outcome": "Kết quả: {{outcome}}",
+          "techCoords": "Tọa độ KTV bấm xác nhận:",
+          "noConfirmedCoords": "Chưa có toạ độ xác nhận",
+          "dropOffset": "Độ lệch so với điểm rơi: {{meters}} m",
+          "note": "Ghi chú hiện trường của KTV:",
+          "noNote": "Không có ghi chú."
+        },
+        "parcelCategory": {
+          "document": "Tài liệu / Giấy tờ",
+          "food": "Thực phẩm / Đồ ăn",
+          "clothing": "Quần áo / Thời trang",
+          "electronics": "Thiết bị điện tử",
+          "cosmetics": "Mỹ phẩm / Làm đẹp",
+          "other": "Hàng hoá khác"
+        },
+        "paymentMethod": {
+          "sepay": "Chuyển khoản SePay (VietQR)",
+          "vnpay": "Cổng VNPAY",
+          "momo": "Ví MoMo"
+        },
+        "orderContext": {
+          "title": "Thông tin Đơn hàng",
+          "inspectionReport": "Phiếu kiểm tra drone #{{id}}",
+          "flightJourney": "Hành trình bay",
+          "loading": "Đang tải chi tiết đơn hàng...",
+          "loadFailed": "Không tải được chi tiết đơn hàng #{{id}}. Bạn vẫn có thể tiếp tục xử lý sự cố.",
+          "senderTitle": "Khách hàng gửi & Điểm gửi",
+          "noSenderName": "Chưa có tên người gửi",
+          "sourceLocker": "Tủ gửi:",
+          "receiverTitle": "Người nhận hàng & Điểm nhận",
+          "noReceiverName": "Chưa có tên người nhận",
+          "destinationLocker": "Tủ nhận:",
+          "receiveBox": "Ô nhận #{{number}}",
+          "parcelTitle": "Kiện hàng & Trọng lượng",
+          "category": "Loại hàng:",
+          "size": "Kích thước:",
+          "weight": "Cân nặng:",
+          "payloadWeight": "(Nạp drone: {{grams}} g)",
+          "declaredValue": "Giá trị khai báo:",
+          "fragile": "Hàng dễ vỡ:",
+          "fragileYes": "Có (Dễ vỡ) ⚠️",
+          "note": "Ghi chú: \"{{note}}\"",
+          "feesTitle": "Cước phí & Vận hành",
+          "totalFee": "Tổng cước phí:",
+          "paid": "Đã thanh toán:",
+          "due": "Còn phải thu:",
+          "method": "Phương thức:",
+          "drone": "Drone vận chuyển:",
+          "seal": "Niêm phong:",
+          "loadedBy": "Nạp bởi: {{name}}"
+        },
+        "dispatch": {
+          "title": "Điều phối & Kỹ thuật viên tìm hàng",
+          "subtitle": "Theo dõi tiến độ tìm kiếm và điều phối KTV thu hồi kiện tại hiện trường",
+          "assignedTech": "KTV phụ trách tìm hàng",
+          "droneTechBadge": "🚁 KTV Drone (Không bận đơn)",
+          "kioskTechBadge": "🏢 KTV Kiosk / Tủ (GPS gần điểm rơi)",
+          "noPhone": "Chưa cập nhật SĐT",
+          "recoveryProgress": "Tiến độ thu hồi",
+          "noTechTitle": "Chưa có KTV phụ trách tìm hàng",
+          "noTechHint": "Hệ thống chưa tìm thấy KTV rảnh trong bán kính ban đầu. Vui lòng mở bản đồ điều phối để mở rộng bán kính và chọn KTV.",
+          "openMapAssign": "Bản đồ điều phối tìm KTV theo bán kính R (Kiosk & Drone)",
+          "openMapTrack": "Xem bản đồ vị trí KTV & điểm rơi (Chế độ theo dõi)",
+          "reassignTitle": "Phân công thủ công (Reassign)",
+          "reassignHint": "Nếu KTV được hệ thống tự động gán không thể nhận nhiệm vụ (do bận việc cá nhân, phương tiện hoặc không liên lạc được), Quản trị viên được phép phân công lại thủ công cho KTV khác dưới đây:",
+          "reassigned": "Đã phân công lại kỹ thuật viên tìm hàng!",
+          "acceptedTitle": "Kỹ thuật viên đã tiếp nhận nhiệm vụ ({{status}})",
+          "acceptedHint": "KTV đã xác nhận nhận lệnh và đang trong quy trình xử lý thực địa. Để đảm bảo tính nhất quán của hiện trường, Quản trị viên không được phép đổi hoặc phân công lại KTV khác."
+        },
+        "verify": {
+          "title": "Xác minh kết quả tìm hàng (Admin Review)",
+          "pendingBadge": "Chờ Admin duyệt",
+          "intro": "KTV đã tìm thấy kiện và nộp báo cáo hiện trường. Admin cần đối chiếu các mục sau trước khi xác minh:",
+          "checkPhotos": "Kiểm tra hình ảnh hiện trường và hiện trạng gói hàng thực tế.",
+          "checkGps": "Đối soát toạ độ GPS xác nhận từ điện thoại KTV so với toạ độ rơi.",
+          "checkCondition": "Xác nhận tình trạng kiện: <b>{{condition}}</b>.",
+          "note": "* Sau khi bấm Duyệt xác minh, kiện hàng được mở khoá để KTV bàn giao về Hub và hệ thống cho phép tạo phương án bồi thường / giao lại cho khách.",
+          "button": "Duyệt xác minh kết quả tìm hàng của KTV",
+          "confirmTitle": "Xác nhận kết quả tìm hàng ({{code}})",
+          "confirmIntro": "Bạn đang thực hiện bước <b>Xác minh kết quả tìm hàng (Admin Review)</b>. Bước này có ý nghĩa:",
+          "confirmFound": "Xác nhận KTV đã tìm thấy kiện tại thực địa với toạ độ và hình ảnh đối soát hợp lệ.",
+          "confirmStatus": "Chuyển trạng thái tìm hàng sang <b>ĐÃ XÁC MINH (VERIFIED)</b>.",
+          "confirmHub": "Cho phép KTV vận chuyển kiện hàng bàn giao về Hub.",
+          "confirmUnlock": "Mở khoá chức năng tạo phương án xử lý bồi thường / giao lại cho khách hàng.",
+          "confirmQuestion": "Bạn đã kiểm tra kỹ hình ảnh hiện trường và toạ độ check-in chưa?",
+          "review": "Xem lại",
+          "success": "Đã xác minh kết quả tìm hàng thành công!",
+          "approve": "Duyệt xác minh"
+        },
+        "policy": {
+          "status": "Chính sách: {{state}}",
+          "configTitle": "Cấu hình bồi thường áp dụng cho đơn:",
+          "viewSettings": "Xem cài đặt",
+          "suggestedRate": "Tỷ lệ đề xuất",
+          "cap": "Trần bồi thường",
+          "noCap": "Không đặt trần",
+          "recoverySla": "SLA thu hồi",
+          "payoutApproval": "Duyệt chi bồi thường",
+          "approvalRequired": "Bắt buộc duyệt",
+          "parcelValue": "Giá trị kiện:",
+          "suggestedCompensation": "⇒ Gợi ý bồi thường:",
+          "refundShipping": "• Hoàn cước ship:",
+          "dispute": "• Xem xét lại:",
+          "allowed": "Cho phép",
+          "resolutionLabel": "Phương án giải quyết đề xuất:",
+          "amountLabel": "Số tiền bồi thường (VND):",
+          "refundShippingFee": "Hoàn phí giao hàng khi bồi thường",
+          "refundShippingFeeHint": "(Khoản hoàn phí vận chuyển được xử lý tách biệt với bồi thường giá trị kiện hàng)",
+          "overrideLabel": "Lý do điều chỉnh / Ghi chú thỏa thuận:",
+          "manualPlaceholder": "Bắt buộc: Nhập chi tiết phương án đã thỏa thuận với khách..."
+        },
+        "resolutionHint": {
+          "freeRedelivery": "• Giao lại miễn phí toàn bộ cước phí sau khi kiện đã an toàn về Hub (Khoản bồi thường = 0đ).",
+          "redeliveryPartialCompensation": "• Giao lại kiện cho khách sau khi đã về Hub, đồng thời tạo phiếu bồi thường một phần giá trị thiệt hại.",
+          "compensationOnly": "• Tạo phiếu bồi thường chuyển khoản qua ngân hàng cho khách (không giao lại kiện do mất hoặc hỏng hoàn toàn).",
+          "manualResolution": "• Thoả thuận phương án riêng với khách hàng ngoài quy trình tự động. Nhập biên bản/nội dung thỏa thuận vào ô ghi chú."
+        },
+        "redelivery": {
+          "title": "Tiến trình giao lại cho khách",
+          "badge": "Đang giao lại",
+          "newOrder": "Đơn giao lại mới:",
+          "hint": "Kiện hàng đã được điều phối giao lại từ Hub. Khi kiện đã giao thành công tới tay khách, bấm nút dưới để hoàn tất toàn bộ sự cố:",
+          "success": "Đã xác nhận giao lại thành công và đóng sự cố!",
+          "button": "Xác nhận đã giao lại thành công & hoàn tất sự cố"
+        }
+      },
+      "recoveryDispatch": {
+        "modalTitle": "Bản đồ vị trí KTV & Điều phối tìm kiếm",
+        "modalDescription": "Sự cố: <b>{{code}}</b> · Đơn: {{order}} · Điểm rơi: {{lat}}, {{lon}}",
+        "assignNearestNow": "Gán ngay KTV gần nhất ({{distance}})",
+        "trackingBadge": "KTV đã tiếp nhận (Chế độ theo dõi)",
+        "lockedBanner": "<b>Kỹ thuật viên đã tiếp nhận nhiệm vụ.</b> Bản đồ hiện ở chế độ theo dõi vị trí thực tế của KTV và điểm rơi. Quản trị viên không thể phân công lại.",
+        "searchTechOrLocker": "Tìm tên KTV hoặc tên tủ...",
+        "assignedToast": "Đã phân công thu hồi sự cố cho {{name}}!",
+        "assignedToastDemo": "Đã phân công thu hồi sự cố cho {{name}} (Dữ liệu mẫu demo)!",
+        "inlineTitle": "Bản đồ điều phối & Phân công kỹ thuật viên tìm hàng",
+        "awaitingTech": "Chờ KTV tiếp nhận",
+        "acceptedLocked": "KTV đã tiếp nhận (Khóa phân công)",
+        "inlineHint": "Bấm trực tiếp vào KTV trên bản đồ hoặc danh sách bên phải để chọn và phân công",
+        "assignNearest": "Gán KTV gần nhất ({{name}} · {{distance}})",
+        "fitTitle": "Căn chỉnh toàn cảnh bản đồ",
+        "fitButton": "Xem toàn cảnh",
+        "acceptedTitle": "Kỹ thuật viên {{name}} đã tiếp nhận nhiệm vụ.",
+        "acceptedHint": "KTV đang trong quy trình tiếp cận hiện trường và thu hồi kiện. Để đảm bảo an toàn vận hành và tính nhất quán của hiện trường, Quản trị viên không được phép đổi KTV khác. Bản đồ chuyển sang chế độ theo dõi vị trí thực địa.",
+        "searchTechPhoneLocation": "Tìm tên KTV, số ĐT, địa điểm...",
+        "assignedTechToast": "Đã phân công kỹ thuật viên {{name}} tìm hàng!",
+        "assignedTechToastDemo": "Đã phân công {{name}} (Demo)",
+        "assignFailed": "Không thể phân công KTV. Vui lòng thử lại!",
+        "radius": "Bán kính:",
+        "onShiftCount": "KTV đang trong ca:",
+        "mapCount": "Bản đồ: <b>{{count}}</b> KTV",
+        "dropPoint": "Điểm rơi",
+        "dropPinModal": "🚨 Điểm Drone rơi",
+        "dropPinInline": "🚨 Điểm rơi kiện drone",
+        "incidentCode": "Mã sự cố:",
+        "coords": "Tọa độ: {{lat}}, {{lon}}",
+        "onDutyTag": "🟢 Đang trực",
+        "offShiftTag": "⚪ Ngoài ca",
+        "distance": "Khoảng cách: {{distance}}",
+        "fromDrop": "Cách điểm rơi: {{distance}}",
+        "shift": "Ca trực:",
+        "onShiftLong": "Đang trong ca trực",
+        "onShift": "Đang trong ca",
+        "offShift": "Ngoài ca",
+        "assignedLocker": "Tủ trực:",
+        "assignThis": "Phân công KTV này",
+        "inCharge": "✓ Đang phụ trách nhiệm vụ",
+        "assignmentLocked": "(Đã khóa phân công)",
+        "listTitle": "Danh sách KTV theo cự ly gần nhất",
+        "listTitleCount": "Danh sách KTV theo cự ly gần nhất ({{count}})",
+        "candidates": "{{count}} ứng viên",
+        "loadingTechs": "Đang tải danh sách kỹ thuật viên...",
+        "loadingGps": "Đang tải dữ liệu vị trí GPS của kỹ thuật viên...",
+        "noneInRadius": "Không tìm thấy KTV nào trong bán kính {{radius}}.",
+        "noneInThisRadius": "Không tìm thấy KTV nào trong bán kính này.",
+        "noneInRadiusShort": "Không tìm thấy KTV trong bán kính {{radius}}.",
+        "noneInThisRadiusShort": "Không tìm thấy KTV trong bán kính này.",
+        "expandRadius": "Mở rộng bán kính (10 km / Tất cả)",
+        "viewAll": "Xem tất cả KTV",
+        "nearest": "Gần nhất",
+        "noCoords": "Chưa có toạ độ",
+        "lockerName": "· Tủ: {{name}}",
+        "assignShort": "Gán việc",
+        "inChargeShort": "✓ Đang phụ trách",
+        "lockedShort": "Đã khóa gán",
+        "clickToSelect": "Bấm để chọn KTV",
+        "selected": "Đang chọn",
+        "selectedTech": "KTV đang chọn:",
+        "selectPrompt": "Chọn một kỹ thuật viên trên bản đồ hoặc danh sách để phân công"
       }
     },
     "knowledge": {
@@ -4192,6 +5213,110 @@
         "suspendedTag": "[Đã đình chỉ]",
         "noEligible": "Chưa có KTV {{type}} phù hợp.",
         "confirm": "Xác nhận phân công"
+      },
+      "ui": {
+        "search": {
+          "boxToken": "ô {{n}}"
+        },
+        "deleteToast": {
+          "single": "Đã xóa thành công phiếu {{code}}",
+          "singleFailed": "Không thể xóa phiếu sự cố",
+          "singleFailedDesc": "Đã xảy ra lỗi khi xóa phiếu",
+          "allDeleted": "Đã xóa thành công tất cả {{count}} phiếu sự cố {{category}}",
+          "batchDeleted": "Đã xóa thành công {{count}} phiếu sự cố {{category}}",
+          "batchFailed": "Không thể xóa hàng loạt phiếu sự cố",
+          "batchFailedDesc": "Đã xảy ra lỗi khi xóa các phiếu"
+        },
+        "select": {
+          "allFiltered": "Chọn tất cả {{count}} phiếu đang lọc",
+          "selectedCount": "(Đã chọn {{count}})",
+          "deleteSelected": "Xóa {{count}} phiếu đã chọn",
+          "deleteAll": "Xóa toàn bộ ({{count}})",
+          "selectReport": "Chọn phiếu {{code}}"
+        },
+        "deleteThisReport": "Xóa phiếu sự cố này",
+        "drop": {
+          "linkTitle": "Bấm để mở Sự cố rơi kiện liên kết",
+          "emergencyBadge": "🚨 SỰ CỐ RƠI DRONE KHẨN CẤP",
+          "openStatus": "MỚI MỞ · CẦN ĐIỀU PHỐI TÌM KIẾM",
+          "coordinates": "Tọa độ rơi:",
+          "orderCode": "Mã đơn:",
+          "viewOrder": "Xem chi tiết đơn hàng",
+          "incidentCode": "Mã sự cố rơi:",
+          "viewIncident": "Xem chi tiết sự cố rơi kiện",
+          "dispatchRadius": "Điều phối KTV bán kính R"
+        },
+        "deleteDialog": {
+          "title": "Xóa phiếu sự cố {{code}}",
+          "confirm": "Bạn có chắc chắn muốn xóa vĩnh viễn phiếu sự cố <b>{{code}}</b> ({{title}}) không?",
+          "warning": "⚠️ Hành động này không thể hoàn tác. Mọi dữ liệu liên quan bao gồm hình ảnh đính kèm, nhật ký kỹ thuật và đánh giá sẽ bị xóa hoàn toàn. Nếu phiếu này đang khóa ô tủ, ô tủ sẽ tự động được mở khóa."
+        },
+        "batchDialog": {
+          "titleAll": "Xác nhận xóa TOÀN BỘ phiếu sự cố {{category}}",
+          "titleSome": "Xác nhận xóa hàng loạt {{count}} phiếu sự cố",
+          "confirmAll": "Bạn có chắc chắn muốn xóa <danger>toàn bộ {{count}} phiếu sự cố</danger> thuộc danh mục <b>{{category}}</b> không?",
+          "confirmSome": "Bạn có chắc chắn muốn xóa vĩnh viễn <danger>{{count}} phiếu</danger> sự cố đã chọn không?",
+          "warning": "⚠️ Cảnh báo: Tất cả phiếu sự cố được chọn, hình ảnh đính kèm trên hệ thống lưu trữ và nhật ký xử lý sẽ bị xóa vĩnh viễn khỏi cơ sở dữ liệu.",
+          "deleteAll": "Xóa toàn bộ",
+          "deleteCount": "Xóa {{count}} phiếu"
+        },
+        "shift": {
+          "onDutyCount": "{{count}} trực ca",
+          "filterPlaceholder": "Ca trực",
+          "all": "Tất cả ca trực",
+          "onDutyOption": "🟢 Đang trong ca ({{count}})",
+          "offDutyOption": "⚪ Ngoài ca ({{count}})",
+          "label": "Ca trực:",
+          "onDuty": "Đang trong ca",
+          "offDuty": "Ngoài ca",
+          "coords": "Tọa độ: {{lat}}, {{lon}}",
+          "coordsUpdated": "Tọa độ: {{lat}}, {{lon}} (Cập nhật: {{time}})",
+          "noLocation": "Chưa có vị trí"
+        },
+        "presence": {
+          "title": "Ca trực & Vị trí hiện trường",
+          "offDuty": "Ngoài ca trực",
+          "desc": "Tọa độ GPS và trạng thái sẵn sàng nhận việc ngoài hiện trường.",
+          "shiftStart": "Vào ca lúc:",
+          "shiftEnd": "Hết ca lúc:",
+          "gps": "Tọa độ GPS:",
+          "accuracy": "Độ chính xác:",
+          "meters": "±{{value}} mét",
+          "updatedAt": "Cập nhật lúc:",
+          "openMaps": "Mở trên Google Maps",
+          "waitingGps": "Đang chờ KTV gửi tọa độ GPS...",
+          "noGps": "Chưa có dữ liệu vị trí GPS",
+          "hint": "Vị trí sẽ được cập nhật khi KTV bật ca trực trên ứng dụng Mobile."
+        },
+        "devices": {
+          "droneTitle": "Drone phụ trách",
+          "kioskTitle": "Kiosk / Tủ phụ trách",
+          "droneDesc": "Danh sách Drone được phân công cho KTV phụ trách và bảo trì.",
+          "kioskDesc": "Danh sách tủ Kiosk được phân công cho KTV phụ trách xử lý sự cố.",
+          "noDrone": "Chưa có Drone phụ trách",
+          "noDroneHint": "Gán KTV phụ trách trong trang chi tiết Drone.",
+          "battery": "Pin:",
+          "homeStation": "Trạm gốc:",
+          "viewDrone": "Xem chi tiết Drone",
+          "noKiosk": "Chưa có Kiosk phụ trách",
+          "noKioskHint": "Gán KTV phụ trách trong trang chi tiết Kiosk.",
+          "freeBoxes": "Số ô trống:",
+          "viewKiosk": "Xem chi tiết Kiosk"
+        },
+        "cellStatus": {
+          "cleaning": "Đang vệ sinh"
+        },
+        "inspection": {
+          "passed": "Đạt chuẩn vận hành",
+          "attention": "Cần theo dõi thêm",
+          "defect": "Phát hiện sự cố hỏng hóc",
+          "failed": "Không đạt chuẩn",
+          "recorded": "Đã ghi nhận"
+        },
+        "repairTag": {
+          "fieldNote": "[GHI CHÚ HIỆN TRƯỜNG]",
+          "accepted": "[NGHIỆM THU THÀNH CÔNG]"
+        }
       }
     },
     "payments": {
@@ -4407,6 +5532,213 @@
         "rejectedSub": "Yêu cầu bị từ chối",
         "total": "Tổng yêu cầu",
         "totalSub": "Tổng số lượt yêu cầu hoàn tiền"
+      },
+      "page": {
+        "rulesButton": "Quy tắc hoàn tiền",
+        "rulesModalTitle": "Quy tắc đối chiếu hoàn tiền cho các tình huống",
+        "tabs": {
+          "pending": "Yêu cầu chờ xử lý",
+          "history": "Lịch sử hoàn tiền",
+          "rules": "Quy tắc & Hướng dẫn đối chiếu"
+        },
+        "pendingTab": {
+          "title": "Danh sách yêu cầu hoàn tiền đang chờ duyệt",
+          "description": "Quét mã QR ngân hàng hoặc chuyển khoản thủ công, sau đó tải ảnh biên lai và xác nhận",
+          "checkRules": "Đối chiếu quy tắc"
+        },
+        "historyTab": {
+          "title": "Lịch sử hoàn tiền toàn hệ thống",
+          "description": "Tra cứu lại các giao dịch đã hoàn tiền thành công hoặc bị từ chối, kèm mã giao dịch và ảnh minh chứng"
+        },
+        "zoom": "Phóng to",
+        "customerReason": "Lý do yêu cầu từ khách:",
+        "noReasonNote": "Không có ghi chú lý do",
+        "transferProof": "Ảnh minh chứng chuyển khoản",
+        "table": {
+          "copied": "Đã sao chép: {{text}}",
+          "proofRequiredToast": "Vui lòng tải ảnh minh chứng chuyển khoản (Biên lai / UNC) trước khi xác nhận",
+          "viewTicketDetail": "Bấm để xem chi tiết phiếu hoàn",
+          "viewOrderDetail": "Xem chi tiết đơn hàng",
+          "compensationBadge": "Bồi thường sự cố",
+          "compensationBadgePct": "Bồi thường sự cố · Hoàn {{pct}}",
+          "accountUpdateNotified": "Đã thông báo khách cập nhật STK",
+          "transferRef": "Mã GD:",
+          "processedShort": "XL: {{time}}"
+        },
+        "approve": {
+          "accountInfoTitle": "Thông tin tài khoản nhận tiền",
+          "ticketBadge": "Phiếu #{{id}}",
+          "notUpdated": "Chưa cập nhật",
+          "copyAccountNumber": "Sao chép STK",
+          "accountHolderName": "Tên chủ tài khoản:",
+          "copyAccountHolder": "Sao chép tên chủ tài khoản",
+          "orderInfoTitle": "Thông tin đơn hàng & Lý do hoàn",
+          "orderToRefund": "Đơn hàng cần hoàn:",
+          "originalPaidAmount": "Số tiền đơn gốc đã thanh toán:",
+          "requestedAmount": "Số tiền yêu cầu hoàn:",
+          "copyAmount": "Sao chép số tiền",
+          "customerAttachment": "Hình ảnh đính kèm từ khách:",
+          "customerAttachmentAlt": "Ảnh đính kèm từ khách hàng",
+          "transferRefPlaceholder": "Ví dụ: FT24100712345678 hoặc mã tham chiếu chuyển tiền",
+          "proofLabel": "Ảnh minh chứng chuyển khoản (Biên lai / UNC)",
+          "proofRequired": "Bắt buộc tải ảnh",
+          "proofAlt": "Minh chứng chuyển khoản",
+          "clickToEnlarge": "Bấm để xem ảnh to",
+          "proofSelected": "Đã chọn ảnh thành công",
+          "changeImage": "Đổi ảnh khác",
+          "uploadPrompt": "Bấm vào đây để tải ảnh biên lai / ảnh chụp màn hình chuyển khoản",
+          "uploadFormats": "Hỗ trợ định dạng JPG, PNG, WebP (Tối đa 10MB)",
+          "vietQrTitle": "Mã thanh toán VietQR",
+          "vietQrHint": "Mở app ngân hàng bất kỳ để quét mã tự động điền STK & số tiền",
+          "openQrLarge": "Mở ảnh QR lớn",
+          "missingBankInfo": "Khách hàng chưa cập nhật mã ngân hàng/STK đầy đủ. Vui lòng kiểm tra lại.",
+          "transferContent": "Nội dung CK:",
+          "copyContent": "Sao chép nội dung",
+          "transferAmount": "Số tiền CK:",
+          "warningCompensation": "Hành động này ghi nhận <b>đã chi bồi thường</b> cho sự cố {{code}} (không đổi trạng thái hoàn tiền của đơn), cập nhật sự cố và gửi thông báo kèm ảnh minh chứng tới khách hàng.",
+          "warningRefund": "Hành động này sẽ cập nhật đơn hàng thành <b>ĐÃ HOÀN TIỀN</b> và gửi thông báo kèm ảnh minh chứng chuyển khoản tới khách hàng.",
+          "proofMissingHint": "* Cần tải ảnh biên lai / UNC trước khi xác nhận"
+        },
+        "reject": {
+          "compensationDropBadge": "🚨 Bồi thường rơi",
+          "customerProof": "Ảnh minh chứng từ khách:",
+          "customerAttachmentAlt": "Ảnh đính kèm từ khách"
+        },
+        "detail": {
+          "orderCode": "Mã đơn hàng:",
+          "bankTransferRef": "Mã GD ngân hàng / UNC:",
+          "noTransferRef": "Chưa có mã UNC",
+          "requestedAt": "Thời gian yêu cầu:",
+          "processedAt": "Thời gian xử lý:",
+          "compensationDropBadge": "🚨 Bồi thường sự cố rơi",
+          "customerProof": "Ảnh minh chứng từ khách hàng",
+          "noCustomerProof": "Khách hàng không đính kèm ảnh minh chứng sự cố",
+          "openOriginal": "Mở ảnh gốc",
+          "noTransferProof": "Không có ảnh minh chứng chuyển khoản đính kèm"
+        },
+        "lightbox": {
+          "title": "Minh chứng chuyển khoản hoàn tiền",
+          "alt": "Ảnh minh chứng",
+          "caption": "Minh chứng chuyển tiền ngân hàng đối soát"
+        },
+        "guide": {
+          "title": "Quy tắc đối chiếu & Hướng dẫn xét duyệt hoàn tiền",
+          "description": "Admin vui lòng tra cứu các tình huống bên dưới trước khi duyệt và thực hiện chuyển khoản cho khách hàng.",
+          "steps": {
+            "title": "Quy trình 4 bước chuẩn dành cho Quản trị viên:",
+            "step": "Bước {{n}}:",
+            "s1": {
+              "title": "Kiểm tra thông tin STK",
+              "description": "So khớp Tên chủ tài khoản và STK với thông tin khách đã đăng ký."
+            },
+            "s2": {
+              "title": "Quét mã VietQR chuyển tiền",
+              "description": "Mở app Mobile Banking quét mã QR để điền tự động STK, số tiền & nội dung."
+            },
+            "s3": {
+              "title": "Tải ảnh chụp minh chứng",
+              "description": "Chụp lại màn hình chuyển khoản thành công và tải lên modal để lưu vết đối soát."
+            },
+            "s4": {
+              "title": "Xác nhận hoàn tiền",
+              "description": "Hệ thống ghi nhận trạng thái ĐÃ HOÀN TIỀN và gửi thông báo kèm ảnh đến khách."
+            }
+          },
+          "scenariosTitle": "Các tình huống áp dụng hoàn tiền:",
+          "scenariosHint": "(Nhấn vào từng tình huống để xem chi tiết điều kiện)",
+          "refundRate": "Mức hoàn: {{rate}}",
+          "conditionsTitle": "Điều kiện chấp thuận:",
+          "evidenceTitle": "Chứng từ / Dữ liệu cần có:",
+          "adminCheckTitle": "Admin cần đối chiếu:",
+          "scenarios": {
+            "lockerFault": {
+              "title": "1. Sự cố ô tủ Lock.R (Kẹt cửa, hỏng chốt, mất nguồn/mạng)",
+              "badge": "Sự cố phần cứng",
+              "refundRate": "100% Cước phí đơn",
+              "conditions": {
+                "c1": "Khách không thể mở tủ để cất đồ hoặc lấy đồ do sự cố tủ.",
+                "c2": "KTV xác nhận ô tủ gặp lỗi chốt, mất kết nối BLE/MQTT hoặc cúp điện kéo dài > 30 phút.",
+                "c3": "Không có ô trống khác cùng kích cỡ để điều chuyển ô tự động."
+              },
+              "evidence": {
+                "e1": "Phiếu báo cáo sự cố của KTV (Maintenance Report ID).",
+                "e2": "Nhật ký lệnh mở tủ thất bại trên hệ thống IoT/Locker."
+              },
+              "adminCheck": {
+                "a1": "Đối chiếu mã đơn hàng và số ô tủ trên báo cáo sự cố.",
+                "a2": "Xác nhận khách chưa lấy được hàng hoặc giao dịch bị gián đoạn hoàn toàn."
+              }
+            },
+            "droneFault": {
+              "title": "2. Sự cố giao hàng Drone (Rơi đồ, hủy chuyến bay, giao trễ)",
+              "badge": "Sự cố Drone",
+              "refundRate": "100% Cước phí + Bồi thường",
+              "conditions": {
+                "c1": "Drone phải hạ cánh khẩn cấp hoặc hủy bay do thời tiết xấu/mưa bão.",
+                "c2": "Drone gặp sự cố rơi kiện hàng hoặc kiện hàng bị va đập hư hỏng.",
+                "c3": "Giao trễ vượt quá thời gian cam kết của hệ thống Drone delivery."
+              },
+              "evidence": {
+                "e1": "Mã chuyến bay Drone, tọa độ và thời gian xảy ra sự cố.",
+                "e2": "Ảnh chụp snapshot camera Drone hoặc biên bản KTV thu hồi kiện hàng."
+              },
+              "adminCheck": {
+                "a1": "Kiểm tra trạng thái đơn Drone (DROPPED, CANCELLED, TIMED_OUT).",
+                "a2": "Nếu hàng hóa bị hỏng, kiểm tra mức đền bù theo quy định bảo hiểm vận chuyển."
+              }
+            },
+            "userCancel": {
+              "title": "3. Khách hàng huỷ đơn hợp lệ trước khi sử dụng",
+              "badge": "Huỷ đơn tự nguyện",
+              "refundRate": "100% (theo điều kiện)",
+              "conditions": {
+                "c1": "Khách đã thanh toán nhưng chưa đặt đồ vào tủ (chưa phát sinh sự kiện ITEM_PLACED).",
+                "c2": "Yêu cầu huỷ và hoàn tiền trong vòng {{days}} ngày kể từ khi thanh toán thành công.",
+                "c3": "Với đơn thuê tủ dài ngày: chưa hết hạn và chưa nhận bàn giao ô."
+              },
+              "evidence": {
+                "e1": "Lịch sử trạng thái đơn hàng (Order Timeline): không có lượt mở tủ cất đồ.",
+                "e2": "Thời gian thanh toán hợp lệ (không vượt quá thời hạn cấu hình refundMaxDays)."
+              },
+              "adminCheck": {
+                "a1": "Xác nhận ô tủ vẫn đang trống và mã PIN chưa từng được sử dụng để cất đồ."
+              }
+            },
+            "doublePay": {
+              "title": "4. Lỗi cổng thanh toán / Trừ tiền 2 lần (Double Billing)",
+              "badge": "Lỗi thanh toán",
+              "refundRate": "100% Số tiền trừ trùng",
+              "conditions": {
+                "c1": "Khách hàng bị trừ tiền 2 lần cho cùng một mã đơn hoặc dịch vụ phát sinh.",
+                "c2": "Ngân hàng đã trừ tiền nhưng cổng SePay phản hồi timeout hoặc lỗi mạng."
+              },
+              "evidence": {
+                "e1": "Sao kê giao dịch ngân hàng / biên lai trừ tiền có mã đối chiếu trùng khớp.",
+                "e2": "Bảng PaymentRecord trên hệ thống hiển thị nhiều giao dịch cho cùng orderId."
+              },
+              "adminCheck": {
+                "a1": "So sánh referenceId và referenceTransactionId giữa các lượt thanh toán.",
+                "a2": "Chỉ hoàn khoản tiền bị trừ thừa/trùng lặp, giữ lại khoản thanh toán chính thức."
+              }
+            },
+            "laundryFault": {
+              "title": "5. Sự cố dịch vụ Giặt ủi (Mất đồ, hỏng đồ, tiệm từ chối)",
+              "badge": "Dịch vụ giặt ủi",
+              "refundRate": "100% Tiền giặt + Đền bù",
+              "conditions": {
+                "c1": "Tiệm giặt đối tác từ chối nhận giặt do vượt quá tải trọng hoặc chất liệu không phù hợp.",
+                "c2": "Quần áo bị thất lạc hoặc hư hỏng rách/phai màu nghiêm trọng do tiệm giặt."
+              },
+              "evidence": {
+                "e1": "Ảnh chụp tình trạng đồ trước và sau khi nhận từ tiệm giặt.",
+                "e2": "Biên bản đối soát bồi hoàn giữa Admin và Chủ tiệm giặt đối tác."
+              },
+              "adminCheck": {
+                "a1": "Xác nhận với bên đối tác tiệm giặt về tình trạng đơn hàng trước khi bấm hoàn tiền."
+              }
+            }
+          }
+        }
       }
     },
     "revenue": {
@@ -4659,6 +5991,236 @@
         "OPERATIONAL": "Lý do vận hành",
         "OTHER": "Lý do khác"
       }
+    },
+    "droneLogs": {
+      "title": "Nhật ký giao tiếp Drone & Tủ Smart Locker",
+      "description": "Theo dõi trực tiếp thông điệp MQTT, nội dung phản hồi, trạng thái xử lý và liên kết tới Đơn hàng, Drone, Tủ thông minh",
+      "toast": {
+        "refreshed": "Đã cập nhật nhật ký giao tiếp Drone & Tủ"
+      },
+      "filter": {
+        "orderId": "Mã đơn hàng (ID)",
+        "orderIdPlaceholder": "Ví dụ: 1024",
+        "dronePlaceholder": "Ví dụ: DRONE-S550-07",
+        "allEvents": "Tất cả sự kiện",
+        "processingStatus": "Trạng thái xử lý"
+      },
+      "status": {
+        "rejected": "Từ chối",
+        "error": "Lỗi"
+      },
+      "listTitle": "Danh sách thông điệp giao tiếp ({{total}})",
+      "col": {
+        "event": "Sự kiện",
+        "message": "Nội dung thông điệp (Message)"
+      },
+      "loading": "Đang tải danh sách nhật ký giao tiếp...",
+      "empty": "Không có thông điệp giao tiếp nào phù hợp với bộ lọc.",
+      "lockerLinkTitle": "Mở sơ đồ ô tủ & cấu hình mã ArUco",
+      "locker": "Tủ {{label}}",
+      "boxTitle": "Ô tủ ID #{{id}}",
+      "boxTitleWithNumber": "Ô tủ ID #{{id}} (Ô số {{n}})",
+      "boxNumber": "Ô số {{n}}",
+      "boxId": "Ô #{{id}}",
+      "droneLinkTitle": "Mở trang điều khiển & camera của {{code}} (ID #{{id}})",
+      "droneListTitle": "Xem danh sách Drone ({{code}})",
+      "orderLinkTitle": "Xem chi tiết đơn hàng",
+      "message": {
+        "lidClosedLocked": "Nắp trượt ô tủ đã đóng hoàn toàn và khóa an toàn",
+        "lidOpened": "Nắp trượt ô tủ đã mở hoàn toàn",
+        "doorOpened": "Đã mở cửa ô tủ",
+        "doorClosedLocked": "Cửa ô tủ đã đóng và khóa an toàn",
+        "processingError": "Lỗi xử lý: {{code}}",
+        "markerDetected": "Camera phát hiện mã ArUco #{{id}}",
+        "distance": "Khoảng cách: {{value}}",
+        "offset": "Lệch X: {{x}}, Y: {{y}}",
+        "markerValidated": "Xác thực mã ArUco hợp lệ với ô tủ đích",
+        "openLidRetry": "Gửi lại lệnh mở nắp trượt ô tủ (lần {{n}})",
+        "openLidSent": "Đã gửi lệnh mở nắp trượt ô tủ",
+        "lidOpenAccepted": "Tủ đã nhận lệnh mở, nắp trượt đang chạy",
+        "lidCloseAccepted": "Tủ đã nhận lệnh đóng, nắp trượt đang chạy",
+        "targetRequest": "Drone hỏi mục tiêu giao hàng (ô đích và mã ArUco)",
+        "lidOpenedReported": "Tủ báo nắp trượt đã mở",
+        "dropPhaseStarted": "Bắt đầu giả lập drone nhả hàng (nắp đã mở thật)",
+        "dropPhaseCompleted": "Hoàn tất giả lập drone nhả hàng",
+        "closeLidRetry": "Gửi lại lệnh đóng nắp trượt ô tủ (tủ đã kết nối lại, lần {{n}})",
+        "closeLidSent": "Gửi lệnh yêu cầu đóng nắp trượt ô tủ",
+        "deliveryReady": "Giao hàng hoàn tất an toàn — Kiện hàng sẵn sàng để khách nhận"
+      }
+    },
+    "cabinetControl": {
+      "description": "Mở ô, điều khiển nắp/thanh trượt và xem trạng thái phần cứng của tủ. Lệnh gửi qua MQTT tới bộ điều khiển Raspberry Pi của tủ.",
+      "noLockers": "Chưa có tủ nào để điều khiển.",
+      "safetyWarning": "<b>Điều khiển phần cứng thật.</b> Nút nắp quay động cơ của tủ. Chỉ chạy khi chắc chắn không ai đang thao tác tại tủ; nếu nắp kêu hoặc kẹt, bấm <b>Dừng</b> ngay. Lệnh chạy nắp trả về ngay rồi tủ mới chạy — theo dõi trạng thái bên dưới.",
+      "lockerLabel": "Tủ:",
+      "tabs": {
+        "control": "Điều khiển",
+        "hardware": "Cấu hình phần cứng"
+      },
+      "openBoxTitle": "Mở ô tủ",
+      "openBoxLabel": "Mở ô {{n}}",
+      "box": "Ô {{n}}",
+      "noLayout": "Chưa lấy được sơ đồ ô.",
+      "lidAxisLabel": "Nắp trục {{axis}}",
+      "jogAxisLabel": "Chạy nắp trục {{axis}}",
+      "tuneAxisLabel": "Chỉnh nắp trục {{axis}}",
+      "noLidStatus": "Chưa lấy được trạng thái nắp. Tủ có thể đang mất kết nối — bấm Làm mới.",
+      "run": {
+        "sent": "{{label}}: đã gửi lệnh",
+        "failed": "{{label}} không thành công",
+        "sendFailed": "{{label}} không gửi được — kiểm tra kết nối"
+      },
+      "actions": {
+        "boxOpen": "Mở ô",
+        "boxTest": "Thử ô",
+        "lidOpen": "Nắp: mở hết",
+        "lidClose": "Nắp: đóng hết",
+        "lidHome": "Nắp: về gốc",
+        "lidStop": "Nắp: dừng",
+        "lidJog": "Nắp: chạy thử",
+        "lidTune": "Nắp: chỉnh thông số",
+        "hwConfig": "Áp dụng cấu hình phần cứng",
+        "bleToken": "Bluetooth: cấp mã mở ô",
+        "boxOpenBle": "Mở ô qua Bluetooth",
+        "bleRejected": "Bluetooth: mã bị từ chối"
+      },
+      "tune": {
+        "rps": "Tốc độ (vòng/giây)",
+        "pulseUs": "Độ rộng xung (µs)",
+        "stepsPerRev": "Số xung mỗi vòng",
+        "maxRevs": "Giới hạn vòng mỗi lần"
+      },
+      "log": {
+        "title": "Nhật ký điều khiển",
+        "help": "<b>Web</b>: lệnh gửi từ trang này. <b>Tủ</b>: việc tủ thực sự làm (kích relay, chạy nắp) từ mọi nguồn — tủ lưu lại khi mất mạng và gửi lên khi có mạng lại, nên có thể hiện muộn nhưng đúng giờ xảy ra.",
+        "empty": "Chưa có nhật ký.",
+        "axis": "Trục {{axis}}",
+        "sourceLocker": "Tủ",
+        "columns": {
+          "source": "Nguồn",
+          "action": "Hành động",
+          "target": "Ô / trục",
+          "revolutions": "Số vòng",
+          "result": "Kết quả"
+        }
+      },
+      "lid": {
+        "title": "Trục nắp {{axis}}",
+        "overBoxes": "· trên ô {{boxes}}",
+        "notEnabled": "Chưa bật",
+        "running": "đang chạy",
+        "disabledHint": "Trục này chưa bật trên bộ điều khiển của tủ (LID2_ENABLED=false).",
+        "openFully": "Mở hết",
+        "closeFully": "Đóng hết",
+        "home": "Về gốc",
+        "stop": "Dừng",
+        "jogLabel": "Chạy thử (số vòng)",
+        "jogOpen": "↑ mở",
+        "jogClose": "↓ đóng",
+        "tuneSummary": "Chỉnh tốc độ / xung",
+        "saveParams": "Lưu thông số"
+      },
+      "hardware": {
+        "pins": {
+          "pul": "PUL− (xung)",
+          "dir": "DIR− (chiều)",
+          "home": "Công tắc gốc (đóng hết)",
+          "end": "Công tắc cuối (mở hết)"
+        },
+        "wiring": {
+          "group": "Nhóm",
+          "from": "Chân Pi / từ",
+          "wire": "Tên dây",
+          "to": "Tới",
+          "via": "Qua"
+        },
+        "pinLabel": "GPIO{{gpio}} · chân {{pin}}",
+        "roles": {
+          "relay": "relay ô {{n}}",
+          "door": "cảm biến ô {{n}}",
+          "axis": "trục {{axis}} {{pin}}"
+        },
+        "problems": {
+          "pinTwice": "GPIO{{pin}} bị dùng hai lần: {{roles}}",
+          "and": "và",
+          "countMismatch": "Số chân relay phải bằng số chân cảm biến cửa",
+          "unlockRange": "Thời gian kích relay phải từ 100 tới 10000 ms",
+          "boxTwoAxes": "Ô {{box}} không thể nằm dưới cả trục {{first}} và trục {{second}}"
+        },
+        "loading": "Đang tải cấu hình…",
+        "loadFailed": "Chưa tải được cấu hình.",
+        "toast": {
+          "saved": "Đã lưu cấu hình phần cứng. Bấm Áp dụng để gửi xuống tủ.",
+          "saveFailed": "Không lưu được cấu hình",
+          "applied": "Tủ đã nhận cấu hình mới và đang khởi động lại bộ điều khiển (khoảng 10 giây).",
+          "rejected": "Tủ không nhận cấu hình",
+          "applyFailed": "Không gửi được cấu hình xuống tủ"
+        },
+        "runningOnLocker": "Tủ đang chạy: {{value}}",
+        "on": "bật",
+        "off": "tắt",
+        "title": "Cấu hình phần cứng",
+        "defaultTemplate": "Chưa lưu cho tủ này — đang hiện mẫu tủ TU01",
+        "savedAt": "Lưu lúc {{time}}",
+        "appliedAt": "Áp dụng {{time}}: {{status}}",
+        "unsaved": "Có thay đổi chưa lưu",
+        "diffs": "Bản đã lưu khác cấu hình đang chạy trên tủ ở {{count}} chỗ — chỗ khác được ghi \"Tủ đang chạy\" ngay dưới ô.",
+        "synced": "Bản đã lưu khớp với cấu hình đang chạy trên tủ.",
+        "noRunning": "Chưa đọc được cấu hình đang chạy trên tủ (tủ mất kết nối hoặc bộ điều khiển bản cũ).",
+        "readOnly": "Bạn chỉ xem được. Chỉ quản trị viên được sửa và áp dụng cấu hình.",
+        "boxesTitle": "Ô tủ: relay và cảm biến cửa",
+        "addBox": "Thêm ô",
+        "removeLastBox": "Bỏ ô cuối",
+        "columns": {
+          "box": "Ô",
+          "relayTerminal": "Cọc relay",
+          "relayPin": "Chân điều khiển relay",
+          "doorPin": "Chân cảm biến cửa"
+        },
+        "optionsTitle": "Relay, cảm biến, drone",
+        "relayActiveLevel": "Relay kích ở mức",
+        "levelHighJumper": "Mức cao (jumper H)",
+        "levelLowJumper": "Mức thấp (jumper L)",
+        "levelHighJumperLower": "mức cao (jumper H)",
+        "levelLowJumperLower": "mức thấp (jumper L)",
+        "unlockMs": "Thời gian kích relay mở khoá (ms, 100–10000)",
+        "doorClosedLevel": "Cảm biến cửa báo đóng ở mức",
+        "doorLowClosed": "Mức thấp = cửa đóng",
+        "doorHighClosed": "Mức cao = cửa đóng",
+        "doorLowClosedLower": "mức thấp = cửa đóng",
+        "doorHighClosedLower": "mức cao = cửa đóng",
+        "requireDoorSensor": "Chỉ báo mở ô thành công khi cảm biến thấy cửa mở",
+        "requireDoorSensorHint": "(tắt khi cảm biến chưa nối)",
+        "lidBypass": "Lệnh nắp của drone chỉ giả lập, không quay động cơ",
+        "lidTitle": "Nắp trượt trục {{axis}}",
+        "wired": "Đang nối",
+        "wiredLower": "đang nối",
+        "notWiredLower": "chưa nối",
+        "openDirection": "Chiều mở",
+        "dirHighOpen": "DIR mức cao = mở",
+        "dirLowOpen": "DIR mức thấp = mở",
+        "limitPressed": "Công tắc hành trình khi bị nhấn",
+        "limitLow": "Báo mức thấp",
+        "limitHigh": "Báo mức cao (module 3 dây)",
+        "limitLowLower": "báo mức thấp",
+        "limitHighLower": "báo mức cao",
+        "lidBoxes": "Nắp nằm trên ô (lệnh drone vào ô này sẽ trượt nắp trục {{axis}})",
+        "wiringTitle": "Sơ đồ đấu dây",
+        "addRow": "Thêm dòng",
+        "wiringHelp": "Ghi chép để tra cứu khi lần dây tại tủ. Bộ điều khiển không dùng bảng này — chân thật lấy từ các mục phía trên.",
+        "deleteRow": "Xoá dòng",
+        "saving": "Đang lưu…",
+        "saveBeforeApply": "Lưu trước rồi mới áp dụng",
+        "sending": "Đang gửi…",
+        "applyToLocker": "Áp dụng xuống tủ",
+        "applyConfirm": "Tủ sẽ khởi động lại bộ điều khiển khoảng 10 giây và chạy theo bản đồ chân mới.",
+        "applyNow": "Áp dụng ngay",
+        "loadRunning": "Lấy cấu hình đang chạy trên tủ",
+        "discard": "Bỏ thay đổi"
+      }
+    },
+    "technicians": {
+      "description": "Xem trạng thái ca trực, vị trí tọa độ GPS, hiệu suất SLA và phân công thiết bị cho KTV kiosk và drone"
     }
   },
   "dropdown": {

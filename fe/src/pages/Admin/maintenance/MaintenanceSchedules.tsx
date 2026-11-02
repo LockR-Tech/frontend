@@ -114,14 +114,14 @@ const TIME_SLOT_OPTIONS = [
 
 const INSPECTION_VERDICTS: InspectionItemVerdict[] = ["PASS", "FAIL", "NA"];
 
-// Nhãn trạng thái ô khi chọn ô hỏng trong biên bản KHÔNG ĐẠT
-const CELL_STATUS_LABEL: Record<string, string> = {
-  AVAILABLE: "Trống",
-  RESERVED: "Đã giữ chỗ",
-  OCCUPIED: "Có đồ",
-  FAULT: "Hỏng",
-  OUT_OF_SERVICE: "Ngưng dùng",
-  CLEANING: "Đang vệ sinh",
+// Nhãn trạng thái ô khi chọn ô hỏng trong biên bản KHÔNG ĐẠT (khoá i18n, dịch lúc render)
+const CELL_STATUS_LABEL_KEYS: Record<string, string> = {
+  AVAILABLE: "admin.lockers.detail.boxStatus.available",
+  RESERVED: "admin.lockers.cell.reserved",
+  OCCUPIED: "admin.lockers.detail.boxStatus.occupied",
+  FAULT: "admin.lockers.boxStatus.fault",
+  OUT_OF_SERVICE: "admin.lockers.boxStatus.outOfService",
+  CLEANING: "admin.maintenance.ui.cellStatus.cleaning",
 };
 
 const DEFAULT_KIOSK_CHECKLIST = [
@@ -816,29 +816,29 @@ export function MaintenanceSchedules() {
       case "PASSED":
         return (
           <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-semibold">
-            Đạt chuẩn vận hành
+            {t("admin.maintenance.ui.inspection.passed")}
           </Badge>
         );
       case "ATTENTION":
         return (
           <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-xs font-semibold">
-            Cần theo dõi thêm
+            {t("admin.maintenance.ui.inspection.attention")}
           </Badge>
         );
       case "DEFECT_DETECTED":
         return (
           <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-xs font-semibold">
-            Phát hiện sự cố hỏng hóc
+            {t("admin.maintenance.ui.inspection.defect")}
           </Badge>
         );
       case "FAILED":
         return (
           <Badge className="bg-rose-100 text-rose-800 border-rose-300 text-xs font-semibold">
-            Không đạt chuẩn
+            {t("admin.maintenance.ui.inspection.failed")}
           </Badge>
         );
       default:
-        return <Badge variant="outline" className="text-xs">Đã ghi nhận</Badge>;
+        return <Badge variant="outline" className="text-xs">{t("admin.maintenance.ui.inspection.recorded")}</Badge>;
     }
   };
 

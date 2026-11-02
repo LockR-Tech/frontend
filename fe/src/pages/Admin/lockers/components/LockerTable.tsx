@@ -443,7 +443,7 @@ export function LockerTable({
                       className="cursor-pointer text-destructive focus:text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      {t("admin.lockers.batch.deleteLocker", "Xóa tủ")}
+                      {t("admin.lockers.batch.deleteLocker")}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -469,7 +469,7 @@ export function LockerTable({
                 className="h-6 px-1.5 text-xs hover:bg-destructive/20 text-destructive"
                 onClick={() => setSelectedLockerIds([])}
               >
-                {t("button.deselectAll", "Bỏ chọn")}
+                {t("common.batchDelete.clear")}
               </Button>
               {onDeleteBatch && (
                 <Button
@@ -480,14 +480,14 @@ export function LockerTable({
                   onClick={() => setShowBatchDeleteConfirm(true)}
                 >
                   <Trash2 className="w-3.5 h-3.5 mr-1" />
-                  {t("admin.lockers.batch.deleteSelected", "Xóa các tủ đã chọn")}
+                  {t("admin.lockers.batch.deleteSelected")}
                 </Button>
               )}
             </div>
           ) : (
             <span className="text-xs text-muted-foreground flex items-center gap-1.5">
               <Box size={14} className="text-muted-foreground/70" />
-              {t("admin.lockers.batch.hint", "Chọn ô bên trái từng tủ để xóa hàng loạt")}
+              {t("admin.lockers.batch.hint")}
             </span>
           )}
         </div>
@@ -501,7 +501,7 @@ export function LockerTable({
             onClick={() => setShowDeleteAllConfirm(true)}
           >
             <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-            {t("admin.lockers.batch.deleteAllLockers", "Xóa tất cả tủ")}
+            {t("admin.lockers.batch.deleteAllLockers")}
           </Button>
         )}
       </div>
@@ -543,7 +543,7 @@ export function LockerTable({
                 : t("admin.lockers.batch.deleteSelectedDesc", { count: selectedLockerIds.length })}
           </p>
         }
-        note={t("admin.lockers.batch.protectWarning")}
+        note={t("admin.lockers.tools.table.protectWarning")}
         actionLabel={
           deleteSingleTarget
             ? t("admin.lockers.batch.deleteLocker")

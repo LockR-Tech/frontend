@@ -1,4 +1,5 @@
 import type { DroneLockerCommLog } from '~/stores/apis/admin/droneCommLogs';
+import i18n from '~/utils/i18n';
 
 // Diễn giải thông điệp giao tiếp Drone ↔ Tủ (order-service, /api/admin/drone-locker-logs) thành câu
 // tiếng Việt. Cùng cách diễn giải với trang /admin/drone-logs để hai nơi đọc giống nhau.
@@ -33,19 +34,19 @@ function translateRawMessage(raw: string): string {
     lower.includes('sliding lid close simulated successfully') ||
     lower === 'sliding lid closed completely and verified'
   ) {
-    return 'Nắp trượt ô tủ đã đóng hoàn toàn và khóa an toàn';
+    return i18n.t('admin.droneLogs.message.lidClosedLocked');
   }
   if (
     lower.includes('sliding lid open simulated successfully') ||
     lower === 'sliding lid opened completely'
   ) {
-    return 'Nắp trượt ô tủ đã mở hoàn toàn';
+    return i18n.t('admin.droneLogs.message.lidOpened');
   }
   if (lower === 'door opened') {
-    return 'Đã mở cửa ô tủ';
+    return i18n.t('admin.droneLogs.message.doorOpened');
   }
   if (lower === 'door is closed and locked') {
-    return 'Cửa ô tủ đã đóng và khóa an toàn';
+    return i18n.t('admin.droneLogs.message.doorClosedLocked');
   }
 
   return text.replace(/\s*\(DICT_[A-Z0-9_]+\)/gi, '');
@@ -67,7 +68,7 @@ export function describeDroneCommLog(log: DroneLockerCommLog): string {
       }
     }
     if (log.errorCode) {
-      return `Lỗi xử lý: ${log.errorCode}`;
+      return i18n.t('admin.droneLogs.message.processingError', { code: log.errorCode });
     }
   }
 
@@ -86,49 +87,49 @@ export function describeDroneCommLog(log: DroneLockerCommLog): string {
         typeof parsed?.offsetY === 'number'
           ? `${parsed.offsetY >= 0 ? '+' : ''}${parsed.offsetY.toFixed(2)}m`
           : null;
-      const parts = [`Camera phát hiện mã ArUco #${mid}`];
-      if (dist) parts.push(`Khoảng cách: ${dist}`);
-      if (ox && oy) parts.push(`Lệch X: ${ox}, Y: ${oy}`);
+      const parts = [i18n.t('admin.droneLogs.message.markerDetected', { id: mid })];
+      if (dist) parts.push(i18n.t('admin.droneLogs.message.distance', { value: dist }));
+      if (ox && oy) parts.push(i18n.t('admin.droneLogs.message.offset', { x: ox, y: oy }));
       return parts.join(' · ');
     }
     case 'MARKER_VALIDATED':
-      return 'Xác thực mã ArUco hợp lệ với ô tủ đích';
+      return i18n.t('admin.droneLogs.message.markerValidated');
     case 'OPEN_LID_REQUESTED':
       if (log.errorMessage && log.errorMessage.trim()) {
         return translateRawMessage(log.errorMessage);
       }
       return log.retryCount > 0
-        ? `Gửi lại lệnh mở nắp trượt ô tủ (lần ${log.retryCount})`
-        : 'Đã gửi lệnh mở nắp trượt ô tủ';
+        ? i18n.t('admin.droneLogs.message.openLidRetry', { n: log.retryCount })
+        : i18n.t('admin.droneLogs.message.openLidSent');
     case 'LID_OPEN_ACCEPTED':
-      return 'Tủ đã nhận lệnh mở, nắp trượt đang chạy';
+      return i18n.t('admin.droneLogs.message.lidOpenAccepted');
     case 'LID_CLOSE_ACCEPTED':
-      return 'Tủ đã nhận lệnh đóng, nắp trượt đang chạy';
+      return i18n.t('admin.droneLogs.message.lidCloseAccepted');
     case 'TARGET_REQUEST':
       if (log.errorMessage && log.errorMessage.trim()) {
         return translateRawMessage(log.errorMessage);
       }
-      return 'Drone hỏi mục tiêu giao hàng (ô đích và mã ArUco)';
+      return i18n.t('admin.droneLogs.message.targetRequest');
     case 'LID_OPENED':
       if (log.errorMessage && log.errorMessage.trim()) {
         return translateRawMessage(log.errorMessage);
       }
-      return 'Tủ báo nắp trượt đã mở';
+      return i18n.t('admin.droneLogs.message.lidOpenedReported');
     case 'DROP_PHASE_STARTED':
       if (log.errorMessage && log.errorMessage.trim()) {
         return translateRawMessage(log.errorMessage);
       }
-      return 'Bắt đầu giả lập drone nhả hàng (nắp đã mở thật)';
+      return i18n.t('admin.droneLogs.message.dropPhaseStarted');
     case 'DROP_PHASE_COMPLETED':
-      return 'Hoàn tất giả lập drone nhả hàng';
+      return i18n.t('admin.droneLogs.message.dropPhaseCompleted');
     case 'CLOSE_LID_REQUESTED':
       return log.retryCount > 0
-        ? `Gửi lại lệnh đóng nắp trượt ô tủ (tủ đã kết nối lại, lần ${log.retryCount})`
-        : 'Gửi lệnh yêu cầu đóng nắp trượt ô tủ';
+        ? i18n.t('admin.droneLogs.message.closeLidRetry', { n: log.retryCount })
+        : i18n.t('admin.droneLogs.message.closeLidSent');
     case 'LID_CLOSED':
-      return 'Nắp trượt ô tủ đã đóng hoàn toàn và khóa an toàn';
+      return i18n.t('admin.droneLogs.message.lidClosedLocked');
     case 'DELIVERY_READY':
-      return 'Giao hàng hoàn tất an toàn — Kiện hàng sẵn sàng để khách nhận';
+      return i18n.t('admin.droneLogs.message.deliveryReady');
     default:
       if (log.errorMessage && log.errorMessage.trim()) {
         return translateRawMessage(log.errorMessage);

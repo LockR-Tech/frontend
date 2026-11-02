@@ -227,7 +227,7 @@ export function RefundTable({
     if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
-    toast.success(t("common.copied", `Đã sao chép: ${text}`));
+    toast.success(t("admin.refunds.page.table.copied", { text }));
     setTimeout(() => {
       setCopiedKey((prev) => (prev === key ? null : prev));
     }, 2000);
@@ -263,11 +263,11 @@ export function RefundTable({
   const handleApprove = async () => {
     if (!selectedRefund) return;
     if (proofMissing) {
-      toast.error("Vui lòng tải ảnh minh chứng chuyển khoản (Biên lai / UNC) trước khi xác nhận");
+      toast.error(t("admin.refunds.page.table.proofRequiredToast"));
       return;
     }
     if (transferRefMissing) {
-      toast.error(t("admin.payments.refund.toast.transferRefRequired", "Vui lòng nhập mã giao dịch ngân hàng / UNC"));
+      toast.error(t("admin.payments.refund.toast.transferRefRequired"));
       return;
     }
 
@@ -311,7 +311,7 @@ export function RefundTable({
       handleCloseModal();
       refetch();
     } catch (err: any) {
-      toast.error(err?.data?.message || t("admin.payments.refund.toast.approveFailed", "Không thể duyệt hoàn tiền"));
+      toast.error(err?.data?.message || t("admin.payments.refund.toast.approveFailed"));
     } finally {
       setIsSubmittingApproval(false);
     }
@@ -320,7 +320,7 @@ export function RefundTable({
   const handleReject = async () => {
     if (!selectedRefund) return;
     if (!rejectionReason.trim()) {
-      toast.error(t("admin.payments.refund.toast.reasonRequired", "Vui lòng nhập lý do từ chối"));
+      toast.error(t("admin.payments.refund.toast.reasonRequired"));
       return;
     }
     try {
@@ -332,7 +332,7 @@ export function RefundTable({
       handleCloseModal();
       refetch();
     } catch (err: any) {
-      toast.error(err?.data?.message || t("admin.payments.refund.toast.rejectFailed", "Từ chối hoàn tiền thất bại"));
+      toast.error(err?.data?.message || t("admin.payments.refund.toast.rejectFailed"));
     }
   };
 
@@ -351,14 +351,14 @@ export function RefundTable({
 
   const columns = [
     columnHelper.accessor("id", {
-      header: t("admin.payments.refund.table.ticket", "Mã phiếu"),
+      header: t("admin.payments.refund.table.ticket"),
       cell: ({ row }) => (
         <div>
           <button
             type="button"
             onClick={() => handleOpenAction(row.original, "DETAIL")}
             className="font-mono font-bold text-sm text-primary hover:underline cursor-pointer text-left"
-            title="Bấm để xem chi tiết phiếu hoàn"
+            title={t("admin.refunds.page.table.viewTicketDetail")}
           >
             #{row.original.id}
           </button>
@@ -369,13 +369,13 @@ export function RefundTable({
       ),
     }),
     columnHelper.accessor("customer", {
-      header: t("common.customer", "Khách hàng"),
+      header: t("common.customer"),
       cell: ({ row }) => {
         const { customer } = row.original;
         return (
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">
-              {customer?.fullName || t("admin.orders.lookup.name", "Khách vãng lai")}
+              {customer?.fullName || t("admin.orders.lookup.name")}
             </p>
             <p className="text-[11px] text-muted-foreground font-mono">
               {customer?.phoneNumber || EMPTY_VALUE}
@@ -385,7 +385,7 @@ export function RefundTable({
       },
     }),
     columnHelper.accessor("orderId", {
-      header: t("common.order", "Đơn hàng"),
+      header: t("common.order"),
       cell: ({ row }) => {
         const { order, orderId } = row.original;
         if (!orderId) return <span className="text-xs">{EMPTY_VALUE}</span>;
@@ -394,7 +394,7 @@ export function RefundTable({
             type="button"
             onClick={() => navigate(`/admin/orders/${orderId}`)}
             className="font-mono text-xs text-primary hover:underline flex items-center gap-1 font-semibold"
-            title="Xem chi tiết đơn hàng"
+            title={t("admin.refunds.page.table.viewOrderDetail")}
           >
             {order?.orderCode ?? t("admin.orders.orderNumber", { id: orderId })}
             <ExternalLink className="h-3 w-3 inline opacity-60" />
@@ -403,7 +403,7 @@ export function RefundTable({
       },
     }),
     columnHelper.accessor("amount", {
-      header: t("admin.payments.refund.table.amount", "Số tiền hoàn"),
+      header: t("admin.payments.refund.table.amount"),
       cell: ({ row }) => {
         const reason = row.original.reason || "";
         const isCompensation = reason.includes("[Bồi thường sự cố");
@@ -415,7 +415,9 @@ export function RefundTable({
             </p>
             {isCompensation ? (
               <span className="inline-block text-[10px] font-semibold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
-                Bồi thường sự cố{pctMatch ? ` · ${pctMatch[0]}` : ""}
+                {pctMatch
+                  ? t("admin.refunds.page.table.compensationBadgePct", { pct: pctMatch[1] })
+                  : t("admin.refunds.page.table.compensationBadge")}
               </span>
             ) : (
               <p className="text-[11px] text-muted-foreground font-mono">
@@ -429,7 +431,7 @@ export function RefundTable({
       },
     }),
     columnHelper.accessor("accountNumber", {
-      header: t("admin.payments.refund.table.account", "Tài khoản nhận"),
+      header: t("admin.payments.refund.table.account"),
       cell: ({ row }) => {
         const { bankName, bankCode, accountNumber, accountHolderName } = row.original;
         if (!accountNumber) {
@@ -437,11 +439,11 @@ export function RefundTable({
           return (
             <div className="space-y-1">
               <span className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded font-medium inline-block">
-                {t("admin.payments.refund.table.noAccount", "Chưa có STK")}
+                {t("admin.payments.refund.table.noAccount")}
               </span>
               {isCompensation && (
                 <p className="text-[10px] text-amber-700 leading-tight">
-                  Đã thông báo khách cập nhật STK
+                  {t("admin.refunds.page.table.accountUpdateNotified")}
                 </p>
               )}
             </div>
@@ -468,13 +470,13 @@ export function RefundTable({
       },
     }),
     columnHelper.accessor("status", {
-      header: t("common.status", "Trạng thái"),
+      header: t("common.status"),
       cell: ({ row }) => (
         <div className="space-y-1">
           <MetaBadge meta={refundStatusMeta(row.original.status)} />
           {cleanTransferRef(row.original.bankTransferRef) && (
             <p className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
-              <span>Mã GD:</span>
+              <span>{t("admin.refunds.page.table.transferRef")}</span>
               <span className="font-semibold">{cleanTransferRef(row.original.bankTransferRef)}</span>
             </p>
           )}
@@ -489,7 +491,7 @@ export function RefundTable({
       ),
     }),
     columnHelper.accessor("requestedAt", {
-      header: t("common.time", "Thời gian"),
+      header: t("common.time"),
       cell: ({ row }) => {
         const dt = formatDateTime(row.original.requestedAt);
         const [timePart, datePart] = dt.includes(" ") ? dt.split(" ") : [dt, ""];
@@ -504,7 +506,7 @@ export function RefundTable({
             </div>
             {row.original.processedAt && (
               <p className="text-[10px] text-muted-foreground pl-4.5 leading-tight" title={t("admin.payments.refund.table.processedAt", { time: formatDateTime(row.original.processedAt) })}>
-                XL: {formatDateTime(row.original.processedAt)}
+                {t("admin.refunds.page.table.processedShort", { time: formatDateTime(row.original.processedAt) })}
               </p>
             )}
           </div>
@@ -514,7 +516,7 @@ export function RefundTable({
     columnHelper.display({
       id: "actions",
       header: () => (
-        <span className="text-right block">{t("admin.payments.actionsHeader", "Thao tác")}</span>
+        <span className="text-right block">{t("admin.payments.actionsHeader")}</span>
       ),
       cell: ({ row }) => {
         const item = row.original;
@@ -526,11 +528,11 @@ export function RefundTable({
                 size="sm"
                 variant="ghost"
                 className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground font-medium"
-                title={t("button.detail", "Chi tiết")}
+                title={t("button.detail")}
                 onClick={() => handleOpenAction(item, "DETAIL")}
               >
                 <Eye className="h-3.5 w-3.5 mr-1" />
-                {t("button.detail", "Chi tiết")}
+                {t("button.detail")}
               </Button>
               <Button
                 type="button"
@@ -540,7 +542,7 @@ export function RefundTable({
                 onClick={() => handleOpenAction(item, "APPROVE")}
               >
                 <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                {t("admin.payments.refund.table.approve", "Duyệt")}
+                {t("admin.payments.refund.table.approve")}
               </Button>
               <Button
                 type="button"
@@ -550,7 +552,7 @@ export function RefundTable({
                 onClick={() => handleOpenAction(item, "REJECT")}
               >
                 <XCircle className="h-3.5 w-3.5 mr-1" />
-                {t("dropdown.reject", "Từ chối")}
+                {t("dropdown.reject")}
               </Button>
             </div>
           );
@@ -565,7 +567,7 @@ export function RefundTable({
               onClick={() => handleOpenAction(item, "DETAIL")}
             >
               <Eye className="h-3.5 w-3.5 mr-1" />
-              {t("button.detail", "Chi tiết")}
+              {t("button.detail")}
             </Button>
           </div>
         );
@@ -656,13 +658,10 @@ export function RefundTable({
           <DialogHeader className="pb-3 border-b">
             <DialogTitle className="flex items-center gap-2 text-emerald-600 text-lg">
               <CheckCircle2 className="h-5 w-5" />
-              {t("admin.payments.refund.approve.title", "Duyệt & Xác nhận chuyển khoản hoàn tiền")}
+              {t("admin.payments.refund.approve.title")}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              {t(
-                "admin.payments.refund.approve.description",
-                "Quét mã QR ngân hàng để chuyển khoản, sau đó tải ảnh biên lai minh chứng trước khi xác nhận hoàn tất.",
-              )}
+              {t("admin.payments.refund.approve.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -675,33 +674,33 @@ export function RefundTable({
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-primary" />
-                      Thông tin tài khoản nhận tiền
+                      {t("admin.refunds.page.approve.accountInfoTitle")}
                     </span>
                     <Badge variant="outline" className="text-[10px] font-mono">
-                      Phiếu #{selectedRefund.id}
+                      {t("admin.refunds.page.approve.ticketBadge", { id: selectedRefund.id })}
                     </Badge>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-muted/40 p-3 rounded-lg border border-border/40">
                     <div className="space-y-0.5">
-                      <span className="text-[11px] text-muted-foreground">Ngân hàng:</span>
+                      <span className="text-[11px] text-muted-foreground">{t("admin.payments.bank.bank")}:</span>
                       <p className="font-semibold text-foreground">
-                        {selectedRefund.bankName || selectedRefund.bankCode || "Chưa cập nhật"}
+                        {selectedRefund.bankName || selectedRefund.bankCode || t("admin.refunds.page.approve.notUpdated")}
                       </p>
                     </div>
 
                     <div className="space-y-0.5">
-                      <span className="text-[11px] text-muted-foreground">Số tài khoản:</span>
+                      <span className="text-[11px] text-muted-foreground">{t("admin.payments.bank.accountNumber")}:</span>
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-bold text-foreground">
-                          {selectedRefund.accountNumber || "Chưa có"}
+                          {selectedRefund.accountNumber || t("admin.payments.bank.none")}
                         </span>
                         {selectedRefund.accountNumber && (
                           <button
                             type="button"
                             onClick={() => handleCopy(selectedRefund.accountNumber!, "acc")}
                             className="text-muted-foreground hover:text-foreground"
-                            title="Sao chép STK"
+                            title={t("admin.refunds.page.approve.copyAccountNumber")}
                           >
                             {copiedKey === "acc" ? (
                               <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -714,17 +713,17 @@ export function RefundTable({
                     </div>
 
                     <div className="space-y-0.5 sm:col-span-2 pt-1 border-t border-border/40">
-                      <span className="text-[11px] text-muted-foreground">Tên chủ tài khoản:</span>
+                      <span className="text-[11px] text-muted-foreground">{t("admin.refunds.page.approve.accountHolderName")}</span>
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold uppercase tracking-wider text-foreground">
-                          {selectedRefund.accountHolderName || "Chưa cập nhật"}
+                          {selectedRefund.accountHolderName || t("admin.refunds.page.approve.notUpdated")}
                         </span>
                         {selectedRefund.accountHolderName && (
                           <button
                             type="button"
                             onClick={() => handleCopy(selectedRefund.accountHolderName!, "holder")}
                             className="text-muted-foreground hover:text-foreground"
-                            title="Sao chép tên chủ tài khoản"
+                            title={t("admin.refunds.page.approve.copyAccountHolder")}
                           >
                             {copiedKey === "holder" ? (
                               <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -742,12 +741,12 @@ export function RefundTable({
                 <div className="bg-card border border-border/80 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
                   <span className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-primary" />
-                    Thông tin đơn hàng & Lý do hoàn
+                    {t("admin.refunds.page.approve.orderInfoTitle")}
                   </span>
 
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between items-center py-1 border-b border-border/40">
-                      <span className="text-muted-foreground">Đơn hàng cần hoàn:</span>
+                      <span className="text-muted-foreground">{t("admin.refunds.page.approve.orderToRefund")}</span>
                       {selectedRefund.orderId ? (
                         <button
                           type="button"
@@ -763,14 +762,14 @@ export function RefundTable({
                     </div>
 
                     <div className="flex justify-between items-center py-1 border-b border-border/40">
-                      <span className="text-muted-foreground">Số tiền đơn gốc đã thanh toán:</span>
+                      <span className="text-muted-foreground">{t("admin.refunds.page.approve.originalPaidAmount")}</span>
                       <span className="font-mono text-foreground">
                         {formatCurrency(selectedRefund.paymentAmount)}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-center py-1 border-b border-border/40">
-                      <span className="text-muted-foreground font-medium">Số tiền yêu cầu hoàn:</span>
+                      <span className="text-muted-foreground font-medium">{t("admin.refunds.page.approve.requestedAmount")}</span>
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-bold text-base text-emerald-600 dark:text-emerald-400">
                           {formatCurrency(selectedRefund.amount)}
@@ -779,7 +778,7 @@ export function RefundTable({
                           type="button"
                           onClick={() => handleCopy(selectedRefund.amount.toString(), "amount")}
                           className="text-muted-foreground hover:text-foreground"
-                          title="Sao chép số tiền"
+                          title={t("admin.refunds.page.approve.copyAmount")}
                         >
                           {copiedKey === "amount" ? (
                             <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -791,9 +790,9 @@ export function RefundTable({
                     </div>
 
                     <div className="pt-1 space-y-1">
-                      <span className="text-muted-foreground">Lý do yêu cầu từ khách:</span>
+                      <span className="text-muted-foreground">{t("admin.refunds.page.customerReason")}</span>
                       <p className="p-2.5 rounded-lg bg-muted/40 border border-border/40 text-foreground/90 italic leading-relaxed">
-                        {cleanReason(selectedRefund.reason) ? `"${cleanReason(selectedRefund.reason)}"` : "Không có ghi chú lý do"}
+                        {cleanReason(selectedRefund.reason) ? `"${cleanReason(selectedRefund.reason)}"` : t("admin.refunds.page.noReasonNote")}
                       </p>
                     </div>
 
@@ -802,7 +801,7 @@ export function RefundTable({
                         <span className="text-muted-foreground flex items-center justify-between">
                           <span className="font-medium text-foreground flex items-center gap-1 text-blue-600">
                             <ImageIcon className="w-3.5 h-3.5" />
-                            Hình ảnh đính kèm từ khách:
+                            {t("admin.refunds.page.approve.customerAttachment")}
                           </span>
                           <button
                             type="button"
@@ -810,7 +809,7 @@ export function RefundTable({
                             className="text-primary hover:underline text-[11px] flex items-center gap-1 font-semibold"
                           >
                             <ExternalLink className="w-3 h-3" />
-                            Phóng to
+                            {t("admin.refunds.page.zoom")}
                           </button>
                         </span>
                         <div
@@ -819,7 +818,7 @@ export function RefundTable({
                         >
                           <img
                             src={getCustomerAttachment(selectedRefund)!}
-                            alt="Ảnh đính kèm từ khách hàng"
+                            alt={t("admin.refunds.page.approve.customerAttachmentAlt")}
                             className="w-full h-auto max-h-44 object-contain rounded group-hover:scale-105 transition-transform"
                           />
                         </div>
@@ -832,23 +831,23 @@ export function RefundTable({
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground flex items-center justify-between">
                     <span>
-                      {t("admin.payments.refund.approve.transferRefLabel", "Mã giao dịch / UNC ngân hàng")}
+                      {t("admin.payments.refund.approve.transferRefLabel")}
                       {transferRefRequired ? (
                         <span className="text-rose-500 ml-0.5">*</span>
                       ) : (
-                        <span className="text-muted-foreground font-normal ml-1">({t("admin.payments.optional", "tuỳ chọn")})</span>
+                        <span className="text-muted-foreground font-normal ml-1">{t("admin.payments.optional")}</span>
                       )}
                     </span>
                   </label>
                   <Input
-                    placeholder="Ví dụ: FT24100712345678 hoặc mã tham chiếu chuyển tiền"
+                    placeholder={t("admin.refunds.page.approve.transferRefPlaceholder")}
                     value={bankTransferRef}
                     onChange={(e) => setBankTransferRef(e.target.value)}
                     className="text-xs font-mono h-9"
                   />
                   {transferRefRequired && (
                     <p className="text-[11px] text-muted-foreground">
-                      {t("admin.payments.refund.approve.transferRefRequiredHint", "Bắt buộc nhập mã tham chiếu giao dịch chuyển khoản theo quy tắc hệ thống.")}
+                      {t("admin.payments.refund.approve.transferRefRequiredHint")}
                     </p>
                   )}
                 </div>
@@ -858,10 +857,10 @@ export function RefundTable({
                   <label className="text-xs font-semibold text-foreground flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <Upload className="w-3.5 h-3.5 text-primary" />
-                      Ảnh minh chứng chuyển khoản (Biên lai / UNC)
+                      {t("admin.refunds.page.approve.proofLabel")}
                       <span className="text-rose-500 font-bold">*</span>:
                     </span>
-                    <span className="text-[11px] font-medium text-rose-500">Bắt buộc tải ảnh</span>
+                    <span className="text-[11px] font-medium text-rose-500">{t("admin.refunds.page.approve.proofRequired")}</span>
                   </label>
 
                   <input
@@ -876,18 +875,18 @@ export function RefundTable({
                     <div className="relative rounded-xl overflow-hidden border border-border bg-muted/30 p-2 flex items-center gap-3">
                       <img
                         src={proofPreviewUrl}
-                        alt="Minh chứng chuyển khoản"
+                        alt={t("admin.refunds.page.approve.proofAlt")}
                         className="w-20 h-20 object-cover rounded-lg border bg-white shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() => setViewingProofUrl(proofPreviewUrl)}
-                        title="Bấm để xem ảnh to"
+                        title={t("admin.refunds.page.approve.clickToEnlarge")}
                       />
                       <div className="min-w-0 flex-1 space-y-1 text-xs">
                         <p className="font-medium text-foreground truncate">
-                          {proofFile?.name || "Ảnh minh chứng chuyển khoản"}
+                          {proofFile?.name || t("admin.refunds.page.transferProof")}
                         </p>
                         <p className="text-[11px] text-emerald-600 flex items-center gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          Đã chọn ảnh thành công
+                          {t("admin.refunds.page.approve.proofSelected")}
                         </p>
                         <div className="flex items-center gap-2 pt-1">
                           <Button
@@ -897,7 +896,7 @@ export function RefundTable({
                             className="h-7 text-xs px-2"
                             onClick={() => fileInputRef.current?.click()}
                           >
-                            Đổi ảnh khác
+                            {t("admin.refunds.page.approve.changeImage")}
                           </Button>
                           <Button
                             type="button"
@@ -907,7 +906,7 @@ export function RefundTable({
                             onClick={handleRemoveProofFile}
                           >
                             <Trash2 className="w-3.5 h-3.5 mr-1" />
-                            Xóa
+                            {t("button.delete")}
                           </Button>
                         </div>
                       </div>
@@ -921,10 +920,10 @@ export function RefundTable({
                         <Upload className="w-5 h-5 text-primary" />
                       </div>
                       <p className="text-xs font-semibold text-foreground">
-                        Bấm vào đây để tải ảnh biên lai / ảnh chụp màn hình chuyển khoản
+                        {t("admin.refunds.page.approve.uploadPrompt")}
                       </p>
                       <p className="text-[11px] text-muted-foreground">
-                        Hỗ trợ định dạng JPG, PNG, WebP (Tối đa 10MB)
+                        {t("admin.refunds.page.approve.uploadFormats")}
                       </p>
                     </div>
                   )}
@@ -937,10 +936,10 @@ export function RefundTable({
                   <div className="text-center space-y-1">
                     <span className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center justify-center gap-1.5">
                       <QrCode className="w-4 h-4 text-emerald-600" />
-                      Mã thanh toán VietQR
+                      {t("admin.refunds.page.approve.vietQrTitle")}
                     </span>
                     <p className="text-[11px] text-muted-foreground">
-                      Mở app ngân hàng bất kỳ để quét mã tự động điền STK & số tiền
+                      {t("admin.refunds.page.approve.vietQrHint")}
                     </p>
                   </div>
 
@@ -959,21 +958,21 @@ export function RefundTable({
                           className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
                         >
                           <ExternalLink className="w-3 h-3" />
-                          Mở ảnh QR lớn
+                          {t("admin.refunds.page.approve.openQrLarge")}
                         </a>
                       </div>
                     </div>
                   ) : (
                     <div className="p-4 rounded-xl bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs flex items-center gap-2.5">
                       <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />
-                      <span>Khách hàng chưa cập nhật mã ngân hàng/STK đầy đủ. Vui lòng kiểm tra lại.</span>
+                      <span>{t("admin.refunds.page.approve.missingBankInfo")}</span>
                     </div>
                   )}
 
                   {/* Bảng cú pháp sao chép nhanh */}
                   <div className="bg-card border border-border/80 rounded-lg p-3 space-y-2 text-xs">
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground text-[11px]">Nội dung CK:</span>
+                      <span className="text-muted-foreground text-[11px]">{t("admin.refunds.page.approve.transferContent")}</span>
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-bold text-foreground">
                           {transferContent}
@@ -982,7 +981,7 @@ export function RefundTable({
                           type="button"
                           onClick={() => handleCopy(transferContent, "content")}
                           className="text-muted-foreground hover:text-foreground"
-                          title="Sao chép nội dung"
+                          title={t("admin.refunds.page.approve.copyContent")}
                         >
                           {copiedKey === "content" ? (
                             <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -994,7 +993,7 @@ export function RefundTable({
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground text-[11px]">Số tiền CK:</span>
+                      <span className="text-muted-foreground text-[11px]">{t("admin.refunds.page.approve.transferAmount")}</span>
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono font-bold text-emerald-600">
                           {formatCurrency(selectedRefund.amount)}
@@ -1003,7 +1002,7 @@ export function RefundTable({
                           type="button"
                           onClick={() => handleCopy(selectedRefund.amount.toString(), "amount2")}
                           className="text-muted-foreground hover:text-foreground"
-                          title="Sao chép số tiền"
+                          title={t("admin.refunds.page.approve.copyAmount")}
                         >
                           {copiedKey === "amount2" ? (
                             <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -1021,14 +1020,16 @@ export function RefundTable({
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                   <p className="leading-relaxed text-[11px]">
                     {selectedIncidentCode ? (
-                      <>
-                        Hành động này ghi nhận <strong>đã chi bồi thường</strong> cho sự cố {selectedIncidentCode} (không đổi
-                        trạng thái hoàn tiền của đơn), cập nhật sự cố và gửi thông báo kèm ảnh minh chứng tới khách hàng.
-                      </>
+                      <Trans
+                        i18nKey="admin.refunds.page.approve.warningCompensation"
+                        values={{ code: selectedIncidentCode }}
+                        components={{ b: <strong /> }}
+                      />
                     ) : (
-                      <>
-                        Hành động này sẽ cập nhật đơn hàng thành <strong>ĐÃ HOÀN TIỀN</strong> và gửi thông báo kèm ảnh minh chứng chuyển khoản tới khách hàng.
-                      </>
+                      <Trans
+                        i18nKey="admin.refunds.page.approve.warningRefund"
+                        components={{ b: <strong /> }}
+                      />
                     )}
                   </p>
                 </div>
@@ -1043,12 +1044,12 @@ export function RefundTable({
               onClick={handleCloseModal}
               disabled={isSubmittingApproval || isCloudinaryUploading}
             >
-              {t("button.cancel", "Hủy")}
+              {t("button.cancel")}
             </Button>
             <div className="flex flex-col sm:flex-row items-center gap-2">
               {proofMissing && (
                 <span className="text-[11px] text-rose-500 font-medium">
-                  * Cần tải ảnh biên lai / UNC trước khi xác nhận
+                  {t("admin.refunds.page.approve.proofMissingHint")}
                 </span>
               )}
               <Button
@@ -1060,7 +1061,7 @@ export function RefundTable({
                 {(isSubmittingApproval || isCloudinaryUploading) && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {t("admin.payments.refund.approve.confirm", "Xác nhận đã chuyển tiền")}
+                {t("admin.payments.refund.approve.confirm")}
               </Button>
             </div>
           </DialogFooter>
@@ -1078,10 +1079,10 @@ export function RefundTable({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-rose-600">
               <XCircle className="h-5 w-5" />
-              {t("admin.payments.refund.reject.title", "Từ chối yêu cầu hoàn tiền")}
+              {t("admin.payments.refund.reject.title")}
             </DialogTitle>
             <DialogDescription>
-              {t("admin.payments.refund.reject.description", "Nhập lý do từ chối để thông báo cho khách hàng.")}
+              {t("admin.payments.refund.reject.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -1103,15 +1104,15 @@ export function RefundTable({
               {/* Thông tin lý do yêu cầu từ khách hàng */}
               <div className="bg-muted/40 p-3 rounded-lg border border-border/40 space-y-1 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-medium">Lý do yêu cầu từ khách:</span>
+                  <span className="text-muted-foreground font-medium">{t("admin.refunds.page.customerReason")}</span>
                   {cleanReason(selectedRefund.reason).includes("[Bồi thường sự cố") && (
                     <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-300 text-[10px] py-0 px-1 font-semibold">
-                      🚨 Bồi thường rơi
+                      {t("admin.refunds.page.reject.compensationDropBadge")}
                     </Badge>
                   )}
                 </div>
                 <p className="text-foreground/90 italic leading-relaxed whitespace-pre-wrap">
-                  {cleanReason(selectedRefund.reason) ? `"${cleanReason(selectedRefund.reason)}"` : "Không có ghi chú lý do"}
+                  {cleanReason(selectedRefund.reason) ? `"${cleanReason(selectedRefund.reason)}"` : t("admin.refunds.page.noReasonNote")}
                 </p>
               </div>
 
@@ -1121,7 +1122,7 @@ export function RefundTable({
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground font-medium flex items-center gap-1 text-blue-600">
                       <ImageIcon className="w-3.5 h-3.5" />
-                      Ảnh minh chứng từ khách:
+                      {t("admin.refunds.page.reject.customerProof")}
                     </span>
                     <button
                       type="button"
@@ -1129,7 +1130,7 @@ export function RefundTable({
                       className="text-primary hover:underline text-[11px] flex items-center gap-1 font-semibold"
                     >
                       <ExternalLink className="w-3 h-3" />
-                      Phóng to
+                      {t("admin.refunds.page.zoom")}
                     </button>
                   </div>
                   <div
@@ -1138,7 +1139,7 @@ export function RefundTable({
                   >
                     <img
                       src={getCustomerAttachment(selectedRefund)!}
-                      alt="Ảnh đính kèm từ khách"
+                      alt={t("admin.refunds.page.reject.customerAttachmentAlt")}
                       className="w-full h-auto max-h-36 object-contain rounded group-hover:scale-105 transition-transform"
                     />
                   </div>
@@ -1147,10 +1148,10 @@ export function RefundTable({
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">
-                  {t("admin.payments.rejectionReason", "Lý do từ chối")} <span className="text-rose-500">*</span>:
+                  {t("admin.payments.rejectionReason")} <span className="text-rose-500">*</span>:
                 </label>
                 <Textarea
-                  placeholder={t("admin.payments.refund.reject.placeholder", "Nhập lý do chi tiết...")}
+                  placeholder={t("admin.payments.refund.reject.placeholder")}
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   rows={3}
@@ -1167,7 +1168,7 @@ export function RefundTable({
               onClick={handleCloseModal}
               disabled={isRejecting}
             >
-              {t("button.cancel", "Hủy")}
+              {t("button.cancel")}
             </Button>
             <Button
               type="button"
@@ -1176,7 +1177,7 @@ export function RefundTable({
               disabled={isRejecting}
             >
               {isRejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t("admin.payments.refund.reject.confirm", "Xác nhận từ chối")}
+              {t("admin.payments.refund.reject.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1204,19 +1205,19 @@ export function RefundTable({
                   <MetaBadge meta={refundStatusMeta(selectedRefund.status)} />
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Mã đơn hàng:</span>
+                  <span className="text-muted-foreground">{t("admin.refunds.page.detail.orderCode")}</span>
                   <span className="font-mono font-bold text-foreground">
                     {selectedRefund.order?.orderCode || (selectedRefund.orderId ? `#${selectedRefund.orderId}` : EMPTY_VALUE)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Mã giao dịch hoàn:</span>
+                  <span className="text-muted-foreground">{t("admin.payments.detail.refundTxnId")}:</span>
                   <span className="font-mono font-bold text-foreground">
                     {selectedRefund.transactionId || `RF-${selectedRefund.id}`}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Khách hàng:</span>
+                  <span className="text-muted-foreground">{t("common.customer")}:</span>
                   <span className="font-medium text-foreground">
                     {selectedRefund.customer?.fullName || EMPTY_VALUE} {selectedRefund.customer?.phoneNumber ? `(${selectedRefund.customer.phoneNumber})` : ""}
                   </span>
@@ -1246,13 +1247,13 @@ export function RefundTable({
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Mã GD ngân hàng / UNC:</span>
+                  <span className="text-muted-foreground">{t("admin.refunds.page.detail.bankTransferRef")}</span>
                   {cleanTransferRef(selectedRefund.bankTransferRef) ? (
                     <span className="font-mono font-bold text-emerald-600">
                       {cleanTransferRef(selectedRefund.bankTransferRef)}
                     </span>
                   ) : (
-                    <span className="text-muted-foreground italic">Chưa có mã UNC</span>
+                    <span className="text-muted-foreground italic">{t("admin.refunds.page.detail.noTransferRef")}</span>
                   )}
                 </div>
                 {selectedRefund.rejectionReason && (
@@ -1264,21 +1265,21 @@ export function RefundTable({
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Thời gian yêu cầu:</span>
+                  <span className="text-muted-foreground">{t("admin.refunds.page.detail.requestedAt")}</span>
                   <span className="font-mono">{formatDateTime(selectedRefund.requestedAt)}</span>
                 </div>
                 {selectedRefund.processedAt && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Thời gian xử lý:</span>
+                    <span className="text-muted-foreground">{t("admin.refunds.page.detail.processedAt")}</span>
                     <span className="font-mono">{formatDateTime(selectedRefund.processedAt)}</span>
                   </div>
                 )}
                 <div className="pt-2 border-t border-border/40 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground font-medium">{t("admin.payments.refund.detail.originalReason", "Lý do yêu cầu từ khách")}:</span>
+                    <span className="text-muted-foreground font-medium">{t("admin.payments.refund.detail.originalReason")}:</span>
                     {cleanReason(selectedRefund.reason).includes("[Bồi thường sự cố") && (
                       <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-300 text-[10px] py-0 px-1.5 font-semibold">
-                        🚨 Bồi thường sự cố rơi
+                        {t("admin.refunds.page.detail.compensationDropBadge")}
                       </Badge>
                     )}
                   </div>
@@ -1294,7 +1295,7 @@ export function RefundTable({
                   <span className="font-semibold text-foreground flex items-center justify-between text-xs">
                     <span className="flex items-center gap-1.5 text-blue-600">
                       <ImageIcon className="w-3.5 h-3.5" />
-                      Ảnh minh chứng từ khách hàng:
+                      {t("admin.refunds.page.detail.customerProof")}:
                     </span>
                     <button
                       type="button"
@@ -1302,13 +1303,13 @@ export function RefundTable({
                       className="text-primary hover:underline text-[11px] flex items-center gap-1 font-semibold"
                     >
                       <ExternalLink className="w-3 h-3" />
-                      Phóng to
+                      {t("admin.refunds.page.zoom")}
                     </button>
                   </span>
                   <div className="relative rounded-lg overflow-hidden border border-border/60 bg-muted/30">
                     <img
                       src={getCustomerAttachment(selectedRefund)!}
-                      alt="Ảnh minh chứng từ khách hàng"
+                      alt={t("admin.refunds.page.detail.customerProof")}
                       className="w-full max-h-64 object-contain rounded-md bg-white cursor-pointer hover:opacity-95 transition-opacity"
                       onClick={() => setViewingProofUrl(getCustomerAttachment(selectedRefund)!)}
                     />
@@ -1316,7 +1317,7 @@ export function RefundTable({
                 </div>
               ) : (
                 <div className="p-3 rounded-lg bg-muted/40 text-muted-foreground text-center text-[11px] italic">
-                  Khách hàng không đính kèm ảnh minh chứng sự cố
+                  {t("admin.refunds.page.detail.noCustomerProof")}
                 </div>
               )}
 
@@ -1325,12 +1326,12 @@ export function RefundTable({
                 <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border/80">
                   <span className="font-semibold text-foreground flex items-center gap-1.5">
                     <ImageIcon className="w-3.5 h-3.5 text-primary" />
-                    Ảnh minh chứng chuyển khoản:
+                    {t("admin.refunds.page.transferProof")}:
                   </span>
                   <div className="relative rounded-lg overflow-hidden border border-border/60 bg-muted/30">
                     <img
                       src={getAdminProof(selectedRefund)!}
-                      alt="Ảnh minh chứng chuyển khoản"
+                      alt={t("admin.refunds.page.transferProof")}
                       className="w-full max-h-64 object-contain rounded-md bg-white cursor-pointer hover:opacity-95 transition-opacity"
                       onClick={() => setViewingProofUrl(getAdminProof(selectedRefund)!)}
                     />
@@ -1343,14 +1344,14 @@ export function RefundTable({
                       asChild
                     >
                       <a href={getAdminProof(selectedRefund)!} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="w-3.5 h-3.5" /> Mở ảnh gốc
+                        <ExternalLink className="w-3.5 h-3.5" /> {t("admin.refunds.page.detail.openOriginal")}
                       </a>
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div className="p-3 rounded-lg bg-muted/40 text-muted-foreground text-center text-[11px] italic">
-                  Không có ảnh minh chứng chuyển khoản đính kèm
+                  {t("admin.refunds.page.detail.noTransferProof")}
                 </div>
               )}
             </div>
@@ -1358,7 +1359,7 @@ export function RefundTable({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCloseModal}>
-              {t("button.close", "Đóng")}
+              {t("button.close")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1372,21 +1373,21 @@ export function RefundTable({
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold flex items-center gap-2">
               <ImageIcon className="w-4 h-4 text-primary" />
-              Minh chứng chuyển khoản hoàn tiền
+              {t("admin.refunds.page.lightbox.title")}
             </DialogTitle>
           </DialogHeader>
           {viewingProofUrl && (
             <div className="relative rounded-lg overflow-hidden border border-border bg-black/95 flex items-center justify-center min-h-[300px] max-h-[75vh]">
               <img
                 src={viewingProofUrl}
-                alt="Ảnh minh chứng"
+                alt={t("admin.refunds.page.lightbox.alt")}
                 className="max-h-[72vh] w-auto max-w-full object-contain"
               />
             </div>
           )}
           <DialogFooter className="flex justify-between items-center sm:justify-between">
             <span className="text-[11px] text-muted-foreground">
-              Minh chứng chuyển tiền ngân hàng đối soát
+              {t("admin.refunds.page.lightbox.caption")}
             </span>
             <Button
               variant="outline"
@@ -1394,7 +1395,7 @@ export function RefundTable({
               className="h-8 text-xs"
               onClick={() => setViewingProofUrl(null)}
             >
-              Đóng
+              {t("button.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

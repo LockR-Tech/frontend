@@ -234,12 +234,12 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
   // API 1: Lấy tọa độ GPS thiết bị chính xác nhất bằng navigator.geolocation (High Accuracy)
   const handleGetHighAccuracyGps = () => {
     if (!navigator.geolocation) {
-      toast.error("Trình duyệt không hỗ trợ Geolocation (định vị GPS)");
+      toast.error(t("admin.lockers.tools.location.geoUnsupported"));
       return;
     }
 
     setIsLocatingGps(true);
-    const toastId = toast.loading("Đang kết nối GPS thiết bị để lấy tọa độ chính xác nhất...");
+    const toastId = toast.loading(t("admin.lockers.tools.location.gpsConnecting"));
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -252,16 +252,16 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
         if (mapRef.current) {
           mapRef.current.flyTo([latitude, longitude], 18, { duration: 1.2 });
         }
-        toast.success(`Đã lấy tọa độ GPS chính xác! (Độ lệch: ±${Math.round(accuracy)}m)`);
+        toast.success(t("admin.lockers.tools.location.gpsSuccess", { accuracy: Math.round(accuracy) }));
       },
       (err) => {
         setIsLocatingGps(false);
         toast.dismiss(toastId);
-        let errorMsg = "Không thể lấy vị trí GPS hiện tại";
+        let errorMsg = t("admin.lockers.tools.location.gpsFailed");
         if (err.code === err.PERMISSION_DENIED) {
-          errorMsg = "Quyền truy cập vị trí bị từ chối. Vui lòng cấp quyền vị trí cho trang web.";
+          errorMsg = t("admin.lockers.tools.location.gpsDenied");
         } else if (err.code === err.TIMEOUT) {
-          errorMsg = "Quá thời gian kết nối GPS thiết bị.";
+          errorMsg = t("admin.lockers.tools.location.gpsTimeout");
         }
         toast.error(errorMsg);
       },
@@ -381,11 +381,11 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
       if (mapRef.current) {
         mapRef.current.flyTo([top.lat, top.lng], 18, { duration: 1.2 });
       }
-      toast.success(`Đã di chuyển ghim đến: ${top.title}`);
+      toast.success(t("admin.lockers.tools.location.movedTo", { place: top.title }));
     } else if (autoSelectFirst && items.length === 0) {
-      toast.error(`Không tìm thấy địa điểm "${trimmed}". Hãy thử nhập tên đường hoặc bấm "GPS vị trí của tôi".`);
+      toast.error(t("admin.lockers.tools.location.placeNotFoundToast", { query: trimmed }));
     }
-  }, []);
+  }, [t]);
 
   const handleSearchInputChange = (val: string) => {
     setSearchQuery(val);
@@ -417,7 +417,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
     if (mapRef.current) {
       mapRef.current.flyTo([result.lat, result.lng], 18, { duration: 1.2 });
     }
-    toast.success(`Đã di chuyển ghim đến: ${result.title}`);
+    toast.success(t("admin.lockers.tools.location.movedTo", { place: result.title }));
   };
 
   // Sao chép tọa độ
@@ -425,7 +425,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
     const text = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.success(`Đã sao chép tọa độ: ${text}`);
+    toast.success(t("admin.lockers.tools.location.coordsCopied", { coords: text }));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -445,14 +445,14 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
         address: address.trim() || undefined,
       }).unwrap();
 
-      toast.success("Cập nhật vị trí & tọa độ tủ thành công!", {
+      toast.success(t("admin.lockers.tools.location.saveSuccess"), {
         description: `Lat: ${coords.lat.toFixed(6)}, Lng: ${coords.lng.toFixed(6)}`,
       });
       onOpenChange(false);
       onSuccess?.();
     } catch (err: any) {
-      toast.error("Lưu vị trí tủ thất bại", {
-        description: err?.data?.message || err?.message || "Vui lòng kiểm tra lại kết nối mạng",
+      toast.error(t("admin.lockers.tools.location.saveFailed"), {
+        description: err?.data?.message || err?.message || t("admin.lockers.tools.location.checkNetwork"),
       });
     }
   };
@@ -466,13 +466,13 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
             <div className="space-y-0.5">
               <DialogTitle className="text-base font-semibold flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                Vị trí & Tọa độ tủ: <span className="text-foreground">{locker.name}</span>
+                {t("admin.lockers.tools.location.title")} <span className="text-foreground">{locker.name}</span>
                 <Badge variant="outline" className="font-mono text-xs ml-1">
                   {locker.code}
                 </Badge>
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Di chuyển icon ghim hoặc kéo bản đồ để chọn tọa độ chính xác nhất cho tủ Lock.R (chuẩn Grab / Xanh SM).
+                {t("admin.lockers.tools.location.description")}
               </DialogDescription>
             </div>
             {coords.lat && coords.lng && (
@@ -496,7 +496,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
                   onFocus={() => {
                     if (searchResults.length > 0) setIsDropdownOpen(true);
                   }}
-                  placeholder="Nhập địa chỉ, tòa nhà, trường học (VD: FPT University, Landmark 81, Bitexco...)"
+                  placeholder={t("admin.lockers.tools.location.searchPlaceholder")}
                   className="pl-9 pr-8 h-9 text-xs"
                 />
                 {searchQuery && !isSearching && (
@@ -524,7 +524,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
                 className="h-9 px-3.5 text-xs bg-sky-600 hover:bg-sky-700 text-white font-medium shrink-0 gap-1.5 shadow-xs"
               >
                 <Search className="w-3.5 h-3.5" />
-                Tìm
+                {t("admin.lockers.tools.location.search")}
               </Button>
             </form>
 
@@ -534,15 +534,17 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
                 {isSearching && (
                   <div className="p-4 text-center text-muted-foreground flex items-center justify-center gap-2">
                     <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-500" />
-                    <span>Đang tìm kiếm trên bản đồ...</span>
+                    <span>{t("admin.lockers.tools.location.searching")}</span>
                   </div>
                 )}
 
                 {!isSearching && searchResults.length > 0 && (
                   <>
                     <div className="p-2 px-3 text-[11px] font-semibold text-muted-foreground bg-muted/40 flex items-center justify-between">
-                      <span>Tìm thấy {searchResults.length} địa điểm:</span>
-                      <span className="text-[10px] font-normal text-muted-foreground">Bấm để ghim ngay</span>
+                      <span>{t("admin.lockers.tools.location.resultsFound", { count: searchResults.length })}</span>
+                      <span className="text-[10px] font-normal text-muted-foreground">
+                        {t("admin.lockers.tools.location.clickToPin")}
+                      </span>
                     </div>
                     {searchResults.map((item) => (
                       <button
@@ -569,9 +571,11 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
 
                 {!isSearching && hasSearched && searchResults.length === 0 && (
                   <div className="p-4 text-center space-y-1">
-                    <p className="text-foreground font-medium text-xs">Không tìm thấy địa điểm "{searchQuery}"</p>
+                    <p className="text-foreground font-medium text-xs">
+                      {t("admin.lockers.tools.location.noResultTitle", { query: searchQuery })}
+                    </p>
                     <p className="text-[11px] text-muted-foreground">
-                      Thử nhập tên đường, phường hoặc sử dụng nút "GPS vị trí của tôi".
+                      {t("admin.lockers.tools.location.noResultHint")}
                     </p>
                   </div>
                 )}
@@ -589,10 +593,10 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
               onClick={handleGetHighAccuracyGps}
               disabled={isLocatingGps}
               className="h-9 text-xs gap-1.5 border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40"
-              title="Kích hoạt GPS thiết bị để lấy tọa độ thực tế có độ chính xác cao nhất"
+              title={t("admin.lockers.tools.location.gpsButtonTitle")}
             >
               <Crosshair className={`w-3.5 h-3.5 text-sky-600 dark:text-sky-400 ${isLocatingGps ? "animate-spin" : ""}`} />
-              {isLocatingGps ? "Đang dò GPS..." : "GPS vị trí của tôi"}
+              {isLocatingGps ? t("admin.lockers.tools.location.locating") : t("admin.lockers.tools.location.myGps")}
             </Button>
 
             {/* Chuyển đổi chế độ: Ghim tâm bản đồ (Grab) vs Kéo thả ghim */}
@@ -602,10 +606,10 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
               size="sm"
               onClick={() => setIsCenterPinMode(!isCenterPinMode)}
               className="h-9 text-xs gap-1.5"
-              title="Chuyển chế độ ghim theo tâm bản đồ như app gọi xe hoặc kéo thả icon"
+              title={t("admin.lockers.tools.location.modeTitle")}
             >
               <Compass className="w-3.5 h-3.5" />
-              {isCenterPinMode ? "Chế độ: Tâm bản đồ (Grab)" : "Chế độ: Kéo thả ghim"}
+              {isCenterPinMode ? t("admin.lockers.tools.location.modeCenter") : t("admin.lockers.tools.location.modeDrag")}
             </Button>
           </div>
         </div>
@@ -666,7 +670,9 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
                   }`}
                 >
                   <Sparkles className="w-3 h-3 text-sky-400" />
-                  <span>{isPanning ? "Đang di chuyển vị trí..." : "Thả tại đây để ghim"}</span>
+                  <span>
+                    {isPanning ? t("admin.lockers.tools.location.moving") : t("admin.lockers.tools.location.dropHere")}
+                  </span>
                 </div>
 
                 {/* Biểu tượng Pin Grab/Xanh SM */}
@@ -696,7 +702,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
               variant="secondary"
               className="w-9 h-9 rounded-full shadow-lg bg-background/90 backdrop-blur-sm hover:bg-background border border-border"
               onClick={() => mapRef.current?.zoomIn()}
-              title="Phóng to"
+              title={t("admin.lockers.tools.location.zoomIn")}
             >
               +
             </Button>
@@ -706,7 +712,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
               variant="secondary"
               className="w-9 h-9 rounded-full shadow-lg bg-background/90 backdrop-blur-sm hover:bg-background border border-border"
               onClick={() => mapRef.current?.zoomOut()}
-              title="Thu nhỏ"
+              title={t("admin.lockers.tools.location.zoomOut")}
             >
               -
             </Button>
@@ -720,7 +726,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
                   mapRef.current.flyTo([coords.lat, coords.lng], 18);
                 }
               }}
-              title="Đưa ghim về giữa tầm nhìn"
+              title={t("admin.lockers.tools.location.recenter")}
             >
               <Compass className="w-4 h-4" />
             </Button>
@@ -730,7 +736,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
           {gpsAccuracy != null && (
             <div className="absolute left-4 top-4 z-[1000] bg-background/90 backdrop-blur-sm border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs px-3 py-1.5 rounded-lg shadow-md flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              Độ chính xác GPS: ±{Math.round(gpsAccuracy)}m
+              {t("admin.lockers.tools.location.gpsAccuracy", { accuracy: Math.round(gpsAccuracy) })}
             </div>
           )}
         </div>
@@ -742,15 +748,19 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
             <div className="flex items-center justify-between">
               <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                 <Info className="w-3.5 h-3.5" />
-                Địa chỉ chi tiết của tủ
-                {isReverseGeocoding && <span className="text-sky-600 text-[11px] font-normal animate-pulse">(Đang tra địa chỉ...)</span>}
+                {t("admin.lockers.tools.location.addressLabel")}
+                {isReverseGeocoding && (
+                  <span className="text-sky-600 text-[11px] font-normal animate-pulse">
+                    {t("admin.lockers.tools.location.lookingUpAddress")}
+                  </span>
+                )}
               </Label>
-              <span className="text-[11px] text-muted-foreground">Có thể chỉnh sửa để hướng dẫn khách hàng / nhân viên</span>
+              <span className="text-[11px] text-muted-foreground">{t("admin.lockers.tools.location.addressHint")}</span>
             </div>
             <Input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="VD: Sảnh A, Tòa Landmark 81, 720A Điện Biên Phủ, Phường 22, Bình Thạnh, TP.HCM"
+              placeholder={t("admin.lockers.tools.location.addressPlaceholder")}
               className="h-8 text-xs bg-muted/30"
             />
           </div>
@@ -758,7 +768,9 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
           {/* Hàng 2: Tinh chỉnh Vĩ độ & Kinh độ */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">Vĩ độ (Latitude) - chuẩn 6 chữ số thập phân</Label>
+              <Label className="text-xs text-muted-foreground mb-1 block">
+                {t("admin.lockers.tools.location.latitudeLabel")}
+              </Label>
               <Input
                 type="number"
                 step="0.000001"
@@ -773,7 +785,9 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1 block">Kinh độ (Longitude) - chuẩn 6 chữ số thập phân</Label>
+              <Label className="text-xs text-muted-foreground mb-1 block">
+                {t("admin.lockers.tools.location.longitudeLabel")}
+              </Label>
               <Input
                 type="number"
                 step="0.000001"
@@ -798,7 +812,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
                 className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "Đã chép" : "Sao chép tọa độ"}
+                {copied ? t("admin.lockers.boxQr.copiedShort") : t("admin.lockers.tools.location.copyCoords")}
               </button>
               <button
                 type="button"
@@ -806,11 +820,11 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
                 className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 hover:underline cursor-pointer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                Kiểm tra trên Google Maps
+                {t("admin.lockers.tools.location.openGoogleMaps")}
               </button>
             </div>
             <div className="text-[11px] text-muted-foreground">
-              Độ chính xác tọa độ: ~0.1m
+              {t("admin.lockers.tools.location.coordPrecision")}
             </div>
           </div>
         </div>
@@ -828,12 +842,12 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
               if (mapRef.current) {
                 mapRef.current.flyTo([lat, lng], 17);
               }
-              toast.info("Đã đặt lại tọa độ gốc của tủ");
+              toast.info(t("admin.lockers.tools.location.resetDone"));
             }}
             className="text-xs text-muted-foreground"
           >
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-            Đặt lại tọa độ gốc
+            {t("admin.lockers.tools.location.reset")}
           </Button>
 
           <div className="flex items-center gap-2">
@@ -844,7 +858,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
               onClick={() => onOpenChange(false)}
               className="text-xs"
             >
-              Hủy
+              {t("button.cancel")}
             </Button>
             <Button
               type="button"
@@ -854,7 +868,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
               className="text-xs bg-sky-600 hover:bg-sky-700 text-white gap-1.5"
             >
               {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-              {isSaving ? "Đang lưu tọa độ..." : "Lưu tọa độ tủ"}
+              {isSaving ? t("admin.lockers.tools.location.savingCoords") : t("admin.lockers.tools.location.saveCoords")}
             </Button>
           </div>
         </DialogFooter>

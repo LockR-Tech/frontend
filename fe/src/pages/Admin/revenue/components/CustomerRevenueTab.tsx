@@ -164,7 +164,7 @@ export function CustomerRevenueTab({
       id: "actions",
       header: () => (
         <span className="text-right block">
-          {t("admin.revenue.actions.header", "Hành động")}
+          {t("admin.revenue.actions.header")}
         </span>
       ),
       cell: ({ row }) => {
@@ -187,7 +187,7 @@ export function CustomerRevenueTab({
               }
             >
               <Eye className="h-3.5 w-3.5" />
-              <span>{t("admin.revenue.actions.viewOrders", "Xem đơn")}</span>
+              <span>{t("admin.revenue.actions.viewOrders")}</span>
             </Button>
             <Button
               type="button"

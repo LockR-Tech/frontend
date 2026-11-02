@@ -1132,7 +1132,7 @@ export default function TechnicianDetailPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-sky-600" />
-                  Ca trực & Vị trí hiện trường
+                  {t("admin.maintenance.ui.presence.title")}
                 </CardTitle>
                 <Badge
                   variant="outline"
@@ -1150,12 +1150,12 @@ export default function TechnicianDetailPage() {
                     }`}
                   />
                   {technicianPresence?.onDuty
-                    ? "Đang trong ca"
-                    : "Ngoài ca trực"}
+                    ? t("admin.maintenance.ui.shift.onDuty")
+                    : t("admin.maintenance.ui.presence.offDuty")}
                 </Badge>
               </div>
               <CardDescription className="text-xs mt-1">
-                Tọa độ GPS và trạng thái sẵn sàng nhận việc ngoài hiện trường.
+                {t("admin.maintenance.ui.presence.desc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
@@ -1163,8 +1163,8 @@ export default function TechnicianDetailPage() {
               <div className="space-y-2 p-3 rounded-lg bg-muted/40 border border-border/60">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Vào
-                    ca lúc:
+                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />{" "}
+                    {t("admin.maintenance.ui.presence.shiftStart")}
                   </span>
                   <span className="font-medium text-foreground">
                     {technicianPresence?.shiftStartedAt
@@ -1176,7 +1176,7 @@ export default function TechnicianDetailPage() {
                   <div className="flex items-center justify-between pt-1 border-t border-border/40">
                     <span className="text-muted-foreground flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-muted-foreground" />{" "}
-                      Hết ca lúc:
+                      {t("admin.maintenance.ui.presence.shiftEnd")}
                     </span>
                     <span className="font-medium text-foreground">
                       {formatDateTime(technicianPresence.shiftEndedAt)}
@@ -1191,8 +1191,8 @@ export default function TechnicianDetailPage() {
                 <div className="space-y-2 p-3 rounded-lg bg-sky-50/50 border border-sky-200/60 dark:bg-sky-950/20 dark:border-sky-800/40">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-sky-600" /> Tọa độ
-                      GPS:
+                      <MapPin className="w-3.5 h-3.5 text-sky-600" />{" "}
+                      {t("admin.maintenance.ui.presence.gps")}
                     </span>
                     <span className="font-mono font-bold text-foreground">
                       {technicianPresence.latitude.toFixed(6)},{" "}
@@ -1201,15 +1201,15 @@ export default function TechnicianDetailPage() {
                   </div>
                   {technicianPresence.accuracyM != null && (
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span>Độ chính xác:</span>
+                      <span>{t("admin.maintenance.ui.presence.accuracy")}</span>
                       <span className="font-medium text-foreground">
-                        ±{technicianPresence.accuracyM.toFixed(1)} mét
+                        {t("admin.maintenance.ui.presence.meters", { value: technicianPresence.accuracyM.toFixed(1) })}
                       </span>
                     </div>
                   )}
                   {technicianPresence.lastLocatedAt && (
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span>Cập nhật lúc:</span>
+                      <span>{t("admin.maintenance.ui.presence.updatedAt")}</span>
                       <span className="font-medium text-foreground">
                         {formatDateTime(technicianPresence.lastLocatedAt)}
                       </span>
@@ -1228,7 +1228,7 @@ export default function TechnicianDetailPage() {
                       }}
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      Mở trên Google Maps
+                      {t("admin.maintenance.ui.presence.openMaps")}
                     </Button>
                   </div>
                 </div>
@@ -1237,12 +1237,11 @@ export default function TechnicianDetailPage() {
                   <MapPin className="w-5 h-5 mx-auto text-muted-foreground/60" />
                   <p className="font-medium">
                     {technicianPresence?.onDuty
-                      ? "Đang chờ KTV gửi tọa độ GPS..."
-                      : "Chưa có dữ liệu vị trí GPS"}
+                      ? t("admin.maintenance.ui.presence.waitingGps")
+                      : t("admin.maintenance.ui.presence.noGps")}
                   </p>
                   <p className="text-[11px] text-muted-foreground/80">
-                    Vị trí sẽ được cập nhật khi KTV bật ca trực trên ứng dụng
-                    Mobile.
+                    {t("admin.maintenance.ui.presence.hint")}
                   </p>
                 </div>
               )}
@@ -1257,12 +1256,12 @@ export default function TechnicianDetailPage() {
                   {technician?.specialty === "DRONE" ? (
                     <>
                       <Plane className="w-4 h-4 text-purple-600" />
-                      Drone phụ trách
+                      {t("admin.maintenance.ui.devices.droneTitle")}
                     </>
                   ) : (
                     <>
                       <Boxes className="w-4 h-4 text-primary" />
-                      Kiosk / Tủ phụ trách
+                      {t("admin.maintenance.ui.devices.kioskTitle")}
                     </>
                   )}
                 </CardTitle>
@@ -1277,8 +1276,8 @@ export default function TechnicianDetailPage() {
               </div>
               <CardDescription className="text-xs mt-1">
                 {technician?.specialty === "DRONE"
-                  ? "Danh sách Drone được phân công cho KTV phụ trách và bảo trì."
-                  : "Danh sách tủ Kiosk được phân công cho KTV phụ trách xử lý sự cố."}
+                  ? t("admin.maintenance.ui.devices.droneDesc")
+                  : t("admin.maintenance.ui.devices.kioskDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2.5 text-xs">
@@ -1286,9 +1285,9 @@ export default function TechnicianDetailPage() {
                 assignedDrones.length === 0 ? (
                   <div className="p-4 rounded-lg border border-dashed text-center text-muted-foreground text-xs space-y-1">
                     <Plane className="w-5 h-5 mx-auto text-muted-foreground/60" />
-                    <p className="font-medium">Chưa có Drone phụ trách</p>
+                    <p className="font-medium">{t("admin.maintenance.ui.devices.noDrone")}</p>
                     <p className="text-[11px] text-muted-foreground/80">
-                      Gán KTV phụ trách trong trang chi tiết Drone.
+                      {t("admin.maintenance.ui.devices.noDroneHint")}
                     </p>
                   </div>
                 ) : (
@@ -1315,7 +1314,7 @@ export default function TechnicianDetailPage() {
                             <div className="flex items-center justify-between">
                               <span className="flex items-center gap-1">
                                 <BatteryCharging className="w-3 h-3 text-emerald-600" />{" "}
-                                Pin:
+                                {t("admin.maintenance.ui.devices.battery")}
                               </span>
                               <span className="font-mono font-medium text-foreground">
                                 {drone.batteryPercent}%
@@ -1324,7 +1323,7 @@ export default function TechnicianDetailPage() {
                           )}
                           {drone.lockerName && (
                             <div className="flex items-center justify-between">
-                              <span>Trạm gốc:</span>
+                              <span>{t("admin.maintenance.ui.devices.homeStation")}</span>
                               <span className="font-medium text-foreground truncate max-w-[150px]">
                                 {drone.lockerName}
                               </span>
@@ -1337,7 +1336,7 @@ export default function TechnicianDetailPage() {
                           className="w-full h-7 text-xs bg-white hover:bg-sky-50 text-sky-700 border-sky-200 dark:bg-slate-900 dark:text-sky-300 dark:border-sky-800 gap-1"
                           onClick={() => navigate(`/admin/drones/${drone.id}`)}
                         >
-                          Xem chi tiết Drone
+                          {t("admin.maintenance.ui.devices.viewDrone")}
                           <ChevronRight className="w-3.5 h-3.5 ml-auto" />
                         </Button>
                       </div>
@@ -1347,9 +1346,9 @@ export default function TechnicianDetailPage() {
               ) : assignedLockers.length === 0 ? (
                 <div className="p-4 rounded-lg border border-dashed text-center text-muted-foreground text-xs space-y-1">
                   <Boxes className="w-5 h-5 mx-auto text-muted-foreground/60" />
-                  <p className="font-medium">Chưa có Kiosk phụ trách</p>
+                  <p className="font-medium">{t("admin.maintenance.ui.devices.noKiosk")}</p>
                   <p className="text-[11px] text-muted-foreground/80">
-                    Gán KTV phụ trách trong trang chi tiết Kiosk.
+                    {t("admin.maintenance.ui.devices.noKioskHint")}
                   </p>
                 </div>
               ) : (
@@ -1381,7 +1380,7 @@ export default function TechnicianDetailPage() {
                         </div>
                       )}
                       <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/50">
-                        <span>Số ô trống:</span>
+                        <span>{t("admin.maintenance.ui.devices.freeBoxes")}</span>
                         <span className="font-medium text-foreground">
                           {locker.availableBoxes ?? 0} /{" "}
                           {locker.totalBoxes ?? 0}
@@ -1393,7 +1392,7 @@ export default function TechnicianDetailPage() {
                         className="w-full h-7 text-xs bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-slate-900 dark:text-indigo-300 dark:border-indigo-800 gap-1"
                         onClick={() => navigate(`/admin/lockers/${locker.id}`)}
                       >
-                        Xem chi tiết Kiosk
+                        {t("admin.maintenance.ui.devices.viewKiosk")}
                         <ChevronRight className="w-3.5 h-3.5 ml-auto" />
                       </Button>
                     </div>
@@ -1590,10 +1589,7 @@ export default function TechnicianDetailPage() {
                 <div className="relative w-full sm:w-60 shrink-0">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <Input
-                    placeholder={t(
-                      "admin.maintenance.techDetail.searchPlaceholder",
-                      { defaultValue: "Tìm theo mã, tiêu đề, thiết bị..." },
-                    )}
+                    placeholder={t("admin.maintenance.techDetail.searchPlaceholder")}
                     value={ticketSearch}
                     onChange={(e) => setTicketSearch(e.target.value)}
                     className="h-8 pl-8 pr-7 text-xs rounded-lg bg-background border-border/80"
@@ -1632,9 +1628,7 @@ export default function TechnicianDetailPage() {
                         }}
                         className="text-xs h-8"
                       >
-                        {t("admin.maintenance.techDetail.clearFilter", {
-                          defaultValue: "Xóa bộ lọc",
-                        })}
+                        {t("admin.maintenance.techDetail.clearFilter")}
                       </Button>
                     )}
                   </CardContent>

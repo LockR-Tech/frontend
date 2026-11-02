@@ -40,16 +40,20 @@ export default function OpenBoxByQrPage() {
       setState({
         kind: "done",
         ok: Boolean(body?.accepted),
-        message: body?.message || (body?.accepted ? "Đã gửi lệnh mở ô" : "Tủ không nhận lệnh mở ô"),
+        message:
+          body?.message ||
+          (body?.accepted
+            ? t("admin.lockers.tools.openQr.openSent")
+            : t("admin.lockers.tools.openQr.openRejected")),
         at: new Date(),
       });
     } catch (err) {
       const message =
         (err as { data?: { message?: string } })?.data?.message ||
-        "Không gửi được lệnh mở ô — kiểm tra quyền tài khoản và kết nối của tủ";
+        t("admin.lockers.tools.openQr.sendFailed");
       setState({ kind: "done", ok: false, message, at: new Date() });
     }
-  }, [openBox, lockerId, boxId]);
+  }, [openBox, lockerId, boxId, t]);
 
   useEffect(() => {
     if (!valid || autoOpened.current) return;
@@ -60,12 +64,14 @@ export default function OpenBoxByQrPage() {
   if (!valid) {
     return (
       <div className="p-6 text-sm text-muted-foreground">
-        {t("admin.lockers.openQr.invalidLink", "Mã QR không hợp lệ.")}
+        {t("admin.lockers.tools.openQr.invalidLink")}
       </div>
     );
   }
 
-  const boxLabel = cell ? `Ô ${cell.boxNumber}` : `Ô #${boxId}`;
+  const boxLabel = cell
+    ? t("admin.lockers.gateway.slot", { number: cell.boxNumber })
+    : t("admin.lockers.boxLabel", { number: boxId });
   const lockerLabel = layout?.code ?? `#${lockerId}`;
 
   return (
@@ -73,14 +79,14 @@ export default function OpenBoxByQrPage() {
       <Card>
         <CardContent className="space-y-4 p-6 text-center">
           <p className="text-xs text-muted-foreground">
-            {t("admin.lockers.openQr.pageTitle", "Mở ô bằng mã QR (thử tủ)")} · {lockerLabel}
+            {t("admin.lockers.tools.openQr.pageTitle")} · {lockerLabel}
           </p>
           <p className="text-4xl font-bold">{boxLabel}</p>
 
           {state?.kind === "sending" || state == null ? (
             <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              {t("admin.lockers.openQr.sending", "Đang gửi lệnh mở ô...")}
+              {t("admin.lockers.tools.openQr.sending")}
             </div>
           ) : state.ok ? (
             <div className="flex flex-col items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
@@ -99,10 +105,10 @@ export default function OpenBoxByQrPage() {
           <div className="flex flex-col gap-2">
             <Button onClick={() => void send()} disabled={state?.kind === "sending"}>
               {state?.kind === "done" ? <RotateCcw className="mr-1.5 h-4 w-4" /> : <Unlock className="mr-1.5 h-4 w-4" />}
-              {t("admin.lockers.openQr.openAgain", "Mở lại ô này")}
+              {t("admin.lockers.tools.openQr.openAgain")}
             </Button>
             <Button variant="outline" asChild>
-              <Link to={`/admin/lockers/${lockerId}`}>{t("admin.lockers.openQr.backToLocker", "Về trang tủ")}</Link>
+              <Link to={`/admin/lockers/${lockerId}`}>{t("admin.lockers.tools.openQr.backToLocker")}</Link>
             </Button>
           </div>
         </CardContent>

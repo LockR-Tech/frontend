@@ -121,7 +121,7 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
     if (!sheet) return;
     const win = window.open("", "_blank", "width=900,height=1100");
     if (!win) return;
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR mở ô ${lockerCode}</title>
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${t("admin.lockers.tools.openQr.printTitle", { code: lockerCode })}</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 12mm; font-family: Arial, sans-serif; color: #0f172a; }
@@ -149,19 +149,16 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-500" />
-            {t("admin.lockers.openQr.title", "Mã QR mở ô để thử tủ")} · {lockerCode}
+            {t("admin.lockers.tools.openQr.title")} · {lockerCode}
           </DialogTitle>
           <DialogDescription>
-            {t(
-              "admin.lockers.openQr.description",
-              "Mã của ô nào thì ô đó bật ra, không cần đặt đơn. Quét bằng app Lock.R (nút quét QR ở trang chủ) với tài khoản có trong danh sách thử ở Cài đặt › iot và chế độ thử đang bật; hoặc quét bằng camera thường rồi đăng nhập ADMIN/KTV phụ trách tủ trên trình duyệt."
-            )}
+            {t("admin.lockers.tools.openQr.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-1.5">
           <Label htmlFor="box-open-qr-base" className="text-xs">
-            {t("admin.lockers.openQr.baseUrl", "Địa chỉ web admin mà điện thoại mở được")}
+            {t("admin.lockers.tools.openQr.baseUrl")}
           </Label>
           <Input
             id="box-open-qr-base"
@@ -173,10 +170,7 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
           {localhostWarning && (
             <p className="flex items-start gap-1.5 text-[11px] text-amber-700 dark:text-amber-400">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
-              {t(
-                "admin.lockers.openQr.localhostWarning",
-                "Quét bằng app Lock.R thì địa chỉ này không quan trọng. Quét bằng camera thường thì điện thoại không mở được localhost: chạy web bằng `npm run dev -- --host` rồi nhập IP mạng LAN của máy (cùng Wi-Fi với điện thoại), ví dụ http://192.168.1.10:3000."
-              )}
+              {t("admin.lockers.tools.openQr.localhostWarning")}
             </p>
           )}
         </div>
@@ -184,10 +178,10 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
         <div ref={sheetRef} className="rounded-lg bg-white p-3 text-slate-900">
           <h1 className="text-base font-bold">
             {lockerCode}
-            {lockerName ? ` · ${lockerName}` : ""} — QR mở ô (thử tủ)
+            {lockerName ? ` · ${lockerName}` : ""} — {t("admin.lockers.tools.openQr.button")}
           </h1>
           <p className="sub text-[11px] text-slate-500 mb-2">
-            Quét bằng app Lock.R (chế độ thử tủ) hoặc camera + đăng nhập ADMIN/KTV · {baseUrl.replace(/\/+$/, "")}
+            {t("admin.lockers.tools.openQr.sheetSub", { url: baseUrl.replace(/\/+$/, "") })}
           </p>
           <div
             className="front grid gap-1.5 w-full border-[3px] border-slate-600 rounded-md p-1.5"
@@ -209,7 +203,7 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
                     style={style}
                     className="slot panel flex items-center justify-center rounded border-2 border-slate-400 bg-slate-200 text-xs text-slate-500"
                   >
-                    {t("admin.lockers.openQr.electricalBay", "Khoang điện")}
+                    {t("admin.lockers.tools.openQr.electricalBay")}
                   </div>
                 );
               }
@@ -220,7 +214,9 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
                   style={style}
                   className="slot flex flex-col items-center justify-center gap-1 rounded border-2 border-slate-500 p-1.5 overflow-hidden min-h-0"
                 >
-                  <span className="num text-lg font-bold leading-none">Ô {slot.boxNumber}</span>
+                  <span className="num text-lg font-bold leading-none">
+                    {t("admin.lockers.gateway.slot", { number: slot.boxNumber })}
+                  </span>
                   {cell ? (
                     <>
                       <QRCodeSVG
@@ -237,7 +233,7 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
                     </>
                   ) : (
                     <span className="missing text-[11px] text-red-700 text-center">
-                      {t("admin.lockers.openQr.missingBox", "Chưa có ô số này trong hệ thống")}
+                      {t("admin.lockers.tools.openQr.missingBox")}
                     </span>
                   )}
                 </div>
@@ -249,7 +245,7 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
         <div className="flex justify-end">
           <Button size="sm" onClick={handlePrint}>
             <Printer className="w-4 h-4 mr-1.5" />
-            {t("admin.lockers.openQr.print", "In tờ QR")}
+            {t("admin.lockers.tools.openQr.print")}
           </Button>
         </div>
       </DialogContent>

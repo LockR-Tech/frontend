@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -82,219 +83,220 @@ import { RecoveryDispatchInlineMap } from "./RecoveryDispatchInlineMap";
 
 // Bảng tra cứu trạng thái Sự cố rõ ràng bằng Tiếng Việt
 function formatIncidentStatus(
+  t: TFunction,
   status: string,
   recoveryStatus?: string,
 ): { label: string; className: string } {
   if (status === "AWAITING_ADMIN_REVIEW" && ["VERIFIED", "CLOSED"].includes(recoveryStatus ?? "")) {
-    return { label: "Sự cố: Chờ lập phương án", className: "bg-amber-100 text-amber-800 border-amber-300" };
+    return { label: t("admin.droneIncidents.detailPage.incidentStatus.awaitingPlan"), className: "bg-amber-100 text-amber-800 border-amber-300" };
   }
   switch (status) {
     case "CLOSED":
-      return { label: "Sự cố: Đã đóng", className: "bg-slate-100 text-slate-800 border-slate-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.closed"), className: "bg-slate-100 text-slate-800 border-slate-300" };
     case "RESOLVED":
-      return { label: "Sự cố: Đã giải quyết", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.resolved"), className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
     case "RECOVERY_IN_PROGRESS":
-      return { label: "Sự cố: Đang thu hồi kiện", className: "bg-blue-100 text-blue-800 border-blue-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.recoveryInProgress"), className: "bg-blue-100 text-blue-800 border-blue-300" };
     case "AWAITING_ADMIN_REVIEW":
-      return { label: "Sự cố: Chờ Admin xác minh", className: "bg-amber-100 text-amber-800 border-amber-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.awaitingAdminReview"), className: "bg-amber-100 text-amber-800 border-amber-300" };
     case "RESOLUTION_PROPOSED":
-      return { label: "Sự cố: Đã đề xuất phương án", className: "bg-indigo-100 text-indigo-800 border-indigo-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.resolutionProposed"), className: "bg-indigo-100 text-indigo-800 border-indigo-300" };
     case "AWAITING_CUSTOMER_RESPONSE":
-      return { label: "Sự cố: Chờ khách phản hồi", className: "bg-amber-100 text-amber-800 border-amber-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.awaitingCustomerResponse"), className: "bg-amber-100 text-amber-800 border-amber-300" };
     case "RESOLUTION_IN_PROGRESS":
-      return { label: "Sự cố: Đang thực hiện phương án", className: "bg-purple-100 text-purple-800 border-purple-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.resolutionInProgress"), className: "bg-purple-100 text-purple-800 border-purple-300" };
     case "INVESTIGATING":
-      return { label: "Sự cố: Đang điều phối thu hồi", className: "bg-red-50 text-red-700 border-red-200" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.investigating"), className: "bg-red-50 text-red-700 border-red-200" };
     case "EVIDENCE_PENDING":
-      return { label: "Sự cố: Chờ bổ sung bằng chứng", className: "bg-amber-50 text-amber-800 border-amber-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.evidencePending"), className: "bg-amber-50 text-amber-800 border-amber-300" };
     case "DISPUTED":
-      return { label: "Sự cố: Khách khiếu nại", className: "bg-red-100 text-red-800 border-red-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.disputed"), className: "bg-red-100 text-red-800 border-red-300" };
     case "MANUAL_INTERVENTION_REQUIRED":
-      return { label: "Sự cố: Cần can thiệp", className: "bg-red-100 text-red-800 border-red-300" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.manualInterventionRequired"), className: "bg-red-100 text-red-800 border-red-300" };
     case "REPORTED":
-      return { label: "Sự cố: Mới báo rơi", className: "bg-red-50 text-red-700 border-red-200" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.reported"), className: "bg-red-50 text-red-700 border-red-200" };
     default:
-      return { label: `Sự cố: ${status}`, className: "bg-slate-100 text-slate-800 border-slate-200" };
+      return { label: t("admin.droneIncidents.detailPage.incidentStatus.other", { status }), className: "bg-slate-100 text-slate-800 border-slate-200" };
   }
 }
 
 // Bảng tra cứu trạng thái Tìm kiếm Thu hồi rõ ràng
-function formatRecoveryStatus(status: string): { label: string; className: string } {
+function formatRecoveryStatus(t: TFunction, status: string): { label: string; className: string } {
   switch (status) {
     case "CLOSED":
-      return { label: "Thu hồi: Hoàn tất thu hồi", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.closed"), className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
     case "VERIFIED":
-      return { label: "Thu hồi: Admin đã xác minh", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.verified"), className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
     case "SUBMITTED":
-      return { label: "Thu hồi: Chờ Admin duyệt", className: "bg-amber-100 text-amber-800 border-amber-300" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.submitted"), className: "bg-amber-100 text-amber-800 border-amber-300" };
     case "SEARCHING":
-      return { label: "Thu hồi: KTV đang tìm thực địa", className: "bg-indigo-100 text-indigo-800 border-indigo-300" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.searching"), className: "bg-indigo-100 text-indigo-800 border-indigo-300" };
     case "ACCEPTED":
-      return { label: "Thu hồi: KTV đã tiếp nhận", className: "bg-blue-100 text-blue-800 border-blue-300" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.accepted"), className: "bg-blue-100 text-blue-800 border-blue-300" };
     case "ASSIGNED":
-      return { label: "Thu hồi: Đã phân công (Chờ KTV nhận)", className: "bg-amber-100 text-amber-800 border-amber-300" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.assigned"), className: "bg-amber-100 text-amber-800 border-amber-300" };
     case "AWAITING_ASSIGNMENT":
-      return { label: "Thu hồi: Chờ phân công KTV", className: "bg-amber-50 text-amber-800 border-amber-300" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.awaitingAssignment"), className: "bg-amber-50 text-amber-800 border-amber-300" };
     case "OPEN":
-      return { label: "Thu hồi: Chờ xử lý", className: "bg-slate-100 text-slate-800 border-slate-300" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.open"), className: "bg-slate-100 text-slate-800 border-slate-300" };
     default:
-      return { label: `Thu hồi: ${status}`, className: "bg-slate-100 text-slate-800 border-slate-200" };
+      return { label: t("admin.droneIncidents.detailPage.recoveryStatus.other", { status }), className: "bg-slate-100 text-slate-800 border-slate-200" };
   }
 }
 
 // Bảng tra cứu tình trạng Kiện hàng rõ ràng
-function formatParcelStatus(status: string): { label: string; className: string } {
+function formatParcelStatus(t: TFunction, status: string): { label: string; className: string } {
   switch (status) {
     case "RETURNED_TO_HUB":
-      return { label: "Kiện hàng: Đã về kho Hub", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.returnedToHub"), className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
     case "DROP_REPORTED":
-      return { label: "Kiện hàng: Rơi tại hiện trường", className: "bg-red-100 text-red-800 border-red-300" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.dropReported"), className: "bg-red-100 text-red-800 border-red-300" };
     case "SEARCHING":
-      return { label: "Kiện hàng: Đang tìm kiếm", className: "bg-amber-100 text-amber-800 border-amber-300" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.searching"), className: "bg-amber-100 text-amber-800 border-amber-300" };
     case "FOUND":
-      return { label: "Kiện hàng: Đã tìm thấy", className: "bg-sky-100 text-sky-800 border-sky-300" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.found"), className: "bg-sky-100 text-sky-800 border-sky-300" };
     case "DAMAGED":
-      return { label: "Kiện hàng: Hư hại tại hiện trường", className: "bg-red-100 text-red-800 border-red-300" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.damaged"), className: "bg-red-100 text-red-800 border-red-300" };
     case "LOST":
-      return { label: "Kiện hàng: Thất lạc", className: "bg-red-200 text-red-900 border-red-400" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.lost"), className: "bg-red-200 text-red-900 border-red-400" };
     case "REDELIVERING":
-      return { label: "Kiện hàng: Đang giao lại", className: "bg-indigo-100 text-indigo-800 border-indigo-300" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.redelivering"), className: "bg-indigo-100 text-indigo-800 border-indigo-300" };
     case "REDELIVERED":
-      return { label: "Kiện hàng: Đã giao lại thành công", className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.redelivered"), className: "bg-emerald-100 text-emerald-800 border-emerald-300" };
     default:
-      return { label: `Kiện hàng: ${status}`, className: "bg-slate-100 text-slate-800 border-slate-200" };
+      return { label: t("admin.droneIncidents.detailPage.parcelStatus.other", { status }), className: "bg-slate-100 text-slate-800 border-slate-200" };
   }
 }
 
-// Bảng dịch chi tiết Dòng thời gian Tiếng Việt để lên trước
-const RETURN_FLIGHT_LABELS: Record<string, string> = {
-  RETURN_REQUESTED: "Đã yêu cầu quay về",
-  COMMAND_ACCEPTED: "Drone đã nhận lệnh",
-  RETURNING: "Đang bay về trạm",
-  COMPLETED: "Đã về trạm",
-  FAILED: "Quay về thất bại",
-  MANUAL_INTERVENTION_REQUIRED: "Cần đưa drone về tay",
+// Bảng dịch chi tiết Dòng thời gian Tiếng Việt để lên trước (giữ khoá i18n, dịch lúc render)
+const RETURN_FLIGHT_LABEL_KEYS: Record<string, string> = {
+  RETURN_REQUESTED: "admin.droneIncidents.detailPage.returnFlight.returnRequested",
+  COMMAND_ACCEPTED: "admin.droneIncidents.detailPage.returnFlight.commandAccepted",
+  RETURNING: "admin.droneIncidents.detailPage.returnFlight.returning",
+  COMPLETED: "admin.droneIncidents.detailPage.returnFlight.completed",
+  FAILED: "admin.droneIncidents.detailPage.returnFlight.failed",
+  MANUAL_INTERVENTION_REQUIRED: "admin.droneIncidents.detailPage.returnFlight.manualInterventionRequired",
 };
 
 const TIMELINE_EVENT_INFO: Record<
   string,
-  { labelVi: string; description?: string }
+  { labelKey: string; descriptionKey?: string }
 > = {
   INCIDENT_REPORTED: {
-    labelVi: "Báo cáo sự cố rơi kiện",
-    description: "Hệ thống ghi nhận sự cố rơi kiện từ drone",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.incidentReported.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.incidentReported.description",
   },
   RETURN_REQUEST: {
-    labelVi: "Yêu cầu drone quay về trạm (RTL)",
-    description: "Kích hoạt chế độ Return-to-Launch cho drone",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.returnRequest.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.returnRequest.description",
   },
   RETURN_FLIGHT_UPDATED: {
-    labelVi: "Drone đang bay về trạm (RTL)",
-    description: "Cập nhật hành trình bay khẩn cấp về trạm hạ cánh an toàn",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.returnFlightUpdated.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.returnFlightUpdated.description",
   },
   RECOVERY_ASSIGNED: {
-    labelVi: "Phân công KTV tìm kiếm",
-    description: "Hệ thống hoặc Quản trị viên điều phối KTV tiếp nhận tìm kiếm",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoveryAssigned.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoveryAssigned.description",
   },
   RECOVERY_ACCEPTED: {
-    labelVi: "KTV tiếp nhận nhiệm vụ",
-    description: "Kỹ thuật viên đã nhận lệnh tìm kiếm thực địa",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoveryAccepted.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoveryAccepted.description",
   },
   RECOVERY_SEARCHING: {
-    labelVi: "Bắt đầu tìm kiếm thực địa",
-    description: "Kỹ thuật viên tới hiện trường và tiến hành quét tìm kiện",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoverySearching.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoverySearching.description",
   },
   RECOVERY_SUBMITTED: {
-    labelVi: "KTV nộp báo cáo hiện trường",
-    description: "KTV xác nhận toạ độ thực tế và tải ảnh bằng chứng",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoverySubmitted.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoverySubmitted.description",
   },
   RECOVERY_VERIFIED: {
-    labelVi: "Admin duyệt xác minh hiện trường",
-    description: "Quản trị viên đã kiểm tra toạ độ và đối soát kết quả tìm kiếm",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoveryVerified.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoveryVerified.description",
   },
   RECOVERY_STATION_DISPATCHED: {
-    labelVi: "Điều phối kiện về trạm bay",
-    description: "Hệ thống chọn trạm gần nơi tìm thấy nhất còn drone để bay giao lại",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoveryStationDispatched.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoveryStationDispatched.description",
   },
   RECOVERY_STATION_UNAVAILABLE: {
-    labelVi: "Chưa điều phối được trạm",
-    description: "Không trạm bay nào nhận được kiện — giữ nơi bàn giao cũ",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoveryStationUnavailable.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoveryStationUnavailable.description",
   },
   RECOVERY_TICKETS_UNAVAILABLE: {
-    labelVi: "Chưa tạo được phiếu thu hồi",
-    description: "Hệ thống tủ chưa phản hồi — admin phân công KTV thu hồi bằng tay",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoveryTicketsUnavailable.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoveryTicketsUnavailable.description",
   },
   PARCEL_RETURNED_TO_HUB: {
-    labelVi: "Bàn giao kiện hàng về trạm",
-    description: "Kiện hàng đã được KTV vận chuyển về trạm / Hub an toàn",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.parcelReturnedToHub.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.parcelReturnedToHub.description",
   },
   PROPOSAL_CREATED: {
-    labelVi: "Tạo đề xuất phương án xử lý",
-    description: "Đã gửi đề xuất bồi thường / giao lại cho khách hàng",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.proposalCreated.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.proposalCreated.description",
   },
   PROPOSAL_ACCEPTED: {
-    labelVi: "Khách hàng đồng ý phương án",
-    description: "Khách xác nhận chấp thuận phương án giải quyết",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.proposalAccepted.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.proposalAccepted.description",
   },
   PROPOSAL_DISPUTED: {
-    labelVi: "Khách yêu cầu xem xét lại",
-    description: "Khách khiếu nại hoặc từ chối phương án bồi thường",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.proposalDisputed.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.proposalDisputed.description",
   },
   REDELIVERY_STARTED: {
-    labelVi: "Bắt đầu giao lại kiện cho khách",
-    description: "Kiện hàng xuất kho Hub để giao lại tới tủ nhận",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.redeliveryStarted.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.redeliveryStarted.description",
   },
   REDELIVERY_COMPLETED: {
-    labelVi: "Hoàn tất giao lại kiện thành công",
-    description: "Khách hàng đã nhận lại kiện hàng an toàn",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.redeliveryCompleted.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.redeliveryCompleted.description",
   },
   COMPENSATION_APPROVED: {
-    labelVi: "Duyệt chi trả hoàn tiền bồi thường",
-    description: "Admin phê duyệt tạo phiếu hoàn tiền bồi thường",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.compensationApproved.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.compensationApproved.description",
   },
   COMPENSATION_PAID: {
-    labelVi: "Hoàn tiền bồi thường thành công",
-    description: "Hệ thống đã chuyển khoản bồi thường vào tài khoản khách",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.compensationPaid.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.compensationPaid.description",
   },
   RECOVERY_ACCEPT: {
-    labelVi: "KTV tiếp nhận nhiệm vụ",
-    description: "Kỹ thuật viên đã nhận lệnh tìm kiếm thực địa",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoveryAccepted.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoveryAccepted.description",
   },
   RECOVERY_START_SEARCHING: {
-    labelVi: "Bắt đầu tìm kiếm thực địa",
-    description: "Kỹ thuật viên tới hiện trường và tiến hành tìm kiện",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.recoverySearching.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.recoveryStartSearching.description",
   },
   RESOLUTION_PROPOSED: {
-    labelVi: "Gửi phương án cho khách",
-    description: "Đề xuất bồi thường / giao lại đã gửi cho khách",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.resolutionProposed.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.resolutionProposed.description",
   },
   CUSTOMER_ACCEPT: {
-    labelVi: "Khách đồng ý phương án",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.customerAccept.label",
   },
   CUSTOMER_REQUEST_REVIEW: {
-    labelVi: "Khách yêu cầu xem xét lại",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.proposalDisputed.label",
   },
   REDELIVERY_REQUESTED: {
-    labelVi: "Tạo đơn giao lại",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.redeliveryRequested.label",
   },
   REDELIVERY_INTEGRATION_UNAVAILABLE: {
-    labelVi: "Chưa tạo được đơn giao lại",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.redeliveryIntegrationUnavailable.label",
   },
   COMPENSATION_SUBMITTED: {
-    labelVi: "Tạo phiếu chi bồi thường",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.compensationSubmitted.label",
   },
   COMPENSATION_PAYMENT_FAILED: {
-    labelVi: "Chi bồi thường không thành công",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.compensationPaymentFailed.label",
   },
   RETURN_FLIGHT_CONFIRMED: {
-    labelVi: "Xác nhận drone đã về trạm",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.returnFlightConfirmed.label",
   },
   INCIDENT_RESOLVED: {
-    labelVi: "Hoàn tất xử lý sự cố",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.incidentResolved.label",
   },
   INCIDENT_CLOSED: {
-    labelVi: "Đóng hồ sơ sự cố",
-    description: "Toàn bộ quy trình xử lý sự cố rơi kiện đã kết thúc",
+    labelKey: "admin.droneIncidents.detailPage.timeline.events.incidentClosed.label",
+    descriptionKey: "admin.droneIncidents.detailPage.timeline.events.incidentClosed.description",
   },
 };
 
@@ -330,7 +332,9 @@ export default function DroneIncidentDetailPage() {
   const atHub = incident?.parcelStatus === "RETURNED_TO_HUB";
   const badlyDamaged = ["MAJOR_DAMAGE", "UNUSABLE"].includes(incident?.parcelCondition ?? "");
   const canRedeliver = atHub && !badlyDamaged;
-  const redeliveryHint = badlyDamaged ? "(Kiện hư nặng)" : "(Cần kiện về Hub)";
+  const redeliveryHint = badlyDamaged
+    ? t("admin.droneIncidents.detailPage.hints.badlyDamaged")
+    : t("admin.droneIncidents.detailPage.hints.needsHub");
   const suggested = incident ? suggestedCompensationOf(incident) : null;
   const [resolutionType, setResolutionType] = useState<string>(
     canRedeliver ? "FREE_REDELIVERY" : "COMPENSATION_ONLY",
@@ -360,14 +364,14 @@ export default function DroneIncidentDetailPage() {
       return true;
     } catch (error) {
       if (incident?.id === 999 || incident?.id === 998) {
-        toast.success(`${successMsg} (Dữ liệu demo)`);
+        toast.success(t("admin.droneIncidents.detailPage.toast.demoSuffix", { message: successMsg }));
         return true;
       }
       const errData = (error as { data?: { code?: string; message?: string } })?.data;
       toast.error(
         (errData?.code && INCIDENT_ERRORS[errData.code] && t(INCIDENT_ERRORS[errData.code])) ||
           errData?.message ||
-          "Thao tác thất bại. Vui lòng thử lại!",
+          t("admin.droneIncidents.detailPage.toast.actionFailed"),
       );
       return false;
     }
@@ -393,7 +397,7 @@ export default function DroneIncidentDetailPage() {
               ? overrideReason.trim() || undefined
               : undefined,
         }).unwrap(),
-      "Đã gửi đề xuất phương án bồi thường cho khách hàng!",
+      t("admin.droneIncidents.detailPage.toast.proposalSent"),
     );
     if (ok) {
       setShowProposalError(false);
@@ -405,7 +409,7 @@ export default function DroneIncidentDetailPage() {
     return (
       <div className="flex h-96 flex-col items-center justify-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Đang tải thông tin sự cố rơi kiện...</p>
+        <p className="text-sm text-muted-foreground">{t("admin.droneIncidents.detailPage.loading")}</p>
       </div>
     );
   }
@@ -415,19 +419,19 @@ export default function DroneIncidentDetailPage() {
       <div className="space-y-4 py-8">
         <Button variant="ghost" onClick={() => navigate("/admin/drone-incidents")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Danh sách sự cố drone
+          {t("admin.droneIncidents.detailPage.notFound.backToList")}
         </Button>
         <Card className="p-8 text-center">
           <AlertTriangle className="mx-auto h-12 w-12 text-amber-500 mb-3 opacity-80" />
-          <h2 className="text-lg font-bold text-slate-900">Không tìm thấy sự cố</h2>
+          <h2 className="text-lg font-bold text-slate-900">{t("admin.droneIncidents.detailPage.notFound.title")}</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Mã sự cố #{id} không tồn tại hoặc bạn không có quyền truy cập.
+            {t("admin.droneIncidents.detailPage.notFound.description", { id })}
           </p>
           <Button
             className="mt-4"
             onClick={() => navigate("/admin/drone-incidents")}
           >
-            Quay lại danh sách
+            {t("admin.droneIncidents.detailPage.notFound.back")}
           </Button>
         </Card>
       </div>
@@ -441,9 +445,17 @@ export default function DroneIncidentDetailPage() {
   const canHandover =
     incident.recoveryStatus === "VERIFIED" && incident.recoveryOutcome === "FOUND";
 
-  const incStatus = formatIncidentStatus(incident.status, incident.recoveryStatus);
-  const recStatus = formatRecoveryStatus(incident.recoveryStatus);
-  const prcStatus = formatParcelStatus(incident.parcelStatus);
+  const incStatus = formatIncidentStatus(t, incident.status, incident.recoveryStatus);
+  const recStatus = formatRecoveryStatus(t, incident.recoveryStatus);
+  const prcStatus = formatParcelStatus(t, incident.parcelStatus);
+  // Nơi nhận kiện: "trạm <tên>" khi đã điều phối trạm bay, ngược lại "Hub"
+  const stationPlace = incident.recoveryStationName
+    ? t("admin.droneIncidents.detailPage.place.station", { name: incident.recoveryStationName })
+    : "Hub";
+  const returnFlightLabelKey = RETURN_FLIGHT_LABEL_KEYS[incident.returnFlightStatus];
+  const returnFlightLabel = returnFlightLabelKey
+    ? t(returnFlightLabelKey)
+    : (incident.returnFlightStatus ?? "—");
 
   return (
     <div className="space-y-6 pb-12">
@@ -457,7 +469,7 @@ export default function DroneIncidentDetailPage() {
             className="h-8 px-2 text-xs text-slate-600 hover:text-slate-900 gap-1.5"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Quay lại danh sách sự cố</span>
+            <span>{t("admin.droneIncidents.detailPage.header.backToIncidents")}</span>
           </Button>
         </div>
 
@@ -469,14 +481,14 @@ export default function DroneIncidentDetailPage() {
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl font-mono">
-                  Mã sự cố: {incident.incidentCode}
+                  {t("admin.droneIncidents.detailPage.header.incidentCode", { code: incident.incidentCode })}
                 </h1>
                 <Badge variant="outline" className="font-sans text-[11px] bg-slate-50 text-slate-600">
                   ID #{incident.id}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Thời điểm báo rơi: <span className="font-medium text-slate-700">{formatDateTime(incident.createdAt)}</span>
+                {t("admin.droneIncidents.detailPage.header.reportedAt")} <span className="font-medium text-slate-700">{formatDateTime(incident.createdAt)}</span>
               </p>
             </div>
           </div>
@@ -508,7 +520,7 @@ export default function DroneIncidentDetailPage() {
               onClick={() => refetch()}
               disabled={isFetching}
               className="text-xs h-8 ml-1"
-              title="Làm mới dữ liệu"
+              title={t("admin.droneIncidents.detailPage.header.refresh")}
             >
               <RefreshCw
                 className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`}
@@ -583,7 +595,7 @@ export default function DroneIncidentDetailPage() {
             <div className="flex items-center justify-between text-muted-foreground text-xs">
               <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5 text-red-500" />
-                Vị trí rơi & Drone
+                {t("admin.droneIncidents.detailPage.kpi.dropTitle")}
               </span>
               <Badge variant="outline" className="text-[10px]">
                 {incident.droneCode}
@@ -593,12 +605,14 @@ export default function DroneIncidentDetailPage() {
               <p className="font-mono font-bold text-slate-900 text-sm">
                 {incident.dropLatitude != null
                   ? `${incident.dropLatitude.toFixed(6)}, ${incident.dropLongitude?.toFixed(6)}`
-                  : "Chưa có toạ độ"}
+                  : t("admin.droneIncidents.detailPage.kpi.noCoordinates")}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                Nguồn GPS: {incident.gpsSource} · Telemetry:{" "}
+                {t("admin.droneIncidents.detailPage.kpi.gpsTelemetry", { source: incident.gpsSource })}{" "}
                 <span className={incident.telemetryStale ? "text-amber-600 font-medium" : "text-emerald-600 font-medium"}>
-                  {incident.telemetryStale ? "Dữ liệu cũ" : "Trực tuyến"}
+                  {incident.telemetryStale
+                    ? t("admin.droneIncidents.detailPage.kpi.stale")
+                    : t("admin.droneIncidents.detailPage.kpi.online")}
                 </span>
               </p>
             </div>
@@ -609,7 +623,7 @@ export default function DroneIncidentDetailPage() {
                 rel="noreferrer"
                 className="text-xs text-primary hover:underline font-medium inline-flex items-center gap-1 pt-1"
               >
-                Mở bản đồ OpenStreetMap
+                {t("admin.droneIncidents.detailPage.kpi.openOsm")}
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
@@ -622,7 +636,7 @@ export default function DroneIncidentDetailPage() {
             <div className="flex items-center justify-between text-muted-foreground text-xs">
               <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5">
                 <UserCheck className="h-3.5 w-3.5 text-sky-600" />
-                KTV tìm hàng
+                {t("admin.droneIncidents.detailPage.kpi.techTitle")}
               </span>
               <Badge
                 variant="outline"
@@ -635,27 +649,27 @@ export default function DroneIncidentDetailPage() {
                 }`}
               >
                 {isTechAccepted
-                  ? "KTV đã nhận việc"
+                  ? t("admin.droneIncidents.detailPage.kpi.techAccepted")
                   : incident.recoveryStatus === "ASSIGNED"
-                    ? "Chờ KTV bấm nhận"
-                    : "Chưa phân công"}
+                    ? t("admin.droneIncidents.detailPage.kpi.techAwaitingAccept")
+                    : t("common.unassigned")}
               </Badge>
             </div>
             <div>
               <p className="font-bold text-slate-900 text-sm truncate">
                 {incident.recoveryTechnicianName ||
                   (incident.recoveryAssignedToUserId
-                    ? `KTV #${incident.recoveryAssignedToUserId}`
-                    : "Chưa phân công")}
+                    ? t("admin.droneIncidents.actions.techFallback", { id: incident.recoveryAssignedToUserId })
+                    : t("common.unassigned"))}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 {incident.recoveryTechnicianRole === "DRONE_TECHNICIAN"
-                  ? "🚁 KTV Drone (Không bận đơn)"
+                  ? t("admin.droneIncidents.detailPage.kpi.roleDrone")
                   : incident.recoveryTechnicianRole
-                    ? "🏢 KTV Kiosk / Tủ (GPS gần điểm rơi)"
+                    ? t("admin.droneIncidents.detailPage.kpi.roleLocker")
                     : incident.recoveryStatus === "ASSIGNED"
-                      ? "Đang chờ KTV bấm nhận việc"
-                      : "Đang chờ điều phối KTV"}
+                      ? t("admin.droneIncidents.detailPage.kpi.waitingAccept")
+                      : t("admin.droneIncidents.detailPage.kpi.waitingDispatch")}
               </p>
             </div>
             {incident.recoveryTechnicianPhone ? (
@@ -667,7 +681,7 @@ export default function DroneIncidentDetailPage() {
                 {incident.recoveryTechnicianPhone}
               </a>
             ) : (
-              <span className="text-[11px] text-muted-foreground italic">Chưa có số điện thoại</span>
+              <span className="text-[11px] text-muted-foreground italic">{t("admin.droneIncidents.detailPage.kpi.noPhone")}</span>
             )}
           </CardContent>
         </Card>
@@ -678,31 +692,34 @@ export default function DroneIncidentDetailPage() {
             <div className="flex items-center justify-between text-muted-foreground text-xs">
               <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5">
                 <Package className="h-3.5 w-3.5 text-purple-600" />
-                Kiện hàng & Hub
+                {t("admin.droneIncidents.detailPage.kpi.parcelTitle")}
               </span>
               <Badge variant="secondary" className="text-[10px]">
-                {incident.parcelCondition || "Chưa rõ"}
+                {incident.parcelCondition || t("admin.droneIncidents.detailPage.unknown")}
               </Badge>
             </div>
             <div>
               <p className="font-bold text-slate-900 text-sm">
                 {incident.recoveryOutcome === "FOUND"
-                  ? "Đã tìm thấy kiện"
+                  ? t("admin.droneIncidents.detailPage.kpi.parcelFound")
                   : incident.recoveryOutcome === "NOT_FOUND"
-                    ? "Không tìm thấy kiện"
-                    : "Đang tìm kiếm"}
+                    ? t("admin.droneIncidents.detailPage.kpi.parcelNotFound")
+                    : t("admin.droneIncidents.detailPage.kpi.searching")}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 {incident.returnedToHubAt
-                  ? `Về ${incident.recoveryStationName ?? "Hub"} lúc: ${formatDateTime(incident.returnedToHubAt)}`
+                  ? t("admin.droneIncidents.detailPage.kpi.returnedAt", {
+                      place: incident.recoveryStationName ?? "Hub",
+                      time: formatDateTime(incident.returnedToHubAt),
+                    })
                   : incident.recoveryStationName
-                    ? `Chờ bàn giao tại trạm ${incident.recoveryStationName}`
-                    : "Chưa bàn giao về Hub"}
+                    ? t("admin.droneIncidents.detailPage.kpi.awaitingHandoverAt", { station: incident.recoveryStationName })
+                    : t("admin.droneIncidents.detailPage.kpi.notHandedOver")}
               </p>
             </div>
             <div className="pt-1">
               <span className="text-xs text-slate-600 font-medium">
-                Quay về: {RETURN_FLIGHT_LABELS[incident.returnFlightStatus] ?? incident.returnFlightStatus ?? "—"}
+                {t("admin.droneIncidents.detailPage.kpi.returnFlight", { status: returnFlightLabel })}
               </span>
               {["RETURN_REQUESTED", "COMMAND_ACCEPTED", "RETURNING", "FAILED", "MANUAL_INTERVENTION_REQUIRED"].includes(
                 incident.returnFlightStatus,
@@ -715,11 +732,11 @@ export default function DroneIncidentDetailPage() {
                   onClick={() =>
                     handleAction(
                       () => confirmReturn({ id: incident.id }).unwrap(),
-                      "Đã xác nhận drone về trạm",
+                      t("admin.droneIncidents.detailPage.toast.returnConfirmed"),
                     )
                   }
                 >
-                  Xác nhận drone đã về trạm
+                  {t("admin.droneIncidents.detailPage.kpi.confirmReturn")}
                 </Button>
               )}
             </div>
@@ -732,7 +749,7 @@ export default function DroneIncidentDetailPage() {
             <div className="flex items-center justify-between text-muted-foreground text-xs">
               <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5">
                 <Zap className="h-3.5 w-3.5 text-amber-500" />
-                Mức bồi thường
+                {t("admin.droneIncidents.detailPage.kpi.compensationTitle")}
               </span>
               {incident.compensationRate != null && (
                 <Badge
@@ -745,14 +762,14 @@ export default function DroneIncidentDetailPage() {
             </div>
             <div>
               <p className="font-bold text-slate-900 text-sm">
-                Đề xuất: {formatCurrency(suggested)}
+                {t("admin.droneIncidents.detailPage.kpi.suggested", { amount: formatCurrency(suggested) })}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                Khai báo: {formatCurrency(incident.declaredValue ?? 0)}
+                {t("admin.droneIncidents.detailPage.kpi.declared", { amount: formatCurrency(incident.declaredValue ?? 0) })}
               </p>
             </div>
             <div className="pt-1 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Trạng thái:</span>
+              <span className="text-muted-foreground">{t("admin.droneIncidents.detailPage.kpi.status")}</span>
               <Badge variant="outline" className="text-[10px] font-semibold">
                 {incident.compensationStatus}
               </Badge>
@@ -778,26 +795,26 @@ export default function DroneIncidentDetailPage() {
                 </div>
                 <div>
                   <CardTitle className="text-base font-bold text-emerald-950 flex items-center gap-2">
-                    Kỹ thuật viên phụ trách thu hồi kiện
+                    {t("admin.droneIncidents.detailPage.tech.title")}
                     <Badge className="bg-emerald-600 text-white text-[10px]">
                       {incident.recoveryStatus === "SEARCHING"
-                        ? "Đang tìm kiếm thực địa"
+                        ? t("admin.droneIncidents.detailPage.tech.badgeSearching")
                         : incident.recoveryStatus === "SUBMITTED"
-                          ? "Đã nộp kết quả tìm hàng"
+                          ? t("admin.droneIncidents.detailPage.tech.badgeSubmitted")
                           : incident.recoveryStatus === "VERIFIED"
-                            ? "Đã xác minh thu hồi"
+                            ? t("admin.droneIncidents.detailPage.tech.badgeVerified")
                             : incident.recoveryStatus === "CLOSED"
-                              ? "Đã bàn giao về Hub"
-                              : "KTV đã tiếp nhận nhiệm vụ"}
+                              ? t("admin.droneIncidents.detailPage.tech.badgeClosed")
+                              : t("admin.droneIncidents.detailPage.tech.badgeAccepted")}
                     </Badge>
                   </CardTitle>
                   <CardDescription className="text-xs text-emerald-800">
-                    KTV đã bấm nhận nhiệm vụ và đang tiến hành quy trình tìm kiếm / thu hồi kiện hàng. Phân công thủ công đã được khóa.
+                    {t("admin.droneIncidents.detailPage.tech.description")}
                   </CardDescription>
                 </div>
               </div>
               <Badge variant="outline" className="border-emerald-300 text-emerald-800 bg-white text-xs">
-                Mã sự cố: {incident.incidentCode}
+                {t("admin.droneIncidents.detailPage.header.incidentCode", { code: incident.incidentCode })}
               </Badge>
             </div>
           </CardHeader>
@@ -805,31 +822,32 @@ export default function DroneIncidentDetailPage() {
           <CardContent className="p-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
-                <span className="text-[11px] text-muted-foreground font-medium">Họ tên KTV:</span>
+                <span className="text-[11px] text-muted-foreground font-medium">{t("admin.droneIncidents.detailPage.tech.name")}</span>
                 <p className="font-bold text-slate-900 text-sm">
-                  {incident.recoveryTechnicianName || `KTV #${incident.recoveryAssignedToUserId}`}
+                  {incident.recoveryTechnicianName ||
+                    t("admin.droneIncidents.actions.techFallback", { id: incident.recoveryAssignedToUserId })}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
-                <span className="text-[11px] text-muted-foreground font-medium">Số điện thoại liên hệ:</span>
+                <span className="text-[11px] text-muted-foreground font-medium">{t("admin.droneIncidents.detailPage.tech.phone")}</span>
                 <p className="font-bold text-slate-900 text-sm font-mono">
-                  {incident.recoveryTechnicianPhone || "Chưa cập nhật"}
+                  {incident.recoveryTechnicianPhone || t("admin.droneIncidents.detailPage.tech.notUpdated")}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
-                <span className="text-[11px] text-muted-foreground font-medium">Chuyên môn:</span>
+                <span className="text-[11px] text-muted-foreground font-medium">{t("admin.droneIncidents.detailPage.tech.specialty")}</span>
                 <p className="font-bold text-slate-900 text-sm">
                   {incident.recoveryTechnicianRole === "DRONE_TECHNICIAN"
-                    ? "KTV Drone"
+                    ? t("admin.droneIncidents.detailPage.tech.roleDrone")
                     : incident.recoveryTechnicianRole === "LOCKER_TECHNICIAN"
-                      ? "KTV Kiosk / Tủ"
-                      : incident.recoveryTechnicianRole || "Kỹ thuật viên"}
+                      ? t("admin.droneIncidents.detailPage.tech.roleLocker")
+                      : incident.recoveryTechnicianRole || t("admin.droneIncidents.detailPage.tech.roleGeneric")}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-white border border-emerald-100 shadow-2xs space-y-1">
-                <span className="text-[11px] text-muted-foreground font-medium">Trạng thái thu hồi:</span>
+                <span className="text-[11px] text-muted-foreground font-medium">{t("admin.droneIncidents.detailPage.tech.recoveryStatus")}</span>
                 <p className="font-bold text-emerald-700 text-sm">
-                  {formatRecoveryStatus(incident.recoveryStatus).label}
+                  {recStatus.label}
                 </p>
               </div>
             </div>
@@ -840,24 +858,30 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-amber-600" />
                   <span className="font-bold text-sm text-amber-950">
-                    Xác minh kết quả tìm hàng (Admin Review)
+                    {t("admin.droneIncidents.detailPage.verify.title")}
                   </span>
                   <Badge className="bg-amber-600 text-white text-[10px]">
-                    Chờ Admin duyệt
+                    {t("admin.droneIncidents.detailPage.verify.badge")}
                   </Badge>
                 </div>
                 <p className="text-xs text-amber-900 leading-relaxed">
-                  KTV đã nộp báo cáo hiện trường. Quản trị viên cần đối soát các mục sau trước khi xác minh:
+                  {t("admin.droneIncidents.detailPage.verify.intro")}
                 </p>
                 <ul className="text-xs text-amber-950 space-y-1 list-disc list-inside">
-                  <li>Kiểm tra hình ảnh hiện trường và hiện trạng gói hàng thực tế.</li>
-                  <li>Đối soát toạ độ GPS xác nhận từ điện thoại KTV so với toạ độ rơi.</li>
+                  <li>{t("admin.droneIncidents.detailPage.verify.checkPhotos")}</li>
+                  <li>{t("admin.droneIncidents.detailPage.verify.checkGps")}</li>
                   <li>
-                    Xác nhận tình trạng kiện: <b>{incident.parcelCondition || "Chưa rõ"}</b>.
+                    <Trans
+                      i18nKey="admin.droneIncidents.detailPage.verify.checkCondition"
+                      values={{
+                        condition: incident.parcelCondition || t("admin.droneIncidents.detailPage.unknown"),
+                      }}
+                      components={{ b: <b /> }}
+                    />
                   </li>
                 </ul>
                 <p className="text-[11px] text-muted-foreground italic">
-                  * Sau khi bấm Duyệt xác minh, kiện hàng được mở khoá để KTV bàn giao về Hub và hệ thống cho phép tạo phương án bồi thường / giao lại cho khách.
+                  {t("admin.droneIncidents.detailPage.verify.footnote")}
                 </p>
                 <Button
                   className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs gap-1.5 shadow-sm"
@@ -865,7 +889,7 @@ export default function DroneIncidentDetailPage() {
                   onClick={() => setShowVerifyConfirm(true)}
                 >
                   <CheckCircle2 className="h-4 w-4" />
-                  Duyệt xác minh kết quả tìm hàng của KTV
+                  {t("admin.droneIncidents.detailPage.verify.button")}
                 </Button>
               </div>
             )}
@@ -882,7 +906,7 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold flex items-center gap-1.5">
                     <MapPin className="h-4 w-4" />
-                    Trạm nhận kiện: {incident.recoveryStationName}
+                    {t("admin.droneIncidents.detailPage.station.title", { name: incident.recoveryStationName })}
                   </span>
                   {incident.recoveryStationLatitude != null && incident.recoveryStationLongitude != null && (
                     <a
@@ -891,20 +915,24 @@ export default function DroneIncidentDetailPage() {
                       rel="noreferrer"
                       className="inline-flex items-center gap-1 font-semibold underline"
                     >
-                      Chỉ đường <ExternalLink className="h-3 w-3" />
+                      {t("admin.droneIncidents.detailPage.station.directions")} <ExternalLink className="h-3 w-3" />
                     </a>
                   )}
                 </div>
                 {incident.recoveryStationAddress && <p>{incident.recoveryStationAddress}</p>}
                 <p className="text-[11px] opacity-80">
                   {incident.recoveryStationDistanceM != null
-                    ? `Cách nơi tìm thấy ~${(incident.recoveryStationDistanceM / 1000).toFixed(1)} km · `
+                    ? `${t("admin.droneIncidents.detailPage.station.distance", {
+                        km: (incident.recoveryStationDistanceM / 1000).toFixed(1),
+                      })} · `
                     : ""}
                   {incident.recoveryStationDroneAvailable === false
-                    ? "Trạm đang hết drone sẵn sàng — kiện chờ drone tại trạm."
-                    : "Trạm còn drone sẵn sàng — đơn giao lại sẽ bay từ trạm này."}
+                    ? t("admin.droneIncidents.detailPage.station.noDrone")
+                    : t("admin.droneIncidents.detailPage.station.droneReady")}
                   {incident.recoveryStationDispatchedAt
-                    ? ` · Điều phối lúc ${formatDateTime(incident.recoveryStationDispatchedAt)}`
+                    ? ` · ${t("admin.droneIncidents.detailPage.station.dispatchedAt", {
+                        time: formatDateTime(incident.recoveryStationDispatchedAt),
+                      })}`
                     : ""}
                 </p>
               </div>
@@ -916,8 +944,13 @@ export default function DroneIncidentDetailPage() {
                 <PackageCheck className="h-4 w-4 text-emerald-600" />
                 <span>
                   {incident.returnedToHubAt
-                    ? `Kiện hàng đã về ${incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "trạm Hub"} an toàn lúc: ${formatDateTime(incident.returnedToHubAt)}`
-                    : "Kiện hàng đã được bàn giao an toàn về trạm Hub."}
+                    ? t("admin.droneIncidents.detailPage.hub.arrivedAt", {
+                        place: incident.recoveryStationName
+                          ? stationPlace
+                          : t("admin.droneIncidents.detailPage.place.hubStation"),
+                        time: formatDateTime(incident.returnedToHubAt),
+                      })
+                    : t("admin.droneIncidents.detailPage.hub.arrived")}
                 </span>
               </div>
             ) : canHandover ? (
@@ -925,7 +958,7 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sky-950 flex items-center gap-1.5">
                     <PackageCheck className="h-4 w-4 text-sky-600" />
-                    Xác nhận bàn giao kiện về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"}
+                    {t("admin.droneIncidents.detailPage.hub.confirmTitle", { place: stationPlace })}
                   </span>
                   <Button
                     size="sm"
@@ -933,11 +966,11 @@ export default function DroneIncidentDetailPage() {
                     onClick={() => setConfirmHandover(true)}
                     className="h-8 text-xs bg-sky-600 hover:bg-sky-700 text-white"
                   >
-                    Xác nhận kiện đã về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"}
+                    {t("admin.droneIncidents.detailPage.hub.confirmButton", { place: stationPlace })}
                   </Button>
                 </div>
                 <p className="text-sky-800 text-[11px]">
-                  Kiện hàng đã được KTV vận chuyển về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"}. Bấm xác nhận để mở khoá phương án giao lại miễn phí cho khách hàng.
+                  {t("admin.droneIncidents.detailPage.hub.confirmHint", { place: stationPlace })}
                 </p>
               </div>
             ) : null}
@@ -957,16 +990,17 @@ export default function DroneIncidentDetailPage() {
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm text-amber-950">
-                        Đang chờ KTV bấm nhận nhiệm vụ
+                        {t("admin.droneIncidents.detailPage.dispatch.waitingTitle")}
                       </span>
                       <Badge className="bg-amber-600 text-white text-[10px]">
-                        Chưa nhận
+                        {t("admin.droneIncidents.detailPage.dispatch.notAccepted")}
                       </Badge>
                     </div>
                     <p className="text-amber-900 text-xs">
-                      Hệ thống đã chỉ định KTV:{" "}
+                      {t("admin.droneIncidents.detailPage.dispatch.assignedTech")}{" "}
                       <b className="text-slate-900 font-semibold">
-                        {incident.recoveryTechnicianName || `KTV #${incident.recoveryAssignedToUserId}`}
+                        {incident.recoveryTechnicianName ||
+                          t("admin.droneIncidents.actions.techFallback", { id: incident.recoveryAssignedToUserId })}
                       </b>
                       {incident.recoveryTechnicianPhone && (
                         <span className="font-mono text-slate-700 ml-1">
@@ -975,7 +1009,7 @@ export default function DroneIncidentDetailPage() {
                       )}
                       {" — "}
                       <span className="italic text-amber-800">
-                        KTV chưa bấm xác nhận nhận việc. Quản trị viên có toàn quyền phân công lại cho KTV khác bên dưới nếu KTV này bận.
+                        {t("admin.droneIncidents.detailPage.dispatch.reassignHint")}
                       </span>
                     </p>
                   </div>
@@ -988,9 +1022,9 @@ export default function DroneIncidentDetailPage() {
                 <Navigation className="h-4 w-4" />
               </div>
               <div>
-                <p className="font-bold text-sky-950 text-sm">Chưa có kỹ thuật viên tìm hàng</p>
+                <p className="font-bold text-sky-950 text-sm">{t("admin.droneIncidents.detailPage.dispatch.noTechTitle")}</p>
                 <p className="text-sky-800 text-xs mt-0.5">
-                  Vui lòng quan sát vị trí các kỹ thuật viên trên bản đồ bên dưới và bấm trực tiếp vào KTV gần nhất để phân công tìm kiếm.
+                  {t("admin.droneIncidents.detailPage.dispatch.noTechHint")}
                 </p>
               </div>
             </div>
@@ -1004,13 +1038,13 @@ export default function DroneIncidentDetailPage() {
                   <Navigation className="h-4 w-4 text-primary" />
                   <CardTitle className="text-base font-bold text-slate-900">
                     {incident.recoveryStatus === "ASSIGNED"
-                      ? "Phân công lại kỹ thuật viên tìm kiếm (Bản đồ tương tác)"
-                      : "Điều phối tìm kiếm & Phân công kỹ thuật viên (Bản đồ tương tác)"}
+                      ? t("admin.droneIncidents.detailPage.dispatch.mapTitleReassign")
+                      : t("admin.droneIncidents.detailPage.dispatch.mapTitle")}
                   </CardTitle>
                 </div>
               </div>
               <CardDescription className="text-xs">
-                Bản đồ hiển thị các điểm vị trí và tên kỹ thuật viên quanh điểm rơi. Admin bấm trực tiếp vào KTV trên bản đồ hoặc danh sách để phân công.
+                {t("admin.droneIncidents.detailPage.dispatch.mapDescription")}
               </CardDescription>
             </CardHeader>
 
@@ -1033,26 +1067,34 @@ export default function DroneIncidentDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-amber-600" />
-              Xác nhận kết quả tìm hàng ({incident.incidentCode})
+              {t("admin.droneIncidents.detailPage.verifyDialog.title", { code: incident.incidentCode })}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2 text-xs">
               <p>
-                Bạn đang thực hiện bước <b>Xác minh kết quả tìm hàng (Admin Review)</b>. Bước này có ý nghĩa:
+                <Trans
+                  i18nKey="admin.droneIncidents.detailPage.verifyDialog.intro"
+                  components={{ b: <b /> }}
+                />
               </p>
               <ul className="list-disc list-inside space-y-1 text-slate-700">
-                <li>Xác nhận KTV đã tìm thấy kiện tại thực địa với toạ độ và hình ảnh đối soát hợp lệ.</li>
-                <li>Chuyển trạng thái tìm hàng sang <b>ĐÃ XÁC MINH (VERIFIED)</b>.</li>
-                <li>Cho phép KTV vận chuyển kiện hàng bàn giao về Hub.</li>
-                <li>Mở khoá chức năng tạo phương án xử lý bồi thường / giao lại cho khách hàng.</li>
+                <li>{t("admin.droneIncidents.detailPage.verifyDialog.effectFound")}</li>
+                <li>
+                  <Trans
+                    i18nKey="admin.droneIncidents.detailPage.verifyDialog.effectStatus"
+                    components={{ b: <b /> }}
+                  />
+                </li>
+                <li>{t("admin.droneIncidents.detailPage.verifyDialog.effectHandover")}</li>
+                <li>{t("admin.droneIncidents.detailPage.verifyDialog.effectUnlock")}</li>
               </ul>
               <p className="font-semibold text-slate-900 pt-1">
-                Bạn đã kiểm tra kỹ hình ảnh hiện trường và toạ độ check-in chưa?
+                {t("admin.droneIncidents.detailPage.verifyDialog.question")}
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={verifyState.isLoading}>
-              Xem lại
+              {t("admin.droneIncidents.detailPage.verifyDialog.review")}
             </AlertDialogCancel>
             <Button
               className="bg-amber-600 hover:bg-amber-700 text-white"
@@ -1060,7 +1102,7 @@ export default function DroneIncidentDetailPage() {
               onClick={async () => {
                 const ok = await handleAction(
                   () => verify(incident.id).unwrap(),
-                  "Đã xác minh kết quả tìm hàng thành công!",
+                  t("admin.droneIncidents.detailPage.toast.verified"),
                 );
                 if (ok) setShowVerifyConfirm(false);
               }}
@@ -1068,7 +1110,7 @@ export default function DroneIncidentDetailPage() {
               {verifyState.isLoading && (
                 <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
               )}
-              Duyệt xác minh
+              {t("admin.droneIncidents.detailPage.verifyDialog.approve")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1081,26 +1123,29 @@ export default function DroneIncidentDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận kiện hàng đã về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"}</AlertDialogTitle>
+            <AlertDialogTitle>{t("admin.droneIncidents.detailPage.handoverDialog.title", { place: stationPlace })}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn kiện hàng của đơn {incident.orderCode ?? `#${incident.orderId}`} đã được vận chuyển an toàn về {incident.recoveryStationName ? `trạm ${incident.recoveryStationName}` : "Hub"} không?
+              {t("admin.droneIncidents.detailPage.handoverDialog.description", {
+                order: incident.orderCode ?? `#${incident.orderId}`,
+                place: stationPlace,
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={handoverState.isLoading}>
-              Hủy
+              {t("button.cancel")}
             </AlertDialogCancel>
             <Button
               disabled={handoverState.isLoading}
               onClick={async () => {
                 const ok = await handleAction(
                   () => handover(incident.id).unwrap(),
-                  "Đã xác nhận kiện hàng về Hub thành công!",
+                  t("admin.droneIncidents.detailPage.toast.handoverConfirmed"),
                 );
                 if (ok) setConfirmHandover(false);
               }}
             >
-              Xác nhận về Hub
+              {t("admin.droneIncidents.detailPage.handoverDialog.confirm")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1117,12 +1162,14 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-emerald-600" />
                   <CardTitle className="text-base font-bold text-slate-900">
-                    Báo cáo hiện trường & Đối chiếu tọa độ GPS
+                    {t("admin.droneIncidents.detailPage.report.title")}
                   </CardTitle>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Badge variant="outline" className="bg-white text-xs">
-                    Kết quả: {incident.recoveryOutcome ?? "Chưa rõ"}
+                    {t("admin.droneIncidents.detailPage.report.outcome", {
+                      outcome: incident.recoveryOutcome ?? t("admin.droneIncidents.detailPage.unknown"),
+                    })}
                   </Badge>
                   {incident.parcelCondition && (
                     <Badge variant="secondary" className="text-xs">
@@ -1132,7 +1179,7 @@ export default function DroneIncidentDetailPage() {
                 </div>
               </div>
               <CardDescription className="text-xs">
-                Dữ liệu KTV bấm xác nhận vị trí thực tế tại điểm rơi bằng GPS điện thoại
+                {t("admin.droneIncidents.detailPage.report.description")}
               </CardDescription>
             </CardHeader>
 
@@ -1140,12 +1187,12 @@ export default function DroneIncidentDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-lg border bg-slate-50/50 space-y-1.5">
                   <span className="text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
-                    Tọa độ KTV bấm xác nhận:
+                    {t("admin.droneIncidents.detailPage.report.confirmedCoords")}
                   </span>
                   <p className="font-mono font-bold text-slate-900 text-sm">
                     {incident.recoveredLatitude != null
                       ? `${incident.recoveredLatitude.toFixed(6)}, ${incident.recoveredLongitude?.toFixed(6)}`
-                      : "Chưa có toạ độ xác nhận"}
+                      : t("admin.droneIncidents.detailPage.report.noConfirmedCoords")}
                     {incident.recoveredGpsAccuracyM != null &&
                       ` (±${incident.recoveredGpsAccuracyM.toFixed(1)} m)`}
                   </p>
@@ -1173,7 +1220,7 @@ export default function DroneIncidentDetailPage() {
                               }`}
                             >
                               {isNear ? "✓ " : "⚠️ "}
-                              Độ lệch so với điểm rơi: {deltaMeters} mét
+                              {t("admin.droneIncidents.detailPage.report.deviation", { meters: deltaMeters })}
                             </span>
                           );
                         })()}
@@ -1183,12 +1230,12 @@ export default function DroneIncidentDetailPage() {
 
                 <div className="p-3 rounded-lg border bg-slate-50/50 space-y-1.5">
                   <span className="text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
-                    Ghi chú hiện trường của KTV:
+                    {t("admin.droneIncidents.detailPage.report.techNote")}
                   </span>
                   <p className="font-medium text-slate-800 italic text-xs leading-relaxed">
                     {incident.recoveryNote?.trim()
                       ? `"${incident.recoveryNote}"`
-                      : "KTV không để lại ghi chú thêm."}
+                      : t("admin.droneIncidents.detailPage.report.noNote")}
                   </p>
                 </div>
               </div>
@@ -1197,12 +1244,12 @@ export default function DroneIncidentDetailPage() {
               <div className="space-y-2 pt-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                   <Camera className="h-3.5 w-3.5 text-primary" />
-                  Ảnh chụp bằng chứng tại hiện trường ({incident.evidence.length})
+                  {t("admin.droneIncidents.detailPage.report.evidenceTitle", { count: incident.evidence.length })}
                 </h4>
 
                 {incident.evidence.length === 0 ? (
                   <p className="text-xs text-muted-foreground italic p-3 rounded-lg border border-dashed bg-slate-50">
-                    Chưa có ảnh bằng chứng nào được tải lên.
+                    {t("admin.droneIncidents.detailPage.report.noEvidence")}
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1224,12 +1271,12 @@ export default function DroneIncidentDetailPage() {
                             />
                           ) : (
                             <div className="h-32 w-full flex items-center justify-center bg-slate-200 text-slate-400 text-xs">
-                              Không có ảnh
+                              {t("admin.droneIncidents.detailPage.report.noImage")}
                             </div>
                           )}
                           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 text-white">
                             <p className="text-[11px] font-medium truncate">
-                              {item.caption || item.stage || "Ảnh hiện trường"}
+                              {item.caption || item.stage || t("admin.droneIncidents.detailPage.report.photoFallback")}
                             </p>
                             <p className="text-[9px] text-slate-300">
                               {formatDateTime(item.createdAt)}
@@ -1250,14 +1297,14 @@ export default function DroneIncidentDetailPage() {
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4 text-primary" />
                 <CardTitle className="text-base font-bold text-slate-900">
-                  Dòng thời gian sự cố ({incident.timeline.length} sự kiện)
+                  {t("admin.droneIncidents.detailPage.timeline.title", { count: incident.timeline.length })}
                 </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
               {incident.timeline.map((item) => {
                 const info = TIMELINE_EVENT_INFO[item.eventType];
-                const labelVi = info?.labelVi ?? item.eventType.replaceAll("_", " ");
+                const labelVi = info ? t(info.labelKey) : item.eventType.replaceAll("_", " ");
                 return (
                   <div
                     key={item.id}
@@ -1303,7 +1350,7 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-primary" />
                   <CardTitle className="text-sm font-bold text-slate-900">
-                    Cấu hình chính sách bồi thường sự cố
+                    {t("admin.droneIncidents.detailPage.policy.title")}
                   </CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1315,76 +1362,85 @@ export default function DroneIncidentDetailPage() {
                         : "bg-red-50 text-red-800 border-red-300"
                     }`}
                   >
-                    Chính sách: {incident.incidentPolicyEnabled !== false ? "Đang bật" : "Đang tắt"}
+                    {t("admin.droneIncidents.detailPage.policy.status", {
+                      state:
+                        incident.incidentPolicyEnabled !== false
+                          ? t("admin.droneIncidents.detailPage.policy.on")
+                          : t("admin.droneIncidents.detailPage.policy.off"),
+                    })}
                   </Badge>
                   <Link
                     to="/admin/settings"
                     target="_blank"
                     className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
                   >
-                    Cài đặt
+                    {t("admin.droneIncidents.detailPage.policy.settingsLink")}
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
               <CardDescription className="text-xs">
-                Quy tắc xử lý bồi thường và hoàn cước áp dụng từ backend cho đơn hàng này
+                {t("admin.droneIncidents.detailPage.policy.description")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-3.5 space-y-2.5 text-xs">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
                 <div className="p-2 rounded bg-slate-50 border">
-                  <span className="text-muted-foreground block text-[10px]">Tỷ lệ đề xuất</span>
+                  <span className="text-muted-foreground block text-[10px]">{t("admin.droneIncidents.detailPage.policy.rate")}</span>
                   <span className="font-bold text-slate-800">
                     {formatCompensationRate(incident.compensationRate)}
                   </span>
                 </div>
                 <div className="p-2 rounded bg-slate-50 border">
-                  <span className="text-muted-foreground block text-[10px]">Trần bồi thường</span>
+                  <span className="text-muted-foreground block text-[10px]">{t("admin.droneIncidents.detailPage.policy.cap")}</span>
                   <span className="font-bold text-slate-800">
                     {incident.compensationCap && incident.compensationCap > 0
                       ? formatCurrency(incident.compensationCap)
-                      : "Không đặt trần"}
+                      : t("admin.droneIncidents.detailPage.policy.noCap")}
                   </span>
                 </div>
                 <div className="p-2 rounded bg-slate-50 border">
-                  <span className="text-muted-foreground block text-[10px]">SLA thu hồi</span>
+                  <span className="text-muted-foreground block text-[10px]">{t("admin.droneIncidents.detailPage.policy.sla")}</span>
                   <span className="font-bold text-slate-800">
-                    {incident.recoverySlaHours ?? 4} giờ
+                    {t("admin.droneIncidents.detailPage.policy.hours", { hours: incident.recoverySlaHours ?? 4 })}
                   </span>
                 </div>
                 <div className="p-2 rounded bg-slate-50 border">
-                  <span className="text-muted-foreground block text-[10px]">Phê duyệt Admin</span>
+                  <span className="text-muted-foreground block text-[10px]">{t("admin.droneIncidents.detailPage.policy.approval")}</span>
                   <span className="font-bold text-slate-800">
-                    {incident.approvalRequired !== false ? "Bắt buộc duyệt" : "Tự động"}
+                    {incident.approvalRequired !== false
+                      ? t("admin.droneIncidents.detailPage.policy.approvalRequired")
+                      : t("admin.droneIncidents.detailPage.policy.approvalAuto")}
                   </span>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 border-t pt-2">
                 <span>
-                  Giá trị kiện: <b>{formatCurrency(incident.declaredValue ?? 0)}</b>
+                  {t("admin.droneIncidents.detailPage.policy.parcelValue")} <b>{formatCurrency(incident.declaredValue ?? 0)}</b>
                 </span>
                 <span>
-                  ⇒ Mức gợi ý bồi thường:{" "}
+                  {t("admin.droneIncidents.detailPage.policy.suggested")}{" "}
                   <b className="text-emerald-700">{formatCurrency(suggested)}</b>
                 </span>
                 <span>
-                  • Giao lại miễn phí:{" "}
+                  {t("admin.droneIncidents.detailPage.policy.freeRedelivery")}{" "}
                   <b className="text-slate-800">
-                    {incident.freeRedeliveryAllowed !== false ? "Cho phép (khi về Hub)" : "Tắt"}
+                    {incident.freeRedeliveryAllowed !== false
+                      ? t("admin.droneIncidents.detailPage.policy.allowedAtHub")
+                      : t("admin.droneIncidents.detailPage.policy.disabled")}
                   </b>
                 </span>
                 <span>
-                  • Hoàn cước ship:{" "}
+                  {t("admin.droneIncidents.detailPage.policy.refundShipping")}{" "}
                   <b className="text-slate-800">
-                    {incident.refundShippingFeeAllowed !== false ? "Có" : "Không"}
+                    {incident.refundShippingFeeAllowed !== false ? t("common.yes") : t("common.no")}
                   </b>
                 </span>
                 <span>
-                  • Cho phép khiếu nại (Dispute):{" "}
+                  {t("admin.droneIncidents.detailPage.policy.dispute")}{" "}
                   <b className="text-slate-800">
-                    {incident.disputeAllowed !== false ? "Có" : "Không"}
+                    {incident.disputeAllowed !== false ? t("common.yes") : t("common.no")}
                   </b>
                 </span>
               </div>
@@ -1398,15 +1454,17 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center gap-2">
                   <Zap className="h-4 w-4 text-amber-500" />
                   <CardTitle className="text-base font-bold text-slate-900">
-                    Xử lý phương án bồi thường & Giao lại
+                    {t("admin.droneIncidents.detailPage.proposal.title")}
                   </CardTitle>
                 </div>
                 <Badge variant="outline" className="bg-sky-50 text-sky-800 border-sky-300 text-xs font-bold">
-                  Tỷ lệ: {formatCompensationRate(incident.compensationRate)}
+                  {t("admin.droneIncidents.detailPage.proposal.rate", {
+                    rate: formatCompensationRate(incident.compensationRate),
+                  })}
                 </Badge>
               </div>
               <CardDescription className="text-xs">
-                Tạo đề xuất phương án giải quyết gửi cho khách hàng chấp thuận
+                {t("admin.droneIncidents.detailPage.proposal.description")}
               </CardDescription>
             </CardHeader>
 
@@ -1419,7 +1477,7 @@ export default function DroneIncidentDetailPage() {
               <>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700">
-                  Phương án giải quyết đề xuất:
+                  {t("admin.droneIncidents.detailPage.proposal.typeLabel")}
                 </label>
                 <Select
                   value={resolutionType}
@@ -1441,16 +1499,16 @@ export default function DroneIncidentDetailPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="FREE_REDELIVERY" className="text-xs" disabled={!canRedeliver}>
-                      Giao lại miễn phí toàn bộ cước phí {!canRedeliver && redeliveryHint}
+                      {t("admin.droneIncidents.resolution.freeRedelivery")} {!canRedeliver && redeliveryHint}
                     </SelectItem>
                     <SelectItem value="REDELIVERY_PARTIAL_COMPENSATION" className="text-xs" disabled={!canRedeliver}>
-                      Giao lại kiện + Bồi thường một phần {!canRedeliver && redeliveryHint}
+                      {t("admin.droneIncidents.resolution.redeliveryPartialCompensation")} {!canRedeliver && redeliveryHint}
                     </SelectItem>
                     <SelectItem value="COMPENSATION_ONLY" className="text-xs">
-                      Chỉ bồi thường qua tài khoản ngân hàng (Không giao lại)
+                      {t("admin.droneIncidents.resolution.compensationOnly")}
                     </SelectItem>
                     <SelectItem value="MANUAL_RESOLUTION" className="text-xs">
-                      Thoả thuận phương án riêng với khách
+                      {t("admin.droneIncidents.resolution.manualResolution")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -1458,23 +1516,23 @@ export default function DroneIncidentDetailPage() {
 
               <div className="rounded bg-slate-50 border p-2.5 text-[11px] text-muted-foreground leading-relaxed">
                 {resolutionType === "FREE_REDELIVERY" && (
-                  <p>• Giao lại miễn phí toàn bộ cước phí sau khi kiện đã an toàn về Hub (Số tiền bồi thường = 0đ).</p>
+                  <p>{t("admin.droneIncidents.detailPage.proposal.explainFree")}</p>
                 )}
                 {resolutionType === "REDELIVERY_PARTIAL_COMPENSATION" && (
-                  <p>• Giao lại kiện cho khách sau khi đã về Hub, đồng thời tạo phiếu hoàn tiền bồi thường một phần giá trị kiện hàng.</p>
+                  <p>{t("admin.droneIncidents.detailPage.proposal.explainPartial")}</p>
                 )}
                 {resolutionType === "COMPENSATION_ONLY" && (
-                  <p>• Tạo phiếu hoàn tiền bồi thường qua tài khoản ngân hàng của khách (không giao lại kiện do thất lạc hoặc hư hỏng nặng).</p>
+                  <p>{t("admin.droneIncidents.detailPage.proposal.explainCompensation")}</p>
                 )}
                 {resolutionType === "MANUAL_RESOLUTION" && (
-                  <p>• Thỏa thuận phương án riêng với khách hàng ngoài quy trình tự động. Bắt buộc ghi rõ nội dung thỏa thuận vào ô ghi chú.</p>
+                  <p>{t("admin.droneIncidents.detailPage.proposal.explainManual")}</p>
                 )}
               </div>
 
               {/* Mức tiền bồi thường */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700">
-                  Số tiền bồi thường (VND):
+                  {t("admin.droneIncidents.detailPage.proposal.amountLabel")}
                 </label>
                 <Input
                   type="number"
@@ -1485,12 +1543,14 @@ export default function DroneIncidentDetailPage() {
                     setAmount(e.target.value);
                     setShowProposalError(true);
                   }}
-                  placeholder="Nhập số tiền bồi thường..."
+                  placeholder={t("admin.droneIncidents.detailPage.proposal.amountPlaceholder")}
                   className="text-xs"
                 />
                 {suggested != null && (
                   <p className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                    Gợi ý theo cấu hình ({formatCompensationRate(incident.compensationRate)}):{" "}
+                    {t("admin.droneIncidents.detailPage.proposal.suggestedByPolicy", {
+                      rate: formatCompensationRate(incident.compensationRate),
+                    })}{" "}
                     <b className="text-emerald-700">{formatCurrency(suggested)}</b>
                     {resolutionType !== "FREE_REDELIVERY" && String(suggested) !== amount && (
                       <button
@@ -1498,7 +1558,7 @@ export default function DroneIncidentDetailPage() {
                         className="font-medium text-primary hover:underline"
                         onClick={() => setAmount(String(suggested))}
                       >
-                        (Dùng mức gợi ý)
+                        {t("admin.droneIncidents.detailPage.proposal.useSuggested")}
                       </button>
                     )}
                   </p>
@@ -1517,9 +1577,9 @@ export default function DroneIncidentDetailPage() {
                     htmlFor="detailRefundShippingFee"
                     className="text-xs font-medium text-slate-800 cursor-pointer select-none leading-none"
                   >
-                    Hoàn phí giao hàng khi bồi thường
+                    {t("admin.droneIncidents.detailPage.proposal.refundShipping")}
                     <span className="text-[10px] text-muted-foreground block font-normal mt-0.5">
-                      (Khoản hoàn phí vận chuyển được xử lý tách biệt với bồi thường giá trị kiện hàng)
+                      {t("admin.droneIncidents.detailPage.proposal.refundShippingHint")}
                     </span>
                   </label>
                 </div>
@@ -1528,15 +1588,15 @@ export default function DroneIncidentDetailPage() {
               {/* Lý do vượt mức / Ghi chú */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700">
-                  Lý do điều chỉnh / Ghi chú thỏa thuận:
+                  {t("admin.droneIncidents.detailPage.proposal.noteLabel")}
                 </label>
                 <Input
                   value={overrideReason}
                   onChange={(e) => setOverrideReason(e.target.value)}
                   placeholder={
                     resolutionType === "MANUAL_RESOLUTION"
-                      ? "Bắt buộc: Nhập chi tiết phương án đã thỏa thuận với khách..."
-                      : "Bắt buộc nếu bồi thường vượt mức gợi ý..."
+                      ? t("admin.droneIncidents.detailPage.proposal.notePlaceholderManual")
+                      : t("admin.droneIncidents.detailPage.proposal.notePlaceholder")
                   }
                   className="text-xs"
                 />
@@ -1558,14 +1618,14 @@ export default function DroneIncidentDetailPage() {
                 {proposalState.isLoading && (
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 )}
-                Gửi đề xuất phương án cho khách
+                {t("admin.droneIncidents.detailPage.proposal.submit")}
               </Button>
               </>
               ) : (
                 <p className="rounded border bg-slate-50 p-2.5 text-xs text-slate-600">
                   {incident.status === "AWAITING_CUSTOMER_RESPONSE"
-                    ? "Đã gửi phương án, đang chờ khách phản hồi. Khách yêu cầu xem xét lại thì gửi được phương án mới."
-                    : "Khách đã chọn phương án — không gửi thêm đề xuất."}
+                    ? t("admin.droneIncidents.detailPage.proposal.awaitingCustomer")
+                    : t("admin.droneIncidents.detailPage.proposal.customerChose")}
                 </p>
               )}
 
@@ -1575,27 +1635,26 @@ export default function DroneIncidentDetailPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-indigo-950 flex items-center gap-1.5">
                       <Truck className="h-4 w-4 text-indigo-600" />
-                      Tiến trình giao lại cho khách
+                      {t("admin.droneIncidents.detailPage.redelivery.title")}
                     </span>
                     <Badge className="bg-indigo-600 text-white text-[10px]">
-                      Đang giao lại
+                      {t("admin.droneIncidents.detailPage.redelivery.badge")}
                     </Badge>
                   </div>
                   {incident.redeliveryOrderId && (
                     <div className="flex items-center justify-between bg-white/90 p-2 rounded border border-indigo-100 text-xs text-indigo-950">
-                      <span className="text-muted-foreground">Đơn giao lại mới:</span>
+                      <span className="text-muted-foreground">{t("admin.droneIncidents.detailPage.redelivery.newOrder")}</span>
                       <Link
                         to={`/admin/drone-orders?orderId=${incident.redeliveryOrderId}`}
                         className="font-mono font-bold text-indigo-700 underline flex items-center gap-1 hover:text-indigo-900"
                       >
-                        Đơn #{incident.redeliveryOrderId}
+                        {t("admin.droneIncidents.detailPage.redelivery.orderLink", { id: incident.redeliveryOrderId })}
                         <ExternalLink className="h-3 w-3" />
                       </Link>
                     </div>
                   )}
                   <p className="text-xs text-indigo-900">
-                    Kiện hàng đã được điều phối giao lại từ Hub. Khi người nhận lấy hàng ở đơn giao lại, sự cố tự đóng phần giao lại.
-                    Chỉ bấm tay khi đơn giao lại đã hoàn tất mà sự cố chưa cập nhật.
+                    {t("admin.droneIncidents.detailPage.redelivery.hint")}
                   </p>
                   <Button
                     size="sm"
@@ -1605,12 +1664,12 @@ export default function DroneIncidentDetailPage() {
                     onClick={() =>
                       handleAction(
                         () => completeRedelivery(incident.id).unwrap(),
-                        "Đã xác nhận giao lại thành công và đóng sự cố!",
+                        t("admin.droneIncidents.detailPage.toast.redeliveryCompleted"),
                       )
                     }
                   >
                     <CheckCircle2 className="h-4 w-4" />
-                    Đóng phần giao lại (đơn giao lại đã hoàn tất)
+                    {t("admin.droneIncidents.detailPage.redelivery.complete")}
                   </Button>
                 </div>
               )}
@@ -1627,13 +1686,13 @@ export default function DroneIncidentDetailPage() {
                     onClick={() =>
                       handleAction(
                         () => approveCompensation(incident.id).unwrap(),
-                        "Đã phê duyệt tạo phiếu hoàn tiền bồi thường cho khách!",
+                        t("admin.droneIncidents.detailPage.toast.compensationApproved"),
                       )
                     }
                   >
                     {incident.compensationStatus === "AWAITING_APPROVAL"
-                      ? "Phê duyệt phiếu hoàn tiền bồi thường"
-                      : "Thử lại lệnh chuyển khoản bồi thường"}
+                      ? t("admin.droneIncidents.detailPage.compensation.approve")
+                      : t("admin.droneIncidents.detailPage.compensation.retry")}
                   </Button>
                 </div>
               )}
@@ -1647,7 +1706,7 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center gap-2">
                   <History className="h-4 w-4 text-primary" />
                   <CardTitle className="text-base font-bold text-slate-900">
-                    Lịch sử đề xuất phương án ({incident.proposals.length})
+                    {t("admin.droneIncidents.detailPage.history.title", { count: incident.proposals.length })}
                   </CardTitle>
                 </div>
               </div>
@@ -1655,7 +1714,7 @@ export default function DroneIncidentDetailPage() {
             <CardContent className="p-4 space-y-3">
               {incident.proposals.length === 0 ? (
                 <p className="text-xs text-muted-foreground italic text-center py-4">
-                  Chưa có phương án bồi thường nào được đề xuất.
+                  {t("admin.droneIncidents.detailPage.history.empty")}
                 </p>
               ) : (
                 incident.proposals.map((proposal) => (
@@ -1665,29 +1724,33 @@ export default function DroneIncidentDetailPage() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-bold text-slate-900">
-                        Phiên bản {proposal.version ?? proposal.proposalVersion} ·{" "}
+                        {t("admin.droneIncidents.detail.proposalVersion", {
+                          version: proposal.version ?? proposal.proposalVersion,
+                        })}{" "}
+                        ·{" "}
                         {proposal.resolutionType.replaceAll("_", " ")}
                       </span>
                       <Status value={proposal.status} />
                     </div>
 
                     <div className="p-2 rounded bg-white border text-[11px] text-slate-700">
-                      Mức bồi thường:{" "}
+                      {t("admin.droneIncidents.detailPage.history.amount")}{" "}
                       <b className="text-emerald-700">
                         {formatCurrency(proposal.compensationAmount ?? 0)}
                       </b>
-                      {proposal.policyVersion && ` · Chính sách: ${proposal.policyVersion}`}
+                      {proposal.policyVersion &&
+                        ` · ${t("admin.droneIncidents.detailPage.history.policy", { version: proposal.policyVersion })}`}
                     </div>
 
                     {proposal.resolutionNote && (
                       <div className="p-2 rounded bg-white border text-[11px] text-slate-700">
-                        <b>Nội dung gửi khách:</b> {proposal.resolutionNote}
+                        <b>{t("admin.droneIncidents.detailPage.history.sentToCustomer")}</b> {proposal.resolutionNote}
                       </div>
                     )}
 
                     {proposal.customerResponseNote && (
                       <div className="p-2 rounded bg-amber-50 border border-amber-200 text-amber-900 text-[11px]">
-                        <b>Phản hồi của khách:</b> "{proposal.customerResponseNote}"
+                        <b>{t("admin.droneIncidents.detailPage.history.customerResponse")}</b> "{proposal.customerResponseNote}"
                       </div>
                     )}
                   </div>

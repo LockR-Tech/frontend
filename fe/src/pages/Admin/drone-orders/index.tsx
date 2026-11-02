@@ -89,23 +89,25 @@ function incidentLink(order: DroneOrderTracking): string {
 
 // Trạng thái của sự cố (phương án, khiếu nại, đã xong) xét trước trạng thái thu hồi: trước đây kiện đã xác
 // minh / đã về kho che mất "Chờ khách phản hồi", "Khách khiếu nại", "Đang thực hiện phương án".
-function getIncidentReadableStatus(incident: DroneParcelIncident): string {
-  if (incident.status === "CLOSED") return "Đã đóng sự cố";
-  if (incident.status === "RESOLVED") return "Đã giải quyết";
-  if (incident.status === "DISPUTED") return "Khách yêu cầu xem xét lại";
+function getIncidentReadableStatus(incident: DroneParcelIncident, t: TFunction): string {
+  if (incident.status === "CLOSED") return t("admin.droneOrders.page.incidentStatus.closed");
+  if (incident.status === "RESOLVED") return t("admin.droneIncidents.status.resolved");
+  if (incident.status === "DISPUTED") return t("admin.droneOrders.page.incidentStatus.disputed");
   if (incident.status === "RESOLUTION_PROPOSED" || incident.status === "AWAITING_CUSTOMER_RESPONSE")
-    return "Chờ khách phản hồi phương án";
+    return t("admin.droneOrders.page.incidentStatus.awaitingCustomer");
   if (incident.status === "RESOLUTION_IN_PROGRESS")
-    return incident.compensationStatus === "PROCESSING" ? "Đang chi trả bồi thường" : "Đang thực hiện phương án";
-  if (incident.status === "MANUAL_INTERVENTION_REQUIRED") return "Cần can thiệp thủ công";
-  if (incident.recoveryStatus === "SUBMITTED") return "Chờ Admin xác minh";
-  if (incident.parcelStatus === "RETURNED_TO_HUB") return "Kiện đã về trạm — chờ lập phương án";
-  if (incident.recoveryStatus === "VERIFIED") return "Đã xác minh — chờ lập phương án";
-  if (incident.recoveryStatus === "SEARCHING") return "KTV đang tìm thực địa";
-  if (incident.recoveryStatus === "ACCEPTED") return "KTV đã nhận tìm kiếm";
-  if (incident.recoveryStatus === "ASSIGNED") return "Đã phân công (Chờ KTV nhận)";
+    return incident.compensationStatus === "PROCESSING"
+      ? t("admin.droneOrders.page.incidentStatus.payingCompensation")
+      : t("admin.droneOrders.page.incidentStatus.resolutionInProgress");
+  if (incident.status === "MANUAL_INTERVENTION_REQUIRED") return t("admin.droneIncidents.status.manualInterventionRequired");
+  if (incident.recoveryStatus === "SUBMITTED") return t("admin.droneIncidents.status.awaitingAdminReview");
+  if (incident.parcelStatus === "RETURNED_TO_HUB") return t("admin.droneOrders.page.incidentStatus.returnedToHub");
+  if (incident.recoveryStatus === "VERIFIED") return t("admin.droneOrders.page.incidentStatus.verified");
+  if (incident.recoveryStatus === "SEARCHING") return t("admin.droneOrders.page.incidentStatus.searching");
+  if (incident.recoveryStatus === "ACCEPTED") return t("admin.droneOrders.page.incidentStatus.accepted");
+  if (incident.recoveryStatus === "ASSIGNED") return t("admin.droneOrders.page.incidentStatus.assigned");
   if (incident.recoveryStatus === "AWAITING_ASSIGNMENT" || incident.recoveryStatus === "OPEN" || incident.status === "REPORTED")
-    return "Chờ điều phối tìm kiếm";
+    return t("admin.droneOrders.page.incidentStatus.awaitingDispatch");
   return incident.status;
 }
 
@@ -478,23 +480,23 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                     </div>
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-bold text-red-950">Sự cố rơi kiện:</span>
+                        <span className="font-bold text-red-950">{t("admin.droneOrders.page.dropIncident")}</span>
                         <span className="font-mono font-semibold text-red-800">{latestIncident.incidentCode}</span>
                         <span
                           className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getIncidentStatusBadgeClass(
                             latestIncident,
                           )}`}
                         >
-                          {getIncidentReadableStatus(latestIncident)}
+                          {getIncidentReadableStatus(latestIncident, t)}
                         </span>
                       </div>
                       <p className="text-xs text-slate-700">
-                        {latestIncident.reason || "Kiện hàng được ghi nhận rơi trong quá trình bay vận chuyển."}
+                        {latestIncident.reason || t("admin.droneOrders.page.dropIncidentDefaultReason")}
                       </p>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 pt-1">
                         {latestIncident.recoveryTechnicianName && (
                           <span className="inline-flex items-center gap-1">
-                            <span className="text-muted-foreground">KTV tìm kiếm:</span>
+                            <span className="text-muted-foreground">{t("admin.droneOrders.page.searchTechnician")}</span>
                             <span className="font-medium text-slate-900">{latestIncident.recoveryTechnicianName}</span>
                             {latestIncident.recoveryTechnicianPhone && (
                               <span className="text-muted-foreground font-mono">({latestIncident.recoveryTechnicianPhone})</span>
@@ -509,7 +511,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                         )}
                         {latestIncident.updatedAt && (
                           <span className="text-muted-foreground">
-                            Cập nhật: {formatDateTime(latestIncident.updatedAt)}
+                            {t("admin.droneOrders.page.updatedAt", { time: formatDateTime(latestIncident.updatedAt) })}
                           </span>
                         )}
                       </div>
@@ -519,7 +521,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                     to={`/admin/drone-incidents/${latestIncident.id}`}
                     className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-xs font-semibold text-white shadow hover:bg-red-700 transition-colors shrink-0"
                   >
-                    <span>Xem chi tiết sự cố</span>
+                    <span>{t("admin.droneOrders.page.viewIncident")}</span>
                     <ExternalLink className="h-3.5 w-3.5" />
                   </Link>
                 </div>
@@ -550,7 +552,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
                 {isDropReported(order) || latestIncident ? (
                   <span>
-                    Đơn hàng đã đóng do sự cố rơi kiện
+                    {t("admin.droneOrders.page.closedByDrop")}
                     {order.cancelNote ? ` · ${order.cancelNote}` : ""}
                     {order.staffNote ? ` · ${order.staffNote}` : ""}
                   </span>
