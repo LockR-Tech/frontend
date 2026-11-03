@@ -215,7 +215,7 @@
       },
       "hero": {
         "noPreviousData": "No data for the previous period",
-        "totalOrders": "Total send & rental orders",
+        "totalOrders": "Total orders",
         "ordersThisMonth": "This month: {{value}} orders",
         "wholeNetwork": "Entire kiosk network",
         "ordersVsPrevious": "{{value}} orders vs previous period",
@@ -252,7 +252,10 @@
         "title": "Orders & revenue trend",
         "description": "New orders and collected amount by month in {{year}}",
         "selectYear": "Select year",
-        "yearOption": "{{year}}"
+        "yearOption": "{{year}}",
+        "pickMonth": "Click a month on the chart to see its new orders and collected payments",
+        "openOrders": "{{value}} new orders →",
+        "openRevenue": "{{value}} collected →"
       },
       "overview": {
         "totalKiosks": "Total kiosks",
@@ -297,6 +300,32 @@
         "revenueDescription": "Collected revenue by day, service, store and customer",
         "loyaltyDescription": "Member and loyalty points statistics",
         "promotionsDescription": "Create and manage promotion codes"
+      },
+      "drilldown": {
+        "allTime": "All time",
+        "createdAt": "Created at",
+        "orderCount": "{{total}} orders",
+        "noOrders": "No orders",
+        "openOrdersPage": "Open in Orders page",
+        "ordersThisMonth": "Orders created this month",
+        "monthOfYear": "{{month}}/{{year}}",
+        "ordersCreatedIn": "Orders created in {{period}}",
+        "collectedIn": "Collected in {{period}}",
+        "ordersAtHour": "Orders created at {{hour}}:00",
+        "newUsersIn": "New sign-ups in {{period}}",
+        "kiosk": "Kiosk",
+        "store": "Store",
+        "availableBoxes": "Free boxes",
+        "inUseBoxes": "Boxes in use",
+        "totalBoxes": "Total boxes",
+        "lockerTotals": "{{kiosks}} kiosks · Available {{available}} · In use {{inUse}} · Total {{total}} boxes",
+        "noLockers": "No kiosks",
+        "user": "User",
+        "phone": "Phone",
+        "roles": "Roles",
+        "joinedAt": "Signed up",
+        "userCount": "{{total}} accounts",
+        "noUsers": "No accounts"
       }
     },
     "users": {
