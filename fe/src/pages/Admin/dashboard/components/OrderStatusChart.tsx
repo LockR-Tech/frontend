@@ -8,6 +8,8 @@ interface OrderStatusChartProps {
   /** `byStatus` của /api/admin/dashboard/overview — số đơn theo từng trạng thái. */
   byStatus?: Record<string, number>;
   isLoading?: boolean;
+  /** Mở danh sách đơn đang ở trạng thái này. */
+  onStatusClick?: (status: string, label: string) => void;
 }
 
 // Thứ tự hiển thị theo vòng đời đơn; trạng thái lạ xếp cuối.
@@ -31,7 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
   RETURNED: "#64748B",
 };
 
-export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps) {
+export function OrderStatusChart({ byStatus, isLoading, onStatusClick }: OrderStatusChartProps) {
   const { t } = useTranslation();
   const entries = Object.entries(byStatus ?? {})
     .map(([status, count]) => ({ status, value: Number(count) || 0 }))
@@ -44,6 +46,7 @@ export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps)
   const total = entries.reduce((sum, e) => sum + e.value, 0);
 
   const data = entries.map((e) => ({
+    status: e.status,
     name: orderStatusMeta(e.status).label,
     value: e.value,
     color: STATUS_COLORS[e.status] ?? "#A3A3A3",
@@ -74,6 +77,10 @@ export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps)
                     outerRadius={78}
                     paddingAngle={4}
                     dataKey="value"
+                    className={onStatusClick ? "cursor-pointer" : undefined}
+                    onClick={(entry: { status?: string; name?: string }) =>
+                      entry?.status && onStatusClick?.(entry.status, entry.name ?? entry.status)
+                    }
                   >
                     {data.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} stroke="var(--card)" strokeWidth={2} />
@@ -106,7 +113,12 @@ export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps)
 
             <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-border/60">
               {data.map((item) => (
-                <div key={item.name} className="flex items-center justify-between text-xs gap-2">
+                <button
+                  type="button"
+                  key={item.name}
+                  onClick={() => onStatusClick?.(item.status, item.name)}
+                  className="flex items-center justify-between text-xs gap-2 rounded px-1 -mx-1 text-left hover:bg-secondary/60"
+                >
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -117,7 +129,7 @@ export function OrderStatusChart({ byStatus, isLoading }: OrderStatusChartProps)
                   <span className="font-semibold text-foreground shrink-0">
                     {item.value.toLocaleString("vi-VN")} · {item.percentage.toFixed(1)}%
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           </>
