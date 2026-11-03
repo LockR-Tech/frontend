@@ -14,10 +14,6 @@ interface OverviewCardProps {
     direction: ChangeDirection;
   };
   className?: string;
-  /** Mở dữ liệu sau con số. */
-  onClick?: () => void;
-  /** Mở dữ liệu sau dòng phụ (vd "Tháng này: 3 đơn"), khác với cả thẻ. */
-  onSublabelClick?: () => void;
 }
 
 export function OverviewCard({
@@ -27,8 +23,6 @@ export function OverviewCard({
   sublabel,
   delta,
   className,
-  onClick,
-  onSublabelClick,
 }: OverviewCardProps) {
   const DeltaIcon =
     delta?.direction === "up"
@@ -38,26 +32,7 @@ export function OverviewCard({
         : Minus;
 
   return (
-    <Card
-      className={cn(
-        "card-hover border border-border bg-card",
-        onClick && "cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        className,
-      )}
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={
-        onClick
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
-      }
-    >
+    <Card className={cn("card-hover border border-border bg-card", className)}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -83,25 +58,11 @@ export function OverviewCard({
               </div>
             )}
 
-            {sublabel &&
-              (onSublabelClick ? (
-                <button
-                  type="button"
-                  className="block max-w-full text-left text-xs text-muted-foreground mt-1.5 truncate underline-offset-2 hover:text-foreground hover:underline"
-                  title={sublabel}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSublabelClick();
-                  }}
-                  onKeyDown={(e) => e.stopPropagation()}
-                >
-                  {sublabel}
-                </button>
-              ) : (
-                <p className="text-xs text-muted-foreground mt-1.5 truncate" title={sublabel}>
-                  {sublabel}
-                </p>
-              ))}
+            {sublabel && (
+              <p className="text-xs text-muted-foreground mt-1.5 truncate" title={sublabel}>
+                {sublabel}
+              </p>
+            )}
           </div>
 
           <div className="p-2.5 rounded-lg bg-secondary text-foreground shrink-0 border border-border/60">

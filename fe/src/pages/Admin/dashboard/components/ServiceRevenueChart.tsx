@@ -14,11 +14,7 @@ interface ServiceRevenueChartProps {
   isLoading?: boolean;
   error?: FetchBaseQueryError | SerializedError;
   onRetry?: () => void;
-  /** Mở đơn của dịch vụ này (không có cho phí quá hạn — không gắn với một loại đơn). */
-  onServiceClick?: (item: RevenueByServiceItem, label: string) => void;
 }
-
-const NOT_AN_ORDER_TYPE = new Set(["OVERTIME_FEE", "OTHER", "UNKNOWN"]);
 
 const SERVICE_COLORS: Record<string, string> = {
   SEND: "#6366F1",
@@ -34,12 +30,11 @@ function formatVND(val: number) {
 }
 
 // /api/admin/revenue/by-service — gồm dòng OVERTIME_FEE (phí quá hạn đã thu).
-export function ServiceRevenueChart({ items, year, isLoading, error, onRetry, onServiceClick }: ServiceRevenueChartProps) {
+export function ServiceRevenueChart({ items, year, isLoading, error, onRetry }: ServiceRevenueChartProps) {
   const { t } = useTranslation();
   const data = (items ?? [])
     .filter((item) => Number(item.revenue) > 0)
     .map((item) => ({
-      item,
       service: revenueServiceMeta(item.serviceType).label,
       revenue: Number(item.revenue) || 0,
       paidOrders: item.paidOrderCount,
@@ -106,24 +101,9 @@ export function ServiceRevenueChart({ items, year, isLoading, error, onRetry, on
                     color: "var(--foreground)",
                   }}
                 />
-                <Bar
-                  dataKey="revenue"
-                  radius={[0, 6, 6, 0]}
-                  barSize={20}
-                  onClick={(entry: { item?: RevenueByServiceItem; service?: string }) => {
-                    if (entry?.item && !NOT_AN_ORDER_TYPE.has(entry.item.serviceType)) {
-                      onServiceClick?.(entry.item, entry.service ?? "");
-                    }
-                  }}
-                >
+                <Bar dataKey="revenue" radius={[0, 6, 6, 0]} barSize={20}>
                   {data.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.color}
-                      className={
-                        onServiceClick && !NOT_AN_ORDER_TYPE.has(entry.item.serviceType) ? "cursor-pointer" : undefined
-                      }
-                    />
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Bar>
               </BarChart>

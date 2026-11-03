@@ -18,7 +18,6 @@ import { dashboardRecommendations } from "~/constants/dashboard.constants";
 import type { DashboardOverviewResponse, MonthlyDataPoint } from "~/types/admin/dashboard";
 import type { AdminLockerResponse } from "~/types";
 import { LockerStatus } from "~/types/admin/enums";
-import { mapUser, type BackendUserSummary } from "../../users/hooks/useUsers";
 import {
   useGetDashboardPeakHoursQuery,
   useGetDashboardUserGrowthQuery,
@@ -114,11 +113,6 @@ export function useDashboard() {
   );
   const activeLockers = lockers.filter((l) => l.status === LockerStatus.ACTIVE).length;
 
-  const users = useMemo(
-    () => extractList<BackendUserSummary>(usersData?.data).map(mapUser),
-    [usersData],
-  );
-
   const base = normalizeOverview(data?.data);
   const overview: DashboardOverviewResponse = {
     ...base,
@@ -160,8 +154,6 @@ export function useDashboard() {
     overview,
     byStatus,
     activeLockers,
-    lockers,
-    users,
     lockersLoaded: !!lockersData,
     chartData,
     dailyQuery: daily,

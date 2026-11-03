@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -16,23 +14,6 @@ import {
   UserGrowthChart,
   RecommendationsSection,
 } from "./components";
-import { DashboardOrdersModal, type DashboardOrdersTarget } from "./components/DashboardOrdersModal";
-import {
-  DashboardLockersModal,
-  DashboardUsersModal,
-  type DashboardLockersTarget,
-  type DashboardUsersTarget,
-} from "./components/DashboardListModals";
-import type { OverviewTarget } from "./components/OverviewSection";
-import {
-  RevenueEntriesModal,
-  type RevenueEntriesTarget,
-} from "../revenue/components/RevenueEntriesModal";
-import {
-  RevenueOrdersModal,
-  type RevenueOrdersTarget,
-} from "../revenue/components/RevenueOrdersModal";
-import { LockerStatus } from "~/types/admin/enums";
 import {
   Package,
   CalendarCheck,
@@ -50,16 +31,6 @@ function formatVND(amount: number, t: TFunction): string {
   return `${amount.toLocaleString("vi-VN")} đ`;
 }
 
-/** Ngày đầu và cuối của tháng `month` (1–12) năm `year`, dạng yyyy-MM-dd. */
-function monthRange(year: string, month: number) {
-  const mm = String(month).padStart(2, "0");
-  const last = new Date(Date.UTC(Number(year), month, 0)).getUTCDate();
-  return { from: `${year}-${mm}-01`, to: `${year}-${mm}-${String(last).padStart(2, "0")}` };
-}
-
-/** Trạng thái đã xong — "Đơn chờ xử lý" của overview là mọi trạng thái còn lại. */
-const FINISHED_STATUSES = new Set(["COMPLETED", "CANCELED", "CANCELLED"]);
-
 /** Mức thay đổi theo % (null = kỳ trước bằng 0 → không so sánh được). `key` nhận `{{value}}`. */
 function deltaOf(pct: number | null | undefined, t: TFunction, key: string) {
   if (pct === undefined) return undefined;
@@ -74,18 +45,10 @@ function deltaOf(pct: number | null | undefined, t: TFunction, key: string) {
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [ordersTarget, setOrdersTarget] = useState<DashboardOrdersTarget | null>(null);
-  const [entriesTarget, setEntriesTarget] = useState<RevenueEntriesTarget | null>(null);
-  const [revenueOrders, setRevenueOrders] = useState<RevenueOrdersTarget | null>(null);
-  const [lockersTarget, setLockersTarget] = useState<DashboardLockersTarget | null>(null);
-  const [usersTarget, setUsersTarget] = useState<DashboardUsersTarget | null>(null);
   const {
     overview,
     byStatus,
     activeLockers,
-    lockers,
-    users,
     lockersLoaded,
     chartData,
     dailyQuery,
@@ -95,7 +58,6 @@ export default function Dashboard() {
     byStore,
     peakHours,
     peakRange,
-    yearRange,
     userGrowth,
     monthSummary,
     todaySummary,
@@ -134,32 +96,6 @@ export default function Dashboard() {
   const dayError = toReportError(todaySummary.error);
   const pending = "…";
 
-  const openOverview = (what: OverviewTarget) => {
-    switch (what) {
-      case "users":
-        navigate("/admin/users");
-        break;
-      case "stores":
-        navigate("/admin/stores");
-        break;
-      case "lockers":
-        setLockersTarget({ title: t("admin.dashboard.overview.totalKiosks") });
-        break;
-      case "occupancy":
-        setLockersTarget({ title: t("admin.dashboard.overview.occupancyRate") });
-        break;
-      case "activeLockers":
-        setLockersTarget({ title: t("admin.dashboard.overview.activeKiosks"), status: LockerStatus.ACTIVE });
-        break;
-      case "pending":
-        setOrdersTarget({
-          title: t("admin.dashboard.overview.pendingOrders"),
-          status: Object.keys(byStatus ?? {}).filter((s) => !FINISHED_STATUSES.has(s.toUpperCase())),
-        });
-        break;
-    }
-  };
-
   const heroCards = [
     {
       label: t("admin.dashboard.hero.totalOrders"),
@@ -173,15 +109,6 @@ export default function Dashboard() {
       delta: month
         ? deltaOf(month.changes.orderCountPct, t, "admin.dashboard.hero.ordersVsPrevious")
         : undefined,
-      onClick: () => setOrdersTarget({ title: t("admin.dashboard.hero.totalOrders") }),
-      onSublabelClick: month
-        ? () =>
-            setOrdersTarget({
-              title: t("admin.dashboard.drilldown.ordersThisMonth"),
-              from: month.from,
-              to: month.to,
-            })
-        : undefined,
     },
     {
       label: t("admin.dashboard.hero.ordersToday"),
@@ -191,9 +118,6 @@ export default function Dashboard() {
       sublabel: t("admin.dashboard.hero.ordersCreatedToday"),
       delta: day
         ? deltaOf(day.changes.orderCountPct, t, "admin.dashboard.hero.vsYesterday")
-        : undefined,
-      onClick: day
-        ? () => setOrdersTarget({ title: t("admin.dashboard.hero.ordersToday"), from: day.from, to: day.to })
         : undefined,
     },
     {
@@ -212,14 +136,6 @@ export default function Dashboard() {
       delta: month
         ? deltaOf(month.changes.totalRevenuePct, t, "admin.dashboard.hero.vsPrevious")
         : undefined,
-      onClick: month
-        ? () =>
-            setEntriesTarget({
-              kind: "PAYMENTS",
-              label: t("admin.dashboard.monthlyRevenue"),
-              range: { from: month.from, to: month.to },
-            })
-        : undefined,
     },
     {
       label: t("admin.dashboard.hero.revenueToday"),
@@ -232,14 +148,6 @@ export default function Dashboard() {
       sublabel: dayError ? dayError.message : t("admin.dashboard.hero.collectedToday"),
       delta: day
         ? deltaOf(day.changes.totalRevenuePct, t, "admin.dashboard.hero.vsYesterday")
-        : undefined,
-      onClick: day
-        ? () =>
-            setEntriesTarget({
-              kind: "PAYMENTS",
-              label: t("admin.dashboard.hero.revenueToday"),
-              range: { from: day.from, to: day.to },
-            })
         : undefined,
     },
   ];
@@ -274,27 +182,10 @@ export default function Dashboard() {
             isLoading={dailyQuery.isFetching}
             error={dailyQuery.error}
             onRetry={dailyQuery.refetch}
-            onOpenMonth={(m, what) => {
-              const range = monthRange(selectedYear, m);
-              const period = t("admin.dashboard.drilldown.monthOfYear", { month: m, year: selectedYear });
-              if (what === "orders") {
-                setOrdersTarget({ title: t("admin.dashboard.drilldown.ordersCreatedIn", { period }), ...range });
-              } else {
-                setEntriesTarget({
-                  kind: "PAYMENTS",
-                  label: t("admin.dashboard.drilldown.collectedIn", { period }),
-                  range,
-                });
-              }
-            }}
           />
         </div>
         <div className="lg:col-span-1">
-          <OverviewSection
-            data={overview}
-            activeLockers={lockersLoaded ? activeLockers : null}
-            onOpen={openOverview}
-          />
+          <OverviewSection data={overview} activeLockers={lockersLoaded ? activeLockers : null} />
         </div>
       </div>
 
@@ -306,28 +197,14 @@ export default function Dashboard() {
           isLoading={byMethod.isFetching}
           error={byMethod.error}
           onRetry={byMethod.refetch}
-          onMethodClick={(item, label) =>
-            setRevenueOrders({ type: "METHOD", method: item.method, label, paidOrderCount: item.paidOrderCount })
-          }
         />
-        <OrderStatusChart
-          byStatus={byStatus}
-          onStatusClick={(status, label) => setOrdersTarget({ title: label, status: [status] })}
-        />
+        <OrderStatusChart byStatus={byStatus} />
         <ServiceRevenueChart
           items={byService.data?.data?.items}
           year={selectedYear}
           isLoading={byService.isFetching}
           error={byService.error}
           onRetry={byService.refetch}
-          onServiceClick={(item, label) =>
-            setRevenueOrders({
-              type: "SERVICE",
-              serviceType: item.serviceType,
-              label,
-              paidOrderCount: item.paidOrderCount,
-            })
-          }
         />
       </div>
 
@@ -339,23 +216,12 @@ export default function Dashboard() {
           isLoading={peakHours.isLoading}
           error={peakHours.error}
           onRetry={peakHours.refetch}
-          onHourClick={(hour) =>
-            setOrdersTarget({
-              title: t("admin.dashboard.drilldown.ordersAtHour", { hour: String(hour).padStart(2, "0") }),
-              from: peakRange.from,
-              to: peakRange.to,
-              hour,
-            })
-          }
         />
         <UserGrowthChart
           points={userGrowth.data?.data}
           isLoading={userGrowth.isLoading}
           error={userGrowth.error}
           onRetry={userGrowth.refetch}
-          onMonthClick={(m, label) =>
-            setUsersTarget({ title: t("admin.dashboard.drilldown.newUsersIn", { period: label }), month: m })
-          }
         />
       </div>
 
@@ -366,9 +232,6 @@ export default function Dashboard() {
         isLoading={byStore.isFetching}
         error={byStore.error}
         onRetry={byStore.refetch}
-        onStoreClick={(item, name) =>
-          setRevenueOrders({ type: "STORE", storeId: item.storeId, label: name, paidOrderCount: item.paidOrderCount })
-        }
       />
 
       {/* Row 5: Shortcuts to admin pages */}
@@ -376,12 +239,6 @@ export default function Dashboard() {
         recommendations={recommendations}
         onRecommendationClick={handleRecommendationClick}
       />
-
-      <DashboardOrdersModal target={ordersTarget} onClose={() => setOrdersTarget(null)} />
-      <RevenueEntriesModal target={entriesTarget} onClose={() => setEntriesTarget(null)} />
-      <RevenueOrdersModal target={revenueOrders} range={yearRange} onClose={() => setRevenueOrders(null)} />
-      <DashboardLockersModal target={lockersTarget} lockers={lockers} onClose={() => setLockersTarget(null)} />
-      <DashboardUsersModal target={usersTarget} users={users} onClose={() => setUsersTarget(null)} />
     </div>
   );
 }

@@ -19,11 +19,10 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { MonthlyDataPoint } from "~/types/admin/dashboard";
-import { formatCurrency, formatNumber, monthName } from "~/lib/report-format";
+import { monthName } from "~/lib/report-format";
 import i18n, { currentLanguage } from "~/utils/i18n";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
@@ -35,21 +34,14 @@ interface MainChartProps {
   isLoading?: boolean;
   error?: FetchBaseQueryError | SerializedError;
   onRetry?: () => void;
-  /** Mở đơn tạo (`orders`) hoặc các khoản thực thu (`revenue`) của tháng `month` (1–12). */
-  onOpenMonth?: (month: number, what: "orders" | "revenue") => void;
-}
-
-/** Tối đa một chữ số lẻ: vạch trục hay rơi vào 1,5 / 4,5 triệu, làm tròn về số nguyên sẽ ghi sai. */
-function shortAmount(value: number) {
-  return value.toLocaleString(currentLanguage(i18n) === "vi" ? "vi-VN" : "en-US", { maximumFractionDigits: 1 });
 }
 
 function formatRevenueTick(value: number) {
   if (value >= 1_000_000_000)
-    return i18n.t("admin.dashboard.format.billionShort", { value: shortAmount(value / 1_000_000_000) });
+    return i18n.t("admin.dashboard.format.billionShort", { value: (value / 1_000_000_000).toFixed(1) });
   if (value >= 1_000_000)
-    return i18n.t("admin.dashboard.format.millionShort", { value: shortAmount(value / 1_000_000) });
-  return shortAmount(value);
+    return i18n.t("admin.dashboard.format.millionShort", { value: (value / 1_000_000).toFixed(0) });
+  return `${value}`;
 }
 
 /** Nhãn tháng từ dữ liệu `T3`: tiếng Việt giữ `T3` / `Tháng 3`, ngôn ngữ khác dùng tên tháng. */
@@ -111,14 +103,8 @@ export function MainChart({
   isLoading,
   error,
   onRetry,
-  onOpenMonth,
 }: MainChartProps) {
   const { t } = useTranslation();
-  // Tháng đang chọn (chỉ số trong `data`); đổi năm thì bỏ chọn.
-  const [selected, setSelected] = useState<number | null>(null);
-  useEffect(() => setSelected(null), [selectedYear]);
-  const picked = selected === null ? undefined : data[selected];
-  const pickedMonth = picked ? Number(picked.month.replace(/^T/, "")) : 0;
   const hasData = data.some((d) => d.orders > 0 || d.revenue > 0);
   const placeholder = (
     <ChartPlaceholder
@@ -162,11 +148,6 @@ export function MainChart({
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={data}
-                className={onOpenMonth ? "cursor-pointer" : undefined}
-                onClick={(state) => {
-                  const index = state?.activeTooltipIndex;
-                  if (onOpenMonth && typeof index === "number" && index >= 0) setSelected(index);
-                }}
                 margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
               >
                 <CartesianGrid
@@ -237,33 +218,6 @@ export function MainChart({
                 />
               </ComposedChart>
             </ResponsiveContainer>
-          </div>
-        )}
-        {onOpenMonth && hasData && !isLoading && !error && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-secondary/40 px-3 py-2 text-xs">
-            {picked ? (
-              <>
-                <span className="font-semibold text-foreground">
-                  {monthText(picked.month, t, "long")}/{selectedYear}
-                </span>
-                <button
-                  type="button"
-                  className="rounded-md border border-border bg-card px-2 py-1 font-medium text-blue-600 hover:bg-secondary dark:text-blue-400"
-                  onClick={() => onOpenMonth(pickedMonth, "orders")}
-                >
-                  {t("admin.dashboard.mainChart.openOrders", { value: formatNumber(picked.orders) })}
-                </button>
-                <button
-                  type="button"
-                  className="rounded-md border border-border bg-card px-2 py-1 font-medium text-emerald-600 hover:bg-secondary dark:text-emerald-400"
-                  onClick={() => onOpenMonth(pickedMonth, "revenue")}
-                >
-                  {t("admin.dashboard.mainChart.openRevenue", { value: formatCurrency(picked.revenue) })}
-                </button>
-              </>
-            ) : (
-              <span className="text-muted-foreground">{t("admin.dashboard.mainChart.pickMonth")}</span>
-            )}
           </div>
         )}
       </CardContent>

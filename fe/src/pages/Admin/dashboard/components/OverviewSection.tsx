@@ -14,15 +14,9 @@ interface OverviewSectionProps {
   data: DashboardOverviewResponse;
   /** Số tủ đang ACTIVE (đếm từ danh sách tủ); null khi chưa tải được. */
   activeLockers: number | null;
-  /** Mở dữ liệu sau từng con số. */
-  onOpen?: (what: OverviewTarget) => void;
 }
 
-export type OverviewTarget = "occupancy" | "users" | "stores" | "lockers" | "activeLockers" | "pending";
-
-const CLICKABLE = "cursor-pointer text-left transition-colors hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-
-export function OverviewSection({ data, activeLockers, onOpen }: OverviewSectionProps) {
+export function OverviewSection({ data, activeLockers }: OverviewSectionProps) {
   const { t } = useTranslation();
   const totalBoxes = data.availableBoxes + data.occupiedBoxes;
   const utilization =
@@ -33,25 +27,21 @@ export function OverviewSection({ data, activeLockers, onOpen }: OverviewSection
       label: t("admin.sidebar.users"),
       value: data.totalUsers,
       icon: Users,
-      target: "users" as const,
     },
     {
       label: t("admin.sidebar.stores"),
       value: data.totalStores,
       icon: Store,
-      target: "stores" as const,
     },
     {
       label: t("admin.dashboard.overview.totalKiosks"),
       value: data.totalLockers,
       icon: Boxes,
-      target: "lockers" as const,
     },
     {
       label: t("admin.dashboard.overview.activeKiosks"),
       value: activeLockers ?? "—",
       icon: Power,
-      target: "activeLockers" as const,
     },
   ];
 
@@ -68,11 +58,7 @@ export function OverviewSection({ data, activeLockers, onOpen }: OverviewSection
 
       <CardContent className="flex-1 flex flex-col justify-between space-y-4">
         {/* Capacity Bar */}
-        <button
-          type="button"
-          onClick={() => onOpen?.("occupancy")}
-          className={`w-full p-3.5 rounded-lg bg-secondary/60 border border-border/50 space-y-2.5 ${CLICKABLE}`}
-        >
+        <div className="p-3.5 rounded-lg bg-secondary/60 border border-border/50 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
               <Archive size={14} className="text-muted-foreground" />
@@ -113,18 +99,16 @@ export function OverviewSection({ data, activeLockers, onOpen }: OverviewSection
               />
             </span>
           </div>
-        </button>
+        </div>
 
         {/* 2x2 Grid Stats */}
         <div className="grid grid-cols-2 gap-2.5">
           {metrics.map((item) => {
             const Icon = item.icon;
             return (
-              <button
-                type="button"
+              <div
                 key={item.label}
-                onClick={() => onOpen?.(item.target)}
-                className={`p-3 rounded-lg border border-border/60 bg-card flex flex-col justify-between ${CLICKABLE}`}
+                className="p-3 rounded-lg border border-border/60 bg-card hover:bg-secondary/40 transition-colors flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-xs text-muted-foreground truncate">
@@ -137,18 +121,14 @@ export function OverviewSection({ data, activeLockers, onOpen }: OverviewSection
                     ? item.value.toLocaleString("vi-VN")
                     : item.value}
                 </p>
-              </button>
+              </div>
             );
           })}
         </div>
 
         {/* Pending orders alert */}
         <div className="pt-1">
-          <button
-            type="button"
-            onClick={() => onOpen?.("pending")}
-            className={`w-full flex items-center justify-between p-2.5 rounded-lg bg-secondary/40 border border-border/50 text-xs ${CLICKABLE}`}
-          >
+          <div className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/40 border border-border/50 text-xs">
             <span className="flex items-center gap-2 text-muted-foreground">
               <Clock size={14} className="text-muted-foreground" />
               {t("admin.dashboard.overview.pendingOrders")}
@@ -156,7 +136,7 @@ export function OverviewSection({ data, activeLockers, onOpen }: OverviewSection
             <span className="font-semibold text-foreground px-2 py-0.5 rounded bg-card border border-border text-[11px]">
               {t("admin.dashboard.chart.ordersValue", { value: data.pendingOrders })}
             </span>
-          </button>
+          </div>
         </div>
       </CardContent>
     </Card>

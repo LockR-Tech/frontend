@@ -13,12 +13,10 @@ interface PeakHoursChartProps {
   isLoading?: boolean;
   error?: FetchBaseQueryError | SerializedError;
   onRetry?: () => void;
-  /** Mở đơn tạo trong giờ này (0–23) của khoảng ngày đang xem. */
-  onHourClick?: (hour: number) => void;
 }
 
 // GET /api/admin/dashboard/peak-hours — 24 mốc giờ (giờ Việt Nam), số đơn tạo mới.
-export function PeakHoursChart({ points, range, isLoading, error, onRetry, onHourClick }: PeakHoursChartProps) {
+export function PeakHoursChart({ points, range, isLoading, error, onRetry }: PeakHoursChartProps) {
   const { t } = useTranslation();
   const byHour = new Map((points ?? []).map((p) => [Number(p.hour), Number(p.orders) || 0]));
   const data = Array.from({ length: 24 }, (_, hour) => ({
@@ -52,15 +50,7 @@ export function PeakHoursChart({ points, range, isLoading, error, onRetry, onHou
         ) : (
           <div className="h-60 w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={data}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                className={onHourClick ? "cursor-pointer" : undefined}
-                onClick={(state) => {
-                  const hour = state?.activeTooltipIndex;
-                  if (typeof hour === "number" && hour >= 0 && data[hour]?.orders) onHourClick?.(hour);
-                }}
-              >
+              <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} className="text-border/60" />
                 <XAxis
                   dataKey="hour"

@@ -14,8 +14,6 @@ interface PaymentMethodChartProps {
   isLoading?: boolean;
   error?: FetchBaseQueryError | SerializedError;
   onRetry?: () => void;
-  /** Mở các khoản thu bằng phương thức này. */
-  onMethodClick?: (item: RevenueByMethodItem, label: string) => void;
 }
 
 const METHOD_COLORS: Record<string, string> = {
@@ -34,12 +32,11 @@ function formatVND(val: number) {
 }
 
 // /api/admin/revenue/by-method — tiền thực thu theo phương thức trong năm đang chọn.
-export function PaymentMethodChart({ items, year, isLoading, error, onRetry, onMethodClick }: PaymentMethodChartProps) {
+export function PaymentMethodChart({ items, year, isLoading, error, onRetry }: PaymentMethodChartProps) {
   const { t } = useTranslation();
   const chartData = (items ?? [])
     .filter((item) => Number(item.revenue) > 0)
     .map((item, index) => ({
-      item,
       name: paymentMethodMeta(item.method).label,
       value: Number(item.revenue) || 0,
       sharePct: item.sharePct,
@@ -80,10 +77,6 @@ export function PaymentMethodChart({ items, year, isLoading, error, onRetry, onM
                     outerRadius={78}
                     paddingAngle={4}
                     dataKey="value"
-                    className={onMethodClick ? "cursor-pointer" : undefined}
-                    onClick={(entry: { item?: RevenueByMethodItem; name?: string }) =>
-                      entry?.item && onMethodClick?.(entry.item, entry.name ?? "")
-                    }
                   >
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} stroke="var(--card)" strokeWidth={2} />
@@ -113,12 +106,7 @@ export function PaymentMethodChart({ items, year, isLoading, error, onRetry, onM
 
             <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-border/60">
               {chartData.map((item) => (
-                <button
-                  type="button"
-                  key={item.name}
-                  onClick={() => onMethodClick?.(item.item, item.name)}
-                  className="flex items-center justify-between text-xs gap-2 rounded px-1 -mx-1 text-left hover:bg-secondary/60"
-                >
+                <div key={item.name} className="flex items-center justify-between text-xs gap-2">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -133,7 +121,7 @@ export function PaymentMethodChart({ items, year, isLoading, error, onRetry, onM
                         ? formatPercent((item.value / total) * 100)
                         : "—"}
                   </span>
-                </button>
+                </div>
               ))}
             </div>
           </>

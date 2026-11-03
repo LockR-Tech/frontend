@@ -14,8 +14,6 @@ interface UserGrowthChartProps {
   isLoading?: boolean;
   error?: FetchBaseQueryError | SerializedError;
   onRetry?: () => void;
-  /** Mở danh sách tài khoản đăng ký trong tháng "YYYY-MM". */
-  onMonthClick?: (month: string, label: string) => void;
 }
 
 /** "2026-03" → "T3/26" (tiếng Việt) / "Mar '26" (tiếng Anh) */
@@ -29,12 +27,12 @@ const monthLabel = (month: string, t: TFunction, lang: string) => {
 };
 
 // GET /api/admin/users/growth?months=12 — số tài khoản đăng ký mới mỗi tháng.
-export function UserGrowthChart({ points, isLoading, error, onRetry, onMonthClick }: UserGrowthChartProps) {
+export function UserGrowthChart({ points, isLoading, error, onRetry }: UserGrowthChartProps) {
   const { t, i18n } = useTranslation();
   const lang = currentLanguage(i18n);
   const data = [...(points ?? [])]
     .sort((a, b) => a.month.localeCompare(b.month))
-    .map((p) => ({ key: p.month, month: monthLabel(p.month, t, lang), newUsers: Number(p.newUsers) || 0 }));
+    .map((p) => ({ month: monthLabel(p.month, t, lang), newUsers: Number(p.newUsers) || 0 }));
   const total = data.reduce((sum, d) => sum + d.newUsers, 0);
   const hasData = data.length > 0 && total > 0;
 
@@ -70,15 +68,7 @@ export function UserGrowthChart({ points, isLoading, error, onRetry, onMonthClic
         ) : (
           <div className="h-60 w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={data}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                className={onMonthClick ? "cursor-pointer" : undefined}
-                onClick={(state) => {
-                  const point = typeof state?.activeTooltipIndex === "number" ? data[state.activeTooltipIndex] : undefined;
-                  if (point && point.newUsers > 0) onMonthClick?.(point.key, point.month);
-                }}
-              >
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="userGrowthGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366F1" stopOpacity={0.35} />

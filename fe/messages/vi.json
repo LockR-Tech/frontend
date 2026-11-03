@@ -215,7 +215,7 @@
       },
       "hero": {
         "noPreviousData": "Kỳ trước chưa có số liệu",
-        "totalOrders": "Tổng đơn",
+        "totalOrders": "Tổng đơn gửi & thuê",
         "ordersThisMonth": "Tháng này: {{value}} đơn",
         "wholeNetwork": "Toàn bộ mạng lưới Kiosk",
         "ordersVsPrevious": "{{value}} đơn so với kỳ trước",
@@ -252,10 +252,7 @@
         "title": "Xu hướng đơn hàng & doanh thu",
         "description": "Đơn tạo mới và tiền thực thu theo từng tháng trong năm {{year}}",
         "selectYear": "Chọn năm",
-        "yearOption": "Năm {{year}}",
-        "pickMonth": "Bấm vào một tháng trên biểu đồ để xem đơn tạo và khoản thực thu của tháng đó",
-        "openOrders": "{{value}} đơn tạo →",
-        "openRevenue": "{{value}} thực thu →"
+        "yearOption": "Năm {{year}}"
       },
       "overview": {
         "totalKiosks": "Tổng số Kiosk",
@@ -300,32 +297,6 @@
         "revenueDescription": "Doanh thu thực thu theo ngày, dịch vụ, cửa hàng và khách hàng",
         "loyaltyDescription": "Thống kê thành viên và điểm thưởng",
         "promotionsDescription": "Tạo và quản lý mã khuyến mãi"
-      },
-      "drilldown": {
-        "allTime": "Mọi thời điểm",
-        "createdAt": "Thời điểm tạo",
-        "orderCount": "{{total}} đơn",
-        "noOrders": "Không có đơn nào",
-        "openOrdersPage": "Mở ở trang Đơn hàng",
-        "ordersThisMonth": "Đơn tạo tháng này",
-        "monthOfYear": "tháng {{month}}/{{year}}",
-        "ordersCreatedIn": "Đơn tạo {{period}}",
-        "collectedIn": "Thực thu {{period}}",
-        "ordersAtHour": "Đơn tạo lúc {{hour}}h",
-        "newUsersIn": "Đăng ký mới {{period}}",
-        "kiosk": "Kiosk",
-        "store": "Cửa hàng",
-        "availableBoxes": "Ô trống",
-        "inUseBoxes": "Ô đang dùng",
-        "totalBoxes": "Tổng ô",
-        "lockerTotals": "{{kiosks}} Kiosk · Khả dụng {{available}} · Đang dùng {{inUse}} · Tổng {{total}} ô",
-        "noLockers": "Không có Kiosk nào",
-        "user": "Người dùng",
-        "phone": "Số điện thoại",
-        "roles": "Vai trò",
-        "joinedAt": "Ngày đăng ký",
-        "userCount": "{{total}} tài khoản",
-        "noUsers": "Không có tài khoản nào"
       }
     },
     "users": {

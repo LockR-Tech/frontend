@@ -14,14 +14,12 @@ interface TopLocationsTableProps {
   isLoading?: boolean;
   error?: FetchBaseQueryError | SerializedError;
   onRetry?: () => void;
-  /** Mở đơn của cửa hàng này trong năm đang xem. */
-  onStoreClick?: (item: RevenueByStoreItem, name: string) => void;
 }
 
 const TOP_N = 5;
 
 // /api/admin/revenue/by-store — xếp theo tiền thực thu trong năm đang chọn.
-export function TopLocationsTable({ items, year, isLoading, error, onRetry, onStoreClick }: TopLocationsTableProps) {
+export function TopLocationsTable({ items, year, isLoading, error, onRetry }: TopLocationsTableProps) {
   const { t } = useTranslation();
   const top = [...(items ?? [])]
     .filter((item) => Number(item.revenue) > 0 || item.orderCount > 0)
@@ -65,18 +63,7 @@ export function TopLocationsTable({ items, year, isLoading, error, onRetry, onSt
               return (
                 <div
                   key={loc.storeId ?? "unassigned"}
-                  role={onStoreClick ? "button" : undefined}
-                  tabIndex={onStoreClick ? 0 : undefined}
-                  onClick={() => onStoreClick?.(loc, name)}
-                  onKeyDown={(e) => {
-                    if (onStoreClick && (e.key === "Enter" || e.key === " ")) {
-                      e.preventDefault();
-                      onStoreClick(loc, name);
-                    }
-                  }}
-                  className={`py-3 flex items-center justify-between gap-4 first:pt-0 last:pb-0 ${
-                    onStoreClick ? "cursor-pointer rounded-md hover:bg-secondary/40" : ""
-                  }`}
+                  className="py-3 flex items-center justify-between gap-4 first:pt-0 last:pb-0"
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <span className="w-6 h-6 rounded-md bg-secondary text-foreground text-xs font-bold flex items-center justify-center shrink-0 border border-border/60">
@@ -86,7 +73,6 @@ export function TopLocationsTable({ items, year, isLoading, error, onRetry, onSt
                       {loc.storeId != null ? (
                         <Link
                           to={`/admin/stores/${loc.storeId}`}
-                          onClick={(e) => e.stopPropagation()}
                           className="text-sm font-semibold text-foreground truncate block hover:underline"
                         >
                           {name}
