@@ -1043,7 +1043,7 @@
   display: grid;
   gap: 30px;
   grid-template-columns: 0.75fr 1.25fr;
-  min-height: 720px;
+  min-height: 640px;
 }
 
 .configuration.reverse {
@@ -1082,8 +1082,9 @@
   line-height: 1.8;
 }
 
+/* ảnh màu hoàn thiện: bản cắt sát sản phẩm, nền trong suốt (smoke-*-cut.webp) nên sản phẩm lấp đầy khung */
 .configuration img {
-  height: 620px;
+  height: 560px;
   object-fit: contain;
   transition: filter 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
   width: 100%;
@@ -1094,8 +1095,8 @@
 }
 
 .configuration img.muted-product {
-  filter: grayscale(1);
-  opacity: 0.42;
+  filter: grayscale(0.85) brightness(0.85);
+  opacity: 0.6;
 }
 
 .config-card {
@@ -1137,6 +1138,7 @@
 
 .swatch.dark {
   background: #1b1b1d;
+  border-color: #59656d;
 }
 
 .swatch.active {
@@ -1878,11 +1880,6 @@
     justify-self: center;
     max-width: 520px;
     width: 100%;
-  }
-
-  /* ô màu tối gần như trùng nền: thêm viền để thấy được */
-  .swatch.dark {
-    border-color: #59656d;
   }
 
   .configuration-copy h2 {
