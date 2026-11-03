@@ -578,6 +578,9 @@ function DroneDetails({ name, image, body }: DroneDetailsProps) {
   );
 }
 
+/** Điều khoản và chính sách đăng ở repo `legal` (GitHub Pages), sinh từ nội dung trong app. */
+const LEGAL_BASE = "https://lockr-tech.github.io/legal";
+
 function Footer() {
   return (
     <footer className="site-footer section-dark" id="contact">
@@ -595,6 +598,12 @@ function Footer() {
         <span>Contact</span>
         <a href="mailto:hello@lockr.global">hello@lockr.global</a>
         <p>Ho Chi Minh City, Vietnam</p>
+      </div>
+      <div>
+        <span>Legal</span>
+        <a href={`${LEGAL_BASE}/terms-of-service-en.html`}>Terms of Service</a>
+        <a href={`${LEGAL_BASE}/privacy-policy-en.html`}>Privacy Policy</a>
+        <a href={`${LEGAL_BASE}/data-deletion.html`}>Data deletion</a>
       </div>
       <p className="copyright">© 2026 LOCK.R. All rights reserved.</p>
     </footer>
