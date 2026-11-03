@@ -46,6 +46,16 @@
   z-index: 2;
 }
 
+/* <picture> chọn ảnh cắt sẵn cho điện thoại; không tạo hộp riêng để bố cục giữ như cũ */
+.shot {
+  display: contents;
+}
+
+/* <source> không có display: none mặc định; để nguyên nó thành một ô trống của lưới */
+.shot source {
+  display: none;
+}
+
 [data-reveal] {
   opacity: 0;
   transform: translateY(32px);
@@ -958,18 +968,18 @@
   line-height: 1.8;
 }
 
-.configuration > img {
+.configuration img {
   height: 620px;
   object-fit: contain;
   transition: filter 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
   width: 100%;
 }
 
-.configuration > img:hover {
+.configuration img:hover {
   transform: scale(1.02);
 }
 
-.configuration > img.muted-product {
+.configuration img.muted-product {
   filter: grayscale(1);
   opacity: 0.42;
 }
@@ -1108,7 +1118,7 @@
   margin: 22px 0 0;
 }
 
-.drone-detail-head > img {
+.drone-detail-head img {
   height: 400px;
   object-fit: contain;
   width: 100%;
@@ -1241,6 +1251,13 @@
   padding-top: 25px;
 }
 
+@media (max-width: 1280px) {
+  /* thanh điều hướng dọc bên trái hero (22–126px) chạm chữ hero ở 6% bề ngang; menu đầu trang có cùng liên kết */
+  .hero-rail {
+    display: none;
+  }
+}
+
 @media (max-width: 960px) {
   :root {
     --aether-shell: min(100% - 48px, 820px);
@@ -1257,6 +1274,89 @@
 
   .hero-background {
     background-position: 63% center;
+  }
+
+  /* chữ hero nằm đè lên ảnh tủ sáng màu: tối nền thêm để đọc được */
+  .hero-background::after {
+    background:
+      linear-gradient(90deg, rgba(3, 4, 5, 0.9) 0%, rgba(3, 4, 5, 0.62) 50%, rgba(3, 4, 5, 0.2) 85%),
+      linear-gradient(0deg, rgba(2, 3, 4, 0.42), transparent 40%);
+  }
+
+  .hero-copy {
+    max-width: 460px;
+  }
+
+  /* ảnh sản phẩm dùng bản cắt sát (xem Shot): bỏ chiều cao cố định, để ảnh tự cao theo bề ngang */
+  .ecosystem {
+    min-height: 0;
+    padding: 90px 0 50px;
+  }
+
+  .ecosystem-stage {
+    height: auto;
+    margin: 32px 0 24px;
+  }
+
+  .ecosystem-product {
+    height: auto;
+    width: min(560px, 72%);
+  }
+
+  .product-intro {
+    min-height: 0;
+    padding: 40px 30px 100px;
+  }
+
+  .product-halo {
+    height: 640px;
+  }
+
+  .product-intro img {
+    height: auto;
+    width: min(620px, 80%);
+  }
+
+  .product-name {
+    margin-top: 20px;
+  }
+
+  .aether-details {
+    padding: 90px 0 110px;
+  }
+
+  .aether-visual {
+    min-height: 0;
+  }
+
+  .aether-visual img {
+    display: block;
+    height: auto;
+    margin: 0 auto;
+    max-width: 620px;
+  }
+
+  .drone-intro {
+    min-height: 0;
+    padding: 90px 25px 100px;
+  }
+
+  .drone-intro img {
+    height: auto;
+    width: min(680px, 86%);
+  }
+
+  .drone-intro .drone-name {
+    margin-top: 24px;
+  }
+
+  .drone-details {
+    min-height: 0;
+    padding: 100px 0 120px;
+  }
+
+  .drone-detail-head img {
+    height: auto;
   }
 
   .about-content {
@@ -1284,7 +1384,7 @@
     grid-row: auto;
   }
 
-  .configuration > img {
+  .configuration img {
     grid-row: 1;
   }
 
@@ -1292,6 +1392,17 @@
     margin: 0 auto;
     max-width: 650px;
     width: 100%;
+  }
+
+  .configuration {
+    min-height: 0;
+    padding: 40px 0;
+  }
+
+  .configuration img {
+    height: auto;
+    justify-self: center;
+    max-width: 560px;
   }
 
   .drone-detail-head {
@@ -1398,7 +1509,8 @@
   }
 
   .about {
-    min-height: 730px;
+    min-height: 0;
+    padding: 70px 0 64px;
   }
 
   .about-word {
@@ -1412,12 +1524,13 @@
   }
 
   .about-content {
+    gap: 32px;
     grid-template-columns: 1fr;
-    padding: 210px 24px 0;
+    padding: 150px 24px 0;
   }
 
   .offer {
-    padding-top: 70px;
+    padding-top: 64px;
   }
 
   .offer-heading {
@@ -1426,8 +1539,12 @@
     gap: 30px;
   }
 
+  .offer-heading {
+    margin-bottom: 32px;
+  }
+
   .offer-heading h2 {
-    font-size: 42px;
+    font-size: 38px;
   }
 
   .offer-grid {
@@ -1435,25 +1552,39 @@
   }
 
   .offer-card {
-    aspect-ratio: 1.25;
+    aspect-ratio: 1.5;
+    padding: 20px;
+  }
+
+  .offer-card h3 {
+    font-size: 22px;
   }
 
   .partner-strip {
     flex-wrap: wrap;
     font-size: 10px;
-    gap: 20px;
+    gap: 14px 20px;
+    justify-content: center;
+    margin-top: 48px;
+    padding: 22px 16px;
   }
 
   .ecosystem {
-    min-height: 600px;
-    padding-top: 80px;
+    min-height: 0;
+    padding: 64px 0 40px;
+  }
+
+  .ecosystem h2 {
+    font-size: 36px;
   }
 
   .ecosystem-stage {
-    height: 330px;
+    height: auto;
+    margin: 24px 0 20px;
   }
 
   .ecosystem-product {
+    height: auto;
     width: 100%;
   }
 
@@ -1462,29 +1593,64 @@
   }
 
   .product-intro {
-    min-height: 740px;
+    min-height: 0;
+    padding: 24px 20px 72px;
+  }
+
+  .product-halo {
+    height: 520px;
+    top: -40px;
   }
 
   .product-intro img {
-    height: 430px;
-    width: 120%;
+    height: auto;
+    max-width: 520px;
+    width: 100%;
   }
 
   .product-name {
     font-size: 24px;
+    margin-top: 16px;
     padding: 14px 24px 14px 34px;
   }
 
+  .product-intro > p {
+    font-size: 13px;
+    margin-top: 24px;
+  }
+
+  .product-intro .outline-button {
+    margin-top: 24px;
+  }
+
   .aether-details {
-    padding: 80px 0 100px;
+    padding: 56px 0 72px;
   }
 
   .aether-visual {
-    min-height: 380px;
+    min-height: 0;
+  }
+
+  .aether-visual img {
+    height: auto;
+  }
+
+  /* chấm trang trí nằm sát mép trái, trên điện thoại bị cắt mất nửa */
+  .tech-rail {
+    display: none;
   }
 
   .aether-copy h2 {
-    font-size: 58px;
+    font-size: 54px;
+  }
+
+  .aether-copy > p:not(.byline) {
+    font-size: 14px;
+  }
+
+  .detail-card {
+    aspect-ratio: 4 / 3;
+    min-height: 0;
   }
 
   .stat-panel {
@@ -1502,17 +1668,24 @@
     left: 12px;
   }
 
+  .features {
+    padding: 64px 0 40px;
+  }
+
   .glow-title {
-    font-size: 32px;
-    margin-bottom: 100px;
+    font-size: 28px;
+    margin-bottom: 64px;
+    max-width: 220px;
+    padding: 10px 24px;
   }
 
   .feature-row,
   .feature-row.reverse {
-    gap: 30px;
+    gap: 18px;
     grid-template-columns: 1fr;
-    margin-bottom: 90px;
-    padding-left: 42px;
+    margin-bottom: 56px;
+    min-height: 0;
+    padding-left: 36px;
   }
 
   .feature-row.reverse .feature-image,
@@ -1531,44 +1704,109 @@
   }
 
   .feature-image {
-    height: 220px;
+    aspect-ratio: 16 / 9;
+    height: auto;
+  }
+
+  .feature-copy h3 {
+    font-size: 17px;
+    margin-bottom: 12px;
+    padding: 11px 16px;
+  }
+
+  .feature-copy p {
+    font-size: 13px;
+  }
+
+  .configurator {
+    padding: 40px 0 56px;
   }
 
   .configuration {
+    gap: 20px;
     min-height: auto;
-    padding: 70px 0;
+    padding: 24px 0;
   }
 
-  .configuration > img {
-    height: 360px;
-    width: 130%;
-    margin-left: -15%;
+  .configuration.reverse {
+    margin-top: 32px;
+  }
+
+  .configuration img {
+    height: auto;
+    justify-self: center;
+    max-width: 520px;
+    width: 100%;
+  }
+
+  /* ô màu tối gần như trùng nền: thêm viền để thấy được */
+  .swatch.dark {
+    border-color: #59656d;
+  }
+
+  .configuration-copy h2 {
+    font-size: 44px;
+    margin-top: 18px;
+  }
+
+  .configuration-copy h3 {
+    font-size: 26px;
+    margin-bottom: 18px;
+  }
+
+  .config-card {
+    margin-top: 28px;
   }
 
   .drone-intro {
-    min-height: 700px;
+    min-height: 0;
+    padding: 72px 20px 80px;
   }
 
   .drone-word {
     font-size: 27vw;
-    top: 25%;
+    top: 64px;
   }
 
   .drone-intro img {
-    height: 400px;
-    width: 125%;
+    height: auto;
+    max-width: 560px;
+    width: 100%;
+  }
+
+  .drone-name {
+    margin-top: 20px;
+  }
+
+  .drone-intro > p {
+    font-size: 13px;
+    margin-top: 24px;
+  }
+
+  .drone-intro .outline-button {
+    margin-top: 24px;
+  }
+
+  .drone-details {
+    min-height: 0;
+    padding: 64px 0 80px;
   }
 
   .drone-detail-head {
     grid-template-columns: 1fr;
   }
 
-  .drone-detail-head h2 {
-    font-size: 78px;
+  .drone-detail-head {
+    gap: 24px;
+    min-height: 0;
   }
 
-  .drone-detail-head > img {
-    height: 300px;
+  .drone-detail-head h2 {
+    font-size: 64px;
+  }
+
+  .drone-detail-head img {
+    height: auto;
   }
 
   .buy-panel {
@@ -1581,13 +1819,63 @@
   }
 
   .drone-story {
-    gap: 45px;
+    gap: 32px;
     grid-template-columns: 1fr;
-    margin-top: 70px;
+    margin-top: 48px;
+  }
+
+  .drone-gallery img {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .drone-story > p {
+    padding-top: 32px;
   }
 
   .site-footer {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 540px) and (max-width: 720px) {
+  .offer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .offer-card {
+    aspect-ratio: 1;
+  }
+}
+
+@media (max-width: 960px) and (max-height: 520px) and (orientation: landscape) {
+  .hero,
+  .hero-content {
+    height: auto;
+    min-height: 0;
+  }
+
+  .hero-copy {
+    left: auto;
+    max-width: 560px;
+    padding: 100px 24px 56px;
+    position: relative;
+    top: auto;
+  }
+
+  .hero h1 {
+    font-size: 38px;
+    margin-bottom: 18px;
+  }
+
+  .hero h2 {
+    font-size: 17px;
+    margin-bottom: 16px;
+  }
+
+  .hero-copy > p {
+    font-size: 13px;
+    margin-bottom: 22px;
   }
 }
 

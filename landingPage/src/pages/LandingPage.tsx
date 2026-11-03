@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ImgHTMLAttributes } from "react";
 import {
   ArrowRight,
   ChevronDown,
@@ -17,6 +18,40 @@ import "./AetherLanding.css";
 
 const asset = (name: string) => `/aether/${name}`;
 
+/**
+ * Ảnh sản phẩm 16:9 nền đen, sản phẩm chỉ chiếm khoảng nửa khung. Màn hình tới 960px (điện thoại,
+ * tablet) dùng bản cắt sát sản phẩm trong `/aether/m/`: mặc định là WebP đã bỏ nền đen (sản phẩm nằm thẳng trên nền vân),
+ * `cutout={false}` lấy bản JPG giữ nền đen cho ảnh nằm trong khung thẻ bo góc.
+ */
+const PHONE_CROPS = new Set([
+  "locker-product.jpg",
+  "smoke-white.jpg",
+  "smoke-dark.jpg",
+  "drone-eos.jpg",
+  "drone-eos-full.jpg",
+  "drone-nyx-full.jpg",
+]);
+
+type ShotProps = { name: string; alt: string; cutout?: boolean } & Omit<
+  ImgHTMLAttributes<HTMLImageElement>,
+  "src" | "alt"
+>;
+
+function Shot({ name, alt, cutout = true, ...img }: ShotProps) {
+  if (!PHONE_CROPS.has(name)) return <img src={asset(name)} alt={alt} {...img} />;
+  const phone = cutout ? name.replace(/\.jpg$/, ".webp") : name;
+  return (
+    <picture className="shot">
+      <source
+        media="(max-width: 960px)"
+        srcSet={asset(`m/${phone}`)}
+        type={cutout ? "image/webp" : "image/jpeg"}
+      />
+      <img src={asset(name)} alt={alt} {...img} />
+    </picture>
+  );
+}
+
 const offerCards = [
   {
     number: "01",
@@ -27,7 +62,7 @@ const offerCards = [
   {
     number: "02",
     title: "Super-Fast\nDrone Delivery",
-    image: "locker-white.jpg",
+    image: "feature-drone.jpg",
     icon: Plane,
   },
   {
@@ -297,9 +332,9 @@ function EcosystemShowcase() {
         <h2 data-reveal>SEE MORE DETAILS</h2>
         <div className="ecosystem-stage" data-reveal>
           <img className="side-drone left" src={asset("drone-eos.jpg")} alt="" />
-          <img
+          <Shot
             className="ecosystem-product"
-            src={asset("locker-product.jpg")}
+            name="locker-product.jpg"
             alt="AETHER smart locker and delivery drone"
           />
           <img
@@ -322,11 +357,7 @@ function ProductIntro() {
   return (
     <section className="product-intro section-dark">
       <div className="product-halo" />
-      <img
-        src={asset("locker-product.jpg")}
-        alt="AETHER smart locker"
-        data-reveal
-      />
+      <Shot name="locker-product.jpg" alt="AETHER smart locker" data-reveal />
       <div className="product-name">AETHER</div>
       <p>
         AETHER Smart Locker is an intelligent storage solution designed to make
@@ -346,7 +377,7 @@ function AetherDetails() {
     <section className="aether-details section-dark" id="aether-details">
       <div className="section-shell aether-detail-grid">
         <div className="aether-visual" data-reveal>
-          <img src={asset("smoke-white.jpg")} alt="AETHER smart locker system" />
+          <Shot name="smoke-white.jpg" alt="AETHER smart locker system" />
           <div className="tech-rail">
             <span />
             <span />
@@ -463,9 +494,9 @@ function Configurator() {
               <strong>$1,999</strong>
             </div>
           </div>
-          <img
+          <Shot
             className={finish === "white" ? "" : "muted-product"}
-            src={asset("smoke-white.jpg")}
+            name="smoke-white.jpg"
             alt="AETHER White Smoke"
           />
         </article>
@@ -495,9 +526,9 @@ function Configurator() {
               <strong>$1,999</strong>
             </div>
           </div>
-          <img
+          <Shot
             className={finish === "dark" ? "" : "muted-product"}
-            src={asset("smoke-dark.jpg")}
+            name="smoke-dark.jpg"
             alt="AETHER Dark Matte"
           />
         </article>
@@ -518,7 +549,7 @@ function DroneIntro({ name, copy, image }: DroneIntroProps) {
       <div className="drone-word" aria-hidden="true">
         DRONE
       </div>
-      <img src={asset(image)} alt={`${name} autonomous delivery drone`} data-reveal />
+      <Shot name={image} alt={`${name} autonomous delivery drone`} data-reveal />
       <div className="drone-name">{name.split("").join("  ")}</div>
       <p>{copy}</p>
       <a className="outline-button compact" href={`#${name.toLowerCase()}`}>
@@ -551,7 +582,7 @@ function DroneDetails({ name, image, body }: DroneDetailsProps) {
               Learn More
             </a>
           </div>
-          <img src={asset(image)} alt={`${name} delivery drone`} data-reveal />
+          <Shot name={image} alt={`${name} delivery drone`} data-reveal />
           <a className="buy-panel" href="#contact">
             <strong>BUY NOW</strong>
             <span>$999</span>
@@ -568,7 +599,7 @@ function DroneDetails({ name, image, body }: DroneDetailsProps) {
         <div className="drone-story">
           <div className="drone-gallery">
             {gallery.map((item, index) => (
-              <img src={asset(item)} alt={`${name} detail ${index + 1}`} key={item} />
+              <Shot name={item} alt={`${name} detail ${index + 1}`} key={item} cutout={false} />
             ))}
           </div>
           <p>{body}</p>
