@@ -49,7 +49,14 @@ export const SERVICE_CATALOG: ServiceDefinition[] = [
     headlineSuffixKey: "admin.services.catalog.send.headlineSuffix",
     ruleGroups: [
       { titleKey: "admin.services.ruleGroup.price", keys: [OrderSettingsKeys.SEND_BASE_FEE] },
-      { titleKey: "admin.services.ruleGroup.duration", keys: [OrderSettingsKeys.SEND_PICKUP_HOURS] },
+      {
+        titleKey: "admin.services.ruleGroup.duration",
+        keys: [
+          OrderSettingsKeys.SEND_PICKUP_HOURS,
+          OrderSettingsKeys.SEND_STORAGE_MAX_HOURS,
+          OrderSettingsKeys.SEND_STORAGE_QUICK_HOURS,
+        ],
+      },
       { titleKey: "admin.services.ruleGroup.overtime", keys: OVERTIME_KEYS },
     ],
   },

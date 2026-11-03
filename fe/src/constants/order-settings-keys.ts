@@ -17,6 +17,8 @@ export const OrderSettingsKeys = {
   MAX_OVERTIME_PERCENT: "app.order.pickup-max-overtime-percent",
 
   SEND_PICKUP_HOURS: "app.order.send-pickup-hours-limit",
+  SEND_STORAGE_MAX_HOURS: "app.order.send-storage-max-hours",
+  SEND_STORAGE_QUICK_HOURS: "app.order.send-storage-quick-hours",
   DRONE_PICKUP_HOURS: "app.order.drone-pickup-hours-limit",
   AUTO_CANCEL_HOURS: "app.order.auto-cancel-hours",
   OVERDUE_RELEASE_HOURS: "app.order.overdue-release-hours",
