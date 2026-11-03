@@ -6,13 +6,13 @@ export default function LockrFooter() {
       <nav className="flex flex-wrap gap-md">
         <a
           className="text-lockr-on-surface-variant hover:text-lockr-primary transition-colors focus:ring-2 focus:ring-lockr-primary text-body-md"
-          href="#"
+          href="https://lockr-tech.github.io/legal/privacy-policy-en.html"
         >
           Privacy Policy
         </a>
         <a
           className="text-lockr-on-surface-variant hover:text-lockr-primary transition-colors focus:ring-2 focus:ring-lockr-primary text-body-md"
-          href="#"
+          href="https://lockr-tech.github.io/legal/terms-of-service-en.html"
         >
           Terms of Service
         </a>
