@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
-import type { ImgHTMLAttributes } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ImgHTMLAttributes, KeyboardEvent, PointerEvent } from "react";
 import {
   ArrowRight,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   LockKeyhole,
   Menu,
@@ -325,28 +327,153 @@ function Offer() {
   );
 }
 
+const showcaseSlides = [
+  {
+    name: "AETHER",
+    tagline: "Smart locker system",
+    image: "locker-product.jpg",
+    alt: "AETHER smart locker and delivery drone",
+    href: "#aether-details",
+  },
+  {
+    name: "EOS",
+    tagline: "Lightweight delivery drone · up to 2 kg",
+    image: "drone-eos.jpg",
+    alt: "EOS lightweight delivery drone",
+    href: "#eos",
+  },
+  {
+    name: "NYX",
+    tagline: "Heavy-duty delivery drone · 4–5 kg",
+    image: "drone-nyx-full.jpg",
+    alt: "NYX heavy-duty delivery drone",
+    href: "#nyx",
+  },
+];
+
+/** Vị trí của slide `index` khi slide `active` ở giữa: -1 trái, 0 giữa, 1 phải (vòng tròn 3 slide). */
+const slideOffset = (index: number, active: number) => {
+  const n = showcaseSlides.length;
+  return ((index - active + n + 1) % n) - 1;
+};
+
+const SLIDE_POSITION = { "-1": "is-left", "0": "is-center", "1": "is-right" } as const;
+
+/** Băng chuyền sản phẩm: vuốt/kéo ngang, chạm slide hai bên, chấm, nút mũi tên hoặc phím ← →. */
 function EcosystemShowcase() {
+  const n = showcaseSlides.length;
+  const [active, setActive] = useState(0);
+  // slide đi vòng từ mép này sang mép kia thì ẩn đi rồi hiện lại tại chỗ mới, không lướt ngang qua slide giữa
+  const [jumping, setJumping] = useState<number | null>(null);
+  const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+
+  const go = (next: number) => {
+    const target = (next + n) % n;
+    if (target === active) return;
+    const wrapped = showcaseSlides.findIndex(
+      (_, i) => Math.abs(slideOffset(i, target) - slideOffset(i, active)) > 1,
+    );
+    setJumping(wrapped >= 0 ? wrapped : null);
+    setActive(target);
+  };
+
+  useEffect(() => {
+    if (jumping === null) return;
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => setJumping(null));
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [jumping]);
+
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    drag.current = { x: event.clientX, y: event.clientY, moved: false };
+  };
+
+  const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const start = drag.current;
+    if (!start) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      start.moved = true;
+      go(active + (dx < 0 ? 1 : -1));
+    }
+  };
+
+  const onSlideClick = (offset: number) => {
+    // vừa vuốt xong thì bỏ qua cú click trình duyệt bắn ra ngay sau đó
+    if (drag.current?.moved) return;
+    if (offset !== 0) go(active + offset);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft") go(active - 1);
+    if (event.key === "ArrowRight") go(active + 1);
+  };
+
+  const current = showcaseSlides[active];
+
   return (
     <section className="ecosystem section-dark" id="products">
       <div className="section-shell ecosystem-shell">
         <h2 data-reveal>SEE MORE DETAILS</h2>
-        <div className="ecosystem-stage" data-reveal>
-          <img className="side-drone left" src={asset("drone-eos.jpg")} alt="" />
-          <Shot
-            className="ecosystem-product"
-            name="locker-product.jpg"
-            alt="AETHER smart locker and delivery drone"
-          />
-          <img
-            className="side-drone right"
-            src={asset("drone-nyx-full.jpg")}
-            alt=""
-          />
+        <div
+          className="ecosystem-stage"
+          data-reveal
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Lock.R products"
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => (drag.current = null)}
+        >
+          {showcaseSlides.map((slide, index) => {
+            const offset = slideOffset(index, active);
+            const position = SLIDE_POSITION[String(offset) as keyof typeof SLIDE_POSITION];
+            return (
+              <div
+                key={slide.name}
+                className={`eco-slide ${position}${jumping === index ? " is-jumping" : ""}`}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${index + 1} of ${n}: ${slide.name}`}
+                aria-hidden={offset !== 0}
+                onClick={() => onSlideClick(offset)}
+              >
+                <Shot name={slide.image} alt={slide.alt} draggable={false} />
+              </div>
+            );
+          })}
         </div>
-        <div className="carousel-dots" aria-label="Product slide 1 of 3">
-          <span className="active" />
-          <span />
-          <span />
+        <a className="eco-caption" href={current.href} aria-live="polite">
+          <strong>{current.name}</strong>
+          <span>{current.tagline}</span>
+        </a>
+        <div className="carousel-controls">
+          <button type="button" className="carousel-arrow" aria-label="Previous product" onClick={() => go(active - 1)}>
+            <ChevronLeft size={18} />
+          </button>
+          <div className="carousel-dots">
+            {showcaseSlides.map((slide, index) => (
+              <button
+                type="button"
+                key={slide.name}
+                className={index === active ? "active" : ""}
+                aria-label={`Show ${slide.name}`}
+                aria-current={index === active}
+                onClick={() => go(index)}
+              />
+            ))}
+          </div>
+          <button type="button" className="carousel-arrow" aria-label="Next product" onClick={() => go(active + 1)}>
+            <ChevronRight size={18} />
+          </button>
         </div>
       </div>
     </section>

@@ -583,51 +583,165 @@
   text-align: center;
 }
 
+/* băng chuyền sản phẩm: slide giữa to, hai slide bên xám mờ; vuốt hoặc kéo ngang để đổi */
 .ecosystem-stage {
-  align-items: center;
-  display: flex;
+  cursor: grab;
   height: 450px;
-  justify-content: center;
   position: relative;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-.ecosystem-product {
-  height: 100%;
-  object-fit: contain;
+.ecosystem-stage:active {
+  cursor: grabbing;
+}
+
+.ecosystem-stage:focus-visible {
+  border-radius: 14px;
+  outline: 1px solid var(--aether-line);
+  outline-offset: 10px;
+}
+
+.eco-slide {
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition:
+    left 0.65s cubic-bezier(0.22, 0.61, 0.36, 1),
+    top 0.65s cubic-bezier(0.22, 0.61, 0.36, 1),
+    width 0.65s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.5s ease,
+    filter 0.5s ease;
   width: 65%;
+}
+
+.eco-slide img {
+  display: block;
+  height: auto;
+  pointer-events: none;
+  width: 100%;
+}
+
+.eco-slide.is-center {
   z-index: 2;
 }
 
-.side-drone {
+.eco-slide.is-left,
+.eco-slide.is-right {
+  cursor: pointer;
   filter: grayscale(1);
   opacity: 0.48;
-  position: absolute;
-  top: 20%;
+  top: 38%;
   width: 26%;
+  z-index: 1;
 }
 
-.side-drone.left {
-  left: 0;
+.eco-slide.is-left {
+  left: 13%;
 }
 
-.side-drone.right {
-  right: 0;
+.eco-slide.is-right {
+  left: 87%;
+}
+
+.eco-slide.is-left:hover,
+.eco-slide.is-right:hover {
+  opacity: 0.7;
+}
+
+/* slide đi vòng từ mép này sang mép kia: tắt hiệu ứng một khung hình rồi hiện dần tại chỗ mới */
+.eco-slide.is-jumping {
+  opacity: 0;
+  transition: none;
+}
+
+.eco-caption {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px auto 22px;
+  text-align: center;
+  width: fit-content;
+}
+
+.eco-caption strong {
+  color: var(--aether-blue);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  padding-left: 0.42em;
+}
+
+.eco-caption span {
+  color: #8b969d;
+  font-size: 12px;
+  transition: color 0.2s ease;
+}
+
+.eco-caption:hover span {
+  color: #c9d3d8;
+}
+
+.carousel-controls {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.carousel-arrow {
+  align-items: center;
+  background: rgba(9, 18, 24, 0.6);
+  border: 1px solid rgba(86, 193, 251, 0.35);
+  border-radius: 50%;
+  color: var(--aether-blue-soft);
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  width: 36px;
+}
+
+.carousel-arrow:hover {
+  background: rgba(86, 193, 251, 0.12);
+  border-color: var(--aether-blue);
 }
 
 .carousel-dots {
   display: flex;
-  gap: 20px;
+  gap: 4px;
   justify-content: center;
 }
 
-.carousel-dots span {
-  background: #39434a;
-  border-radius: 50%;
-  height: 6px;
-  width: 6px;
+/* nút 24px cho dễ chạm, chấm 7px vẽ bằng ::before */
+.carousel-dots button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  height: 24px;
+  padding: 0;
+  position: relative;
+  width: 24px;
 }
 
-.carousel-dots span.active {
+.carousel-dots button::before {
+  background: #39434a;
+  border-radius: 50%;
+  content: "";
+  height: 7px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  width: 7px;
+}
+
+.carousel-dots button.active::before {
   background: var(--aether-blue);
   box-shadow: 0 0 12px var(--aether-blue);
 }
@@ -1294,13 +1408,27 @@
   }
 
   .ecosystem-stage {
+    aspect-ratio: 2 / 1;
     height: auto;
-    margin: 32px 0 24px;
+    margin: 32px 0 6px;
   }
 
-  .ecosystem-product {
-    height: auto;
+  .eco-slide.is-center {
     width: min(560px, 72%);
+  }
+
+  .eco-slide.is-left,
+  .eco-slide.is-right {
+    top: 34%;
+    width: 22%;
+  }
+
+  .eco-slide.is-left {
+    left: 11%;
+  }
+
+  .eco-slide.is-right {
+    left: 89%;
   }
 
   .product-intro {
@@ -1578,18 +1706,31 @@
     font-size: 36px;
   }
 
+  /* điện thoại: chỉ hiện slide giữa, hai slide kia nằm ngoài khung và trượt vào khi vuốt */
   .ecosystem-stage {
-    height: auto;
-    margin: 24px 0 20px;
+    aspect-ratio: 3 / 2;
+    margin: 20px 0 2px;
+    overflow: hidden;
   }
 
-  .ecosystem-product {
-    height: auto;
+  .eco-slide.is-center {
     width: 100%;
   }
 
-  .side-drone {
-    display: none;
+  .eco-slide.is-left,
+  .eco-slide.is-right {
+    opacity: 0;
+    pointer-events: none;
+    top: 50%;
+    width: 100%;
+  }
+
+  .eco-slide.is-left {
+    left: -60%;
+  }
+
+  .eco-slide.is-right {
+    left: 160%;
   }
 
   .product-intro {
