@@ -8,6 +8,7 @@ interface MockIndicatorProps {
 }
 
 export function MockIndicator({ className }: MockIndicatorProps) {
+  const { t } = useTranslation();
   if (!isMockEnabled) return null;
 
   return (
@@ -21,7 +22,7 @@ export function MockIndicator({ className }: MockIndicatorProps) {
       )}
     >
       <Database size={16} />
-      <span>Mock Data</span>
+      <span>{t("common.a11y.mockData")}</span>
       <div className="w-2 h-2 bg-white rounded-full" />
     </div>
   );

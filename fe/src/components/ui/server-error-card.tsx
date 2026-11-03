@@ -69,16 +69,16 @@ export const ServerErrorCard: React.FC<ServerErrorCardProps> = ({
             <button
               onClick={onClose}
               className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 cursor-pointer transition-colors"
-              title="Close"
+              title={t("button.close")}
             />
             <button
               onClick={() => setIsMinimized(!isMinimized)}
               className="w-3 h-3 rounded-full bg-yellow-400 hover:bg-yellow-500 cursor-pointer transition-colors"
-              title="Minimize"
+              title={t("common.a11y.minimize")}
             />
             <button
               className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 cursor-pointer transition-colors"
-              title="Maximize"
+              title={t("common.a11y.maximize")}
             />
           </div>
           <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">

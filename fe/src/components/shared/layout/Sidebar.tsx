@@ -215,7 +215,7 @@ export function Sidebar({
             "fixed top-3.5 left-4 z-50 p-2 rounded-lg bg-card text-foreground border border-border shadow-xs lg:hidden",
             "hover:bg-accent transition-colors",
           )}
-          aria-label="Toggle menu"
+          aria-label={t("common.a11y.toggleMenu")}
         >
           <Menu size={18} />
         </button>

@@ -228,7 +228,7 @@ export function LockerTable({
               setSelectedLockerIds(selectedLockerIds.filter((id) => !pageIds.has(id)));
             }
           }}
-          aria-label="Select all"
+          aria-label={t("common.a11y.selectAll")}
           className="translate-y-[2px]"
         />
       ),
@@ -242,7 +242,7 @@ export function LockerTable({
               setSelectedLockerIds((prev) => prev.filter((id) => id !== row.original.id));
             }
           }}
-          aria-label="Select row"
+          aria-label={t("common.batchDelete.selectRow")}
           className="translate-y-[2px]"
         />
       ),

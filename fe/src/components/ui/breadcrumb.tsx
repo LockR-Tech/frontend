@@ -1,4 +1,5 @@
 import * as React from "react";
+import i18n from "~/utils/i18n";
 import { Slot } from "@radix-ui/react-slot";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 
@@ -9,7 +10,7 @@ const Breadcrumb = React.forwardRef<
   React.ComponentPropsWithoutRef<"nav"> & {
     separator?: React.ReactNode;
   }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />);
+>(({ ...props }, ref) => <nav ref={ref} aria-label={i18n.t("common.a11y.breadcrumb")} {...props} />);
 Breadcrumb.displayName = "Breadcrumb";
 
 const BreadcrumbList = React.forwardRef<

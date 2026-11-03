@@ -947,7 +947,7 @@ export function RefundTable({
                     <div className="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-card border border-border/80 rounded-xl shadow-xs space-y-2">
                       <img
                         src={qrUrl}
-                        alt="VietQR Transfer"
+                        alt={t("common.a11y.vietQr")}
                         className="w-52 h-auto object-contain rounded-lg"
                       />
                       <div className="flex items-center gap-2 pt-1">
