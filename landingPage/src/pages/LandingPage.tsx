@@ -28,7 +28,6 @@ const asset = (name: string) => `/aether/${name}`;
 const PHONE_CROPS = new Set([
   "locker-product.jpg",
   "smoke-white.jpg",
-  "smoke-dark.jpg",
   "drone-eos.jpg",
   "drone-eos-full.jpg",
   "drone-nyx-full.jpg",
@@ -621,9 +620,9 @@ function Configurator() {
               <strong>$1,999</strong>
             </div>
           </div>
-          <Shot
-            className={finish === "white" ? "" : "muted-product"}
-            name="smoke-white.jpg"
+          <img
+            className={finish === "white" ? "finish-shot" : "finish-shot muted-product"}
+            src={asset("smoke-white-cut.webp")}
             alt="AETHER White Smoke"
           />
         </article>
@@ -653,9 +652,9 @@ function Configurator() {
               <strong>$1,999</strong>
             </div>
           </div>
-          <Shot
-            className={finish === "dark" ? "" : "muted-product"}
-            name="smoke-dark.jpg"
+          <img
+            className={finish === "dark" ? "finish-shot" : "finish-shot muted-product"}
+            src={asset("smoke-dark-cut.webp")}
             alt="AETHER Dark Matte"
           />
         </article>
