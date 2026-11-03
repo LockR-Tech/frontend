@@ -39,12 +39,17 @@ interface MainChartProps {
   onOpenMonth?: (month: number, what: "orders" | "revenue") => void;
 }
 
+/** Tối đa một chữ số lẻ: vạch trục hay rơi vào 1,5 / 4,5 triệu, làm tròn về số nguyên sẽ ghi sai. */
+function shortAmount(value: number) {
+  return value.toLocaleString(currentLanguage(i18n) === "vi" ? "vi-VN" : "en-US", { maximumFractionDigits: 1 });
+}
+
 function formatRevenueTick(value: number) {
   if (value >= 1_000_000_000)
-    return i18n.t("admin.dashboard.format.billionShort", { value: (value / 1_000_000_000).toFixed(1) });
+    return i18n.t("admin.dashboard.format.billionShort", { value: shortAmount(value / 1_000_000_000) });
   if (value >= 1_000_000)
-    return i18n.t("admin.dashboard.format.millionShort", { value: (value / 1_000_000).toFixed(0) });
-  return `${value}`;
+    return i18n.t("admin.dashboard.format.millionShort", { value: shortAmount(value / 1_000_000) });
+  return shortAmount(value);
 }
 
 /** Nhãn tháng từ dữ liệu `T3`: tiếng Việt giữ `T3` / `Tháng 3`, ngôn ngữ khác dùng tên tháng. */
