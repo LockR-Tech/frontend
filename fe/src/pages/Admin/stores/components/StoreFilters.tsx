@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Input } from "~/components/ui/input";
 import { StatusDropdown } from "~/components/shared/status-tabs";
@@ -50,8 +50,17 @@ export function StoreFilters({
           placeholder={t("admin.stores.searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 h-10"
+          className={`pl-10 h-10 ${searchQuery ? "pr-9" : ""}`}
         />
+        {searchQuery ? (
+          <button
+            type="button"
+            onClick={() => onSearchChange("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X size={16} />
+          </button>
+        ) : null}
       </div>
     </div>
   );

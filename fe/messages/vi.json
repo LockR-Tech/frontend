@@ -2128,7 +2128,7 @@
         },
         "auth": {
           "title": "Xác thực",
-          "description": "Hiệu lực và độ dài mã OTP, thời hạn token tạm."
+          "description": "Hiệu lực và độ dài mã OTP, thời hạn token tạm, thời gian màn hình splash."
         },
         "loyalty": {
           "title": "Khách hàng thân thiết",

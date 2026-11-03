@@ -2128,7 +2128,7 @@
         },
         "auth": {
           "title": "Authentication",
-          "description": "OTP validity and length, temporary token lifetime."
+          "description": "OTP validity and length, temporary token lifetime, splash screen duration."
         },
         "loyalty": {
           "title": "Loyalty",
