@@ -240,9 +240,12 @@ export function Sidebar({
           )}
         >
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center font-bold text-base shadow-xs shrink-0">
-              L
-            </div>
+            {/* Logo Lock.R — cùng biểu tượng với favicon */}
+            <img
+              src="/favicon.svg"
+              alt="Lock.R"
+              className="w-9 h-9 rounded-lg shadow-xs shrink-0"
+            />
             {(isExpanded || isMobileOpen) && (
               <div className="flex flex-col min-w-0 transition-opacity duration-200">
                 <span className="font-semibold text-sm text-sidebar-foreground truncate tracking-tight">
