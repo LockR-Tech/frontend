@@ -6052,7 +6052,23 @@
       },
       "status": {
         "rejected": "Rejected",
-        "error": "Error"
+        "error": "Error",
+        "ignored": "Ignored"
+      },
+      "party": {
+        "system": "System",
+        "locker": "Locker",
+        "drone": "Drone"
+      },
+      "sentTo": "Sent to: {{name}}",
+      "group": {
+        "messageCount_one": "{{count}} message",
+        "messageCount_other": "{{count}} messages",
+        "errorCount_one": "{{count}} error",
+        "errorCount_other": "{{count}} errors",
+        "latest": "Latest:",
+        "expandAll": "Expand all",
+        "collapseAll": "Collapse all"
       },
       "listTitle": "Communication messages ({{total}})",
       "col": {
@@ -6086,8 +6102,8 @@
         "lidCloseAccepted": "Locker accepted the close command, sliding lid moving",
         "targetRequest": "Drone requested its delivery target (target box and ArUco marker)",
         "lidOpenedReported": "Locker reported the sliding lid is open",
-        "dropPhaseStarted": "Started simulated drone parcel release (lid actually open)",
-        "dropPhaseCompleted": "Simulated drone parcel release completed",
+        "dropPhaseStarted": "Sent the release command to the drone (simulated release, lid actually open)",
+        "dropPhaseCompleted": "Drone reported the parcel has been released",
         "closeLidRetry": "Resent box sliding lid close command (locker reconnected, attempt {{n}})",
         "closeLidSent": "Sent box sliding lid close request",
         "deliveryReady": "Delivery completed safely — parcel ready for customer pickup"

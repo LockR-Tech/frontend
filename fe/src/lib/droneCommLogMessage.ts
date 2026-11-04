@@ -6,6 +6,9 @@ import i18n from '~/utils/i18n';
 
 export function isDroneCommLogError(log: DroneLockerCommLog): boolean {
   const s = (log.processingStatus || '').toUpperCase();
+  // IGNORED = bản tin lặp / không thuộc phiên (vd. DUPLICATE_MARKER, DUPLICATE_DROP_REPORT): có mã nhưng không phải lỗi.
+  // SUCCESS/PROCESSED có mã (vd. NO_TARGET: drone chưa có nhiệm vụ) là thông tin, không phải lỗi.
+  if (s === 'IGNORED' || s === 'SUCCESS' || s === 'PROCESSED') return false;
   return (
     Boolean(log.errorCode) ||
     s === 'REJECTED' ||
@@ -121,6 +124,9 @@ export function describeDroneCommLog(log: DroneLockerCommLog): string {
       }
       return i18n.t('admin.droneLogs.message.dropPhaseStarted');
     case 'DROP_PHASE_COMPLETED':
+      if ((log.processingStatus || '').toUpperCase() === 'IGNORED' && log.errorMessage?.trim()) {
+        return translateRawMessage(log.errorMessage);
+      }
       return i18n.t('admin.droneLogs.message.dropPhaseCompleted');
     case 'CLOSE_LID_REQUESTED':
       return log.retryCount > 0

@@ -6052,7 +6052,21 @@
       },
       "status": {
         "rejected": "Từ chối",
-        "error": "Lỗi"
+        "error": "Lỗi",
+        "ignored": "Bỏ qua"
+      },
+      "party": {
+        "system": "Hệ thống",
+        "locker": "Tủ",
+        "drone": "Drone"
+      },
+      "sentTo": "Gửi tới: {{name}}",
+      "group": {
+        "messageCount": "{{count}} thông điệp",
+        "errorCount": "{{count}} lỗi",
+        "latest": "Mới nhất:",
+        "expandAll": "Mở rộng tất cả",
+        "collapseAll": "Thu gọn tất cả"
       },
       "listTitle": "Danh sách thông điệp giao tiếp ({{total}})",
       "col": {
@@ -6086,8 +6100,8 @@
         "lidCloseAccepted": "Tủ đã nhận lệnh đóng, nắp trượt đang chạy",
         "targetRequest": "Drone hỏi mục tiêu giao hàng (ô đích và mã ArUco)",
         "lidOpenedReported": "Tủ báo nắp trượt đã mở",
-        "dropPhaseStarted": "Bắt đầu giả lập drone nhả hàng (nắp đã mở thật)",
-        "dropPhaseCompleted": "Hoàn tất giả lập drone nhả hàng",
+        "dropPhaseStarted": "Gửi lệnh nhả hàng cho drone (giả lập nhả hàng, nắp đã mở thật)",
+        "dropPhaseCompleted": "Drone báo đã nhả hàng xong",
         "closeLidRetry": "Gửi lại lệnh đóng nắp trượt ô tủ (tủ đã kết nối lại, lần {{n}})",
         "closeLidSent": "Gửi lệnh yêu cầu đóng nắp trượt ô tủ",
         "deliveryReady": "Giao hàng hoàn tất an toàn — Kiện hàng sẵn sàng để khách nhận"
