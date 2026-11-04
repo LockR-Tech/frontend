@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Plane,
@@ -101,7 +101,26 @@ export default function DronesPage() {
   const [createDrone, createState] = useCreateDroneMutation();
   const [updateDroneStatus, statusState] = useUpdateDroneStatusMutation();
 
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  // Giữ trên URL để xem chi tiết drone xong bấm quay lại vẫn đúng danh sách đang lọc.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const statusParam = searchParams.get("status");
+  const statusFilter = STATUS_FILTERS.some((f) => f.value === statusParam) ? statusParam : null;
+  const setStatusFilter = (value: string | null) =>
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value) next.set("status", value);
+        else next.delete("status");
+        return next;
+      },
+      { replace: true },
+    );
+  const listRef = useRef<HTMLDivElement>(null);
+  // Bấm thẻ số ⇒ lọc đúng nhóm đó rồi đưa danh sách vào tầm nhìn.
+  const showStatus = (value: string | null) => {
+    setStatusFilter(value);
+    requestAnimationFrame(() => listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
   const [formOpen, setFormOpen] = useState(false);
   const [decommissionDrone, decommissionState] = useDecommissionDroneMutation();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -216,21 +235,29 @@ export default function DronesPage() {
                 label={t("admin.drones.stats.total")}
                 value={counts.total}
                 color="text-primary"
+                active={statusFilter === null}
+                onClick={() => showStatus(null)}
               />
               <StatCard
                 label={t("admin.drones.status.idle")}
                 value={counts.idle}
                 color="text-emerald-600"
+                active={statusFilter === "IDLE"}
+                onClick={() => showStatus("IDLE")}
               />
               <StatCard
                 label={t("admin.drones.status.charging")}
                 value={counts.charging}
                 color="text-amber-600"
+                active={statusFilter === "CHARGING"}
+                onClick={() => showStatus("CHARGING")}
               />
               <StatCard
                 label={t("admin.drones.filter.fault")}
                 value={counts.fault}
                 color="text-rose-600"
+                active={statusFilter === "FAULT"}
+                onClick={() => showStatus("FAULT")}
               />
             </div>
             <div className="flex shrink-0 gap-2 self-end xl:self-auto">
@@ -293,6 +320,7 @@ export default function DronesPage() {
       />
 
       {/* Drone list */}
+      <div ref={listRef} className="scroll-mt-4">
       {isLoading ? (
         <div className="flex justify-center py-16 text-muted-foreground">
           <Loader2 className="h-6 w-6 animate-spin" />
@@ -442,6 +470,7 @@ export default function DronesPage() {
           })}
         </div>
       )}
+      </div>
 
       <DeleteReasonDialog
         open={deleteTarget !== null}
@@ -474,20 +503,32 @@ export default function DronesPage() {
     </div>
   );
 }
+/** Thẻ số: bấm để lọc danh sách đúng nhóm đó (cùng bộ đếm với hàng bộ lọc nên số luôn khớp). */
 function StatCard({
   label,
   value,
   color,
+  active,
+  onClick,
 }: {
   label: string;
   value: number;
   color: string;
+  active: boolean;
+  onClick: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-background px-4 py-3 shadow-xs">
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-xl border bg-background px-4 py-3 text-left shadow-xs transition-all hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        active ? "border-primary ring-1 ring-primary" : "border-border/70"
+      }`}
+    >
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className={`mt-1 text-2xl font-bold leading-none ${color}`}>{value}</p>
-    </div>
+    </button>
   );
 }
 
