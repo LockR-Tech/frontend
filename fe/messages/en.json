@@ -6061,6 +6061,20 @@
         "drone": "Drone"
       },
       "sentTo": "Sent to: {{name}}",
+      "lidTest": {
+        "title": "Sliding lid test mode by ArUco marker",
+        "description": "When on: as soon as the drone camera sees a listed ArUco marker, that box's sliding lid really opens; once the locker reports it open, it is held for {{seconds}} seconds and then really closed. No order needed and no order status changes; every message is still written to the log below.",
+        "on": "On",
+        "off": "Off",
+        "running_one": "{{count}} test running",
+        "running_other": "{{count}} tests running",
+        "marker": "ArUco marker #{{id}}",
+        "hold": "held open {{seconds}} s",
+        "warning": "While on, the camera only tests lids and does not handle order deliveries. The lid turns a real motor — always have someone next to the locker. Move the marker out of view for at least 2 seconds before the next test.",
+        "toastOn": "ArUco lid test mode turned on",
+        "toastOff": "Lid test mode turned off",
+        "toastError": "Could not change the lid test mode — try again"
+      },
       "group": {
         "messageCount_one": "{{count}} message",
         "messageCount_other": "{{count}} messages",

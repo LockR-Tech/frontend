@@ -46,6 +46,7 @@ import { useGetAdminDroneOrderListQuery } from '~/pages/Admin/drone-orders/drone
 import type { DroneOrderTracking } from '~/stores/apis/admin/droneOrders';
 import { formatDateTime } from '~/lib/datetime';
 import { describeDroneCommLog, isDroneCommLogError } from '~/lib/droneCommLogMessage';
+import { LidTestModeCard } from './LidTestModeCard';
 
 type Device = 'DRONE' | 'LOCKER' | 'BACKEND';
 
@@ -379,6 +380,8 @@ export default function DroneLogsPage() {
         return <Badge className="bg-blue-600 text-white font-mono text-[11px]">LID_OPENED</Badge>;
       case 'DROP_PHASE_STARTED':
         return <Badge className="bg-amber-600 text-white font-mono text-[11px]">DROP_PHASE_STARTED</Badge>;
+      case 'LID_TEST_HOLD':
+        return <Badge className="bg-amber-500 text-white font-mono text-[11px]">LID_TEST_HOLD</Badge>;
       case 'DROP_PHASE_COMPLETED':
         return <Badge className="bg-teal-600 text-white font-mono text-[11px]">DROP_PHASE_COMPLETED</Badge>;
       case 'CLOSE_LID_REQUESTED':
@@ -597,6 +600,14 @@ export default function DroneLogsPage() {
         }}
       />
 
+      {/* Chế độ thử nắp trượt theo mã ArUco (bật/tắt) */}
+      <LidTestModeCard
+        lockerLabel={(id) => {
+          const code = lockerById.get(id)?.code;
+          return t('admin.droneLogs.locker', { label: code ? code : `#${id}` });
+        }}
+      />
+
       {/* Filter Card */}
       <Card>
         <CardContent className="p-4">
@@ -654,6 +665,7 @@ export default function DroneLogsPage() {
                   <SelectItem value="DROP_PHASE_STARTED">DROP_PHASE_STARTED</SelectItem>
                   <SelectItem value="DROP_PHASE_COMPLETED">DROP_PHASE_COMPLETED</SelectItem>
                   <SelectItem value="DROP_REPORT_TIMEOUT">DROP_REPORT_TIMEOUT</SelectItem>
+                  <SelectItem value="LID_TEST_HOLD">LID_TEST_HOLD</SelectItem>
                   <SelectItem value="CLOSE_LID_REQUESTED">CLOSE_LID_REQUESTED</SelectItem>
                   <SelectItem value="LID_CLOSE_ACCEPTED">LID_CLOSE_ACCEPTED</SelectItem>
                   <SelectItem value="LID_CLOSED">LID_CLOSED</SelectItem>

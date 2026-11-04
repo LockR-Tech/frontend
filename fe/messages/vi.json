@@ -6061,6 +6061,19 @@
         "drone": "Drone"
       },
       "sentTo": "Gửi tới: {{name}}",
+      "lidTest": {
+        "title": "Chế độ thử nắp trượt theo mã ArUco",
+        "description": "Khi bật: camera drone thấy đúng mã ArUco trong danh sách thì nắp trượt của ô tương ứng mở thật, tủ báo mở xong thì giữ {{seconds}} giây rồi đóng thật. Không cần đơn hàng, không đổi trạng thái đơn nào; mọi thông điệp vẫn ghi vào nhật ký bên dưới.",
+        "on": "Đang bật",
+        "off": "Đang tắt",
+        "running": "{{count}} phiên đang thử",
+        "marker": "mã ArUco #{{id}}",
+        "hold": "giữ mở {{seconds}} giây",
+        "warning": "Đang bật: camera chỉ thử nắp, không xử lý giao hàng của đơn. Nắp quay motor thật — luôn có người đứng cạnh tủ. Đưa mã ra khỏi camera ít nhất 2 giây trước khi thử lần tiếp theo.",
+        "toastOn": "Đã bật chế độ thử nắp theo mã ArUco",
+        "toastOff": "Đã tắt chế độ thử nắp",
+        "toastError": "Không đổi được chế độ thử nắp — thử lại"
+      },
       "group": {
         "messageCount": "{{count}} thông điệp",
         "errorCount": "{{count}} lỗi",

@@ -430,6 +430,12 @@ export const droneCommLogsApi = baseApi.injectEndpoints({
       query: () => '/api/admin/drone-locker-logs/active-sessions',
       providesTags: ['DroneOrder'],
     }),
+
+    /// Chế độ thử nắp theo ArUco (bật/tắt bằng setting `app.drone.lid-test.enabled`, scope order).
+    getLidTestStatus: builder.query({
+      query: () => '/api/admin/drone-locker-logs/lid-test',
+      providesTags: ['DroneOrder'],
+    }),
   }),
 });
 
@@ -439,4 +445,23 @@ export const {
   useGetSessionTimelineQuery,
   useGetOrderCommLogsQuery,
   useGetActiveDroneSessionsQuery,
+  useGetLidTestStatusQuery,
 } = droneCommLogsApi as any;
+
+export interface LidTestTargetView {
+  markerId: number;
+  boxId: number;
+  boxNumber?: number | null;
+  cellLockerId?: number | null;
+  cellMarkerId?: number | null;
+  /** Ô không khớp cấu hình (tủ khác / mã gán khác) — null khi ổn. */
+  problem?: string | null;
+}
+
+export interface LidTestStatus {
+  enabled: boolean;
+  lockerId: number;
+  holdSeconds: number;
+  targets: LidTestTargetView[];
+  activeSessions: DroneActiveSession[];
+}
