@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation, Trans } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   CalendarClock,
   Check,
@@ -124,22 +125,9 @@ const CELL_STATUS_LABEL_KEYS: Record<string, string> = {
   CLEANING: "admin.maintenance.ui.cellStatus.cleaning",
 };
 
-const DEFAULT_KIOSK_CHECKLIST = [
-  "🧹 Vệ sinh tủ & ngoại quan sạch sẽ",
-  "🔒 Kiểm tra khóa điện tử & tiếp điểm cửa",
-  "⚡ Kiểm tra cảm biến nhận diện ô tủ",
-  "🔋 Kiểm tra nguồn cấp & pin lưu điện UPS",
-  "📱 Màn hình cảm ứng & camera / quét QR",
-  "📶 Tín hiệu kết nối IoT 4G / WiFi ổn định",
-];
-
-const DEFAULT_DRONE_CHECKLIST = [
-  "Kiểm tra ngoại quan thân vỏ, càng đáp và cánh quạt",
-  "Kiểm tra pin, đầu nối và tình trạng sạc",
-  "Hiệu chuẩn IMU, la bàn và cảm biến định vị",
-  "Kiểm tra GPS, truyền tín hiệu và tính năng Return-to-Home",
-  "Chạy thử động cơ không tải và ghi nhận bất thường",
-];
+// Checklist mẫu điền sẵn vào ô soạn theo ngôn ngữ đang dùng; lưu lên API đúng chữ admin để lại.
+const defaultChecklist = (t: TFunction, kind: "kiosk" | "drone"): string[] =>
+  t(`admin.maintenance.schedules.defaultChecklist.${kind}`).split("\n");
 
 export function MaintenanceSchedules() {
   const { t } = useTranslation();
@@ -228,7 +216,7 @@ export function MaintenanceSchedules() {
   const [locationNote, setLocationNote] = useState("");
   const [scheduledTimeSlot, setScheduledTimeSlot] = useState("08:00 - 11:30");
   const [description, setDescription] = useState("");
-  const [checklistText, setChecklistText] = useState(DEFAULT_KIOSK_CHECKLIST.join("\n"));
+  const [checklistText, setChecklistText] = useState(() => defaultChecklist(t, "kiosk").join("\n"));
   const checklistLines = useMemo(() => parseChecklistLines(checklistText), [checklistText]);
 
   // Drone form state
@@ -244,7 +232,7 @@ export function MaintenanceSchedules() {
   const [droneLocationNote, setDroneLocationNote] = useState("");
   const [droneScheduledTimeSlot, setDroneScheduledTimeSlot] = useState("08:00 - 11:30");
   const [droneDescription, setDroneDescription] = useState("");
-  const [droneChecklistText, setDroneChecklistText] = useState(DEFAULT_DRONE_CHECKLIST.join("\n"));
+  const [droneChecklistText, setDroneChecklistText] = useState(() => defaultChecklist(t, "drone").join("\n"));
   const droneChecklistLines = useMemo(() => parseChecklistLines(droneChecklistText), [droneChecklistText]);
 
   // Modal states
@@ -516,7 +504,7 @@ export function MaintenanceSchedules() {
       setScheduledTimeSlot("08:00 - 11:30");
       setFirstDueDate("");
       setFirstDueTime("09:00");
-      setChecklistText(DEFAULT_KIOSK_CHECKLIST.join("\n"));
+      setChecklistText(defaultChecklist(t, "kiosk").join("\n"));
     } else {
       const drone = drones.find((d) => String(d.id) === selectedDroneId);
       if (!drone || !droneTitle.trim()) {
@@ -566,7 +554,7 @@ export function MaintenanceSchedules() {
       setDroneLocationNote("");
       setDroneScheduledTimeSlot("08:00 - 11:30");
       setDroneDescription("");
-      setDroneChecklistText(DEFAULT_DRONE_CHECKLIST.join("\n"));
+      setDroneChecklistText(defaultChecklist(t, "drone").join("\n"));
     }
   };
 
@@ -1133,7 +1121,7 @@ export function MaintenanceSchedules() {
               />
               <p className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.form.quickToggle")}</p>
               <div className="flex flex-wrap gap-1.5">
-                {DEFAULT_KIOSK_CHECKLIST.map((item) => {
+                {defaultChecklist(t, "kiosk").map((item) => {
                   const isChecked = checklistLines.includes(item);
                   return (
                     <button
@@ -1345,7 +1333,7 @@ export function MaintenanceSchedules() {
                 />
                 <p className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.form.quickToggle")}</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {DEFAULT_DRONE_CHECKLIST.map((item) => {
+                  {defaultChecklist(t, "drone").map((item) => {
                     const isChecked = droneChecklistLines.includes(item);
                     return (
                       <button

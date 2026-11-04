@@ -1,4 +1,5 @@
 import * as React from "react";
+import i18n from "~/utils/i18n";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
@@ -215,7 +216,7 @@ const CarouselPrevious = React.forwardRef<
       {...props}
     >
       <ArrowLeft className="h-4 w-4" />
-      <span className="sr-only">Previous slide</span>
+      <span className="sr-only">{i18n.t("common.a11y.previousSlide")}</span>
     </Button>
   );
 });
@@ -244,7 +245,7 @@ const CarouselNext = React.forwardRef<
       {...props}
     >
       <ArrowRight className="h-4 w-4" />
-      <span className="sr-only">Next slide</span>
+      <span className="sr-only">{i18n.t("common.a11y.nextSlide")}</span>
     </Button>
   );
 });

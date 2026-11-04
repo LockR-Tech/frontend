@@ -230,7 +230,7 @@ function ReportDropDialog({
               label="GPS"
               value={
                 effectiveLat != null && effectiveLng != null
-                  ? `${effectiveLat.toFixed(5)}, ${effectiveLng.toFixed(5)}${isLiveGps ? " (Trực tiếp)" : " (Hành trình bay)"}`
+                  ? `${effectiveLat.toFixed(5)}, ${effectiveLng.toFixed(5)}${isLiveGps ? t("admin.droneOrders.reportDrop.gpsLiveSuffix") : t("admin.droneOrders.reportDrop.gpsJourneySuffix")}`
                   : t("admin.droneOrders.reportDrop.noLiveGps")
               }
             />

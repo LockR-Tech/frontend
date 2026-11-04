@@ -485,7 +485,7 @@ export function RepairLogDialog({
           onClick={() => setPreviewImage(null)}
         >
           <div className="relative max-w-3xl max-h-[90vh]">
-            <img src={previewImage} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+            <img src={previewImage} alt={t("common.a11y.preview")} className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
             <button
               type="button"
               className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 hover:bg-black/80"

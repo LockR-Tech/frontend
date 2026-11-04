@@ -93,7 +93,7 @@ export function NoBookingHistoryEmpty({
       <div className="mb-4">
         <img
           src="/placeholder.svg"
-          alt="Empty"
+          alt={t("common.empty")}
           className="w-16 h-16 opacity-50"
         />
       </div>
@@ -188,7 +188,7 @@ export function CustomImageEmpty({
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       <img
         src={imageSrc}
-        alt="Empty"
+        alt={t("common.empty")}
         style={{ height: imageHeight }}
         className="mb-4 opacity-70"
       />
