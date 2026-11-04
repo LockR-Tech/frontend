@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "~/components/shared/page-header";
+import { CardFilterChip } from "~/components/shared/card-filter-chip";
+import { scrollToList } from "~/lib/scroll-to-list";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -272,6 +274,21 @@ export default function DroneIncidentsPage() {
   // Liên kết từ trang Hành trình drone: ?order=<mã đơn>
   const [searchParams, setSearchParams] = useSearchParams();
   const orderFilter = searchParams.get("order")?.trim() || null;
+  // Thẻ số đang chọn (?card=open|recovering|review|closed): danh sách chỉ còn đúng các sự cố được đếm vào thẻ.
+  const cardParam = searchParams.get("card");
+  const cardFilter = cardParam && cardParam in CARD_FILTERS ? (cardParam as CardKey) : null;
+  const listRef = useRef<HTMLDivElement>(null);
+  const setCardFilter = (key: CardKey | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (key) next.set("card", key);
+    else next.delete("card");
+    setSearchParams(next, { replace: true });
+  };
+  const showCard = (key: CardKey) => {
+    setFilter("ALL");
+    setCardFilter(key);
+    scrollToList(listRef.current);
+  };
   const apiIncidents = data?.data ?? [];
   // Chỉ dữ liệu thật: trước đây trộn 2 sự cố mẫu (INC-2026-DROP-001/002) vào danh sách, admin thao tác được
   // lên sự cố không tồn tại (test 2026-10-29).
@@ -299,8 +316,10 @@ export default function DroneIncidentsPage() {
     }
     return group.statuses.includes(status);
   };
-  const visible = byOrder.filter((item) =>
-    belongsToFilter(item.status, filter),
+  const visible = byOrder.filter(
+    (item) =>
+      belongsToFilter(item.status, filter) &&
+      (!cardFilter || CARD_FILTERS[cardFilter](item)),
   );
   const countForFilter = (filterValue: string) => {
     const group = INCIDENT_FILTERS.find((item) => item.value === filterValue);
@@ -317,18 +336,18 @@ export default function DroneIncidentsPage() {
   };
   // Backend có thể bổ sung trạng thái mới mà web chưa phát hành; vẫn cho Admin
   // lọc được thay vì làm trạng thái đó biến mất khỏi danh sách chọn.
+  // Đếm trên cùng danh sách đang xem (kể cả lọc theo đơn) nên số trên thẻ bằng số dòng khi bấm vào.
   const counts = {
-    open: incidents.filter(
-      (item) => !["CLOSED", "RESOLVED"].includes(item.status),
-    ).length,
-    recovering: incidents.filter((item) =>
-      ["ASSIGNED", "ACCEPTED", "SEARCHING"].includes(item.recoveryStatus),
-    ).length,
-    review: incidents.filter((item) => item.status === "AWAITING_ADMIN_REVIEW")
-      .length,
-    closed: incidents.filter((item) =>
-      ["CLOSED", "RESOLVED"].includes(item.status),
-    ).length,
+    open: byOrder.filter(CARD_FILTERS.open).length,
+    recovering: byOrder.filter(CARD_FILTERS.recovering).length,
+    review: byOrder.filter(CARD_FILTERS.review).length,
+    closed: byOrder.filter(CARD_FILTERS.closed).length,
+  };
+  const cardLabels: Record<CardKey, string> = {
+    open: t("admin.droneIncidents.stats.open"),
+    recovering: t("admin.droneIncidents.stats.recovering"),
+    review: t("admin.droneIncidents.stats.review"),
+    closed: t("admin.droneIncidents.stats.closed"),
   };
 
   return (
@@ -341,18 +360,26 @@ export default function DroneIncidentsPage() {
         <Stat
           label={t("admin.droneIncidents.stats.open")}
           value={counts.open}
+          active={cardFilter === "open"}
+          onClick={() => showCard("open")}
         />
         <Stat
           label={t("admin.droneIncidents.stats.recovering")}
           value={counts.recovering}
+          active={cardFilter === "recovering"}
+          onClick={() => showCard("recovering")}
         />
         <Stat
           label={t("admin.droneIncidents.stats.review")}
           value={counts.review}
+          active={cardFilter === "review"}
+          onClick={() => showCard("review")}
         />
         <Stat
           label={t("admin.droneIncidents.stats.closed")}
           value={counts.closed}
+          active={cardFilter === "closed"}
+          onClick={() => showCard("closed")}
         />
       </div>
       <Card className="border-0 shadow-sm">
@@ -376,7 +403,13 @@ export default function DroneIncidentsPage() {
               <span className="text-xs font-medium text-muted-foreground">
                 {t("admin.droneIncidents.listPage.filters.label")}
               </span>
-              <Select value={filter} onValueChange={setFilter}>
+              <Select
+                value={filter}
+                onValueChange={(value) => {
+                  setFilter(value);
+                  setCardFilter(null);
+                }}
+              >
                 <SelectTrigger className="bg-background">
                   <SelectValue
                     placeholder={t("admin.payments.detail.selectStatus")}
@@ -403,8 +436,18 @@ export default function DroneIncidentsPage() {
             />
             {t("button.refresh")}
           </Button>
+          {cardFilter && (
+            <div className="w-full">
+              <CardFilterChip
+                label={cardLabels[cardFilter]}
+                count={visible.length}
+                onClear={() => setCardFilter(null)}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
+      <div ref={listRef} className="scroll-mt-4" />
       <Card className="border-0 shadow-sm">
         <CardContent className="overflow-x-auto p-0">
           {isLoading ? (
@@ -543,14 +586,39 @@ export default function DroneIncidentsPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+type CardKey = "open" | "recovering" | "review" | "closed";
+
+/** Điều kiện của từng thẻ số — dùng chung cho con số và danh sách khi bấm vào thẻ. */
+const CARD_FILTERS: Record<CardKey, (item: { status: string; recoveryStatus?: string | null }) => boolean> = {
+  open: (item) => !["CLOSED", "RESOLVED"].includes(item.status),
+  recovering: (item) => ["ASSIGNED", "ACCEPTED", "SEARCHING"].includes(item.recoveryStatus ?? ""),
+  review: (item) => item.status === "AWAITING_ADMIN_REVIEW",
+  closed: (item) => ["CLOSED", "RESOLVED"].includes(item.status),
+};
+
+function Stat({
+  label,
+  value,
+  active,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
-    <Card className="border-0 shadow-sm">
-      <CardContent className="p-4">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="mt-1 text-2xl font-bold">{value}</p>
-      </CardContent>
-    </Card>
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-xl border bg-card p-4 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        active ? "border-primary ring-1 ring-primary" : "border-transparent"
+      }`}
+    >
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-bold">{value}</p>
+    </button>
   );
 }
 
