@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -8,6 +8,8 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { PageHeader } from "~/components/shared/page-header";
+import { CardFilterChip } from "~/components/shared/card-filter-chip";
+import { scrollToList } from "~/lib/scroll-to-list";
 import {
   LabelValue,
   MetaBadge,
@@ -58,6 +60,10 @@ function isFlightEnded(order: DroneOrderTracking): boolean {
 }
 
 type Scope = "active" | "finished" | "all";
+/** Nhóm đang xem: một phạm vi, hoặc một thẻ số (chờ điều phối / đang bay) nằm trong "đang thực hiện". */
+type View = Scope | "waiting" | "inFlight";
+const VIEWS: View[] = ["active", "finished", "all", "waiting", "inFlight"];
+const FLIGHT_STAGES = ["LAUNCHING", "DEPARTED", "EN_ROUTE", "APPROACHING", "ARRIVED"];
 
 const SCOPES: { value: Scope; labelKey: string }[] = [
   { value: "active", labelKey: "admin.droneOrders.scope.active" },
@@ -202,8 +208,27 @@ function journeyTitle(event: DroneJourneyEvent, t: TFunction): string {
 export default function DroneOrdersPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [scope, setScope] = useState<Scope>("active");
+  const [searchParams, setSearchParams] = useSearchParams();
+  // Giữ trên URL để xem chi tiết đơn xong bấm quay lại vẫn đúng nhóm đang xem.
+  const viewParam = searchParams.get("view") as View | null;
+  const view: View = viewParam && VIEWS.includes(viewParam) ? viewParam : "active";
+  const scope: Scope = view === "waiting" || view === "inFlight" ? "active" : view;
+  const setView = (next: View) =>
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        if (next === "active") params.delete("view");
+        else params.set("view", next);
+        return params;
+      },
+      { replace: true },
+    );
+  const listRef = useRef<HTMLDivElement>(null);
+  // Bấm thẻ số ⇒ danh sách chỉ còn đúng các đơn được đếm vào thẻ đó.
+  const showView = (next: View) => {
+    setView(next);
+    scrollToList(listRef.current);
+  };
   // "Đang thực hiện" chỉ xin nhiệm vụ đang chạy; hai nhóm còn lại cần cả lịch sử
   const { data, isLoading, isFetching, isError, refetch } = useGetAdminDroneOrderListQuery(
     { includeFinished: scope !== "active" },
@@ -238,19 +263,14 @@ export default function DroneOrdersPage() {
   }, [navigate, searchParams]);
 
   const orders = useMemo(() => data?.data ?? [], [data]);
+  // Thẻ và danh sách dùng chung điều kiện nên số trên thẻ luôn bằng số dòng khi bấm vào.
+  const isWaiting = (o: (typeof orders)[number]) => !isFinished(o) && o.deliveryStage === "AWAITING_DISPATCH";
+  const isFlying = (o: (typeof orders)[number]) => !isFinished(o) && FLIGHT_STAGES.includes(o.deliveryStage ?? "");
   const counts = useMemo(
     () => ({
       active: orders.filter(needsAction).length,
-      inFlight: orders.filter(
-        (o) =>
-          !isFinished(o) &&
-          ["LAUNCHING", "DEPARTED", "EN_ROUTE", "APPROACHING", "ARRIVED"].includes(
-            o.deliveryStage ?? "",
-          ),
-      ).length,
-      waiting: orders.filter(
-        (o) => !isFinished(o) && o.deliveryStage === "AWAITING_DISPATCH",
-      ).length,
+      inFlight: orders.filter(isFlying).length,
+      waiting: orders.filter(isWaiting).length,
       // Nhóm "đang thực hiện" không tải đơn đã kết thúc nên chưa biết con số này
       finished: scope === "active" ? null : orders.filter((o) => !needsAction(o)).length,
     }),
@@ -259,8 +279,20 @@ export default function DroneOrdersPage() {
 
   // Backend đã sắp theo lần cập nhật gần nhất: đơn vừa đổi chặng nằm trên cùng.
   const visible = orders.filter((o) =>
-    scope === "all" ? true : scope === "active" ? needsAction(o) : !needsAction(o),
+    view === "waiting"
+      ? isWaiting(o)
+      : view === "inFlight"
+        ? isFlying(o)
+        : view === "all"
+          ? true
+          : view === "active"
+            ? needsAction(o)
+            : !needsAction(o),
   );
+  const cardLabel: Partial<Record<View, string>> = {
+    waiting: t("admin.droneOrders.stats.waiting"),
+    inFlight: t("admin.droneOrders.stats.inFlight"),
+  };
 
   return (
     <div className="space-y-6">
@@ -274,14 +306,34 @@ export default function DroneOrdersPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label={t("admin.droneOrders.scope.active")} value={counts.active} color="text-primary" />
-          <StatCard label={t("admin.droneOrders.stats.waiting")} value={counts.waiting} color="text-amber-700" />
-          <StatCard label={t("admin.droneOrders.stats.inFlight")} value={counts.inFlight} color="text-sky-700" />
+          <StatCard
+            label={t("admin.droneOrders.scope.active")}
+            value={counts.active}
+            color="text-primary"
+            active={view === "active"}
+            onClick={() => showView("active")}
+          />
+          <StatCard
+            label={t("admin.droneOrders.stats.waiting")}
+            value={counts.waiting}
+            color="text-amber-700"
+            active={view === "waiting"}
+            onClick={() => showView("waiting")}
+          />
+          <StatCard
+            label={t("admin.droneOrders.stats.inFlight")}
+            value={counts.inFlight}
+            color="text-sky-700"
+            active={view === "inFlight"}
+            onClick={() => showView("inFlight")}
+          />
           <StatCard
             label={t("admin.droneOrders.scope.finished")}
             value={counts.finished ?? "—"}
             color="text-muted-foreground"
             hint={counts.finished == null ? t("admin.droneOrders.stats.finishedHint") : undefined}
+            active={view === "finished"}
+            onClick={() => showView("finished")}
           />
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()}>
@@ -292,11 +344,11 @@ export default function DroneOrdersPage() {
 
       <div className="flex flex-wrap gap-2">
         {SCOPES.map((s) => {
-          const active = scope === s.value;
+          const active = view === s.value;
           return (
             <button
               key={s.value}
-              onClick={() => setScope(s.value)}
+              onClick={() => setView(s.value)}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                 active
                   ? "border-transparent bg-primary text-primary-foreground shadow-sm"
@@ -307,7 +359,11 @@ export default function DroneOrdersPage() {
             </button>
           );
         })}
+        {cardLabel[view] && (
+          <CardFilterChip label={cardLabel[view]!} count={visible.length} onClear={() => setView("active")} />
+        )}
       </div>
+      <div ref={listRef} className="scroll-mt-4" />
 
       {isLoading ? (
         <div className="flex justify-center py-16 text-muted-foreground">
@@ -412,19 +468,29 @@ function StatCard({
   value,
   color,
   hint,
+  active,
+  onClick,
 }: {
   label: string;
   value: number | string;
   color: string;
   hint?: string;
+  active: boolean;
+  onClick: () => void;
 }) {
   return (
-    <Card className="border-0 shadow-sm" title={hint}>
-      <CardContent className="p-3">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={`text-xl font-bold ${color}`}>{value}</p>
-      </CardContent>
-    </Card>
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      title={hint}
+      className={`rounded-xl border bg-card p-3 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        active ? "border-primary ring-1 ring-primary" : "border-transparent"
+      }`}
+    >
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={`text-xl font-bold ${color}`}>{value}</p>
+    </button>
   );
 }
 
