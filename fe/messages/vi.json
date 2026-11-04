@@ -130,6 +130,24 @@
       "label": "Lý do xoá",
       "placeholder": "Nhập lý do xoá để lưu lại",
       "softNote": "Bản ghi chỉ ẩn khỏi giao diện, dữ liệu vẫn được giữ trong hệ thống cùng lý do xoá."
+    },
+    "a11y": {
+      "breadcrumb": "Đường dẫn trang",
+      "previousSlide": "Ảnh trước",
+      "nextSlide": "Ảnh sau",
+      "pagination": "Phân trang",
+      "previousPage": "Trang trước",
+      "nextPage": "Trang sau",
+      "morePages": "Thêm trang",
+      "toggleSidebar": "Ẩn/hiện thanh bên",
+      "toggleMenu": "Ẩn/hiện menu",
+      "toggleTheme": "Đổi giao diện sáng/tối",
+      "minimize": "Thu nhỏ",
+      "maximize": "Phóng to",
+      "mockData": "Dữ liệu giả",
+      "selectAll": "Chọn tất cả",
+      "vietQr": "Mã VietQR chuyển khoản",
+      "preview": "Ảnh xem trước"
     }
   },
   "header": {
@@ -2911,7 +2929,9 @@
         "warning": "Xác nhận sẽ dừng luồng giao hiện tại và ngăn đơn được đánh dấu đã giao. RTL chỉ được yêu cầu khi telemetry và điều kiện an toàn hợp lệ.",
         "reasonLabel": "Lý do / mô tả quan sát *",
         "reasonPlaceholder": "Ví dụ: camera cho thấy móc giữ mở ngoài ý muốn và kiện rơi khỏi drone...",
-        "photoLabel": "Ảnh camera hoặc ảnh hiện trường (nếu có)"
+        "photoLabel": "Ảnh camera hoặc ảnh hiện trường (nếu có)",
+        "gpsLiveSuffix": " (trực tiếp)",
+        "gpsJourneySuffix": " (theo hành trình bay)"
       },
       "pickup": {
         "status": "Trạng thái lấy hàng",
@@ -4691,6 +4711,10 @@
           "deletedDesc": "Kế hoạch bảo trì \"{{title}}\" đã được loại bỏ.",
           "deleteFailed": "Không thể xóa lịch",
           "deleteFailedDesc": "Vui lòng kiểm tra lại quyền truy cập hoặc thử lại sau."
+        },
+        "defaultChecklist": {
+          "kiosk": "🧹 Vệ sinh tủ & ngoại quan sạch sẽ\n🔒 Kiểm tra khóa điện tử & tiếp điểm cửa\n⚡ Kiểm tra cảm biến nhận diện ô tủ\n🔋 Kiểm tra nguồn cấp & pin lưu điện UPS\n📱 Màn hình cảm ứng & camera / quét QR\n📶 Tín hiệu kết nối IoT 4G / WiFi ổn định",
+          "drone": "Kiểm tra ngoại quan thân vỏ, càng đáp và cánh quạt\nKiểm tra pin, đầu nối và tình trạng sạc\nHiệu chuẩn IMU, la bàn và cảm biến định vị\nKiểm tra GPS, truyền tín hiệu và tính năng Return-to-Home\nChạy thử động cơ không tải và ghi nhận bất thường"
         }
       },
       "photos": {

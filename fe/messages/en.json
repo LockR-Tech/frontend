@@ -130,6 +130,24 @@
       "label": "Reason for deletion",
       "placeholder": "Enter the reason so it is kept on record",
       "softNote": "The record is only hidden from the interface; its data and this reason stay in the system."
+    },
+    "a11y": {
+      "breadcrumb": "Breadcrumb",
+      "previousSlide": "Previous slide",
+      "nextSlide": "Next slide",
+      "pagination": "Pagination",
+      "previousPage": "Go to previous page",
+      "nextPage": "Go to next page",
+      "morePages": "More pages",
+      "toggleSidebar": "Toggle sidebar",
+      "toggleMenu": "Toggle menu",
+      "toggleTheme": "Toggle light/dark theme",
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "mockData": "Mock data",
+      "selectAll": "Select all",
+      "vietQr": "VietQR bank transfer code",
+      "preview": "Preview image"
     }
   },
   "header": {
@@ -2911,7 +2929,9 @@
         "warning": "Confirming stops the current delivery flow and prevents the order from being marked as delivered. RTL is only requested when telemetry and safety conditions are valid.",
         "reasonLabel": "Reason / observation *",
         "reasonPlaceholder": "E.g. the camera shows the release hook opened unexpectedly and the parcel fell off the drone...",
-        "photoLabel": "Camera snapshot or on-site photo (if any)"
+        "photoLabel": "Camera snapshot or on-site photo (if any)",
+        "gpsLiveSuffix": " (live)",
+        "gpsJourneySuffix": " (from flight journey)"
       },
       "pickup": {
         "status": "Pickup status",
@@ -4691,6 +4711,10 @@
           "deletedDesc": "Maintenance plan \"{{title}}\" has been removed.",
           "deleteFailed": "Could not delete the schedule",
           "deleteFailedDesc": "Please check your access rights or try again later."
+        },
+        "defaultChecklist": {
+          "kiosk": "🧹 Clean the locker inside and out\n🔒 Check the electronic locks & door contacts\n⚡ Check the box detection sensors\n🔋 Check the power supply & UPS battery\n📱 Touch screen & camera / QR scanner\n📶 Stable IoT 4G / Wi-Fi connection",
+          "drone": "Inspect the frame, landing gear and propellers\nCheck the battery, connectors and charging state\nCalibrate the IMU, compass and positioning sensors\nCheck GPS, signal link and Return-to-Home\nRun the motors without load and note anything unusual"
         }
       },
       "photos": {

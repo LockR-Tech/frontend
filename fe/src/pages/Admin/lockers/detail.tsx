@@ -225,7 +225,7 @@ export default function LockerDetailPage() {
                       {assignedTechName || `KTV #${assignedTechId}`} <ExternalLink className="w-3 h-3" />
                     </Link>
                   ) : (
-                    <p className="text-xs text-muted-foreground italic">Chưa phân công KTV</p>
+                    <p className="text-xs text-muted-foreground italic">{t("common.unassigned")}</p>
                   )}
                 </div>
               </div>
