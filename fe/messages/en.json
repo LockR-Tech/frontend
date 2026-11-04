@@ -148,6 +148,10 @@
       "selectAll": "Select all",
       "vietQr": "VietQR bank transfer code",
       "preview": "Preview image"
+    },
+    "cardFilter": {
+      "showing": "Showing: {{label}} · {{count}}",
+      "clear": "Clear"
     }
   },
   "header": {

@@ -148,6 +148,10 @@
       "selectAll": "Chọn tất cả",
       "vietQr": "Mã VietQR chuyển khoản",
       "preview": "Ảnh xem trước"
+    },
+    "cardFilter": {
+      "showing": "Đang xem: {{label}} · {{count}}",
+      "clear": "Bỏ lọc"
     }
   },
   "header": {
