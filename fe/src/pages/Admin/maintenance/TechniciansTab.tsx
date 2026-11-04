@@ -1,4 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
+import { CardFilterChip } from "~/components/shared/card-filter-chip";
+import { scrollToList } from "~/lib/scroll-to-list";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -79,6 +81,9 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const [penaltyFilter, setPenaltyFilter] = useState("ALL");
   const [specialtyFilter, setSpecialtyFilter] = useState<"ALL" | "KIOSK" | "DRONE">("ALL");
   const [shiftFilter, setShiftFilter] = useState<"ALL" | "ON_DUTY" | "OFF_DUTY">("ALL");
+  // Thẻ số đang chọn: danh sách chỉ còn đúng các KTV được đếm vào thẻ đó.
+  const [cardFocus, setCardFocus] = useState<"WORKING" | "SLA" | "RATED" | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const [perfById, setPerfById] = useState<Record<number, TechnicianPerformanceResponse>>({});
   const handlePerf = useCallback((techId: number, perf: TechnicianPerformanceResponse) => {
     setPerfById((prev) => (prev[techId] === perf ? prev : { ...prev, [techId]: perf }));
@@ -277,11 +282,54 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
     }
     return count;
   }, [technicians, presenceByUserId]);
-  const workingTechs = technicians.filter((t) => (techMetrics[t.id]?.inProgress ?? 0) > 0).length;
-  const warningTechs = technicians.filter((t) => {
+  const isWorking = (t: TechnicianSummary) => (techMetrics[t.id]?.inProgress ?? 0) > 0;
+  const hasSlaWarning = (t: TechnicianSummary) => {
     const p = techMetrics[t.id]?.penaltyLevel;
     return p === "WARNING" || p === "RESTRICTED" || p === "SUSPENDED";
-  }).length;
+  };
+  const isRated = (t: TechnicianSummary) => (perfById[t.id]?.ratingCount ?? 0) > 0;
+  const workingTechs = technicians.filter(isWorking).length;
+  const warningTechs = technicians.filter(hasSlaWarning).length;
+
+  // Bấm thẻ: bỏ các bộ lọc khác rồi lọc theo đúng điều kiện của thẻ.
+  const showCard = (
+    focus: typeof cardFocus,
+    filters: { specialty?: "ALL" | "KIOSK" | "DRONE"; shift?: "ALL" | "ON_DUTY" | "OFF_DUTY" } = {},
+  ) => {
+    setSearchQuery("");
+    setPenaltyFilter("ALL");
+    setSpecialtyFilter(filters.specialty ?? "ALL");
+    setShiftFilter(filters.shift ?? "ALL");
+    setCardFocus(focus);
+    scrollToList(listRef.current);
+  };
+  const cardClass =
+    "border shadow-xs hover:shadow-md hover:border-primary/40 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  const cardProps = (onOpen: () => void, active: boolean) => ({
+    role: "button" as const,
+    tabIndex: 0,
+    "aria-pressed": active,
+    onClick: onOpen,
+    onKeyDown: (e: ReactKeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onOpen();
+      }
+    },
+    className: `${cardClass} ${active ? "border-primary ring-1 ring-primary" : "border-border/80"}`,
+  });
+  const subLink = (onOpen: () => void) => ({
+    onClick: (e: ReactMouseEvent) => {
+      e.stopPropagation();
+      onOpen();
+    },
+    onKeyDown: (e: ReactKeyboardEvent) => e.stopPropagation(),
+  });
+  const cardFocusLabel = {
+    WORKING: t("admin.maintenance.techTab.working"),
+    SLA: t("admin.maintenance.techTab.slaWarnings"),
+    RATED: t("admin.maintenance.techTab.csat"),
+  };
 
   // Filter technicians
   const filteredTechs = useMemo(() => {
@@ -296,6 +344,10 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         (t.phoneNumber && t.phoneNumber.includes(searchQuery));
 
       if (!matchSearch) return false;
+
+      if (cardFocus === "WORKING" && !isWorking(t)) return false;
+      if (cardFocus === "SLA" && !hasSlaWarning(t)) return false;
+      if (cardFocus === "RATED" && !isRated(t)) return false;
 
       if (specialtyFilter !== "ALL" && t.specialty !== specialtyFilter) {
         return false;
@@ -316,7 +368,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
       return true;
     });
-  }, [technicians, searchQuery, specialtyFilter, shiftFilter, penaltyFilter, techMetrics, presenceByUserId]);
+  }, [technicians, searchQuery, specialtyFilter, shiftFilter, penaltyFilter, techMetrics, presenceByUserId, cardFocus, perfById]);
 
   const handleToggleStatus = async (tech: TechnicianSummary) => {
     const newEnabled = !tech.enabled;
@@ -357,7 +409,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-        <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
+        <Card {...cardProps(() => showCard(null), cardFocus === null && specialtyFilter === "ALL" && shiftFilter === "ALL" && penaltyFilter === "ALL" && !searchQuery)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techTab.totalTechs")}</p>
@@ -367,14 +419,18 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
             </div>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1">{totalTechs}</p>
             <div className="text-[11px] font-medium flex items-center gap-1.5 mt-1 text-slate-600">
-              <span className="text-sky-700 font-semibold">{t("admin.maintenance.techTab.kioskTechCount", { count: kioskTechs })}</span>
+              <button type="button" className="text-sky-700 font-semibold hover:underline" {...subLink(() => showCard(null, { specialty: "KIOSK" }))}>
+                {t("admin.maintenance.techTab.kioskTechCount", { count: kioskTechs })}
+              </button>
               <span>·</span>
-              <span className="text-purple-700 font-semibold">{t("admin.maintenance.techTab.droneTechCount", { count: droneTechs })}</span>
+              <button type="button" className="text-purple-700 font-semibold hover:underline" {...subLink(() => showCard(null, { specialty: "DRONE" }))}>
+                {t("admin.maintenance.techTab.droneTechCount", { count: droneTechs })}
+              </button>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
+        <Card {...cardProps(() => showCard("WORKING"), cardFocus === "WORKING")}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techTab.working")}</p>
@@ -385,15 +441,19 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
             <p className="text-2xl font-bold tracking-tight text-foreground mt-1">{workingTechs}</p>
             <div className="text-[11px] font-medium flex items-center justify-between gap-1 mt-1">
               <span className="text-blue-600">{t("admin.maintenance.techTab.workingDesc")}</span>
-              <span className="text-emerald-700 font-semibold flex items-center gap-1">
+              <button
+                type="button"
+                className="text-emerald-700 font-semibold flex items-center gap-1 hover:underline"
+                {...subLink(() => showCard(null, { shift: "ON_DUTY" }))}
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 {t("admin.maintenance.ui.shift.onDutyCount", { count: onDutyCount })}
-              </span>
+              </button>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
+        <Card {...cardProps(() => showCard("SLA"), cardFocus === "SLA")}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techTab.slaWarnings")}</p>
@@ -408,7 +468,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
+        <Card {...cardProps(() => showCard("RATED"), cardFocus === "RATED")}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground font-medium">{t("admin.maintenance.techTab.csat")}</p>
@@ -458,6 +518,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
       </Card>
 
       {/* Filter and Search Bar */}
+      <div ref={listRef} className="scroll-mt-4" />
       <Card className="border border-border/80 shadow-xs">
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -465,6 +526,13 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Users className="w-4 h-4 text-indigo-600" />
                 {t("admin.maintenance.techTab.listTitle", { count: filteredTechs.length })}
+                {cardFocus && (
+                  <CardFilterChip
+                    label={cardFocusLabel[cardFocus]}
+                    count={filteredTechs.length}
+                    onClear={() => setCardFocus(null)}
+                  />
+                )}
               </CardTitle>
               <CardDescription className="text-xs mt-0.5">
                 {t("admin.maintenance.techTab.listDesc")}
