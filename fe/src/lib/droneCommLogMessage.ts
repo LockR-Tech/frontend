@@ -55,7 +55,37 @@ function translateRawMessage(raw: string): string {
   return text.replace(/\s*\(DICT_[A-Z0-9_]+\)/gi, '');
 }
 
+/// Số liệu thật của servo Pi drone gửi kèm báo nhả hàng: "mở 180° · giữ 5 giây · 1 lần thử · chạy 6.6 giây · GPIO18".
+function servoReleaseParts(payload: Record<string, any> | null): string[] {
+  if (!payload) return [];
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  const parts: string[] = [];
+  const angle = num(payload.servoOpenAngle);
+  if (angle !== null) parts.push(i18n.t('admin.droneLogs.message.servoOpenAngle', { angle }));
+  const hold = num(payload.servoHoldSeconds);
+  if (hold !== null) parts.push(i18n.t('admin.droneLogs.message.servoHold', { seconds: hold }));
+  const attempts = num(payload.releaseAttempts);
+  if (attempts !== null) parts.push(i18n.t('admin.droneLogs.message.releaseAttempts', { n: attempts }));
+  const duration = num(payload.releaseDurationSeconds);
+  if (duration !== null) parts.push(i18n.t('admin.droneLogs.message.releaseDuration', { seconds: duration }));
+  const pin = num(payload.servoGpioPin);
+  if (pin !== null) {
+    const gpio = i18n.t('admin.droneLogs.message.servoGpio', { pin });
+    parts.push(typeof payload.gpioBackend === 'string' && payload.gpioBackend ? `${gpio} (${payload.gpioBackend})` : gpio);
+  }
+  return parts;
+}
+
 export function describeDroneCommLog(log: DroneLockerCommLog): string {
+  // Servo drone không nhả được hàng: câu cố định + mã lỗi Pi gửi (vd. SERVO_ERROR) + số liệu servo; bản tin lặp thì như thường.
+  if (log.eventType === 'PARCEL_RELEASE_FAILED' && (log.processingStatus || '').toUpperCase() !== 'IGNORED') {
+    const payload = parseDroneCommLogPayload(log);
+    const code = payload?.errorCode;
+    const text = i18n.t('admin.droneLogs.message.parcelReleaseFailed');
+    return [typeof code === 'string' && code.trim() ? `${text} (${code})` : text, ...servoReleaseParts(payload)]
+      .join(' · ');
+  }
+
   // Khi có lỗi hoặc bị từ chối: hiển thị nguyên nhân lỗi cụ thể
   if (isDroneCommLogError(log)) {
     if (log.errorMessage && log.errorMessage.trim()) {
@@ -123,11 +153,14 @@ export function describeDroneCommLog(log: DroneLockerCommLog): string {
         return translateRawMessage(log.errorMessage);
       }
       return i18n.t('admin.droneLogs.message.dropPhaseStarted');
-    case 'DROP_PHASE_COMPLETED':
+    case 'DROP_PHASE_COMPLETED': {
       if ((log.processingStatus || '').toUpperCase() === 'IGNORED' && log.errorMessage?.trim()) {
         return translateRawMessage(log.errorMessage);
       }
-      return i18n.t('admin.droneLogs.message.dropPhaseCompleted');
+      const payload = parseDroneCommLogPayload(log);
+      if (payload?.releaseMethod !== 'SERVO') return i18n.t('admin.droneLogs.message.dropPhaseCompleted');
+      return [i18n.t('admin.droneLogs.message.dropPhaseCompletedServo'), ...servoReleaseParts(payload)].join(' · ');
+    }
     case 'CLOSE_LID_REQUESTED':
       return log.retryCount > 0
         ? i18n.t('admin.droneLogs.message.closeLidRetry', { n: log.retryCount })
