@@ -120,10 +120,15 @@ const FINAL_FAILURE_EVENTS = new Set(['LID_OPEN_FAILED', 'LID_CLOSE_FAILED']);
 function finalStatusByCommand(logs: DroneLockerCommLog[]): Map<string, 'SUCCESS' | 'FAILED'> {
   const map = new Map<string, 'SUCCESS' | 'FAILED'>();
   for (const log of logs) {
-    // Lệnh nhả hàng (mã "DROP-<phiên>") xong khi drone báo DROP_PHASE_COMPLETED thành công cho phiên đó.
+    // Lệnh nhả hàng (mã "DROP-<phiên>") xong khi drone báo DROP_PHASE_COMPLETED thành công cho phiên đó,
+    // hỏng khi drone báo PARCEL_RELEASE_FAILED (servo không nhả được hàng).
     if (log.eventType === 'DROP_PHASE_COMPLETED' && log.sessionId
         && (log.processingStatus || '').toUpperCase() === 'SUCCESS') {
       map.set(`DROP-${log.sessionId}`, 'SUCCESS');
+    }
+    if (log.eventType === 'PARCEL_RELEASE_FAILED' && log.sessionId
+        && (log.processingStatus || '').toUpperCase() === 'FAILED') {
+      map.set(`DROP-${log.sessionId}`, 'FAILED');
     }
     if (!log.messageId) continue;
     if (FINAL_SUCCESS_EVENTS.has(log.eventType)) map.set(log.messageId, 'SUCCESS');
@@ -396,6 +401,7 @@ export default function DroneLogsPage() {
       case 'LID_OPEN_FAILED':
       case 'LID_CLOSE_FAILED':
       case 'DROP_REPORT_TIMEOUT':
+      case 'PARCEL_RELEASE_FAILED':
       case 'SAFETY_ABORT':
         return <Badge className="bg-red-700 text-white font-mono text-[11px]">{type}</Badge>;
       default:
@@ -665,6 +671,7 @@ export default function DroneLogsPage() {
                   <SelectItem value="DROP_PHASE_STARTED">DROP_PHASE_STARTED</SelectItem>
                   <SelectItem value="DROP_PHASE_COMPLETED">DROP_PHASE_COMPLETED</SelectItem>
                   <SelectItem value="DROP_REPORT_TIMEOUT">DROP_REPORT_TIMEOUT</SelectItem>
+                  <SelectItem value="PARCEL_RELEASE_FAILED">PARCEL_RELEASE_FAILED</SelectItem>
                   <SelectItem value="LID_TEST_HOLD">LID_TEST_HOLD</SelectItem>
                   <SelectItem value="CLOSE_LID_REQUESTED">CLOSE_LID_REQUESTED</SelectItem>
                   <SelectItem value="LID_CLOSE_ACCEPTED">LID_CLOSE_ACCEPTED</SelectItem>
