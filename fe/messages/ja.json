@@ -120,6 +120,7 @@
       "dashboard": "ダッシュボード",
       "users": "ユーザー",
       "orders": "注文",
+      "storage": "保管中の荷物",
       "stores": "店舗",
       "lockers": "ロッカー",
       "cabinetControl": "キャビネット制御",
@@ -229,6 +230,55 @@
           "pointsDiscount": "ポイント利用",
           "pointsUsed": "{{points}} ポイント"
         }
+      }
+    },
+    "storage": {
+      "title": "保管中の荷物",
+      "description": "受取期限を過ぎた注文は荷物が倉庫へ移され、ロッカーの区画は解放されます。お客様は窓口で受け取ります：超過料金を回収してから引き渡し、注文を完了してください。",
+      "descriptionWithHours": "受取期限を{{hours}}時間以上過ぎた注文は自動で倉庫へ移され、ロッカーの区画は解放されます。お客様は窓口で受け取ります：超過料金を回収してから引き渡し、注文を完了してください。",
+      "searchPlaceholder": "注文コード、受取人の名前/電話、差出人の電話",
+      "matchCount": "条件に一致する保管中の荷物：{{total}}件",
+      "stats": {
+        "total": "保管中",
+        "totalHint": "誰も受け取っていない期限切れ注文",
+        "unpaid": "超過料金未払い",
+        "unpaidHint": "引き渡し前に料金を回収",
+        "paid": "支払い済み",
+        "paidHint": "引き渡し可能"
+      },
+      "sort": {
+        "oldestFirst": "保管期間が長い順",
+        "newestFirst": "新しく保管した順"
+      },
+      "duration": {
+        "hours": "{{hours}}時間",
+        "days": "{{days}}日",
+        "daysHours": "{{days}}日{{hours}}時間"
+      },
+      "table": {
+        "fromLocker": "元のロッカー",
+        "pickupDeadline": "受取期限",
+        "storedAt": "保管開始",
+        "movedBySystem": "システムが自動移動",
+        "movedByStaff": "{{name}}が移動",
+        "storedFor": "保管期間",
+        "overtimeFee": "超過料金",
+        "empty": "保管中の荷物はありません"
+      },
+      "handOver": {
+        "action": "引き渡して完了",
+        "title": "保管中の荷物を引き渡す",
+        "description": "注文{{code}}を完了にし、あなたの名前をステータス履歴に記録します。",
+        "owedWarning": "お客様の未払い額は{{amount}}です。引き渡し前に超過料金を回収してください（システムは自動で止めません）。",
+        "checkIdentity": "引き渡し前に受取人の名前と電話番号を確認してください。",
+        "confirm": "引き渡し済み",
+        "done": "注文{{code}}を引き渡し、完了しました",
+        "failed": "注文を完了できませんでした"
+      },
+      "detail": {
+        "storedBySystem": "{{time}}に保管開始 — 期限切れのためシステムが自動移動。",
+        "storedByStaff": "{{time}}に保管開始 — {{name}}が移動。",
+        "openList": "保管中の荷物一覧を開く"
       }
     },
     "stores": {

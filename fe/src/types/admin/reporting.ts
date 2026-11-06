@@ -352,6 +352,17 @@ export interface AdminOrder {
   drone: AdminOrderDrone | null;
   /** Chỉ có ở `/detail`; `null` trong danh sách. */
   timeline: AdminOrderTimelineEntry[] | null;
+  /** Chỉ có khi đơn EXPIRED (đồ đã dời vào kho vì quá hạn lấy). Backend cũ chưa có. */
+  storage?: AdminOrderStorage | null;
+}
+
+/** Đồ đã dời vào kho: lúc vào kho và ai chuyển (`movedByUserId` null ⇒ hệ thống tự chuyển khi quá hạn). */
+export interface AdminOrderStorage {
+  /** LocalDateTime UTC, không offset. */
+  storedAt: string | null;
+  movedByUserId: number | null;
+  movedByName: string | null;
+  note: string | null;
 }
 
 export interface AdminOrderSearchParams {

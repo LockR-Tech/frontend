@@ -190,6 +190,7 @@
       "dashboard": "Dashboard",
       "users": "Users",
       "orders": "Orders",
+      "storage": "Stored items",
       "stores": "Stores",
       "lockers": "Lockers",
       "cabinetControl": "Cabinet control",
@@ -890,6 +891,55 @@
           "DESTINATION_LOCKER": "At the receiving locker",
           "ESTIMATED_ROUTE": "Estimated from the stage (older order, no GPS)"
         }
+      }
+    },
+    "storage": {
+      "title": "Stored items",
+      "description": "Orders not picked up in time are moved to storage and their locker cells released. Customers collect them at the counter: collect the overtime fee, then hand over and close the order.",
+      "descriptionWithHours": "Orders more than {{hours}} hours past their pickup deadline are moved to storage automatically and their locker cells released. Customers collect them at the counter: collect the overtime fee, then hand over and close the order.",
+      "searchPlaceholder": "Order code, receiver name/phone, sender phone",
+      "matchCount": "{{total}} stored parcels match the filters",
+      "stats": {
+        "total": "In storage",
+        "totalHint": "All overdue orders nobody collected",
+        "unpaid": "Overtime fee unpaid",
+        "unpaidHint": "Collect the fee before handing over",
+        "paid": "Fully paid",
+        "paidHint": "Ready to hand over"
+      },
+      "sort": {
+        "oldestFirst": "Longest in storage first",
+        "newestFirst": "Most recently stored first"
+      },
+      "duration": {
+        "hours": "{{hours}} h",
+        "days": "{{days}} d",
+        "daysHours": "{{days}} d {{hours}} h"
+      },
+      "table": {
+        "fromLocker": "Original locker",
+        "pickupDeadline": "Pickup deadline",
+        "storedAt": "Stored at",
+        "movedBySystem": "Moved by the system",
+        "movedByStaff": "Moved by {{name}}",
+        "storedFor": "In storage for",
+        "overtimeFee": "Overtime fee",
+        "empty": "No parcels in storage"
+      },
+      "handOver": {
+        "action": "Hand over & close",
+        "title": "Hand over stored items",
+        "description": "Order {{code}} will be marked Completed, with your name recorded in the status history.",
+        "owedWarning": "The customer still owes {{amount}}. Collect the overtime fee before handing over — the system does not block it.",
+        "checkIdentity": "Check the collector's name and phone number before handing over.",
+        "confirm": "Handed over",
+        "done": "Handed over and closed order {{code}}",
+        "failed": "Could not close the order"
+      },
+      "detail": {
+        "storedBySystem": "Stored at {{time}} — moved automatically when overdue.",
+        "storedByStaff": "Stored at {{time}} — moved by {{name}}.",
+        "openList": "Open stored items list"
       }
     },
     "stores": {

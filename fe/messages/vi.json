@@ -190,6 +190,7 @@
       "dashboard": "Dashboard",
       "users": "Người dùng",
       "orders": "Đơn hàng",
+      "storage": "Đồ lưu kho",
       "stores": "Địa điểm",
       "lockers": "Kiosk",
       "cabinetControl": "Điều khiển tủ",
@@ -890,6 +891,55 @@
           "DESTINATION_LOCKER": "Tại tủ nhận",
           "ESTIMATED_ROUTE": "Ước theo chặng (đơn cũ, không có GPS)"
         }
+      }
+    },
+    "storage": {
+      "title": "Đồ lưu kho",
+      "description": "Đơn quá hạn lấy hàng bị hệ thống dời đồ vào kho, ô tủ đã giải phóng. Khách tới quầy nhận lại: thu phí quá hạn rồi trao trả và chốt đơn.",
+      "descriptionWithHours": "Đơn quá hạn lấy hàng hơn {{hours}} giờ được hệ thống tự dời đồ vào kho, ô tủ đã giải phóng. Khách tới quầy nhận lại: thu phí quá hạn rồi trao trả và chốt đơn.",
+      "searchPlaceholder": "Mã đơn, tên/SĐT người nhận, SĐT khách gửi",
+      "matchCount": "{{total}} kiện đang lưu kho khớp bộ lọc",
+      "stats": {
+        "total": "Đang lưu kho",
+        "totalHint": "Mọi đơn quá hạn chưa ai nhận",
+        "unpaid": "Còn nợ phí quá hạn",
+        "unpaidHint": "Thu đủ phí trước khi trao trả",
+        "paid": "Đã thanh toán đủ",
+        "paidHint": "Sẵn sàng trao trả cho khách"
+      },
+      "sort": {
+        "oldestFirst": "Nằm kho lâu nhất trước",
+        "newestFirst": "Mới vào kho trước"
+      },
+      "duration": {
+        "hours": "{{hours}} giờ",
+        "days": "{{days}} ngày",
+        "daysHours": "{{days}} ngày {{hours}} giờ"
+      },
+      "table": {
+        "fromLocker": "Tủ gốc",
+        "pickupDeadline": "Hạn lấy hàng",
+        "storedAt": "Vào kho lúc",
+        "movedBySystem": "Hệ thống tự chuyển",
+        "movedByStaff": "Do {{name}} chuyển",
+        "storedFor": "Đã lưu kho",
+        "overtimeFee": "Phí quá hạn",
+        "empty": "Không có kiện nào đang lưu kho"
+      },
+      "handOver": {
+        "action": "Trao trả & chốt đơn",
+        "title": "Trao trả đồ lưu kho",
+        "description": "Đơn {{code}} sẽ chuyển sang Hoàn tất, ghi tên bạn vào lịch sử trạng thái.",
+        "owedWarning": "Khách còn nợ {{amount}}. Hãy thu đủ phí quá hạn trước khi trao đồ — hệ thống không tự chặn.",
+        "checkIdentity": "Đối chiếu tên và số điện thoại của người tới nhận trước khi trao đồ.",
+        "confirm": "Đã trao trả",
+        "done": "Đã trao trả và chốt đơn {{code}}",
+        "failed": "Không chốt được đơn"
+      },
+      "detail": {
+        "storedBySystem": "Vào kho lúc {{time}} — hệ thống tự chuyển khi quá hạn.",
+        "storedByStaff": "Vào kho lúc {{time}} — do {{name}} chuyển.",
+        "openList": "Xem danh sách đồ lưu kho"
       }
     },
     "stores": {
