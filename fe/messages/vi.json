@@ -648,6 +648,8 @@
         "dateHint": "Khoảng ngày lọc theo thời điểm tạo đơn. Bỏ trống để xem mọi thời điểm."
       },
       "table": {
+        "statusPayment": "Trạng thái · Thanh toán",
+        "people": "Khách gửi → Người nhận",
         "senderCustomer": "Khách gửi",
         "lockerBox": "Tủ / ô",
         "noBox": "Chưa gán ô",
@@ -711,6 +713,7 @@
           "droneNoSendBox": "Đơn drone chỉ giao vào tủ nhận nên không có ô gửi — drone bay từ tủ xuất phát do hệ thống chọn (xem khối Drone)."
         },
         "payment": {
+          "lastMethod": "Phương thức gần nhất",
           "noMoreDue": "Không cần thu thêm",
           "unavailable": "Không lấy được số liệu thu tiền (payment-service không phản hồi).",
           "noPayments": "Chưa có lần thanh toán nào cho đơn này.",
@@ -893,6 +896,11 @@
       }
     },
     "stores": {
+      "area": {
+        "label": "Khu vực",
+        "all": "Mọi khu vực",
+        "unknown": "Chưa rõ khu vực"
+      },
       "title": "Quản lý địa điểm",
       "description": "Quản lý các địa điểm đặt Kiosk trong hệ thống",
       "addStore": "Thêm địa điểm",

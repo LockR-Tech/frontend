@@ -19,6 +19,9 @@ export default function StoresPage() {
     searchQuery,
     setSearchQuery,
     statusCounts,
+    area,
+    setArea,
+    areaCounts,
     isCreateModalOpen,
     setIsCreateModalOpen,
     isEditModalOpen,
@@ -72,6 +75,10 @@ export default function StoresPage() {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               statusCounts={statusCounts}
+              area={area}
+              onAreaChange={setArea}
+              areaCounts={areaCounts}
+              totalCount={statusCounts.ALL}
             />
 
             <TableToolbar

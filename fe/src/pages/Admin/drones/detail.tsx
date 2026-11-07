@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -10,7 +11,6 @@ import {
   Cpu,
   ExternalLink,
   History,
-  Loader2,
   MapPin,
   Plane,
   RefreshCw,
@@ -286,7 +286,7 @@ export default function DroneDetailPage() {
   if (!drone)
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <AppLoading size={120} />
       </div>
     );
 
@@ -966,8 +966,7 @@ function LoadingRows() {
   const { t } = useTranslation();
   return (
     <div className="py-12 text-center text-xs text-muted-foreground">
-      <RefreshCw className="mx-auto mb-2 h-5 w-5 animate-spin text-primary" />
-      {t("admin.drones.detail.loadingData")}
+      <AppLoading size={72} message={t("admin.drones.detail.loadingData")} />
     </div>
   );
 }

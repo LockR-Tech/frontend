@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Download, FileText, Loader2, RefreshCw, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
@@ -168,7 +169,7 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
 
           {isFetching && !currentData ? (
             <div className="flex justify-center py-16 text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <AppLoading size={96} />
             </div>
           ) : error ? (
             <ErrorState

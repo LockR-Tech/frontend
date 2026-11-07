@@ -38,6 +38,7 @@ import {
 import { useGetBusinessSettingsQuery } from "~/stores/apis/admin/businessSettings";
 import { useImageUpload } from "~/hooks/useImageUpload";
 import { formatDateTime } from "~/lib/datetime";
+import { cn } from "~/lib/utils";
 import { EMPTY_VALUE, formatCurrency, formatNumber } from "~/lib/report-format";
 import type { AdminRefund } from "~/types/admin/reporting";
 import { Button } from "~/components/ui/button";
@@ -520,55 +521,50 @@ export function RefundTable({
       ),
       cell: ({ row }) => {
         const item = row.original;
-        if (item.status === "PENDING") {
-          return (
-            <div className="flex items-center justify-end gap-1.5">
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground font-medium"
-                title={t("button.detail")}
-                onClick={() => handleOpenAction(item, "DETAIL")}
-              >
-                <Eye className="h-3.5 w-3.5 mr-1" />
-                {t("button.detail")}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-7 px-2.5 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950 font-medium"
-                onClick={() => handleOpenAction(item, "APPROVE")}
-              >
-                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                {t("admin.payments.refund.table.approve")}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-7 px-2.5 text-xs text-rose-600 border-rose-300 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950 font-medium"
-                onClick={() => handleOpenAction(item, "REJECT")}
-              >
-                <XCircle className="h-3.5 w-3.5 mr-1" />
-                {t("dropdown.reject")}
-              </Button>
-            </div>
-          );
-        }
+        // Nút xếp dọc, cùng bề rộng, cỡ nhỏ: cột hẹp lại để cả bảng vừa màn hình, không phải kéo ngang.
+        const btn = "h-6 w-full justify-start gap-1 px-2 text-[11px] font-medium";
         return (
-          <div className="flex items-center justify-end">
+          <div className="ml-auto flex w-max flex-col gap-1">
             <Button
               type="button"
               size="sm"
               variant="ghost"
-              className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground font-medium"
+              className={cn(btn, "text-muted-foreground hover:text-foreground")}
               onClick={() => handleOpenAction(item, "DETAIL")}
             >
-              <Eye className="h-3.5 w-3.5 mr-1" />
+              <Eye className="h-3 w-3 shrink-0" />
               {t("button.detail")}
             </Button>
+            {item.status === "PENDING" && (
+              <>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className={cn(
+                    btn,
+                    "border-emerald-300 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950",
+                  )}
+                  onClick={() => handleOpenAction(item, "APPROVE")}
+                >
+                  <CheckCircle2 className="h-3 w-3 shrink-0" />
+                  {t("admin.payments.refund.table.approve")}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className={cn(
+                    btn,
+                    "border-rose-300 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950",
+                  )}
+                  onClick={() => handleOpenAction(item, "REJECT")}
+                >
+                  <XCircle className="h-3 w-3 shrink-0" />
+                  {t("dropdown.reject")}
+                </Button>
+              </>
+            )}
           </div>
         );
       },

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -954,8 +955,7 @@ export function RecoveryDispatchInlineMap({
           <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
             {isLoading ? (
               <div className="py-16 text-center text-xs text-muted-foreground">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary mb-2" />
-                {t("admin.droneIncidents.recoveryDispatch.loadingGps")}
+                <AppLoading size={72} message={t("admin.droneIncidents.recoveryDispatch.loadingGps")} />
               </div>
             ) : visibleTechs.length === 0 ? (
               <div className="py-12 text-center space-y-2">

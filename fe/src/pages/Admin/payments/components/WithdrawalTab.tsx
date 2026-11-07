@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import {
   CheckCircle2,
   XCircle,
@@ -268,8 +269,7 @@ export function WithdrawalTab() {
               <TableRow>
                 <TableCell colSpan={8} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    {t("admin.payments.withdrawal.loading")}
+                    <AppLoading size={72} message={t("admin.payments.withdrawal.loading")} />
                   </div>
                 </TableCell>
               </TableRow>

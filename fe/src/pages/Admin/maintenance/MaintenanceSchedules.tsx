@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { useTranslation, Trans } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
@@ -1427,7 +1428,7 @@ export function MaintenanceSchedules() {
 
         {/* DANH SÁCH CÁC KẾ HOẠCH BẢO TRÌ */}
         {isLoading ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">{t("admin.maintenance.schedules.list.loading")}</p>
+          <AppLoading size={80} message={t("admin.maintenance.schedules.list.loading")} className="py-6" />
         ) : activeSchedules.length === 0 ? (
           <div className="py-8 text-center space-y-1.5">
             <CalendarClock className="w-8 h-8 text-muted-foreground/40 mx-auto" />

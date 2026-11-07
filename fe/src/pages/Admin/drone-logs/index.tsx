@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -746,8 +747,7 @@ export default function DroneLogsPage() {
                 {logsLoading ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-muted-foreground">
-                      <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-2" />
-                      {t('admin.droneLogs.loading')}
+                      <AppLoading size={72} message={t('admin.droneLogs.loading')} />
                     </td>
                   </tr>
                 ) : logs.length === 0 ? (

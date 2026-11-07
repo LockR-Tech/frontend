@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import {
   History,
   Cpu,
@@ -404,8 +405,7 @@ export function DroneIotLogsPanel({
       {/* Bảng dữ liệu nhật ký IoT Drone: Bỏ cột vị trí và payload; Chi tiết thông điệp hiển thị đầy đủ nhiều dòng */}
       {isLoading ? (
         <div className="py-12 text-center text-xs text-muted-foreground">
-          <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-primary" />
-          {t("admin.drones.hardware.iot.loading")}
+          <AppLoading size={72} message={t("admin.drones.hardware.iot.loading")} />
         </div>
       ) : filteredLogs.length === 0 ? (
         <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed">

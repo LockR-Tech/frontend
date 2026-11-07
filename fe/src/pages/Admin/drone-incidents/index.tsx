@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useSearchParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -451,7 +452,7 @@ export default function DroneIncidentsPage() {
       <Card className="border-0 shadow-sm">
         <CardContent className="overflow-x-auto p-0">
           {isLoading ? (
-            <Loader2 className="mx-auto my-16 h-6 w-6 animate-spin" />
+            <AppLoading size={96} className="my-12" />
           ) : visible.length === 0 ? (
             <div className="py-16 text-center text-sm text-muted-foreground">
               <PackageSearch className="mx-auto mb-3 h-9 w-9 opacity-40" />
@@ -657,7 +658,7 @@ function IncidentDetail({
           </DialogTitle>
         </DialogHeader>
         {isLoading || !incident ? (
-          <Loader2 className="mx-auto my-16 h-6 w-6 animate-spin" />
+          <AppLoading size={96} className="my-12" />
         ) : (
           <IncidentBody incident={incident} />
         )}
@@ -1049,10 +1050,7 @@ export function IncidentOrderContext({
 
       {isLoading ? (
         <div className="flex h-24 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-sky-600" />
-          <span className="ml-2 text-xs text-muted-foreground">
-            {t("admin.droneIncidents.listPage.orderContext.loading")}
-          </span>
+          <AppLoading size={56} message={t("admin.droneIncidents.listPage.orderContext.loading")} />
         </div>
       ) : isError || !order ? (
         <p className="rounded-lg border border-dashed bg-white p-3 text-xs text-muted-foreground">
