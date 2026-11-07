@@ -1,15 +1,9 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Bot, Eye, HandHelping, MapPin, MoreHorizontal, UserRound } from "lucide-react";
+import { ArrowRight, Bot, HandHelping, MapPin, UserRound } from "lucide-react";
 import { DataTable } from "~/components/shared/data-table";
 import { Button } from "~/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { MetaBadge, orderPaymentStatusMeta, orderTypeMeta } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
 import { EMPTY_VALUE, formatCurrency } from "~/lib/report-format";
@@ -33,6 +27,10 @@ interface StorageOrderTableProps {
 const WARN_DAYS = 3;
 const ALERT_DAYS = 7;
 
+/**
+ * 5 cột gộp (đơn + tủ gốc, khách gửi → người nhận, lưu kho, phí, trao trả) để vừa màn hình laptop
+ * mà không phải kéo ngang; chữ dài thì xuống dòng thay vì đẩy bảng rộng ra.
+ */
 export function StorageOrderTable({
   orders,
   isLoading,
@@ -49,135 +47,106 @@ export function StorageOrderTable({
   const columnHelper = createColumnHelper<AdminOrder>();
   const now = Date.now();
 
-  const durationLabel = (hours: number) => storedDurationLabel(hours, t);
-
   const columns = [
     columnHelper.accessor("orderCode", {
       header: t("common.order"),
       cell: ({ row }) => {
         const order = row.original;
+        const locker = order.locker ?? order.destinationLocker;
         return (
-          <div className="min-w-0 space-y-1">
-            <p className="font-mono font-semibold text-sm text-foreground truncate">
+          <div className="min-w-[150px] max-w-[220px] space-y-1">
+            <p className="break-all font-mono text-sm font-semibold text-foreground">
               {order.orderCode ?? t("admin.orders.noCode")}
             </p>
             <MetaBadge meta={orderTypeMeta(order.type)} hideIcon />
+            <p className="flex items-start gap-1 text-[11px] text-muted-foreground">
+              <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+              <span className="line-clamp-2">
+                {locker?.name || locker?.code || t("admin.orders.lookup.lockerName")}
+                {order.store?.name ? ` · ${order.store.name}` : ""}
+              </span>
+            </p>
           </div>
         );
       },
     }),
 
     columnHelper.accessor("customer", {
-      header: t("admin.orders.table.senderCustomer"),
+      header: t("admin.storage.table.people"),
       cell: ({ row }) => {
-        const { customer } = row.original;
+        const { customer, receiver } = row.original;
+        const receiverName = receiver?.name || receiver?.accountFullName;
+        const receiverPhone = receiver?.phone || receiver?.accountPhoneNumber;
         return (
-          <div className="min-w-0">
-            <p className="font-medium text-sm text-foreground truncate">
-              {customer?.fullName || t("admin.orders.lookup.customerName")}
-            </p>
-            <p className="text-[11px] text-muted-foreground font-mono">
-              {customer?.phoneNumber || EMPTY_VALUE}
-            </p>
+          <div className="min-w-[160px] max-w-[240px] space-y-1.5">
+            <div>
+              <p className="line-clamp-1 text-sm font-medium text-foreground">
+                {customer?.fullName || t("admin.orders.lookup.customerName")}
+              </p>
+              <p className="font-mono text-[11px] text-muted-foreground">
+                {customer?.phoneNumber || EMPTY_VALUE}
+              </p>
+            </div>
+            <div className="flex items-start gap-1">
+              <ArrowRight className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
+              {receiverName || receiverPhone ? (
+                <div className="min-w-0">
+                  <p className="line-clamp-1 text-xs text-foreground">{receiverName || EMPTY_VALUE}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground">{receiverPhone || EMPTY_VALUE}</p>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("admin.storage.handOver.selfPickup")}</p>
+              )}
+            </div>
           </div>
         );
       },
-    }),
-
-    columnHelper.accessor("receiverName", {
-      header: t("admin.orders.fields.receiver"),
-      cell: ({ row }) => {
-        const receiver = row.original.receiver;
-        const name = receiver?.name || receiver?.accountFullName;
-        const phone = receiver?.phone || receiver?.accountPhoneNumber;
-        return (
-          <div className="min-w-0">
-            <p className="text-sm text-foreground truncate">{name || EMPTY_VALUE}</p>
-            <p className="text-[11px] text-muted-foreground font-mono">{phone || EMPTY_VALUE}</p>
-          </div>
-        );
-      },
-    }),
-
-    columnHelper.accessor("lockerId", {
-      header: t("admin.storage.table.fromLocker"),
-      cell: ({ row }) => {
-        const order = row.original;
-        const locker = order.locker ?? order.destinationLocker;
-        return (
-          <div className="min-w-0">
-            <p className="text-sm text-foreground truncate flex items-center gap-1">
-              <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-              {locker?.name || locker?.code || t("admin.orders.lookup.lockerName")}
-            </p>
-            <p className="text-[11px] text-muted-foreground truncate">
-              {order.store?.name || EMPTY_VALUE}
-            </p>
-          </div>
-        );
-      },
-    }),
-
-    columnHelper.accessor("pickupDeadline", {
-      header: t("admin.storage.table.pickupDeadline"),
-      cell: ({ row }) => (
-        <p className="font-mono text-xs text-foreground whitespace-nowrap">
-          {formatDateTime(row.original.pickupDeadline)}
-        </p>
-      ),
     }),
 
     columnHelper.display({
-      id: "storedAt",
-      header: t("admin.storage.table.storedAt"),
+      id: "storage",
+      header: t("admin.storage.table.storage"),
       cell: ({ row }) => {
         const order = row.original;
         const storage = order.storage;
         const byStaff = storage?.movedByUserId != null;
+        const hours = storedHours(order, now);
+        const days = hours === null ? 0 : hours / 24;
         return (
-          <div className="min-w-0">
-            <p className="font-mono text-xs text-foreground whitespace-nowrap">
-              {formatDateTime(storedAtOf(order))}
+          <div className="min-w-[170px] space-y-1">
+            {hours !== null && (
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold",
+                  days >= ALERT_DAYS
+                    ? "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400"
+                    : days >= WARN_DAYS
+                      ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      : "border-border bg-secondary text-foreground",
+                )}
+              >
+                {storedDurationLabel(hours, t)}
+              </span>
+            )}
+            <p className="text-[11px] text-foreground">
+              {t("admin.storage.table.storedAtShort", { time: formatDateTime(storedAtOf(order)) })}
             </p>
             {storage && (
-              <p className="text-[11px] text-muted-foreground flex items-center gap-1 truncate">
-                {byStaff ? (
-                  <UserRound className="h-3 w-3 shrink-0" />
-                ) : (
-                  <Bot className="h-3 w-3 shrink-0" />
-                )}
-                {byStaff
-                  ? t("admin.storage.table.movedByStaff", {
-                      name: storage.movedByName || `#${storage.movedByUserId}`,
-                    })
-                  : t("admin.storage.table.movedBySystem")}
+              <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                {byStaff ? <UserRound className="h-3 w-3 shrink-0" /> : <Bot className="h-3 w-3 shrink-0" />}
+                <span className="line-clamp-1">
+                  {byStaff
+                    ? t("admin.storage.table.movedByStaff", {
+                        name: storage.movedByName || `#${storage.movedByUserId}`,
+                      })
+                    : t("admin.storage.table.movedBySystem")}
+                </span>
               </p>
             )}
+            <p className="text-[11px] text-muted-foreground">
+              {t("admin.storage.table.deadlineShort", { time: formatDateTime(order.pickupDeadline) })}
+            </p>
           </div>
-        );
-      },
-    }),
-
-    columnHelper.display({
-      id: "storedFor",
-      header: t("admin.storage.table.storedFor"),
-      cell: ({ row }) => {
-        const hours = storedHours(row.original, now);
-        if (hours === null) return <span className="text-muted-foreground">{EMPTY_VALUE}</span>;
-        const days = hours / 24;
-        return (
-          <span
-            className={cn(
-              "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
-              days >= ALERT_DAYS
-                ? "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"
-                : days >= WARN_DAYS
-                  ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
-                  : "bg-secondary text-foreground border-border",
-            )}
-          >
-            {durationLabel(hours)}
-          </span>
         );
       },
     }),
@@ -188,13 +157,13 @@ export function StorageOrderTable({
         const order = row.original;
         const owed = outstandingOf(order);
         return (
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-foreground whitespace-nowrap">
+          <div className="min-w-[110px] space-y-1">
+            <p className="text-sm font-semibold text-foreground">
               {formatCurrency(order.fees?.overtimeFee ?? order.extraFee ?? 0)}
             </p>
             <MetaBadge meta={orderPaymentStatusMeta(order.paymentStatus)} hideIcon />
             {owed > 0 && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 whitespace-nowrap">
+              <p className="text-[11px] text-amber-600 dark:text-amber-400">
                 {t("admin.orders.table.outstanding", { amount: formatCurrency(owed) })}
               </p>
             )}
@@ -206,31 +175,17 @@ export function StorageOrderTable({
     columnHelper.display({
       id: "actions",
       header: "",
-      cell: ({ row }) => {
-        const order = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal size={16} className="text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem
-                onClick={() => navigate(`/admin/orders/${order.id}`)}
-                className="cursor-pointer"
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                {t("dropdown.viewDetail")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onHandOver(order)} className="cursor-pointer">
-                <HandHelping className="mr-2 h-4 w-4" />
-                {t("admin.storage.handOver.action")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
+      cell: ({ row }) => (
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5 whitespace-nowrap"
+          onClick={() => onHandOver(row.original)}
+        >
+          <HandHelping className="h-4 w-4" />
+          {t("admin.storage.table.handOver")}
+        </Button>
+      ),
     }),
   ];
 

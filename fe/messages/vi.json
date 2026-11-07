@@ -917,12 +917,14 @@
         "daysHours": "{{days}} ngày {{hours}} giờ"
       },
       "table": {
-        "fromLocker": "Tủ gốc",
-        "pickupDeadline": "Hạn lấy hàng",
+        "people": "Khách gửi → Người nhận",
+        "storage": "Lưu kho",
+        "storedAtShort": "Vào kho {{time}}",
+        "deadlineShort": "Hạn lấy {{time}}",
+        "handOver": "Trao trả",
         "storedAt": "Vào kho lúc",
         "movedBySystem": "Hệ thống tự chuyển",
         "movedByStaff": "Do {{name}} chuyển",
-        "storedFor": "Đã lưu kho",
         "overtimeFee": "Phí quá hạn",
         "empty": "Không có kiện nào đang lưu kho"
       },

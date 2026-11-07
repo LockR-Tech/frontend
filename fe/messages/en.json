@@ -917,12 +917,14 @@
         "daysHours": "{{days}} d {{hours}} h"
       },
       "table": {
-        "fromLocker": "Original locker",
-        "pickupDeadline": "Pickup deadline",
+        "people": "Sender → Receiver",
+        "storage": "Storage",
+        "storedAtShort": "Stored {{time}}",
+        "deadlineShort": "Pickup due {{time}}",
+        "handOver": "Hand over",
         "storedAt": "Stored at",
         "movedBySystem": "Moved by the system",
         "movedByStaff": "Moved by {{name}}",
-        "storedFor": "In storage for",
         "overtimeFee": "Overtime fee",
         "empty": "No parcels in storage"
       },
