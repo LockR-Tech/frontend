@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import Hls from "hls.js";
 import { useTranslation } from "react-i18next";
 import { Battery, Camera, Loader2, MapPin, Radio, TriangleAlert } from "lucide-react";
@@ -53,7 +54,7 @@ export function LiveCameraPanel({ order }: { order: DroneOrderTracking }) {
       <CardContent className="space-y-3">
         {isLoading || !camera ? (
           <div className="flex h-52 items-center justify-center rounded-lg bg-slate-950 text-slate-300">
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <AppLoading size={96} />
           </div>
         ) : (
           <CameraPlayer camera={camera} onRetry={refetch} />

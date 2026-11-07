@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -323,7 +324,7 @@ export default function DronesPage() {
       <div ref={listRef} className="scroll-mt-4">
       {isLoading ? (
         <div className="flex justify-center py-16 text-muted-foreground">
-          <Loader2 className="h-6 w-6 animate-spin" />
+          <AppLoading size={110} />
         </div>
       ) : filtered.length === 0 ? (
         <Card className="border-0 shadow-sm">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, CloudLightning, CloudOff, CloudSun, OctagonPause, RefreshCw } from "lucide-react";
@@ -114,7 +115,7 @@ export function RouteWeatherPanel({ orderId }: { orderId: number }) {
           <WeatherSummary weather={route.weather} />
         </>
       ) : isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("admin.droneOrders.weather.loading")}</p>
+        <AppLoading size={64} message={t("admin.droneOrders.weather.loading")} />
       ) : isError ? (
         <p className="text-sm text-red-700">{t("admin.droneOrders.weather.loadFailed")}</p>
       ) : null}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -408,8 +409,7 @@ export default function DroneIncidentDetailPage() {
   if (isLoading && !incident) {
     return (
       <div className="flex h-96 flex-col items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">{t("admin.droneIncidents.detailPage.loading")}</p>
+        <AppLoading size={120} message={t("admin.droneIncidents.detailPage.loading")} />
       </div>
     );
   }

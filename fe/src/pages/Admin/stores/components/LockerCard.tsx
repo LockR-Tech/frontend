@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import {
   Power,
   Wrench,
@@ -7,7 +8,6 @@ import {
   ChevronUp,
   Plus,
   Unlock,
-  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Trans, useTranslation } from "react-i18next";
@@ -259,9 +259,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
         {expanded && (
           <div className="px-3 pb-3 border-t border-border/60 pt-3">
             {boxesLoading && boxes === null ? (
-              <div className="flex items-center justify-center py-3 text-xs text-muted-foreground gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t("admin.stores.lockerCard.loadingBoxes")}
-              </div>
+              <AppLoading size={56} message={t("admin.stores.lockerCard.loadingBoxes")} className="py-2" />
             ) : boxesError ? (
               <div className="text-center py-2">
                 <p className="text-xs text-destructive">{boxesError}</p>

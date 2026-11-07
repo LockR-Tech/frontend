@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useParams } from "react-router-dom";
-import { CheckCircle2, Loader2, RotateCcw, Unlock, XCircle } from "lucide-react";
+import { CheckCircle2, RotateCcw, Unlock, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -85,8 +86,7 @@ export default function OpenBoxByQrPage() {
 
           {state?.kind === "sending" || state == null ? (
             <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              {t("admin.lockers.tools.openQr.sending")}
+              <AppLoading size={120} message={t("admin.lockers.tools.openQr.sending")} />
             </div>
           ) : state.ok ? (
             <div className="flex flex-col items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">

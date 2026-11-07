@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { useTranslation } from "react-i18next";
 import {
   History,
@@ -366,7 +367,7 @@ export function RepairLogDialog({
               <>
                 <div className="space-y-3">
                   {isLoading ? (
-                    <p className="text-sm text-muted-foreground py-6 text-center">{t("admin.maintenance.repairLog.loading")}</p>
+                    <AppLoading size={80} message={t("admin.maintenance.repairLog.loading")} className="py-6" />
                   ) : logs.length === 0 ? (
                     <div className="py-10 text-center space-y-2">
                       <History className="w-8 h-8 text-muted-foreground/40 mx-auto" />
