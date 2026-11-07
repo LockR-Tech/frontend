@@ -25,6 +25,7 @@ import {
   Users,
   Wallet,
   Settings,
+  Warehouse,
 } from "lucide-react";
 import type { NavGroup, NavItem } from "@/types";
 
@@ -40,6 +41,12 @@ export const ADMIN_NAV_TOP: NavItem[] = [
     icon: Package,
     path: "/admin/orders",
     label: "admin.sidebar.orders",
+    permission: "view_orders",
+  },
+  {
+    icon: Warehouse,
+    path: "/admin/storage",
+    label: "admin.sidebar.storage",
     permission: "view_orders",
   },
   {

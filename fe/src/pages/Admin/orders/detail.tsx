@@ -54,6 +54,7 @@ import {
   PickupCodeCard,
 } from "./components/OrderDetailSections";
 import { useOrderExtras } from "./hooks/useOrderExtras";
+import { StorageHandoverRecord } from "../storage/components/StorageHandoverRecord";
 import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
 
@@ -295,10 +296,28 @@ function LockerCard({ order }: { order: AdminOrder }) {
           </LabelValue>
         </div>
         {order.status === "EXPIRED" && (
-          <p className="text-[11px] text-muted-foreground">
-            {t("admin.orders.detail.locker.expiredNoBox")}
-          </p>
+          <div className="space-y-1">
+            <p className="text-[11px] text-muted-foreground">
+              {t("admin.orders.detail.locker.expiredNoBox")}
+            </p>
+            {order.storage?.storedAt && (
+              <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                {order.storage.movedByUserId != null
+                  ? t("admin.storage.detail.storedByStaff", {
+                      time: formatDateTime(order.storage.storedAt),
+                      name: order.storage.movedByName || `#${order.storage.movedByUserId}`,
+                    })
+                  : t("admin.storage.detail.storedBySystem", {
+                      time: formatDateTime(order.storage.storedAt),
+                    })}
+              </p>
+            )}
+            <Link to="/admin/storage" className="text-[11px] text-primary hover:underline">
+              {t("admin.storage.detail.openList")}
+            </Link>
+          </div>
         )}
+        <StorageHandoverRecord order={order} />
 
         <Separator />
 

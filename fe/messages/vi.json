@@ -190,6 +190,7 @@
       "dashboard": "Dashboard",
       "users": "Người dùng",
       "orders": "Đơn hàng",
+      "storage": "Đồ lưu kho",
       "stores": "Địa điểm",
       "lockers": "Kiosk",
       "cabinetControl": "Điều khiển tủ",
@@ -889,6 +890,112 @@
           "DRONE_SIMULATED": "Vị trí drone (mô phỏng)",
           "DESTINATION_LOCKER": "Tại tủ nhận",
           "ESTIMATED_ROUTE": "Ước theo chặng (đơn cũ, không có GPS)"
+        }
+      }
+    },
+    "storage": {
+      "title": "Đồ lưu kho",
+      "description": "Đơn quá hạn lấy hàng bị hệ thống dời đồ vào kho, ô tủ đã giải phóng. Khách tới quầy nhận lại: thu phí quá hạn rồi trao trả và chốt đơn.",
+      "descriptionWithHours": "Đơn quá hạn lấy hàng hơn {{hours}} giờ được hệ thống tự dời đồ vào kho, ô tủ đã giải phóng. Khách tới quầy nhận lại: thu phí quá hạn rồi trao trả và chốt đơn.",
+      "searchPlaceholder": "Mã đơn, tên/SĐT người nhận, SĐT khách gửi",
+      "matchCount": "{{total}} kiện đang lưu kho khớp bộ lọc",
+      "stats": {
+        "total": "Đang lưu kho",
+        "totalHint": "Mọi đơn quá hạn chưa ai nhận",
+        "unpaid": "Còn nợ phí quá hạn",
+        "unpaidHint": "Thu đủ phí trước khi trao trả",
+        "paid": "Đã thanh toán đủ",
+        "paidHint": "Sẵn sàng trao trả cho khách"
+      },
+      "sort": {
+        "oldestFirst": "Nằm kho lâu nhất trước",
+        "newestFirst": "Mới vào kho trước"
+      },
+      "duration": {
+        "hours": "{{hours}} giờ",
+        "days": "{{days}} ngày",
+        "daysHours": "{{days}} ngày {{hours}} giờ"
+      },
+      "table": {
+        "people": "Khách gửi → Người nhận",
+        "storage": "Lưu kho",
+        "storedAtShort": "Vào kho {{time}}",
+        "deadlineShort": "Hạn lấy {{time}}",
+        "handOver": "Trao trả",
+        "storedAt": "Vào kho lúc",
+        "movedBySystem": "Hệ thống tự chuyển",
+        "movedByStaff": "Do {{name}} chuyển",
+        "overtimeFee": "Phí quá hạn",
+        "empty": "Không có kiện nào đang lưu kho"
+      },
+      "handOver": {
+        "action": "Trao trả & chốt đơn",
+        "title": "Trao trả đồ lưu kho",
+        "description": "Xác nhận đã trao đồ của đơn {{code}}. Đơn chuyển sang Hoàn tất và không thể hoàn tác.",
+        "selfPickup": "Khách tự nhận",
+        "storedFor": "Đã lưu kho {{duration}}",
+        "recipient": {
+          "title": "Ai tới nhận đồ?",
+          "receiver": "Người nhận",
+          "sender": "Khách gửi",
+          "other": "Người khác"
+        },
+        "last4": {
+          "label": "4 số cuối điện thoại",
+          "hint": "Hỏi người tới nhận đọc 4 số cuối điện thoại — số trên đơn đã được ẩn.",
+          "match": "Khớp",
+          "mismatch": "Không khớp"
+        },
+        "other": {
+          "name": "Họ tên người nhận",
+          "phone": "Số điện thoại",
+          "hint": "Người không có trên đơn: ghi rõ lý do trao ở ô ghi chú (vd. khách gọi nhờ lấy hộ)."
+        },
+        "photo": {
+          "title": "Ảnh xác minh",
+          "hint": "Chụp người nhận cầm kiện hàng, thấy rõ mặt và kiện. Bắt buộc.",
+          "openCamera": "Chụp bằng camera",
+          "capture": "Chụp",
+          "cameraError": "Không mở được camera — kiểm tra quyền camera của trình duyệt hoặc chọn ảnh có sẵn."
+        },
+        "owed": "Khách còn nợ {{amount}}. Thu đủ trước khi trao đồ.",
+        "method": {
+          "cash": "Tiền mặt",
+          "transfer": "Chuyển khoản"
+        },
+        "collectedConfirm": "Tôi đã thu đủ {{amount}}",
+        "recheckPayment": "Khách vừa trả trong app? Kiểm tra lại",
+        "paid": "Khách đã thanh toán đủ {{amount}} — không cần thu thêm",
+        "paidNoAmount": "Đơn đã thanh toán đủ — không cần thu thêm",
+        "note": "Ghi chú (tuỳ chọn)",
+        "noteRequired": "Lý do trao cho người khác (bắt buộc)",
+        "missing": {
+          "prefix": "Còn thiếu:",
+          "identity": "xác minh người nhận",
+          "photo": "ảnh xác minh",
+          "payment": "xác nhận thu nợ"
+        },
+        "uploading": "Đang tải ảnh…",
+        "confirm": "Đã trao trả",
+        "done": "Đã trao trả và chốt đơn {{code}}",
+        "failed": "Không chốt được đơn"
+      },
+      "detail": {
+        "storedBySystem": "Vào kho lúc {{time}} — hệ thống tự chuyển khi quá hạn.",
+        "storedByStaff": "Vào kho lúc {{time}} — do {{name}} chuyển.",
+        "openList": "Xem danh sách đồ lưu kho",
+        "handover": {
+          "title": "Biên bản trao trả",
+          "summary": "{{time}} — {{staff}} trao cho {{role}} {{name}}",
+          "phone": "SĐT {{phone}}",
+          "collected": "Đã thu {{amount}} ({{method}})",
+          "photoAlt": "Ảnh xác minh trao trả đơn {{code}}",
+          "roles": {
+            "SENDER": "khách gửi",
+            "RECEIVER": "người nhận",
+            "DELEGATE": "người được ủy quyền",
+            "OTHER": "người khác"
+          }
         }
       }
     },

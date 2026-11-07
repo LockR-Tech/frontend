@@ -32,6 +32,7 @@ const UsersPage = lazy(() => import("../pages/Admin/users"));
 const UserDetailPage = lazy(() => import("../pages/Admin/users/detail"));
 const OrdersPage = lazy(() => import("../pages/Admin/orders"));
 const OrderDetailPage = lazy(() => import("../pages/Admin/orders/detail"));
+const StoragePage = lazy(() => import("../pages/Admin/storage"));
 const FeedbackPage = lazy(() => import("../pages/Admin/feedback"));
 const FeedbackDetailPage = lazy(() => import("../pages/Admin/feedback/detail"));
 const StoresPage = lazy(() => import("../pages/Admin/stores"));
@@ -298,6 +299,14 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <OrderDetailPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "storage",
+        element: (
+          <LazyWrapper>
+            <StoragePage />
           </LazyWrapper>
         ),
       },

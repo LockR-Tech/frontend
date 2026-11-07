@@ -84,6 +84,7 @@ export const ADMIN_ENDPOINTS = {
   ORDERS: `${ROOT_URI.ADMIN}/orders`,
   ORDER_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/orders/${id}`,
   ORDER_STATUS: (id: number) => `${ROOT_URI.ADMIN}/orders/${id}/status`,
+  ORDER_STORAGE_HANDOVER: (id: number) => `${ROOT_URI.ADMIN}/orders/${id}/storage-handover`,
   ORDER_STATISTICS: `${ROOT_URI.ADMIN}/orders/statistics`,
   ORDER_REVENUE: `${ROOT_URI.ADMIN}/orders/revenue`,
 

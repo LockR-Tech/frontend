@@ -1,3 +1,5 @@
+import type { MediaUpload } from "~/stores/apis/media";
+
 // Kiểu dữ liệu cho báo cáo admin: đơn hàng, thanh toán, doanh thu.
 // Hợp đồng API: ../../../../docs/01-overview/admin-reporting-api.md
 //
@@ -97,7 +99,7 @@ export const ADMIN_ORDER_STATUS_TRANSITIONS: Record<string, AdminOrderStatus[]> 
   AWAITING_DISPATCH: ["CANCELED"],
   STORING: ["COMPLETED", "EXPIRED"],
   RETURNED: ["COMPLETED", "EXPIRED"],
-  EXPIRED: ["COMPLETED"],
+  // EXPIRED (đồ ở kho) chỉ đóng bằng trao trả có xác minh ở /admin/storage — server từ chối PUT /status.
 };
 
 export function adminOrderNextStatuses(status: string | null | undefined): AdminOrderStatus[] {
@@ -352,6 +354,36 @@ export interface AdminOrder {
   drone: AdminOrderDrone | null;
   /** Chỉ có ở `/detail`; `null` trong danh sách. */
   timeline: AdminOrderTimelineEntry[] | null;
+  /** Chỉ có khi đơn EXPIRED (đồ đã dời vào kho vì quá hạn lấy). Backend cũ chưa có. */
+  storage?: AdminOrderStorage | null;
+  /** Biên bản trao đồ lưu kho tại quầy. Chỉ có ở `/detail` của đơn đã trao; backend cũ chưa có. */
+  handover?: AdminOrderHandover | null;
+}
+
+export type HandoverRecipientType = "SENDER" | "RECEIVER" | "DELEGATE" | "OTHER";
+export type HandoverCollectionMethod = "CASH" | "TRANSFER";
+
+export interface AdminOrderHandover {
+  /** LocalDateTime UTC, không offset. */
+  handedOverAt: string | null;
+  handedOverByUserId: number | null;
+  handedOverByName: string | null;
+  recipientType: HandoverRecipientType;
+  recipientName: string | null;
+  recipientPhone: string | null;
+  photoUrl: string | null;
+  collectedAmount: number | null;
+  collectionMethod: HandoverCollectionMethod | null;
+  note: string | null;
+}
+
+/** Đồ đã dời vào kho: lúc vào kho và ai chuyển (`movedByUserId` null ⇒ hệ thống tự chuyển khi quá hạn). */
+export interface AdminOrderStorage {
+  /** LocalDateTime UTC, không offset. */
+  storedAt: string | null;
+  movedByUserId: number | null;
+  movedByName: string | null;
+  note: string | null;
 }
 
 export interface AdminOrderSearchParams {
@@ -379,6 +411,22 @@ export interface UpdateAdminOrderStatusRequest {
   /** Id admin đang thao tác, để timeline ghi nhận ai đổi. */
   staffId?: number;
   receiveBoxId?: number | null;
+}
+
+/** Body của `POST /api/admin/orders/{id}/storage-handover` (`id` đi trên URL). */
+export interface StorageHandoverRequest {
+  id: number;
+  recipientType: HandoverRecipientType;
+  /** SENDER | RECEIVER | DELEGATE: 4 số cuối SĐT người tới nhận đọc — server tự đối chiếu. */
+  phoneLast4?: string;
+  /** OTHER: bắt buộc họ tên, SĐT và `note` (lý do). */
+  recipientName?: string;
+  recipientPhone?: string;
+  photo: MediaUpload;
+  /** Bắt buộc khi khách còn nợ: số đã thu (≥ số nợ) và cách thu. */
+  collectedAmount?: number;
+  collectionMethod?: HandoverCollectionMethod;
+  note?: string;
 }
 
 // ============================================

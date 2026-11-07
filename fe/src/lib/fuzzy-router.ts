@@ -16,6 +16,7 @@ const VALID_ROUTES = [
   "/admin/users",
   "/admin/orders",
   "/admin/orders/create",
+  "/admin/storage",
   "/admin/stores",
   "/admin/stores/create",
   "/admin/lockers",
