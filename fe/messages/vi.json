@@ -962,6 +962,9 @@
           "transfer": "Chuyển khoản"
         },
         "collectedConfirm": "Tôi đã thu đủ {{amount}}",
+        "recheckPayment": "Khách vừa trả trong app? Kiểm tra lại",
+        "paid": "Khách đã thanh toán đủ {{amount}} — không cần thu thêm",
+        "paidNoAmount": "Đơn đã thanh toán đủ — không cần thu thêm",
         "note": "Ghi chú (tuỳ chọn)",
         "noteRequired": "Lý do trao cho người khác (bắt buộc)",
         "missing": {

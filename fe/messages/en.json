@@ -962,6 +962,9 @@
           "transfer": "Bank transfer"
         },
         "collectedConfirm": "I have collected {{amount}} in full",
+        "recheckPayment": "Customer just paid in the app? Check again",
+        "paid": "The customer has paid {{amount}} in full — nothing to collect",
+        "paidNoAmount": "The order is fully paid — nothing to collect",
         "note": "Note (optional)",
         "noteRequired": "Reason for handing to someone else (required)",
         "missing": {

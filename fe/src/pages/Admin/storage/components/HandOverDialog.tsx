@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, RefreshCw, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,10 +16,10 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { PhotoPicker } from "~/components/shared/media";
-import { LabelValue } from "~/components/shared/reporting";
+import { LabelValue, paymentMethodMeta } from "~/components/shared/reporting";
 import { isHandledUploadError, useImageUpload } from "~/hooks/useImageUpload";
 import { cn } from "~/lib/utils";
-import { useStorageHandoverMutation } from "~/stores/apis/admin/orders";
+import { useGetAdminOrderDetailQuery, useStorageHandoverMutation } from "~/stores/apis/admin/orders";
 import { toReportError } from "~/lib/report-error";
 import { formatDateTime } from "~/lib/datetime";
 import { EMPTY_VALUE, formatCurrency } from "~/lib/report-format";
@@ -56,8 +56,19 @@ export function HandOverDialog({ order, onClose, onDone }: HandOverDialogProps) 
   return <HandOverForm key={order.id} order={order} onClose={onClose} onDone={onDone} />;
 }
 
-function HandOverForm({ order, onClose, onDone }: { order: AdminOrder } & Omit<HandOverDialogProps, "order">) {
+function HandOverForm({
+  order: listed,
+  onClose,
+  onDone,
+}: { order: AdminOrder } & Omit<HandOverDialogProps, "order">) {
   const { t } = useTranslation();
+  // Số liệu trong danh sách có thể cũ (khách vừa trả trong app ngay tại quầy): mở hộp là nạp lại chi tiết.
+  const {
+    data: fresh,
+    isFetching: refreshing,
+    refetch,
+  } = useGetAdminOrderDetailQuery(listed.id, { refetchOnMountOrArgChange: true });
+  const order = fresh?.data ?? listed;
   const [handOver, { isLoading: saving }] = useStorageHandoverMutation();
   const { upload, items: uploadItems, isUploading } = useImageUpload("STORAGE_HANDOVER");
 
@@ -73,6 +84,11 @@ function HandOverForm({ order, onClose, onDone }: { order: AdminOrder } & Omit<H
   const [collected, setCollected] = useState(false);
 
   const owed = outstandingOf(order);
+  // Đã trả đủ (thường là khách trả trong app): hiện cho nhân viên biết không cần thu thêm.
+  const paidAmount = order.payment?.paidAmount ?? 0;
+  const lastPaidMethod = order.payment?.lastPaidMethod;
+  const lastPaidAt = order.payment?.lastPaidAt;
+  const showPaid = owed <= 0 && (paidAmount > 0 || order.paymentStatus === "PAID");
   const hours = storedHours(order);
   const code = order.orderCode ?? t("admin.orders.noCodeInline");
   const busy = saving || isUploading;
@@ -281,6 +297,38 @@ function HandOverForm({ order, onClose, onDone }: { order: AdminOrder } & Omit<H
                     <Checkbox checked={collected} onCheckedChange={(v) => setCollected(v === true)} disabled={busy} />
                     {t("admin.storage.handOver.collectedConfirm", { amount: formatCurrency(owed) })}
                   </label>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-xs text-amber-800 underline-offset-2 hover:underline disabled:opacity-60 dark:text-amber-300"
+                    onClick={() => void refetch()}
+                    disabled={refreshing || busy}
+                  >
+                    <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
+                    {t("admin.storage.handOver.recheckPayment")}
+                  </button>
+                </section>
+              )}
+
+              {showPaid && (
+                <section className="flex gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div className="space-y-0.5">
+                    <p className="font-medium">
+                      {paidAmount > 0
+                        ? t("admin.storage.handOver.paid", { amount: formatCurrency(paidAmount) })
+                        : t("admin.storage.handOver.paidNoAmount")}
+                    </p>
+                    {(lastPaidMethod || lastPaidAt) && (
+                      <p className="text-xs opacity-80">
+                        {[
+                          lastPaidMethod ? paymentMethodMeta(lastPaidMethod).label : null,
+                          lastPaidAt ? formatDateTime(lastPaidAt) : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    )}
+                  </div>
                 </section>
               )}
 
