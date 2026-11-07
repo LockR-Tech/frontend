@@ -14,6 +14,7 @@ import type {
   ReportEnvelope,
   ReportPage,
   UpdateAdminOrderStatusRequest,
+  StorageHandoverRequest,
 } from "../../../types";
 import {
   UpdateOrderStatusRequestSchema,
@@ -121,6 +122,20 @@ export const orderManagementApi = baseApi.injectEndpoints({
       ],
     }),
 
+    /** Trao đồ lưu kho tại quầy và chốt đơn (đối chiếu SĐT, ảnh xác minh, thu nợ) — trang /admin/storage. */
+    storageHandover: builder.mutation<ReportEnvelope<OrderResponse>, StorageHandoverRequest>({
+      query: ({ id, ...body }) => ({
+        url: ADMIN_ENDPOINTS.ORDER_STORAGE_HANDOVER(id),
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: TAGS.ORDERS, id },
+        TAGS.ORDERS,
+        TAGS.DASHBOARD,
+      ],
+    }),
+
     getOrderStatistics: builder.query<
       ApiResponse<OrderStatisticsResponse>,
       void
@@ -146,4 +161,5 @@ export const {
   useSearchAdminOrdersQuery,
   useGetAdminOrderDetailQuery,
   useUpdateAdminOrderStatusMutation,
+  useStorageHandoverMutation,
 } = orderManagementApi;

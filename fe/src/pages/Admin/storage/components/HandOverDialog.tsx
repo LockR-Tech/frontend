@@ -1,6 +1,7 @@
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,14 +11,33 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
+import { PhotoPicker } from "~/components/shared/media";
 import { LabelValue } from "~/components/shared/reporting";
-import { useAuth } from "~/context/auth-context";
-import { useUpdateAdminOrderStatusMutation } from "~/stores/apis/admin/orders";
+import { isHandledUploadError, useImageUpload } from "~/hooks/useImageUpload";
+import { cn } from "~/lib/utils";
+import { useStorageHandoverMutation } from "~/stores/apis/admin/orders";
 import { toReportError } from "~/lib/report-error";
 import { formatDateTime } from "~/lib/datetime";
 import { EMPTY_VALUE, formatCurrency } from "~/lib/report-format";
-import type { AdminOrder } from "~/types/admin/reporting";
-import { outstandingOf, storedAtOf } from "../storage-utils";
+import type {
+  AdminOrder,
+  HandoverCollectionMethod,
+  HandoverRecipientType,
+} from "~/types/admin/reporting";
+import {
+  digitsOf,
+  knownPhonesOf,
+  maskPhone,
+  outstandingOf,
+  storedAtOf,
+  storedDurationLabel,
+  storedHours,
+} from "../storage-utils";
+import { WebcamCapture } from "./WebcamCapture";
 
 interface HandOverDialogProps {
   order: AdminOrder | null;
@@ -26,32 +46,88 @@ interface HandOverDialogProps {
 }
 
 /**
- * Trao trả đồ trong kho tại quầy: chốt đơn EXPIRED → COMPLETED (backend `checkout`, ô đã nhả từ
- * lúc vào kho). Backend không chặn khi khách còn nợ phí quá hạn — hộp này nhắc thu trước khi trao.
+ * Trao trả đồ lưu kho tại quầy: chốt đơn EXPIRED → COMPLETED qua `POST /storage-handover`.
+ * Bắt buộc: chọn ai tới nhận + 4 số cuối SĐT (người không có trên đơn thì họ tên, SĐT, lý do),
+ * ảnh xác minh, và — khi khách còn nợ — xác nhận đã thu đủ. Server kiểm tra lại toàn bộ.
  */
 export function HandOverDialog({ order, onClose, onDone }: HandOverDialogProps) {
-  const { t } = useTranslation();
-  const { user } = useAuth();
-  const [updateStatus, { isLoading: saving }] = useUpdateAdminOrderStatusMutation();
-
   if (!order) return null;
+  // key: mở đơn khác thì form làm mới hoàn toàn
+  return <HandOverForm key={order.id} order={order} onClose={onClose} onDone={onDone} />;
+}
+
+function HandOverForm({ order, onClose, onDone }: { order: AdminOrder } & Omit<HandOverDialogProps, "order">) {
+  const { t } = useTranslation();
+  const [handOver, { isLoading: saving }] = useStorageHandoverMutation();
+  const { upload, items: uploadItems, isUploading } = useImageUpload("STORAGE_HANDOVER");
+
+  const receiver = order.receiver;
+  const hasReceiver = !!(receiver?.name || receiver?.accountFullName || receiver?.phone || receiver?.accountPhoneNumber);
+  const [recipientType, setRecipientType] = useState<HandoverRecipientType>(hasReceiver ? "RECEIVER" : "SENDER");
+  const [last4, setLast4] = useState("");
+  const [otherName, setOtherName] = useState("");
+  const [otherPhone, setOtherPhone] = useState("");
+  const [note, setNote] = useState("");
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [method, setMethod] = useState<HandoverCollectionMethod | null>(null);
+  const [collected, setCollected] = useState(false);
 
   const owed = outstandingOf(order);
-  const receiver = order.receiver;
-  const staffId = Number(user?.id);
+  const hours = storedHours(order);
   const code = order.orderCode ?? t("admin.orders.noCodeInline");
+  const busy = saving || isUploading;
+
+  const senderName = order.customer?.fullName || EMPTY_VALUE;
+  const senderPhone = maskPhone(order.customer?.phoneNumber);
+  const receiverName = receiver?.name || receiver?.accountFullName || EMPTY_VALUE;
+  const receiverPhone = maskPhone(receiver?.phone || receiver?.accountPhoneNumber);
+
+  const isOther = recipientType === "OTHER";
+  const knownPhones = useMemo(
+    () => (recipientType === "SENDER" || recipientType === "RECEIVER" ? knownPhonesOf(order, recipientType) : []),
+    [order, recipientType],
+  );
+  // Web không biết SĐT bên này thì để server đối chiếu (server còn SĐT người gửi của đơn drone…)
+  const phoneMatch: "match" | "mismatch" | "unknown" | null =
+    isOther || last4.length !== 4
+      ? null
+      : knownPhones.length === 0
+        ? "unknown"
+        : knownPhones.some((p) => p.endsWith(last4))
+          ? "match"
+          : "mismatch";
+
+  const identityOk = isOther
+    ? otherName.trim().length > 0 && digitsOf(otherPhone).length >= 9 && note.trim().length > 0
+    : last4.length === 4 && phoneMatch !== "mismatch";
+  const paymentOk = owed <= 0 || (method !== null && collected);
+  const canSubmit = identityOk && photos.length === 1 && paymentOk && !busy;
+
+  const missing = [
+    !identityOk && t("admin.storage.handOver.missing.identity"),
+    photos.length === 0 && t("admin.storage.handOver.missing.photo"),
+    !paymentOk && t("admin.storage.handOver.missing.payment"),
+  ].filter(Boolean) as string[];
 
   const handleConfirm = async () => {
+    if (!canSubmit) return;
     try {
-      await updateStatus({
+      const [photo] = await upload(photos);
+      await handOver({
         id: order.id,
-        status: "COMPLETED",
-        ...(Number.isFinite(staffId) ? { staffId } : {}),
+        recipientType,
+        ...(isOther
+          ? { recipientName: otherName.trim(), recipientPhone: digitsOf(otherPhone) }
+          : { phoneLast4: last4 }),
+        photo,
+        ...(owed > 0 && method ? { collectedAmount: owed, collectionMethod: method } : {}),
+        ...(note.trim() ? { note: note.trim() } : {}),
       }).unwrap();
       toast.success(t("admin.storage.handOver.done", { code }));
       onDone?.();
       onClose();
     } catch (error) {
+      if (isHandledUploadError(error)) return;
       toast.error(
         toReportError(error as Parameters<typeof toReportError>[0])?.message ??
           t("admin.storage.handOver.failed"),
@@ -59,49 +135,198 @@ export function HandOverDialog({ order, onClose, onDone }: HandOverDialogProps) 
     }
   };
 
+  const recipientOptions: { value: HandoverRecipientType; label: string }[] = [
+    ...(hasReceiver ? [{ value: "RECEIVER" as const, label: t("admin.storage.handOver.recipient.receiver") }] : []),
+    { value: "SENDER", label: t("admin.storage.handOver.recipient.sender") },
+    { value: "OTHER", label: t("admin.storage.handOver.recipient.other") },
+  ];
+
   return (
-    <Dialog open onOpenChange={(open) => !open && !saving && onClose()}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("admin.storage.handOver.title")}</DialogTitle>
           <DialogDescription>{t("admin.storage.handOver.description", { code })}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-3 py-2">
+        {/* Thông tin đơn */}
+        <div className="grid grid-cols-2 gap-3 rounded-md border bg-muted/30 p-3">
           <LabelValue label={t("admin.orders.table.senderCustomer")}>
-            {order.customer?.fullName || EMPTY_VALUE}
-            {order.customer?.phoneNumber ? ` · ${order.customer.phoneNumber}` : ""}
+            {senderName}
+            {senderPhone ? ` · ${senderPhone}` : ""}
           </LabelValue>
           <LabelValue label={t("admin.orders.fields.receiver")}>
-            {receiver?.name || receiver?.accountFullName || EMPTY_VALUE}
-            {receiver?.phone || receiver?.accountPhoneNumber
-              ? ` · ${receiver?.phone || receiver?.accountPhoneNumber}`
-              : ""}
+            {hasReceiver ? (
+              <>
+                {receiverName}
+                {receiverPhone ? ` · ${receiverPhone}` : ""}
+              </>
+            ) : (
+              <span className="text-muted-foreground">{t("admin.storage.handOver.selfPickup")}</span>
+            )}
           </LabelValue>
-          <LabelValue label={t("admin.storage.table.storedAt")} mono>
+          <LabelValue label={t("admin.storage.table.storedAt")}>
             {formatDateTime(storedAtOf(order))}
+            {hours !== null && (
+              <span className="block text-xs text-muted-foreground">
+                {t("admin.storage.handOver.storedFor", { duration: storedDurationLabel(hours, t) })}
+              </span>
+            )}
           </LabelValue>
           <LabelValue label={t("admin.storage.table.overtimeFee")}>
             {formatCurrency(order.fees?.overtimeFee ?? order.extraFee ?? 0)}
           </LabelValue>
         </div>
 
-        {owed > 0 ? (
-          <div className="flex gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            <p>{t("admin.storage.handOver.owedWarning", { amount: formatCurrency(owed) })}</p>
+        {/* 1. Ai tới nhận */}
+        <section className="space-y-2">
+          <Label>{t("admin.storage.handOver.recipient.title")}</Label>
+          <div role="radiogroup" className="grid grid-cols-3 gap-1.5">
+            {recipientOptions.map((option) => (
+              <Button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={recipientType === option.value}
+                variant={recipientType === option.value ? "default" : "outline"}
+                size="sm"
+                disabled={busy}
+                onClick={() => {
+                  setRecipientType(option.value);
+                  setLast4("");
+                }}
+              >
+                {option.label}
+              </Button>
+            ))}
           </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">{t("admin.storage.handOver.checkIdentity")}</p>
+
+          {isOther ? (
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder={t("admin.storage.handOver.other.name")}
+                value={otherName}
+                maxLength={120}
+                onChange={(e) => setOtherName(e.target.value)}
+                disabled={busy}
+              />
+              <Input
+                placeholder={t("admin.storage.handOver.other.phone")}
+                value={otherPhone}
+                inputMode="tel"
+                maxLength={20}
+                onChange={(e) => setOtherPhone(e.target.value)}
+                disabled={busy}
+              />
+              <p className="col-span-2 text-xs text-muted-foreground">{t("admin.storage.handOver.other.hint")}</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-32 font-mono tracking-[0.4em]"
+                  placeholder="••••"
+                  aria-label={t("admin.storage.handOver.last4.label")}
+                  value={last4}
+                  inputMode="numeric"
+                  maxLength={4}
+                  onChange={(e) => setLast4(digitsOf(e.target.value).slice(0, 4))}
+                  disabled={busy}
+                />
+                {phoneMatch === "match" && (
+                  <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {t("admin.storage.handOver.last4.match")}
+                  </span>
+                )}
+                {phoneMatch === "mismatch" && (
+                  <span className="flex items-center gap-1 text-xs text-destructive">
+                    <XCircle className="h-4 w-4" />
+                    {t("admin.storage.handOver.last4.mismatch")}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">{t("admin.storage.handOver.last4.hint")}</p>
+            </div>
+          )}
+        </section>
+
+        {/* 2. Ảnh xác minh */}
+        <section className="space-y-2">
+          <Label>{t("admin.storage.handOver.photo.title")}</Label>
+          {photos.length === 0 && (
+            <WebcamCapture onCapture={(file) => setPhotos([file])} disabled={busy} />
+          )}
+          <PhotoPicker
+            value={photos}
+            onChange={setPhotos}
+            maxFiles={1}
+            disabled={busy}
+            uploadItems={uploadItems}
+            hint={t("admin.storage.handOver.photo.hint")}
+          />
+        </section>
+
+        {/* 3. Thu nợ */}
+        {owed > 0 && (
+          <section className="space-y-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
+            <div className="flex gap-2 text-sm text-amber-800 dark:text-amber-300">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <p>{t("admin.storage.handOver.owed", { amount: formatCurrency(owed) })}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {(["CASH", "TRANSFER"] as const).map((value) => (
+                <Button
+                  key={value}
+                  type="button"
+                  size="sm"
+                  variant={method === value ? "default" : "outline"}
+                  aria-pressed={method === value}
+                  disabled={busy}
+                  onClick={() => setMethod(value)}
+                >
+                  {t(`admin.storage.handOver.method.${value.toLowerCase()}`)}
+                </Button>
+              ))}
+            </div>
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <Checkbox checked={collected} onCheckedChange={(v) => setCollected(v === true)} disabled={busy} />
+              {t("admin.storage.handOver.collectedConfirm", { amount: formatCurrency(owed) })}
+            </label>
+          </section>
         )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            {t("button.close")}
-          </Button>
-          <Button onClick={handleConfirm} disabled={saving}>
-            {saving ? t("admin.orders.saving") : t("admin.storage.handOver.confirm")}
-          </Button>
+        {/* Ghi chú */}
+        <section className="space-y-1.5">
+          <Label htmlFor="handover-note">
+            {isOther ? t("admin.storage.handOver.noteRequired") : t("admin.storage.handOver.note")}
+          </Label>
+          <Textarea
+            id="handover-note"
+            rows={2}
+            maxLength={500}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            disabled={busy}
+          />
+        </section>
+
+        <DialogFooter className="items-center gap-2 sm:justify-between">
+          <p className={cn("text-xs text-muted-foreground", missing.length === 0 && "invisible")}>
+            {t("admin.storage.handOver.missing.prefix")} {missing.join(", ")}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} disabled={busy}>
+              {t("button.close")}
+            </Button>
+            <Button onClick={handleConfirm} disabled={!canSubmit}>
+              {isUploading
+                ? t("admin.storage.handOver.uploading")
+                : saving
+                  ? t("admin.orders.saving")
+                  : t("admin.storage.handOver.confirm")}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

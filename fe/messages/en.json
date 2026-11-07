@@ -929,9 +929,48 @@
       "handOver": {
         "action": "Hand over & close",
         "title": "Hand over stored items",
-        "description": "Order {{code}} will be marked Completed, with your name recorded in the status history.",
-        "owedWarning": "The customer still owes {{amount}}. Collect the overtime fee before handing over — the system does not block it.",
-        "checkIdentity": "Check the collector's name and phone number before handing over.",
+        "description": "Confirm the items of order {{code}} were handed over. The order becomes Completed and this cannot be undone.",
+        "selfPickup": "Customer picks up",
+        "storedFor": "In storage for {{duration}}",
+        "recipient": {
+          "title": "Who is collecting?",
+          "receiver": "Receiver",
+          "sender": "Sender",
+          "other": "Someone else"
+        },
+        "last4": {
+          "label": "Last 4 phone digits",
+          "hint": "Ask the collector to read the last 4 digits of their phone — the numbers on the order are hidden.",
+          "match": "Matches",
+          "mismatch": "Does not match"
+        },
+        "other": {
+          "name": "Collector's full name",
+          "phone": "Phone number",
+          "hint": "Not on the order: write the reason in the note (e.g. the customer called to send someone)."
+        },
+        "photo": {
+          "title": "Verification photo",
+          "hint": "Photograph the collector holding the parcel, face and parcel visible. Required.",
+          "openCamera": "Take with camera",
+          "capture": "Capture",
+          "cameraError": "Could not open the camera — check the browser's camera permission or pick an existing photo."
+        },
+        "owed": "The customer still owes {{amount}}. Collect it in full before handing over.",
+        "method": {
+          "cash": "Cash",
+          "transfer": "Bank transfer"
+        },
+        "collectedConfirm": "I have collected {{amount}} in full",
+        "note": "Note (optional)",
+        "noteRequired": "Reason for handing to someone else (required)",
+        "missing": {
+          "prefix": "Missing:",
+          "identity": "collector check",
+          "photo": "verification photo",
+          "payment": "payment confirmation"
+        },
+        "uploading": "Uploading photo…",
         "confirm": "Handed over",
         "done": "Handed over and closed order {{code}}",
         "failed": "Could not close the order"
@@ -939,7 +978,20 @@
       "detail": {
         "storedBySystem": "Stored at {{time}} — moved automatically when overdue.",
         "storedByStaff": "Stored at {{time}} — moved by {{name}}.",
-        "openList": "Open stored items list"
+        "openList": "Open stored items list",
+        "handover": {
+          "title": "Handover record",
+          "summary": "{{time}} — {{staff}} handed to {{role}} {{name}}",
+          "phone": "Phone {{phone}}",
+          "collected": "Collected {{amount}} ({{method}})",
+          "photoAlt": "Handover verification photo for order {{code}}",
+          "roles": {
+            "SENDER": "sender",
+            "RECEIVER": "receiver",
+            "DELEGATE": "delegate",
+            "OTHER": "someone else"
+          }
+        }
       }
     },
     "stores": {

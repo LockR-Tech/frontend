@@ -4,7 +4,12 @@ import type { ApiResponse } from '../../types';
 
 // ---- Types mirroring docs/01-overview/media-storage.md (hợp đồng API ảnh) ----
 
-export type MediaPurpose = 'REPORT_EVIDENCE' | 'AVATAR' | 'STORE_IMAGE' | 'PROMOTION_IMAGE';
+export type MediaPurpose =
+  | 'REPORT_EVIDENCE'
+  | 'AVATAR'
+  | 'STORE_IMAGE'
+  | 'PROMOTION_IMAGE'
+  | 'STORAGE_HANDOVER';
 
 /// Giai đoạn của ảnh phiếu sự cố: người báo → KTV xác nhận → trong khi sửa → nghiệm thu.
 export type AttachmentStage = 'REPORT' | 'INSPECTION' | 'PROGRESS' | 'RESOLUTION';

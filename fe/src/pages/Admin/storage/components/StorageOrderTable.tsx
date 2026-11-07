@@ -15,7 +15,7 @@ import { formatDateTime } from "~/lib/datetime";
 import { EMPTY_VALUE, formatCurrency } from "~/lib/report-format";
 import { cn } from "~/lib/utils";
 import type { AdminOrder } from "~/types/admin/reporting";
-import { outstandingOf, storedAtOf, storedHours } from "../storage-utils";
+import { outstandingOf, storedAtOf, storedDurationLabel, storedHours } from "../storage-utils";
 
 interface StorageOrderTableProps {
   orders: AdminOrder[];
@@ -49,13 +49,7 @@ export function StorageOrderTable({
   const columnHelper = createColumnHelper<AdminOrder>();
   const now = Date.now();
 
-  const durationLabel = (hours: number) => {
-    const days = Math.floor(hours / 24);
-    const rest = hours % 24;
-    if (days === 0) return t("admin.storage.duration.hours", { hours: rest });
-    if (rest === 0) return t("admin.storage.duration.days", { days });
-    return t("admin.storage.duration.daysHours", { days, hours: rest });
-  };
+  const durationLabel = (hours: number) => storedDurationLabel(hours, t);
 
   const columns = [
     columnHelper.accessor("orderCode", {

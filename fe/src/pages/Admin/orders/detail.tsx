@@ -54,6 +54,7 @@ import {
   PickupCodeCard,
 } from "./components/OrderDetailSections";
 import { useOrderExtras } from "./hooks/useOrderExtras";
+import { StorageHandoverRecord } from "../storage/components/StorageHandoverRecord";
 import { adminOrderNextStatuses } from "~/types/admin/reporting";
 import type { AdminOrder, AdminOrderFees } from "~/types/admin/reporting";
 
@@ -316,6 +317,7 @@ function LockerCard({ order }: { order: AdminOrder }) {
             </Link>
           </div>
         )}
+        <StorageHandoverRecord order={order} />
 
         <Separator />
 
