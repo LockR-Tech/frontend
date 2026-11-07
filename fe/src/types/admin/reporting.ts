@@ -99,7 +99,7 @@ export const ADMIN_ORDER_STATUS_TRANSITIONS: Record<string, AdminOrderStatus[]> 
   AWAITING_DISPATCH: ["CANCELED"],
   STORING: ["COMPLETED", "EXPIRED"],
   RETURNED: ["COMPLETED", "EXPIRED"],
-  EXPIRED: ["COMPLETED"],
+  // EXPIRED (đồ ở kho) chỉ đóng bằng trao trả có xác minh ở /admin/storage — server từ chối PUT /status.
 };
 
 export function adminOrderNextStatuses(status: string | null | undefined): AdminOrderStatus[] {

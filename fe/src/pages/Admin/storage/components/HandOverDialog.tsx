@@ -143,179 +143,186 @@ function HandOverForm({ order, onClose, onDone }: { order: AdminOrder } & Omit<H
 
   return (
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
+      {/* Dialog ngang: chỉ phần giữa cuộn, header và footer (nút Đóng / Đã trao trả) luôn hiện */}
+      <DialogContent className="flex max-h-[92vh] w-[calc(100vw-2rem)] flex-col gap-0 p-0 sm:max-w-5xl">
+        <DialogHeader className="border-b px-6 pb-4 pr-12 pt-6">
           <DialogTitle>{t("admin.storage.handOver.title")}</DialogTitle>
           <DialogDescription>{t("admin.storage.handOver.description", { code })}</DialogDescription>
         </DialogHeader>
 
-        {/* Thông tin đơn */}
-        <div className="grid grid-cols-2 gap-3 rounded-md border bg-muted/30 p-3">
-          <LabelValue label={t("admin.orders.table.senderCustomer")}>
-            {senderName}
-            {senderPhone ? ` · ${senderPhone}` : ""}
-          </LabelValue>
-          <LabelValue label={t("admin.orders.fields.receiver")}>
-            {hasReceiver ? (
-              <>
-                {receiverName}
-                {receiverPhone ? ` · ${receiverPhone}` : ""}
-              </>
-            ) : (
-              <span className="text-muted-foreground">{t("admin.storage.handOver.selfPickup")}</span>
-            )}
-          </LabelValue>
-          <LabelValue label={t("admin.storage.table.storedAt")}>
-            {formatDateTime(storedAtOf(order))}
-            {hours !== null && (
-              <span className="block text-xs text-muted-foreground">
-                {t("admin.storage.handOver.storedFor", { duration: storedDurationLabel(hours, t) })}
-              </span>
-            )}
-          </LabelValue>
-          <LabelValue label={t("admin.storage.table.overtimeFee")}>
-            {formatCurrency(order.fees?.overtimeFee ?? order.extraFee ?? 0)}
-          </LabelValue>
-        </div>
-
-        {/* 1. Ai tới nhận */}
-        <section className="space-y-2">
-          <Label>{t("admin.storage.handOver.recipient.title")}</Label>
-          <div role="radiogroup" className="grid grid-cols-3 gap-1.5">
-            {recipientOptions.map((option) => (
-              <Button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={recipientType === option.value}
-                variant={recipientType === option.value ? "default" : "outline"}
-                size="sm"
-                disabled={busy}
-                onClick={() => {
-                  setRecipientType(option.value);
-                  setLast4("");
-                }}
-              >
-                {option.label}
-              </Button>
-            ))}
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+          {/* Thông tin đơn */}
+          <div className="grid grid-cols-2 gap-3 rounded-md border bg-muted/30 p-3 md:grid-cols-4">
+            <LabelValue label={t("admin.orders.table.senderCustomer")}>
+              {senderName}
+              {senderPhone ? ` · ${senderPhone}` : ""}
+            </LabelValue>
+            <LabelValue label={t("admin.orders.fields.receiver")}>
+              {hasReceiver ? (
+                <>
+                  {receiverName}
+                  {receiverPhone ? ` · ${receiverPhone}` : ""}
+                </>
+              ) : (
+                <span className="text-muted-foreground">{t("admin.storage.handOver.selfPickup")}</span>
+              )}
+            </LabelValue>
+            <LabelValue label={t("admin.storage.table.storedAt")}>
+              {formatDateTime(storedAtOf(order))}
+              {hours !== null && (
+                <span className="block text-xs text-muted-foreground">
+                  {t("admin.storage.handOver.storedFor", { duration: storedDurationLabel(hours, t) })}
+                </span>
+              )}
+            </LabelValue>
+            <LabelValue label={t("admin.storage.table.overtimeFee")}>
+              {formatCurrency(order.fees?.overtimeFee ?? order.extraFee ?? 0)}
+            </LabelValue>
           </div>
 
-          {isOther ? (
-            <div className="grid grid-cols-2 gap-2">
-              <Input
-                placeholder={t("admin.storage.handOver.other.name")}
-                value={otherName}
-                maxLength={120}
-                onChange={(e) => setOtherName(e.target.value)}
-                disabled={busy}
-              />
-              <Input
-                placeholder={t("admin.storage.handOver.other.phone")}
-                value={otherPhone}
-                inputMode="tel"
-                maxLength={20}
-                onChange={(e) => setOtherPhone(e.target.value)}
-                disabled={busy}
-              />
-              <p className="col-span-2 text-xs text-muted-foreground">{t("admin.storage.handOver.other.hint")}</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Input
-                  className="w-32 font-mono tracking-[0.4em]"
-                  placeholder="••••"
-                  aria-label={t("admin.storage.handOver.last4.label")}
-                  value={last4}
-                  inputMode="numeric"
-                  maxLength={4}
-                  onChange={(e) => setLast4(digitsOf(e.target.value).slice(0, 4))}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Cột trái: ai tới nhận, thu nợ, ghi chú */}
+            <div className="space-y-5">
+              <section className="space-y-2">
+                <Label>{t("admin.storage.handOver.recipient.title")}</Label>
+                <div role="radiogroup" className="grid grid-cols-3 gap-1.5">
+                  {recipientOptions.map((option) => (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={recipientType === option.value}
+                      variant={recipientType === option.value ? "default" : "outline"}
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => {
+                        setRecipientType(option.value);
+                        setLast4("");
+                      }}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {isOther ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder={t("admin.storage.handOver.other.name")}
+                      value={otherName}
+                      maxLength={120}
+                      onChange={(e) => setOtherName(e.target.value)}
+                      disabled={busy}
+                    />
+                    <Input
+                      placeholder={t("admin.storage.handOver.other.phone")}
+                      value={otherPhone}
+                      inputMode="tel"
+                      maxLength={20}
+                      onChange={(e) => setOtherPhone(e.target.value)}
+                      disabled={busy}
+                    />
+                    <p className="col-span-2 text-xs text-muted-foreground">{t("admin.storage.handOver.other.hint")}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        className="w-32 font-mono tracking-[0.4em]"
+                        placeholder="••••"
+                        aria-label={t("admin.storage.handOver.last4.label")}
+                        value={last4}
+                        inputMode="numeric"
+                        maxLength={4}
+                        onChange={(e) => setLast4(digitsOf(e.target.value).slice(0, 4))}
+                        disabled={busy}
+                      />
+                      {phoneMatch === "match" && (
+                        <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-4 w-4" />
+                          {t("admin.storage.handOver.last4.match")}
+                        </span>
+                      )}
+                      {phoneMatch === "mismatch" && (
+                        <span className="flex items-center gap-1 text-xs text-destructive">
+                          <XCircle className="h-4 w-4" />
+                          {t("admin.storage.handOver.last4.mismatch")}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t("admin.storage.handOver.last4.hint")}</p>
+                  </div>
+                )}
+              </section>
+
+              {/* Thu nợ */}
+              {owed > 0 && (
+                <section className="space-y-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
+                  <div className="flex gap-2 text-sm text-amber-800 dark:text-amber-300">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <p>{t("admin.storage.handOver.owed", { amount: formatCurrency(owed) })}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {(["CASH", "TRANSFER"] as const).map((value) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        size="sm"
+                        variant={method === value ? "default" : "outline"}
+                        aria-pressed={method === value}
+                        disabled={busy}
+                        onClick={() => setMethod(value)}
+                      >
+                        {t(`admin.storage.handOver.method.${value.toLowerCase()}`)}
+                      </Button>
+                    ))}
+                  </div>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <Checkbox checked={collected} onCheckedChange={(v) => setCollected(v === true)} disabled={busy} />
+                    {t("admin.storage.handOver.collectedConfirm", { amount: formatCurrency(owed) })}
+                  </label>
+                </section>
+              )}
+
+              {/* Ghi chú */}
+              <section className="space-y-1.5">
+                <Label htmlFor="handover-note">
+                  {isOther ? t("admin.storage.handOver.noteRequired") : t("admin.storage.handOver.note")}
+                </Label>
+                <Textarea
+                  id="handover-note"
+                  rows={2}
+                  maxLength={500}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
                   disabled={busy}
                 />
-                {phoneMatch === "match" && (
-                  <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                    {t("admin.storage.handOver.last4.match")}
-                  </span>
-                )}
-                {phoneMatch === "mismatch" && (
-                  <span className="flex items-center gap-1 text-xs text-destructive">
-                    <XCircle className="h-4 w-4" />
-                    {t("admin.storage.handOver.last4.mismatch")}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">{t("admin.storage.handOver.last4.hint")}</p>
+              </section>
             </div>
-          )}
-        </section>
 
-        {/* 2. Ảnh xác minh */}
-        <section className="space-y-2">
-          <Label>{t("admin.storage.handOver.photo.title")}</Label>
-          {photos.length === 0 && (
-            <WebcamCapture onCapture={(file) => setPhotos([file])} disabled={busy} />
-          )}
-          <PhotoPicker
-            value={photos}
-            onChange={setPhotos}
-            maxFiles={1}
-            disabled={busy}
-            uploadItems={uploadItems}
-            hint={t("admin.storage.handOver.photo.hint")}
-          />
-        </section>
+            {/* Cột phải: ảnh xác minh */}
+            <section className="space-y-2">
+              <Label>{t("admin.storage.handOver.photo.title")}</Label>
+              {photos.length === 0 && (
+                <WebcamCapture onCapture={(file) => setPhotos([file])} disabled={busy} />
+              )}
+              <PhotoPicker
+                value={photos}
+                onChange={setPhotos}
+                maxFiles={1}
+                disabled={busy}
+                uploadItems={uploadItems}
+                hint={t("admin.storage.handOver.photo.hint")}
+              />
+            </section>
+          </div>
+        </div>
 
-        {/* 3. Thu nợ */}
-        {owed > 0 && (
-          <section className="space-y-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
-            <div className="flex gap-2 text-sm text-amber-800 dark:text-amber-300">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>{t("admin.storage.handOver.owed", { amount: formatCurrency(owed) })}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-1.5">
-              {(["CASH", "TRANSFER"] as const).map((value) => (
-                <Button
-                  key={value}
-                  type="button"
-                  size="sm"
-                  variant={method === value ? "default" : "outline"}
-                  aria-pressed={method === value}
-                  disabled={busy}
-                  onClick={() => setMethod(value)}
-                >
-                  {t(`admin.storage.handOver.method.${value.toLowerCase()}`)}
-                </Button>
-              ))}
-            </div>
-            <label className="flex cursor-pointer items-center gap-2 text-sm">
-              <Checkbox checked={collected} onCheckedChange={(v) => setCollected(v === true)} disabled={busy} />
-              {t("admin.storage.handOver.collectedConfirm", { amount: formatCurrency(owed) })}
-            </label>
-          </section>
-        )}
-
-        {/* Ghi chú */}
-        <section className="space-y-1.5">
-          <Label htmlFor="handover-note">
-            {isOther ? t("admin.storage.handOver.noteRequired") : t("admin.storage.handOver.note")}
-          </Label>
-          <Textarea
-            id="handover-note"
-            rows={2}
-            maxLength={500}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            disabled={busy}
-          />
-        </section>
-
-        <DialogFooter className="items-center gap-2 sm:justify-between">
+        <DialogFooter className="flex-col items-stretch gap-2 border-t px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-x-0">
           <p className={cn("text-xs text-muted-foreground", missing.length === 0 && "invisible")}>
             {t("admin.storage.handOver.missing.prefix")} {missing.join(", ")}
           </p>
-          <div className="flex gap-2">
+          <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose} disabled={busy}>
               {t("button.close")}
             </Button>
