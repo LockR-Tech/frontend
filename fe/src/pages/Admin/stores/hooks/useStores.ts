@@ -11,9 +11,13 @@ import {
 } from "@/stores/apis/admin/stores";
 import { extractList } from "~/lib/extract-list";
 import { useStoreRevenue } from "./useStoreRevenue";
+import { areaOf } from "../store-area";
 import i18n from "~/utils/i18n";
 
 export type StoreStatus = "ALL" | "ACTIVE" | "INACTIVE";
+/** "ALL" | tên khu vực (areaOf) | AREA_UNKNOWN cho địa chỉ không tách được. */
+export const AREA_ALL = "ALL";
+export const AREA_UNKNOWN = "__UNKNOWN__";
 
 /** Ưu tiên `message` backend trả (vd ràng buộc tủ còn gắn với cửa hàng). */
 export function storeErrorMessage(err: unknown, fallback: string): string {
@@ -30,6 +34,7 @@ export function useStores() {
   const { t } = useTranslation();
   const [status, setStatusState] = useState<StoreStatus>("ALL");
   const [searchQuery, setSearchQueryState] = useState("");
+  const [area, setAreaState] = useState<string>(AREA_ALL);
   const [urlParams, setUrlParams] = useSearchParams();
   const page = Math.max(0, Number(urlParams.get("page") ?? "0") || 0);
   const pageSize = Math.max(1, Number(urlParams.get("size") ?? "10") || 10);
@@ -39,6 +44,10 @@ export function useStores() {
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("size", String(newSize)); next.set("page", "0"); return next; });
   const setStatus = (value: StoreStatus) => {
     setStatusState(value);
+    setPage(0);
+  };
+  const setArea = (value: string) => {
+    setAreaState(value);
     setPage(0);
   };
   const setSearchQuery = (value: string) => {
@@ -68,6 +77,10 @@ export function useStores() {
       );
     }
 
+    if (area !== AREA_ALL) {
+      result = result.filter((store) => (areaOf(store.address) ?? AREA_UNKNOWN) === area);
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -79,7 +92,7 @@ export function useStores() {
     }
 
     return result;
-  }, [allStores, status, searchQuery]);
+  }, [allStores, status, area, searchQuery]);
 
   // Phân trang tại client sau khi lọc.
   const totalElements = filteredStores.length;
@@ -103,6 +116,20 @@ export function useStores() {
     }),
     [allStores],
   );
+
+  /** Khu vực có trong dữ liệu, kèm số địa điểm, xếp theo tên; "chưa rõ" để cuối. */
+  const areaCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const store of allStores) {
+      const key = areaOf(store.address) ?? AREA_UNKNOWN;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) =>
+        a.value === AREA_UNKNOWN ? 1 : b.value === AREA_UNKNOWN ? -1 : a.value.localeCompare(b.value, "vi"),
+      );
+  }, [allStores]);
 
   const handleCreate = useCallback(() => {
     setIsCreateModalOpen(true);
@@ -152,11 +179,12 @@ export function useStores() {
 
   const clearFilters = () => {
     setStatusState("ALL");
+    setAreaState(AREA_ALL);
     setSearchQueryState("");
     setPage(0);
   };
 
-  const hasActiveFilters = status !== "ALL" || searchQuery !== "";
+  const hasActiveFilters = status !== "ALL" || area !== AREA_ALL || searchQuery !== "";
 
   return {
     stores: pagedStores,
@@ -170,6 +198,9 @@ export function useStores() {
     setStatus,
     searchQuery,
     setSearchQuery,
+    area,
+    setArea,
+    areaCounts,
     page,
     setPage,
     pageSize,
