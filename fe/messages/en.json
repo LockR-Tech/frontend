@@ -3240,7 +3240,9 @@
           "UNAVAILABLE": "No forecast"
         },
         "suspended": "Station paused: {{reason}}",
-        "manage": "Flight control"
+        "manage": "Flight control",
+        "checkOff": "Weather check is off (testing) — flights are not blocked",
+        "forecast": "Forecast: {{status}}"
       },
       "page": {
         "incidentStatus": {
@@ -6181,6 +6183,21 @@
         "suspendedToast": "All drone flights paused",
         "resumedToast": "Flights resumed",
         "failed": "Could not change the flight status"
+      },
+      "weatherCheck": {
+        "title": "Weather check before flights",
+        "loading": "Loading…",
+        "on": "On: bookings, launches, waiting orders and automatic station pauses all follow the weather limits.",
+        "off": "OFF for testing: the forecast is for reference only and drones fly even in rain or storms. Turn it back on when you are done.",
+        "confirmDisableTitle": "Turn off the weather check?",
+        "confirmDisable": "Only for testing in bad weather. Customers can book and the flight team can launch even when rain or wind exceed the limits; stations the system paused for weather reopen (stations an admin paused stay paused). The customer app, technician app and admin still show the forecast with a weather-check-off label.",
+        "confirmEnableTitle": "Turn the weather check back on?",
+        "confirmEnable": "Bookings, launches and stations are blocked by the weather limits again as usual.",
+        "disableAction": "Turn off check",
+        "enableAction": "Turn back on",
+        "disabledToast": "Weather check turned off (testing)",
+        "enabledToast": "Weather check turned back on",
+        "failed": "Could not change the weather check setting"
       },
       "summary": {
         "title": "Flight blocks in the last 24 hours"

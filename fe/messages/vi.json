@@ -3240,7 +3240,9 @@
           "UNAVAILABLE": "Chưa có dự báo"
         },
         "suspended": "Trạm đang tạm dừng bay: {{reason}}",
-        "manage": "Điều khiển bay"
+        "manage": "Điều khiển bay",
+        "checkOff": "Đang tắt kiểm tra thời tiết (thử nghiệm) — không chặn bay",
+        "forecast": "Dự báo: {{status}}"
       },
       "page": {
         "incidentStatus": {
@@ -6181,6 +6183,21 @@
         "suspendedToast": "Đã tạm dừng bay toàn hệ thống",
         "resumedToast": "Đã cho bay lại",
         "failed": "Không đổi được trạng thái bay"
+      },
+      "weatherCheck": {
+        "title": "Kiểm tra thời tiết trước khi bay",
+        "loading": "Đang tải…",
+        "on": "Đang bật: đặt đơn, phóng drone, chặn đơn đang chờ và tự dừng trạm đều theo ngưỡng thời tiết.",
+        "off": "Đang TẮT để thử nghiệm: dự báo chỉ để tham khảo, drone vẫn bay khi mưa bão. Nhớ bật lại sau khi thử xong.",
+        "confirmDisableTitle": "Tắt kiểm tra thời tiết?",
+        "confirmDisable": "Chỉ dùng để thử nghiệm khi trời xấu. Khách đặt đơn và đội bay phóng drone bình thường dù dự báo mưa, gió vượt ngưỡng; các trạm hệ thống đã dừng vì thời tiết sẽ được mở lại (trạm do admin dừng giữ nguyên). App khách, app KTV và admin vẫn hiện dự báo kèm nhãn đang tắt kiểm tra.",
+        "confirmEnableTitle": "Bật lại kiểm tra thời tiết?",
+        "confirmEnable": "Đặt đơn, phóng drone và các trạm quay lại chặn theo ngưỡng thời tiết như bình thường.",
+        "disableAction": "Tắt kiểm tra",
+        "enableAction": "Bật lại",
+        "disabledToast": "Đã tắt kiểm tra thời tiết (thử nghiệm)",
+        "enabledToast": "Đã bật lại kiểm tra thời tiết",
+        "failed": "Không đổi được cài đặt kiểm tra thời tiết"
       },
       "summary": {
         "title": "Số lần bị chặn bay trong 24 giờ qua"
