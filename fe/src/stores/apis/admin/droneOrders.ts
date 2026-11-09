@@ -236,6 +236,8 @@ export interface DroneWeatherAssessment {
   provider: string | null;
   temperatureC: number | null;
   condition: string | null;
+  /** Admin đang tắt kiểm tra thời tiết (thử nghiệm): `status` là dự báo thật nhưng `safe` luôn true. */
+  checkDisabled?: boolean;
 }
 
 export interface DroneRouteWeather {

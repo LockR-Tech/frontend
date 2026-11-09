@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { CloudSun, OctagonPause, Plane } from "lucide-react";
+import { CloudSun, CloudSunRain, FlaskConical, OctagonPause, Plane } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
 import {
   AlertDialog,
@@ -37,6 +37,7 @@ import { SuspensionLogTable } from "./SuspensionLogTable";
 import { BLOCK_CAUSES, causeLabel, causeTone } from "./labels";
 
 const FLIGHTS_SUSPENDED_KEY = "app.order.drone-flights-suspended";
+const WEATHER_CHECK_KEY = "app.drone.weather.check-enabled";
 // Nhóm quy tắc do order-service khai báo (OrderSettingsCatalog) + vài quy tắc bay lẻ trong nhóm "Giao hàng drone".
 const RULE_GROUPS = ["Thời tiết & điều kiện bay"];
 const RULE_KEYS = [
@@ -105,7 +106,10 @@ export default function FlightControlPage() {
         />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <GlobalSuspensionCard />
+          <div className="flex flex-col gap-4">
+            <GlobalSuspensionCard />
+            <WeatherCheckCard />
+          </div>
           <BlockSummaryCard />
         </div>
 
@@ -224,6 +228,87 @@ function GlobalSuspensionCard() {
               disabled={saving}
             >
               {pending ? t("admin.flightControl.global.suspendAction") : t("admin.flightControl.global.resumeAction")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
+  );
+}
+
+/**
+ * Bật / tắt kiểm tra thời tiết (quy tắc `app.drone.weather.check-enabled`). Tắt để thử nghiệm khi trời mưa bão:
+ * server vẫn lấy dự báo để hiển thị nhưng không chặn đặt đơn, phóng drone, không dừng trạm. Admin tự bật lại.
+ */
+function WeatherCheckCard() {
+  const { t } = useTranslation();
+  const { data, isLoading } = useGetBusinessSettingsQuery("order");
+  const [updateSettings, { isLoading: saving }] = useUpdateBusinessSettingsMutation();
+  const [pending, setPending] = useState<boolean | null>(null);
+  const setting = useMemo(
+    () => (Array.isArray(data?.data) ? data.data.find((s) => s.key === WEATHER_CHECK_KEY) : undefined),
+    [data],
+  );
+  const enabled = setting?.value !== "false";
+  const off = Boolean(setting) && !enabled;
+
+  const apply = async () => {
+    if (pending == null) return;
+    try {
+      await updateSettings({ scope: "order", values: { [WEATHER_CHECK_KEY]: pending } }).unwrap();
+      toast.success(pending ? t("admin.flightControl.weatherCheck.enabledToast") : t("admin.flightControl.weatherCheck.disabledToast"));
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t("admin.flightControl.weatherCheck.failed")));
+    } finally {
+      setPending(null);
+    }
+  };
+
+  return (
+    <Card className={off ? "border-amber-500/50 bg-amber-500/5" : undefined}>
+      <CardContent className="flex h-full items-start gap-4 p-5">
+        <div className={`rounded-lg p-2 ${off ? "bg-amber-500/15 text-amber-700" : "bg-sky-500/10 text-sky-700"}`}>
+          {off ? <FlaskConical className="h-5 w-5" /> : <CloudSunRain className="h-5 w-5" />}
+        </div>
+        <div className="min-w-0 flex-1 space-y-1">
+          <p className="font-semibold">{t("admin.flightControl.weatherCheck.title")}</p>
+          <p className={`text-sm ${off ? "font-medium text-amber-800" : "text-muted-foreground"}`}>
+            {isLoading
+              ? t("admin.flightControl.weatherCheck.loading")
+              : off
+                ? t("admin.flightControl.weatherCheck.off")
+                : t("admin.flightControl.weatherCheck.on")}
+          </p>
+        </div>
+        <Switch
+          checked={enabled}
+          disabled={isLoading || saving || !setting}
+          onCheckedChange={(checked) => setPending(checked)}
+          aria-label={t("admin.flightControl.weatherCheck.title")}
+        />
+      </CardContent>
+      <AlertDialog open={pending != null} onOpenChange={(open) => !open && setPending(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending
+                ? t("admin.flightControl.weatherCheck.confirmEnableTitle")
+                : t("admin.flightControl.weatherCheck.confirmDisableTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending
+                ? t("admin.flightControl.weatherCheck.confirmEnable")
+                : t("admin.flightControl.weatherCheck.confirmDisable")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>{t("common.cancel")}</AlertDialogCancel>
+            <Button
+              className={pending ? undefined : "bg-amber-600 text-white hover:bg-amber-700"}
+              onClick={apply}
+              disabled={saving}
+            >
+              {pending ? t("admin.flightControl.weatherCheck.enableAction") : t("admin.flightControl.weatherCheck.disableAction")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

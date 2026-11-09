@@ -2,7 +2,16 @@ import { useState } from "react";
 import { AppLoading } from "~/components/ui/app-loading";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronUp, CloudLightning, CloudOff, CloudSun, OctagonPause, RefreshCw } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  CloudLightning,
+  CloudOff,
+  CloudSun,
+  FlaskConical,
+  OctagonPause,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { formatDateTime } from "~/lib/datetime";
 import {
@@ -23,6 +32,9 @@ const PROVIDER_LABELS: Record<string, string> = {
 };
 
 function tone(weather: DroneWeatherAssessment) {
+  if (weather.checkDisabled) {
+    return { box: "border-amber-500/40 bg-amber-500/10 text-amber-900", Icon: FlaskConical };
+  }
   if (weather.status === "SAFE") {
     return { box: "border-emerald-500/30 bg-emerald-500/10 text-emerald-800", Icon: CloudSun };
   }
@@ -58,14 +70,22 @@ export function WeatherSummary({
       : null,
   ].filter(Boolean);
   const provider = weather.provider ? PROVIDER_LABELS[weather.provider] ?? weather.provider : null;
+  const statusLabel = t(`admin.droneOrders.weather.status.${weather.status}`, { defaultValue: weather.status });
   return (
     <div className={`flex items-start gap-3 rounded-lg border p-3 text-sm ${box}`}>
       <Icon className="mt-0.5 h-5 w-5 shrink-0" />
       <div className="min-w-0 space-y-0.5">
         {title ? <p className="font-semibold text-foreground">{title}</p> : null}
-        <p className="font-semibold">{t(`admin.droneOrders.weather.status.${weather.status}`, { defaultValue: weather.status })}</p>
+        {weather.checkDisabled ? (
+          <>
+            <p className="font-semibold">{t("admin.droneOrders.weather.checkOff")}</p>
+            <p className="text-foreground/80">{t("admin.droneOrders.weather.forecast", { status: statusLabel })}</p>
+          </>
+        ) : (
+          <p className="font-semibold">{statusLabel}</p>
+        )}
         {facts.length > 0 ? <p className="text-foreground/80">{facts.join(" · ")}</p> : null}
-        {weather.status !== "SAFE" ? <p>{weather.message}</p> : null}
+        {weather.status !== "SAFE" && !weather.checkDisabled ? <p>{weather.message}</p> : null}
         {suspension ? (
           <p className="flex items-center gap-1.5 font-semibold text-amber-800">
             <OctagonPause className="h-4 w-4 shrink-0" />
@@ -131,7 +151,11 @@ export function LockerWeatherOverview() {
     pollingInterval: REFRESH_MS,
   });
   const lockers = data?.data ?? [];
-  const blocked = lockers.filter((l) => l.weather.status !== "SAFE" || l.suspension).length;
+  // Tắt kiểm tra thời tiết: trời xấu không còn chặn, chỉ trạm đang dừng mới không bay được.
+  const checkOff = lockers.some((l) => l.weather.checkDisabled);
+  const blocked = lockers.filter(
+    (l) => (!l.weather.checkDisabled && l.weather.status !== "SAFE") || l.suspension,
+  ).length;
   const windowMinutes = lockers[0]?.weather.windowMinutes ?? 30;
   const headline = isLoading
     ? t("admin.droneOrders.weather.loading")
@@ -139,7 +163,9 @@ export function LockerWeatherOverview() {
       ? t("admin.droneOrders.weather.loadFailed")
       : lockers.length === 0
         ? t("admin.droneOrders.weather.noLockers")
-        : blocked === 0
+        : checkOff && blocked === 0
+          ? t("admin.droneOrders.weather.checkOff")
+          : blocked === 0
           ? t("admin.droneOrders.weather.allSafe", { count: lockers.length, minutes: windowMinutes })
           : t("admin.droneOrders.weather.someBlocked", { blocked, count: lockers.length });
 
@@ -147,7 +173,9 @@ export function LockerWeatherOverview() {
     <div className="rounded-xl border bg-card">
       <div className="flex items-center justify-between gap-3 p-4">
         <button type="button" className="flex min-w-0 items-center gap-3 text-left" onClick={() => setOpen((v) => !v)}>
-          {blocked === 0 && !isError ? (
+          {checkOff && blocked === 0 && !isError ? (
+            <FlaskConical className="h-5 w-5 shrink-0 text-amber-600" />
+          ) : blocked === 0 && !isError ? (
             <CloudSun className="h-5 w-5 shrink-0 text-emerald-600" />
           ) : (
             <CloudLightning className="h-5 w-5 shrink-0 text-red-600" />

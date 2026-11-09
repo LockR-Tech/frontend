@@ -36,6 +36,11 @@ export function UserStats({ stats, isLoading, segment, onSelect }: UserStatsProp
     t("admin.users.stats.ofTotal", {
       percent: formatPercent(stats.total > 0 ? (count * 100) / stats.total : 0),
     });
+  // Chỉ khách ký điều khoản ⇒ tỉ lệ tính trên số khách, không trên tổng người dùng.
+  const ofTermsSigners = (count: number) =>
+    t("admin.users.stats.ofCustomers", {
+      percent: formatPercent(stats.termsSigners > 0 ? (count * 100) / stats.termsSigners : 0),
+    });
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -88,7 +93,7 @@ export function UserStats({ stats, isLoading, segment, onSelect }: UserStatsProp
       <ReportStatCard
         label={t("admin.users.stats.termsAccepted")}
         value={formatNumber(stats.termsAccepted)}
-        hint={ofTotal(stats.termsAccepted)}
+        hint={ofTermsSigners(stats.termsAccepted)}
         icon={FileCheck2}
         isLoading={isLoading}
         {...selectable("TERMS_ACCEPTED")}
