@@ -522,6 +522,7 @@
         "newThisMonthHint": "Tài khoản tạo từ đầu tháng này",
         "emailVerified": "Đã xác thực email",
         "termsAccepted": "Đã đồng ý điều khoản",
+        "ofCustomers": "{{percent}} số khách hàng",
         "ofTotal": "{{percent}} tổng số",
         "customers": "{{value}} khách hàng",
         "staff": "{{value}} nhân sự",

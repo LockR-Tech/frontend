@@ -19,6 +19,16 @@ export type UserSegment =
 
 const isCustomer = (user: AdminUserRow) => user.roles.some((r) => r === "CUSTOMER" || r === "USER");
 
+const STAFF_ROLES = ["ADMIN", "LOCKER_TECHNICIAN", "DRONE_TECHNICIAN"];
+
+/**
+ * Chỉ khách ký Điều khoản dịch vụ: app chỉ hỏi khi vai trò chính là khách, nên tài khoản có vai trò nhân sự
+ * (admin, KTV) không ký và admin không hiện trạng thái điều khoản cho họ.
+ */
+export const signsTerms = (user: Pick<AdminUserRow, "roles">) =>
+  user.roles.some((r) => r === "CUSTOMER" || r === "USER") &&
+  !user.roles.some((r) => STAFF_ROLES.includes(r.replace(/^ROLE_/, "")));
+
 function isUserSegment(value: string | null): value is UserSegment {
   return value !== null && value in segmentFilters();
 }
@@ -108,7 +118,7 @@ function segmentFilters(): Record<UserSegment, (user: AdminUserRow) => boolean> 
     INACTIVE: (user) => !user.enabled,
     NEW_THIS_MONTH: (user) => Boolean(user.createdAt) && formatDate(user.createdAt).slice(3) === thisMonth,
     EMAIL_VERIFIED: (user) => user.emailVerified === true,
-    TERMS_ACCEPTED: (user) => user.termsAccepted,
+    TERMS_ACCEPTED: (user) => signsTerms(user) && user.termsAccepted,
   };
 }
 
@@ -125,6 +135,8 @@ export function computeUserStats(users: AdminUserRow[]) {
     newThisMonth: count("NEW_THIS_MONTH"),
     emailVerified: count("EMAIL_VERIFIED"),
     termsAccepted: count("TERMS_ACCEPTED"),
+    /** Mẫu số của thẻ "Đã đồng ý điều khoản": chỉ tài khoản khách. */
+    termsSigners: users.filter(signsTerms).length,
   };
 }
 

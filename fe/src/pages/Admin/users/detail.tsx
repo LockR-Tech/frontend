@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { useUserDetail } from "./hooks/useUserDetail";
+import { signsTerms } from "./hooks/useUsers";
 import {
   useDeleteUserAvatarMutation,
   useGetUserLoyaltySummaryQuery,
@@ -480,38 +481,41 @@ export default function UserDetailPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <FileCheck2 className="h-4 w-4" />
-                {t("admin.users.detail.termsTitle")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Badge
-                variant="outline"
-                className={
-                  user.termsAccepted
-                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
-                    : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
-                }
-              >
-                {t(user.termsAccepted ? "admin.users.detail.termsAccepted" : "admin.users.detail.termsNotAccepted")}
-              </Badge>
-              {user.termsAccepted ? (
-                <>
-                  <AccountRow icon={Calendar} label={t("admin.users.detail.termsAcceptedAt")}>
-                    {formatDateTime(user.termsAcceptedAt)}
-                  </AccountRow>
-                  <AccountRow icon={FileCheck2} label={t("admin.users.detail.termsVersion")}>
-                    {user.termsVersion ?? "—"}
-                  </AccountRow>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">{t("admin.users.detail.termsNotAcceptedHint")}</p>
-              )}
-            </CardContent>
-          </Card>
+          {/* Chỉ khách ký điều khoản trên app: admin, KTV không có phần này. */}
+          {signsTerms(user) ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <FileCheck2 className="h-4 w-4" />
+                  {t("admin.users.detail.termsTitle")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Badge
+                  variant="outline"
+                  className={
+                    user.termsAccepted
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                      : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+                  }
+                >
+                  {t(user.termsAccepted ? "admin.users.detail.termsAccepted" : "admin.users.detail.termsNotAccepted")}
+                </Badge>
+                {user.termsAccepted ? (
+                  <>
+                    <AccountRow icon={Calendar} label={t("admin.users.detail.termsAcceptedAt")}>
+                      {formatDateTime(user.termsAcceptedAt)}
+                    </AccountRow>
+                    <AccountRow icon={FileCheck2} label={t("admin.users.detail.termsVersion")}>
+                      {user.termsVersion ?? "—"}
+                    </AccountRow>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{t("admin.users.detail.termsNotAcceptedHint")}</p>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       </div>
 

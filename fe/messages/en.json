@@ -522,6 +522,7 @@
         "newThisMonthHint": "Accounts created since the 1st",
         "emailVerified": "Email verified",
         "termsAccepted": "Accepted terms",
+        "ofCustomers": "{{percent}} of customers",
         "ofTotal": "{{percent}} of total",
         "customers": "{{value}} customers",
         "staff": "{{value}} staff",
