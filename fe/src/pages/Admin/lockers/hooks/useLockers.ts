@@ -189,6 +189,9 @@ export function useLockers() {
       [LockerStatus.MAINTENANCE]: allLockers.filter(
         (l) => l.status === LockerStatus.MAINTENANCE,
       ).length,
+      [LockerStatus.PLANNED]: allLockers.filter((l) => l.status === LockerStatus.PLANNED).length,
+      [LockerStatus.INSTALLING]: allLockers.filter((l) => l.status === LockerStatus.INSTALLING).length,
+      [LockerStatus.COMMISSIONING]: allLockers.filter((l) => l.status === LockerStatus.COMMISSIONING).length,
     }),
     [allLockers],
   );

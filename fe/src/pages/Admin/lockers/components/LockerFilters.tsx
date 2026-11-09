@@ -42,6 +42,9 @@ const options = [
     color: "yellow" as const,
   },
   { value: LockerStatus.INACTIVE, labelKey: "admin.lockers.status.inactive", color: "gray" as const },
+  { value: LockerStatus.PLANNED, labelKey: "admin.lockers.status.planned", color: "gray" as const },
+  { value: LockerStatus.INSTALLING, labelKey: "admin.lockers.status.installing", color: "gray" as const },
+  { value: LockerStatus.COMMISSIONING, labelKey: "admin.lockers.status.commissioning", color: "yellow" as const },
 ];
 
 export function LockerFilters({

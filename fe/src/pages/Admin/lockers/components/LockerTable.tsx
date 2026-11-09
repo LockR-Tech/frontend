@@ -12,6 +12,8 @@ import {
   Power,
   UserCheck,
   Trash2,
+  Hammer,
+  ClipboardCheck,
 } from "lucide-react";
 import { DataTable, DeleteReasonDialog } from "~/components/shared/data-table";
 import { Badge } from "~/components/ui/badge";
@@ -107,7 +109,8 @@ const TruncatedText = ({
   );
 };
 
-// Backend chỉ có ACTIVE / INACTIVE / MAINTENANCE (không có DISCONNECTED) — giá trị lạ dùng nhãn thô
+// Backend: ACTIVE / INACTIVE / MAINTENANCE + PLANNED / INSTALLING / COMMISSIONING khi đang lắp đặt
+// (không có DISCONNECTED) — giá trị lạ dùng nhãn thô
 const getStatusBadge = (status: LockerStatus, t: (key: string) => string) => {
   const variants: Partial<Record<
     LockerStatus,
@@ -139,6 +142,27 @@ const getStatusBadge = (status: LockerStatus, t: (key: string) => string) => {
       border: "border-amber-500/20",
       icon: Wrench,
       label: t("admin.lockers.status.maintenance"),
+    },
+    [LockerStatus.PLANNED]: {
+      bg: "bg-sky-500/10",
+      text: "text-sky-700 dark:text-sky-400",
+      border: "border-sky-500/20",
+      icon: Hammer,
+      label: t("admin.lockers.status.planned"),
+    },
+    [LockerStatus.INSTALLING]: {
+      bg: "bg-indigo-500/10",
+      text: "text-indigo-700 dark:text-indigo-400",
+      border: "border-indigo-500/20",
+      icon: Hammer,
+      label: t("admin.lockers.status.installing"),
+    },
+    [LockerStatus.COMMISSIONING]: {
+      bg: "bg-amber-500/10",
+      text: "text-amber-700 dark:text-amber-400",
+      border: "border-amber-500/20",
+      icon: ClipboardCheck,
+      label: t("admin.lockers.status.commissioning"),
     },
   };
 
@@ -349,7 +373,11 @@ export function LockerTable({
                   ? t("admin.lockers.table.underMaintenance")
                   : row.original.status === LockerStatus.INACTIVE
                     ? t("admin.lockers.table.disabled")
-                    : row.original.status || "—"}{" "}
+                    : row.original.status === LockerStatus.PLANNED ||
+                        row.original.status === LockerStatus.INSTALLING ||
+                        row.original.status === LockerStatus.COMMISSIONING
+                      ? t(`admin.lockers.status.${row.original.status.toLowerCase()}`)
+                      : row.original.status || "—"}{" "}
                 {t("admin.lockers.table.notAcceptingOrders")}
               </span>
             </div>
