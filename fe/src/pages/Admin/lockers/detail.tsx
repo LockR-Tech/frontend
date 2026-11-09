@@ -27,10 +27,10 @@ import { BoxForceOpenModal } from "./components/BoxForceOpenModal";
 import { useState } from "react";
 import { useGetStaffLockerQuery } from "~/stores/apis/admin/lockerOps";
 
-const lockerStatusConfig: Record<
+const lockerStatusConfig: Partial<Record<
   LockerStatus,
   { labelKey: string; style: string; icon: React.ElementType }
-> = {
+>> = {
   [LockerStatus.ACTIVE]: {
     labelKey: "admin.lockers.status.active",
     style: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
@@ -130,7 +130,7 @@ export default function LockerDetailPage() {
     );
   }
 
-  const status = lockerStatusConfig[locker.status] ?? lockerStatusConfig[LockerStatus.INACTIVE];
+  const status = lockerStatusConfig[locker.status] ?? lockerStatusConfig[LockerStatus.INACTIVE]!;
   const StatusIcon = status.icon;
 
   const availableBoxes = boxes.filter((b) => b.status === BoxStatus.AVAILABLE).length;

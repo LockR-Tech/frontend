@@ -37,6 +37,10 @@ export const LockerStatus = {
   INACTIVE: "INACTIVE",
   MAINTENANCE: "MAINTENANCE",
   DISCONNECTED: "DISCONNECTED",
+  // Lắp đặt & nghiệm thu (F3-G12) — chỉ đổi qua hồ sơ lắp đặt, khách chưa thấy tủ
+  PLANNED: "PLANNED",
+  INSTALLING: "INSTALLING",
+  COMMISSIONING: "COMMISSIONING",
 } as const;
 
 export type LockerStatus = (typeof LockerStatus)[keyof typeof LockerStatus];

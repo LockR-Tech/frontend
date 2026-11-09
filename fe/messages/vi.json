@@ -1230,7 +1230,10 @@
         "active": "Hoạt động",
         "inactive": "Vô hiệu",
         "maintenance": "Bảo trì",
-        "disconnected": "Mất kết nối"
+        "disconnected": "Mất kết nối",
+        "planned": "Chờ lắp đặt",
+        "installing": "Đang lắp đặt",
+        "commissioning": "Chờ nghiệm thu"
       },
       "filters": {
         "searchPlaceholder": "Tìm kiếm tủ đồ...",
@@ -1652,7 +1655,12 @@
           "grid": "Sơ đồ ô tủ",
           "operations": "Phụ trách & vị trí",
           "devices": "Thiết bị",
-          "logs": "Nhật ký"
+          "logs": "Nhật ký",
+          "installation": "Lắp đặt"
+        },
+        "installing": {
+          "title": "Tủ đang trong quá trình lắp đặt ({{status}})",
+          "desc": "Khách chưa thấy và chưa đặt được tủ này. Tủ chỉ hoạt động sau khi admin duyệt hồ sơ nghiệm thu ở tab Lắp đặt."
         }
       },
       "boxType": {
@@ -2024,6 +2032,88 @@
         },
         "table": {
           "protectWarning": "Lưu ý: Nếu có ô con đang chứa đơn hàng của khách, hệ thống sẽ bảo vệ và từ chối xóa tủ."
+        }
+      },
+      "installation": {
+        "title": "Hồ sơ lắp đặt #{{id}}",
+        "emptyTitle": "Tủ chưa có hồ sơ lắp đặt",
+        "closedTitle": "Hồ sơ lắp đặt gần nhất: {{status}}",
+        "lifecycle": "Lập hồ sơ ⇒ tủ Chờ lắp đặt (khách chưa thấy). KTV bắt đầu ⇒ Đang lắp đặt; KTV quét QR trên kiosk để gán bộ điều khiển, mở thử từng ô, chụp ảnh rồi gửi duyệt ⇒ Chờ nghiệm thu. Admin duyệt ⇒ tủ Hoạt động.",
+        "create": "Lập hồ sơ lắp đặt",
+        "createAgain": "Lập hồ sơ mới",
+        "status": {
+          "SCHEDULED": "Chờ lắp đặt",
+          "IN_PROGRESS": "Đang lắp đặt",
+          "SUBMITTED": "Chờ duyệt",
+          "APPROVED": "Đã nghiệm thu",
+          "CANCELLED": "Đã huỷ"
+        },
+        "checkStatus": {
+          "PENDING": "Chưa xong",
+          "PASSED": "Đạt",
+          "FAILED": "Lỗi",
+          "NOT_APPLICABLE": "Không áp dụng"
+        },
+        "byAuto": "Hệ thống kiểm",
+        "byTechnician": "KTV xác nhận",
+        "checkedBy": "{{name}} xác nhận lúc {{time}}",
+        "checklist": "Checklist nghiệm thu ({{passed}}/{{total}})",
+        "photos": "Ảnh lắp đặt ({{count}})",
+        "sitePhotos": "Ảnh hiện trường",
+        "noPhotos": "KTV chưa chụp ảnh nào.",
+        "missingTitle": "Còn thiếu để duyệt",
+        "iotUnavailable": "Chưa đọc được dữ liệu tủ từ IoT — các bước tự động đang hiện kết quả lần đọc trước.",
+        "approve": "Duyệt nghiệm thu",
+        "approveBlocked": "Hồ sơ còn thiếu bước / ảnh — không duyệt được",
+        "return": "Trả lại KTV",
+        "returnTitle": "Trả hồ sơ về KTV",
+        "returnDesc": "KTV nhận thông báo kèm lý do, bổ sung rồi gửi duyệt lại. Tủ quay về trạng thái Đang lắp đặt.",
+        "returnedTitle": "Admin đã trả lại hồ sơ",
+        "cancel": "Huỷ hồ sơ",
+        "cancelTitle": "Huỷ hồ sơ lắp đặt",
+        "cancelDesc": "Tủ quay về trạng thái trước khi lập hồ sơ. Không hoàn tác được.",
+        "cancelledTitle": "Lý do huỷ",
+        "reasonPlaceholder": "Nhập lý do (bắt buộc)",
+        "timeline": {
+          "created": "Lập hồ sơ: {{time}}",
+          "started": "Bắt đầu lắp: {{time}}",
+          "submitted": "Gửi duyệt: {{time}}",
+          "approved": "Duyệt: {{time}}",
+          "cancelled": "Huỷ: {{time}}"
+        },
+        "fields": {
+          "technician": "KTV lắp đặt",
+          "scheduledAt": "Lịch lắp đặt",
+          "siteContact": "Liên hệ hiện trường",
+          "siteContactName": "Người liên hệ tại chỗ",
+          "siteContactPhone": "SĐT liên hệ",
+          "powerSource": "Nguồn điện",
+          "network": "Mạng",
+          "networkType": "Loại mạng",
+          "networkNote": "Ghi chú mạng",
+          "cabinet": "Tủ (model · serial)",
+          "cabinetModel": "Model tủ",
+          "cabinetSerial": "Số serial",
+          "notes": "Ghi chú"
+        },
+        "form": {
+          "createTitle": "Lập hồ sơ lắp đặt — {{code}}",
+          "editTitle": "Sửa hồ sơ lắp đặt — {{code}}",
+          "desc": "Thông tin hiện trường để KTV chuẩn bị. KTV được chọn sẽ thành KTV phụ trách tủ.",
+          "technicianPlaceholder": "Chọn KTV tủ",
+          "technicianHint": "KTV nhận thông báo và thấy hồ sơ trong app (mục Lắp đặt tủ).",
+          "technicianRequired": "Chọn KTV lắp đặt",
+          "powerPlaceholder": "VD: Ổ 220V riêng, sảnh B",
+          "networkUnknown": "Chưa rõ",
+          "networkNotePlaceholder": "VD: SSID / nhà mạng 4G",
+          "createWarning": "Lập hồ sơ sẽ chuyển tủ sang Chờ lắp đặt: khách không thấy và không đặt được tủ cho đến khi duyệt nghiệm thu."
+        },
+        "toast": {
+          "created": "Đã lập hồ sơ lắp đặt",
+          "updated": "Đã cập nhật hồ sơ",
+          "approved": "Đã duyệt — tủ bắt đầu hoạt động",
+          "returned": "Đã trả hồ sơ về KTV",
+          "cancelled": "Đã huỷ hồ sơ lắp đặt"
         }
       }
     },

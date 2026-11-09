@@ -1230,7 +1230,10 @@
         "active": "Active",
         "inactive": "Inactive",
         "maintenance": "Maintenance",
-        "disconnected": "Disconnected"
+        "disconnected": "Disconnected",
+        "planned": "Planned",
+        "installing": "Installing",
+        "commissioning": "Commissioning"
       },
       "filters": {
         "searchPlaceholder": "Search lockers...",
@@ -1652,7 +1655,12 @@
           "grid": "Box layout",
           "operations": "Technician & location",
           "devices": "Devices",
-          "logs": "Logs"
+          "logs": "Logs",
+          "installation": "Installation"
+        },
+        "installing": {
+          "title": "Locker is being installed ({{status}})",
+          "desc": "Customers cannot see or book this locker yet. It goes live once an admin approves the commissioning dossier in the Installation tab."
         }
       },
       "boxType": {
@@ -2024,6 +2032,88 @@
         },
         "table": {
           "protectWarning": "Note: If any box in the locker holds a customer's order, the system protects it and refuses to delete the locker."
+        }
+      },
+      "installation": {
+        "title": "Installation dossier #{{id}}",
+        "emptyTitle": "No installation dossier yet",
+        "closedTitle": "Latest installation dossier: {{status}}",
+        "lifecycle": "Creating a dossier puts the locker in Planned (hidden from customers). The technician starts ⇒ Installing; scans the kiosk QR to bind the controller, test-opens every box, takes photos and submits ⇒ Commissioning. Admin approves ⇒ Active.",
+        "create": "Create installation dossier",
+        "createAgain": "New dossier",
+        "status": {
+          "SCHEDULED": "Scheduled",
+          "IN_PROGRESS": "In progress",
+          "SUBMITTED": "Awaiting review",
+          "APPROVED": "Approved",
+          "CANCELLED": "Cancelled"
+        },
+        "checkStatus": {
+          "PENDING": "Pending",
+          "PASSED": "Passed",
+          "FAILED": "Failed",
+          "NOT_APPLICABLE": "N/A"
+        },
+        "byAuto": "System check",
+        "byTechnician": "Technician",
+        "checkedBy": "Confirmed by {{name}} at {{time}}",
+        "checklist": "Commissioning checklist ({{passed}}/{{total}})",
+        "photos": "Installation photos ({{count}})",
+        "sitePhotos": "Site photos",
+        "noPhotos": "No photos yet.",
+        "missingTitle": "Still missing",
+        "iotUnavailable": "Could not read locker data from IoT — automatic checks show the previous reading.",
+        "approve": "Approve",
+        "approveBlocked": "Steps or photos are missing — cannot approve",
+        "return": "Return to technician",
+        "returnTitle": "Return dossier",
+        "returnDesc": "The technician is notified with your reason and resubmits. The locker goes back to Installing.",
+        "returnedTitle": "Returned by admin",
+        "cancel": "Cancel dossier",
+        "cancelTitle": "Cancel installation dossier",
+        "cancelDesc": "The locker goes back to its previous status. This cannot be undone.",
+        "cancelledTitle": "Cancellation reason",
+        "reasonPlaceholder": "Reason (required)",
+        "timeline": {
+          "created": "Created: {{time}}",
+          "started": "Started: {{time}}",
+          "submitted": "Submitted: {{time}}",
+          "approved": "Approved: {{time}}",
+          "cancelled": "Cancelled: {{time}}"
+        },
+        "fields": {
+          "technician": "Installer",
+          "scheduledAt": "Scheduled at",
+          "siteContact": "Site contact",
+          "siteContactName": "Site contact name",
+          "siteContactPhone": "Site contact phone",
+          "powerSource": "Power source",
+          "network": "Network",
+          "networkType": "Network type",
+          "networkNote": "Network note",
+          "cabinet": "Cabinet (model · serial)",
+          "cabinetModel": "Cabinet model",
+          "cabinetSerial": "Serial number",
+          "notes": "Notes"
+        },
+        "form": {
+          "createTitle": "New installation dossier — {{code}}",
+          "editTitle": "Edit installation dossier — {{code}}",
+          "desc": "Site details for the technician. The selected technician becomes the locker's assigned technician.",
+          "technicianPlaceholder": "Select a locker technician",
+          "technicianHint": "The technician is notified and sees the dossier in the app (Locker installation).",
+          "technicianRequired": "Select an installer",
+          "powerPlaceholder": "e.g. dedicated 220V outlet, lobby B",
+          "networkUnknown": "Unknown",
+          "networkNotePlaceholder": "e.g. SSID / 4G carrier",
+          "createWarning": "Creating a dossier moves the locker to Planned: customers cannot see or book it until commissioning is approved."
+        },
+        "toast": {
+          "created": "Installation dossier created",
+          "updated": "Dossier updated",
+          "approved": "Approved — the locker is now active",
+          "returned": "Dossier returned to technician",
+          "cancelled": "Installation dossier cancelled"
         }
       }
     },

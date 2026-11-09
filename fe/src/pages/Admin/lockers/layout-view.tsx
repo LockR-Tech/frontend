@@ -27,6 +27,7 @@ import {
   MapPin,
   ExternalLink,
   PackageSearch,
+  Hammer,
 } from "lucide-react";
 import {
   isXlCell,
@@ -108,12 +109,18 @@ import { LockerBluetoothPanel } from "./components/LockerBluetoothPanel";
 import { KioskScreenModal } from "./components/KioskScreenModal";
 import { LockerAddBoxPreview } from "./components/LockerAddBoxPreview";
 import { LockerLocationModal } from "./components/LockerLocationModal";
+import { InstallationPanel } from "./components/InstallationPanel";
+import { INSTALLATION_LOCKER_STATUSES } from "~/stores/apis/admin/installations";
 
 // Nhãn trạng thái tủ — cùng câu chữ với admin.lockers.status (messages/vi.json)
 const LOCKER_STATUS_STYLE: Record<string, { labelKey: string; cls: string }> = {
   ACTIVE: { labelKey: "admin.lockers.status.active", cls: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
   INACTIVE: { labelKey: "admin.lockers.status.inactive", cls: "bg-secondary border-border text-muted-foreground" },
   MAINTENANCE: { labelKey: "admin.lockers.status.maintenance", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
+  // Đang lắp đặt (F3-G12): khách chưa thấy tủ, chỉ đổi qua hồ sơ lắp đặt
+  PLANNED: { labelKey: "admin.lockers.status.planned", cls: "bg-sky-500/10 border-sky-500/20 text-sky-700 dark:text-sky-400" },
+  INSTALLING: { labelKey: "admin.lockers.status.installing", cls: "bg-indigo-500/10 border-indigo-500/20 text-indigo-700 dark:text-indigo-400" },
+  COMMISSIONING: { labelKey: "admin.lockers.status.commissioning", cls: "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400" },
 };
 
 // Tủ MAINTENANCE/INACTIVE bị server từ chối đặt ô (LOCKER_NOT_ACTIVE)
@@ -1380,6 +1387,18 @@ export default function LockerLayoutPage() {
         </div>
       )}
 
+      {INSTALLATION_LOCKER_STATUSES.includes(lockerStatus) && (
+        <div className="p-4 rounded-xl border border-sky-300 bg-sky-50 dark:bg-sky-950/40 dark:border-sky-800 flex items-start gap-3">
+          <Hammer className="w-5 h-5 text-sky-700 dark:text-sky-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 text-xs">
+            <p className="font-semibold text-sm text-sky-900 dark:text-sky-200">
+              {t("admin.lockers.layout.installing.title", { status: t(LOCKER_STATUS_STYLE[lockerStatus].labelKey) })}
+            </p>
+            <p className="text-sky-800 dark:text-sky-300">{t("admin.lockers.layout.installing.desc")}</p>
+          </div>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -1442,12 +1461,13 @@ export default function LockerLayoutPage() {
         </div>
       )}
 
-      <Tabs defaultValue="grid" className="space-y-4">
+      <Tabs defaultValue={INSTALLATION_LOCKER_STATUSES.includes(lockerStatus) ? "installation" : "grid"} className="space-y-4">
         <TabsList>
           <TabsTrigger value="grid">{t("admin.lockers.layout.tabs.grid")}</TabsTrigger>
           <TabsTrigger value="operations">{t("admin.lockers.layout.tabs.operations")}</TabsTrigger>
           <TabsTrigger value="devices">{t("admin.lockers.layout.tabs.devices")}</TabsTrigger>
           <TabsTrigger value="logs">{t("admin.lockers.layout.tabs.logs")}</TabsTrigger>
+          <TabsTrigger value="installation">{t("admin.lockers.layout.tabs.installation")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="grid" className="mt-0">
@@ -1764,6 +1784,10 @@ export default function LockerLayoutPage() {
 
         <TabsContent value="logs" className="mt-0">
           <LockerLogsPanel lockerId={id} lockerCode={layout.code} cells={cells} gateway={currentGateway} />
+        </TabsContent>
+
+        <TabsContent value="installation" className="mt-0">
+          <InstallationPanel lockerId={id} lockerCode={layout.code} technicians={lockerTechnicians} />
         </TabsContent>
       </Tabs>
 
