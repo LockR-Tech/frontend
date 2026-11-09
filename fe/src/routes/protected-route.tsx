@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { JSX } from "react/jsx-dev-runtime";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/auth-context";
+import { AppLoading } from "~/components/ui/app-loading";
 
 interface ProtectedRouteProps {
   requiredPermission?: string; 
@@ -16,11 +17,8 @@ const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteProps) =
   // Show loading spinner while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t("shared.route.checkingAccess")}</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <AppLoading size={140} message={t("shared.route.checkingAccess")} />
       </div>
     );
   }

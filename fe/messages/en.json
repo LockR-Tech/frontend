@@ -649,6 +649,8 @@
         "dateHint": "The date range filters by order creation time. Leave it empty to see all time."
       },
       "table": {
+        "statusPayment": "Status · Payment",
+        "people": "Sender → Receiver",
         "senderCustomer": "Sender",
         "lockerBox": "Locker / Box",
         "noBox": "No box assigned",
@@ -712,6 +714,7 @@
           "droneNoSendBox": "Drone orders only deliver into the receiving locker, so there is no drop-off box — the drone departs from a system-chosen locker (see the Drone card)."
         },
         "payment": {
+          "lastMethod": "Last payment method",
           "noMoreDue": "Nothing more to collect",
           "unavailable": "Couldn't load payment data (payment-service did not respond).",
           "noPayments": "No payments for this order yet.",
@@ -1000,6 +1003,11 @@
       }
     },
     "stores": {
+      "area": {
+        "label": "Area",
+        "all": "All areas",
+        "unknown": "Unknown area"
+      },
       "title": "Store Management",
       "description": "Manage stores in the system",
       "addStore": "Add Store",

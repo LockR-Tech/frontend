@@ -2,6 +2,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { AppLoading } from './app-loading';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -14,19 +15,17 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   className,
   text 
 }) => {
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12',
-    xl: 'h-16 w-16',
-  };
-
-  return (
-    <div className={cn('flex flex-col items-center justify-center gap-2', className)}>
-      <Loader2 className={cn('animate-spin text-primary', sizeClasses[size])} />
-      {text && <p className="text-sm text-muted-foreground">{text}</p>}
-    </div>
-  );
+  // Cỡ nhỏ (trong nút / dòng chữ) giữ spinner — animation Lottie ở 16px không đọc được.
+  if (size === 'sm') {
+    return (
+      <div className={cn('flex flex-col items-center justify-center gap-2', className)}>
+        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+        {text && <p className="text-sm text-muted-foreground">{text}</p>}
+      </div>
+    );
+  }
+  const px = { md: 64, lg: 96, xl: 128 }[size];
+  return <AppLoading size={px} message={text} className={className} />;
 };
 
 interface PageLoadingProps {
@@ -39,17 +38,9 @@ export const PageLoading: React.FC<PageLoadingProps> = ({
   fullScreen = false 
 }) => {
   const { t } = useTranslation();
-  return (
-    <div className={cn(
-      'flex items-center justify-center',
-      fullScreen ? 'fixed inset-0 bg-background/80 backdrop-blur-sm z-50' : 'min-h-[400px] w-full'
-    )}>
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="text-lg font-medium text-muted-foreground">{message ?? t('shared.loading.page')}</p>
-      </div>
-    </div>
-  );
+  const label = message ?? t('shared.loading.page');
+  if (fullScreen) return <AppLoading size={140} message={label} fullScreen />;
+  return <AppLoading size={128} message={label} className="min-h-[400px] w-full" />;
 };
 
 interface TableLoadingProps {

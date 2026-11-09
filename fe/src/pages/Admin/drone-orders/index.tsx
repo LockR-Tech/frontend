@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -367,7 +368,7 @@ export default function DroneOrdersPage() {
 
       {isLoading ? (
         <div className="flex justify-center py-16 text-muted-foreground">
-          <Loader2 className="h-6 w-6 animate-spin" />
+          <AppLoading size={110} />
         </div>
       ) : isError && orders.length === 0 ? (
         <Card className="border-0 shadow-sm">
@@ -540,7 +541,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
         {!order ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
             {isLoading ? (
-              <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+              <AppLoading size={96} />
             ) : isError ? (
               t("admin.droneOrders.detail.loadFailed")
             ) : null}

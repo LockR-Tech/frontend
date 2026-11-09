@@ -394,6 +394,10 @@ export function PaymentFullCard({
           <LabelValue label={t("admin.orders.detail.payment.paymentCount")}>
             {payments !== null ? formatNumber(list.length) : summary ? formatNumber(summary.paymentCount) : null}
           </LabelValue>
+          {/* Bảng danh sách gộp phương thức vào cột trạng thái — chi tiết luôn ghi rõ, kể cả khi không tải được giao dịch. */}
+          <LabelValue label={t("admin.orders.detail.payment.lastMethod")}>
+            {summary?.lastPaidMethod ? paymentMethodMeta(summary.lastPaidMethod).label : null}
+          </LabelValue>
           {Number(view?.pointsUsed ?? order.pointsUsed ?? 0) > 0 && (
             <LabelValue label={t("admin.orders.detail.fees.pointsDiscount")} className="col-span-2">
               − {formatCurrency(view?.pointsDiscount ?? order.pointsDiscount ?? 0)} (

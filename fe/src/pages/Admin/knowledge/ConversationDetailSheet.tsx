@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import { Link } from "react-router-dom";
 import {
   Bot,
   ChevronDown,
   FileText,
-  Loader2,
   Quote,
   RefreshCw,
   ShieldX,
@@ -110,7 +110,7 @@ export function ConversationDetailSheet({
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
           {isFetching && !detail ? (
             <div className="flex justify-center py-16 text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <AppLoading size={96} />
             </div>
           ) : error ? (
             <ErrorState

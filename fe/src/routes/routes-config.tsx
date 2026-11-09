@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ReactNode } from "react";
+import { AppLoading } from "~/components/ui/app-loading";
 import type { RouteObject } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -18,10 +19,7 @@ function PageLoader(): ReactNode {
   const { t } = useTranslation();
   return (
     <div className="min-h-100 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-        <p className="text-sm text-gray-500">{t("common.loading")}</p>
-      </div>
+      <AppLoading size={128} message={t("common.loading")} />
     </div>
   );
 }

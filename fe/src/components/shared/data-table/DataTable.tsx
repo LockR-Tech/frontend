@@ -7,6 +7,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import { AppLoading } from "~/components/ui/app-loading";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronUp, ChevronDown } from "lucide-react";
@@ -102,10 +103,8 @@ export function DataTable<TData, TValue>({
 
   if (isLoading) {
     return (
-      <div className="w-full rounded-xl border border-border bg-card p-8">
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary" />
-        </div>
+      <div className="w-full rounded-xl border border-border bg-card p-6">
+        <AppLoading size={96} />
       </div>
     );
   }

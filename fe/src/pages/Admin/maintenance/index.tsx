@@ -1,4 +1,5 @@
 import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
+import { AppLoading } from "~/components/ui/app-loading";
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
@@ -2858,7 +2859,7 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
           <section className="space-y-2">
             <div className="flex items-center gap-2"><Wrench className="w-4 h-4 text-blue-600" /><h3 className="text-sm font-semibold">{t("admin.maintenance.droneDetail.maintenanceHistory")}</h3></div>
             {historyQuery.isLoading ? (
-              <div className="py-5 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto mb-2 h-4 w-4 animate-spin" />{t("admin.maintenance.droneDetail.loadingHistory")}</div>
+              <AppLoading size={64} message={t("admin.maintenance.droneDetail.loadingHistory")} className="py-4" />
             ) : !history?.completedMaintenance.length ? (
               <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">{t("admin.maintenance.droneDetail.noMaintenance")}</p>
             ) : (
