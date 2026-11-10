@@ -188,7 +188,7 @@
   "admin": {
     "sidebar": {
       "dashboard": "Dashboard",
-      "users": "Người dùng",
+      "users": "Tài khoản",
       "orders": "Đơn hàng",
       "storage": "Đồ lưu kho",
       "stores": "Địa điểm",
@@ -218,7 +218,7 @@
         "operations": "Tủ & vận hành",
         "drone": "Drone",
         "finance": "Tài chính",
-        "customers": "Khách hàng",
+        "customers": "Người dùng",
         "system": "Hệ thống"
       }
     },

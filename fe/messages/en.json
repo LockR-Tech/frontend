@@ -188,7 +188,7 @@
   "admin": {
     "sidebar": {
       "dashboard": "Dashboard",
-      "users": "Users",
+      "users": "Accounts",
       "orders": "Orders",
       "storage": "Stored items",
       "stores": "Stores",
@@ -218,7 +218,7 @@
         "operations": "Lockers & operations",
         "drone": "Drone",
         "finance": "Finance",
-        "customers": "Customers",
+        "customers": "Users",
         "system": "System"
       }
     },

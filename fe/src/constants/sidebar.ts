@@ -82,12 +82,6 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
         permission: "admin_access",
       },
       {
-        icon: UserCheck,
-        path: "/admin/technicians",
-        label: "admin.sidebar.technicians",
-        permission: "admin_access",
-      },
-      {
         icon: Store,
         path: "/admin/stores",
         label: "admin.sidebar.stores",
@@ -173,6 +167,12 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
         path: "/admin/users",
         label: "admin.sidebar.users",
         permission: "manage_users",
+      },
+      {
+        icon: UserCheck,
+        path: "/admin/technicians",
+        label: "admin.sidebar.technicians",
+        permission: "admin_access",
       },
       {
         icon: Gift,
