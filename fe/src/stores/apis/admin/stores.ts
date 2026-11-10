@@ -94,10 +94,12 @@ export const storeManagementApi = baseApi.injectEndpoints({
       invalidatesTags: (result, error, { id }) => [{ type: TAGS.STORES, id }, TAGS.STORES],
     }),
 
-    deleteStore: builder.mutation<ApiResponse<void>, number>({
-      query: (id) => ({
+    // Xoá mềm: backend bắt buộc lý do (DELETE_REASON_REQUIRED), lưu vào deleted_reason.
+    deleteStore: builder.mutation<ApiResponse<void>, { id: number; reason: string }>({
+      query: ({ id, reason }) => ({
         url: ADMIN_ENDPOINTS.STORE_BY_ID(id),
         method: 'DELETE',
+        params: { reason },
       }),
       invalidatesTags: [TAGS.STORES],
     }),

@@ -1075,7 +1075,7 @@
       "revenueLoadFailed": "Couldn't load locker/order counts per store: {{message}}",
       "delete": {
         "title": "Delete store?",
-        "desc": "Store <b>{{name}}</b> will be permanently deleted.",
+        "desc": "Store <b>{{name}}</b> will be deleted.",
         "lockersHint": "Lockers (kiosks) attached to this store must be moved to another store before deleting.",
         "lockersHintCount": "Lockers (kiosks) attached to this store must be moved to another store before deleting — {{count}} locker(s) still attached.",
         "action": "Delete Store"
@@ -2620,7 +2620,7 @@
       },
       "deleteDialog": {
         "title": "Delete notification?",
-        "desc": "Notification #{{id}} «{{title}}» will be removed from the recipient's inbox. This cannot be undone."
+        "desc": "Notification #{{id}} «{{title}}» will be removed from the recipient's inbox."
       },
       "batchNoun": "notifications"
     },
@@ -2731,7 +2731,7 @@
       },
       "deleteDialog": {
         "title": "Delete promotion?",
-        "desc": "Code <b>{{code}}</b> will be permanently deleted. Codes that have been used or saved to a customer's wallet can't be deleted — deactivate them instead."
+        "desc": "Code <b>{{code}}</b> will be deleted. Codes that have been used or saved to a customer's wallet can't be deleted — deactivate them instead."
       },
       "historyDialog": {
         "title": "Can't delete a code with usage history",

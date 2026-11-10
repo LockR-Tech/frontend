@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { BatchDeleteBar, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
+import { BatchDeleteBar, DeleteReasonDialog, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
 import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { PromotionTable } from "./components/PromotionTable";
 import { PromotionModal } from "./components/PromotionModal";
@@ -112,8 +112,8 @@ export default function PromotionsPage() {
   } = usePromotions();
 
   const selection = useRowSelection(promotions);
-  const deleteIds = async (ids: number[]) => {
-    const result = await deleteMany(ids, deleteOne);
+  const deleteIds = async (ids: number[], reason: string) => {
+    const result = await deleteMany(ids, (id) => deleteOne(id, reason));
     selection.remove(result.deleted);
     return result;
   };
@@ -219,10 +219,11 @@ export default function PromotionsPage() {
             noun={t("admin.promotions.batchNoun")}
             selectedCount={selection.selectedIds.length}
             onClearSelection={selection.clear}
-            onDeleteSelected={() => deleteIds(selection.selectedIds)}
+            onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
             allCount={filteredIds.length}
-            onDeleteAll={() => deleteIds(filteredIds)}
+            onDeleteAll={(reason) => deleteIds(filteredIds, reason)}
             note={t("admin.promotions.batchNote")}
+            requireReason
           />
 
           <PromotionTable
@@ -254,7 +255,7 @@ export default function PromotionsPage() {
         isLoadingLockers={isLoadingLockers}
       />
 
-      <ConfirmActionDialog
+      <DeleteReasonDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title={t("admin.promotions.deleteDialog.title")}
@@ -268,9 +269,8 @@ export default function PromotionsPage() {
           </p>
         }
         actionLabel={t("common.delete")}
-        destructive
         loading={isDeleting}
-        onConfirm={() => void confirmDelete()}
+        onConfirm={(reason) => void confirmDelete(reason)}
       />
 
       <ConfirmActionDialog

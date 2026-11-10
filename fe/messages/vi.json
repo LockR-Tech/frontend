@@ -1075,7 +1075,7 @@
       "revenueLoadFailed": "Không tải được số tủ/số đơn theo cửa hàng: {{message}}",
       "delete": {
         "title": "Xoá cửa hàng?",
-        "desc": "Cửa hàng <b>{{name}}</b> sẽ bị xoá vĩnh viễn.",
+        "desc": "Cửa hàng <b>{{name}}</b> sẽ bị xoá.",
         "lockersHint": "Các tủ (Kiosk) đang gắn với cửa hàng này phải được chuyển sang cửa hàng khác trước khi xoá.",
         "lockersHintCount": "Các tủ (Kiosk) đang gắn với cửa hàng này phải được chuyển sang cửa hàng khác trước khi xoá — hiện còn {{count}} tủ đang gắn.",
         "action": "Xoá cửa hàng"
@@ -2620,7 +2620,7 @@
       },
       "deleteDialog": {
         "title": "Xoá thông báo?",
-        "desc": "Thông báo #{{id}} «{{title}}» sẽ bị xoá khỏi hộp thư của người nhận. Không hoàn tác được."
+        "desc": "Thông báo #{{id}} «{{title}}» sẽ bị xoá khỏi hộp thư của người nhận."
       },
       "batchNoun": "thông báo"
     },
@@ -2731,7 +2731,7 @@
       },
       "deleteDialog": {
         "title": "Xoá khuyến mãi?",
-        "desc": "Mã <b>{{code}}</b> sẽ bị xoá vĩnh viễn. Mã đã có lượt dùng hoặc đã được khách lưu vào ví không thể xoá — khi đó có thể ngưng áp dụng thay thế."
+        "desc": "Mã <b>{{code}}</b> sẽ bị xoá. Mã đã có lượt dùng hoặc đã được khách lưu vào ví không thể xoá — khi đó có thể ngưng áp dụng thay thế."
       },
       "historyDialog": {
         "title": "Không thể xoá mã đã có lịch sử",

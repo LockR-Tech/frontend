@@ -60,10 +60,12 @@ export const notificationManagementApi = baseApi.injectEndpoints({
       invalidatesTags: [TAGS.NOTIFICATIONS],
     }),
 
-    deleteNotification: builder.mutation<ApiResponse<void>, number>({
-      query: (id) => ({
+    // Xoá mềm: backend bắt buộc lý do (DELETE_REASON_REQUIRED), lưu vào deleted_reason.
+    deleteNotification: builder.mutation<ApiResponse<void>, { id: number; reason: string }>({
+      query: ({ id, reason }) => ({
         url: ADMIN_ENDPOINTS.NOTIFICATION_BY_ID(id),
         method: "DELETE",
+        params: { reason },
       }),
       invalidatesTags: [TAGS.NOTIFICATIONS],
     }),

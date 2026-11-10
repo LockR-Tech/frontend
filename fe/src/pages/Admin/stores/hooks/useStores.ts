@@ -140,10 +140,10 @@ export function useStores() {
     setIsEditModalOpen(true);
   }, []);
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (reason: string) => {
     if (!deleteTarget) return;
     try {
-      await deleteStore(deleteTarget.id).unwrap();
+      await deleteStore({ id: deleteTarget.id, reason }).unwrap();
       toast.success(t("admin.stores.toast.deleted"));
       setDeleteTarget(null);
     } catch (err) {
@@ -190,7 +190,7 @@ export function useStores() {
     stores: pagedStores,
     /// Mọi dòng khớp bộ lọc (mọi trang) — cho "Xoá tất cả".
     filteredIds: filteredStores.map((s) => s.id),
-    deleteOne: (id: number) => deleteStore(id).unwrap(),
+    deleteOne: (id: number, reason: string) => deleteStore({ id, reason }).unwrap(),
     totalElements,
     totalPages,
     isLoading,
