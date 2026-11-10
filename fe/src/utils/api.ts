@@ -1,4 +1,5 @@
 import { API_BASE_URL, AUTH_ENDPOINTS } from "~/constants/api-paths";
+import { SERVER_LANGUAGE_HEADER, serverLanguageFor } from "./server-language";
 import { getAccessToken, recoverFromUnauthorized } from "~/utils/auth-session";
 
 /**
@@ -52,6 +53,8 @@ export async function apiCall<T>(
     if (!isPublic && token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
+    const language = serverLanguageFor(endpoint);
+    if (language) headers[SERVER_LANGUAGE_HEADER] = language;
     const fetchOptions: RequestInit = { method, headers };
     if (options?.body) {
       fetchOptions.body = JSON.stringify(options.body);

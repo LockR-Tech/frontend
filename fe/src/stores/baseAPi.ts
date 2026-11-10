@@ -6,6 +6,7 @@ import type {
 } from "@reduxjs/toolkit/query";
 import { API_BASE_URL, CONTENT_TYPES } from "../constants";
 import { getAccessToken, recoverFromUnauthorized } from "../utils/auth-session";
+import { SERVER_LANGUAGE_HEADER, serverLanguageFor } from "../utils/server-language";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
@@ -14,6 +15,9 @@ const rawBaseQuery = fetchBaseQuery({
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
     }
+    // Giao diện tiếng Anh ⇒ xin backend dịch chữ server tự soạn (lỗi, ghi chú mốc, nhật ký…).
+    const language = serverLanguageFor(typeof arg === "string" ? arg : arg?.url ?? "");
+    if (language) headers.set(SERVER_LANGUAGE_HEADER, language);
     // Upload multipart (FormData): KHÔNG tự đặt Content-Type — trình duyệt phải tự sinh
     // `multipart/form-data; boundary=...`. Mọi request khác vẫn gửi JSON như cũ.
     const body = typeof arg === "string" ? undefined : arg?.body;
