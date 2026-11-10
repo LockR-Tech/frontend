@@ -207,11 +207,11 @@ export function usePromotions() {
     setEditingPromotion(null);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (reason: string) => {
     if (!deleteTarget) return;
     const target = deleteTarget;
     try {
-      await deletePromotion(target.id).unwrap();
+      await deletePromotion({ id: target.id, reason }).unwrap();
       toast.success(t("admin.promotions.toast.deleted", { code: target.code }));
       setDeleteTarget(null);
     } catch (err) {
@@ -265,7 +265,7 @@ export function usePromotions() {
     promotions: pagedPromotions,
     /// Mọi dòng khớp bộ lọc (mọi trang) — cho "Xoá tất cả".
     filteredIds: filteredPromotions.map((p) => p.id),
-    deleteOne: (id: number) => deletePromotion(id).unwrap(),
+    deleteOne: (id: number, reason: string) => deletePromotion({ id, reason }).unwrap(),
     totalElements,
     totalPages,
     isLoading,

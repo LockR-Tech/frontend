@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { missionStatusLabel } from "../drones/mission-status";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -367,7 +368,7 @@ function DroneCard({
           )}
           {drone.missionStatus && (
             <span className="text-xs text-muted-foreground self-center">
-              {t("admin.orders.detail.drone.mission", { status: drone.missionStatus })}
+              {t("admin.orders.detail.drone.mission", { status: missionStatusLabel(t, drone.missionStatus) })}
             </span>
           )}
         </div>

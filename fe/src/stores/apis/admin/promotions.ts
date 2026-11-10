@@ -166,10 +166,12 @@ export const promotionManagementApi = baseApi.injectEndpoints({
     }),
 
     // Mã đã có lượt dùng/đã lưu ví → 400 PROMOTION_HAS_HISTORY, phải chuyển INACTIVE.
-    deletePromotion: builder.mutation<ApiResponse<void>, number>({
-      query: (id) => ({
+    // Xoá mềm: backend bắt buộc lý do (DELETE_REASON_REQUIRED), lưu vào deleted_reason.
+    deletePromotion: builder.mutation<ApiResponse<void>, { id: number; reason: string }>({
+      query: ({ id, reason }) => ({
         url: ADMIN_ENDPOINTS.PROMOTION_BY_ID(id),
         method: "DELETE",
+        params: { reason },
       }),
       invalidatesTags: [TAGS.PROMOTIONS],
     }),

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { MISSION_STATUS_LABELS } from "./mission-status";
 import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
@@ -71,25 +72,6 @@ const STATUS_LABELS: Record<string, string> = {
   IN_FLIGHT: "admin.drones.status.inFlight",
   MAINTENANCE: "admin.drones.status.underMaintenance",
   FAULT: "admin.drones.status.fault",
-};
-const MISSION_STATUS_LABELS: Record<string, string> = {
-  AWAITING_LOADING: "admin.drones.missionStatus.awaitingLoading",
-  ASSIGNED: "admin.drones.missionStatus.assigned",
-  LOADING: "admin.drones.missionStatus.loading",
-  READY_TO_LAUNCH: "admin.drones.missionStatus.readyToLaunch",
-  LAUNCHING: "admin.drones.missionStatus.launching",
-  DEPARTED: "admin.drones.missionStatus.departed",
-  EN_ROUTE: "admin.drones.missionStatus.inFlight",
-  APPROACHING: "admin.drones.missionStatus.approaching",
-  IN_FLIGHT: "admin.drones.missionStatus.inFlight",
-  ARRIVED: "admin.drones.missionStatus.arrived",
-  DEPOSITED: "admin.drones.missionStatus.deposited",
-  READY_FOR_PICKUP: "admin.drones.missionStatus.readyForPickup",
-  COMPLETED: "admin.drones.missionStatus.completed",
-  CANCELED: "admin.drones.missionStatus.canceled",
-  EXPIRED: "admin.drones.missionStatus.expired",
-  FAILED: "admin.drones.missionStatus.failed",
-  DROP_REPORTED: "admin.drones.missionStatus.dropReported",
 };
 const STATUS_BADGE: Record<string, string> = {
   IDLE: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700",
@@ -466,7 +448,7 @@ export default function DroneDetailPage() {
                     </Link>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    {t("admin.drones.detail.tech.assignedHint", { name: assignedTechName })}
+                    <Trans i18nKey="admin.drones.detail.tech.assignedHint" values={{ name: assignedTechName }} components={{ b: <b className="font-semibold text-foreground" /> }} />
                   </p>
                 </div>
               ) : (

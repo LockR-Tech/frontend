@@ -67,6 +67,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import {
   useGetTechnicianPerformanceQuery,
   useGetAllAdminReportsQuery,
@@ -169,6 +170,8 @@ export default function TechnicianDetailPage() {
   const techId = Number(technicianId);
 
   const [activeTab, setActiveTab] = useState("tickets");
+  // Đình chỉ chặn đăng nhập và thu hồi phiên của KTV ⇒ luôn hỏi lại; mở khoá thì làm ngay.
+  const [suspendConfirmOpen, setSuspendConfirmOpen] = useState(false);
   const [ticketFilter, setTicketFilter] = useState<
     "ALL" | "IN_PROGRESS" | "RESOLVED" | "OVERDUE"
   >("ALL");
@@ -855,7 +858,7 @@ export default function TechnicianDetailPage() {
                 ? "border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400"
                 : "border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400"
             }`}
-            onClick={handleToggleStatus}
+            onClick={() => (technician.enabled ? setSuspendConfirmOpen(true) : void handleToggleStatus())}
             disabled={isUpdatingStatus}
           >
             {technician.enabled ? (
@@ -2503,6 +2506,17 @@ export default function TechnicianDetailPage() {
           }}
         />
       )}
+
+      <ConfirmActionDialog
+        open={suspendConfirmOpen}
+        onOpenChange={setSuspendConfirmOpen}
+        title={t("admin.maintenance.techTab.suspendConfirmTitle")}
+        description={<p>{t("admin.maintenance.techTab.suspendConfirmDesc", { name: technician.fullName })}</p>}
+        actionLabel={t("admin.maintenance.techDetail.suspendTech")}
+        destructive
+        loading={isUpdatingStatus}
+        onConfirm={() => void handleToggleStatus().finally(() => setSuspendConfirmOpen(false))}
+      />
     </div>
   );
 }

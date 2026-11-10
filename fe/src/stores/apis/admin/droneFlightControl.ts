@@ -90,8 +90,13 @@ export const droneFlightControlApi = baseApi.injectEndpoints({
         { type: TAG, id: "logs" },
       ],
     }),
-    resumeStation: builder.mutation<ApiResponse<null>, number>({
-      query: (lockerId) => ({ url: `${BASE}/stations/${lockerId}/suspension`, method: "DELETE" }),
+    // `note` không bắt buộc: lưu vào dòng RESUME của lịch sử dừng / mở trạm.
+    resumeStation: builder.mutation<ApiResponse<null>, { lockerId: number; note?: string }>({
+      query: ({ lockerId, note }) => ({
+        url: `${BASE}/stations/${lockerId}/suspension`,
+        method: "DELETE",
+        params: note ? { note } : undefined,
+      }),
       invalidatesTags: [
         { type: TAG, id: "stations" },
         { type: TAG, id: "logs" },

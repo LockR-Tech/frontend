@@ -27,6 +27,7 @@ import {
 import type { DroneLockerWeather } from "~/stores/apis/admin/droneOrders";
 import { WeatherSummary } from "../drone-orders/WeatherPanels";
 import { getApiErrorMessage } from "../settings/setting-utils";
+import { ReasonConfirmDialog } from "~/components/shared/data-table";
 import { SUSPENSION_REASONS, reasonLabel, vietnamInputToUtc } from "./labels";
 
 // Server nhớ dự báo 5 phút: làm mới mỗi 5 phút là đủ.
@@ -42,14 +43,17 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
   const { data, isLoading, isFetching, isError, refetch } = stations;
   const [resumeStation, { isLoading: resuming }] = useResumeStationMutation();
   const [target, setTarget] = useState<DroneLockerWeather | null>(null);
+  // Mở lại trạm cho drone bay tiếp ⇒ hỏi lại như khi dừng, kèm ghi chú (không bắt buộc).
+  const [resumeTarget, setResumeTarget] = useState<DroneLockerWeather | null>(null);
   const { data: blockCounts } = useGetFlightBlockSummaryByStationQuery(24, { pollingInterval: REFRESH_MS });
   // Trạm không bay được (trời xấu hoặc đang dừng) lên đầu để admin thấy ngay.
   const grounded = (station: DroneLockerWeather) => Boolean(station.suspension) || station.weather?.safe === false;
   const list = [...(data?.data ?? [])].sort((a, b) => Number(grounded(b)) - Number(grounded(a)));
 
-  const resume = async (station: DroneLockerWeather) => {
+  const resume = async (station: DroneLockerWeather, note: string) => {
     try {
-      await resumeStation(station.lockerId).unwrap();
+      await resumeStation({ lockerId: station.lockerId, note: note || undefined }).unwrap();
+      setResumeTarget(null);
       toast.success(t("admin.flightControl.stations.resumed", { name: stationName(station) }));
     } catch (err) {
       toast.error(getApiErrorMessage(err, t("admin.flightControl.stations.actionFailed")));
@@ -108,7 +112,7 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
                 ) : null}
                 <div className="mt-auto flex justify-end">
                   {station.suspension ? (
-                    <Button size="sm" variant="outline" onClick={() => resume(station)} disabled={resuming}>
+                    <Button size="sm" variant="outline" onClick={() => setResumeTarget(station)} disabled={resuming}>
                       <PlayCircle className="h-4 w-4" />
                       {t("admin.flightControl.stations.resume")}
                     </Button>
@@ -130,6 +134,24 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
         )}
       </CardContent>
       <SuspendStationDialog station={target} onClose={() => setTarget(null)} />
+      <ReasonConfirmDialog
+        open={resumeTarget !== null}
+        onOpenChange={(open) => !open && setResumeTarget(null)}
+        title={t("admin.flightControl.resumeDialog.title", { name: resumeTarget ? stationName(resumeTarget) : "" })}
+        description={
+          <>
+            <p>{t("admin.flightControl.resumeDialog.description")}</p>
+            {resumeTarget?.weather?.safe === false && (
+              <p className="font-medium text-amber-700">{t("admin.flightControl.resumeDialog.unsafeWeather")}</p>
+            )}
+          </>
+        }
+        reasonLabel={t("admin.flightControl.resumeDialog.noteLabel")}
+        placeholder={t("admin.flightControl.resumeDialog.notePlaceholder")}
+        actionLabel={t("admin.flightControl.stations.resume")}
+        loading={resuming}
+        onConfirm={(note) => resumeTarget && void resume(resumeTarget, note)}
+      />
     </Card>
   );
 }

@@ -207,7 +207,7 @@
       "settings": "Cài đặt",
       "maintenance": "Bảo trì, sự cố thiết bị",
       "technicians": "Đội ngũ KTV",
-      "drones": "Drone",
+      "drones": "Đội bay",
       "droneOrders": "Hành trình drone",
       "droneIncidents": "Sự cố rơi kiện",
       "businessSettings": "Cấu hình nghiệp vụ",
@@ -1075,7 +1075,7 @@
       "revenueLoadFailed": "Không tải được số tủ/số đơn theo cửa hàng: {{message}}",
       "delete": {
         "title": "Xoá cửa hàng?",
-        "desc": "Cửa hàng <b>{{name}}</b> sẽ bị xoá vĩnh viễn.",
+        "desc": "Cửa hàng <b>{{name}}</b> sẽ bị xoá.",
         "lockersHint": "Các tủ (Kiosk) đang gắn với cửa hàng này phải được chuyển sang cửa hàng khác trước khi xoá.",
         "lockersHintCount": "Các tủ (Kiosk) đang gắn với cửa hàng này phải được chuyển sang cửa hàng khác trước khi xoá — hiện còn {{count}} tủ đang gắn.",
         "action": "Xoá cửa hàng"
@@ -2620,7 +2620,7 @@
       },
       "deleteDialog": {
         "title": "Xoá thông báo?",
-        "desc": "Thông báo #{{id}} «{{title}}» sẽ bị xoá khỏi hộp thư của người nhận. Không hoàn tác được."
+        "desc": "Thông báo #{{id}} «{{title}}» sẽ bị xoá khỏi hộp thư của người nhận."
       },
       "batchNoun": "thông báo"
     },
@@ -2731,7 +2731,7 @@
       },
       "deleteDialog": {
         "title": "Xoá khuyến mãi?",
-        "desc": "Mã <b>{{code}}</b> sẽ bị xoá vĩnh viễn. Mã đã có lượt dùng hoặc đã được khách lưu vào ví không thể xoá — khi đó có thể ngưng áp dụng thay thế."
+        "desc": "Mã <b>{{code}}</b> sẽ bị xoá. Mã đã có lượt dùng hoặc đã được khách lưu vào ví không thể xoá — khi đó có thể ngưng áp dụng thay thế."
       },
       "historyDialog": {
         "title": "Không thể xoá mã đã có lịch sử",
@@ -3474,6 +3474,16 @@
       },
       "batchNoun": "drone",
       "batchNote": "Drone đang giữ chỗ hoặc đang bay sẽ không xoá được.",
+      "statusDialog": {
+        "maintenanceTitle": "Chuyển drone {{code}} sang bảo trì?",
+        "maintenanceDesc": "Drone bảo trì không được điều phối cho đơn mới cho tới khi kích hoạt lại.",
+        "reasonLabel": "Lý do bảo trì",
+        "reasonPlaceholder": "VD: thay cánh quạt, hiệu chuẩn la bàn…",
+        "activateTitle": "Kích hoạt lại drone {{code}}?",
+        "activateDesc": "Drone trở về trạng thái sẵn sàng và có thể được điều phối cho đơn mới.",
+        "noteLabel": "Ghi chú",
+        "notePlaceholder": "VD: đã thay cánh quạt, bay thử ổn (không bắt buộc)"
+      },
       "hardware": {
         "online": "Trực tuyến",
         "offline": "Ngoại tuyến",
@@ -3607,7 +3617,10 @@
             "armed": "Khởi động động cơ (ARMED)",
             "disarmed": "Khóa an toàn (DISARMED)",
             "flightModeChanged": "Đổi chế độ bay",
-            "failsafeTriggered": "Kích hoạt Failsafe"
+            "failsafeTriggered": "Kích hoạt Failsafe",
+            "hardwareAttach": "Gắn bộ điều khiển Pi",
+            "hardwareDetach": "Gỡ bộ điều khiển Pi",
+            "hardwareFault": "Lỗi phần cứng"
           },
           "result": {
             "connected": "Đã kết nối",
@@ -3638,7 +3651,9 @@
           "actor": {
             "technician": "Kỹ thuật viên",
             "user": "Người dùng",
-            "piSystem": "Hệ thống Pi"
+            "piSystem": "Hệ thống Pi",
+            "userId": "Người dùng #{{id}}",
+            "server": "Máy chủ"
           }
         },
         "detail": {
@@ -3656,6 +3671,27 @@
     "droneIncidents": {
       "title": "Sự cố rơi kiện Drone",
       "description": "Theo dõi điều phối thu hồi, kiểm tra drone, bằng chứng và phương án xử lý cho khách hàng.",
+      "codes": {
+        "gpsSource": {
+          "telemetry": "telemetry drone",
+          "manualDevice": "GPS thiết bị người báo",
+          "flightPath": "theo đường bay",
+          "estimatedRoute": "ước theo chặng",
+          "fallbackDefault": "vị trí mặc định"
+        },
+        "outcome": {
+          "found": "Tìm thấy",
+          "notFound": "Không tìm thấy",
+          "unsafe": "Không an toàn để thu hồi"
+        },
+        "condition": {
+          "intact": "Nguyên vẹn",
+          "minorDamage": "Hư hỏng nhẹ",
+          "majorDamage": "Hư hỏng nặng",
+          "unusable": "Không dùng được",
+          "unknown": "Chưa rõ"
+        }
+      },
       "orderChip": "Đơn {{code}}",
       "emptyForOrder": "Chưa thấy sự cố của đơn {{code}} — sự cố có thể đang được tạo, bấm Làm mới sau ít giây.",
       "empty": "Không có sự cố trong nhóm này.",
@@ -5415,6 +5451,8 @@
         "busy": "🔵 Đang xử lý ({{count}} việc)",
         "assign": "Giao việc",
         "suspendThis": "Đình chỉ KTV này",
+        "suspendConfirmTitle": "Đình chỉ KTV này?",
+        "suspendConfirmDesc": "{{name}} sẽ bị thu hồi phiên đăng nhập và không đăng nhập lại được cho tới khi được mở khoá.",
         "unlock": "Mở khóa KTV"
       },
       "repairLog": {
@@ -6170,6 +6208,13 @@
     "flightControl": {
       "title": "Thời tiết & điều khiển bay",
       "description": "Theo dõi thời tiết từng trạm, tạm dừng bay toàn hệ thống hoặc từng trạm, xem lịch sử chặn bay và chỉnh ngưỡng thời tiết.",
+      "resumeDialog": {
+        "title": "Mở lại bay ở {{name}}?",
+        "description": "Đơn drone đang bị chặn vì trạm dừng sẽ được soát lại ngay và có thể bay tiếp.",
+        "unsafeWeather": "Thời tiết ở trạm hiện vượt ngưỡng an toàn — đơn vẫn bị chặn theo thời tiết cho tới khi trời ổn.",
+        "noteLabel": "Ghi chú",
+        "notePlaceholder": "VD: đã kiểm tra bãi đáp, trời đã tạnh (không bắt buộc)"
+      },
       "global": {
         "title": "Tạm dừng bay toàn hệ thống",
         "loading": "Đang tải…",
@@ -6323,7 +6368,9 @@
         "warning": "Đang bật: camera chỉ thử nắp, không xử lý giao hàng của đơn. Nắp quay motor thật — luôn có người đứng cạnh tủ. Đưa mã ra khỏi camera ít nhất 2 giây trước khi thử lần tiếp theo.",
         "toastOn": "Đã bật chế độ thử nắp theo mã ArUco",
         "toastOff": "Đã tắt chế độ thử nắp",
-        "toastError": "Không đổi được chế độ thử nắp — thử lại"
+        "toastError": "Không đổi được chế độ thử nắp — thử lại",
+        "confirmTitle": "Bật chế độ thử nắp trượt?",
+        "confirmAction": "Bật chế độ thử"
       },
       "group": {
         "messageCount": "{{count}} thông điệp",
@@ -6576,7 +6623,12 @@
         "awaitingDispatch": "Chờ điều phối",
         "completed": "Hoàn thành",
         "canceled": "Đã huỷ",
-        "returned": "Đã trả (cũ)"
+        "returned": "Đã trả (cũ)",
+        "ready": "Sẵn sàng (cũ)",
+        "waiting": "Đang chờ (cũ)",
+        "reserved": "Đã giữ chỗ (cũ)",
+        "collected": "Đã thu gom (cũ)",
+        "processing": "Đang xử lý (cũ)"
       },
       "orderType": {
         "send": "Gửi hàng",
@@ -6834,6 +6886,15 @@
     },
     "route": {
       "checkingAccess": "Đang kiểm tra quyền truy cập..."
+    },
+    "serverNote": {
+      "droppedParcel": "Báo sự cố rơi kiện {{value}}",
+      "senderDropped": "Người gửi đã bỏ kiện; đã cấp mã nhận hàng cho người nhận {{value}}",
+      "renterPlaced": "Người thuê đã cất đồ; mã mở ô dùng được nhiều lần tới hết hạn thuê",
+      "customerDropped": "Khách xác nhận đã bỏ đồ vào tủ",
+      "checkedOutByStaff": "Nhân viên đã kết thúc đơn",
+      "rentalEnded": "Kết thúc thuê, đã nhả ô",
+      "storagePickedUp": "Đã lấy đồ gửi giữ"
     }
   },
   "errorPage": {

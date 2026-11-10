@@ -5,3 +5,4 @@ export { BatchDeleteBar } from "./BatchDelete";
 export { DeleteReasonDialog } from "./DeleteReasonDialog";
 export { useRowSelection } from "./useRowSelection";
 export { deleteMany, type DeleteManyResult } from "./delete-many";
+export { ReasonConfirmDialog } from "./ReasonConfirmDialog";

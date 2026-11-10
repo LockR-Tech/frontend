@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { localizeServerNote } from "~/lib/server-note";
 import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -896,7 +897,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                           )}
                         </p>
                         {event.note && (
-                          <p className="text-xs text-muted-foreground">{event.note}</p>
+                          <p className="text-xs text-muted-foreground">{localizeServerNote(event.note)}</p>
                         )}
                         <p className="font-mono text-[11px] text-muted-foreground">
                           {formatDateTime(event.occurredAt)} ·{" "}

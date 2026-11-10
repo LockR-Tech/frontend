@@ -50,6 +50,7 @@ import { formatDateTime } from "~/lib/datetime";
 import { useWebSocket } from "~/hooks/useWebSocket";
 import type { TechnicianSummary } from "./technician-detail";
 import { isDroneReport } from "./maintenancePhotos";
+import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 
 interface TechniciansTabProps {
   onAssignToTech?: (techId: number, specialty: "KIOSK" | "DRONE") => void;
@@ -78,6 +79,8 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
+  // Đình chỉ chặn đăng nhập và thu hồi phiên của KTV ⇒ luôn hỏi lại; mở khoá thì làm ngay.
+  const [suspendTarget, setSuspendTarget] = useState<TechnicianSummary | null>(null);
   const [penaltyFilter, setPenaltyFilter] = useState("ALL");
   const [specialtyFilter, setSpecialtyFilter] = useState<"ALL" | "KIOSK" | "DRONE">("ALL");
   const [shiftFilter, setShiftFilter] = useState<"ALL" | "ON_DUTY" | "OFF_DUTY">("ALL");
@@ -845,7 +848,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                               ? "border-rose-200 text-rose-700 hover:bg-rose-50"
                               : "bg-emerald-600 text-white hover:bg-emerald-700"
                           }`}
-                          onClick={() => handleToggleStatus(tech)}
+                          onClick={() => (tech.enabled ? setSuspendTarget(tech) : void handleToggleStatus(tech))}
                           disabled={isUpdatingStatus}
                           title={tech.enabled ? t("admin.maintenance.techTab.suspendThis") : t("admin.maintenance.techTab.unlock")}
                         >
@@ -860,6 +863,20 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmActionDialog
+        open={suspendTarget !== null}
+        onOpenChange={(open) => !open && setSuspendTarget(null)}
+        title={t("admin.maintenance.techTab.suspendConfirmTitle")}
+        description={<p>{t("admin.maintenance.techTab.suspendConfirmDesc", { name: suspendTarget?.fullName })}</p>}
+        actionLabel={t("admin.maintenance.techTab.suspendThis")}
+        destructive
+        loading={isUpdatingStatus}
+        onConfirm={() => {
+          const target = suspendTarget;
+          if (target) void handleToggleStatus(target).finally(() => setSuspendTarget(null));
+        }}
+      />
     </div>
   );
 }

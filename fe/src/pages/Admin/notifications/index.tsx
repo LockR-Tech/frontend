@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Megaphone } from "lucide-react";
 import { Card, CardContent } from "~/components/ui/card";
-import { BatchDeleteBar, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
+import { BatchDeleteBar, DeleteReasonDialog, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
 import { NotificationTable } from "./components/NotificationTable";
 import { NotificationStats } from "./components/NotificationStats";
 import { BroadcastModal } from "./components/BroadcastModal";
@@ -56,15 +55,15 @@ export default function NotificationsPage() {
   } = useNotifications();
 
   const selection = useRowSelection(notifications);
-  const deleteIds = async (ids: number[]) => {
-    const result = await deleteMany(ids, deleteOne);
+  const deleteIds = async (ids: number[], reason: string) => {
+    const result = await deleteMany(ids, (id) => deleteOne(id, reason));
     selection.remove(result.deleted);
     return result;
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (reason: string) => {
     if (!deleteTarget) return;
-    if (await handleDelete(deleteTarget.id)) setDeleteTarget(null);
+    if (await handleDelete(deleteTarget.id, reason)) setDeleteTarget(null);
   };
 
   return (
@@ -167,9 +166,10 @@ export default function NotificationsPage() {
             noun={t("admin.notifications.batchNoun")}
             selectedCount={selection.selectedIds.length}
             onClearSelection={selection.clear}
-            onDeleteSelected={() => deleteIds(selection.selectedIds)}
+            onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
             allCount={filteredIds.length}
-            onDeleteAll={() => deleteIds(filteredIds)}
+            onDeleteAll={(reason) => deleteIds(filteredIds, reason)}
+            requireReason
           />
 
           <NotificationTable
@@ -200,7 +200,7 @@ export default function NotificationsPage() {
         onClose={() => setShowCreateModal(false)}
       />
 
-      <ConfirmActionDialog
+      <DeleteReasonDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title={t("admin.notifications.deleteDialog.title")}
@@ -213,9 +213,8 @@ export default function NotificationsPage() {
           </p>
         }
         actionLabel={t("common.delete")}
-        destructive
         loading={isDeleting}
-        onConfirm={() => void confirmDelete()}
+        onConfirm={(reason) => void confirmDelete(reason)}
       />
     </div>
   );

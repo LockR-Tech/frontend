@@ -2,8 +2,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
-import { BatchDeleteBar, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
-import { ConfirmActionDialog } from "~/pages/Admin/knowledge/ConfirmActionDialog";
+import { BatchDeleteBar, DeleteReasonDialog, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
 import { StoreTable } from "./components/StoreTable";
 import { StoreFilters } from "./components/StoreFilters";
 import { StoreModal } from "./components/StoreModal";
@@ -50,8 +49,8 @@ export default function StoresPage() {
   } = useStores();
 
   const selection = useRowSelection(stores);
-  const deleteIds = async (ids: number[]) => {
-    const result = await deleteMany(ids, deleteOne);
+  const deleteIds = async (ids: number[], reason: string) => {
+    const result = await deleteMany(ids, (id) => deleteOne(id, reason));
     selection.remove(result.deleted);
     return result;
   };
@@ -103,10 +102,11 @@ export default function StoresPage() {
             noun={t("admin.stores.batchNoun")}
             selectedCount={selection.selectedIds.length}
             onClearSelection={selection.clear}
-            onDeleteSelected={() => deleteIds(selection.selectedIds)}
+            onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
             allCount={filteredIds.length}
-            onDeleteAll={() => deleteIds(filteredIds)}
+            onDeleteAll={(reason) => deleteIds(filteredIds, reason)}
             note={t("admin.stores.batchNote")}
+            requireReason
           />
 
           <StoreTable
@@ -141,7 +141,7 @@ export default function StoresPage() {
         mode="edit"
       />
 
-      <ConfirmActionDialog
+      <DeleteReasonDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title={t("admin.stores.delete.title")}
@@ -162,9 +162,8 @@ export default function StoresPage() {
           </>
         }
         actionLabel={t("admin.stores.delete.action")}
-        destructive
         loading={isDeleting}
-        onConfirm={() => void confirmDelete()}
+        onConfirm={(reason) => void confirmDelete(reason)}
       />
     </div>
   );

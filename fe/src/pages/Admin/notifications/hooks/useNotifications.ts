@@ -186,9 +186,9 @@ export function useNotifications() {
   };
 
   /** Trả true khi xoá được (để đóng hộp xác nhận). */
-  const handleDelete = async (id: number): Promise<boolean> => {
+  const handleDelete = async (id: number, reason: string): Promise<boolean> => {
     try {
-      await deleteNotification(id).unwrap();
+      await deleteNotification({ id, reason }).unwrap();
       toast.success(t("admin.notifications.toast.deleted"));
       return true;
     } catch (err) {
@@ -227,7 +227,7 @@ export function useNotifications() {
     notifications: pagedNotifications,
     /// Mọi thông báo khớp bộ lọc (mọi trang) — cho "Xoá tất cả".
     filteredIds: filteredNotifications.map((n) => n.id),
-    deleteOne: (id: number) => deleteNotification(id).unwrap(),
+    deleteOne: (id: number, reason: string) => deleteNotification({ id, reason }).unwrap(),
     totalElements,
     totalPages,
     stats,

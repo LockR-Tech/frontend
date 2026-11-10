@@ -35,7 +35,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { PageHeader } from "~/components/shared/page-header";
-import { BatchDeleteBar, DeleteReasonDialog, deleteMany } from "~/components/shared/data-table";
+import { BatchDeleteBar, DeleteReasonDialog, ReasonConfirmDialog, deleteMany } from "~/components/shared/data-table";
 import {
   useGetDronesQuery,
   useCreateDroneMutation,
@@ -126,6 +126,8 @@ export default function DronesPage() {
   const [decommissionDrone, decommissionState] = useDecommissionDroneMutation();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; code: string } | null>(null);
+  // Bảo trì / kích hoạt lại luôn qua hộp xác nhận; lý do đi vào nhật ký drone ("Chuyển trạng thái … — lý do").
+  const [statusTarget, setStatusTarget] = useState<(typeof drones)[number] | null>(null);
 
   const technicianNameById = useMemo(() => {
     const m = new Map<number, string>();
@@ -194,19 +196,25 @@ export default function DronesPage() {
     setFormOpen(true);
   };
 
-  const toggleMaintenance = async (drone: (typeof drones)[number]) => {
-    const maintenanceEnabled = drone.status === "MAINTENANCE";
+  const askToggleMaintenance = (drone: (typeof drones)[number]) => {
     if (["RESERVED", "IN_FLIGHT"].includes(drone.status)) {
       toast.warning(t("admin.drones.toast.busyTitle"), {
         description: t("admin.drones.toast.busyDescription"),
       });
       return;
     }
+    setStatusTarget(drone);
+  };
+
+  const toggleMaintenance = async (drone: (typeof drones)[number], reason: string) => {
+    const maintenanceEnabled = drone.status === "MAINTENANCE";
     try {
       await updateDroneStatus({
         id: drone.id,
         status: maintenanceEnabled ? "IDLE" : "MAINTENANCE",
+        reason,
       }).unwrap();
+      setStatusTarget(null);
       toast.success(
         maintenanceEnabled
           ? t("admin.drones.toast.reactivated")
@@ -442,7 +450,7 @@ export default function DronesPage() {
                           : "text-amber-600 hover:text-amber-700"
                       }
                       disabled={statusState.isLoading || d.status === "FAULT"}
-                      onClick={() => toggleMaintenance(d)}
+                      onClick={() => askToggleMaintenance(d)}
                     >
                       {d.status === "MAINTENANCE" ? (
                         <Power className="mr-1 h-3.5 w-3.5" />
@@ -472,6 +480,40 @@ export default function DronesPage() {
         </div>
       )}
       </div>
+
+      <ReasonConfirmDialog
+        open={statusTarget !== null}
+        onOpenChange={(open) => !open && setStatusTarget(null)}
+        title={t(
+          statusTarget?.status === "MAINTENANCE"
+            ? "admin.drones.statusDialog.activateTitle"
+            : "admin.drones.statusDialog.maintenanceTitle",
+          { code: statusTarget?.code },
+        )}
+        description={
+          <p>
+            {t(
+              statusTarget?.status === "MAINTENANCE"
+                ? "admin.drones.statusDialog.activateDesc"
+                : "admin.drones.statusDialog.maintenanceDesc",
+            )}
+          </p>
+        }
+        reasonLabel={t(
+          statusTarget?.status === "MAINTENANCE"
+            ? "admin.drones.statusDialog.noteLabel"
+            : "admin.drones.statusDialog.reasonLabel",
+        )}
+        placeholder={t(
+          statusTarget?.status === "MAINTENANCE"
+            ? "admin.drones.statusDialog.notePlaceholder"
+            : "admin.drones.statusDialog.reasonPlaceholder",
+        )}
+        required={statusTarget?.status !== "MAINTENANCE"}
+        actionLabel={t(statusTarget?.status === "MAINTENANCE" ? "dropdown.activate" : "dropdown.maintenance")}
+        loading={statusState.isLoading}
+        onConfirm={(reason) => statusTarget && void toggleMaintenance(statusTarget, reason)}
+      />
 
       <DeleteReasonDialog
         open={deleteTarget !== null}

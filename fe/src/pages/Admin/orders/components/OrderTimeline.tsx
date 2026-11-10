@@ -2,6 +2,7 @@ import { ArrowRight, CircleDashed, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MetaBadge, orderStatusMeta } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
+import { localizeServerNote } from "~/lib/server-note";
 import type { AdminOrderTimelineEntry } from "~/types/admin/reporting";
 import { HistoryLocation } from "./HistoryLocation";
 
@@ -57,7 +58,7 @@ export function OrderTimeline({ timeline }: OrderTimelineProps) {
               </p>
             )}
             {entry.note && (
-              <p className="text-xs text-foreground/80">{entry.note}</p>
+              <p className="text-xs text-foreground/80">{localizeServerNote(entry.note)}</p>
             )}
             <HistoryLocation
               latitude={entry.latitude}

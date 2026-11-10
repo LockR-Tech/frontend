@@ -94,13 +94,25 @@ const ORDER_STATUS_META: Record<string, MetaDef> = {
   AWAITING_DISPATCH: { labelKey: "shared.reportMeta.orderStatus.awaitingDispatch", style: VIOLET, icon: Plane },
   COMPLETED: { labelKey: "shared.reportMeta.orderStatus.completed", style: GREEN, icon: CheckCircle2 },
   CANCELED: { labelKey: "shared.reportMeta.orderStatus.canceled", style: RED, icon: XCircle },
-  // Giá trị cũ còn sót trong dữ liệu lịch sử.
+  // Giá trị cũ còn sót trong dữ liệu lịch sử (luồng giặt ủi đã bỏ).
   RETURNED: { labelKey: "shared.reportMeta.orderStatus.returned", style: NEUTRAL, icon: PackageCheck },
+  READY: { labelKey: "shared.reportMeta.orderStatus.ready", style: NEUTRAL, icon: PackageCheck },
+  WAITING: { labelKey: "shared.reportMeta.orderStatus.waiting", style: NEUTRAL, icon: Hourglass },
+  RESERVED: { labelKey: "shared.reportMeta.orderStatus.reserved", style: NEUTRAL, icon: Clock },
+  COLLECTED: { labelKey: "shared.reportMeta.orderStatus.collected", style: NEUTRAL, icon: Package },
+  PROCESSING: { labelKey: "shared.reportMeta.orderStatus.processing", style: NEUTRAL, icon: Clock },
 };
 
+/**
+ * Nhãn trạng thái đơn. Lịch sử đơn drone ghi cả chặng giao (PICKUP_ASSIGNED, PICKED_UP, DROP_REPORTED,
+ * READY_FOR_PICKUP…) vào cột trạng thái, nên mã không phải trạng thái đơn thì tra tiếp bảng chặng giao
+ * thay vì hiện mã thô.
+ */
 export function orderStatusMeta(
   status: AdminOrderStatus | string | null | undefined,
 ): BadgeMeta {
+  const key = status ?? "";
+  if (!ORDER_STATUS_META[key] && DELIVERY_STAGE_META[key]) return resolveMeta(DELIVERY_STAGE_META, key);
   return resolveMeta(ORDER_STATUS_META, status);
 }
 
@@ -131,8 +143,8 @@ export function orderPaymentStatusMeta(
 }
 
 const DELIVERY_STAGE_META: Record<string, MetaDef> = {
-    PICKUP_ASSIGNED: { labelKey: "shared.reportMeta.deliveryStage.pickupAssigned", style: VIOLET, icon: Route },
-    PICKED_UP: { labelKey: "shared.reportMeta.deliveryStage.pickedUp", style: BLUE, icon: PackageCheck },
+  PICKUP_ASSIGNED: { labelKey: "shared.reportMeta.deliveryStage.pickupAssigned", style: VIOLET, icon: Route },
+  PICKED_UP: { labelKey: "shared.reportMeta.deliveryStage.pickedUp", style: BLUE, icon: PackageCheck },
   AWAITING_DISPATCH: { labelKey: "shared.reportMeta.deliveryStage.awaitingDispatch", style: MUTED, icon: Hourglass },
   ACCEPTED: { labelKey: "shared.reportMeta.deliveryStage.accepted", style: NEUTRAL, icon: CheckCircle2 },
   LAUNCHING: { labelKey: "shared.reportMeta.deliveryStage.launching", style: BLUE, icon: Plane },
