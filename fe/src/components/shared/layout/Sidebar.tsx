@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { getRoleLabel } from "~/constants/roles";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   ChevronDown,
@@ -74,7 +75,10 @@ export function Sidebar({
   const displayName = userName !== "Admin" ? userName : (user?.fullName || userName);
   // Không bịa email: tài khoản chưa có email thì ẩn dòng này
   const displayEmail = user?.email?.trim() || null;
-  const displayRole = Array.isArray(user?.role) ? user.role.join(", ") : (user?.role || t("shared.roles.admin"));
+  // Nhãn vai trò theo ngôn ngữ đang chọn (không hiện mã DRONE_TECHNICIAN…); ADMIN đứng đầu.
+  const roles = (Array.isArray(user?.role) ? user.role : user?.role ? [user.role] : []).slice()
+    .sort((a, b) => Number(/ADMIN$/i.test(b)) - Number(/ADMIN$/i.test(a)));
+  const displayRole = roles.length ? roles.map(getRoleLabel).join(", ") : t("shared.roles.admin");
 
   // Tự động đóng sidebar mobile khi chuyển trang
   useEffect(() => {

@@ -207,7 +207,7 @@
       "settings": "Settings",
       "maintenance": "Maintenance & Device Incidents",
       "technicians": "Technicians",
-      "drones": "Drones",
+      "drones": "Fleet",
       "droneOrders": "Drone journeys",
       "droneIncidents": "Dropped parcel incidents",
       "businessSettings": "Business rules",
@@ -3474,6 +3474,16 @@
       },
       "batchNoun": "drones",
       "batchNote": "Drones that are reserved or in flight cannot be deleted.",
+      "statusDialog": {
+        "maintenanceTitle": "Put drone {{code}} into maintenance?",
+        "maintenanceDesc": "A drone in maintenance is not dispatched to new orders until it is reactivated.",
+        "reasonLabel": "Maintenance reason",
+        "reasonPlaceholder": "E.g. replace propellers, calibrate compass…",
+        "activateTitle": "Reactivate drone {{code}}?",
+        "activateDesc": "The drone returns to ready and can be dispatched to new orders.",
+        "noteLabel": "Note",
+        "notePlaceholder": "E.g. propellers replaced, test flight OK (optional)"
+      },
       "hardware": {
         "online": "Online",
         "offline": "Offline",
@@ -3607,7 +3617,10 @@
             "armed": "Motors armed (ARMED)",
             "disarmed": "Safety lock (DISARMED)",
             "flightModeChanged": "Flight mode changed",
-            "failsafeTriggered": "Failsafe triggered"
+            "failsafeTriggered": "Failsafe triggered",
+            "hardwareAttach": "Pi controller attached",
+            "hardwareDetach": "Pi controller detached",
+            "hardwareFault": "Hardware fault"
           },
           "result": {
             "connected": "Connected",
@@ -3638,7 +3651,9 @@
           "actor": {
             "technician": "Technician",
             "user": "User",
-            "piSystem": "Pi system"
+            "piSystem": "Pi system",
+            "userId": "User #{{id}}",
+            "server": "Server"
           }
         },
         "detail": {
@@ -5436,6 +5451,8 @@
         "busy": "🔵 Working ({{count}} job(s))",
         "assign": "Assign",
         "suspendThis": "Suspend this technician",
+        "suspendConfirmTitle": "Suspend this technician?",
+        "suspendConfirmDesc": "{{name}} will lose their sign-in sessions and cannot sign in again until unlocked.",
         "unlock": "Unlock technician"
       },
       "repairLog": {
@@ -6191,6 +6208,13 @@
     "flightControl": {
       "title": "Weather & flight control",
       "description": "Watch the weather at each station, pause flights system-wide or per station, review flight blocks and tune weather limits.",
+      "resumeDialog": {
+        "title": "Resume flights at {{name}}?",
+        "description": "Drone orders blocked by this station stop are re-checked right away and may fly again.",
+        "unsafeWeather": "Weather at this station is currently beyond the safety limits — orders stay blocked by weather until it clears.",
+        "noteLabel": "Note",
+        "notePlaceholder": "E.g. landing pad checked, rain has stopped (optional)"
+      },
       "global": {
         "title": "Pause all drone flights",
         "loading": "Loading…",
@@ -6345,7 +6369,9 @@
         "warning": "While on, the camera only tests lids and does not handle order deliveries. The lid turns a real motor — always have someone next to the locker. Move the marker out of view for at least 2 seconds before the next test.",
         "toastOn": "ArUco lid test mode turned on",
         "toastOff": "Lid test mode turned off",
-        "toastError": "Could not change the lid test mode — try again"
+        "toastError": "Could not change the lid test mode — try again",
+        "confirmTitle": "Turn on sliding-lid test mode?",
+        "confirmAction": "Turn on test mode"
       },
       "group": {
         "messageCount_one": "{{count}} message",

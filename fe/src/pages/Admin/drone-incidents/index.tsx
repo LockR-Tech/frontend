@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { gpsSourceLabel, parcelConditionLabel, recoveryOutcomeLabel } from "./incident-labels";
 import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useSearchParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
@@ -741,13 +742,14 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
               <Badge variant="outline" className="text-xs bg-white">
                 {t("admin.droneIncidents.listPage.fieldReport.outcome", {
                   outcome:
-                    incident.recoveryOutcome ??
+                    recoveryOutcomeLabel(t, incident.recoveryOutcome) ??
                     t("admin.droneIncidents.listPage.unknown"),
                 })}
               </Badge>
-              {incident.parcelCondition && (
+              {/* Không tìm thấy kiện thì tình trạng luôn là UNKNOWN — không hiện thêm. */}
+              {incident.parcelCondition && !(incident.parcelCondition === "UNKNOWN" && incident.recoveryOutcome !== "FOUND") && (
                 <Badge variant="secondary" className="text-xs">
-                  {incident.parcelCondition}
+                  {parcelConditionLabel(t, incident.parcelCondition)}
                 </Badge>
               )}
             </div>

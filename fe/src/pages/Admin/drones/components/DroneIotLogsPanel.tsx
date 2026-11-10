@@ -112,7 +112,28 @@ const EVENT_TYPE_LABELS: Record<string, { labelKey: string; icon: React.ElementT
   DISARMED: { labelKey: "admin.drones.hardware.iot.event.disarmed", icon: CheckCircle2 },
   FLIGHT_MODE_CHANGED: { labelKey: "admin.drones.hardware.iot.event.flightModeChanged", icon: Compass },
   FAILSAFE_TRIGGERED: { labelKey: "admin.drones.hardware.iot.event.failsafeTriggered", icon: AlertTriangle },
+  // Gán / gỡ bộ điều khiển Pi (locker-service ghi khi admin gắn thiết bị).
+  HARDWARE_ATTACH: { labelKey: "admin.drones.hardware.iot.event.hardwareAttach", icon: Cpu },
+  HARDWARE_DETACH: { labelKey: "admin.drones.hardware.iot.event.hardwareDetach", icon: Unplug },
+  HARDWARE_FAULT: { labelKey: "admin.drones.hardware.iot.event.hardwareFault", icon: AlertTriangle },
+  // Dữ liệu cũ: bản Pi trước ghi "ARUCO_DETECTED" thay cho DETECT_TARGET.
+  ARUCO_DETECTED: { labelKey: "admin.drones.hardware.iot.event.detectTarget", icon: Scan },
 };
+
+function humanizeCode(code: string | null | undefined) {
+  if (!code) return "—";
+  const words = code.toLowerCase().split("_").filter(Boolean).join(" ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/// Người thao tác: "USER#20" (locker-service) ⇒ "Người dùng #20"; tên service backend ⇒ "Máy chủ".
+function actorText(actorId: string | null | undefined, t: (key: string, opts?: Record<string, unknown>) => string) {
+  if (!actorId) return null;
+  const user = /^USER#(\d+)$/.exec(actorId);
+  if (user) return t("admin.drones.hardware.iot.actor.userId", { id: user[1] });
+  if (actorId === "SYSTEM" || /Service$/.test(actorId)) return t("admin.drones.hardware.iot.actor.server");
+  return actorId;
+}
 
 // Cấu hình nhãn kết quả (labelKey là khoá i18n)
 const RESULT_CONFIG: Record<string, { labelKey: string; cls: string; icon: React.ElementType }> = {
@@ -444,7 +465,8 @@ export function DroneIotLogsPanel({
                   const evt = evtCfg
                     ? { label: t(evtCfg.labelKey), icon: evtCfg.icon }
                     : {
-                        label: log.eventType,
+                        // Mã mới chưa có nhãn: đọc được thay vì hiện mã thô (vd. "LID_TEST_HOLD" ⇒ "Lid test hold").
+                        label: humanizeCode(log.eventType),
                         icon: History,
                       };
                   const EvtIcon = evt.icon;
@@ -509,16 +531,16 @@ export function DroneIotLogsPanel({
                         ) : log.actorType === "TECHNICIAN" ? (
                           <div className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
                             <Wrench className="w-3 h-3 shrink-0" />
-                            <span>{log.actorId || t("admin.drones.hardware.iot.actor.technician")}</span>
+                            <span>{actorText(log.actorId, t) || t("admin.drones.hardware.iot.actor.technician")}</span>
                           </div>
                         ) : log.actorType === "USER" ? (
                           <div className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
                             <User className="w-3 h-3 shrink-0" />
-                            <span>{log.actorId || t("admin.drones.hardware.iot.actor.user")}</span>
+                            <span>{actorText(log.actorId, t) || t("admin.drones.hardware.iot.actor.user")}</span>
                           </div>
                         ) : (
                           <span className="text-[11px] font-mono text-muted-foreground">
-                            {log.actorId || t("admin.drones.hardware.iot.actor.piSystem")}
+                            {actorText(log.actorId, t) || t("admin.drones.hardware.iot.actor.piSystem")}
                           </span>
                         )}
                       </TableCell>

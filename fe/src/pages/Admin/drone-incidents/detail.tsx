@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { gpsSourceLabel, parcelConditionLabel, recoveryOutcomeLabel } from "./incident-labels";
 import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
@@ -608,7 +609,7 @@ export default function DroneIncidentDetailPage() {
                   : t("admin.droneIncidents.detailPage.kpi.noCoordinates")}
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                {t("admin.droneIncidents.detailPage.kpi.gpsTelemetry", { source: incident.gpsSource })}{" "}
+                {t("admin.droneIncidents.detailPage.kpi.gpsTelemetry", { source: gpsSourceLabel(t, incident.gpsSource) ?? "—" })}{" "}
                 <span className={incident.telemetryStale ? "text-amber-600 font-medium" : "text-emerald-600 font-medium"}>
                   {incident.telemetryStale
                     ? t("admin.droneIncidents.detailPage.kpi.stale")
@@ -695,7 +696,7 @@ export default function DroneIncidentDetailPage() {
                 {t("admin.droneIncidents.detailPage.kpi.parcelTitle")}
               </span>
               <Badge variant="secondary" className="text-[10px]">
-                {incident.parcelCondition || t("admin.droneIncidents.detailPage.unknown")}
+                {parcelConditionLabel(t, incident.parcelCondition) || t("admin.droneIncidents.detailPage.unknown")}
               </Badge>
             </div>
             <div>
@@ -874,7 +875,7 @@ export default function DroneIncidentDetailPage() {
                     <Trans
                       i18nKey="admin.droneIncidents.detailPage.verify.checkCondition"
                       values={{
-                        condition: incident.parcelCondition || t("admin.droneIncidents.detailPage.unknown"),
+                        condition: parcelConditionLabel(t, incident.parcelCondition) || t("admin.droneIncidents.detailPage.unknown"),
                       }}
                       components={{ b: <b /> }}
                     />
@@ -1168,12 +1169,13 @@ export default function DroneIncidentDetailPage() {
                 <div className="flex items-center gap-1.5">
                   <Badge variant="outline" className="bg-white text-xs">
                     {t("admin.droneIncidents.detailPage.report.outcome", {
-                      outcome: incident.recoveryOutcome ?? t("admin.droneIncidents.detailPage.unknown"),
+                      outcome: recoveryOutcomeLabel(t, incident.recoveryOutcome) ?? t("admin.droneIncidents.detailPage.unknown"),
                     })}
                   </Badge>
-                  {incident.parcelCondition && (
+                  {/* Không tìm thấy kiện thì tình trạng luôn là UNKNOWN — không hiện thêm. */}
+                  {incident.parcelCondition && !(incident.parcelCondition === "UNKNOWN" && incident.recoveryOutcome !== "FOUND") && (
                     <Badge variant="secondary" className="text-xs">
-                      {incident.parcelCondition}
+                      {parcelConditionLabel(t, incident.parcelCondition)}
                     </Badge>
                   )}
                 </div>
@@ -1315,13 +1317,10 @@ export default function DroneIncidentDetailPage() {
                     </div>
                     <div className="flex-1 rounded-lg border bg-slate-50/50 p-2.5 text-xs space-y-1">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        {/* Tiếng Việt để trước và làm nổi bật */}
+                        {/* Nhãn theo ngôn ngữ đang chọn; mã sự kiện chỉ để trong tooltip cho kỹ thuật tra. */}
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 text-xs">
+                          <span className="font-bold text-slate-900 text-xs" title={item.eventType}>
                             {labelVi}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground font-mono bg-white px-1.5 py-0.5 rounded border">
-                            {item.eventType}
                           </span>
                         </div>
                         <span className="text-[11px] text-muted-foreground font-mono">
