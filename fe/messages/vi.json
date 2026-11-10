@@ -3656,6 +3656,27 @@
     "droneIncidents": {
       "title": "Sự cố rơi kiện Drone",
       "description": "Theo dõi điều phối thu hồi, kiểm tra drone, bằng chứng và phương án xử lý cho khách hàng.",
+      "codes": {
+        "gpsSource": {
+          "telemetry": "telemetry drone",
+          "manualDevice": "GPS thiết bị người báo",
+          "flightPath": "theo đường bay",
+          "estimatedRoute": "ước theo chặng",
+          "fallbackDefault": "vị trí mặc định"
+        },
+        "outcome": {
+          "found": "Tìm thấy",
+          "notFound": "Không tìm thấy",
+          "unsafe": "Không an toàn để thu hồi"
+        },
+        "condition": {
+          "intact": "Nguyên vẹn",
+          "minorDamage": "Hư hỏng nhẹ",
+          "majorDamage": "Hư hỏng nặng",
+          "unusable": "Không dùng được",
+          "unknown": "Chưa rõ"
+        }
+      },
       "orderChip": "Đơn {{code}}",
       "emptyForOrder": "Chưa thấy sự cố của đơn {{code}} — sự cố có thể đang được tạo, bấm Làm mới sau ít giây.",
       "empty": "Không có sự cố trong nhóm này.",
@@ -6576,7 +6597,12 @@
         "awaitingDispatch": "Chờ điều phối",
         "completed": "Hoàn thành",
         "canceled": "Đã huỷ",
-        "returned": "Đã trả (cũ)"
+        "returned": "Đã trả (cũ)",
+        "ready": "Sẵn sàng (cũ)",
+        "waiting": "Đang chờ (cũ)",
+        "reserved": "Đã giữ chỗ (cũ)",
+        "collected": "Đã thu gom (cũ)",
+        "processing": "Đang xử lý (cũ)"
       },
       "orderType": {
         "send": "Gửi hàng",
@@ -6834,6 +6860,15 @@
     },
     "route": {
       "checkingAccess": "Đang kiểm tra quyền truy cập..."
+    },
+    "serverNote": {
+      "droppedParcel": "Báo sự cố rơi kiện {{value}}",
+      "senderDropped": "Người gửi đã bỏ kiện; đã cấp mã nhận hàng cho người nhận {{value}}",
+      "renterPlaced": "Người thuê đã cất đồ; mã mở ô dùng được nhiều lần tới hết hạn thuê",
+      "customerDropped": "Khách xác nhận đã bỏ đồ vào tủ",
+      "checkedOutByStaff": "Nhân viên đã kết thúc đơn",
+      "rentalEnded": "Kết thúc thuê, đã nhả ô",
+      "storagePickedUp": "Đã lấy đồ gửi giữ"
     }
   },
   "errorPage": {

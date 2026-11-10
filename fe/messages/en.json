@@ -3656,6 +3656,27 @@
     "droneIncidents": {
       "title": "Drone Parcel Drop Incidents",
       "description": "Track recovery dispatch, drone inspection, evidence and the resolution offered to the customer.",
+      "codes": {
+        "gpsSource": {
+          "telemetry": "drone telemetry",
+          "manualDevice": "reporter device GPS",
+          "flightPath": "flight path",
+          "estimatedRoute": "estimated from route",
+          "fallbackDefault": "default location"
+        },
+        "outcome": {
+          "found": "Found",
+          "notFound": "Not found",
+          "unsafe": "Unsafe to recover"
+        },
+        "condition": {
+          "intact": "Intact",
+          "minorDamage": "Minor damage",
+          "majorDamage": "Major damage",
+          "unusable": "Unusable",
+          "unknown": "Unknown"
+        }
+      },
       "orderChip": "Order {{code}}",
       "emptyForOrder": "No incident found for order {{code}} yet — it may still be being created; click Refresh in a few seconds.",
       "empty": "No incidents in this group.",
@@ -6579,7 +6600,12 @@
         "awaitingDispatch": "Awaiting dispatch",
         "completed": "Completed",
         "canceled": "Canceled",
-        "returned": "Returned (legacy)"
+        "returned": "Returned (legacy)",
+        "ready": "Ready (legacy)",
+        "waiting": "Waiting (legacy)",
+        "reserved": "Reserved (legacy)",
+        "collected": "Collected (legacy)",
+        "processing": "Processing (legacy)"
       },
       "orderType": {
         "send": "Send parcel",
@@ -6837,6 +6863,15 @@
     },
     "route": {
       "checkingAccess": "Checking access..."
+    },
+    "serverNote": {
+      "droppedParcel": "Reported dropped parcel: {{value}}",
+      "senderDropped": "Sender dropped parcel; pickup PIN issued to receiver {{value}}",
+      "renterPlaced": "Renter placed items; multi-use PIN active until deadline",
+      "customerDropped": "Customer confirmed items dropped in locker",
+      "checkedOutByStaff": "Order checked out by staff",
+      "rentalEnded": "Rental ended, cell released",
+      "storagePickedUp": "Storage order picked up"
     }
   },
   "errorPage": {

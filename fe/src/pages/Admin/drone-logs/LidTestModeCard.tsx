@@ -7,6 +7,7 @@ import { Card, CardContent } from '~/components/ui/card';
 import { Switch } from '~/components/ui/switch';
 import { useUpdateBusinessSettingsMutation } from '~/stores/apis/admin/businessSettings';
 import { useGetLidTestStatusQuery, type LidTestStatus } from '~/stores/apis/admin/droneCommLogs';
+import { ConfirmActionDialog } from '~/pages/Admin/knowledge/ConfirmActionDialog';
 
 /// Khoá setting (scope order) bật/tắt chế độ thử nắp — trùng OrderSettingsCatalog.DRONE_LID_TEST_ENABLED.
 const LID_TEST_ENABLED_KEY = 'app.drone.lid-test.enabled';
@@ -23,6 +24,8 @@ export function LidTestModeCard({ lockerLabel }: Props) {
   const { data, isLoading, refetch } = useGetLidTestStatusQuery(undefined, { pollingInterval: 5000 });
   const [updateSettings, { isLoading: saving }] = useUpdateBusinessSettingsMutation();
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
+  // Bật = camera chỉ thử nắp (motor quay thật, ngừng xử lý giao hàng) ⇒ hỏi lại; tắt thì làm ngay.
+  const [confirmOn, setConfirmOn] = useState(false);
 
   const status: LidTestStatus | undefined = data?.data;
   const enabled = optimistic ?? status?.enabled ?? false;
@@ -79,7 +82,7 @@ export function LidTestModeCard({ lockerLabel }: Props) {
             <Switch
               checked={enabled}
               disabled={saving || isLoading || !status}
-              onCheckedChange={toggle}
+              onCheckedChange={(next) => (next ? setConfirmOn(true) : void toggle(false))}
               aria-label={t('admin.droneLogs.lidTest.title')}
             />
           </div>
@@ -135,6 +138,20 @@ export function LidTestModeCard({ lockerLabel }: Props) {
           </p>
         )}
       </CardContent>
+      <ConfirmActionDialog
+        open={confirmOn}
+        onOpenChange={setConfirmOn}
+        title={t('admin.droneLogs.lidTest.confirmTitle')}
+        description={
+          <>
+            <p>{t('admin.droneLogs.lidTest.description', { seconds: status?.holdSeconds ?? 5 })}</p>
+            <p className="font-medium text-amber-700 dark:text-amber-300">{t('admin.droneLogs.lidTest.warning')}</p>
+          </>
+        }
+        actionLabel={t('admin.droneLogs.lidTest.confirmAction')}
+        loading={saving}
+        onConfirm={() => void toggle(true).finally(() => setConfirmOn(false))}
+      />
     </Card>
   );
 }
