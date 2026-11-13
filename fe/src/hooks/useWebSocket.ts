@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { Client, IMessage, StompSubscription } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
 import { API_BASE_URL } from "@/constants";
 
 // ============================================
@@ -110,10 +109,13 @@ export function useWebSocket(
 
   // Initialize STOMP client
   const initClient = useCallback(() => {
-    const wsUrl = `${API_BASE_URL}/ws`;
+    // WebSocket thường tới endpoint STOMP `/ws` của notification-service (app mobile cũng dùng đường này).
+    // Không dùng SockJS: thư viện đó gắn sự kiện `unload` mà Chrome đã chặn ("Permissions policy
+    // violation") và gọi thêm `/ws/info` trước mỗi lần kết nối.
+    const wsUrl = `${API_BASE_URL.replace(/^http/, "ws")}/ws`;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(wsUrl),
+      brokerURL: wsUrl,
       reconnectDelay,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
