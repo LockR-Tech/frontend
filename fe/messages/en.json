@@ -188,7 +188,7 @@
   "admin": {
     "sidebar": {
       "dashboard": "Dashboard",
-      "users": "Accounts",
+      "users": "All users",
       "orders": "Orders",
       "storage": "Stored items",
       "stores": "Stores",
@@ -199,7 +199,7 @@
       "refunds": "Refunds",
       "revenue": "Revenue",
       "loyalty": "Loyalty",
-      "loyaltyProgram": "Loyalty points",
+      "loyaltyProgram": "Loyalty",
       "feedback": "Feedback",
       "scheduler": "Scheduler",
       "notifications": "Notifications",
@@ -218,7 +218,7 @@
         "operations": "Lockers & operations",
         "drone": "Drone",
         "finance": "Finance",
-        "customers": "Users",
+        "customers": "Users & Engagement",
         "system": "System"
       }
     },

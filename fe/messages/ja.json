@@ -118,7 +118,7 @@
   "admin": {
     "sidebar": {
       "dashboard": "ダッシュボード",
-      "users": "ユーザー",
+      "users": "全ユーザー",
       "orders": "注文",
       "storage": "保管中の荷物",
       "stores": "店舗",
@@ -136,6 +136,7 @@
       "promotions": "プロモーション",
       "settings": "設定",
       "maintenance": "メンテナンス",
+      "technicians": "技術者",
       "drones": "ドローン",
       "droneOrders": "ドローン配送の追跡",
       "droneIncidents": "荷物落下インシデント",
@@ -145,7 +146,7 @@
         "operations": "ロッカー・運用",
         "drone": "ドローン",
         "finance": "財務",
-        "customers": "顧客",
+        "customers": "ユーザー・エンゲージメント",
         "system": "システム"
       }
     },
