@@ -30,8 +30,8 @@ export function OverviewSection({ data, activeLockers, onOpen }: OverviewSection
 
   const metrics = [
     {
-      // Tổng tài khoản mọi vai trò — dùng nhãn nhóm "Người dùng", mục menu /admin/users là "Tài khoản".
-      label: t("admin.sidebar.groups.customers"),
+      // Tổng tài khoản mọi vai trò — cùng nhãn với mục menu /admin/users.
+      label: t("admin.sidebar.users"),
       value: data.totalUsers,
       icon: Users,
       target: "users" as const,
