@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/kiosk-order-promo.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-order-promo-result",
+      "x": 362,
+      "y": 467,
+      "w": 269,
+      "h": 58
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-order-promo-remove",
+      "x": 528,
+      "y": 409,
+      "w": 103,
+      "h": 46
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-order-promo-discount",
+      "x": 693,
+      "y": 314,
+      "w": 286,
+      "h": 17
+    }
+  ]
+}

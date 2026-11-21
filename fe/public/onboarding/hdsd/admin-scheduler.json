@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-scheduler.png",
+  "width": 1440,
+  "height": 1683,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-scheduler-status",
+      "x": 317,
+      "y": 259,
+      "w": 1066,
+      "h": 75
+    },
+    {
+      "n": 2,
+      "stepId": "admin-scheduler-auto",
+      "x": 317,
+      "y": 350,
+      "w": 1066,
+      "h": 304
+    },
+    {
+      "n": 3,
+      "stepId": "admin-scheduler-jobs",
+      "x": 292,
+      "y": 703,
+      "w": 1116,
+      "h": 608
+    },
+    {
+      "n": 4,
+      "stepId": "admin-scheduler-run",
+      "x": 317,
+      "y": 940,
+      "w": 306,
+      "h": 40
+    },
+    {
+      "n": 5,
+      "stepId": "admin-scheduler-results",
+      "x": 292,
+      "y": 1335,
+      "w": 1116,
+      "h": 150
+    },
+    {
+      "n": 6,
+      "stepId": "admin-scheduler-info",
+      "x": 292,
+      "y": 1509,
+      "w": 1116,
+      "h": 150
+    }
+  ]
+}

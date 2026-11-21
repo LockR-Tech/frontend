@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/kiosk-order-day.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-order-day-quick",
+      "x": 47,
+      "y": 203,
+      "w": 584,
+      "h": 58
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-order-day-stepper",
+      "x": 47,
+      "y": 271,
+      "w": 584,
+      "h": 44
+    }
+  ]
+}

@@ -342,17 +342,19 @@ export function LockerTable({
             : (assignedTechnicianId != null
                 ? t("admin.lockers.table.technicianId", { id: assignedTechnicianId })
                 : null);
+        const anchor = row.index === 0 ? "adm-lockers-first-row-tech" : undefined; // neo data-tour dòng đầu
         return assignedTechnicianId != null ? (
           <Link
             to={`/admin/technicians/${assignedTechnicianId}`}
             onClick={(e) => e.stopPropagation()}
+            data-tour={anchor}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
           >
             <UserCheck size={14} className="text-primary flex-shrink-0" />
             <span>{displayName}</span>
           </Link>
         ) : (
-          <span className="text-xs text-muted-foreground">{t("common.unassigned")}</span>
+          <span className="text-xs text-muted-foreground" data-tour={anchor}>{t("common.unassigned")}</span>
         );
       },
     }),
@@ -364,9 +366,10 @@ export function LockerTable({
         const totalBoxes = row.original.totalBoxes ?? 0;
 
         // Tủ bảo trì / vô hiệu: server trả availableBoxes = 0 ⇒ không suy ra "đang dùng", chỉ ghi số ô + trạng thái
+        const anchor = row.index === 0 ? "adm-lockers-first-row-boxes" : undefined; // neo data-tour dòng đầu
         if (row.original.status !== LockerStatus.ACTIVE) {
           return (
-            <div className="flex flex-col gap-0.5 w-32">
+            <div className="flex flex-col gap-0.5 w-32" data-tour={anchor}>
               <span className="text-sm font-semibold text-foreground/80">{t("admin.lockers.table.boxCount", { count: totalBoxes })}</span>
               <span className="text-xs text-muted-foreground">
                 {row.original.status === LockerStatus.MAINTENANCE
@@ -400,7 +403,7 @@ export function LockerTable({
               : "bg-red-500";
 
         return (
-          <div className="flex flex-col gap-1.5 w-32">
+          <div className="flex flex-col gap-1.5 w-32" data-tour={anchor}>
             <span className="text-sm">
               <span className={`font-semibold ${toneText}`}>{t("admin.lockers.table.availableCount", { count: availableBoxes })}</span>
               <span className="text-muted-foreground"> / {t("admin.lockers.table.boxCount", { count: totalBoxes })}</span>
@@ -421,6 +424,7 @@ export function LockerTable({
       header: t("common.actions"),
       cell: ({ row }) => {
         const locker = row.original;
+        const first = row.index === 0;
         return (
           <div className="flex items-center gap-1">
             <DropdownMenu>
@@ -429,6 +433,7 @@ export function LockerTable({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 hover:bg-muted"
+                  data-tour={first ? "adm-lockers-first-row-menu" : undefined}
                 >
                   <MoreHorizontal size={16} className="text-muted-foreground" />
                 </Button>
@@ -436,10 +441,12 @@ export function LockerTable({
               <DropdownMenuContent
                 align="end"
                 className="w-48 bg-popover border border-border/50"
+                data-tour={first ? "adm-lockers-row-menu" : undefined}
               >
                 <DropdownMenuItem
                   onClick={() => navigate(`/admin/lockers/${locker.id}`)}
                   className="cursor-pointer"
+                  data-tour={first ? "adm-lockers-first-row-view" : undefined}
                 >
                   <Eye className="mr-2 h-4 w-4" />
                   {t("dropdown.viewDetail")}
@@ -448,6 +455,7 @@ export function LockerTable({
                   <DropdownMenuItem
                     onClick={() => onMaintenance(locker.id)}
                     className="cursor-pointer text-amber-600 focus:text-amber-600"
+                    data-tour={first ? "adm-lockers-row-status" : undefined}
                   >
                     <Wrench className="mr-2 h-4 w-4" />
                     {t("dropdown.maintenance")}
@@ -458,6 +466,7 @@ export function LockerTable({
                   <DropdownMenuItem
                     onClick={() => onActivate(locker.id)}
                     className="cursor-pointer text-green-600 focus:text-green-600"
+                    data-tour={first ? "adm-lockers-row-status" : undefined}
                   >
                     <Power className="mr-2 h-4 w-4" />
                     {t("dropdown.activate")}
@@ -469,6 +478,7 @@ export function LockerTable({
                     <DropdownMenuItem
                       onClick={() => setDeleteSingleTarget(locker)}
                       className="cursor-pointer text-destructive focus:text-destructive"
+                      data-tour={first ? "adm-lockers-row-delete" : undefined}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       {t("admin.lockers.batch.deleteLocker")}
@@ -486,7 +496,7 @@ export function LockerTable({
   return (
     <div className="space-y-4">
       {/* Batch and Bulk Delete Action Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-muted/40 rounded-xl border border-border/60">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-muted/40 rounded-xl border border-border/60" data-tour="adm-lockers-batch-bar">
         <div className="flex items-center gap-2">
           {selectedLockerIds.length > 0 ? (
             <div className="flex items-center gap-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-lg px-3 py-1.5 text-xs font-medium">
@@ -534,20 +544,22 @@ export function LockerTable({
         )}
       </div>
 
-      <DataTable
-        columns={columns}
-        data={lockers}
-        isLoading={isLoading}
-        emptyMessage={t("common.noData")}
-        serverPagination={{
-          pageIndex: page,
-          pageSize,
-          pageCount: totalPages,
-          totalRows: totalElements,
-          onPageChange,
-          onPageSizeChange,
-        }}
-      />
+      <div data-tour="adm-lockers-table">
+        <DataTable
+          columns={columns}
+          data={lockers}
+          isLoading={isLoading}
+          emptyMessage={t("common.noData")}
+          serverPagination={{
+            pageIndex: page,
+            pageSize,
+            pageCount: totalPages,
+            totalRows: totalElements,
+            onPageChange,
+            onPageSizeChange,
+          }}
+        />
+      </div>
 
       <DeleteReasonDialog
         open={Boolean(deleteSingleTarget) || showBatchDeleteConfirm || showDeleteAllConfirm}

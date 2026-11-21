@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-maintenance-history.png",
+  "width": 1440,
+  "height": 2275,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-history-asset",
+      "x": 889,
+      "y": 1916,
+      "w": 154,
+      "h": 34
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-history-type",
+      "x": 1051,
+      "y": 1916,
+      "w": 332,
+      "h": 34
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-history-list",
+      "x": 293,
+      "y": 1963,
+      "w": 1114,
+      "h": 287
+    }
+  ]
+}

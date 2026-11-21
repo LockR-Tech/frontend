@@ -236,7 +236,7 @@ export default function DronesPage() {
         description={t("admin.drones.description")}
       />
 
-      <Card className="border-border/70 shadow-sm">
+      <Card className="border-border/70 shadow-sm" data-tour="drones-summary">
         <CardContent className="space-y-4 p-4 md:p-5">
           <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
             <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 xl:max-w-2xl">
@@ -270,19 +270,19 @@ export default function DronesPage() {
               />
             </div>
             <div className="flex shrink-0 gap-2 self-end xl:self-auto">
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <Button variant="outline" size="sm" onClick={() => refetch()} data-tour="drones-refresh">
                 <RefreshCw
                   className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
                 />
                 {t("button.refresh")}
               </Button>
-              <Button size="sm" onClick={openCreate}>
+              <Button size="sm" onClick={openCreate} data-tour="drones-add">
                 <Plus className="mr-2 h-4 w-4" /> {t("admin.drones.add")}
               </Button>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
+          <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4" data-tour="drones-filter-chips">
             {STATUS_FILTERS.map((filter) => {
               const active = statusFilter === filter.value;
               const count = filter.value
@@ -317,6 +317,7 @@ export default function DronesPage() {
         </CardContent>
       </Card>
 
+      <div data-tour="drones-batch">
       <BatchDeleteBar
         noun={t("admin.drones.batchNoun")}
         selectedCount={selectedIds.length}
@@ -327,9 +328,10 @@ export default function DronesPage() {
         note={t("admin.drones.batchNote")}
         requireReason
       />
+      </div>
 
       {/* Drone list */}
-      <div ref={listRef} className="scroll-mt-4">
+      <div ref={listRef} className="scroll-mt-4" data-tour="drones-list">
       {isLoading ? (
         <div className="flex justify-center py-16 text-muted-foreground">
           <AppLoading size={110} />
@@ -345,7 +347,7 @@ export default function DronesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((d) => {
+          {filtered.map((d, index) => {
             const battery = d.batteryPercent ?? 0;
             const onMission = ACTIVE_MISSION_STATUSES.includes(d.status);
             return (
@@ -427,10 +429,11 @@ export default function DronesPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  <div className="flex flex-wrap gap-2 pt-1" data-tour={index === 0 ? "drones-first-actions" : undefined}>
                     <Button
                       size="sm"
                       variant="outline"
+                      data-tour={index === 0 ? "drones-first-detail" : undefined}
                       onClick={() =>
                         navigate(`/admin/drones/${d.id}`, {
                           state: { droneCode: d.code },
@@ -622,7 +625,7 @@ function DroneFormDialog({
           <DialogTitle>{t("admin.drones.add")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-1">
-          <div>
+          <div data-tour="drones-form-code">
             <Label className="mb-1.5 block text-xs">{t("admin.drones.form.codeLabel")}</Label>
             <Input
               placeholder="DRONE-01"
@@ -633,7 +636,7 @@ function DroneFormDialog({
               <p className="mt-1 text-xs text-red-600">{t("admin.drones.form.codeRequired")}</p>
             )}
           </div>
-          <div>
+          <div data-tour="drones-form-locker">
             <Label className="mb-1.5 block text-xs">{t("admin.drones.form.homeLockerLabel")}</Label>
             <Select
               value={lockerId}
@@ -673,7 +676,7 @@ function DroneFormDialog({
           <Button variant="outline" onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button onClick={submit} disabled={isSaving}>
+          <Button onClick={submit} disabled={isSaving} data-tour="drones-form-submit">
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t("admin.drones.form.create")}
           </Button>

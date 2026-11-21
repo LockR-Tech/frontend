@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-dashboard-orders.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-dashboard-orders-period",
+      "x": 233,
+      "y": 113,
+      "w": 974,
+      "h": 19
+    },
+    {
+      "n": 2,
+      "stepId": "admin-dashboard-orders-table",
+      "x": 233,
+      "y": 165,
+      "w": 974,
+      "h": 591
+    },
+    {
+      "n": 3,
+      "stepId": "admin-dashboard-orders-open",
+      "x": 1040,
+      "y": 785,
+      "w": 167,
+      "h": 36
+    }
+  ]
+}

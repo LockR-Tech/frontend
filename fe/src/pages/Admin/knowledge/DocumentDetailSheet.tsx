@@ -87,7 +87,7 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
         <SheetHeader className="space-y-2 border-b border-border/60 px-5 pb-4 pt-5 pr-12 text-left">
           <SheetTitle className="text-base">{doc?.title ?? t("common.document")}</SheetTitle>
           <SheetDescription asChild>
-            <div className="space-y-2 text-xs text-muted-foreground">
+            <div data-tour="knowledge-detail-meta" className="space-y-2 text-xs text-muted-foreground">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="flex items-center gap-1">
                   <FileText className="h-3.5 w-3.5" />
@@ -111,7 +111,7 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
                   </Badge>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div data-tour="knowledge-detail-actions" className="flex flex-wrap gap-2 pt-1">
                 <Button
                   size="sm"
                   variant="outline"
@@ -134,7 +134,7 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        <div data-tour="knowledge-detail-chunks" className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
           <p className="text-xs text-muted-foreground">
             {t("admin.knowledge.detail.chunksIntro")}
           </p>
@@ -145,7 +145,7 @@ export function DocumentDetailSheet({ open, document: doc, onClose }: DocumentDe
           )}
 
           {chunks.length > 0 && (
-            <div className="relative">
+            <div data-tour="knowledge-detail-search" className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={search}

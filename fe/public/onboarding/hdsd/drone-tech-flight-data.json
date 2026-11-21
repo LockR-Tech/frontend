@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/drone-tech-flight-data.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-flight-data-status",
+      "x": 64,
+      "y": 11,
+      "w": 284,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-flight-data-connect",
+      "x": 358,
+      "y": 10,
+      "w": 42,
+      "h": 42
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-flight-data-safety",
+      "x": 12,
+      "y": 60,
+      "w": 388,
+      "h": 48
+    },
+    {
+      "n": 4,
+      "stepId": "drone-tech-flight-data-hud",
+      "x": 12,
+      "y": 112,
+      "w": 168,
+      "h": 325
+    },
+    {
+      "n": 5,
+      "stepId": "drone-tech-flight-data-commands",
+      "x": 0,
+      "y": 641,
+      "w": 412,
+      "h": 251
+    }
+  ]
+}

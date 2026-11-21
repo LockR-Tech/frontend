@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-drone-detail-operations.png",
+  "width": 1440,
+  "height": 1681,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-drone-detail-operations-tab",
+      "x": 1294,
+      "y": 1355,
+      "w": 86,
+      "h": 44
+    },
+    {
+      "n": 2,
+      "stepId": "admin-drone-detail-operations-list",
+      "x": 293,
+      "y": 1419,
+      "w": 1114,
+      "h": 238
+    }
+  ]
+}

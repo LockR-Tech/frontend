@@ -59,6 +59,8 @@ export function OrderTable({
 }: OrderTableProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  // Neo hướng dẫn: dòng đơn drone đầu tiên của trang (mở chi tiết đơn drone).
+  const firstDroneIndex = orders.findIndex((order) => order.type === "DRONE_DELIVERY");
 
   const modeLabel = (mode: string) =>
     mode === "DEMO"
@@ -73,7 +75,10 @@ export function OrderTable({
       cell: ({ row }) => {
         const order = row.original;
         return (
-          <div className="min-w-[150px] max-w-[210px] space-y-1">
+          <div
+            className="min-w-[150px] max-w-[210px] space-y-1"
+            data-tour={row.index === 0 ? "orders-first-row" : undefined}
+          >
             {/* Mã đơn là thứ khách và nhân viên đọc cho nhau; id nội bộ bỏ đi vì
                 nhìn vào không biết là đơn nào. */}
             <p className="break-all font-mono text-sm font-semibold text-foreground">
@@ -98,7 +103,10 @@ export function OrderTable({
         const receiverName = receiver?.name || receiver?.accountFullName;
         const receiverPhone = receiver?.phone || receiver?.accountPhoneNumber;
         return (
-          <div className="min-w-[150px] max-w-[230px] space-y-1.5">
+          <div
+            className="min-w-[150px] max-w-[230px] space-y-1.5"
+            data-tour={row.index === firstDroneIndex ? "orders-first-drone-row" : undefined}
+          >
             <div>
               <p className="line-clamp-1 text-sm font-medium text-foreground">
                 {customer?.fullName || t("admin.orders.lookup.customerName")}
@@ -192,7 +200,12 @@ export function OrderTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                data-tour={row.index === 0 ? "orders-row-menu" : undefined}
+              >
                 <MoreHorizontal size={16} className="text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>

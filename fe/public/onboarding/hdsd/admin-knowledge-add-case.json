@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-knowledge-add-case.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-add-case-question",
+      "x": 489,
+      "y": 246,
+      "w": 462,
+      "h": 102
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-add-case-roles",
+      "x": 489,
+      "y": 364,
+      "w": 462,
+      "h": 182
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-add-case-refuse",
+      "x": 489,
+      "y": 562,
+      "w": 462,
+      "h": 62
+    },
+    {
+      "n": 4,
+      "stepId": "admin-knowledge-add-case-expected",
+      "x": 489,
+      "y": 640,
+      "w": 462,
+      "h": 58
+    },
+    {
+      "n": 5,
+      "stepId": "admin-knowledge-add-case-submit",
+      "x": 489,
+      "y": 714,
+      "w": 462,
+      "h": 40
+    }
+  ]
+}

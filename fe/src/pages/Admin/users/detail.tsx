@@ -260,7 +260,7 @@ export default function UserDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4" data-tour="user-detail-header">
           <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -269,7 +269,7 @@ export default function UserDetailPage() {
             <p className="text-sm text-muted-foreground">ID: {user?.id}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="user-detail-actions">
           {isDirty && (
             <>
               <Button
@@ -300,7 +300,13 @@ export default function UserDetailPage() {
             </Button>
           )}
           {!isDirty && (
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowWallet(true)}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowWallet(true)}
+              data-tour="user-detail-wallet-btn"
+            >
               <Wallet className="h-4 w-4" />
               {t("admin.users.table.wallet")}
             </Button>
@@ -324,7 +330,7 @@ export default function UserDetailPage() {
         {/* Left Column */}
         <div className="md:col-span-2 space-y-6">
           {/* User Profile */}
-          <Card>
+          <Card data-tour="user-detail-profile">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -333,7 +339,7 @@ export default function UserDetailPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-start gap-6">
-                <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                <div className="flex flex-col items-center gap-2 flex-shrink-0" data-tour="user-detail-avatar">
                   <Avatar className="h-24 w-24 border-2 border-border shadow-xs">
                     {avatarUrl && <AvatarImage src={avatarUrl} alt={t("admin.users.detail.avatarAlt", { name: formData.name })} />}
                     <AvatarFallback className="bg-secondary text-foreground text-lg font-bold border border-border">
@@ -379,7 +385,7 @@ export default function UserDetailPage() {
                       className="text-lg font-bold"
                     />
                   </div>
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-3" data-tour="user-detail-roles">
                     {user.roles.map((role) => (
                       <span key={role}>{getRoleBadge(role)}</span>
                     ))}
@@ -453,7 +459,7 @@ export default function UserDetailPage() {
 
         {/* Right Column */}
         <div className="space-y-6">
-          <Card>
+          <Card data-tour="user-detail-account">
             <CardHeader>
               <CardTitle className="text-base">{t("admin.users.detail.accountInfo")}</CardTitle>
             </CardHeader>
@@ -483,7 +489,7 @@ export default function UserDetailPage() {
 
           {/* Chỉ khách ký điều khoản trên app: admin, KTV không có phần này. */}
           {signsTerms(user) ? (
-            <Card>
+            <Card data-tour="user-detail-terms">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <FileCheck2 className="h-4 w-4" />
@@ -520,7 +526,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Số đơn/chi tiêu lấy từ /api/admin/revenue/customers/{userId}, 12 tháng gần nhất */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3" data-tour="user-detail-stats">
         <ReportStatCard
           label={t("admin.users.detail.orders")}
           value={revenueError ? "—" : formatNumber(revenue.data?.orderCount)}

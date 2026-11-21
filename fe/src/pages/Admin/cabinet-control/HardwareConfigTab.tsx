@@ -203,7 +203,7 @@ export function HardwareConfigTab({
   return (
     <div className="space-y-6">
       {/* Trạng thái */}
-      <section className="space-y-2 rounded-xl border border-border p-4 text-sm">
+      <section className="space-y-2 rounded-xl border border-border p-4 text-sm" data-tour="cab-hw-status">
         <div className="flex flex-wrap items-center gap-2">
           <Cpu className="h-4 w-4" />
           <span className="font-semibold">{t("admin.cabinetControl.hardware.title")}</span>
@@ -244,7 +244,7 @@ export function HardwareConfigTab({
       </section>
 
       {/* Ô tủ */}
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-xl border border-border p-4" data-tour="cab-hw-boxes">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-semibold">{t("admin.cabinetControl.hardware.boxesTitle")}</h2>
           {canEdit && (
@@ -295,7 +295,7 @@ export function HardwareConfigTab({
       </section>
 
       {/* Tuỳ chọn chung */}
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-xl border border-border p-4" data-tour="cab-hw-options">
         <h2 className="mb-3 text-base font-semibold">{t("admin.cabinetControl.hardware.optionsTitle")}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1 text-sm">
@@ -349,7 +349,7 @@ export function HardwareConfigTab({
       </section>
 
       {/* Nắp trượt */}
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-2" data-tour="cab-hw-lids">
         {cfg.lids.map((lid) => {
           const live = running?.lids.find((l) => l.axis === lid.axis);
           return (
@@ -417,7 +417,7 @@ export function HardwareConfigTab({
       </section>
 
       {/* Sơ đồ đấu dây */}
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-xl border border-border p-4" data-tour="cab-hw-wiring">
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-semibold">{t("admin.cabinetControl.hardware.wiringTitle")}</h2>
           {canEdit && (
@@ -463,7 +463,7 @@ export function HardwareConfigTab({
 
       {/* Hành động */}
       {canEdit && (
-        <section className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-background p-3">
+        <section className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-background p-3" data-tour="cab-hw-actions">
           <button onClick={save} disabled={saving || issues.length > 0 || !dirty && !view.defaultTemplate}
             className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
             <Save className="h-4 w-4" /> {saving ? t("admin.cabinetControl.hardware.saving") : t("button.save")}

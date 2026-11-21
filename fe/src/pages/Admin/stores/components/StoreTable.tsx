@@ -215,7 +215,7 @@ export function StoreTable({
         const active = isStoreActive(store);
         const pending = statusPendingIds.has(store.id);
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" data-tour={row.index === 0 ? "stores-first-row-status" : undefined}>
             <Switch
               checked={active}
               disabled={pending}
@@ -246,6 +246,7 @@ export function StoreTable({
               variant="ghost"
               size="icon"
               className="h-8 w-8 hover:bg-muted"
+              data-tour={row.index === 0 ? "stores-first-row-menu" : undefined}
             >
               <MoreHorizontal size={16} className="text-muted-foreground" />
             </Button>
@@ -257,6 +258,7 @@ export function StoreTable({
             <DropdownMenuItem
               onClick={() => navigate(`/admin/stores/${row.original.id}`)}
               className="cursor-pointer"
+              data-tour={row.index === 0 ? "stores-row-view" : undefined}
             >
               <Eye className="mr-2 h-4 w-4" />
               {t("dropdown.viewDetail")}
@@ -264,6 +266,7 @@ export function StoreTable({
             <DropdownMenuItem
               onClick={() => onEdit(row.original)}
               className="cursor-pointer"
+              data-tour={row.index === 0 ? "stores-row-edit" : undefined}
             >
               <Pencil className="mr-2 h-4 w-4" /> {t("dropdown.edit")}
             </DropdownMenuItem>
@@ -271,6 +274,7 @@ export function StoreTable({
             <DropdownMenuItem
               onClick={() => onDelete(row.original)}
               className="cursor-pointer text-red-600 focus:text-red-600"
+              data-tour={row.index === 0 ? "stores-row-delete" : undefined}
             >
               <Trash2 className="mr-2 h-4 w-4" /> {t("dropdown.delete")}
             </DropdownMenuItem>

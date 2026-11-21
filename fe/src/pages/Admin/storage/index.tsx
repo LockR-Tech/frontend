@@ -115,7 +115,7 @@ export default function StoragePage() {
 
       {error && <ReportErrorState error={error} onRetry={refetch} />}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" data-tour="storage-stats">
         {statCards.map((card) => (
           <ReportStatCard
             key={card.key}
@@ -130,9 +130,9 @@ export default function StoragePage() {
         ))}
       </div>
 
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm" data-tour="storage-list">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
+          <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4" data-tour="storage-filters">
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-80">
                 <Search

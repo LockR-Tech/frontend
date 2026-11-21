@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-locker-add-box.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-add-box-open",
+      "x": 1233,
+      "y": 96,
+      "w": 127,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-add-box-mode",
+      "x": 169,
+      "y": 253,
+      "w": 445,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-add-box-fields",
+      "x": 169,
+      "y": 293,
+      "w": 445,
+      "h": 305
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-add-box-type",
+      "x": 169,
+      "y": 499,
+      "w": 445,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-locker-add-box-preview",
+      "x": 638,
+      "y": 253,
+      "w": 633,
+      "h": 461
+    },
+    {
+      "n": 6,
+      "stepId": "admin-locker-add-box-submit",
+      "x": 169,
+      "y": 669,
+      "w": 445,
+      "h": 45
+    }
+  ]
+}

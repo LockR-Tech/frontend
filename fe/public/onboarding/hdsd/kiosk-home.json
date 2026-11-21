@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/kiosk-home.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-home-status",
+      "x": 779,
+      "y": 15,
+      "w": 225,
+      "h": 22
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-home-locker",
+      "x": 519,
+      "y": 115,
+      "w": 420,
+      "h": 126
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-home-open",
+      "x": 509,
+      "y": 301,
+      "w": 440,
+      "h": 118
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-home-send",
+      "x": 509,
+      "y": 435,
+      "w": 440,
+      "h": 102
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-home-report",
+      "x": 20,
+      "y": 508,
+      "w": 62,
+      "h": 78
+    }
+  ]
+}

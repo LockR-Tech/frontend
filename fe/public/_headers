@@ -1,0 +1,5 @@
+# Cloudflare Workers static assets: header cho file tĩnh.
+# Nội dung hướng dẫn lần đầu (F3-G13) được app Flutter đọc cả từ app.locker-drone.tech (bản web) ⇒ cần CORS.
+/onboarding/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300

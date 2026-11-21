@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-receiver-detail.png",
+  "width": 412,
+  "height": 505,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-receiver-detail-header",
+      "x": 20,
+      "y": 68,
+      "w": 372,
+      "h": 76
+    },
+    {
+      "n": 2,
+      "stepId": "customer-receiver-detail-code",
+      "x": 20,
+      "y": 189,
+      "w": 372,
+      "h": 60
+    },
+    {
+      "n": 3,
+      "stepId": "customer-receiver-detail-track",
+      "x": 20,
+      "y": 261,
+      "w": 372,
+      "h": 58
+    },
+    {
+      "n": 4,
+      "stepId": "customer-receiver-detail-sender",
+      "x": 20,
+      "y": 337,
+      "w": 372,
+      "h": 140
+    }
+  ]
+}

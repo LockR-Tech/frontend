@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-guide-manual.png",
+  "width": 1440,
+  "height": 1450,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-guide-manual-header",
+      "x": 292,
+      "y": 89,
+      "w": 1116,
+      "h": 77
+    },
+    {
+      "n": 2,
+      "stepId": "admin-guide-manual-group",
+      "x": 313,
+      "y": 263,
+      "w": 590,
+      "h": 52
+    },
+    {
+      "n": 3,
+      "stepId": "admin-guide-manual-image",
+      "x": 313,
+      "y": 366,
+      "w": 632,
+      "h": 396
+    },
+    {
+      "n": 4,
+      "stepId": "admin-guide-manual-steps",
+      "x": 965,
+      "y": 366,
+      "w": 422,
+      "h": 396
+    },
+    {
+      "n": 5,
+      "stepId": "admin-guide-manual-run",
+      "x": 1209,
+      "y": 1358,
+      "w": 178,
+      "h": 36
+    }
+  ]
+}

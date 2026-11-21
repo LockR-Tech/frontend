@@ -142,7 +142,7 @@ export function MainChart({
           </CardDescription>
         </div>
         <Select value={selectedYear} onValueChange={onYearChange}>
-          <SelectTrigger className="w-28 h-8 text-xs font-medium">
+          <SelectTrigger data-tour="dashboard-year" className="w-28 h-8 text-xs font-medium">
             <SelectValue placeholder={t("admin.dashboard.mainChart.selectYear")} />
           </SelectTrigger>
           <SelectContent align="end">
@@ -240,7 +240,7 @@ export function MainChart({
           </div>
         )}
         {onOpenMonth && hasData && !isLoading && !error && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-secondary/40 px-3 py-2 text-xs">
+          <div data-tour="dashboard-month-pick" className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-secondary/40 px-3 py-2 text-xs">
             {picked ? (
               <>
                 <span className="font-semibold text-foreground">

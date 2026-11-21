@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-storage.png",
+  "width": 1440,
+  "height": 1423,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-storage-stats",
+      "x": 292,
+      "y": 186,
+      "w": 1116,
+      "h": 116
+    },
+    {
+      "n": 2,
+      "stepId": "admin-storage-filters",
+      "x": 316,
+      "y": 350,
+      "w": 1068,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-storage-list",
+      "x": 292,
+      "y": 326,
+      "w": 1116,
+      "h": 1073
+    },
+    {
+      "n": 4,
+      "stepId": "admin-storage-handover",
+      "x": 1245,
+      "y": 508,
+      "w": 97,
+      "h": 36
+    }
+  ]
+}

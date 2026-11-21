@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-stores-add-box.png",
+  "width": 1440,
+  "height": 908,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-stores-add-box-open",
+      "x": 529,
+      "y": 826,
+      "w": 26,
+      "h": 26
+    },
+    {
+      "n": 2,
+      "stepId": "admin-stores-add-box-head",
+      "x": 585,
+      "y": 313,
+      "w": 270,
+      "h": 66
+    },
+    {
+      "n": 3,
+      "stepId": "admin-stores-add-box-number",
+      "x": 585,
+      "y": 403,
+      "w": 270,
+      "h": 60
+    },
+    {
+      "n": 4,
+      "stepId": "admin-stores-add-box-size",
+      "x": 585,
+      "y": 475,
+      "w": 270,
+      "h": 56
+    },
+    {
+      "n": 5,
+      "stepId": "admin-stores-add-box-actions",
+      "x": 585,
+      "y": 555,
+      "w": 270,
+      "h": 40
+    }
+  ]
+}

@@ -344,7 +344,7 @@ export default function DroneDetailPage() {
   return (
     <div className="space-y-6">
       {/* 1. Header tổng quan */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-5" data-tour="drone-detail-header">
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
@@ -401,7 +401,7 @@ export default function DroneDetailPage() {
 
       {/* 2. Cảnh báo lỗi kỹ thuật (nếu drone đang có faultReason) */}
       {drone.faultReason && (
-        <div className="flex items-start gap-3 rounded-xl border border-rose-300 bg-rose-50/90 p-4 text-rose-900 shadow-2xs dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
+        <div data-tour="drone-detail-fault" className="flex items-start gap-3 rounded-xl border border-rose-300 bg-rose-50/90 p-4 text-rose-900 shadow-2xs dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
@@ -417,7 +417,7 @@ export default function DroneDetailPage() {
       {/* 3. Điều phối & Thông tin thiết bị (Bố cục 3 card gọn gàng, KHÔNG TRÙNG LẶP) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Card 1: Kỹ thuật viên phụ trách */}
-        <Card className="flex flex-col justify-between border border-border/80 shadow-xs">
+        <Card className="flex flex-col justify-between border border-border/80 shadow-xs" data-tour="drone-detail-tech">
           <CardHeader className="px-4 pb-2 pt-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-indigo-200/60 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
@@ -508,7 +508,7 @@ export default function DroneDetailPage() {
         </Card>
 
         {/* Card 2: Trạm gắn kết / Bãi đáp */}
-        <Card className="flex flex-col justify-between border border-border/80 shadow-xs">
+        <Card className="flex flex-col justify-between border border-border/80 shadow-xs" data-tour="drone-detail-station">
           <CardHeader className="px-4 pb-2 pt-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-sky-200/60 bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400">
@@ -580,7 +580,7 @@ export default function DroneDetailPage() {
         </Card>
 
         {/* Card 3: Thông tin hệ thống (Được cơ cấu lại, loại bỏ trùng lặp mã drone, trạm và pin) */}
-        <Card className="flex flex-col justify-between border border-border/80 shadow-xs">
+        <Card className="flex flex-col justify-between border border-border/80 shadow-xs" data-tour="drone-detail-info">
           <CardHeader className="px-4 pb-2 pt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -669,11 +669,12 @@ export default function DroneDetailPage() {
                 {t("admin.drones.detail.logs.description")}
               </CardDescription>
             </div>
-            <div className="inline-flex rounded-lg border bg-background p-0.5 text-xs">
+            <div className="inline-flex rounded-lg border bg-background p-0.5 text-xs" data-tour="drone-detail-log-tabs">
               <button
                 type="button"
                 className={`rounded-md px-3 py-1.5 font-medium transition-all ${activeLogTab === "iot" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
                 onClick={() => setActiveLogTab("iot")}
+                data-tour="drone-detail-tab-iot"
               >
                 {t("admin.drones.detail.logs.iotTab", { count: iotLogsCount })}
               </button>
@@ -681,6 +682,7 @@ export default function DroneDetailPage() {
                 type="button"
                 className={`rounded-md px-3 py-1.5 font-medium transition-all ${activeLogTab === "flights" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
                 onClick={() => setActiveLogTab("flights")}
+                data-tour="drone-detail-tab-flights"
               >
                 {t("admin.drones.detail.logs.flightsTab", { count: flightLogs.length })}
               </button>
@@ -688,6 +690,7 @@ export default function DroneDetailPage() {
                 type="button"
                 className={`rounded-md px-3 py-1.5 font-medium transition-all ${activeLogTab === "reports" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
                 onClick={() => setActiveLogTab("reports")}
+                data-tour="drone-detail-tab-reports"
               >
                 {t("admin.drones.detail.logs.reportsTab", { count: droneReports.length })}
               </button>
@@ -695,13 +698,17 @@ export default function DroneDetailPage() {
                 type="button"
                 className={`rounded-md px-3 py-1.5 font-medium transition-all ${activeLogTab === "operations" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
                 onClick={() => setActiveLogTab("operations")}
+                data-tour="drone-detail-tab-operations"
               >
                 {t("admin.drones.detail.logs.operationsTab", { count: operationLogs.length })}
               </button>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent
+          className="p-4"
+          data-tour={({ iot: "drone-detail-log-iot", flights: "drone-detail-log-flights", reports: "drone-detail-log-reports", operations: "drone-detail-log-operations" } as const)[activeLogTab]}
+        >
           {activeLogTab === "iot" ? (
             <DroneIotLogsPanel droneId={id} droneCode={drone.code} embedded={true} />
           ) : activeLogTab === "flights" ? (

@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/locker-tech-resolve.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-resolve-head",
+      "x": 20,
+      "y": 670,
+      "w": 372,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-resolve-before",
+      "x": 20,
+      "y": 753,
+      "w": 372,
+      "h": 223
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-resolve-during",
+      "x": 20,
+      "y": 986,
+      "w": 372,
+      "h": 142
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-resolve-after",
+      "x": 20,
+      "y": 1138,
+      "w": 372,
+      "h": 142
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-resolve-notes",
+      "x": 20,
+      "y": 1321,
+      "w": 372,
+      "h": 72
+    },
+    {
+      "n": 6,
+      "stepId": "locker-tech-resolve-test-open",
+      "x": 20,
+      "y": 1553,
+      "w": 372,
+      "h": 75
+    },
+    {
+      "n": 7,
+      "stepId": "locker-tech-resolve-submit",
+      "x": 20,
+      "y": 1648,
+      "w": 372,
+      "h": 32
+    }
+  ]
+}

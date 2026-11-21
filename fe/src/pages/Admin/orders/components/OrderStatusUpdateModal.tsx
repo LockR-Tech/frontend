@@ -97,7 +97,7 @@ export function OrderStatusUpdateModal({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="order-status-current">
             <Label>{t("admin.orders.statusModal.currentStatus")}</Label>
             <div>
               <MetaBadge meta={orderStatusMeta(order.status)} />
@@ -109,7 +109,7 @@ export function OrderStatusUpdateModal({
               {t("admin.orders.statusModal.noTransitions")}
             </p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" data-tour="order-status-new">
               <Label htmlFor="new-status">{t("admin.orders.statusModal.newStatus")}</Label>
               <Select
                 value={selected}
@@ -135,7 +135,7 @@ export function OrderStatusUpdateModal({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter data-tour="order-status-actions">
           <Button variant="outline" onClick={onClose} disabled={saving}>
             {t("button.close")}
           </Button>

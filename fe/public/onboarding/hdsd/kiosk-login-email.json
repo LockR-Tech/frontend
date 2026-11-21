@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/kiosk-login-email.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-login-email-input",
+      "x": 28,
+      "y": 267,
+      "w": 968,
+      "h": 56
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-login-email-send",
+      "x": 28,
+      "y": 323,
+      "w": 968,
+      "h": 56
+    }
+  ]
+}

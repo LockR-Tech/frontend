@@ -90,7 +90,7 @@ export function AuditHistorySheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex items-center gap-2 border-b border-border/60 px-5 py-3">
+        <div data-tour="settings-history-filter" className="flex items-center gap-2 border-b border-border/60 px-5 py-3">
           <Select
             value={filterKey ?? ALL_KEYS}
             onValueChange={(v) => onFilterKeyChange(v === ALL_KEYS ? null : v)}
@@ -122,7 +122,7 @@ export function AuditHistorySheet({
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div data-tour="settings-history-list" className="flex-1 overflow-y-auto px-5 py-4">
           {isLoading ? (
             <AuditSkeleton />
           ) : error && audits.length === 0 ? (

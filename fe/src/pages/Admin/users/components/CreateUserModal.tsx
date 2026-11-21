@@ -162,7 +162,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           )}
 
           {/* Name row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3" data-tour="users-create-name">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
                 {t("admin.users.create.firstName")} <span className="text-red-400">*</span>
@@ -188,7 +188,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           </div>
 
           {/* Email */}
-          <div>
+          <div data-tour="users-create-email">
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
               Email <span className="text-red-400">*</span>
             </label>
@@ -203,7 +203,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           </div>
 
           {/* Password */}
-          <div>
+          <div data-tour="users-create-password">
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
               {t("admin.users.create.password")} <span className="text-red-400">*</span>
             </label>
@@ -228,7 +228,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           </div>
 
           {/* Phone */}
-          <div>
+          <div data-tour="users-create-phone">
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
               {t("common.phone")} <span className="text-red-400">*</span>
             </label>
@@ -242,7 +242,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           </div>
 
           {/* Roles */}
-          <div>
+          <div data-tour="users-create-roles">
             <label className="text-xs font-medium text-muted-foreground mb-2 block">
               {t("admin.users.create.roles")}
             </label>
@@ -268,7 +268,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           </div>
 
           {/* Enabled */}
-          <div className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg">
+          <div className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-lg" data-tour="users-create-enabled">
             <div>
               <p className="text-sm font-medium text-foreground/80">
                 {t("admin.users.create.enableAccount")}
@@ -284,7 +284,7 @@ export function CreateUserModal({ open, onClose }: Props) {
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2" data-tour="users-create-actions">
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             {t("button.cancel")}
           </Button>

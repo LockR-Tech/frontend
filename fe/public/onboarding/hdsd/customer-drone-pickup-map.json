@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/customer-drone-pickup-map.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-drone-pickup-map-search",
+      "x": 12,
+      "y": 66,
+      "w": 388,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-drone-pickup-map-map",
+      "x": 0,
+      "y": 112,
+      "w": 412,
+      "h": 624
+    },
+    {
+      "n": 3,
+      "stepId": "customer-drone-pickup-map-current",
+      "x": 260,
+      "y": 668,
+      "w": 140,
+      "h": 56
+    },
+    {
+      "n": 4,
+      "stepId": "customer-drone-pickup-map-address",
+      "x": 12,
+      "y": 746,
+      "w": 388,
+      "h": 92
+    },
+    {
+      "n": 5,
+      "stepId": "customer-drone-pickup-map-confirm",
+      "x": 12,
+      "y": 848,
+      "w": 388,
+      "h": 32
+    }
+  ]
+}

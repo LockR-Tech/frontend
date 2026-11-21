@@ -133,7 +133,7 @@ export function PaymentDetailModal({
             <PaymentSummary payment={payment} />
 
             {payment.order && (
-              <section className="space-y-2">
+              <section className="space-y-2" data-tour="payment-detail-order">
                 <SectionTitle icon={Package}>{t("admin.payments.detail.relatedOrder")}</SectionTitle>
                 <div className="rounded-xl border border-border p-3 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
@@ -176,7 +176,7 @@ export function PaymentDetailModal({
 
             <Separator />
 
-            <section className="space-y-2">
+            <section className="space-y-2" data-tour="payment-detail-status">
               <SectionTitle>{t("admin.orders.updateStatus")}</SectionTitle>
               {editLock ? (
                 <p className="text-xs text-muted-foreground">{editLock}</p>
@@ -253,7 +253,7 @@ function SectionTitle({
 function PaymentSummary({ payment }: { payment: AdminPayment }) {
   const { t } = useTranslation();
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-tour="payment-detail-summary">
       <div className="rounded-xl bg-secondary/50 border border-border p-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs text-muted-foreground mb-0.5">{t("admin.payments.amount")}</p>
@@ -306,7 +306,7 @@ function PaymentSummary({ payment }: { payment: AdminPayment }) {
 function RefundSection({ refunds }: { refunds: AdminRefund[] }) {
   const { t } = useTranslation();
   return (
-    <section className="space-y-2">
+    <section className="space-y-2" data-tour="payment-detail-refunds">
       <SectionTitle icon={RefreshCcw}>
         {t("admin.payments.detail.refundsCount", { count: refunds.length })}
       </SectionTitle>
@@ -361,7 +361,7 @@ function WalletSection({
 }) {
   const { t } = useTranslation();
   return (
-    <section className="space-y-2">
+    <section className="space-y-2" data-tour="payment-detail-wallet">
       <SectionTitle icon={Wallet}>
         {t("admin.payments.detail.walletCount", { count: transactions.length })}
       </SectionTitle>
@@ -402,7 +402,7 @@ function OtherPaymentsSection({ payments }: { payments: AdminPayment[] }) {
   if (payments.length === 0) return null;
 
   return (
-    <section className="space-y-2">
+    <section className="space-y-2" data-tour="payment-detail-others">
       <SectionTitle>
         {t("admin.payments.detail.otherPayments", { count: payments.length })}
       </SectionTitle>

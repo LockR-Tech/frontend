@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-order-detail-side.png",
+  "width": 1440,
+  "height": 3125,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-order-detail-side-customer",
+      "x": 1052,
+      "y": 264,
+      "w": 356,
+      "h": 559
+    },
+    {
+      "n": 2,
+      "stepId": "admin-order-detail-side-locker",
+      "x": 1052,
+      "y": 839,
+      "w": 356,
+      "h": 334
+    },
+    {
+      "n": 3,
+      "stepId": "admin-order-detail-side-code",
+      "x": 1052,
+      "y": 1188,
+      "w": 356,
+      "h": 263
+    },
+    {
+      "n": 4,
+      "stepId": "admin-order-detail-side-payment",
+      "x": 1052,
+      "y": 1467,
+      "w": 356,
+      "h": 1345
+    },
+    {
+      "n": 5,
+      "stepId": "admin-order-detail-side-transactions",
+      "x": 1077,
+      "y": 1823,
+      "w": 306,
+      "h": 770
+    },
+    {
+      "n": 6,
+      "stepId": "admin-order-detail-side-refunds",
+      "x": 1077,
+      "y": 2605,
+      "w": 306,
+      "h": 182
+    },
+    {
+      "n": 7,
+      "stepId": "admin-order-detail-side-links",
+      "x": 1052,
+      "y": 2827,
+      "w": 356,
+      "h": 242
+    }
+  ]
+}

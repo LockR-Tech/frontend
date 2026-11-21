@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-promotions.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-promotions-create",
+      "x": 1253,
+      "y": 89,
+      "w": 155,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-promotions-status",
+      "x": 292,
+      "y": 161,
+      "w": 1116,
+      "h": 30
+    },
+    {
+      "n": 3,
+      "stepId": "admin-promotions-search",
+      "x": 316,
+      "y": 239,
+      "w": 256,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-promotions-scope",
+      "x": 584,
+      "y": 239,
+      "w": 256,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-promotions-toolbar",
+      "x": 1192,
+      "y": 239,
+      "w": 192,
+      "h": 36
+    },
+    {
+      "n": 6,
+      "stepId": "admin-promotions-batch",
+      "x": 316,
+      "y": 299,
+      "w": 1068,
+      "h": 58
+    },
+    {
+      "n": 7,
+      "stepId": "admin-promotions-first-row",
+      "x": 373,
+      "y": 463,
+      "w": 95,
+      "h": 16
+    },
+    {
+      "n": 8,
+      "stepId": "admin-promotions-row-menu",
+      "x": 1473,
+      "y": 457,
+      "w": 28,
+      "h": 28
+    }
+  ]
+}

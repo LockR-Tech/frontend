@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-locker-more-menu.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-more-menu-more",
+      "x": 1368,
+      "y": 96,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-more-menu-location",
+      "x": 1191,
+      "y": 147,
+      "w": 210,
+      "h": 32
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-more-menu-qr",
+      "x": 1191,
+      "y": 179,
+      "w": 210,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-more-menu-open-qr",
+      "x": 1191,
+      "y": 211,
+      "w": 210,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "admin-locker-more-menu-arrange",
+      "x": 1191,
+      "y": 243,
+      "w": 210,
+      "h": 32
+    },
+    {
+      "n": 6,
+      "stepId": "admin-locker-more-menu-delete-all",
+      "x": 1191,
+      "y": 284,
+      "w": 210,
+      "h": 32
+    }
+  ]
+}

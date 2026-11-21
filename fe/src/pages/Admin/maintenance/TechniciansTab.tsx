@@ -411,7 +411,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
       ))}
 
       {/* KPI Cards */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4" data-tour="technicians-kpis">
         <Card {...cardProps(() => showCard(null), cardFocus === null && specialtyFilter === "ALL" && shiftFilter === "ALL" && penaltyFilter === "ALL" && !searchQuery)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -491,7 +491,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
       </div>
 
       {/* SLA Policy Banner */}
-      <Card className="border-indigo-200/80 bg-gradient-to-r from-indigo-50/70 via-blue-50/40 to-slate-50 border shadow-xs">
+      <Card className="border-indigo-200/80 bg-gradient-to-r from-indigo-50/70 via-blue-50/40 to-slate-50 border shadow-xs" data-tour="technicians-policy">
         <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
@@ -526,7 +526,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2" data-tour="technicians-list-title">
                 <Users className="w-4 h-4 text-indigo-600" />
                 {t("admin.maintenance.techTab.listTitle", { count: filteredTechs.length })}
                 {cardFocus && (
@@ -542,7 +542,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="relative w-60">
+              <div className="relative w-60" data-tour="technicians-search">
                 <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   placeholder={t("admin.maintenance.techTab.search")}
@@ -553,7 +553,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               </div>
 
               <Select value={shiftFilter} onValueChange={(val: any) => setShiftFilter(val)}>
-                <SelectTrigger className="w-40 h-8 text-xs bg-background">
+                <SelectTrigger className="w-40 h-8 text-xs bg-background" data-tour="technicians-shift-filter">
                   <SelectValue placeholder={t("admin.maintenance.ui.shift.filterPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -564,7 +564,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               </Select>
 
               <Select value={specialtyFilter} onValueChange={(val: any) => setSpecialtyFilter(val)}>
-                <SelectTrigger className="w-44 h-8 text-xs bg-background">
+                <SelectTrigger className="w-44 h-8 text-xs bg-background" data-tour="technicians-specialty-filter">
                   <SelectValue placeholder={t("admin.maintenance.techTab.specialtyFilter")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -575,7 +575,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
               </Select>
 
               <Select value={penaltyFilter} onValueChange={setPenaltyFilter}>
-                <SelectTrigger className="w-40 h-8 text-xs bg-background">
+                <SelectTrigger className="w-40 h-8 text-xs bg-background" data-tour="technicians-penalty-filter">
                   <SelectValue placeholder={t("admin.maintenance.techTab.penaltyFilter")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -600,7 +600,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredTechs.map((tech) => {
+              {filteredTechs.map((tech, index) => {
                 const presence = presenceByUserId.get(tech.id);
                 const metrics = techMetrics[tech.id] || {
                   inProgress: 0,
@@ -634,6 +634,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                           <div
                             className="flex items-center gap-3 cursor-pointer group"
                             onClick={() => openDetail(tech)}
+                            data-tour={index === 0 ? "technicians-card-identity" : undefined}
                           >
                             <div className="w-11 h-11 rounded-xl bg-muted border border-border/70 flex items-center justify-center text-sm font-bold text-foreground overflow-hidden shrink-0 group-hover:border-foreground/40 transition-colors">
                               {tech.imageUrl ? (
@@ -693,6 +694,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
                           {/* Status Badge */}
                           <Badge
+                            data-tour={index === 0 ? "technicians-card-status" : undefined}
                             variant="outline"
                             className={
                               isSuspended
@@ -723,7 +725,10 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                         )}
 
                         {/* Workload Status Pill */}
-                        <div className="mt-3 p-2 rounded-lg bg-muted/40 border border-border/50 text-xs flex items-center justify-between">
+                        <div
+                          className="mt-3 p-2 rounded-lg bg-muted/40 border border-border/50 text-xs flex items-center justify-between"
+                          data-tour={index === 0 ? "technicians-card-load" : undefined}
+                        >
                           <span className="text-muted-foreground">{t("admin.maintenance.techTab.load")}</span>
                           <span className="font-medium text-foreground">
                             {metrics.inProgress === 0
@@ -735,7 +740,10 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                         </div>
 
                         {/* Shift & GPS Location Status Pill */}
-                        <div className="mt-2 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs space-y-1.5">
+                        <div
+                          className="mt-2 p-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs space-y-1.5"
+                          data-tour={index === 0 ? "technicians-card-shift" : undefined}
+                        >
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-muted-foreground flex items-center gap-1.5 text-[11px] font-medium">
                               <span
@@ -790,7 +798,10 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                         </div>
 
                         {/* Metrics summary */}
-                        <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t text-center">
+                        <div
+                          className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t text-center"
+                          data-tour={index === 0 ? "technicians-card-metrics" : undefined}
+                        >
                           <div>
                             <span className="text-[10px] text-muted-foreground block">{t("admin.maintenance.metrics.inProgress")}</span>
                             <span className="text-xs font-bold text-blue-600 block mt-0.5">
@@ -823,6 +834,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                           variant="outline"
                           className="h-8 text-xs flex-1 gap-1.5 font-medium hover:bg-accent"
                           onClick={() => openDetail(tech)}
+                          data-tour={index === 0 ? "technicians-first-row" : undefined}
                         >
                           <Eye className="w-3.5 h-3.5 text-muted-foreground" />
                           {t("dropdown.viewDetail")}
@@ -834,6 +846,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                             variant="outline"
                             className="h-8 text-xs gap-1"
                             onClick={() => onAssignToTech(tech.id, tech.specialty ?? "KIOSK")}
+                            data-tour={index === 0 ? "technicians-card-assign" : undefined}
                           >
                             <Boxes className="w-3.5 h-3.5" />
                             {t("admin.maintenance.techTab.assign")}
@@ -850,6 +863,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                           }`}
                           onClick={() => (tech.enabled ? setSuspendTarget(tech) : void handleToggleStatus(tech))}
                           disabled={isUpdatingStatus}
+                          data-tour={index === 0 ? "technicians-card-suspend" : undefined}
                           title={tech.enabled ? t("admin.maintenance.techTab.suspendThis") : t("admin.maintenance.techTab.unlock")}
                         >
                           {tech.enabled ? <Ban className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}

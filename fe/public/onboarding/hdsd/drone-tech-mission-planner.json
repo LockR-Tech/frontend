@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/drone-tech-mission-planner.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-mission-planner-name",
+      "x": 64,
+      "y": 10,
+      "w": 284,
+      "h": 42
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-mission-planner-menu",
+      "x": 358,
+      "y": 10,
+      "w": 42,
+      "h": 42
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-mission-planner-map-tools",
+      "x": 358,
+      "y": 648,
+      "w": 42,
+      "h": 94
+    },
+    {
+      "n": 4,
+      "stepId": "drone-tech-mission-planner-stats",
+      "x": 26,
+      "y": 763,
+      "w": 360,
+      "h": 59
+    },
+    {
+      "n": 5,
+      "stepId": "drone-tech-mission-planner-actions",
+      "x": 26,
+      "y": 834,
+      "w": 360,
+      "h": 32
+    }
+  ]
+}

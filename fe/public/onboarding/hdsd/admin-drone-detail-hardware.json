@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-drone-detail-hardware.png",
+  "width": 1440,
+  "height": 1338,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-drone-detail-hardware-header",
+      "x": 293,
+      "y": 619,
+      "w": 1114,
+      "h": 77
+    },
+    {
+      "n": 2,
+      "stepId": "admin-drone-detail-hardware-devices",
+      "x": 309,
+      "y": 712,
+      "w": 1082,
+      "h": 139
+    },
+    {
+      "n": 3,
+      "stepId": "admin-drone-detail-hardware-camera",
+      "x": 309,
+      "y": 867,
+      "w": 1082,
+      "h": 415
+    }
+  ]
+}

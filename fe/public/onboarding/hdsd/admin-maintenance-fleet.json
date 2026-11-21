@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-maintenance-fleet.png",
+  "width": 1440,
+  "height": 2540,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-fleet-filters",
+      "x": 317,
+      "y": 2184,
+      "w": 1066,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-fleet-status",
+      "x": 317,
+      "y": 2228,
+      "w": 1066,
+      "h": 28
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-fleet-card",
+      "x": 317,
+      "y": 2269,
+      "w": 345,
+      "h": 216
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-fleet-detail",
+      "x": 334,
+      "y": 2439,
+      "w": 311,
+      "h": 28
+    }
+  ]
+}

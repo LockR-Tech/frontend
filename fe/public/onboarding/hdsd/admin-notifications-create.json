@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-notifications-create.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-notifications-create-type",
+      "x": 489,
+      "y": 254,
+      "w": 462,
+      "h": 82
+    },
+    {
+      "n": 2,
+      "stepId": "admin-notifications-create-recipient",
+      "x": 489,
+      "y": 352,
+      "w": 462,
+      "h": 64
+    },
+    {
+      "n": 3,
+      "stepId": "admin-notifications-create-subject",
+      "x": 489,
+      "y": 432,
+      "w": 462,
+      "h": 64
+    },
+    {
+      "n": 4,
+      "stepId": "admin-notifications-create-content",
+      "x": 489,
+      "y": 512,
+      "w": 462,
+      "h": 104
+    },
+    {
+      "n": 5,
+      "stepId": "admin-notifications-create-submit",
+      "x": 489,
+      "y": 632,
+      "w": 462,
+      "h": 48
+    }
+  ]
+}

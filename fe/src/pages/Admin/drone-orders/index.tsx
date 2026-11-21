@@ -307,7 +307,7 @@ export default function DroneOrdersPage() {
 
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-tour="drone-orders-stats">
           <StatCard
             label={t("admin.droneOrders.scope.active")}
             value={counts.active}
@@ -338,13 +338,13 @@ export default function DroneOrdersPage() {
             onClick={() => showView("finished")}
           />
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
+        <Button variant="outline" size="sm" onClick={() => refetch()} data-tour="drone-orders-refresh">
           <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
           {t("button.refresh")}
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" data-tour="drone-orders-scopes">
         {SCOPES.map((s) => {
           const active = view === s.value;
           return (
@@ -392,7 +392,7 @@ export default function DroneOrdersPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm" data-tour="drone-orders-list">
           <CardContent className="overflow-x-auto p-0">
             <table className="w-full text-sm">
               <thead>
@@ -408,9 +408,10 @@ export default function DroneOrdersPage() {
                 </tr>
               </thead>
               <tbody>
-                {visible.map((order) => (
+                {visible.map((order, index) => (
                   <tr
                     key={order.orderId}
+                    data-tour={index === 0 ? "drone-orders-first-row" : undefined}
                     onClick={() => navigate(`/admin/drone-orders/${order.orderId}`)}
                     className="cursor-pointer border-b last:border-0 hover:bg-muted/40"
                   >
@@ -531,7 +532,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2" data-tour="drone-order-title">
             <Route className="h-4 w-4" />
             <h2 className="text-lg font-semibold">
               {t("admin.droneOrders.detail.title", { code: order?.orderCode ?? "" })}
@@ -551,7 +552,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
           <div className="space-y-6">
             {/* Banner hiển thị trạng thái sự cố rơi gần nhất */}
             {latestIncident ? (
-              <div className="rounded-xl border border-red-300/80 bg-gradient-to-r from-red-50 via-rose-50/70 to-amber-50/40 p-4 text-sm text-red-950 shadow-sm">
+              <div data-tour="drone-order-drop" className="rounded-xl border border-red-300/80 bg-gradient-to-r from-red-50 via-rose-50/70 to-amber-50/40 p-4 text-sm text-red-950 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600 border border-red-200 shadow-xs">
@@ -606,7 +607,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
                 </div>
               </div>
             ) : isDropReported(order) ? (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
+              <div data-tour="drone-order-drop" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-700">
                 <span className="flex items-center gap-2">
                   <TriangleAlert className="h-4 w-4 shrink-0" />
                   {t("admin.droneOrders.detail.dropReportedBanner")}
@@ -662,11 +663,11 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
 
             {!isFlightEnded(order) && <RouteWeatherPanel orderId={order.orderId} />}
 
-            <Section title={t("admin.droneOrders.section.map")}>
+            <Section title={t("admin.droneOrders.section.map")} data-tour="drone-order-map">
               <DroneTrackingMap order={order} live={live} track={flightPath} />
             </Section>
 
-            <Section title={t("admin.droneOrders.section.flightTrack")}>
+            <Section title={t("admin.droneOrders.section.flightTrack")} data-tour="drone-order-track">
               <DroneFlightTrackPanel
                 orderCode={order.orderCode ?? `#${order.orderId}`}
                 points={flightTrack}
@@ -684,7 +685,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
 
             {canCloseAsFailed(order) && <CloseAsFailedForm key={`${order.orderId}-${order.block?.reason ?? "manual"}`} order={order} />}
 
-            <Section title={t("admin.droneOrders.section.route")}>
+            <Section title={t("admin.droneOrders.section.route")} data-tour="drone-order-route">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <LockerBlock
                   label={t("admin.droneOrders.lockerBlock.source")}
@@ -733,11 +734,11 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
               </div>
             </Section>
 
-            <Section title={t("admin.droneOrders.section.progress")}>
+            <Section title={t("admin.droneOrders.section.progress")} data-tour="drone-order-progress">
               <DroneJourneyTimeline order={order} />
             </Section>
 
-            <Section title={t("common.order")}>
+            <Section title={t("common.order")} data-tour="drone-order-info">
               <Grid>
                 <LabelValue label={t("admin.droneOrders.columns.orderCode")} mono>{order.orderCode}</LabelValue>
                 <LabelValue label={t("admin.droneOrders.fields.orderStatus")}>
@@ -795,7 +796,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
               </Grid>
             </Section>
 
-            <Section title={t("admin.droneOrders.section.people")}>
+            <Section title={t("admin.droneOrders.section.people")} data-tour="drone-order-people">
               <Grid>
                 <LabelValue label={t("admin.droneOrders.fields.sender")}>{order.sender?.name ?? order.customerName}</LabelValue>
                 <LabelValue label={t("admin.droneOrders.fields.senderPhone")} mono>{order.sender?.phone ?? order.customerPhone}</LabelValue>
@@ -818,7 +819,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
               </Grid>
             </Section>
 
-            <Section title={t("admin.droneOrders.section.mission")}>
+            <Section title={t("admin.droneOrders.section.mission")} data-tour="drone-order-mission">
               <Grid>
                 <LabelValue label={t("admin.droneOrders.fields.missionId")} mono>
                   {order.missionId !== null
@@ -877,7 +878,7 @@ export function DroneOrderDetailContent({ orderId }: { orderId: number }) {
               </Grid>
             </Section>
 
-            <Section title={t("admin.droneOrders.section.journeyLog")}>
+            <Section title={t("admin.droneOrders.section.journeyLog")} data-tour="drone-order-log">
               {order.journeyEvents.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("admin.droneOrders.log.empty")}</p>
               ) : (
@@ -950,7 +951,7 @@ function ParcelReturnPanel({ order }: { order: DroneOrderTracking }) {
   };
 
   return (
-    <Section title={t("admin.droneOrders.section.parcelReturn")}>
+    <Section title={t("admin.droneOrders.section.parcelReturn")} data-tour="drone-order-return">
       <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
         <p className="text-sm text-amber-800">
           {order.parcelHeldAt === "SOURCE_BOX"
@@ -980,9 +981,10 @@ function ParcelReturnPanel({ order }: { order: DroneOrderTracking }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** `data-tour` = neo hướng dẫn trên màn hình (data-tour) của khối. */
+function Section({ title, children, "data-tour": tour }: { title: string; children: React.ReactNode; "data-tour"?: string }) {
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-tour={tour}>
       <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </h3>

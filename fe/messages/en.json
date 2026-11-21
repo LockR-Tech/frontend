@@ -6940,5 +6940,62 @@
       "end": "🕑 End: {{time}}",
       "contact": "If you have any questions, please contact:"
     }
+  },
+  "onboarding": {
+    "headerButton": "Guide",
+    "welcome": {
+      "title": "Hi {{name}}!",
+      "body": "New to the admin console? Take a quick look at the {{count}} main areas, a few steps each.",
+      "skip": "Skip",
+      "skipForever": "Don't show again",
+      "start": "Start the guide",
+      "choose": "Pick the sections to see"
+    },
+    "whatsNew": {
+      "title": "New guides available",
+      "body": "{{count}} areas are new or have changed since you last looked.",
+      "later": "Later",
+      "start": "See what's new"
+    },
+    "status": {
+      "new": "New",
+      "updated": "Updated",
+      "seen": "Seen"
+    },
+    "picker": {
+      "title": "User guide",
+      "description": "Pick an area to replay. The guide highlights each part of the screen; use the arrow keys or Next to move on.",
+      "view": "View",
+      "manual": "Open manual",
+      "onlyOnApp": "This area is in the mobile app — open the illustrated manual",
+      "autoShow": "Open guides automatically after sign-in or when there is something new",
+      "viewNew": "View {{count}} new",
+      "viewSelected": "View {{count}} selected",
+      "openManual": "Open the manual"
+    },
+    "overlay": {
+      "next": "Next",
+      "prev": "Back",
+      "done": "Done",
+      "nextGroup": "Next section",
+      "close": "Close guide",
+      "progress": "Step {{step}}/{{steps}} · Section {{group}}/{{groups}}",
+      "missing": "This part isn't on your screen right now (there may be no data yet, or the window is narrow)."
+    },
+    "settings": {
+      "title": "On-screen guide",
+      "description": "Replay the guide or turn automatic guides on or off.",
+      "open": "Open guide"
+    },
+    "manual": {
+      "title": "User guide",
+      "subtitle": "One real screenshot per area; the red numbers match the explanations beside it. Same content as the on-screen guide.",
+      "onWeb": "Admin web",
+      "onApp": "Mobile app",
+      "runOnScreen": "Show on screen",
+      "noImage": "No illustration for this section yet.",
+      "noImageState": "This screen only appears while an order is at that stage (awaiting payment, dropping off…), so there is no screenshot — follow the steps alongside.",
+      "onKiosk": "At the locker (kiosk)"
+    }
   }
 }

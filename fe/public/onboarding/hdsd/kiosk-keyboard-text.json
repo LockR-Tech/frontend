@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/kiosk-keyboard-text.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-keyboard-text-keys",
+      "x": 0,
+      "y": 335,
+      "w": 1024,
+      "h": 265
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-keyboard-text-shift",
+      "x": 12,
+      "y": 496,
+      "w": 95,
+      "h": 44
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-keyboard-text-delete",
+      "x": 917,
+      "y": 446,
+      "w": 95,
+      "h": 44
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-keyboard-text-mail",
+      "x": 418,
+      "y": 546,
+      "w": 291,
+      "h": 44
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-keyboard-text-enter",
+      "x": 715,
+      "y": 546,
+      "w": 194,
+      "h": 44
+    },
+    {
+      "n": 6,
+      "stepId": "kiosk-keyboard-text-hide",
+      "x": 915,
+      "y": 546,
+      "w": 97,
+      "h": 44
+    }
+  ]
+}

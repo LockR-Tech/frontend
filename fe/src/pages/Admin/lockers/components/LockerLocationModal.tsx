@@ -486,7 +486,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
         {/* Thanh công cụ tìm kiếm và lấy tọa độ GPS chính xác (relative z-30 để dropdown nổi trên Leaflet Map) */}
         <div className="relative z-30 p-3 bg-card border-b border-border/60 flex flex-col md:flex-row items-center gap-2.5">
           {/* Form tìm kiếm địa điểm */}
-          <div ref={searchInputContainerRef} className="relative flex-1 w-full">
+          <div ref={searchInputContainerRef} className="relative flex-1 w-full" data-tour="adm-locker-loc-search">
             <form onSubmit={handleSearchSubmit} className="flex items-center gap-1.5">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
@@ -584,7 +584,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
           </div>
 
           {/* Nút hành động nhanh */}
-          <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+          <div className="flex items-center gap-2 w-full md:w-auto shrink-0" data-tour="adm-locker-loc-tools">
             {/* Lấy vị trí GPS của tôi (High Accuracy) */}
             <Button
               type="button"
@@ -615,7 +615,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
         </div>
 
         {/* Khu vực Bản đồ Tương tác */}
-        <div className="relative flex-1 w-full bg-slate-100 dark:bg-slate-900 overflow-hidden">
+        <div className="relative flex-1 w-full bg-slate-100 dark:bg-slate-900 overflow-hidden" data-tour="adm-locker-loc-map">
           <MapContainer
             center={[initialLat, initialLng]}
             zoom={17}
@@ -742,7 +742,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
         </div>
 
         {/* Thông tin tọa độ và địa chỉ chi tiết bên dưới */}
-        <div className="p-4 bg-card border-t border-border/80 space-y-3">
+        <div className="p-4 bg-card border-t border-border/80 space-y-3" data-tour="adm-locker-loc-fields">
           {/* Hàng 1: Địa chỉ hiển thị */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
@@ -830,7 +830,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
         </div>
 
         {/* Footer Modal */}
-        <DialogFooter className="p-3 px-4 border-t border-border/80 bg-muted/20 flex items-center justify-between sm:justify-between">
+        <DialogFooter className="p-3 px-4 border-t border-border/80 bg-muted/20 flex items-center justify-between sm:justify-between" data-tour="adm-locker-loc-save">
           <Button
             type="button"
             variant="ghost"

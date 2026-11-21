@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/locker-tech-report-actions.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-report-actions-box-incident",
+      "x": 16,
+      "y": 668,
+      "w": 380,
+      "h": 42
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-report-actions-resolve",
+      "x": 16,
+      "y": 716,
+      "w": 380,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-report-actions-reject",
+      "x": 16,
+      "y": 762,
+      "w": 380,
+      "h": 40
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-report-actions-release",
+      "x": 16,
+      "y": 808,
+      "w": 380,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-report-actions-directions",
+      "x": 16,
+      "y": 848,
+      "w": 186,
+      "h": 36
+    },
+    {
+      "n": 6,
+      "stepId": "locker-tech-report-actions-extend",
+      "x": 210,
+      "y": 848,
+      "w": 186,
+      "h": 36
+    }
+  ]
+}

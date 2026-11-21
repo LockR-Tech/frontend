@@ -318,6 +318,7 @@ export default function LoyaltyPage() {
           type="button"
           onClick={() => setSelectedMember({ member: row.original, scope: "ALL" })}
           className="font-medium text-primary hover:underline"
+          data-tour={row.index === 0 ? "loyalty-first-member" : undefined}
         >
           {fmtNum(row.original.transactionCount)}
         </button>
@@ -356,8 +357,10 @@ export default function LoyaltyPage() {
       )}
 
       {/* ── Điểm cộng/trừ trong kỳ ──────────────────────────────────────── */}
-      <DateRangeFilter value={range} onChange={setRange} />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div data-tour="loyalty-range">
+        <DateRangeFilter value={range} onChange={setRange} />
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" data-tour="loyalty-period">
         <ReportStatCard
           label={t("admin.loyalty.period.issued")}
           value={`+${fmtNum(period?.current.issued)}`}
@@ -397,7 +400,7 @@ export default function LoyaltyPage() {
       </div>
 
       {/* ── Overview KPI ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-tour="loyalty-overview">
         <StatCard
           icon={Users}
           label={t("admin.loyalty.stats.members")}
@@ -465,7 +468,7 @@ export default function LoyaltyPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ── Tier distribution ──────────────────────────────────────────── */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm" data-tour="loyalty-tiers">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Award size={16} className="text-yellow-500" /> {t("admin.loyalty.tierDistribution")}
@@ -512,7 +515,7 @@ export default function LoyaltyPage() {
         </Card>
 
         {/* ── Points metrics ─────────────────────────────────────────────── */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm" data-tour="loyalty-metrics">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Coins size={16} className="text-yellow-500" /> {t("admin.loyalty.pointsMetrics")}
@@ -564,7 +567,7 @@ export default function LoyaltyPage() {
         </Card>
 
         {/* ── This month ─────────────────────────────────────────────────── */}
-        <Card className="border-0 shadow-sm lg:col-span-2">
+        <Card className="border-0 shadow-sm lg:col-span-2" data-tour="loyalty-month">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Star size={16} className="text-purple-500" /> {t("admin.loyalty.thisMonth")}
@@ -612,7 +615,7 @@ export default function LoyaltyPage() {
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <Users size={16} className="text-blue-500" /> {t("admin.loyalty.list.membersTitle")}
               </CardTitle>
-              <div className="relative w-full sm:w-64">
+              <div className="relative w-full sm:w-64" data-tour="loyalty-member-search">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}
@@ -625,7 +628,7 @@ export default function LoyaltyPage() {
                 />
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" data-tour="loyalty-member-segments">
               {SEGMENTS.map(({ value, labelKey }) => (
                 <FilterChip
                   key={value}
@@ -646,7 +649,7 @@ export default function LoyaltyPage() {
               })}
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent data-tour="loyalty-member-table">
             <DataTable
               columns={memberColumns as never}
               data={pagedMembers}
@@ -667,7 +670,7 @@ export default function LoyaltyPage() {
 
       {/* ── Giao dịch tạo nên số điểm ───────────────────────────────────── */}
       <div ref={transactionsRef} className="scroll-mt-20">
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm" data-tour="loyalty-transactions">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <Coins size={16} className="text-yellow-500" /> {t("admin.loyalty.list.transactionsTitle")}
@@ -689,7 +692,7 @@ export default function LoyaltyPage() {
         <DialogContent className="flex max-h-[90vh] max-w-5xl flex-col">
           {selectedMember && (
             <>
-              <DialogHeader className="shrink-0">
+              <DialogHeader className="shrink-0" data-tour="loyalty-member-header">
                 <DialogTitle className="text-base font-bold">
                   {userById.get(selectedMember.member.userId)?.name || `#${selectedMember.member.userId}`}
                 </DialogTitle>
@@ -706,7 +709,7 @@ export default function LoyaltyPage() {
                   <span className="font-semibold text-rose-600">−{fmtNum(selectedMember.member.pointsRedeemed)}</span>
                 </div>
               </DialogHeader>
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto" data-tour="loyalty-member-panel">
                 <LoyaltyTransactionsPanel
                   key={`${selectedMember.member.userId}-${selectedMember.scope}`}
                   userId={selectedMember.member.userId}

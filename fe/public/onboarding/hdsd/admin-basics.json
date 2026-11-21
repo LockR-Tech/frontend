@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-basics.png",
+  "width": 1440,
+  "height": 956,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-basics-sidebar",
+      "x": 0,
+      "y": 0,
+      "w": 260,
+      "h": 956
+    },
+    {
+      "n": 2,
+      "stepId": "admin-basics-breadcrumb",
+      "x": 284,
+      "y": 24,
+      "w": 129,
+      "h": 16
+    },
+    {
+      "n": 3,
+      "stepId": "admin-basics-search",
+      "x": 919,
+      "y": 17,
+      "w": 154,
+      "h": 29
+    },
+    {
+      "n": 4,
+      "stepId": "admin-basics-notifications",
+      "x": 1384,
+      "y": 16,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "admin-basics-language",
+      "x": 1189,
+      "y": 16,
+      "w": 68,
+      "h": 32
+    },
+    {
+      "n": 6,
+      "stepId": "admin-basics-theme",
+      "x": 1265,
+      "y": 16,
+      "w": 111,
+      "h": 32
+    },
+    {
+      "n": 7,
+      "stepId": "admin-basics-guide",
+      "x": 1081,
+      "y": 16,
+      "w": 100,
+      "h": 32
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-feedback-reports.png",
+  "width": 1440,
+  "height": 1018,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-feedback-reports-tabs",
+      "x": 292,
+      "y": 186,
+      "w": 414,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-feedback-reports-filter",
+      "x": 292,
+      "y": 250,
+      "w": 1116,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-feedback-reports-table",
+      "x": 292,
+      "y": 302,
+      "w": 1116,
+      "h": 676
+    },
+    {
+      "n": 4,
+      "stepId": "admin-feedback-reports-resolve",
+      "x": 1294,
+      "y": 370,
+      "w": 101,
+      "h": 28
+    }
+  ]
+}

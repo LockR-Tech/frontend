@@ -102,7 +102,7 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="space-y-2">
+          <div className="space-y-2" data-tour="stores-form-name">
             <Label htmlFor="name">{t("admin.stores.modal.name")} *</Label>
             <Input
               id="name"
@@ -115,7 +115,7 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2" data-tour="stores-form-address">
             <Label htmlFor="address" className="flex items-center gap-2">
               <MapPin size={14} />
               {t("admin.stores.modal.address")} *
@@ -131,7 +131,7 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2" data-tour="stores-form-phone">
             <Label htmlFor="contactPhone" className="flex items-center gap-2">
               <Phone size={14} />
               {t("admin.stores.modal.phone")}
@@ -146,7 +146,7 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4" data-tour="stores-form-coords">
             <div className="space-y-2">
               <Label htmlFor="latitude">{t("admin.stores.form.latitude")}</Label>
               <Input
@@ -175,7 +175,7 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2" data-tour="stores-form-description">
             <Label htmlFor="description">{t("admin.stores.modal.description")}</Label>
             <Input
               id="description"
@@ -187,7 +187,7 @@ export function StoreModal({ isOpen, onClose, store, mode }: StoreModalProps) {
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4" data-tour="stores-form-actions">
             <Button
               type="button"
               variant="outline"

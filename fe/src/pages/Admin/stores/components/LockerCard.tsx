@@ -23,6 +23,8 @@ import { AddBoxModal } from "./AddBoxModal";
 interface Props {
   locker: AdminLockerResponse;
   onRefresh: () => void;
+  /** Gắn neo hướng dẫn (data-tour) — chỉ thẻ đầu tiên của danh sách. */
+  tourAnchors?: boolean;
 }
 
 /** LockerBoxSummary của GET /api/lockers/{lockerId}/boxes. */
@@ -44,8 +46,9 @@ const toBoxInfo = (b: LockerBoxSummary): BoxInfo => ({
 const errorText = (err: unknown, fallback: string) =>
   err instanceof Error && err.message ? err.message : fallback;
 
-export function LockerCard({ locker, onRefresh }: Props) {
+export function LockerCard({ locker, onRefresh, tourAnchors = false }: Props) {
   const { t } = useTranslation();
+  const tour = (anchor: string) => (tourAnchors ? anchor : undefined);
   const [expanded, setExpanded] = useState(false);
   const [selectedBox, setSelectedBox] = useState<BoxInfo | null>(null);
   const [showLockerSetting, setShowLockerSetting] = useState(false);
@@ -152,9 +155,10 @@ export function LockerCard({ locker, onRefresh }: Props) {
         className={`flex flex-col rounded-xl border border-border bg-card transition-all hover:border-slate-400 dark:hover:border-slate-600 ${
           actionLoading ? "opacity-60 pointer-events-none" : ""
         }`}
+        data-tour={tour("store-detail-locker-card")}
       >
         {/* Card header */}
-        <div className="p-4 pb-2">
+        <div className="p-4 pb-2" data-tour={tour("store-detail-locker-head")}>
           <div className="flex items-start justify-between gap-2 mb-1">
             <div className="flex items-center gap-1.5 min-w-0">
               <span
@@ -178,7 +182,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
         </div>
 
         {/* Stats row */}
-        <div className="px-4 pb-2">
+        <div className="px-4 pb-2" data-tour={tour("store-detail-locker-usage")}>
           <div className="flex items-center justify-between text-[11px] mb-1">
             <span className="text-muted-foreground">
               <Trans
@@ -198,7 +202,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
         </div>
 
         {/* Action footer */}
-        <div className="flex items-center border-t border-border/60 px-3 py-1.5 gap-1 mt-auto">
+        <div className="flex items-center border-t border-border/60 px-3 py-1.5 gap-1 mt-auto" data-tour={tour("store-detail-locker-actions")}>
           <button
             title={isActive ? t("admin.stores.lockerCard.turnOff") : t("admin.stores.lockerCard.turnOn")}
             onClick={handleToggleActive}
@@ -228,12 +232,14 @@ export function LockerCard({ locker, onRefresh }: Props) {
           <button
             title={t("admin.stores.lockerCard.settings")}
             onClick={() => setShowLockerSetting(true)}
+            data-tour={tour("store-detail-locker-settings")}
             className="rounded p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <Settings className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => setExpanded((v) => !v)}
+            data-tour={tour("store-detail-locker-expand")}
             className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-1.5 py-1 hover:bg-secondary transition-colors"
           >
             {expanded ? t("admin.stores.lockerCard.collapse") : t("admin.stores.lockerCard.viewBoxes")}
@@ -245,6 +251,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
           </button>
           <button
             title={t("admin.stores.addBox.title")}
+            data-tour={tour("store-detail-locker-add-box")}
             onClick={() => {
               setExpanded(true);
               setShowAddBox(true);
@@ -257,7 +264,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
 
         {/* Expanded: Box grid */}
         {expanded && (
-          <div className="px-3 pb-3 border-t border-border/60 pt-3">
+          <div className="px-3 pb-3 border-t border-border/60 pt-3" data-tour={tour("store-detail-locker-boxes")}>
             {boxesLoading && boxes === null ? (
               <AppLoading size={56} message={t("admin.stores.lockerCard.loadingBoxes")} className="py-2" />
             ) : boxesError ? (
@@ -298,7 +305,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {boxes.map((box) => {
+                  {boxes.map((box, boxIndex) => {
                     const cfg =
                       BOX_CFG[box.status] ?? BOX_CFG[BoxStatus.MAINTENANCE];
                     const canOpen = box.status === BoxStatus.OCCUPIED;
@@ -310,6 +317,7 @@ export function LockerCard({ locker, onRefresh }: Props) {
                           status: t(cfg.labelKey),
                         })}
                         onClick={() => setSelectedBox(box)}
+                        data-tour={boxIndex === 0 ? tour("store-detail-locker-first-box") : undefined}
                         className={`relative w-9 h-9 rounded border flex items-center justify-center text-xs font-bold transition-all cursor-pointer hover:shadow-sm ${cfg.bg} ${cfg.border} ${cfg.text}`}
                       >
                         {box.boxNumber}

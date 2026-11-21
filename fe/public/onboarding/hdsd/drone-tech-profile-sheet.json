@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/drone-tech-profile-sheet.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-profile-sheet-stats",
+      "x": 20,
+      "y": 623,
+      "w": 372,
+      "h": 58
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-profile-sheet-quality",
+      "x": 20,
+      "y": 695,
+      "w": 372,
+      "h": 123
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-profile-sheet-actions",
+      "x": 20,
+      "y": 836,
+      "w": 372,
+      "h": 32
+    }
+  ]
+}

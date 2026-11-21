@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-lockers-row-menu.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-lockers-row-menu-view",
+      "x": 1146,
+      "y": 527,
+      "w": 178,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-lockers-row-menu-status",
+      "x": 1146,
+      "y": 559,
+      "w": 178,
+      "h": 32
+    },
+    {
+      "n": 3,
+      "stepId": "admin-lockers-row-menu-delete",
+      "x": 1146,
+      "y": 600,
+      "w": 178,
+      "h": 32
+    }
+  ]
+}

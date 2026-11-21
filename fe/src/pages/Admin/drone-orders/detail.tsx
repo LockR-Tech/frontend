@@ -13,7 +13,7 @@ export default function DroneOrderDetailPage() {
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" className="-ml-2" onClick={() => navigate("/admin/drone-orders")}>
+      <Button variant="ghost" className="-ml-2" onClick={() => navigate("/admin/drone-orders")} data-tour="drone-order-back">
         <ArrowLeft className="mr-2 h-4 w-4" />
         {t("admin.droneOrders.page.detail.backToList")}
       </Button>

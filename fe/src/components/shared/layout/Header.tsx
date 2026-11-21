@@ -9,6 +9,7 @@ import {
   Bell,
   ChevronRight,
   Search,
+  CircleHelp,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { formatDateTime } from "~/lib/datetime";
@@ -45,6 +46,7 @@ import { useGetDroneIncidentQuery } from "~/stores/apis/admin/droneIncidents";
 import { useGetLockerLayoutQuery } from "~/stores/apis/admin/lockerOps";
 import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
 import { SUPPORTED_LANGUAGES, currentLanguage } from "~/utils/i18n";
+import { useTour } from "~/onboarding/useTour";
 
 interface HeaderProps {
   className?: string;
@@ -87,6 +89,10 @@ const pathLabelKeys: Record<string, string> = {
   technicians: "admin.sidebar.technicians",
   promotions: "admin.sidebar.promotions",
   knowledge: "admin.sidebar.knowledge",
+  storage: "admin.sidebar.storage",
+  "cabinet-control": "admin.sidebar.cabinetControl",
+  "drone-logs": "admin.sidebar.droneLogs",
+  "huong-dan": "onboarding.manual.title",
 };
 
 const isNumeric = (str: string) => /^\d+$/.test(str);
@@ -131,7 +137,7 @@ function Breadcrumb() {
 
   if (paths.length < 2) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+      <div data-tour="header-breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
         <span>{t("admin.breadcrumb.admin")}</span>
         <ChevronRight size={13} className="text-muted-foreground/40" />
         <span className="text-foreground font-semibold">
@@ -171,7 +177,7 @@ function Breadcrumb() {
   });
 
   return (
-    <nav className="flex items-center gap-1.5 text-xs font-medium">
+    <nav data-tour="header-breadcrumb" className="flex items-center gap-1.5 text-xs font-medium">
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
 
@@ -262,6 +268,7 @@ function QuickSearch() {
   return (
     <>
       <button
+        data-tour="header-search-open"
         type="button"
         onClick={() => setOpen(true)}
         className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-md bg-secondary text-muted-foreground text-xs border border-border/50 hover:text-foreground hover:border-border transition-colors"
@@ -279,8 +286,8 @@ function QuickSearch() {
         <DialogDescription className="sr-only">
           {t("header.searchDescription")}
         </DialogDescription>
-        <CommandInput placeholder={t("header.searchPlaceholder")} />
-        <CommandList>
+        <CommandInput data-tour="header-search-input" placeholder={t("header.searchPlaceholder")} />
+        <CommandList data-tour="header-search-list">
           <CommandEmpty>{t("header.searchEmpty")}</CommandEmpty>
           <CommandGroup heading={t("header.searchGroup")}>
             {destinations.map((item) => {
@@ -354,6 +361,7 @@ function NotificationBell() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          data-tour="header-notifications"
           variant="ghost"
           size="icon"
           className="h-8 w-8 text-muted-foreground hover:text-foreground relative"
@@ -370,7 +378,7 @@ function NotificationBell() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 sm:w-96 p-0 shadow-lg border border-border/80">
-        <div className="p-3 border-b border-border/60 flex items-center justify-between bg-muted/30">
+        <div data-tour="header-notif-head" className="p-3 border-b border-border/60 flex items-center justify-between bg-muted/30">
           <div className="flex items-center gap-2">
             <Bell size={15} className="text-primary" />
             <span className="text-xs font-semibold text-foreground">
@@ -389,7 +397,7 @@ function NotificationBell() {
             {t("button.viewAll")}
           </Link>
         </div>
-        <div className="max-h-72 overflow-y-auto divide-y divide-border/50">
+        <div data-tour="header-notif-list" className="max-h-72 overflow-y-auto divide-y divide-border/50">
           {inboxQuery.isError ? (
             <div className="py-6 text-center text-xs text-muted-foreground">
               {t("header.notificationsError")}
@@ -424,7 +432,7 @@ function NotificationBell() {
             ))
           )}
         </div>
-        <div className="p-2 border-t border-border/60 text-center bg-muted/20">
+        <div data-tour="header-notif-footer" className="p-2 border-t border-border/60 text-center bg-muted/20">
           <Link
             to="/admin/notifications"
             className="text-xs text-muted-foreground hover:text-foreground font-medium block py-1"
@@ -441,6 +449,7 @@ export function Header({ className }: HeaderProps) {
   const { t, i18n: i18nInstance } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { toggleSidebar } = useSidebar();
+  const { openGuide } = useTour();
   const [openLang, setOpenLang] = useState(false);
   const [openTheme, setOpenTheme] = useState(false);
 
@@ -487,12 +496,28 @@ export function Header({ className }: HeaderProps) {
 
         {/* Right Controls: Search + Lang + Theme + Notifications */}
         <div className="flex items-center gap-2">
-          <QuickSearch />
+          <div data-tour="header-search">
+            <QuickSearch />
+          </div>
+
+          {/* Hướng dẫn lần đầu trên màn hình (F3-G13): luôn mở lại được */}
+          <Button
+            data-tour="header-guide"
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1.5 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={openGuide}
+            aria-label={t("onboarding.headerButton")}
+          >
+            <CircleHelp size={15} />
+            <span className="hidden md:inline">{t("onboarding.headerButton")}</span>
+          </Button>
 
           {/* Language Switcher */}
           <DropdownMenu open={openLang} onOpenChange={setOpenLang}>
             <DropdownMenuTrigger asChild>
               <Button
+                data-tour="header-language"
                 variant="ghost"
                 size="sm"
                 className="h-8 gap-1.5 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"
@@ -525,6 +550,7 @@ export function Header({ className }: HeaderProps) {
           <DropdownMenu open={openTheme} onOpenChange={setOpenTheme}>
             <DropdownMenuTrigger asChild>
               <Button
+                data-tour="header-theme"
                 variant="ghost"
                 size="sm"
                 className="h-8 gap-1.5 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"

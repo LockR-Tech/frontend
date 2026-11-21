@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-payments-wallet.png",
+  "width": 1440,
+  "height": 1560,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-payments-wallet-tab",
+      "x": 403,
+      "y": 762,
+      "w": 100,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-payments-wallet-filters",
+      "x": 316,
+      "y": 812,
+      "w": 1068,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-payments-wallet-dates",
+      "x": 316,
+      "y": 860,
+      "w": 1068,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-payments-wallet-table",
+      "x": 316,
+      "y": 937,
+      "w": 1068,
+      "h": 576
+    }
+  ]
+}

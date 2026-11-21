@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-dashboard-charts.png",
+  "width": 1440,
+  "height": 2305,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-dashboard-charts-payment",
+      "x": 292,
+      "y": 858,
+      "w": 356,
+      "h": 401
+    },
+    {
+      "n": 2,
+      "stepId": "admin-dashboard-charts-status",
+      "x": 672,
+      "y": 858,
+      "w": 356,
+      "h": 401
+    },
+    {
+      "n": 3,
+      "stepId": "admin-dashboard-charts-service",
+      "x": 1052,
+      "y": 858,
+      "w": 356,
+      "h": 401
+    },
+    {
+      "n": 4,
+      "stepId": "admin-dashboard-charts-peak",
+      "x": 292,
+      "y": 1283,
+      "w": 546,
+      "h": 344
+    },
+    {
+      "n": 5,
+      "stepId": "admin-dashboard-charts-growth",
+      "x": 862,
+      "y": 1283,
+      "w": 546,
+      "h": 344
+    },
+    {
+      "n": 6,
+      "stepId": "admin-dashboard-charts-shortcuts",
+      "x": 292,
+      "y": 2081,
+      "w": 1116,
+      "h": 201
+    }
+  ]
+}

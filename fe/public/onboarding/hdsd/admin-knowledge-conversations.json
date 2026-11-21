@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-knowledge-conversations.png",
+  "width": 1440,
+  "height": 910,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-conversations-filter",
+      "x": 292,
+      "y": 252,
+      "w": 312,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-conversations-refresh",
+      "x": 1303,
+      "y": 252,
+      "w": 105,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-conversations-table",
+      "x": 292,
+      "y": 304,
+      "w": 1116,
+      "h": 498
+    },
+    {
+      "n": 4,
+      "stepId": "admin-knowledge-conversations-pages",
+      "x": 292,
+      "y": 818,
+      "w": 1116,
+      "h": 36
+    }
+  ]
+}

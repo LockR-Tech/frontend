@@ -37,7 +37,7 @@ export function LiveCameraPanel({ order }: { order: DroneOrderTracking }) {
   const [reportOpen, setReportOpen] = useState(false);
 
   return (
-    <Card className="border-sky-200/70 shadow-sm">
+    <Card className="border-sky-200/70 shadow-sm" data-tour="drone-order-camera">
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
         <div>
           <CardTitle className="flex items-center gap-2 text-base">

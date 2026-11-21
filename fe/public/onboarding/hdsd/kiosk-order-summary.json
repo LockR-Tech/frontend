@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/kiosk-order-summary.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-order-summary-note",
+      "x": 30,
+      "y": 367,
+      "w": 303,
+      "h": 105
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-order-summary-promo",
+      "x": 345,
+      "y": 367,
+      "w": 303,
+      "h": 105
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-order-summary-box",
+      "x": 693,
+      "y": 180,
+      "w": 286,
+      "h": 68
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-order-summary-rows",
+      "x": 693,
+      "y": 260,
+      "w": 286,
+      "h": 44
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-order-summary-total",
+      "x": 693,
+      "y": 316,
+      "w": 286,
+      "h": 42
+    },
+    {
+      "n": 6,
+      "stepId": "kiosk-order-summary-submit",
+      "x": 693,
+      "y": 511,
+      "w": 286,
+      "h": 56
+    }
+  ]
+}

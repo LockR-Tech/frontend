@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-vouchers.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-vouchers-refresh",
+      "x": 352,
+      "y": 12,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-vouchers-tabs",
+      "x": 0,
+      "y": 148,
+      "w": 412,
+      "h": 48
+    },
+    {
+      "n": 3,
+      "stepId": "customer-vouchers-first",
+      "x": 16,
+      "y": 212,
+      "w": 380,
+      "h": 118
+    }
+  ]
+}

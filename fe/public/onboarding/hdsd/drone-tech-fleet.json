@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/drone-tech-fleet.png",
+  "width": 412,
+  "height": 782,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-fleet-banner",
+      "x": 12,
+      "y": 337,
+      "w": 388,
+      "h": 94
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-fleet-first",
+      "x": 12,
+      "y": 443,
+      "w": 388,
+      "h": 141
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-fleet-unassigned",
+      "x": 12,
+      "y": 733,
+      "w": 388,
+      "h": 20
+    }
+  ]
+}

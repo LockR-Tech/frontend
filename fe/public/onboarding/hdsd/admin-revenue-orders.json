@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-revenue-orders.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-revenue-orders-header",
+      "x": 233,
+      "y": 148,
+      "w": 974,
+      "h": 66
+    },
+    {
+      "n": 2,
+      "stepId": "admin-revenue-orders-table",
+      "x": 233,
+      "y": 229,
+      "w": 974,
+      "h": 458
+    },
+    {
+      "n": 3,
+      "stepId": "admin-revenue-orders-footer",
+      "x": 233,
+      "y": 703,
+      "w": 974,
+      "h": 49
+    }
+  ]
+}

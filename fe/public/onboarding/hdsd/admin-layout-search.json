@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-layout-search.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-layout-search-input",
+      "x": 505,
+      "y": 276,
+      "w": 458,
+      "h": 48
+    },
+    {
+      "n": 2,
+      "stepId": "admin-layout-search-list",
+      "x": 465,
+      "y": 325,
+      "w": 510,
+      "h": 300
+    }
+  ]
+}

@@ -129,7 +129,7 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
+          <div data-tour="knowledge-case-question">
             <Label htmlFor="eval-question" className="mb-1.5 block text-xs">
               {t("admin.knowledge.addCase.questionLabel")}
             </Label>
@@ -145,7 +145,7 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
             {touched && questionError && <p className="mt-1 text-xs text-red-600">{questionError}</p>}
           </div>
 
-          <div>
+          <div data-tour="knowledge-case-roles">
             <Label className="mb-1.5 block text-xs">{t("admin.knowledge.addCase.rolesLabel")}</Label>
             <RoleCheckboxGroup
               idPrefix="eval-role"
@@ -159,7 +159,7 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
             </p>
           </div>
 
-          <div className="flex items-start justify-between gap-4 rounded-lg border border-border px-3 py-2.5">
+          <div data-tour="knowledge-case-refuse" className="flex items-start justify-between gap-4 rounded-lg border border-border px-3 py-2.5">
             <div>
               <Label htmlFor="eval-must-refuse" className="text-sm font-medium">
                 {t("admin.knowledge.eval.mustRefuse")}
@@ -177,7 +177,7 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
           </div>
 
           {!mustRefuse && (
-            <div>
+            <div data-tour="knowledge-case-expected">
               <Label className="mb-1.5 block text-xs">{t("admin.knowledge.addCase.expectedLabel")}</Label>
               <Select value={titleChoice} onValueChange={setTitleChoice} disabled={isLoading}>
                 <SelectTrigger>
@@ -212,7 +212,7 @@ export function AddEvalCaseDialog({ open, onOpenChange, documents }: AddEvalCase
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter data-tour="knowledge-case-submit" className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
             {t("common.cancel")}
           </Button>

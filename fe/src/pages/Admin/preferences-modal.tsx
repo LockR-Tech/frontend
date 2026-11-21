@@ -11,7 +11,8 @@ import {
   DialogDescription,
 } from "~/components/ui";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Globe, SunMoon, SlidersHorizontal, Sun, Moon, Monitor } from "lucide-react";
+import { ChevronRight, CircleHelp, Globe, SunMoon, SlidersHorizontal, Sun, Moon, Monitor } from "lucide-react";
+import { useTour } from "~/onboarding/useTour";
 import { useTheme } from "~/context/theme-context";
 
 const THEME_TITLE_KEY = {
@@ -42,6 +43,13 @@ export default function PreferencesModal({
     navigate("/admin/settings");
   };
 
+  // Hướng dẫn trên màn hình (F3-G13): mở lại được cả khi đã chọn "Bỏ qua vĩnh viễn".
+  const { openGuide } = useTour();
+  const openTour = () => {
+    onOpenChange?.(false);
+    openGuide();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
@@ -52,7 +60,7 @@ export default function PreferencesModal({
 
         <div className="divide-y divide-border">
           {/* Language */}
-          <div className="flex items-center justify-between py-3">
+          <div data-tour="prefs-language" className="flex items-center justify-between py-3">
             <div className="flex items-center gap-2.5">
               <Globe size={16} className="text-muted-foreground shrink-0" />
               <div>
@@ -64,7 +72,7 @@ export default function PreferencesModal({
           </div>
 
           {/* Theme */}
-          <div className="flex items-center justify-between py-3">
+          <div data-tour="prefs-theme" className="flex items-center justify-between py-3">
             <div className="flex items-center gap-2.5">
               <SunMoon size={16} className="text-muted-foreground shrink-0" />
               <div>
@@ -92,8 +100,26 @@ export default function PreferencesModal({
             </div>
           </div>
 
+          {/* On-screen guide */}
+          <button
+            data-tour="prefs-guide"
+            type="button"
+            onClick={openTour}
+            className="flex w-full items-center justify-between py-3 text-left group"
+          >
+            <div className="flex items-center gap-2.5">
+              <CircleHelp size={16} className="text-muted-foreground shrink-0" />
+              <div>
+                <p className="text-sm font-medium">{t("onboarding.settings.title")}</p>
+                <p className="text-xs text-muted-foreground">{t("onboarding.settings.description")}</p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground group-hover:text-foreground" />
+          </button>
+
           {/* Business rules live on their own page */}
           <button
+            data-tour="prefs-business"
             type="button"
             onClick={openBusinessSettings}
             className="flex w-full items-center justify-between py-3 text-left group"
@@ -112,7 +138,7 @@ export default function PreferencesModal({
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={() => onOpenChange?.(false)}>
+          <Button data-tour="prefs-close" variant="outline" onClick={() => onOpenChange?.(false)}>
             {t("button.close")}
           </Button>
         </DialogFooter>

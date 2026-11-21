@@ -184,7 +184,7 @@ export function UserTable({
           .toUpperCase();
 
         return (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" data-tour={row.index === 0 ? "users-first-row" : undefined}>
             <Avatar className="h-10 w-10 border-2 border-white shadow-sm flex-shrink-0">
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-semibold">
                 {initials}
@@ -293,7 +293,7 @@ export function UserTable({
         const user = row.original;
         const isPending = pendingIds.has(user.id);
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" data-tour={row.index === 0 ? "users-status-switch" : undefined}>
             <Switch
               checked={user.enabled}
               disabled={isPending}
@@ -328,6 +328,7 @@ export function UserTable({
               variant="ghost"
               size="icon"
               className="h-8 w-8 hover:bg-muted"
+              data-tour={row.index === 0 ? "users-row-menu" : undefined}
             >
               <MoreHorizontal size={16} className="text-muted-foreground" />
             </Button>

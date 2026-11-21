@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-dashboard.png",
+  "width": 1440,
+  "height": 2105,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-dashboard-kpis",
+      "x": 292,
+      "y": 186,
+      "w": 1116,
+      "h": 144
+    },
+    {
+      "n": 2,
+      "stepId": "admin-dashboard-trend",
+      "x": 292,
+      "y": 354,
+      "w": 736,
+      "h": 480
+    },
+    {
+      "n": 3,
+      "stepId": "admin-dashboard-year",
+      "x": 891,
+      "y": 387,
+      "w": 112,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-dashboard-month",
+      "x": 317,
+      "y": 775,
+      "w": 686,
+      "h": 34
+    },
+    {
+      "n": 5,
+      "stepId": "admin-dashboard-capacity",
+      "x": 1052,
+      "y": 354,
+      "w": 356,
+      "h": 480
+    },
+    {
+      "n": 6,
+      "stepId": "admin-dashboard-locations",
+      "x": 292,
+      "y": 1651,
+      "w": 1116,
+      "h": 398
+    }
+  ]
+}

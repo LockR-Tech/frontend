@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-payments-list.png",
+  "width": 1440,
+  "height": 2484,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-payments-list-filters",
+      "x": 316,
+      "y": 812,
+      "w": 860,
+      "h": 80
+    },
+    {
+      "n": 2,
+      "stepId": "admin-payments-list-dates",
+      "x": 316,
+      "y": 904,
+      "w": 860,
+      "h": 65
+    },
+    {
+      "n": 3,
+      "stepId": "admin-payments-list-toolbar",
+      "x": 1192,
+      "y": 812,
+      "w": 192,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-payments-list-first-row",
+      "x": 341,
+      "y": 1073,
+      "w": 100,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-payments-list-table",
+      "x": 316,
+      "y": 1017,
+      "w": 1068,
+      "h": 1419
+    }
+  ]
+}

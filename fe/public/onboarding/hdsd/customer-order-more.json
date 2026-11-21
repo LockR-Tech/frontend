@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/customer-order-more.png",
+  "width": 412,
+  "height": 1175,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-order-more-directions",
+      "x": 20,
+      "y": 1031,
+      "w": 372,
+      "h": 58
+    },
+    {
+      "n": 2,
+      "stepId": "customer-order-more-refund",
+      "x": 20,
+      "y": 1089,
+      "w": 372,
+      "h": 58
+    }
+  ]
+}

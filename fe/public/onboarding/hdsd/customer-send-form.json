@@ -1,0 +1,80 @@
+{
+  "image": "hdsd/customer-send-form.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-send-form-locker",
+      "x": 16,
+      "y": 360,
+      "w": 380,
+      "h": 72
+    },
+    {
+      "n": 2,
+      "stepId": "customer-send-form-size",
+      "x": 16,
+      "y": 479,
+      "w": 380,
+      "h": 98
+    },
+    {
+      "n": 3,
+      "stepId": "customer-send-form-recipient",
+      "x": 16,
+      "y": 664,
+      "w": 380,
+      "h": 48
+    },
+    {
+      "n": 4,
+      "stepId": "customer-send-form-email",
+      "x": 16,
+      "y": 780,
+      "w": 380,
+      "h": 48
+    },
+    {
+      "n": 5,
+      "stepId": "customer-send-form-message",
+      "x": 16,
+      "y": 994,
+      "w": 380,
+      "h": 92
+    },
+    {
+      "n": 6,
+      "stepId": "customer-send-form-storage",
+      "x": 16,
+      "y": 1133,
+      "w": 380,
+      "h": 154
+    },
+    {
+      "n": 7,
+      "stepId": "customer-send-form-promo",
+      "x": 16,
+      "y": 1423,
+      "w": 380,
+      "h": 51
+    },
+    {
+      "n": 8,
+      "stepId": "customer-send-form-points",
+      "x": 16,
+      "y": 1521,
+      "w": 380,
+      "h": 8
+    },
+    {
+      "n": 9,
+      "stepId": "customer-send-form-bottom",
+      "x": 16,
+      "y": 1545,
+      "w": 380,
+      "h": 139
+    }
+  ]
+}

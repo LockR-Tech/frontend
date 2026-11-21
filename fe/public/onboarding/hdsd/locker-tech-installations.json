@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/locker-tech-installations.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-installations-empty",
+      "x": 16,
+      "y": 72,
+      "w": 380,
+      "h": 144
+    }
+  ]
+}

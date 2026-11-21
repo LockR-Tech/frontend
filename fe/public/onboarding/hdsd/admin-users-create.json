@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-users-create.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-users-create-name",
+      "x": 489,
+      "y": 231,
+      "w": 462,
+      "h": 60
+    },
+    {
+      "n": 2,
+      "stepId": "admin-users-create-email",
+      "x": 489,
+      "y": 307,
+      "w": 462,
+      "h": 60
+    },
+    {
+      "n": 3,
+      "stepId": "admin-users-create-password",
+      "x": 489,
+      "y": 383,
+      "w": 462,
+      "h": 60
+    },
+    {
+      "n": 4,
+      "stepId": "admin-users-create-phone",
+      "x": 489,
+      "y": 459,
+      "w": 462,
+      "h": 60
+    },
+    {
+      "n": 5,
+      "stepId": "admin-users-create-roles",
+      "x": 489,
+      "y": 535,
+      "w": 462,
+      "h": 50
+    },
+    {
+      "n": 6,
+      "stepId": "admin-users-create-enabled",
+      "x": 489,
+      "y": 601,
+      "w": 462,
+      "h": 52
+    },
+    {
+      "n": 7,
+      "stepId": "admin-users-create-actions",
+      "x": 489,
+      "y": 673,
+      "w": 462,
+      "h": 40
+    }
+  ]
+}

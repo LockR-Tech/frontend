@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-drone-incident-resolution.png",
+  "width": 1440,
+  "height": 2533,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-drone-incident-resolution-field",
+      "x": 292,
+      "y": 1535,
+      "w": 546,
+      "h": 269
+    },
+    {
+      "n": 2,
+      "stepId": "admin-drone-incident-resolution-timeline",
+      "x": 292,
+      "y": 1828,
+      "w": 546,
+      "h": 227
+    },
+    {
+      "n": 3,
+      "stepId": "admin-drone-incident-resolution-policy",
+      "x": 862,
+      "y": 1535,
+      "w": 546,
+      "h": 209
+    },
+    {
+      "n": 4,
+      "stepId": "admin-drone-incident-resolution-proposal",
+      "x": 862,
+      "y": 1768,
+      "w": 546,
+      "h": 541
+    },
+    {
+      "n": 5,
+      "stepId": "admin-drone-incident-resolution-history",
+      "x": 862,
+      "y": 2333,
+      "w": 546,
+      "h": 143
+    }
+  ]
+}

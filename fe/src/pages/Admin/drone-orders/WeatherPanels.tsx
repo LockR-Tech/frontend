@@ -117,7 +117,7 @@ export function RouteWeatherPanel({ orderId }: { orderId: number }) {
   const route = data?.data;
   if (route && !route.weather) return null;
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-tour="drone-order-weather">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           {t("admin.droneOrders.weather.routeTitle")}
@@ -170,7 +170,7 @@ export function LockerWeatherOverview() {
           : t("admin.droneOrders.weather.someBlocked", { blocked, count: lockers.length });
 
   return (
-    <div className="rounded-xl border bg-card">
+    <div className="rounded-xl border bg-card" data-tour="drone-orders-weather">
       <div className="flex items-center justify-between gap-3 p-4">
         <button type="button" className="flex min-w-0 items-center gap-3 text-left" onClick={() => setOpen((v) => !v)}>
           {checkOff && blocked === 0 && !isError ? (

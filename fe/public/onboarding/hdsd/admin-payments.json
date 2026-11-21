@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-payments.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-payments-links",
+      "x": 1091,
+      "y": 120,
+      "w": 317,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-payments-range",
+      "x": 292,
+      "y": 210,
+      "w": 1116,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-payments-cards",
+      "x": 292,
+      "y": 258,
+      "w": 1116,
+      "h": 197
+    },
+    {
+      "n": 4,
+      "stepId": "admin-payments-breakdown",
+      "x": 292,
+      "y": 467,
+      "w": 1116,
+      "h": 241
+    },
+    {
+      "n": 5,
+      "stepId": "admin-payments-tabs",
+      "x": 316,
+      "y": 756,
+      "w": 308,
+      "h": 40
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/drone-tech-home.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-home-profile",
+      "x": 16,
+      "y": 23,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-home-identity",
+      "x": 80,
+      "y": 12,
+      "w": 190,
+      "h": 74
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-home-guide",
+      "x": 234,
+      "y": 12,
+      "w": 26,
+      "h": 26
+    },
+    {
+      "n": 4,
+      "stepId": "drone-tech-home-actions",
+      "x": 270,
+      "y": 30,
+      "w": 126,
+      "h": 38
+    },
+    {
+      "n": 5,
+      "stepId": "drone-tech-home-hud",
+      "x": 16,
+      "y": 100,
+      "w": 380,
+      "h": 68
+    },
+    {
+      "n": 6,
+      "stepId": "drone-tech-home-shift",
+      "x": 16,
+      "y": 202,
+      "w": 380,
+      "h": 58
+    },
+    {
+      "n": 7,
+      "stepId": "drone-tech-home-tabs",
+      "x": 0,
+      "y": 276,
+      "w": 412,
+      "h": 49
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-stores-locker-card.png",
+  "width": 1440,
+  "height": 1306,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-stores-locker-card-head",
+      "x": 310,
+      "y": 897,
+      "w": 257,
+      "h": 61
+    },
+    {
+      "n": 2,
+      "stepId": "admin-stores-locker-card-usage",
+      "x": 310,
+      "y": 958,
+      "w": 257,
+      "h": 35
+    },
+    {
+      "n": 3,
+      "stepId": "admin-stores-locker-card-actions",
+      "x": 310,
+      "y": 992,
+      "w": 257,
+      "h": 39
+    },
+    {
+      "n": 4,
+      "stepId": "admin-stores-locker-card-boxes",
+      "x": 310,
+      "y": 1031,
+      "w": 257,
+      "h": 233
+    }
+  ]
+}

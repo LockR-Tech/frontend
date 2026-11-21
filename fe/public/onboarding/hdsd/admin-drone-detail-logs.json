@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-drone-detail-logs.png",
+  "width": 1440,
+  "height": 1926,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-drone-detail-logs-tabs",
+      "x": 918,
+      "y": 1352,
+      "w": 465,
+      "h": 50
+    },
+    {
+      "n": 2,
+      "stepId": "admin-drone-detail-logs-banner",
+      "x": 309,
+      "y": 1435,
+      "w": 1082,
+      "h": 67
+    },
+    {
+      "n": 3,
+      "stepId": "admin-drone-detail-logs-filters",
+      "x": 309,
+      "y": 1518,
+      "w": 1082,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-drone-detail-logs-table",
+      "x": 309,
+      "y": 1570,
+      "w": 1082,
+      "h": 315
+    }
+  ]
+}

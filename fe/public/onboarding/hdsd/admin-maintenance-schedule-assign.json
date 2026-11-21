@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-maintenance-schedule-assign.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-schedule-assign-open",
+      "x": 880,
+      "y": 434,
+      "w": 92,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-schedule-assign-summary",
+      "x": 521,
+      "y": 331,
+      "w": 398,
+      "h": 156
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-schedule-assign-tech",
+      "x": 521,
+      "y": 502,
+      "w": 398,
+      "h": 93
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-schedule-assign-save",
+      "x": 814,
+      "y": 619,
+      "w": 105,
+      "h": 36
+    }
+  ]
+}

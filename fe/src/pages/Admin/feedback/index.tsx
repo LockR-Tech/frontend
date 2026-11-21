@@ -17,16 +17,16 @@ export default function FeedbackPage() {
       />
 
       <Tabs defaultValue="reports" className="space-y-4">
-        <TabsList className="bg-secondary/60 border border-border/60 p-1">
-          <TabsTrigger value="reports" className="gap-2 text-xs">
+        <TabsList data-tour="feedback-tabs" className="bg-secondary/60 border border-border/60 p-1">
+          <TabsTrigger data-tour="feedback-tab-reports" value="reports" className="gap-2 text-xs">
             <ClipboardList size={14} />
             {t("admin.feedback.tabs.reports")}
           </TabsTrigger>
-          <TabsTrigger value="feedback" className="gap-2 text-xs">
+          <TabsTrigger data-tour="feedback-tab-feedback" value="feedback" className="gap-2 text-xs">
             <MessageSquare size={14} />
             {t("admin.feedback.tabs.feedback")}
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="gap-2 text-xs">
+          <TabsTrigger data-tour="feedback-tab-analytics" value="analytics" className="gap-2 text-xs">
             <BarChart3 size={14} />
             {t("admin.feedback.tabs.analytics")}
           </TabsTrigger>

@@ -98,7 +98,7 @@ export function BluetoothTestPanel({ lockerId }: BluetoothTestPanelProps) {
   };
 
   return (
-    <Card className="border border-border/80 shadow-xs">
+    <Card className="border border-border/80 shadow-xs" data-tour="adm-locker-ble-test">
       <CardContent className="p-4 space-y-3">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -113,7 +113,7 @@ export function BluetoothTestPanel({ lockerId }: BluetoothTestPanelProps) {
 
           <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
             <PopoverTrigger asChild>
-              <Button size="sm" className="h-9" role="combobox" aria-expanded={pickerOpen} disabled={granting}>
+              <Button size="sm" className="h-9" role="combobox" aria-expanded={pickerOpen} disabled={granting} data-tour="adm-locker-ble-test-add">
                 {granting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <UserPlus className="w-4 h-4 mr-1.5" />}
                 {t("admin.lockers.bluetoothTest.add")}
                 <ChevronsUpDown className="w-3.5 h-3.5 ml-1.5 opacity-60" />
@@ -157,11 +157,11 @@ export function BluetoothTestPanel({ lockerId }: BluetoothTestPanelProps) {
         {isLoading ? (
           <p className="text-xs text-muted-foreground">{t("common.loadingEllipsis")}</p>
         ) : grants.length === 0 ? (
-          <p className="text-xs text-muted-foreground rounded-md border border-dashed border-border px-3 py-2">
+          <p className="text-xs text-muted-foreground rounded-md border border-dashed border-border px-3 py-2" data-tour="adm-locker-ble-test-list">
             {t("admin.lockers.bluetoothTest.empty")}
           </p>
         ) : (
-          <ul className="divide-y divide-border rounded-md border border-border">
+          <ul className="divide-y divide-border rounded-md border border-border" data-tour="adm-locker-ble-test-list">
             {grants.map((g) => {
               const user = usersById.get(g.userId);
               const label = user ? userLabel(user) : t("admin.lockers.bluetoothTest.unknownUser", { id: g.userId });

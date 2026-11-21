@@ -537,7 +537,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
 
   return (
     <Card className="border border-border/80 shadow-xs">
-      <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
+      <CardHeader className="border-b border-border/60 bg-muted/20 pb-3" data-tour="drone-hw-header">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-800/60 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
@@ -603,7 +603,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
         {device ? (
           <>
             {/* Hàng 1: Chi tiết 3 cụm thiết bị */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3" data-tour="drone-hw-devices">
               {/* 1. Raspberry Pi Companion */}
               <div className="rounded-xl border bg-card p-3.5 space-y-2.5 shadow-2xs">
                 <div className="flex items-center justify-between">
@@ -786,7 +786,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
             </div>
 
             {/* Hàng 2: Camera Stream riêng biệt của Drone */}
-            <div className="rounded-xl border bg-card overflow-hidden shadow-2xs">
+            <div className="rounded-xl border bg-card overflow-hidden shadow-2xs" data-tour="drone-hw-camera">
               <div className="flex items-center justify-between border-b bg-muted/40 px-3.5 py-2 text-xs">
                 <div className="flex items-center gap-2 font-medium">
                   <Camera className="h-4 w-4 text-primary" />
@@ -880,6 +880,7 @@ export function DroneHardwarePanel({ droneId, droneCode, onOperationLogged }: Dr
               size="sm"
               className="h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4 mt-1"
               onClick={() => setAssignModalOpen(true)}
+              data-tour="drone-hw-assign"
             >
               <RadioTower className="mr-1.5 h-3.5 w-3.5" />
               {t("admin.drones.hardware.assign.title")}

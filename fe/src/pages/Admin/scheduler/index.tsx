@@ -38,8 +38,8 @@ export default function SchedulerPage() {
 
       <SchedulerStatus />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {SCHEDULER_JOBS.map((job) => {
+      <div data-tour="scheduler-jobs" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {SCHEDULER_JOBS.map((job, index) => {
           const Icon = job.icon;
           return (
             <JobCard
@@ -50,6 +50,7 @@ export default function SchedulerPage() {
               icon={<Icon size={20} className={job.color} />}
               onTrigger={() => handleTrigger(job.key, job.needsConfirm)}
               isLoading={loading[job.key]}
+              data-tour={index === 0 ? "scheduler-job-first" : undefined}
             />
           );
         })}
@@ -57,7 +58,7 @@ export default function SchedulerPage() {
 
       <JobResults results={jobResults} />
 
-      <Card className="border border-primary/20 bg-primary/5">
+      <Card data-tour="scheduler-info" className="border border-primary/20 bg-primary/5">
         <CardContent className="p-6">
           <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
             <Info size={16} className="text-primary" />

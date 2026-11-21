@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/kiosk-rental-access.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-rental-access-hint",
+      "x": 28,
+      "y": 135,
+      "w": 968,
+      "h": 16
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-rental-access-end",
+      "x": 287,
+      "y": 167,
+      "w": 450,
+      "h": 56
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-rental-access-keep",
+      "x": 287,
+      "y": 235,
+      "w": 450,
+      "h": 56
+    }
+  ]
+}

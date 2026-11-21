@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-promotions-form.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-promotions-form-code",
+      "x": 409,
+      "y": 104,
+      "w": 622,
+      "h": 86
+    },
+    {
+      "n": 2,
+      "stepId": "admin-promotions-form-description",
+      "x": 409,
+      "y": 206,
+      "w": 622,
+      "h": 104
+    },
+    {
+      "n": 3,
+      "stepId": "admin-promotions-form-scope",
+      "x": 409,
+      "y": 326,
+      "w": 622,
+      "h": 82
+    },
+    {
+      "n": 4,
+      "stepId": "admin-promotions-form-discount",
+      "x": 409,
+      "y": 424,
+      "w": 622,
+      "h": 88
+    },
+    {
+      "n": 5,
+      "stepId": "admin-promotions-form-limits",
+      "x": 409,
+      "y": 528,
+      "w": 622,
+      "h": 64
+    },
+    {
+      "n": 6,
+      "stepId": "admin-promotions-form-points",
+      "x": 409,
+      "y": 608,
+      "w": 622,
+      "h": 102
+    },
+    {
+      "n": 7,
+      "stepId": "admin-promotions-form-dates",
+      "x": 409,
+      "y": 726,
+      "w": 622,
+      "h": 64
+    },
+    {
+      "n": 8,
+      "stepId": "admin-promotions-form-toggles",
+      "x": 409,
+      "y": 806,
+      "w": 622,
+      "h": 24
+    }
+  ]
+}

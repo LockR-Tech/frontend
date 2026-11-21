@@ -70,7 +70,7 @@ export function LockerFilters({
   }));
 
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3" data-tour="adm-lockers-filter-bar">
       <StatusDropdown
         options={optionsWithCounts}
         value={status}

@@ -48,10 +48,10 @@ export default function LockersPage() {
         description={t("admin.lockers.description")}
       />
 
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm" data-tour="lockers-list">
         <CardContent className="p-6">
           {/* Toolbar - 1 hàng */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6" data-tour="lockers-filters">
             <LockerFilters
               status={status}
               onStatusChange={setStatus}
@@ -68,11 +68,13 @@ export default function LockersPage() {
               totalLockers={totalLockers}
             />
 
-            <TableToolbar
-              onRefresh={refetch}
-              onClearFilters={clearFilters}
-              canClearFilters={hasActiveFilters}
-            />
+            <div data-tour="adm-lockers-toolbar">
+              <TableToolbar
+                onRefresh={refetch}
+                onClearFilters={clearFilters}
+                canClearFilters={hasActiveFilters}
+              />
+            </div>
           </div>
 
           <LockerTable

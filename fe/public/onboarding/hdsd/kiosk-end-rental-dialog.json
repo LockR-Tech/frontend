@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/kiosk-end-rental-dialog.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-end-rental-dialog-box",
+      "x": 302,
+      "y": 159,
+      "w": 420,
+      "h": 282
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-end-rental-dialog-cancel",
+      "x": 329,
+      "y": 368,
+      "w": 179,
+      "h": 50
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-end-rental-dialog-confirm",
+      "x": 518,
+      "y": 368,
+      "w": 177,
+      "h": 50
+    }
+  ]
+}

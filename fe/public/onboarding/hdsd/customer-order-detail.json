@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-order-detail.png",
+  "width": 412,
+  "height": 1447,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-order-detail-refresh",
+      "x": 372,
+      "y": 8,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-order-detail-status",
+      "x": 20,
+      "y": 68,
+      "w": 372,
+      "h": 48
+    },
+    {
+      "n": 3,
+      "stepId": "customer-order-detail-info",
+      "x": 20,
+      "y": 132,
+      "w": 372,
+      "h": 547
+    },
+    {
+      "n": 4,
+      "stepId": "customer-order-detail-timeline",
+      "x": 20,
+      "y": 1180,
+      "w": 372,
+      "h": 239
+    }
+  ]
+}

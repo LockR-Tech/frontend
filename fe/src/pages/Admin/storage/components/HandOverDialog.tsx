@@ -168,7 +168,7 @@ function HandOverForm({
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
           {/* Thông tin đơn */}
-          <div className="grid grid-cols-2 gap-3 rounded-md border bg-muted/30 p-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 rounded-md border bg-muted/30 p-3 md:grid-cols-4" data-tour="storage-handover-summary">
             <LabelValue label={t("admin.orders.table.senderCustomer")}>
               {senderName}
               {senderPhone ? ` · ${senderPhone}` : ""}
@@ -199,7 +199,7 @@ function HandOverForm({
           <div className="grid gap-6 md:grid-cols-2">
             {/* Cột trái: ai tới nhận, thu nợ, ghi chú */}
             <div className="space-y-5">
-              <section className="space-y-2">
+              <section className="space-y-2" data-tour="storage-handover-recipient">
                 <Label>{t("admin.storage.handOver.recipient.title")}</Label>
                 <div role="radiogroup" className="grid grid-cols-3 gap-1.5">
                   {recipientOptions.map((option) => (
@@ -273,7 +273,7 @@ function HandOverForm({
 
               {/* Thu nợ */}
               {owed > 0 && (
-                <section className="space-y-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
+                <section className="space-y-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3" data-tour="storage-handover-payment">
                   <div className="flex gap-2 text-sm text-amber-800 dark:text-amber-300">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                     <p>{t("admin.storage.handOver.owed", { amount: formatCurrency(owed) })}</p>
@@ -310,7 +310,7 @@ function HandOverForm({
               )}
 
               {showPaid && (
-                <section className="flex gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+                <section className="flex gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300" data-tour="storage-handover-payment">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                   <div className="space-y-0.5">
                     <p className="font-medium">
@@ -333,7 +333,7 @@ function HandOverForm({
               )}
 
               {/* Ghi chú */}
-              <section className="space-y-1.5">
+              <section className="space-y-1.5" data-tour="storage-handover-note">
                 <Label htmlFor="handover-note">
                   {isOther ? t("admin.storage.handOver.noteRequired") : t("admin.storage.handOver.note")}
                 </Label>
@@ -349,7 +349,7 @@ function HandOverForm({
             </div>
 
             {/* Cột phải: ảnh xác minh */}
-            <section className="space-y-2">
+            <section className="space-y-2" data-tour="storage-handover-photo">
               <Label>{t("admin.storage.handOver.photo.title")}</Label>
               {photos.length === 0 && (
                 <WebcamCapture onCapture={(file) => setPhotos([file])} disabled={busy} />
@@ -366,7 +366,7 @@ function HandOverForm({
           </div>
         </div>
 
-        <DialogFooter className="flex-col items-stretch gap-2 border-t px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-x-0">
+        <DialogFooter className="flex-col items-stretch gap-2 border-t px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-x-0" data-tour="storage-handover-footer">
           <p className={cn("text-xs text-muted-foreground", missing.length === 0 && "invisible")}>
             {t("admin.storage.handOver.missing.prefix")} {missing.join(", ")}
           </p>

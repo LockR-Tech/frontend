@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-knowledge-eval.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-eval-summary",
+      "x": 292,
+      "y": 272,
+      "w": 595,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-eval-add",
+      "x": 899,
+      "y": 252,
+      "w": 112,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-eval-import",
+      "x": 1018,
+      "y": 252,
+      "w": 123,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-knowledge-eval-run",
+      "x": 1149,
+      "y": 252,
+      "w": 199,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-knowledge-eval-generate",
+      "x": 899,
+      "y": 296,
+      "w": 209,
+      "h": 36
+    },
+    {
+      "n": 6,
+      "stepId": "admin-knowledge-eval-cases",
+      "x": 292,
+      "y": 348,
+      "w": 1116,
+      "h": 437
+    },
+    {
+      "n": 7,
+      "stepId": "admin-knowledge-eval-delete",
+      "x": 1363,
+      "y": 455,
+      "w": 32,
+      "h": 32
+    }
+  ]
+}

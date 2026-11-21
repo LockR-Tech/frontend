@@ -54,7 +54,7 @@ export function OrderStatusChart({ byStatus, isLoading, onStatusClick }: OrderSt
   }));
 
   return (
-    <Card className="border border-border bg-card shadow-xs">
+    <Card data-tour="dashboard-order-status" className="border border-border bg-card shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-foreground tracking-tight">
           {t("admin.dashboard.orderStatus.title")}

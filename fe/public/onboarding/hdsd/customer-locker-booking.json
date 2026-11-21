@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-locker-booking.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-locker-booking-info",
+      "x": 20,
+      "y": 551,
+      "w": 372,
+      "h": 87
+    },
+    {
+      "n": 2,
+      "stepId": "customer-locker-booking-rent",
+      "x": 20,
+      "y": 692,
+      "w": 180,
+      "h": 128
+    },
+    {
+      "n": 3,
+      "stepId": "customer-locker-booking-send",
+      "x": 212,
+      "y": 692,
+      "w": 180,
+      "h": 128
+    },
+    {
+      "n": 4,
+      "stepId": "customer-locker-booking-report",
+      "x": 87,
+      "y": 832,
+      "w": 239,
+      "h": 32
+    }
+  ]
+}

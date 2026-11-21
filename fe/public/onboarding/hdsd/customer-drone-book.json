@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/customer-drone-book.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-drone-book-pickup",
+      "x": 16,
+      "y": 177,
+      "w": 380,
+      "h": 217
+    },
+    {
+      "n": 2,
+      "stepId": "customer-drone-book-sender",
+      "x": 16,
+      "y": 394,
+      "w": 380,
+      "h": 217
+    },
+    {
+      "n": 3,
+      "stepId": "customer-drone-book-receiver",
+      "x": 16,
+      "y": 611,
+      "w": 380,
+      "h": 334
+    },
+    {
+      "n": 4,
+      "stepId": "customer-drone-book-parcel",
+      "x": 16,
+      "y": 945,
+      "w": 380,
+      "h": 650
+    },
+    {
+      "n": 5,
+      "stepId": "customer-drone-book-fee",
+      "x": 16,
+      "y": 1595,
+      "w": 380,
+      "h": 50
+    },
+    {
+      "n": 6,
+      "stepId": "customer-drone-book-submit",
+      "x": 16,
+      "y": 1655,
+      "w": 380,
+      "h": 35
+    }
+  ]
+}

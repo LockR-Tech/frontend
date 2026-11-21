@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-locker-map.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-locker-map-view",
+      "x": 0,
+      "y": 148,
+      "w": 412,
+      "h": 744
+    },
+    {
+      "n": 2,
+      "stepId": "customer-locker-map-marker",
+      "x": 177,
+      "y": 544,
+      "w": 50,
+      "h": 50
+    },
+    {
+      "n": 3,
+      "stepId": "customer-locker-map-locate",
+      "x": 207,
+      "y": 829,
+      "w": 189,
+      "h": 39
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-maintenance-repair-log.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-repair-log-open",
+      "x": 1004,
+      "y": 434,
+      "w": 89,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-repair-log-sections",
+      "x": 405,
+      "y": 276,
+      "w": 630,
+      "h": 24
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-repair-log-body",
+      "x": 385,
+      "y": 309,
+      "w": 670,
+      "h": 370
+    }
+  ]
+}

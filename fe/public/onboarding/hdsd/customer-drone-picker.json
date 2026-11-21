@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/customer-drone-picker.png",
+  "width": 412,
+  "height": 446,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-drone-picker-head",
+      "x": 20,
+      "y": 255,
+      "w": 372,
+      "h": 27
+    },
+    {
+      "n": 2,
+      "stepId": "customer-drone-picker-first",
+      "x": 20,
+      "y": 338,
+      "w": 372,
+      "h": 80
+    }
+  ]
+}

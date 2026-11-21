@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-technicians-tickets.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-technicians-tickets-tab",
+      "x": 677,
+      "y": 363,
+      "w": 123,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-technicians-tickets-filters",
+      "x": 683,
+      "y": 435,
+      "w": 339,
+      "h": 32
+    },
+    {
+      "n": 3,
+      "stepId": "admin-technicians-tickets-search",
+      "x": 1157,
+      "y": 435,
+      "w": 240,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-technicians-tickets-summary",
+      "x": 689,
+      "y": 507,
+      "w": 602,
+      "h": 77
+    },
+    {
+      "n": 5,
+      "stepId": "admin-technicians-tickets-actions",
+      "x": 1303,
+      "y": 507,
+      "w": 89,
+      "h": 32
+    },
+    {
+      "n": 6,
+      "stepId": "admin-technicians-tickets-info",
+      "x": 689,
+      "y": 595,
+      "w": 702,
+      "h": 25
+    }
+  ]
+}

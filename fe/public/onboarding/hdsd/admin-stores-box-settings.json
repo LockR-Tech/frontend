@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-stores-box-settings.png",
+  "width": 1440,
+  "height": 914,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-stores-box-settings-expand",
+      "x": 456,
+      "y": 608,
+      "w": 68,
+      "h": 25
+    },
+    {
+      "n": 2,
+      "stepId": "admin-stores-box-settings-grid",
+      "x": 310,
+      "y": 639,
+      "w": 257,
+      "h": 233
+    },
+    {
+      "n": 3,
+      "stepId": "admin-stores-box-settings-status",
+      "x": 553,
+      "y": 396,
+      "w": 334,
+      "h": 42
+    },
+    {
+      "n": 4,
+      "stepId": "admin-stores-box-settings-change",
+      "x": 553,
+      "y": 454,
+      "w": 334,
+      "h": 60
+    },
+    {
+      "n": 5,
+      "stepId": "admin-stores-box-settings-actions",
+      "x": 553,
+      "y": 534,
+      "w": 334,
+      "h": 40
+    }
+  ]
+}

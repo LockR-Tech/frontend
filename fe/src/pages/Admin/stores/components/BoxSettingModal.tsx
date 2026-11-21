@@ -170,6 +170,7 @@ export function BoxSettingModal({
           <div className="space-y-4 py-1">
             <div
               className={`rounded-lg border px-3 py-2.5 flex items-center gap-2 ${cfg.bg} ${cfg.border}`}
+              data-tour="store-detail-box-status"
             >
               <span className={`text-xs font-semibold ${cfg.text}`}>
                 {t("admin.stores.boxSetting.currentStatus")}
@@ -180,7 +181,7 @@ export function BoxSettingModal({
             </div>
 
             {holdsOrder ? (
-              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200" data-tour="store-detail-box-locked">
                 <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <div className="text-xs space-y-1">
                   <p className="font-semibold">
@@ -194,7 +195,7 @@ export function BoxSettingModal({
                 </div>
               </div>
             ) : (
-              <div>
+              <div data-tour="store-detail-box-change">
                 <label className="text-xs text-muted-foreground mb-1.5 block font-medium">
                   {t("admin.stores.boxSetting.changeStatus")}
                 </label>
@@ -222,7 +223,7 @@ export function BoxSettingModal({
             )}
 
             {isOccupied && (
-              <div className="pt-2 border-t border-border/60">
+              <div className="pt-2 border-t border-border/60" data-tour="store-detail-box-emergency">
                 <p className="text-xs text-muted-foreground mb-2">{t("admin.stores.boxSetting.emergency")}</p>
                 <Button
                   variant="outline"
@@ -237,7 +238,7 @@ export function BoxSettingModal({
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter data-tour="store-detail-box-actions">
             <Button variant="outline" onClick={onClose}>
               {t("button.cancel")}
             </Button>

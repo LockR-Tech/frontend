@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-maintenance-drone.png",
+  "width": 1440,
+  "height": 2113,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-drone-kpis",
+      "x": 292,
+      "y": 278,
+      "w": 1116,
+      "h": 127
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-drone-overdue",
+      "x": 292,
+      "y": 429,
+      "w": 1116,
+      "h": 72
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-drone-create",
+      "x": 1040,
+      "y": 555,
+      "w": 181,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-drone-filters",
+      "x": 317,
+      "y": 627,
+      "w": 1066,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-drone-status",
+      "x": 317,
+      "y": 671,
+      "w": 1066,
+      "h": 32
+    },
+    {
+      "n": 6,
+      "stepId": "admin-maintenance-drone-bulk",
+      "x": 317,
+      "y": 715,
+      "w": 1066,
+      "h": 39
+    },
+    {
+      "n": 7,
+      "stepId": "admin-maintenance-drone-list",
+      "x": 293,
+      "y": 767,
+      "w": 1114,
+      "h": 1290
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/customer-report-detail.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-report-detail-head",
+      "x": 0,
+      "y": 228,
+      "w": 412,
+      "h": 61
+    },
+    {
+      "n": 2,
+      "stepId": "customer-report-detail-locker",
+      "x": 18,
+      "y": 420,
+      "w": 376,
+      "h": 116
+    },
+    {
+      "n": 3,
+      "stepId": "customer-report-detail-content",
+      "x": 18,
+      "y": 634,
+      "w": 376,
+      "h": 18
+    },
+    {
+      "n": 4,
+      "stepId": "customer-report-detail-progress",
+      "x": 18,
+      "y": 718,
+      "w": 127,
+      "h": 18
+    },
+    {
+      "n": 5,
+      "stepId": "customer-report-detail-rating",
+      "x": 18,
+      "y": 1476,
+      "w": 376,
+      "h": 77
+    },
+    {
+      "n": 6,
+      "stepId": "customer-report-detail-close",
+      "x": 16,
+      "y": 1646,
+      "w": 380,
+      "h": 44
+    }
+  ]
+}

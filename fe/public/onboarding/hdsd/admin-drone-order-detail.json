@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-drone-order-detail.png",
+  "width": 1440,
+  "height": 2225,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-drone-order-detail-back",
+      "x": 284,
+      "y": 89,
+      "w": 241,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-drone-order-detail-title",
+      "x": 292,
+      "y": 145,
+      "w": 1116,
+      "h": 28
+    },
+    {
+      "n": 3,
+      "stepId": "admin-drone-order-detail-pickup",
+      "x": 292,
+      "y": 197,
+      "w": 1116,
+      "h": 220
+    },
+    {
+      "n": 4,
+      "stepId": "admin-drone-order-detail-weather",
+      "x": 292,
+      "y": 481,
+      "w": 1116,
+      "h": 162
+    },
+    {
+      "n": 5,
+      "stepId": "admin-drone-order-detail-map",
+      "x": 292,
+      "y": 667,
+      "w": 1116,
+      "h": 416
+    },
+    {
+      "n": 6,
+      "stepId": "admin-drone-order-detail-track",
+      "x": 292,
+      "y": 1106,
+      "w": 1116,
+      "h": 539
+    },
+    {
+      "n": 7,
+      "stepId": "admin-drone-order-detail-camera",
+      "x": 292,
+      "y": 1669,
+      "w": 1116,
+      "h": 386
+    },
+    {
+      "n": 8,
+      "stepId": "admin-drone-order-detail-close",
+      "x": 292,
+      "y": 2079,
+      "w": 1116,
+      "h": 91
+    }
+  ]
+}

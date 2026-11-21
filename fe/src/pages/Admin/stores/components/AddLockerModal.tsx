@@ -59,7 +59,7 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader data-tour="store-detail-add-kiosk-head">
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
             {t("admin.stores.addLocker.title")}
@@ -69,7 +69,7 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
-          <div>
+          <div data-tour="store-detail-add-kiosk-code">
             <label className="text-xs text-muted-foreground mb-1 block">
               {t("admin.stores.lockerForm.deviceCode")} <span className="text-red-500">*</span>
             </label>
@@ -80,7 +80,7 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
               className="font-mono"
             />
           </div>
-          <div>
+          <div data-tour="store-detail-add-kiosk-name">
             <label className="text-xs text-muted-foreground mb-1 block">
               {t("admin.stores.lockerForm.name")} <span className="text-red-500">*</span>
             </label>
@@ -90,7 +90,7 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
               placeholder={t("admin.stores.lockerForm.namePlaceholder")}
             />
           </div>
-          <div>
+          <div data-tour="store-detail-add-kiosk-location">
             <label className="text-xs text-muted-foreground mb-1 block">
               {t("admin.stores.lockerForm.location")}
             </label>
@@ -102,7 +102,7 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
               placeholder={t("admin.stores.lockerForm.locationPlaceholder")}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3" data-tour="store-detail-add-kiosk-coords">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">
                 {t("admin.stores.form.latitude")}
@@ -133,7 +133,7 @@ export function AddLockerModal({ storeId, onClose, onCreated }: Props) {
             </div>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter data-tour="store-detail-add-kiosk-actions">
           <Button variant="outline" onClick={onClose}>
             {t("button.cancel")}
           </Button>

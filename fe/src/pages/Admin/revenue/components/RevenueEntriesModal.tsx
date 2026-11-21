@@ -113,7 +113,7 @@ export function RevenueEntriesModal({
   return (
     <Dialog open={target !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="flex max-h-[88vh] max-w-5xl flex-col p-6">
-        <DialogHeader className="shrink-0 space-y-1.5 border-b pb-4">
+        <DialogHeader className="shrink-0 space-y-1.5 border-b pb-4" data-tour="revenue-entries-header">
           <DialogTitle className="text-base font-bold sm:text-lg">{target?.label}</DialogTitle>
           <DialogDescription className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
@@ -131,7 +131,7 @@ export function RevenueEntriesModal({
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 space-y-3 overflow-y-auto py-3">
+        <div className="flex-1 space-y-3 overflow-y-auto py-3" data-tour="revenue-entries-table">
           {error && <ReportErrorState error={error} onRetry={refetch} />}
           <DataTable
             columns={columns as never}

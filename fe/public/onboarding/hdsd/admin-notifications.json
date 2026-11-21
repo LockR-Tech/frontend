@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-notifications.png",
+  "width": 1440,
+  "height": 1163,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-notifications-actions",
+      "x": 1150,
+      "y": 89,
+      "w": 258,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-notifications-stats",
+      "x": 292,
+      "y": 161,
+      "w": 1116,
+      "h": 96
+    },
+    {
+      "n": 3,
+      "stepId": "admin-notifications-filters",
+      "x": 316,
+      "y": 305,
+      "w": 584,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-notifications-toolbar",
+      "x": 1192,
+      "y": 305,
+      "w": 192,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-notifications-batch",
+      "x": 316,
+      "y": 365,
+      "w": 1068,
+      "h": 58
+    },
+    {
+      "n": 6,
+      "stepId": "admin-notifications-table",
+      "x": 316,
+      "y": 423,
+      "w": 1068,
+      "h": 692
+    },
+    {
+      "n": 7,
+      "stepId": "admin-notifications-menu",
+      "x": 1327,
+      "y": 479,
+      "w": 28,
+      "h": 28
+    }
+  ]
+}

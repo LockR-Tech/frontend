@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-refunds.png",
+  "width": 412,
+  "height": 523,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-refunds-actions",
+      "x": 304,
+      "y": 12,
+      "w": 88,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-refunds-tabs",
+      "x": 0,
+      "y": 168,
+      "w": 412,
+      "h": 62
+    },
+    {
+      "n": 3,
+      "stepId": "customer-refunds-filters",
+      "x": 0,
+      "y": 230,
+      "w": 412,
+      "h": 53
+    },
+    {
+      "n": 4,
+      "stepId": "customer-refunds-first",
+      "x": 16,
+      "y": 322,
+      "w": 380,
+      "h": 173
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/kiosk-boxes-manage.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-boxes-manage-code",
+      "x": 362,
+      "y": 140,
+      "w": 300,
+      "h": 176
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-boxes-manage-open",
+      "x": 362,
+      "y": 332,
+      "w": 300,
+      "h": 44
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-boxes-manage-extend",
+      "x": 362,
+      "y": 380,
+      "w": 300,
+      "h": 44
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-boxes-manage-end",
+      "x": 362,
+      "y": 432,
+      "w": 300,
+      "h": 44
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-boxes-manage-delegate",
+      "x": 362,
+      "y": 482,
+      "w": 300,
+      "h": 44
+    },
+    {
+      "n": 6,
+      "stepId": "kiosk-boxes-manage-report",
+      "x": 362,
+      "y": 532,
+      "w": 300,
+      "h": 44
+    },
+    {
+      "n": 7,
+      "stepId": "kiosk-boxes-manage-close",
+      "x": 638,
+      "y": 104,
+      "w": 32,
+      "h": 32
+    }
+  ]
+}

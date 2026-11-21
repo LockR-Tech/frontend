@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/customer-ble-test.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-ble-test-not-allowed",
+      "x": 0,
+      "y": 134,
+      "w": 412,
+      "h": 758
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/kiosk-boxes.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-boxes-user",
+      "x": 30,
+      "y": 137,
+      "w": 162,
+      "h": 25
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-boxes-locker",
+      "x": 30,
+      "y": 182,
+      "w": 296,
+      "h": 98
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-boxes-legend",
+      "x": 30,
+      "y": 290,
+      "w": 296,
+      "h": 57
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-boxes-map",
+      "x": 402,
+      "y": 148,
+      "w": 540,
+      "h": 423
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-boxes-picked",
+      "x": 30,
+      "y": 357,
+      "w": 296,
+      "h": 40
+    },
+    {
+      "n": 6,
+      "stepId": "kiosk-boxes-continue",
+      "x": 30,
+      "y": 530,
+      "w": 296,
+      "h": 52
+    },
+    {
+      "n": 7,
+      "stepId": "kiosk-boxes-back",
+      "x": 28,
+      "y": 68,
+      "w": 40,
+      "h": 40
+    }
+  ]
+}

@@ -70,7 +70,7 @@ export function PaymentStats({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3" data-tour="payments-stats-range">
         <DateRangeFilter value={range} onChange={onRangeChange} />
         {stats && (
           <p className="text-[11px] text-muted-foreground shrink-0">
@@ -89,7 +89,7 @@ export function PaymentStats({
           title={t("admin.payments.stats.loadFailed")}
         />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3" data-tour="payments-stats-cards">
           <ReportStatCard
             label={t("admin.payments.stats.total")}
             value={formatNumber(current?.totalCount)}
@@ -161,7 +161,7 @@ export function PaymentStats({
       )}
 
       {current && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-tour="payments-breakdown">
           <StatsBreakdown
             title={t("admin.payments.stats.byStatus")}
             rows={current.byStatus}

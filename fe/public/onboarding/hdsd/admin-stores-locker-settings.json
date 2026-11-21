@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-stores-locker-settings.png",
+  "width": 1440,
+  "height": 908,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-stores-locker-settings-open",
+      "x": 382,
+      "y": 834,
+      "w": 26,
+      "h": 26
+    },
+    {
+      "n": 2,
+      "stepId": "admin-stores-locker-settings-head",
+      "x": 553,
+      "y": 197,
+      "w": 334,
+      "h": 44
+    },
+    {
+      "n": 3,
+      "stepId": "admin-stores-locker-settings-form",
+      "x": 553,
+      "y": 261,
+      "w": 334,
+      "h": 276
+    },
+    {
+      "n": 4,
+      "stepId": "admin-stores-locker-settings-maintenance",
+      "x": 553,
+      "y": 553,
+      "w": 334,
+      "h": 99
+    },
+    {
+      "n": 5,
+      "stepId": "admin-stores-locker-settings-actions",
+      "x": 553,
+      "y": 672,
+      "w": 334,
+      "h": 40
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-assistant.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-assistant-history",
+      "x": 304,
+      "y": 10,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-assistant-new",
+      "x": 352,
+      "y": 10,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "customer-assistant-examples",
+      "x": 20,
+      "y": 477,
+      "w": 372,
+      "h": 51
+    },
+    {
+      "n": 4,
+      "stepId": "customer-assistant-composer",
+      "x": 0,
+      "y": 835,
+      "w": 412,
+      "h": 57
+    }
+  ]
+}

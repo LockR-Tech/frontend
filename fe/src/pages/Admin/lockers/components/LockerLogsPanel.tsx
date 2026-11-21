@@ -291,7 +291,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <div className="inline-flex rounded-lg border border-border bg-background p-0.5 text-xs">
+            <div className="inline-flex rounded-lg border border-border bg-background p-0.5 text-xs" data-tour="adm-locker-logs-tabs">
               <button
                 type="button"
                 className={`px-3 py-1 font-medium rounded-md transition-all ${
@@ -320,6 +320,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
               size="sm"
               className="h-8 text-xs"
               onClick={handleRefresh}
+              data-tour="adm-locker-logs-refresh"
               disabled={isFetching || droneLogsFetching}
             >
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isFetching || droneLogsFetching ? "animate-spin" : ""}`} />
@@ -331,7 +332,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
 
       <CardContent className="p-4 space-y-4">
         {/* KPI Mini */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-tour="adm-locker-logs-kpis">
           <div
             className={`p-3 rounded-lg border bg-card flex flex-col justify-between cursor-pointer transition-colors ${
               selectedType === "ALL" && selectedResult === "ALL" ? "ring-2 ring-primary/40 shadow-xs" : "hover:border-primary/40"
@@ -388,6 +389,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
         {/* Banner trạng thái kết nối nguồn điện & IoT trực tiếp */}
         {gateway && (
           <div
+            data-tour="adm-locker-logs-gateway"
             className={`p-3 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs transition-colors ${
               gateway.online
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200"
@@ -441,7 +443,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
         {activeTab === "access" ? (
           <>
             {/* Filter controls */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-1" data-tour="adm-locker-logs-filters">
               <div className="relative flex-1 min-w-[180px]">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -505,12 +507,12 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                 <AppLoading size={72} message={t("admin.lockers.logs.loading")} />
               </div>
             ) : filteredLogs.length === 0 ? (
-              <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed">
+              <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed" data-tour="adm-locker-logs-table">
                 <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
                 {t("admin.lockers.logs.empty")}
               </div>
             ) : (
-              <div className="rounded-lg border border-border/80 overflow-hidden">
+              <div className="rounded-lg border border-border/80 overflow-hidden" data-tour="adm-locker-logs-table">
                 <div className="max-h-[380px] overflow-y-auto">
                   <Table className="text-xs">
                     <TableHeader className="bg-muted/40 sticky top-0 z-10">

@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-refunds-history.png",
+  "width": 1440,
+  "height": 1637,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-refunds-history-tab",
+      "x": 470,
+      "y": 471,
+      "w": 173,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-refunds-history-alert",
+      "x": 292,
+      "y": 210,
+      "w": 1116,
+      "h": 70
+    },
+    {
+      "n": 3,
+      "stepId": "admin-refunds-history-list",
+      "x": 292,
+      "y": 531,
+      "w": 1116,
+      "h": 1067
+    }
+  ]
+}

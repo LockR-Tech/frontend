@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-revenue-entries.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-revenue-entries-header",
+      "x": 233,
+      "y": 79,
+      "w": 974,
+      "h": 70
+    },
+    {
+      "n": 2,
+      "stepId": "admin-revenue-entries-table",
+      "x": 233,
+      "y": 165,
+      "w": 974,
+      "h": 656
+    }
+  ]
+}

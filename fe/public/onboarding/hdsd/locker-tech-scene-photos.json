@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/locker-tech-scene-photos.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-scene-photos-photos",
+      "x": 20,
+      "y": 668,
+      "w": 80,
+      "h": 100
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-scene-photos-note",
+      "x": 20,
+      "y": 782,
+      "w": 372,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-scene-photos-submit",
+      "x": 20,
+      "y": 840,
+      "w": 372,
+      "h": 32
+    }
+  ]
+}

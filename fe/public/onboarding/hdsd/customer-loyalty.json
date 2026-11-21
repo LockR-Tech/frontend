@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-loyalty.png",
+  "width": 412,
+  "height": 532,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-loyalty-refresh",
+      "x": 352,
+      "y": 12,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-loyalty-summary",
+      "x": 16,
+      "y": 164,
+      "w": 380,
+      "h": 181
+    },
+    {
+      "n": 3,
+      "stepId": "customer-loyalty-rules",
+      "x": 16,
+      "y": 357,
+      "w": 380,
+      "h": 108
+    },
+    {
+      "n": 4,
+      "stepId": "customer-loyalty-history",
+      "x": 16,
+      "y": 483,
+      "w": 380,
+      "h": 21
+    }
+  ]
+}

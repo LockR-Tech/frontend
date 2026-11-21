@@ -131,7 +131,7 @@ export function UserLoyaltySection({ userId }: Props) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Summary Card */}
-        <Card>
+        <Card data-tour="user-loyalty-summary">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Coins size={15} className="text-muted-foreground" /> {t("admin.users.loyalty.summaryTitle")}
@@ -197,7 +197,7 @@ export function UserLoyaltySection({ userId }: Props) {
         </Card>
 
         {/* Adjust Points Form */}
-        <Card>
+        <Card data-tour="user-loyalty-adjust">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <TrendingUp size={15} className="text-muted-foreground" /> {t("admin.users.loyalty.adjustTitle")}
@@ -253,7 +253,7 @@ export function UserLoyaltySection({ userId }: Props) {
       </div>
 
       {/* Points History */}
-      <Card>
+      <Card data-tour="user-loyalty-history">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <History size={15} className="text-muted-foreground" /> {t("admin.users.loyalty.historyTitle")}

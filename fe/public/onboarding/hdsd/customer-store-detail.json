@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/customer-store-detail.png",
+  "width": 412,
+  "height": 829,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-store-detail-favorite",
+      "x": 352,
+      "y": 12,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-store-detail-info",
+      "x": 0,
+      "y": 344,
+      "w": 412,
+      "h": 320
+    },
+    {
+      "n": 3,
+      "stepId": "customer-store-detail-directions",
+      "x": 36,
+      "y": 612,
+      "w": 164,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "customer-store-detail-lockers",
+      "x": 212,
+      "y": 612,
+      "w": 164,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "customer-store-detail-reviews",
+      "x": 0,
+      "y": 680,
+      "w": 412,
+      "h": 121
+    }
+  ]
+}

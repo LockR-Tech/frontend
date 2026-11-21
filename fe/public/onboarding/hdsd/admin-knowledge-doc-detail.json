@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-knowledge-doc-detail.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-doc-detail-meta",
+      "x": 789,
+      "y": 52,
+      "w": 603,
+      "h": 100
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-doc-detail-actions",
+      "x": 789,
+      "y": 112,
+      "w": 603,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-doc-detail-search",
+      "x": 789,
+      "y": 229,
+      "w": 631,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-knowledge-doc-detail-chunks",
+      "x": 769,
+      "y": 169,
+      "w": 671,
+      "h": 731
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/customer-security.png",
+  "width": 412,
+  "height": 673,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-security-biometric",
+      "x": 16,
+      "y": 168,
+      "w": 380,
+      "h": 96
+    },
+    {
+      "n": 2,
+      "stepId": "customer-security-password",
+      "x": 16,
+      "y": 264,
+      "w": 380,
+      "h": 381
+    }
+  ]
+}

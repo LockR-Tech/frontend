@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/customer-delegations.png",
+  "width": 412,
+  "height": 548,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-delegations-refresh",
+      "x": 352,
+      "y": 12,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-delegations-first",
+      "x": 16,
+      "y": 160,
+      "w": 380,
+      "h": 360
+    }
+  ]
+}

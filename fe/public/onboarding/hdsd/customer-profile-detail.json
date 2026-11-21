@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/customer-profile-detail.png",
+  "width": 412,
+  "height": 829,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-profile-detail-edit",
+      "x": 352,
+      "y": 12,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-profile-detail-card",
+      "x": 20,
+      "y": 176,
+      "w": 372,
+      "h": 271
+    },
+    {
+      "n": 3,
+      "stepId": "customer-profile-detail-email",
+      "x": 20,
+      "y": 471,
+      "w": 372,
+      "h": 101
+    },
+    {
+      "n": 4,
+      "stepId": "customer-profile-detail-phone",
+      "x": 20,
+      "y": 594,
+      "w": 372,
+      "h": 101
+    },
+    {
+      "n": 5,
+      "stepId": "customer-profile-detail-password",
+      "x": 20,
+      "y": 717,
+      "w": 372,
+      "h": 84
+    }
+  ]
+}

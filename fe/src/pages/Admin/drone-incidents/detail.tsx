@@ -461,7 +461,7 @@ export default function DroneIncidentDetailPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* 1. Header trên cùng: Nút quay lại, Mã đầy đủ và 3 Trạng thái phân định rõ ràng */}
-      <div className="space-y-3 border-b pb-4">
+      <div className="space-y-3 border-b pb-4" data-tour="drone-incident-header">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -589,7 +589,7 @@ export default function DroneIncidentDetailPage() {
       </div> */}
 
       {/* 3. Top 4 KPI Metric Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-tour="drone-incident-kpis">
         {/* KPI 1: Vị trí rơi & Drone */}
         <Card className="border-slate-200 shadow-2xs">
           <CardContent className="p-4 space-y-2">
@@ -787,7 +787,7 @@ export default function DroneIncidentDetailPage() {
 
       {/* 5. ĐIỀU PHỐI TÌM KIẾM THỦ CÔNG HOẶC THÔNG TIN KTV ĐÃ NHẬN NHIỆM VỤ */}
       {isTechAccepted ? (
-        <Card className="border-emerald-200 shadow-2xs bg-gradient-to-br from-emerald-50/50 to-white">
+        <Card className="border-emerald-200 shadow-2xs bg-gradient-to-br from-emerald-50/50 to-white" data-tour="drone-incident-tech">
           <CardHeader className="bg-emerald-50/80 border-b border-emerald-100 pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -979,7 +979,7 @@ export default function DroneIncidentDetailPage() {
         </Card>
       ) : (
         /* KTV CHƯA BẤM NHẬN NHIỆM VỤ -> ADMIN CÓ QUYỀN ĐIỀU PHỐI / PHÂN CÔNG THỦ CÔNG */
-        <div className="space-y-4">
+        <div className="space-y-4" data-tour="drone-incident-dispatch">
           {/* Thông báo tình trạng điều phối hiện tại */}
           {incident.recoveryStatus === "ASSIGNED" ? (
             <div className="rounded-xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50/60 p-4 text-xs text-amber-950 shadow-2xs">
@@ -1157,7 +1157,7 @@ export default function DroneIncidentDetailPage() {
         {/* CỘT TRÁI (6 / 12): Báo cáo hiện trường & Bằng chứng */}
         <div className="lg:col-span-6 space-y-6">
           {/* Card: Báo cáo hiện trường từ KTV */}
-          <Card className="border-slate-200 shadow-2xs overflow-hidden">
+          <Card className="border-slate-200 shadow-2xs overflow-hidden" data-tour="drone-incident-field-report">
             <CardHeader className="bg-slate-50/70 border-b pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1294,7 +1294,7 @@ export default function DroneIncidentDetailPage() {
           </Card>
 
           {/* DÒNG THỜI GIAN SỰ CỐ (TIẾNG VIỆT ĐỂ TRƯỚC) */}
-          <Card className="border-slate-200 shadow-2xs">
+          <Card className="border-slate-200 shadow-2xs" data-tour="drone-incident-timeline">
             <CardHeader className="pb-3 border-b">
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4 text-primary" />
@@ -1343,7 +1343,7 @@ export default function DroneIncidentDetailPage() {
         {/* CỘT PHẢI (6 / 12): Xử lý Phương án bồi thường & Lịch sử đề xuất */}
         <div className="lg:col-span-6 space-y-6">
           {/* Card Cấu hình bồi thường 8 quy tắc từ Hệ thống */}
-          <Card className="border-slate-200 shadow-2xs">
+          <Card className="border-slate-200 shadow-2xs" data-tour="drone-incident-rules">
             <CardHeader className="bg-slate-50/70 border-b pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1447,7 +1447,7 @@ export default function DroneIncidentDetailPage() {
           </Card>
 
           {/* Card: Xử lý phương án bồi thường & giao lại */}
-          <Card className="border-slate-200 shadow-2xs">
+          <Card className="border-slate-200 shadow-2xs" data-tour="drone-incident-proposal">
             <CardHeader className="bg-slate-50/70 border-b pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1699,7 +1699,7 @@ export default function DroneIncidentDetailPage() {
           </Card>
 
           {/* Card: Lịch sử đề xuất phương án đã gửi cho khách */}
-          <Card className="border-slate-200 shadow-2xs">
+          <Card className="border-slate-200 shadow-2xs" data-tour="drone-incident-proposals">
             <CardHeader className="pb-3 border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

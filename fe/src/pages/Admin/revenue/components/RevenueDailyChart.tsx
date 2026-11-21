@@ -88,7 +88,7 @@ export function RevenueDailyChart({
   );
 
   return (
-    <Card className="border border-border bg-card shadow-xs">
+    <Card className="border border-border bg-card shadow-xs" data-tour="revenue-chart">
       <CardHeader className="pb-2 flex flex-row items-start justify-between gap-3">
         <div>
           <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">

@@ -846,10 +846,11 @@ export function MaintenanceSchedules() {
           </div>
 
           {/* Sub-Tabs Phân tách Kiosk và Drone */}
-          <div className="flex items-center gap-1.5 p-1 bg-muted rounded-lg border border-border/60">
+          <div className="flex items-center gap-1.5 p-1 bg-muted rounded-lg border border-border/60" data-tour="maintenance-sched-subtabs">
             <button
               type="button"
               onClick={() => setSubTab("kiosk")}
+              data-tour="maintenance-sched-subtab-kiosk"
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 subTab === "kiosk"
                   ? "bg-background text-foreground shadow-xs border border-border/80"
@@ -865,6 +866,7 @@ export function MaintenanceSchedules() {
             <button
               type="button"
               onClick={() => setSubTab("drone")}
+              data-tour="maintenance-sched-subtab-drone"
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 subTab === "drone"
                   ? "bg-background text-foreground shadow-xs border border-border/80"
@@ -884,7 +886,7 @@ export function MaintenanceSchedules() {
       <CardContent className="space-y-4">
         {/* THANH KPI THỐNG KÊ KIỂM TRA ĐỊNH KỲ KIOSK */}
         {subTab === "kiosk" && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-muted/30 border border-border/60 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-muted/30 border border-border/60 text-xs" data-tour="maintenance-sched-kpis">
             <div className="p-2.5 rounded-lg bg-background border border-border/60">
               <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.kpi.kioskTotal")}</span>
               <span className="text-lg font-bold text-foreground mt-0.5 block">{kioskStats.total}</span>
@@ -950,7 +952,7 @@ export function MaintenanceSchedules() {
               })()
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5" data-tour="maintenance-sched-form">
               {/* Chọn Kiosk */}
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] text-muted-foreground font-semibold">
@@ -1108,7 +1110,7 @@ export function MaintenanceSchedules() {
             </div>
 
             {/* Checklist: mỗi dòng một mục, KTV chấm Đạt / Không đạt / Không áp dụng từng mục */}
-            <div className="space-y-1.5 pt-1">
+            <div className="space-y-1.5 pt-1" data-tour="maintenance-sched-checklist">
               <label className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1">
                 <CheckSquare className="w-3.5 h-3.5 text-orange-600" />
                 {t("admin.maintenance.schedules.form.checklistLabel", { count: checklistLines.length })}
@@ -1160,6 +1162,7 @@ export function MaintenanceSchedules() {
               <Button
                 onClick={create}
                 disabled={creating}
+                data-tour="maintenance-sched-create"
                 className="h-9 text-xs bg-orange-600 hover:bg-orange-700 text-white gap-1.5"
               >
                 <Plus className="w-4 h-4" /> {creating ? t("admin.maintenance.schedules.form.creating") : t("admin.maintenance.schedules.form.createKiosk")}
@@ -1171,7 +1174,7 @@ export function MaintenanceSchedules() {
         {/* SUBTAB 2: PHẦN DRONE */}
         {subTab === "drone" && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-blue-50/40 border border-blue-200/80 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-blue-50/40 border border-blue-200/80 text-xs" data-tour="maintenance-sched-drone-kpis">
               <div className="p-2.5 rounded-lg bg-background border border-blue-200/80">
                 <span className="text-blue-900/70 block font-medium">{t("admin.maintenance.schedules.kpi.droneTotal")}</span>
                 <span className="text-lg font-bold text-blue-950 mt-0.5 block">{droneStats.total}</span>
@@ -1200,7 +1203,7 @@ export function MaintenanceSchedules() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-end gap-2 p-3 rounded-lg bg-blue-50/40 border border-blue-200/80">
+            <div className="flex flex-wrap items-end gap-2 p-3 rounded-lg bg-blue-50/40 border border-blue-200/80" data-tour="maintenance-sched-drone-form">
               <div className="w-full flex items-center justify-between gap-3 pb-1 border-b border-blue-200/80">
                 <span className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
                   <Plane className="w-4 h-4 text-blue-600" /> {t("admin.maintenance.schedules.form.droneTitle")}
@@ -1364,7 +1367,7 @@ export function MaintenanceSchedules() {
                   className="h-9 text-xs"
                 />
               </div>
-              <Button onClick={create} disabled={creating} className="ml-auto h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5">
+              <Button onClick={create} disabled={creating} data-tour="maintenance-sched-drone-create" className="ml-auto h-9 text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5">
                 <Plus className="w-4 h-4" /> {creating ? t("admin.maintenance.schedules.form.creating") : t("admin.maintenance.schedules.form.createDrone")}
               </Button>
             </div>
@@ -1373,7 +1376,7 @@ export function MaintenanceSchedules() {
 
         {/* BỘ LỌC VÀ TÌM KIẾM CHO PHẦN KIOSK */}
         {subTab === "kiosk" && (
-          <div className="flex flex-wrap items-center justify-between gap-2.5 p-2 rounded-lg bg-muted/20 border border-border/60">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 p-2 rounded-lg bg-muted/20 border border-border/60" data-tour="maintenance-sched-filters">
             <div className="flex items-center gap-2 flex-1 min-w-64">
               <div className="relative flex-1">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -1443,14 +1446,14 @@ export function MaintenanceSchedules() {
           </div>
         ) : (
           <div className="divide-y divide-border/60">
-            {activeSchedules.map((s) => {
+            {activeSchedules.map((s, index) => {
               const remInfo = getRemainingDaysInfo(s.nextDueAt);
               return (
                 <div
                   key={s.id}
                   className="py-3 flex items-center justify-between gap-3 flex-wrap hover:bg-muted/20 px-2 rounded-lg transition-colors"
                 >
-                  <div className="flex-1 min-w-[280px]">
+                  <div className="flex-1 min-w-[280px]" data-tour={index === 0 ? "maintenance-sched-first" : undefined}>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <p
                         className="font-semibold text-sm text-foreground hover:text-primary cursor-pointer transition-colors"
@@ -1630,7 +1633,7 @@ export function MaintenanceSchedules() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2" data-tour={index === 0 ? "maintenance-sched-first-actions" : undefined}>
                     <Button
                       size="sm"
                       variant="outline"
@@ -1640,6 +1643,7 @@ export function MaintenanceSchedules() {
                           : "border-border text-foreground hover:bg-muted/80"
                       }`}
                       onClick={() => handleOpenAssignModal(s)}
+                      data-tour={index === 0 ? "maintenance-sched-first-assign" : undefined}
                       title={s.assignedTechnicianId ? t("admin.maintenance.schedules.list.changeTechTitle") : t("admin.maintenance.schedules.list.assignTechTitle")}
                     >
                       <UserCheck className="w-3.5 h-3.5 mr-0.5 text-amber-600" />
@@ -1651,6 +1655,7 @@ export function MaintenanceSchedules() {
                       variant="outline"
                       className="border-border text-foreground hover:bg-muted/80 h-8 text-xs gap-1 cursor-pointer"
                       onClick={() => setSelectedSchedule(s)}
+                      data-tour={index === 0 ? "maintenance-sched-first-detail" : undefined}
                     >
                       <Info className="w-3.5 h-3.5 mr-0.5 text-blue-600" /> {t("admin.maintenance.schedules.list.detailHistory")}
                     </Button>
@@ -1660,6 +1665,7 @@ export function MaintenanceSchedules() {
                       variant="outline"
                       className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 h-8 text-xs gap-1 cursor-pointer font-medium"
                       onClick={() => openInspectionModal(s)}
+                      data-tour={index === 0 ? "maintenance-sched-first-inspect" : undefined}
                       disabled={s.pendingReportId != null}
                       title={
                         s.pendingReportId != null
@@ -1675,6 +1681,7 @@ export function MaintenanceSchedules() {
                       variant="outline"
                       className="h-8 text-xs border-border text-foreground hover:bg-muted/80 cursor-pointer"
                       onClick={() => openEditModal(s)}
+                      data-tour={index === 0 ? "maintenance-sched-first-edit" : undefined}
                       title={t("admin.maintenance.schedules.list.editTooltip")}
                     >
                       <Pencil className="w-3.5 h-3.5" />
@@ -1725,7 +1732,7 @@ export function MaintenanceSchedules() {
 
               <div className="space-y-3.5 my-2 text-xs">
                 {/* Khối Địa điểm và Thời điểm ca kiểm tra */}
-                <div className="p-3 rounded-lg bg-muted/40 border border-border/70 space-y-1.5">
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/70 space-y-1.5" data-tour="sched-inspect-place">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground font-medium flex items-center gap-1">
                       {isDroneSchedule(inspectingSchedule) ? (
@@ -1803,7 +1810,7 @@ export function MaintenanceSchedules() {
                 </div>
 
                 {/* Chọn KTV thực hiện */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1" data-tour="sched-inspect-tech">
                   <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.technician")}</label>
                   <select
                     className="h-9 rounded-md border px-2 text-xs bg-background border-border/80"
@@ -1821,7 +1828,7 @@ export function MaintenanceSchedules() {
 
                 {/* Kết quả: chấm từng mục checklist; lịch không có checklist thì chọn Đạt / Không đạt */}
                 {inspectHasChecklist ? (
-                  <div className="space-y-1.5 p-3 rounded-lg bg-muted/30 border border-border/60">
+                  <div className="space-y-1.5 p-3 rounded-lg bg-muted/30 border border-border/60" data-tour="sched-inspect-result">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span className="font-semibold text-foreground">
                         {t("admin.maintenance.schedules.inspect.checklistProgress", {
@@ -1889,7 +1896,7 @@ export function MaintenanceSchedules() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1" data-tour="sched-inspect-result">
                     <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.result")}</label>
                     <p className="text-[11px] text-muted-foreground">{t("admin.maintenance.schedules.inspect.noChecklist")}</p>
                     <div className="grid grid-cols-2 gap-2">
@@ -1920,7 +1927,7 @@ export function MaintenanceSchedules() {
                 )}
 
                 {/* Ghi chú biên bản */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1" data-tour="sched-inspect-note">
                   <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.note")}</label>
                   <textarea
                     rows={3}
@@ -1932,7 +1939,7 @@ export function MaintenanceSchedules() {
                 </div>
 
                 {/* Ảnh chụp hiện trường */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1" data-tour="sched-inspect-photos">
                   <label className="font-semibold text-foreground">{t("admin.maintenance.schedules.inspect.photoUrls")}</label>
                   <textarea
                     rows={2}
@@ -1946,7 +1953,7 @@ export function MaintenanceSchedules() {
                 {/* KHÔNG ĐẠT: lịch tủ ⇒ server mở phiếu tủ; lịch drone ⇒ drone chuyển Lỗi + phiếu Drone.
                     Lịch drone vẫn có lockerId (tủ/bãi đáp liên kết) nên phải xét theo loại lịch, không theo lockerId. */}
                 {inspectOutcome === "FAILED" && (
-                  <div className="p-3 rounded-lg bg-rose-50/70 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-900 space-y-2">
+                  <div className="p-3 rounded-lg bg-rose-50/70 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-900 space-y-2" data-tour="sched-inspect-fail">
                     <p className="text-rose-900 dark:text-rose-200 font-semibold">
                       {isDroneSchedule(inspectingSchedule)
                         ? t("admin.maintenance.schedules.inspect.droneFailNotice")
@@ -2097,6 +2104,7 @@ export function MaintenanceSchedules() {
                 <Button
                   size="sm"
                   onClick={submitInspection}
+                  data-tour="sched-inspect-save"
                   disabled={completing || !inspectOutcome || (inspectHasChecklist && inspectUnanswered > 0)}
                   className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
                 >
@@ -2154,7 +2162,7 @@ export function MaintenanceSchedules() {
 
               <div className="space-y-4 my-2">
                 {/* 4 THÔNG SỐ CỐT LÕI CỦA KẾ HOẠCH */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-muted/40 border border-border/70 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-muted/40 border border-border/70 text-xs" data-tour="sched-detail-params">
                   <div>
                     <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.detail.device")}</span>
                     <span className="font-bold text-foreground mt-0.5 block truncate">
@@ -2212,7 +2220,7 @@ export function MaintenanceSchedules() {
                 </div>
 
                 {/* THẺ ĐỊA ĐIỂM & VỊ TRÍ ĐẶT TRẠM CHI TIẾT */}
-                <div className="p-3.5 rounded-xl bg-muted/40 border border-border/70 text-xs space-y-2.5">
+                <div className="p-3.5 rounded-xl bg-muted/40 border border-border/70 text-xs space-y-2.5" data-tour="sched-detail-location">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="font-bold text-foreground flex items-center gap-1.5 text-xs">
                       <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -2274,7 +2282,7 @@ export function MaintenanceSchedules() {
 
                 {/* HƯỚNG DẪN & CHECKLIST TIÊU CHUẨN NẾU CÓ */}
                 {(selectedSchedule.description || (selectedSchedule.checklistItems?.length ?? 0) > 0) && (
-                  <div className="p-3 rounded-xl bg-muted/20 border border-border/60 text-xs space-y-2">
+                  <div className="p-3 rounded-xl bg-muted/20 border border-border/60 text-xs space-y-2" data-tour="sched-detail-checklist">
                     {selectedSchedule.description && (
                       <div>
                         <span className="text-muted-foreground font-semibold block text-[11px]">
@@ -2304,7 +2312,7 @@ export function MaintenanceSchedules() {
                 )}
 
                 {/* BẢNG LỊCH SỬ CÁC LẦN KIỂM ĐỊNH THỰC TẾ TRONG QUÁ KHỨ */}
-                <div className="space-y-2 pt-1">
+                <div className="space-y-2 pt-1" data-tour="sched-detail-history">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-blue-600" />
@@ -2443,7 +2451,7 @@ export function MaintenanceSchedules() {
               </div>
 
               <DialogFooter className="pt-2 border-t">
-                <div className="flex items-center justify-between w-full">
+                <div className="flex items-center justify-between w-full" data-tour="sched-detail-actions">
                   <Button
                     variant="outline"
                     size="sm"
@@ -2528,7 +2536,7 @@ export function MaintenanceSchedules() {
 
           {assigningSchedule && (
             <div className="space-y-4 py-2 text-xs">
-              <div className="p-3 rounded-lg bg-muted/40 border border-border/70 space-y-1.5">
+              <div className="p-3 rounded-lg bg-muted/40 border border-border/70 space-y-1.5" data-tour="sched-assign-summary">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground font-medium">{t("admin.maintenance.schedules.assign.plan")}</span>
                   <span className="font-semibold text-foreground text-right">{assigningSchedule.title}</span>
@@ -2576,7 +2584,7 @@ export function MaintenanceSchedules() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5" data-tour="sched-assign-tech">
                 <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                   <Wrench className="w-3.5 h-3.5 text-orange-600" />
                   {t("admin.maintenance.schedules.assign.selectTech")}
@@ -2620,6 +2628,7 @@ export function MaintenanceSchedules() {
               size="sm"
               className="text-xs bg-amber-600 hover:bg-amber-700 text-white font-medium"
               onClick={handleSaveTechnicianAssignment}
+              data-tour="sched-assign-save"
               disabled={isAssigningTech}
             >
               {isAssigningTech ? t("common.saving") : t("admin.maintenance.schedules.assign.save")}
@@ -2645,7 +2654,7 @@ export function MaintenanceSchedules() {
           </DialogHeader>
 
           {editingSchedule && (
-            <div className="space-y-3 py-1 text-xs">
+            <div className="space-y-3 py-1 text-xs" data-tour="sched-edit-fields">
               <div className="flex flex-col gap-1">
                 <label className="font-semibold text-foreground">
                   {t("admin.maintenance.schedules.edit.planName")} <span className="text-rose-500">*</span>
@@ -2742,7 +2751,7 @@ export function MaintenanceSchedules() {
                 </p>
               )}
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1" data-tour="sched-edit-checklist">
                 <label className="font-semibold text-foreground">
                   {t("admin.maintenance.schedules.edit.checklist", { count: parseChecklistLines(editForm.checklistText).length })}
                 </label>
@@ -2782,6 +2791,7 @@ export function MaintenanceSchedules() {
               size="sm"
               className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium"
               onClick={submitEdit}
+              data-tour="sched-edit-save"
               disabled={updatingSchedule || !editForm.title.trim()}
             >
               {updatingSchedule ? t("common.saving") : t("common.saveChanges")}

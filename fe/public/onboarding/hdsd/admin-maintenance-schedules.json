@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-maintenance-schedules.png",
+  "width": 1440,
+  "height": 1463,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-schedules-subtabs",
+      "x": 1030,
+      "y": 304,
+      "w": 353,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-schedules-kpis",
+      "x": 317,
+      "y": 357,
+      "w": 1066,
+      "h": 110
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-schedules-form",
+      "x": 332,
+      "y": 527,
+      "w": 1036,
+      "h": 190
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-schedules-checklist",
+      "x": 332,
+      "y": 728,
+      "w": 1036,
+      "h": 243
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-schedules-create",
+      "x": 1181,
+      "y": 1055,
+      "w": 187,
+      "h": 36
+    },
+    {
+      "n": 6,
+      "stepId": "admin-maintenance-schedules-filters",
+      "x": 317,
+      "y": 1122,
+      "w": 1066,
+      "h": 50
+    },
+    {
+      "n": 7,
+      "stepId": "admin-maintenance-schedules-row",
+      "x": 325,
+      "y": 1200,
+      "w": 543,
+      "h": 206
+    },
+    {
+      "n": 8,
+      "stepId": "admin-maintenance-schedules-actions",
+      "x": 880,
+      "y": 1287,
+      "w": 495,
+      "h": 32
+    }
+  ]
+}

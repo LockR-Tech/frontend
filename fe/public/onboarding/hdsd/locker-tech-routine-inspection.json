@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/locker-tech-routine-inspection.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-routine-inspection-info",
+      "x": 20,
+      "y": 695,
+      "w": 372,
+      "h": 64
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-routine-inspection-items",
+      "x": 20,
+      "y": 859,
+      "w": 372,
+      "h": 117
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-routine-inspection-verdict",
+      "x": 20,
+      "y": 1337,
+      "w": 372,
+      "h": 43
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-routine-inspection-note",
+      "x": 20,
+      "y": 1394,
+      "w": 372,
+      "h": 64
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-routine-inspection-photos",
+      "x": 20,
+      "y": 1534,
+      "w": 76,
+      "h": 96
+    },
+    {
+      "n": 6,
+      "stepId": "locker-tech-routine-inspection-actions",
+      "x": 20,
+      "y": 1648,
+      "w": 372,
+      "h": 32
+    }
+  ]
+}

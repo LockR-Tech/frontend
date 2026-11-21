@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-order-detail.png",
+  "width": 1440,
+  "height": 2253,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-order-detail-header",
+      "x": 292,
+      "y": 89,
+      "w": 301,
+      "h": 50
+    },
+    {
+      "n": 2,
+      "stepId": "admin-order-detail-update",
+      "x": 1229,
+      "y": 96,
+      "w": 179,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-order-detail-band",
+      "x": 292,
+      "y": 184,
+      "w": 1116,
+      "h": 56
+    },
+    {
+      "n": 4,
+      "stepId": "admin-order-detail-info",
+      "x": 292,
+      "y": 264,
+      "w": 736,
+      "h": 540
+    },
+    {
+      "n": 5,
+      "stepId": "admin-order-detail-milestones",
+      "x": 292,
+      "y": 828,
+      "w": 736,
+      "h": 222
+    },
+    {
+      "n": 6,
+      "stepId": "admin-order-detail-fees",
+      "x": 292,
+      "y": 1073,
+      "w": 736,
+      "h": 359
+    },
+    {
+      "n": 7,
+      "stepId": "admin-order-detail-parcel",
+      "x": 292,
+      "y": 1456,
+      "w": 736,
+      "h": 499
+    },
+    {
+      "n": 8,
+      "stepId": "admin-order-detail-history",
+      "x": 292,
+      "y": 1978,
+      "w": 736,
+      "h": 218
+    }
+  ]
+}

@@ -6937,5 +6937,62 @@
       "end": "🕑 Kết thúc: {{time}}",
       "contact": "Nếu có thắc mắc, vui lòng liên hệ:"
     }
+  },
+  "onboarding": {
+    "headerButton": "Hướng dẫn",
+    "welcome": {
+      "title": "Chào {{name}}!",
+      "body": "Lần đầu dùng trang quản trị? Xem nhanh {{count}} khu chức năng chính, mỗi khu vài bước.",
+      "skip": "Bỏ qua",
+      "skipForever": "Bỏ qua vĩnh viễn",
+      "start": "Xem hướng dẫn",
+      "choose": "Tự chọn nhóm muốn xem"
+    },
+    "whatsNew": {
+      "title": "Có hướng dẫn mới",
+      "body": "Có {{count}} khu chức năng mới hoặc vừa thay đổi kể từ lần bạn xem trước.",
+      "later": "Để sau",
+      "start": "Xem phần mới"
+    },
+    "status": {
+      "new": "Mới",
+      "updated": "Có cập nhật",
+      "seen": "Đã xem"
+    },
+    "picker": {
+      "title": "Hướng dẫn sử dụng",
+      "description": "Chọn khu chức năng muốn xem lại. Hướng dẫn khoanh từng phần trên màn hình, dùng phím mũi tên hoặc nút Tiếp để đi tiếp.",
+      "view": "Xem",
+      "manual": "Xem HDSD",
+      "onlyOnApp": "Phần này nằm trên app mobile — mở trang HDSD có ảnh minh hoạ",
+      "autoShow": "Tự mở hướng dẫn khi đăng nhập hoặc khi có nội dung mới",
+      "viewNew": "Xem {{count}} nhóm mới",
+      "viewSelected": "Xem {{count}} nhóm đã chọn",
+      "openManual": "Mở trang HDSD"
+    },
+    "overlay": {
+      "next": "Tiếp",
+      "prev": "Quay lại",
+      "done": "Xong",
+      "nextGroup": "Sang nhóm tiếp",
+      "close": "Đóng hướng dẫn",
+      "progress": "Bước {{step}}/{{steps}} · Nhóm {{group}}/{{groups}}",
+      "missing": "Phần này chưa hiện trên màn hình của bạn (có thể do chưa có dữ liệu hoặc màn hình đang hẹp)."
+    },
+    "settings": {
+      "title": "Hướng dẫn trên màn hình",
+      "description": "Xem lại hướng dẫn hoặc bật/tắt tự mở.",
+      "open": "Mở hướng dẫn"
+    },
+    "manual": {
+      "title": "Hướng dẫn sử dụng",
+      "subtitle": "Mỗi khu chức năng một ảnh chụp thật, các số đỏ ứng với từng dòng giải thích bên cạnh. Cùng nội dung với hướng dẫn trên màn hình.",
+      "onWeb": "Web quản trị",
+      "onApp": "App mobile",
+      "runOnScreen": "Xem trên màn hình",
+      "noImage": "Chưa có ảnh minh hoạ cho nhóm này.",
+      "noImageState": "Màn hình này chỉ hiện khi đơn đang ở đúng bước (chờ thanh toán, đang bỏ hàng…) nên không có ảnh — làm theo các bước bên cạnh.",
+      "onKiosk": "Tại tủ (kiosk)"
+    }
   }
 }

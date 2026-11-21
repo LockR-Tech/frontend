@@ -118,15 +118,17 @@ export function LoyaltyTransactionsPanel({
 
   return (
     <div className="space-y-4">
-      <DateRangeFilter
-        value={range}
-        allowEmpty
-        onChange={(next) => {
-          setRange(next);
-          setPage(0);
-        }}
-      />
-      <div className="flex flex-wrap items-center gap-2">
+      <div data-tour={userId === undefined ? "loyalty-tx-range" : undefined}>
+        <DateRangeFilter
+          value={range}
+          allowEmpty
+          onChange={(next) => {
+            setRange(next);
+            setPage(0);
+          }}
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-2" data-tour={userId === undefined ? "loyalty-tx-filters" : undefined}>
         {SCOPES.map(({ value, labelKey }) => (
           <FilterChip
             key={value}
@@ -166,7 +168,10 @@ export function LoyaltyTransactionsPanel({
         })}
       </p>
 
-      <div className={`grid gap-4 ${userId === undefined ? "lg:grid-cols-2" : ""}`}>
+      <div
+        className={`grid gap-4 ${userId === undefined ? "lg:grid-cols-2" : ""}`}
+        data-tour={userId === undefined ? "loyalty-tx-breakdown" : undefined}
+      >
         <div>
           <p className="mb-1.5 text-xs font-semibold text-muted-foreground">{t("admin.loyalty.list.bySource")}</p>
           {(result?.byType ?? []).map((row) => (
@@ -194,6 +199,7 @@ export function LoyaltyTransactionsPanel({
         )}
       </div>
 
+      <div data-tour={userId === undefined ? "loyalty-tx-table" : undefined}>
       <DataTable
         columns={columns as never}
         data={result?.content ?? []}
@@ -211,6 +217,7 @@ export function LoyaltyTransactionsPanel({
           },
         }}
       />
+      </div>
     </div>
   );
 }

@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-locker-detail.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-detail-title",
+      "x": 292,
+      "y": 89,
+      "w": 465,
+      "h": 54
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-detail-refresh",
+      "x": 1104,
+      "y": 96,
+      "w": 121,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-detail-add",
+      "x": 1233,
+      "y": 96,
+      "w": 127,
+      "h": 40
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-detail-more",
+      "x": 1368,
+      "y": 96,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 5,
+      "stepId": "admin-locker-detail-kpis",
+      "x": 292,
+      "y": 167,
+      "w": 1116,
+      "h": 86
+    },
+    {
+      "n": 6,
+      "stepId": "admin-locker-detail-tabs",
+      "x": 292,
+      "y": 277,
+      "w": 446,
+      "h": 40
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/locker-tech-incidents.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-incidents-tab",
+      "x": 101,
+      "y": 251,
+      "w": 96,
+      "h": 49
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-incidents-scope",
+      "x": 12,
+      "y": 312,
+      "w": 388,
+      "h": 34
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-incidents-status",
+      "x": 12,
+      "y": 355,
+      "w": 388,
+      "h": 34
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-incidents-anomalies",
+      "x": 12,
+      "y": 401,
+      "w": 388,
+      "h": 380
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-incidents-first-fault",
+      "x": 12,
+      "y": 808,
+      "w": 388,
+      "h": 84
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-promotion-detail.png",
+  "width": 412,
+  "height": 1234,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-promotion-detail-ticket",
+      "x": 16,
+      "y": 368,
+      "w": 380,
+      "h": 96
+    },
+    {
+      "n": 2,
+      "stepId": "customer-promotion-detail-code",
+      "x": 16,
+      "y": 484,
+      "w": 380,
+      "h": 147
+    },
+    {
+      "n": 3,
+      "stepId": "customer-promotion-detail-info",
+      "x": 16,
+      "y": 651,
+      "w": 380,
+      "h": 279
+    },
+    {
+      "n": 4,
+      "stepId": "customer-promotion-detail-howto",
+      "x": 16,
+      "y": 1016,
+      "w": 380,
+      "h": 190
+    }
+  ]
+}

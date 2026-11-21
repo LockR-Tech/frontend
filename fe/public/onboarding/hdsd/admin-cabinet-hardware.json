@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-cabinet-hardware.png",
+  "width": 1440,
+  "height": 2173,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-cabinet-hardware-tab",
+      "x": 388,
+      "y": 343,
+      "w": 152,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-cabinet-hardware-status",
+      "x": 292,
+      "y": 411,
+      "w": 1116,
+      "h": 82
+    },
+    {
+      "n": 3,
+      "stepId": "admin-cabinet-hardware-boxes",
+      "x": 292,
+      "y": 517,
+      "w": 1116,
+      "h": 732
+    },
+    {
+      "n": 4,
+      "stepId": "admin-cabinet-hardware-options",
+      "x": 292,
+      "y": 1273,
+      "w": 1116,
+      "h": 196
+    },
+    {
+      "n": 5,
+      "stepId": "admin-cabinet-hardware-lids",
+      "x": 292,
+      "y": 1493,
+      "w": 1116,
+      "h": 355
+    },
+    {
+      "n": 6,
+      "stepId": "admin-cabinet-hardware-wiring",
+      "x": 292,
+      "y": 1872,
+      "w": 1116,
+      "h": 245
+    },
+    {
+      "n": 7,
+      "stepId": "admin-cabinet-hardware-actions",
+      "x": 292,
+      "y": 2109,
+      "w": 1116,
+      "h": 64
+    }
+  ]
+}

@@ -668,26 +668,30 @@ export function UserActivityTabs({ userId }: { userId: number }) {
           )
         }
       >
-        <TabsList className="h-auto max-w-full flex-wrap justify-start">
+        <TabsList className="h-auto max-w-full flex-wrap justify-start" data-tour="user-detail-tabs">
           {TAB_IDS.map((id) => (
-            <TabsTrigger key={id} value={id}>
+            <TabsTrigger
+              key={id}
+              value={id}
+              data-tour={({ orders: "user-tab-orders", payments: "user-tab-payments", wallet: "user-tab-wallet", loyalty: "user-tab-loyalty", assistant: "user-tab-assistant" } as Partial<Record<TabId, string>>)[id]}
+            >
               {t(`admin.users.activity.tabs.${id}`)}
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value="orders" className="mt-4">
+        <TabsContent value="orders" className="mt-4" data-tour="user-panel-orders">
           <OrdersPanel userId={userId} />
         </TabsContent>
         <TabsContent value="received" className="mt-4">
           <OrdersPanel userId={userId} received />
         </TabsContent>
-        <TabsContent value="payments" className="mt-4">
+        <TabsContent value="payments" className="mt-4" data-tour="user-panel-payments">
           <PaymentsPanel userId={userId} onOpenPayment={setPaymentId} />
         </TabsContent>
         <TabsContent value="refunds" className="mt-4">
           <RefundsPanel userId={userId} onOpenPayment={setPaymentId} />
         </TabsContent>
-        <TabsContent value="wallet" className="mt-4">
+        <TabsContent value="wallet" className="mt-4" data-tour="user-panel-wallet">
           <WalletPanel userId={userId} />
         </TabsContent>
         <TabsContent value="loyalty" className="mt-4">
@@ -702,7 +706,7 @@ export function UserActivityTabs({ userId }: { userId: number }) {
         <TabsContent value="notifications" className="mt-4">
           <NotificationsPanel userId={userId} />
         </TabsContent>
-        <TabsContent value="assistant" className="mt-4">
+        <TabsContent value="assistant" className="mt-4" data-tour="user-panel-assistant">
           <AssistantPanel userId={userId} />
         </TabsContent>
       </Tabs>

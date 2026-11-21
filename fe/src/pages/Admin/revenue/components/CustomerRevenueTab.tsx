@@ -101,6 +101,7 @@ export function CustomerRevenueTab({
             type="button"
             onClick={() => openCustomer(customer.userId)}
             className="text-left min-w-0 hover:underline"
+            data-tour={row.index === 0 ? "revenue-customer-first" : undefined}
           >
             <p className="text-sm font-medium truncate">
               {customer.fullName || t("admin.orders.lookup.customerName")}
@@ -170,7 +171,7 @@ export function CustomerRevenueTab({
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className="flex items-center justify-end gap-1.5">
+          <div className="flex items-center justify-end gap-1.5" data-tour={row.index === 0 ? "revenue-customer-actions" : undefined}>
             <Button
               type="button"
               variant="outline"
@@ -206,8 +207,8 @@ export function CustomerRevenueTab({
   ];
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="space-y-3" data-tour="revenue-panel-customer">
+      <div className="flex flex-wrap items-center gap-2" data-tour="revenue-customer-filters">
         <div className="relative w-full sm:w-72">
           <Search
             size={16}

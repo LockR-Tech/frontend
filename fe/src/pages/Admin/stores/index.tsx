@@ -80,16 +80,18 @@ export default function StoresPage() {
               totalCount={statusCounts.ALL}
             />
 
-            <TableToolbar
-              createButton={{
-                label: t("admin.stores.addStore"),
-                onClick: handleCreate,
-                icon: Plus,
-              }}
-              onRefresh={refetch}
-              onClearFilters={clearFilters}
-              canClearFilters={hasActiveFilters}
-            />
+            <div data-tour="stores-toolbar">
+              <TableToolbar
+                createButton={{
+                  label: t("admin.stores.addStore"),
+                  onClick: handleCreate,
+                  icon: Plus,
+                }}
+                onRefresh={refetch}
+                onClearFilters={clearFilters}
+                canClearFilters={hasActiveFilters}
+              />
+            </div>
           </div>
 
           {storeRevenue.error && (
@@ -98,33 +100,37 @@ export default function StoresPage() {
             </p>
           )}
 
-          <BatchDeleteBar
-            noun={t("admin.stores.batchNoun")}
-            selectedCount={selection.selectedIds.length}
-            onClearSelection={selection.clear}
-            onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
-            allCount={filteredIds.length}
-            onDeleteAll={(reason) => deleteIds(filteredIds, reason)}
-            note={t("admin.stores.batchNote")}
-            requireReason
-          />
+          <div data-tour="stores-batch">
+            <BatchDeleteBar
+              noun={t("admin.stores.batchNoun")}
+              selectedCount={selection.selectedIds.length}
+              onClearSelection={selection.clear}
+              onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
+              allCount={filteredIds.length}
+              onDeleteAll={(reason) => deleteIds(filteredIds, reason)}
+              note={t("admin.stores.batchNote")}
+              requireReason
+            />
+          </div>
 
-          <StoreTable
-            selectColumn={selection.selectColumn}
-            stores={stores}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-            onDelete={setDeleteTarget}
-            onToggleStatus={handleToggleStatus}
-            statusPendingIds={statusPendingIds}
-            revenueByStoreId={storeRevenue.byStoreId}
-            page={page}
-            pageSize={pageSize}
-            totalPages={totalPages}
-            totalElements={totalElements}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-          />
+          <div data-tour="stores-list">
+            <StoreTable
+              selectColumn={selection.selectColumn}
+              stores={stores}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              onDelete={setDeleteTarget}
+              onToggleStatus={handleToggleStatus}
+              statusPendingIds={statusPendingIds}
+              revenueByStoreId={storeRevenue.byStoreId}
+              page={page}
+              pageSize={pageSize}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </div>
         </CardContent>
       </Card>
 

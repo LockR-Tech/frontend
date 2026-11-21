@@ -147,7 +147,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
     <div className="space-y-4">
       {/* Thống kê + thao tác */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div data-tour="knowledge-doc-stats" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile label={t("admin.knowledge.documents.stats.documents")} value={counts.total} />
           <StatTile label={t("admin.knowledge.status.ready")} value={counts.ready} className="text-green-700" />
           <StatTile
@@ -157,7 +157,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
           />
           <StatTile label={t("admin.knowledge.status.failed")} value={counts.failed} className="text-red-700" />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div data-tour="knowledge-doc-toolbar" className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -182,7 +182,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
             <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
             {t("button.refresh")}
           </Button>
-          <Button size="sm" onClick={() => setUploadOpen(true)}>
+          <Button data-tour="knowledge-upload-btn" size="sm" onClick={() => setUploadOpen(true)}>
             <FileUp className="h-4 w-4" />
             {t("admin.knowledge.documents.upload")}
           </Button>
@@ -219,7 +219,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
           onRetry={() => refetch()}
         />
       ) : (
-        <Card className="overflow-hidden border border-border">
+        <Card data-tour="knowledge-doc-table" className="overflow-hidden border border-border">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
@@ -261,9 +261,10 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((doc) => (
+                filtered.map((doc, index) => (
                   <DocumentRow
                     key={doc.id}
+                    first={index === 0}
                     doc={doc}
                     onView={() => openViewer(doc)}
                     onEdit={() => setEditing(doc)}
@@ -382,12 +383,15 @@ function StatusBadge({ doc }: { doc: KnowledgeDocument }) {
 
 function DocumentRow({
   doc,
+  first,
   onView,
   onEdit,
   onReindex,
   onDelete,
 }: {
   doc: KnowledgeDocument;
+  /** Dòng đầu bảng: gắn neo hướng dẫn trên màn hình (F3-G13). */
+  first?: boolean;
   onView: () => void;
   onEdit: () => void;
   onReindex: () => void;
@@ -401,6 +405,7 @@ function DocumentRow({
     <TableRow>
       <TableCell>
         <button
+          data-tour={first ? "knowledge-doc-first" : undefined}
           type="button"
           onClick={onView}
           className="text-left font-medium text-foreground hover:text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -445,11 +450,15 @@ function DocumentRow({
         {formatDateTime(doc.indexedAt)}
       </TableCell>
       <TableCell>
-        <div className="flex justify-end gap-1">
+        <div data-tour={first ? "knowledge-doc-actions" : undefined} className="flex justify-end gap-1">
           <IconAction label={t("admin.knowledge.documents.actions.view")} onClick={onView}>
             <Eye className="h-4 w-4" />
           </IconAction>
-          <IconAction label={t("admin.knowledge.documents.actions.edit")} onClick={onEdit}>
+          <IconAction
+            label={t("admin.knowledge.documents.actions.edit")}
+            onClick={onEdit}
+            data-tour={first ? "knowledge-doc-edit" : undefined}
+          >
             <Pencil className="h-4 w-4" />
           </IconAction>
           <IconAction
@@ -482,12 +491,14 @@ function IconAction({
   disabled,
   className,
   children,
+  "data-tour": dataTour,
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
   className?: string;
   children: ReactNode;
+  "data-tour"?: string;
 }) {
   return (
     <Tooltip>
@@ -495,6 +506,7 @@ function IconAction({
         {/* span giữ tooltip hoạt động cả khi nút bị disabled */}
         <span tabIndex={disabled ? 0 : -1}>
           <Button
+            data-tour={dataTour}
             variant="ghost"
             size="sm"
             className={cn("h-8 w-8 p-0", className)}

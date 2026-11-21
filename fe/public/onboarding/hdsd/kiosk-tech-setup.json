@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/kiosk-tech-setup.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-tech-setup-qr",
+      "x": 105,
+      "y": 203,
+      "w": 240,
+      "h": 273
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-tech-setup-steps",
+      "x": 377,
+      "y": 258,
+      "w": 542,
+      "h": 163
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-tech-setup-foot",
+      "x": 105,
+      "y": 500,
+      "w": 814,
+      "h": 31
+    }
+  ]
+}

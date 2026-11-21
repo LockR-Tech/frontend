@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-revenue-method.png",
+  "width": 1440,
+  "height": 1307,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-revenue-method-tab",
+      "x": 423,
+      "y": 1002,
+      "w": 133,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-revenue-method-panel",
+      "x": 317,
+      "y": 1058,
+      "w": 1066,
+      "h": 200
+    }
+  ]
+}

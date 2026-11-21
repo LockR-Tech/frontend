@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-knowledge-edit.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-edit-name",
+      "x": 489,
+      "y": 297,
+      "w": 462,
+      "h": 82
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-edit-roles",
+      "x": 489,
+      "y": 395,
+      "w": 462,
+      "h": 212
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-edit-submit",
+      "x": 489,
+      "y": 623,
+      "w": 462,
+      "h": 40
+    }
+  ]
+}

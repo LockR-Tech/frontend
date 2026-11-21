@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/locker-tech-home.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-home-avatar",
+      "x": 16,
+      "y": 23,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-home-sla",
+      "x": 80,
+      "y": 69,
+      "w": 94,
+      "h": 16
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-home-hud",
+      "x": 16,
+      "y": 99,
+      "w": 380,
+      "h": 68
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-home-shift",
+      "x": 16,
+      "y": 177,
+      "w": 380,
+      "h": 58
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-home-tabs",
+      "x": 0,
+      "y": 251,
+      "w": 412,
+      "h": 49
+    },
+    {
+      "n": 6,
+      "stepId": "locker-tech-home-guide",
+      "x": 148,
+      "y": 12,
+      "w": 26,
+      "h": 26
+    }
+  ]
+}

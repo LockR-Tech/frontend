@@ -90,7 +90,7 @@ export function ConversationsTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <form onSubmit={applyFilter} className="flex flex-wrap items-start gap-2">
+        <form data-tour="knowledge-conv-filter" onSubmit={applyFilter} className="flex flex-wrap items-start gap-2">
           <div>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -115,7 +115,7 @@ export function ConversationsTab() {
             </Button>
           )}
         </form>
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+        <Button data-tour="knowledge-conv-refresh" variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
           {t("button.refresh")}
         </Button>
@@ -129,7 +129,7 @@ export function ConversationsTab() {
           onRetry={() => refetch()}
         />
       ) : (
-        <Card className="overflow-hidden border border-border">
+        <Card data-tour="knowledge-conv-table" className="overflow-hidden border border-border">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
@@ -173,13 +173,18 @@ export function ConversationsTab() {
                   </TableCell>
                 </TableRow>
               ) : (
-                conversations.map((c) => (
+                conversations.map((c, index) => (
                   <TableRow
                     key={c.id}
                     className="cursor-pointer"
                     onClick={() => openDetail(c.id)}
                   >
-                    <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
+                    <TableCell
+                      data-tour={index === 0 ? "knowledge-conv-first" : undefined}
+                      className="font-mono text-xs text-muted-foreground"
+                    >
+                      {c.id}
+                    </TableCell>
                     <TableCell>
                       <Link
                         to={`/admin/users/${c.userId}`}
@@ -227,7 +232,7 @@ export function ConversationsTab() {
         </Card>
       )}
 
-      <div className="flex items-center justify-between gap-2">
+      <div data-tour="knowledge-conv-pages" className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
           {t("admin.knowledge.conversations.pageInfo", { page: page + 1, size: PAGE_SIZE })}
         </p>

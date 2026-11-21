@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/locker-tech-iot.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-iot-tab",
+      "x": 162,
+      "y": 251,
+      "w": 123,
+      "h": 49
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-iot-first-device",
+      "x": 12,
+      "y": 339,
+      "w": 388,
+      "h": 114
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-iot-hint",
+      "x": 12,
+      "y": 803,
+      "w": 388,
+      "h": 77
+    }
+  ]
+}

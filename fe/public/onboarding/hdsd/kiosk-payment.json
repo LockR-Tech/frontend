@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/kiosk-payment.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-payment-qr",
+      "x": 28,
+      "y": 135,
+      "w": 260,
+      "h": 260
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-payment-amount",
+      "x": 316,
+      "y": 166,
+      "w": 680,
+      "h": 61
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-payment-ref",
+      "x": 316,
+      "y": 237,
+      "w": 680,
+      "h": 57
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-payment-timer",
+      "x": 316,
+      "y": 352,
+      "w": 233,
+      "h": 33
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-payment-status",
+      "x": 316,
+      "y": 395,
+      "w": 680,
+      "h": 15
+    },
+    {
+      "n": 6,
+      "stepId": "kiosk-payment-cancel",
+      "x": 316,
+      "y": 420,
+      "w": 680,
+      "h": 56
+    }
+  ]
+}

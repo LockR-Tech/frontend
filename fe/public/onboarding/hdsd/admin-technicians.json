@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-technicians.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-technicians-kpis",
+      "x": 292,
+      "y": 186,
+      "w": 1116,
+      "h": 143
+    },
+    {
+      "n": 2,
+      "stepId": "admin-technicians-policy",
+      "x": 292,
+      "y": 353,
+      "w": 1116,
+      "h": 110
+    },
+    {
+      "n": 3,
+      "stepId": "admin-technicians-search",
+      "x": 736,
+      "y": 512,
+      "w": 240,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-technicians-shift",
+      "x": 984,
+      "y": 512,
+      "w": 160,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "admin-technicians-specialty",
+      "x": 1152,
+      "y": 512,
+      "w": 176,
+      "h": 32
+    },
+    {
+      "n": 6,
+      "stepId": "admin-technicians-penalty",
+      "x": 736,
+      "y": 552,
+      "w": 160,
+      "h": 32
+    },
+    {
+      "n": 7,
+      "stepId": "admin-technicians-count",
+      "x": 317,
+      "y": 521,
+      "w": 407,
+      "h": 20
+    }
+  ]
+}

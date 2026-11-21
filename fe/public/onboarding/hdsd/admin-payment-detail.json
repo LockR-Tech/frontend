@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-payment-detail.png",
+  "width": 1440,
+  "height": 902,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-payment-detail-summary",
+      "x": 361,
+      "y": 153,
+      "w": 718,
+      "h": 236
+    },
+    {
+      "n": 2,
+      "stepId": "admin-payment-detail-order",
+      "x": 361,
+      "y": 408,
+      "w": 718,
+      "h": 125
+    },
+    {
+      "n": 3,
+      "stepId": "admin-payment-detail-refunds",
+      "x": 361,
+      "y": 553,
+      "w": 718,
+      "h": 40
+    },
+    {
+      "n": 4,
+      "stepId": "admin-payment-detail-wallet",
+      "x": 361,
+      "y": 613,
+      "w": 718,
+      "h": 40
+    },
+    {
+      "n": 5,
+      "stepId": "admin-payment-detail-others",
+      "x": 361,
+      "y": 673,
+      "w": 718,
+      "h": 72
+    },
+    {
+      "n": 6,
+      "stepId": "admin-payment-detail-status",
+      "x": 361,
+      "y": 786,
+      "w": 718,
+      "h": 60
+    }
+  ]
+}

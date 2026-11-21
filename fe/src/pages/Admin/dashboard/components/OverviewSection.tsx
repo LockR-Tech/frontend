@@ -70,6 +70,7 @@ export function OverviewSection({ data, activeLockers, onOpen }: OverviewSection
       <CardContent className="flex-1 flex flex-col justify-between space-y-4">
         {/* Capacity Bar */}
         <button
+          data-tour="dashboard-capacity-occupancy"
           type="button"
           onClick={() => onOpen?.("occupancy")}
           className={`w-full p-3.5 rounded-lg bg-secondary/60 border border-border/50 space-y-2.5 ${CLICKABLE}`}

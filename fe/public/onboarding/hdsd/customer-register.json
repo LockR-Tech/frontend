@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/customer-register.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-register-name",
+      "x": 24,
+      "y": 387,
+      "w": 364,
+      "h": 48
+    },
+    {
+      "n": 2,
+      "stepId": "customer-register-email",
+      "x": 24,
+      "y": 479,
+      "w": 364,
+      "h": 48
+    },
+    {
+      "n": 3,
+      "stepId": "customer-register-phone",
+      "x": 24,
+      "y": 571,
+      "w": 364,
+      "h": 48
+    },
+    {
+      "n": 4,
+      "stepId": "customer-register-password",
+      "x": 24,
+      "y": 663,
+      "w": 364,
+      "h": 48
+    },
+    {
+      "n": 5,
+      "stepId": "customer-register-terms",
+      "x": 24,
+      "y": 723,
+      "w": 364,
+      "h": 38
+    },
+    {
+      "n": 6,
+      "stepId": "customer-register-submit",
+      "x": 24,
+      "y": 884,
+      "w": 364,
+      "h": 8
+    }
+  ]
+}

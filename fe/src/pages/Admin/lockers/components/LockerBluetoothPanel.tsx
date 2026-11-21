@@ -156,7 +156,7 @@ export function LockerBluetoothPanel({ lockerId, lockerCode, cells }: LockerBlue
   };
 
   return (
-    <Card className="border border-border/80 shadow-xs">
+    <Card className="border border-border/80 shadow-xs" data-tour="adm-locker-ble-scan">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Bluetooth className="w-4.5 h-4.5 text-blue-600" />

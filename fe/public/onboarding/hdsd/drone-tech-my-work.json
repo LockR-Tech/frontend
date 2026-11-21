@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/drone-tech-my-work.png",
+  "width": 412,
+  "height": 825,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-my-work-banner",
+      "x": 12,
+      "y": 337,
+      "w": 388,
+      "h": 77
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-my-work-metrics",
+      "x": 12,
+      "y": 426,
+      "w": 388,
+      "h": 55
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-my-work-search",
+      "x": 12,
+      "y": 491,
+      "w": 388,
+      "h": 40
+    },
+    {
+      "n": 4,
+      "stepId": "drone-tech-my-work-type",
+      "x": 12,
+      "y": 539,
+      "w": 388,
+      "h": 31
+    },
+    {
+      "n": 5,
+      "stepId": "drone-tech-my-work-status",
+      "x": 12,
+      "y": 576,
+      "w": 388,
+      "h": 34
+    },
+    {
+      "n": 6,
+      "stepId": "drone-tech-my-work-list",
+      "x": 12,
+      "y": 622,
+      "w": 388,
+      "h": 174
+    }
+  ]
+}

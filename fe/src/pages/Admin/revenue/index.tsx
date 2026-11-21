@@ -80,7 +80,7 @@ export default function RevenuePage() {
           </p>
         </div>
         <Link to="/admin/payments">
-          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
+          <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5" data-tour="revenue-reconcile">
             <CreditCard className="w-3.5 h-3.5" />
             {t("admin.revenue.reconcile")}
             <ArrowRight className="w-3.5 h-3.5" />
@@ -88,7 +88,7 @@ export default function RevenuePage() {
         </Link>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3" data-tour="revenue-range">
         <DateRangeFilter value={range} onChange={setRange} />
         {summary && (
           <p className="text-[11px] text-muted-foreground shrink-0">
@@ -107,7 +107,7 @@ export default function RevenuePage() {
           title={t("admin.revenue.summary.loadFailed")}
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3" data-tour="revenue-kpis">
           <ReportStatCard
             label={t("admin.revenue.summary.periodRevenue")}
             value={formatCurrency(current?.totalRevenue)}
@@ -177,7 +177,7 @@ export default function RevenuePage() {
 
       {/* Mốc nhanh, không phụ thuộc khoảng đang chọn. */}
       {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" data-tour="revenue-quick">
           {[
             { labelKey: "common.today", period: summary.today },
             { labelKey: "admin.revenue.quick.thisWeek", period: summary.thisWeek },
@@ -186,6 +186,7 @@ export default function RevenuePage() {
             <button
               key={labelKey}
               type="button"
+              data-tour={labelKey === "common.today" ? "revenue-quick-today" : undefined}
               onClick={() =>
                 setEntriesTarget({
                   kind: "PAYMENTS",
@@ -224,47 +225,47 @@ export default function RevenuePage() {
       <Card className="border border-border/80 bg-card shadow-xs">
         <CardContent className="p-6">
           <Tabs defaultValue="service">
-            <TabsList className="mb-6 flex-wrap h-auto">
+            <TabsList className="mb-6 flex-wrap h-auto" data-tour="revenue-tabs">
               <TabsTrigger value="service" className="text-xs px-4">
                 {t("admin.revenue.tabs.service")}
               </TabsTrigger>
-              <TabsTrigger value="method" className="text-xs px-4">
+              <TabsTrigger value="method" className="text-xs px-4" data-tour="revenue-tab-method">
                 {t("admin.revenue.tabs.method")}
               </TabsTrigger>
-              <TabsTrigger value="locker" className="text-xs px-4">
+              <TabsTrigger value="locker" className="text-xs px-4" data-tour="revenue-tab-locker">
                 {t("admin.revenue.tabs.locker")}
               </TabsTrigger>
-              <TabsTrigger value="store" className="text-xs px-4">
+              <TabsTrigger value="store" className="text-xs px-4" data-tour="revenue-tab-store">
                 {t("admin.revenue.tabs.store")}
               </TabsTrigger>
-              <TabsTrigger value="customer" className="text-xs px-4">
+              <TabsTrigger value="customer" className="text-xs px-4" data-tour="revenue-tab-customer">
                 {t("admin.revenue.tabs.customer")}
               </TabsTrigger>
             </TabsList>
 
             {/* Mọi tab dùng chung một khoảng ngày để các con số cộng khớp nhau. */}
-            <TabsContent value="service" className="mt-0">
+            <TabsContent value="service" className="mt-0" data-tour="revenue-panel-service">
               <ServiceRevenueTab
                 range={range}
                 skip={skip}
                 onViewOrders={setSelectedTarget}
               />
             </TabsContent>
-            <TabsContent value="method" className="mt-0">
+            <TabsContent value="method" className="mt-0" data-tour="revenue-panel-method">
               <MethodRevenueTab
                 range={range}
                 skip={skip}
                 onViewOrders={setSelectedTarget}
               />
             </TabsContent>
-            <TabsContent value="locker" className="mt-0">
+            <TabsContent value="locker" className="mt-0" data-tour="revenue-panel-locker">
               <LockerRevenueTab
                 range={range}
                 skip={skip}
                 onViewOrders={setSelectedTarget}
               />
             </TabsContent>
-            <TabsContent value="store" className="mt-0">
+            <TabsContent value="store" className="mt-0" data-tour="revenue-panel-store">
               <StoreRevenueTab
                 range={range}
                 skip={skip}

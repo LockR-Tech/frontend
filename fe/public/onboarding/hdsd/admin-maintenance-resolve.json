@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-maintenance-resolve.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-resolve-open",
+      "x": 1238,
+      "y": 434,
+      "w": 93,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-resolve-note",
+      "x": 489,
+      "y": 340,
+      "w": 462,
+      "h": 104
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-resolve-photos",
+      "x": 489,
+      "y": 456,
+      "w": 462,
+      "h": 127
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-resolve-confirm",
+      "x": 804,
+      "y": 599,
+      "w": 147,
+      "h": 40
+    }
+  ]
+}

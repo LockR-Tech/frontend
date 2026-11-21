@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/kiosk-keyboard-numeric.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-keyboard-numeric-pad",
+      "x": 270,
+      "y": 358,
+      "w": 346,
+      "h": 232
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-keyboard-numeric-clear",
+      "x": 270,
+      "y": 538,
+      "w": 110,
+      "h": 52
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-keyboard-numeric-back",
+      "x": 506,
+      "y": 538,
+      "w": 110,
+      "h": 52
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-keyboard-numeric-enter",
+      "x": 624,
+      "y": 358,
+      "w": 130,
+      "h": 167
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-keyboard-numeric-hide",
+      "x": 624,
+      "y": 533,
+      "w": 130,
+      "h": 58
+    }
+  ]
+}

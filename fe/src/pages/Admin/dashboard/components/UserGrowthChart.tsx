@@ -39,7 +39,7 @@ export function UserGrowthChart({ points, isLoading, error, onRetry, onMonthClic
   const hasData = data.length > 0 && total > 0;
 
   return (
-    <Card className="border border-border bg-card shadow-xs">
+    <Card data-tour="dashboard-user-growth" className="border border-border bg-card shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="text-base font-semibold text-foreground tracking-tight">

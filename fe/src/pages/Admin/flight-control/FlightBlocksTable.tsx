@@ -42,7 +42,7 @@ export function FlightBlocksTable({ stationName }: { stationName: (lockerId: num
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[repeat(5,minmax(0,1fr))_auto]">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[repeat(5,minmax(0,1fr))_auto]" data-tour="flight-blocks-filters">
         <Select value={cause} onValueChange={resetPage(setCause)}>
           <SelectTrigger className="h-9 text-sm">
             <SelectValue />
@@ -95,7 +95,7 @@ export function FlightBlocksTable({ stationName }: { stationName: (lockerId: num
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-lg border" data-tour="flight-blocks-table">
         <Table>
           <TableHeader>
             <TableRow>

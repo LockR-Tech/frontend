@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-feedback-analytics.png",
+  "width": 1440,
+  "height": 1074,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-feedback-analytics-period",
+      "x": 1117,
+      "y": 275,
+      "w": 266,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-feedback-analytics-trend",
+      "x": 292,
+      "y": 250,
+      "w": 1116,
+      "h": 254
+    },
+    {
+      "n": 3,
+      "stepId": "admin-feedback-analytics-overview",
+      "x": 292,
+      "y": 528,
+      "w": 546,
+      "h": 522
+    },
+    {
+      "n": 4,
+      "stepId": "admin-feedback-analytics-satisfaction",
+      "x": 862,
+      "y": 528,
+      "w": 546,
+      "h": 522
+    }
+  ]
+}

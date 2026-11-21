@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-refund-detail.png",
+  "width": 1440,
+  "height": 914,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-refund-detail-info",
+      "x": 489,
+      "y": 109,
+      "w": 462,
+      "h": 377
+    },
+    {
+      "n": 2,
+      "stepId": "admin-refund-detail-reason",
+      "x": 504,
+      "y": 398,
+      "w": 432,
+      "h": 73
+    },
+    {
+      "n": 3,
+      "stepId": "admin-refund-detail-customer-proof",
+      "x": 489,
+      "y": 499,
+      "w": 462,
+      "h": 306
+    },
+    {
+      "n": 4,
+      "stepId": "admin-refund-detail-transfer-proof",
+      "x": 489,
+      "y": 819,
+      "w": 462,
+      "h": 39
+    }
+  ]
+}

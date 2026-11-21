@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-knowledge-import.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-import-example",
+      "x": 915,
+      "y": 317,
+      "w": 116,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-import-json",
+      "x": 409,
+      "y": 365,
+      "w": 622,
+      "h": 242
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-import-submit",
+      "x": 409,
+      "y": 623,
+      "w": 622,
+      "h": 40
+    }
+  ]
+}

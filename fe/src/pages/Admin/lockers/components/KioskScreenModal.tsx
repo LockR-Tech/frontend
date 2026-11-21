@@ -62,7 +62,7 @@ export function KioskScreenModal({
 
         <div className="space-y-4 py-2 text-xs">
           {/* Visual Screen Mockup */}
-          <div className="relative rounded-xl bg-slate-950 p-4 border-2 border-slate-700/80 shadow-inner flex flex-col justify-between overflow-hidden group">
+          <div className="relative rounded-xl bg-slate-950 p-4 border-2 border-slate-700/80 shadow-inner flex flex-col justify-between overflow-hidden group" data-tour="adm-locker-screen-status">
             {/* Gloss reflection overlay */}
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none" />
 
@@ -115,7 +115,7 @@ export function KioskScreenModal({
             <h4 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 text-xs">
               <Cpu className="w-3.5 h-3.5 text-primary" /> {t("admin.lockers.kioskScreen.hardwareSpecs")}
             </h4>
-            <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+            <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800" data-tour="adm-locker-screen-specs">
               <div>
                 <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.model")}</span>
                 <span className="font-semibold text-foreground">Waveshare 7inch HDMI LCD (C)</span>
@@ -150,7 +150,7 @@ export function KioskScreenModal({
             <h4 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 text-xs">
               <Tv className="w-3.5 h-3.5 text-indigo-600" /> {t("admin.lockers.kioskScreen.appStatus")}
             </h4>
-            <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+            <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800" data-tour="adm-locker-screen-app">
               <div>
                 <span className="text-muted-foreground block text-[11px]">{t("admin.lockers.kioskScreen.uiApp")}</span>
                 <span className="font-semibold text-foreground">Chromium Kiosk (--kiosk :3002)</span>

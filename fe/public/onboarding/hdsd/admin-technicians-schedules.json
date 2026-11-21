@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-technicians-schedules.png",
+  "width": 1440,
+  "height": 1413,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-technicians-schedules-tab",
+      "x": 941,
+      "y": 363,
+      "w": 158,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-technicians-schedules-plans",
+      "x": 672,
+      "y": 424,
+      "w": 736,
+      "h": 204
+    },
+    {
+      "n": 3,
+      "stepId": "admin-technicians-schedules-history",
+      "x": 672,
+      "y": 644,
+      "w": 736,
+      "h": 713
+    }
+  ]
+}

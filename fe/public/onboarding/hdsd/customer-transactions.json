@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/customer-transactions.png",
+  "width": 412,
+  "height": 1209,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-transactions-refresh",
+      "x": 352,
+      "y": 10,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-transactions-period",
+      "x": 34,
+      "y": 227,
+      "w": 344,
+      "h": 37
+    },
+    {
+      "n": 3,
+      "stepId": "customer-transactions-metrics",
+      "x": 34,
+      "y": 280,
+      "w": 344,
+      "h": 81
+    },
+    {
+      "n": 4,
+      "stepId": "customer-transactions-breakdown",
+      "x": 34,
+      "y": 445,
+      "w": 344,
+      "h": 28
+    },
+    {
+      "n": 5,
+      "stepId": "customer-transactions-filter",
+      "x": 0,
+      "y": 855,
+      "w": 412,
+      "h": 121
+    },
+    {
+      "n": 6,
+      "stepId": "customer-transactions-first",
+      "x": 0,
+      "y": 1025,
+      "w": 412,
+      "h": 156
+    }
+  ]
+}

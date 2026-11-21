@@ -480,7 +480,7 @@ export function RevenueOrdersModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-5xl max-h-[88vh] flex flex-col p-6">
-        <DialogHeader className="shrink-0 space-y-1.5 border-b pb-4">
+        <DialogHeader className="shrink-0 space-y-1.5 border-b pb-4" data-tour="revenue-orders-header">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
               <TargetIcon className="w-5 h-5" />
@@ -503,7 +503,7 @@ export function RevenueOrdersModal({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto py-3 space-y-3">
+        <div className="flex-1 overflow-y-auto py-3 space-y-3" data-tour="revenue-orders-table">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
               {t("admin.revenue.ordersModal.count", {
@@ -553,7 +553,10 @@ export function RevenueOrdersModal({
           )}
         </div>
 
-        <DialogFooter className="shrink-0 border-t pt-3 flex flex-row items-center justify-between gap-2 sm:gap-0">
+        <DialogFooter
+          className="shrink-0 border-t pt-3 flex flex-row items-center justify-between gap-2 sm:gap-0"
+          data-tour="revenue-orders-footer"
+        >
           <Button
             type="button"
             variant="outline"

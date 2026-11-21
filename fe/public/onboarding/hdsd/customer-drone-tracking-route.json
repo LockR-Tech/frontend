@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-drone-tracking-route.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-drone-tracking-route-deadline",
+      "x": 20,
+      "y": 765,
+      "w": 372,
+      "h": 102
+    },
+    {
+      "n": 2,
+      "stepId": "customer-drone-tracking-route-routemap",
+      "x": 20,
+      "y": 883,
+      "w": 372,
+      "h": 487
+    },
+    {
+      "n": 3,
+      "stepId": "customer-drone-tracking-route-route",
+      "x": 20,
+      "y": 1386,
+      "w": 372,
+      "h": 314
+    }
+  ]
+}

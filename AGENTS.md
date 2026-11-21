@@ -24,3 +24,14 @@ Repo này thuộc hệ thống **Lock.R** (org [LockR-Tech](https://github.com/L
 - API base: `VITE_API_BASE_URL`, mặc định `https://api.locker-drone.tech` (`fe/src/constants/api-paths.ts`). Muốn trỏ backend local: tạo `fe/.env` với `VITE_API_BASE_URL=http://localhost:18080` (file này gitignore).
 - Backend có endpoint trả **mảng phẳng**, có endpoint trả **Page** (`.content`) — dùng `extractList` khi đọc danh sách.
 - Enum trạng thái đơn trên web đang là bộ legacy giặt ủi (thiếu `STORING`, `EXPIRED`, `AWAITING_DISPATCH`) — xem gap F2-G08 trong docs trước khi sửa màn hình đơn hàng.
+
+## Hướng dẫn lần đầu trên màn hình (F3-G13) — quy tắc duy trì
+
+Nội dung tour dùng chung cho web admin và app mobile nằm ở `fe/public/onboarding/` ([ADR-0011](https://github.com/LockR-Tech/docs/blob/main/adr/0011-huong-dan-lan-dau-tren-man-hinh.md)). **Thêm / xoá / sửa một màn hình hay một nút thì cập nhật hướng dẫn NGAY trong cùng PR:**
+
+1. Gắn hoặc sửa neo: web `data-tour="<neo>"`, mobile `TourAnchor('<neo>')` (cùng mã khi là cùng phần tử).
+2. Khai nhóm / bước trong `tours.json`: `platforms` (web / mobile / cả hai), `webRoute` / `mobileRoute` nếu phải mở trang trước, `placement`, `optional: true` nếu phần tử có thể không hiện, `openNav: true` nếu nằm trong menu ngăn kéo.
+3. Đủ chữ ở `locales/vi.json` và `locales/en.json` (`groups.<nhóm>.title|summary`, `steps.<bước>.title|body`).
+4. Đổi nội dung một nhóm ⇒ **TĂNG `version` của nhóm** để người đã xem nhận "Có hướng dẫn mới".
+5. Chụp lại ảnh HDSD của nhóm (`npm run hdsd:capture`, chỉ chạy trên dev/demo).
+6. `npm test` phải xanh: quét neo web + mobile, đủ chữ mọi ngôn ngữ, đủ ảnh HDSD. Có bước mobile ⇒ chạy `tool/sync_onboarding.sh` trong repo mobile để chép bản kèm theo app.

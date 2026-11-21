@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/customer-login-phone.png",
+  "width": 412,
+  "height": 580,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-login-phone-number",
+      "x": 48,
+      "y": 429,
+      "w": 316,
+      "h": 48
+    },
+    {
+      "n": 2,
+      "stepId": "customer-login-phone-send",
+      "x": 48,
+      "y": 520,
+      "w": 316,
+      "h": 32
+    }
+  ]
+}

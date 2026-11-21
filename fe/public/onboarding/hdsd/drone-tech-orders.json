@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/drone-tech-orders.png",
+  "width": 412,
+  "height": 1414,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-orders-return",
+      "x": 12,
+      "y": 569,
+      "w": 388,
+      "h": 144
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-orders-card",
+      "x": 12,
+      "y": 1044,
+      "w": 388,
+      "h": 341
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-orders-action",
+      "x": 282,
+      "y": 1081,
+      "w": 103,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "drone-tech-orders-advance",
+      "x": 27,
+      "y": 1191,
+      "w": 358,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "drone-tech-orders-failure",
+      "x": 27,
+      "y": 1283,
+      "w": 358,
+      "h": 32
+    }
+  ]
+}

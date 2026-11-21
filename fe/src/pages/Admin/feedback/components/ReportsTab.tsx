@@ -75,7 +75,7 @@ export function ReportsTab() {
       {isError && <ErrorBanner onRetry={refetch} />}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center justify-between">
+      <div data-tour="feedback-reports-filter" className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex items-center gap-3">
           <Select
             value={status}
@@ -109,7 +109,7 @@ export function ReportsTab() {
           ))}
         </div>
       ) : (
-        <Card className="overflow-hidden border border-border">
+        <Card data-tour="feedback-reports-table" className="overflow-hidden border border-border">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
@@ -133,7 +133,7 @@ export function ReportsTab() {
                   </TableCell>
                 </TableRow>
               )}
-              {list.map((r) => {
+              {list.map((r, index) => {
                 const statusMeta =
                   REPORT_STATUS_META[r.status] ?? REPORT_STATUS_META.OPEN;
                 return (
@@ -177,6 +177,7 @@ export function ReportsTab() {
                     <TableCell className="text-right">
                       {r.status !== "RESOLVED" && (
                         <Button
+                          data-tour={index === 0 ? "feedback-reports-resolve" : undefined}
                           variant="outline"
                           size="sm"
                           className="h-7 text-xs gap-1"
@@ -198,7 +199,7 @@ export function ReportsTab() {
 
       {/* Pagination */}
       {total > PAGE_SIZE && (
-        <div className="flex items-center justify-center gap-2 pt-2">
+        <div data-tour="feedback-reports-pagination" className="flex items-center justify-center gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"

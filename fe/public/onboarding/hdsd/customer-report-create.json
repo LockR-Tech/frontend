@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/customer-report-create.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-report-create-title",
+      "x": 16,
+      "y": 72,
+      "w": 380,
+      "h": 84
+    },
+    {
+      "n": 2,
+      "stepId": "customer-report-create-description",
+      "x": 16,
+      "y": 172,
+      "w": 380,
+      "h": 142
+    },
+    {
+      "n": 3,
+      "stepId": "customer-report-create-locker",
+      "x": 16,
+      "y": 330,
+      "w": 380,
+      "h": 100
+    },
+    {
+      "n": 4,
+      "stepId": "customer-report-create-box",
+      "x": 16,
+      "y": 446,
+      "w": 380,
+      "h": 77
+    },
+    {
+      "n": 5,
+      "stepId": "customer-report-create-photos",
+      "x": 16,
+      "y": 539,
+      "w": 380,
+      "h": 100
+    },
+    {
+      "n": 6,
+      "stepId": "customer-report-create-actions",
+      "x": 16,
+      "y": 837,
+      "w": 380,
+      "h": 39
+    }
+  ]
+}

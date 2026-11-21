@@ -1,0 +1,42 @@
+name: CI (admin web)
+
+# Test + build cho mọi PR. Test hướng dẫn lần đầu (F3-G13) quét cả mã app Flutter (repo mobile, công khai)
+# để chắc mọi neo khai trong fe/public/onboarding/tours.json có thật trên cả web lẫn mobile.
+on:
+  pull_request:
+    paths:
+      - 'fe/**'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout app mobile (quét neo TourAnchor)
+        uses: actions/checkout@v4
+        with:
+          repository: LockR-Tech/mobile
+          path: mobile-src
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: fe/package-lock.json
+
+      - name: Install
+        working-directory: ./fe
+        run: npm ci
+
+      - name: Test
+        working-directory: ./fe
+        env:
+          MOBILE_LIB: ${{ github.workspace }}/mobile-src/lib
+        run: npm test
+
+      - name: Build
+        working-directory: ./fe
+        run: npm run build

@@ -18,6 +18,7 @@ import {
 import { cn } from "~/lib/utils";
 import { useAuth } from "~/context/auth-context";
 import { useSidebar } from "~/context/sidebar-context";
+import { OPEN_NAV_EVENT } from "~/onboarding/engine";
 import { useTranslation } from "react-i18next";
 import type { NavGroup, NavItem } from "~/types/common/sidebar";
 import {
@@ -84,6 +85,13 @@ export function Sidebar({
   useEffect(() => {
     setIsMobileOpen(false);
   }, [location.pathname]);
+
+  // Hướng dẫn trên màn hình (F3-G13): màn hẹp phải mở menu ngăn kéo trước khi khoanh mục trong đó.
+  useEffect(() => {
+    const open = () => setIsMobileOpen(true);
+    window.addEventListener(OPEN_NAV_EVENT, open);
+    return () => window.removeEventListener(OPEN_NAV_EVENT, open);
+  }, []);
 
   // Detect tablet / mobile screens
   useEffect(() => {
@@ -227,6 +235,7 @@ export function Sidebar({
 
       {/* Sidebar Container */}
       <aside
+        data-tour="nav-sidebar"
         className={cn(
           "fixed left-0 top-0 h-screen bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border flex flex-col z-50 transition-all duration-300 ease-in-out",
           isTablet && !isMobileOpen && "-translate-x-full lg:translate-x-0",
@@ -266,6 +275,7 @@ export function Sidebar({
           {/* Desktop Toggle Button */}
           {!isTablet && (
             <button
+              data-tour="nav-collapse"
               onClick={toggleSidebar}
               className={cn(
                 "p-1.5 rounded-md text-sidebar-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent transition-colors",
@@ -295,7 +305,9 @@ export function Sidebar({
 
         {/* Navigation List */}
         <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">
-          {items.map((item) => renderItem(item))}
+          <div data-tour="nav-top" className="space-y-1">
+            {items.map((item) => renderItem(item))}
+          </div>
 
           {groups.map((group, index) => {
             if (!showLabels) {
@@ -316,6 +328,7 @@ export function Sidebar({
               <div key={group.id}>
                 {index === 0 && <div className="my-3 border-t border-sidebar-border" />}
                 <button
+                  data-tour={index === 0 ? "nav-group-toggle" : undefined}
                   type="button"
                   onClick={() => setGroupOpen(group.id, !open)}
                   aria-expanded={open}
@@ -348,6 +361,7 @@ export function Sidebar({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
+                data-tour="nav-account"
                 className={cn(
                   "w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-sidebar-accent transition-colors text-left group",
                   !isExpanded && !isMobileOpen && "justify-center p-1.5",
@@ -383,7 +397,7 @@ export function Sidebar({
               sideOffset={8}
               className="w-56"
             >
-              <DropdownMenuLabel className="font-normal">
+              <DropdownMenuLabel data-tour="nav-account-info" className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium text-foreground leading-none">
                     {displayName}
@@ -399,6 +413,7 @@ export function Sidebar({
 
               {onSettingsClick && (
                 <DropdownMenuItem
+                  data-tour="nav-account-preferences"
                   onClick={onSettingsClick}
                   className="cursor-pointer gap-2"
                 >
@@ -410,6 +425,7 @@ export function Sidebar({
               <DropdownMenuSeparator />
 
               <DropdownMenuItem
+                data-tour="nav-account-logout"
                 onClick={handleLogout}
                 className="cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
               >

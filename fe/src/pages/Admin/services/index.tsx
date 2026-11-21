@@ -56,7 +56,7 @@ export default function ServicesPage() {
         />
       )}
 
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3" data-tour="services-range">
         <DateRangeFilter value={range} onChange={setRange} />
         <p className="text-[11px] text-muted-foreground shrink-0">
           {t("admin.services.totalRevenue", { amount: formatCurrency(totalRevenue) })}
@@ -72,9 +72,10 @@ export default function ServicesPage() {
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
-        {SERVICE_CATALOG.map((service) => (
+        {SERVICE_CATALOG.map((service, index) => (
           <ServiceCard
             key={service.type}
+            tourAnchors={index === 0}
             service={service}
             settingByKey={settingByKey}
             valueOf={valueOf}
@@ -88,7 +89,7 @@ export default function ServicesPage() {
         ))}
 
         {/* Quy tắc dùng chung — để riêng cho khỏi lặp ba lần ở ba thẻ trên. */}
-        <Card className="border border-border bg-card">
+        <Card className="border border-border bg-card" data-tour="services-shared">
           <CardContent className="p-5 space-y-4">
             <div>
               <h2 className="text-base font-bold text-foreground leading-tight">
@@ -127,7 +128,7 @@ export default function ServicesPage() {
 
       {/* Thanh lưu, chỉ hiện khi có thay đổi chưa lưu. */}
       {dirtyCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur px-6 py-3">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur px-6 py-3" data-tour="services-save-bar">
           <div className="flex flex-wrap items-center gap-3 justify-end max-w-(--breakpoint-2xl) mx-auto">
             {hasInvalid && (
               <span className="text-xs text-destructive flex items-center gap-1.5 mr-auto">

@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-my-reports.png",
+  "width": 412,
+  "height": 543,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-my-reports-refresh",
+      "x": 352,
+      "y": 12,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-my-reports-tabs",
+      "x": 0,
+      "y": 168,
+      "w": 412,
+      "h": 62
+    },
+    {
+      "n": 3,
+      "stepId": "customer-my-reports-filters",
+      "x": 0,
+      "y": 230,
+      "w": 412,
+      "h": 51
+    },
+    {
+      "n": 4,
+      "stepId": "customer-my-reports-first",
+      "x": 16,
+      "y": 320,
+      "w": 380,
+      "h": 195
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-loyalty.png",
+  "width": 1440,
+  "height": 1096,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-loyalty-range",
+      "x": 292,
+      "y": 186,
+      "w": 1116,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-loyalty-period",
+      "x": 292,
+      "y": 246,
+      "w": 1116,
+      "h": 136
+    },
+    {
+      "n": 3,
+      "stepId": "admin-loyalty-overview",
+      "x": 292,
+      "y": 406,
+      "w": 1116,
+      "h": 98
+    },
+    {
+      "n": 4,
+      "stepId": "admin-loyalty-tiers",
+      "x": 292,
+      "y": 528,
+      "w": 546,
+      "h": 348
+    },
+    {
+      "n": 5,
+      "stepId": "admin-loyalty-metrics",
+      "x": 862,
+      "y": 528,
+      "w": 546,
+      "h": 348
+    },
+    {
+      "n": 6,
+      "stepId": "admin-loyalty-month",
+      "x": 292,
+      "y": 900,
+      "w": 1116,
+      "h": 140
+    }
+  ]
+}

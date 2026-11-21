@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-refund-detail.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-refund-detail-amount",
+      "x": 20,
+      "y": 471,
+      "w": 372,
+      "h": 114
+    },
+    {
+      "n": 2,
+      "stepId": "customer-refund-detail-info",
+      "x": 20,
+      "y": 631,
+      "w": 372,
+      "h": 168
+    },
+    {
+      "n": 3,
+      "stepId": "customer-refund-detail-close",
+      "x": 20,
+      "y": 834,
+      "w": 372,
+      "h": 46
+    }
+  ]
+}

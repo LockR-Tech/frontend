@@ -11,7 +11,7 @@ export function SuspensionLogTable({ stationName }: { stationName: (lockerId: nu
   const rows = data?.data ?? [];
 
   return (
-    <div className="overflow-x-auto rounded-lg border">
+    <div className="overflow-x-auto rounded-lg border" data-tour="flight-logs-table">
       <Table>
         <TableHeader>
           <TableRow>

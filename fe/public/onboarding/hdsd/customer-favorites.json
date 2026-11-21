@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/customer-favorites.png",
+  "width": 412,
+  "height": 657,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-favorites-explore",
+      "x": 111,
+      "y": 597,
+      "w": 190,
+      "h": 32
+    }
+  ]
+}

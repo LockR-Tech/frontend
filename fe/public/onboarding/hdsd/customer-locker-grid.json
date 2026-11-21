@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/customer-locker-grid.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-locker-grid-report",
+      "x": 352,
+      "y": 12,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-locker-grid-address",
+      "x": 0,
+      "y": 148,
+      "w": 412,
+      "h": 84
+    },
+    {
+      "n": 3,
+      "stepId": "customer-locker-grid-kiosk",
+      "x": 0,
+      "y": 232,
+      "w": 412,
+      "h": 78
+    },
+    {
+      "n": 4,
+      "stepId": "customer-locker-grid-summary",
+      "x": 0,
+      "y": 310,
+      "w": 412,
+      "h": 56
+    },
+    {
+      "n": 5,
+      "stepId": "customer-locker-grid-card",
+      "x": 16,
+      "y": 378,
+      "w": 380,
+      "h": 81
+    },
+    {
+      "n": 6,
+      "stepId": "customer-locker-grid-legend",
+      "x": 16,
+      "y": 460,
+      "w": 368,
+      "h": 112
+    },
+    {
+      "n": 7,
+      "stepId": "customer-locker-grid-cells",
+      "x": 16,
+      "y": 572,
+      "w": 380,
+      "h": 320
+    }
+  ]
+}

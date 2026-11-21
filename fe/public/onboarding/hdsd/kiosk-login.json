@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/kiosk-login.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-login-tabs",
+      "x": 28,
+      "y": 135,
+      "w": 968,
+      "h": 56
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-login-phone",
+      "x": 28,
+      "y": 267,
+      "w": 968,
+      "h": 56
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-login-send",
+      "x": 28,
+      "y": 323,
+      "w": 968,
+      "h": 56
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-login-back",
+      "x": 28,
+      "y": 68,
+      "w": 40,
+      "h": 40
+    }
+  ]
+}

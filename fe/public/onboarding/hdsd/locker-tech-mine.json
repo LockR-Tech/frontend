@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/locker-tech-mine.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-mine-tab",
+      "x": 143,
+      "y": 251,
+      "w": 125,
+      "h": 49
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-mine-overview",
+      "x": 12,
+      "y": 339,
+      "w": 388,
+      "h": 102
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-mine-rating",
+      "x": 12,
+      "y": 449,
+      "w": 388,
+      "h": 43
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-mine-sla",
+      "x": 12,
+      "y": 502,
+      "w": 388,
+      "h": 118
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-mine-procedure",
+      "x": 12,
+      "y": 630,
+      "w": 388,
+      "h": 60
+    },
+    {
+      "n": 6,
+      "stepId": "locker-tech-mine-first-report",
+      "x": 12,
+      "y": 731,
+      "w": 388,
+      "h": 161
+    }
+  ]
+}

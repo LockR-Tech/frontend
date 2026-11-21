@@ -163,7 +163,7 @@ function CustomerCard({ order }: { order: AdminOrder }) {
   const { t } = useTranslation();
   const { customer, receiver } = order;
   return (
-    <Card>
+    <Card data-tour="order-detail-customer">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Users className="h-4 w-4" />
@@ -229,7 +229,7 @@ function DroneLockerCard({ order }: { order: AdminOrder }) {
   const receiveLocker = order.destinationLocker ?? order.locker;
   const boxNumber = droneReceiveBoxNumber(order);
   return (
-    <Card>
+    <Card data-tour="order-detail-drone-locker">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <MapPin className="h-4 w-4" />
@@ -257,7 +257,7 @@ function LockerCard({ order }: { order: AdminOrder }) {
   const { locker, destinationLocker, store } = order;
   if (isDroneOrder(order)) return <DroneLockerCard order={order} />;
   return (
-    <Card>
+    <Card data-tour="order-detail-locker">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <MapPin className="h-4 w-4" />
@@ -351,7 +351,7 @@ function DroneCard({
   if (!drone) return null;
 
   return (
-    <Card>
+    <Card data-tour="order-detail-drone">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Plane className="h-4 w-4" />
@@ -504,7 +504,7 @@ export default function OrderDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-5">
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0" data-tour="order-detail-header">
           <Button
             variant="outline"
             size="icon"
@@ -526,7 +526,12 @@ export default function OrderDetailPage() {
           </div>
         </div>
         {adminOrderNextStatuses(order.status).length > 0 && (
-          <Button variant="outline" size="sm" onClick={() => setIsStatusModalOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsStatusModalOpen(true)}
+            data-tour="order-detail-update-status"
+          >
             <Edit3 className="mr-1.5 h-3.5 w-3.5" />
             {t("admin.orders.updateStatus")}
           </Button>
@@ -534,7 +539,10 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Băng trạng thái */}
-      <div className="rounded-xl border border-border bg-card p-4 flex flex-wrap items-center gap-3">
+      <div
+        className="rounded-xl border border-border bg-card p-4 flex flex-wrap items-center gap-3"
+        data-tour="order-detail-status-band"
+      >
         <MetaBadge meta={orderStatusMeta(order.status)} />
         <MetaBadge meta={orderTypeMeta(order.type)} hideIcon />
         <MetaBadge meta={orderPaymentStatusMeta(order.paymentStatus)} hideIcon />
@@ -575,7 +583,7 @@ export default function OrderDetailPage() {
           <OrderInfoCard order={order} view={extras.view} drone={droneOrder} />
 
           {/* Mốc thời gian nghiệp vụ */}
-          <Card>
+          <Card data-tour="order-detail-milestones">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4" />
@@ -619,7 +627,7 @@ export default function OrderDetailPage() {
           {droneOrder ? (
             <DroneFeesCard drone={droneOrder} />
           ) : (
-          <Card>
+          <Card data-tour="order-detail-fees">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Receipt className="h-4 w-4" />
@@ -682,7 +690,7 @@ export default function OrderDetailPage() {
           )}
 
           {/* Lịch sử trạng thái */}
-          <Card>
+          <Card data-tour="order-detail-history">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4" />
@@ -712,7 +720,7 @@ export default function OrderDetailPage() {
           {/* Khối này trước đây liệt kê 6 dòng mã số thô (`#701`, `#7`, `#3`) — nhìn vào
               không biết là tủ nào, cửa hàng nào. Nay hiện tên và số ô mà API chi tiết
               vốn đã trả về sẵn; chỉ giữ lại mã số ở nơi thật sự không có tên. */}
-          <Card>
+          <Card data-tour="order-detail-links">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <KeyRound className="h-4 w-4" />
