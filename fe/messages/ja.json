@@ -146,7 +146,8 @@
         "operations": "ロッカー・運用",
         "drone": "ドローン",
         "finance": "財務",
-        "customers": "ユーザー・エンゲージメント",
+        "customers": "ユーザー",
+        "rewards": "特典・フィードバック",
         "system": "システム"
       }
     },
