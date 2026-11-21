@@ -1,0 +1,31 @@
+name: Hướng dẫn trên màn hình
+
+# Luật F3-G13: PR đổi giao diện (màn hình, nút, tab, hộp thoại, menu, nhãn) phải cập nhật hướng dẫn trên màn hình +
+# HDSD, hoặc tick "Không ảnh hưởng hướng dẫn — lý do: …" trong mô tả PR. Chạy lại khi sửa mô tả PR (`edited`).
+# https://github.com/LockR-Tech/docs/blob/main/04-engineering/huong-dan-giao-dien.md
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: huong-dan-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  huong-dan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Giao diện đổi thì hướng dẫn cũng phải đổi
+        env:
+          REPO: frontend
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: bash .github/scripts/kiem-huong-dan.sh

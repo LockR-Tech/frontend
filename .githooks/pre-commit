@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Nhắc luật "đổi giao diện ⇒ cập nhật hướng dẫn trên màn hình + HDSD" (F3-G13) khi commit.
+# Chỉ nhắc, không chặn commit — CI ("Hướng dẫn trên màn hình") mới chặn PR.
+# Bật một lần cho mỗi bản clone: git config core.hooksPath .githooks  (npm install trong fe/ tự làm).
+# Luật: https://github.com/LockR-Tech/docs/blob/main/04-engineering/huong-dan-giao-dien.md
+
+ui=() guide=0
+while IFS= read -r f; do
+  case "$f" in *.test.*|*/tests/*) continue ;; esac
+  case "$f" in
+    fe/public/onboarding/*|fe/scripts/hdsd/*) guide=1 ;;
+    fe/src/pages/*|fe/src/components/*|fe/src/layouts/*|fe/src/routes/*|fe/src/constants/sidebar.ts|fe/messages/vi.json|fe/messages/en.json) ui+=("$f") ;;
+  esac
+done < <(git diff --cached --name-only --diff-filter=ACMRD)
+
+if [ "${#ui[@]}" -gt 0 ] && [ "$guide" -eq 0 ]; then
+  {
+    echo ""
+    echo "┌─ NHẮC: giao diện đổi ⇒ cập nhật hướng dẫn trên màn hình + HDSD (F3-G13) ─────────────"
+    for f in "${ui[@]:0:8}"; do echo "│  • $f"; done
+    [ "${#ui[@]}" -gt 8 ] && echo "│  … và $(( ${#ui[@]} - 8 )) file nữa"
+    echo "│  Commit này đổi giao diện nhưng không đổi fe/public/onboarding/. Cần:"
+    echo "│   1. neo data-tour   2. tours.json   3. chữ vi + en   4. TĂNG version nhóm"
+    echo "│   5. npm run hdsd:capture (chụp lại ảnh)   6. npm test xanh"
+    echo "│  Không ảnh hưởng hướng dẫn? Tick \"Không ảnh hưởng hướng dẫn — lý do\" trong PR."
+    echo "└──────────────────────────────────────────────────────────────────────────────────────"
+    echo ""
+  } >&2
+fi
+exit 0

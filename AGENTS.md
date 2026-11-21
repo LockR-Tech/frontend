@@ -15,6 +15,7 @@ Repo này thuộc hệ thống **Lock.R** (org [LockR-Tech](https://github.com/L
 - Nhánh `<type>/<gap-id>-<mo-ta>`; commit và tiêu đề PR theo Conventional Commits; footer `Refs: F2-G01`.
 - Không commit secret, `.env` thật, file build. Không thêm trailer `Co-Authored-By` của công cụ AI.
 - Việc chỉ xong khi tài liệu ở `../docs` đã cập nhật (STATUS, file luồng, sơ đồ nếu đổi trạng thái).
+- **Đổi giao diện ⇒ cập nhật hướng dẫn trên màn hình + HDSD trong cùng PR** ([luật](https://github.com/LockR-Tech/docs/blob/main/04-engineering/huong-dan-giao-dien.md), mục cuối file). Check CI "Hướng dẫn trên màn hình" chặn merge nếu quên.
 
 ## Riêng repo này
 
@@ -25,7 +26,15 @@ Repo này thuộc hệ thống **Lock.R** (org [LockR-Tech](https://github.com/L
 - Backend có endpoint trả **mảng phẳng**, có endpoint trả **Page** (`.content`) — dùng `extractList` khi đọc danh sách.
 - Enum trạng thái đơn trên web đang là bộ legacy giặt ủi (thiếu `STORING`, `EXPIRED`, `AWAITING_DISPATCH`) — xem gap F2-G08 trong docs trước khi sửa màn hình đơn hàng.
 
-## Hướng dẫn lần đầu trên màn hình (F3-G13) — quy tắc duy trì
+## Hướng dẫn lần đầu trên màn hình (F3-G13) — LUẬT bắt buộc
+
+Áp dụng cho mọi người và AI agent ([luật đầy đủ](https://github.com/LockR-Tech/docs/blob/main/04-engineering/huong-dan-giao-dien.md)). Bạn được nhắc ở mọi bước:
+
+- **Claude Code**: `.claude/settings.json` (đã commit) có hook nhắc luật khi mở phiên, khi sửa file giao diện, và cuối lượt nếu giao diện đổi mà hướng dẫn chưa đổi.
+- **Git**: `.githooks/pre-commit` nhắc khi commit file giao diện mà không kèm `fe/public/onboarding/`. Hook tự bật khi chạy `npm install` trong `fe/` (lệnh `git config core.hooksPath .githooks`).
+- **PR**: mẫu PR có mục "Hướng dẫn trên màn hình". Check CI **"Hướng dẫn trên màn hình"** (`.github/workflows/huong-dan.yml`) **đỏ** nếu PR đổi giao diện (`fe/src/pages|components|layouts|routes`, `constants/sidebar.ts`, `fe/messages/{vi,en}.json`) mà không đổi `fe/public/onboarding/` và không tick "Không ảnh hưởng hướng dẫn — lý do: …". Sửa mô tả PR là check tự chạy lại.
+
+Các bước phải làm:
 
 Nội dung tour dùng chung cho web admin và app mobile nằm ở `fe/public/onboarding/` ([ADR-0011](https://github.com/LockR-Tech/docs/blob/main/adr/0011-huong-dan-lan-dau-tren-man-hinh.md)). **Thêm / xoá / sửa một màn hình hay một nút thì cập nhật hướng dẫn NGAY trong cùng PR:**
 
