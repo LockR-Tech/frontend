@@ -48,7 +48,7 @@ export function ServiceRevenueChart({ items, year, isLoading, error, onRetry, on
     .sort((a, b) => b.revenue - a.revenue);
 
   return (
-    <Card className="border border-border bg-card shadow-xs">
+    <Card data-tour="dashboard-service-revenue" className="border border-border bg-card shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-foreground tracking-tight">
           {t("admin.dashboard.serviceRevenue.title")}

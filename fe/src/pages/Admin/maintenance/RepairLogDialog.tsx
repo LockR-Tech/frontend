@@ -53,6 +53,7 @@ export function RepairLogDialog({
   technicianName,
   report,
   defaultOpen = false,
+  "data-tour": tourId,
 }: {
   reportId: number;
   title: string;
@@ -60,6 +61,8 @@ export function RepairLogDialog({
   report?: LockerReportResponse;
   /** Mở sẵn khi vào trang bằng link tới đúng phiếu (`?reportId=`). */
   defaultOpen?: boolean;
+  /** Neo hướng dẫn trên màn hình (data-tour) cho nút mở — chỉ gắn ở dòng đầu danh sách. */
+  "data-tour"?: string;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(defaultOpen);
@@ -156,7 +159,7 @@ export function RepairLogDialog({
 
   return (
     <>
-      <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => setOpen(true)}>
+      <Button size="sm" variant="outline" className="h-8 text-xs gap-1" onClick={() => setOpen(true)} data-tour={tourId}>
         <FileText className="w-3.5 h-3.5 text-indigo-600" />
         {t("admin.maintenance.repairLog.button")}
       </Button>
@@ -172,7 +175,7 @@ export function RepairLogDialog({
               </DialogTitle>
             </div>
             {/* Section switcher */}
-            <div className="flex gap-1 mt-2">
+            <div className="flex gap-1 mt-2" data-tour="repair-log-sections">
               <button
                 type="button"
                 onClick={() => setActiveSection("info")}
@@ -200,7 +203,7 @@ export function RepairLogDialog({
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
+          <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3" data-tour="repair-log-body">
             {open && <DroneOrdersByTicket ticketId={reportId} />}
             {/* ── SECTION: Chi tiết phiếu ── */}
             {activeSection === "info" && (

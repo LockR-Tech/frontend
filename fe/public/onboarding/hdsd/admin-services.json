@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-services.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-services-range",
+      "x": 292,
+      "y": 186,
+      "w": 1116,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-services-card",
+      "x": 313,
+      "y": 267,
+      "w": 506,
+      "h": 44
+    },
+    {
+      "n": 3,
+      "stepId": "admin-services-performance",
+      "x": 313,
+      "y": 390,
+      "w": 506,
+      "h": 123
+    },
+    {
+      "n": 4,
+      "stepId": "admin-services-rules",
+      "x": 313,
+      "y": 533,
+      "w": 506,
+      "h": 17
+    },
+    {
+      "n": 5,
+      "stepId": "admin-services-shared",
+      "x": 860,
+      "y": 591,
+      "w": 548,
+      "h": 188
+    }
+  ]
+}

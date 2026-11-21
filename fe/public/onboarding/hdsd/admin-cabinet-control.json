@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-cabinet-control.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-cabinet-control-safety",
+      "x": 292,
+      "y": 186,
+      "w": 1116,
+      "h": 66
+    },
+    {
+      "n": 2,
+      "stepId": "admin-cabinet-control-locker",
+      "x": 292,
+      "y": 276,
+      "w": 1116,
+      "h": 39
+    },
+    {
+      "n": 3,
+      "stepId": "admin-cabinet-control-tabs",
+      "x": 292,
+      "y": 339,
+      "w": 252,
+      "h": 40
+    },
+    {
+      "n": 4,
+      "stepId": "admin-cabinet-control-open-box",
+      "x": 292,
+      "y": 411,
+      "w": 1116,
+      "h": 261
+    },
+    {
+      "n": 5,
+      "stepId": "admin-cabinet-control-lids",
+      "x": 292,
+      "y": 696,
+      "w": 1116,
+      "h": 20
+    },
+    {
+      "n": 6,
+      "stepId": "admin-cabinet-control-log",
+      "x": 292,
+      "y": 740,
+      "w": 1116,
+      "h": 110
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "image": "hdsd/customer-profile.png",
   "width": 412,
-  "height": 718,
+  "height": 766,
   "capturedAt": "2026-11-21",
   "marks": [
     {
@@ -14,6 +14,14 @@
     },
     {
       "n": 2,
+      "stepId": "customer-profile-info",
+      "x": 0,
+      "y": 402,
+      "w": 412,
+      "h": 48
+    },
+    {
+      "n": 3,
       "stepId": "customer-profile-refund",
       "x": 0,
       "y": 450,
@@ -21,12 +29,36 @@
       "h": 48
     },
     {
-      "n": 3,
+      "n": 4,
+      "stepId": "customer-profile-loyalty",
+      "x": 0,
+      "y": 498,
+      "w": 412,
+      "h": 64
+    },
+    {
+      "n": 5,
+      "stepId": "customer-profile-security",
+      "x": 0,
+      "y": 562,
+      "w": 412,
+      "h": 48
+    },
+    {
+      "n": 6,
       "stepId": "customer-profile-guide",
       "x": 0,
       "y": 610,
       "w": 412,
       "h": 80
+    },
+    {
+      "n": 7,
+      "stepId": "customer-profile-vouchers",
+      "x": 0,
+      "y": 690,
+      "w": 412,
+      "h": 48
     }
   ]
 }

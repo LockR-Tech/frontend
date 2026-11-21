@@ -6,6 +6,14 @@
   "marks": [
     {
       "n": 1,
+      "stepId": "customer-orders-refresh",
+      "x": 352,
+      "y": 10,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
       "stepId": "customer-orders-scope",
       "x": 0,
       "y": 144,
@@ -13,7 +21,7 @@
       "h": 55
     },
     {
-      "n": 2,
+      "n": 3,
       "stepId": "customer-orders-filters",
       "x": 0,
       "y": 199,
@@ -21,7 +29,15 @@
       "h": 59
     },
     {
-      "n": 3,
+      "n": 4,
+      "stepId": "customer-orders-first",
+      "x": 16,
+      "y": 307,
+      "w": 380,
+      "h": 196
+    },
+    {
+      "n": 5,
       "stepId": "customer-orders-list",
       "x": 0,
       "y": 266,

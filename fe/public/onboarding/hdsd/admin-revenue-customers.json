@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-revenue-customers.png",
+  "width": 1440,
+  "height": 1282,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-revenue-customers-tab",
+      "x": 743,
+      "y": 1002,
+      "w": 125,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-revenue-customers-filters",
+      "x": 317,
+      "y": 1058,
+      "w": 1066,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-revenue-customers-first",
+      "x": 342,
+      "y": 1190,
+      "w": 107,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-revenue-customers-actions",
+      "x": 1292,
+      "y": 1194,
+      "w": 131,
+      "h": 28
+    }
+  ]
+}

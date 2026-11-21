@@ -98,7 +98,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
+          <div data-tour="notif-broadcast-type" className="space-y-1.5">
             <Label>{t("admin.notifications.broadcast.notifType")}</Label>
             <Select
               value={formData.type}
@@ -118,7 +118,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
             {typeHint && <p className="text-xs text-muted-foreground/70">{typeHint}</p>}
           </div>
 
-          <div className="space-y-1.5">
+          <div data-tour="notif-broadcast-subject" className="space-y-1.5">
             <Label>{t("admin.notifications.broadcast.subject")} *</Label>
             <Input
               value={formData.title}
@@ -132,7 +132,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div data-tour="notif-broadcast-content" className="space-y-1.5">
             <Label>{t("admin.notifications.broadcast.content")} *</Label>
             <Textarea
               value={formData.message}
@@ -147,7 +147,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div data-tour="notif-broadcast-target" className="space-y-1.5">
             <Label>{t("admin.notifications.broadcast.target")}</Label>
             <div className="flex gap-2">
               <Button
@@ -195,7 +195,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
             </p>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div data-tour="notif-broadcast-submit" className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"

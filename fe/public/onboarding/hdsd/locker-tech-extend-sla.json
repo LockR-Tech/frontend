@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/locker-tech-extend-sla.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-extend-sla-due",
+      "x": 20,
+      "y": 444,
+      "w": 372,
+      "h": 74
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-extend-sla-hours",
+      "x": 20,
+      "y": 559,
+      "w": 340,
+      "h": 74
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-extend-sla-reason",
+      "x": 20,
+      "y": 672,
+      "w": 372,
+      "h": 72
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-extend-sla-submit",
+      "x": 20,
+      "y": 826,
+      "w": 372,
+      "h": 46
+    }
+  ]
+}

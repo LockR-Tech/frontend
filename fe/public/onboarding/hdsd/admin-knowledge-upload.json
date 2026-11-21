@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-knowledge-upload.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-upload-file",
+      "x": 489,
+      "y": 206,
+      "w": 462,
+      "h": 170
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-upload-name",
+      "x": 489,
+      "y": 392,
+      "w": 462,
+      "h": 82
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-upload-roles",
+      "x": 489,
+      "y": 490,
+      "w": 462,
+      "h": 228
+    },
+    {
+      "n": 4,
+      "stepId": "admin-knowledge-upload-submit",
+      "x": 489,
+      "y": 734,
+      "w": 462,
+      "h": 40
+    }
+  ]
+}

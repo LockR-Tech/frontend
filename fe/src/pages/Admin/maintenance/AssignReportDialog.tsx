@@ -101,7 +101,7 @@ export function AssignReportDialog({
         </DialogHeader>
 
         {/* Report Summary Card */}
-        <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs">
+        <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-1.5 text-xs" data-tour="assign-report-summary">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-sm text-foreground">
               {t("admin.maintenance.reportLabel", { id: report.id, title: report.title })}
@@ -120,7 +120,7 @@ export function AssignReportDialog({
         </div>
 
         {/* Technician Selection */}
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2 pt-2" data-tour="assign-report-tech">
           <label className="text-xs font-semibold text-foreground block">
             {t("admin.maintenance.assign.chooseTech")}
           </label>
@@ -175,6 +175,7 @@ export function AssignReportDialog({
             type="button"
             className="h-9 text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5 shadow-xs"
             onClick={handleAssign}
+            data-tour="assign-report-confirm"
             disabled={isLoading || !selectedTechId}
           >
             <CheckCircle2 className="w-4 h-4" />

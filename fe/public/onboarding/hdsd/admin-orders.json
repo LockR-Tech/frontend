@@ -6,19 +6,67 @@
   "marks": [
     {
       "n": 1,
-      "stepId": "admin-orders-filters",
+      "stepId": "admin-orders-search",
       "x": 316,
       "y": 210,
-      "w": 1068,
-      "h": 157
+      "w": 320,
+      "h": 36
     },
     {
       "n": 2,
-      "stepId": "admin-orders-list",
-      "x": 292,
-      "y": 186,
-      "w": 1116,
-      "h": 1549
+      "stepId": "admin-orders-filters",
+      "x": 644,
+      "y": 210,
+      "w": 484,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-orders-sort",
+      "x": 316,
+      "y": 254,
+      "w": 180,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-orders-dates",
+      "x": 316,
+      "y": 302,
+      "w": 860,
+      "h": 65
+    },
+    {
+      "n": 5,
+      "stepId": "admin-orders-toolbar",
+      "x": 1192,
+      "y": 210,
+      "w": 192,
+      "h": 36
+    },
+    {
+      "n": 6,
+      "stepId": "admin-orders-first-row",
+      "x": 341,
+      "y": 486,
+      "w": 165,
+      "h": 66
+    },
+    {
+      "n": 7,
+      "stepId": "admin-orders-row-menu",
+      "x": 1327,
+      "y": 503,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "n": 8,
+      "stepId": "admin-orders-table",
+      "x": 316,
+      "y": 415,
+      "w": 1068,
+      "h": 1296
     }
   ]
 }

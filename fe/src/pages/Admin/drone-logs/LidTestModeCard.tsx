@@ -45,7 +45,7 @@ export function LidTestModeCard({ lockerLabel }: Props) {
   };
 
   return (
-    <Card className={enabled ? 'border-amber-400 dark:border-amber-600' : undefined}>
+    <Card className={enabled ? 'border-amber-400 dark:border-amber-600' : undefined} data-tour="drone-logs-lid-test">
       <CardContent className="p-4 space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-2.5 min-w-0">

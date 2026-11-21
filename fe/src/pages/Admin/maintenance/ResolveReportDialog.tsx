@@ -95,7 +95,7 @@ export function ResolveReportDialog({
         </DialogHeader>
 
         <div className="space-y-3">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="resolve-report-note">
             <Label className="text-xs font-medium" htmlFor="resolve-report-note">
               {t("admin.maintenance.resolveDialog.noteLabel")}
             </Label>
@@ -109,7 +109,7 @@ export function ResolveReportDialog({
               disabled={busy}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="resolve-report-photos">
             <Label className="text-xs font-medium">{t("admin.maintenance.resolveDialog.photosLabel")}</Label>
             <PhotoPicker
               value={files}
@@ -129,6 +129,7 @@ export function ResolveReportDialog({
             onClick={submit}
             disabled={busy}
             className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+            data-tour="resolve-report-confirm"
           >
             {busy && <Loader2 className="w-4 h-4 animate-spin" />}
             {isUploading

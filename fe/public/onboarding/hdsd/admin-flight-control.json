@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-flight-control.png",
+  "width": 1440,
+  "height": 1298,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-flight-control-global",
+      "x": 292,
+      "y": 162,
+      "w": 440,
+      "h": 130
+    },
+    {
+      "n": 2,
+      "stepId": "admin-flight-control-weather",
+      "x": 292,
+      "y": 308,
+      "w": 440,
+      "h": 130
+    },
+    {
+      "n": 3,
+      "stepId": "admin-flight-control-summary",
+      "x": 748,
+      "y": 162,
+      "w": 660,
+      "h": 276
+    },
+    {
+      "n": 4,
+      "stepId": "admin-flight-control-stations",
+      "x": 292,
+      "y": 458,
+      "w": 1116,
+      "h": 718
+    },
+    {
+      "n": 5,
+      "stepId": "admin-flight-control-station",
+      "x": 330,
+      "y": 852,
+      "w": 321,
+      "h": 36
+    },
+    {
+      "n": 6,
+      "stepId": "admin-flight-control-tabs",
+      "x": 292,
+      "y": 1196,
+      "w": 471,
+      "h": 46
+    }
+  ]
+}

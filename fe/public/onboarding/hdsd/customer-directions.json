@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/customer-directions.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-directions-header",
+      "x": 12,
+      "y": 10,
+      "w": 388,
+      "h": 42
+    },
+    {
+      "n": 2,
+      "stepId": "customer-directions-card",
+      "x": 0,
+      "y": 680,
+      "w": 412,
+      "h": 212
+    },
+    {
+      "n": 3,
+      "stepId": "customer-directions-start",
+      "x": 28,
+      "y": 792,
+      "w": 356,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "customer-directions-external",
+      "x": 28,
+      "y": 832,
+      "w": 356,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "customer-directions-recenter",
+      "x": 356,
+      "y": 630,
+      "w": 42,
+      "h": 42
+    }
+  ]
+}

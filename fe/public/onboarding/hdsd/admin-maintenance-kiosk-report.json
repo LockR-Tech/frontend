@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-maintenance-kiosk-report.png",
+  "width": 1440,
+  "height": 1148,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-kiosk-report-info",
+      "x": 333,
+      "y": 847,
+      "w": 576,
+      "h": 245
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-kiosk-report-log",
+      "x": 1004,
+      "y": 953,
+      "w": 89,
+      "h": 32
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-kiosk-report-assign",
+      "x": 1101,
+      "y": 953,
+      "w": 129,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-kiosk-report-complete",
+      "x": 1238,
+      "y": 953,
+      "w": 93,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-kiosk-report-delete",
+      "x": 1339,
+      "y": 953,
+      "w": 32,
+      "h": 32
+    }
+  ]
+}

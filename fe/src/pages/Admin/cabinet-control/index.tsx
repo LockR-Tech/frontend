@@ -137,7 +137,7 @@ export default function CabinetControlPage() {
       />
 
       {/* Cảnh báo an toàn */}
-      <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+      <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" data-tour="cab-ctrl-safety">
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
         <div>
           <Trans i18nKey="admin.cabinetControl.safetyWarning" components={{ b: <b /> }} />
@@ -145,7 +145,7 @@ export default function CabinetControlPage() {
       </div>
 
       {/* Chọn tủ */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3" data-tour="cab-ctrl-locker">
         <label className="text-sm font-medium">{t("admin.cabinetControl.lockerLabel")}</label>
         <select
           className="rounded-md border border-border bg-background px-3 py-2 text-sm"
@@ -167,9 +167,9 @@ export default function CabinetControlPage() {
       </div>
 
       <Tabs defaultValue="control" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="control">{t("admin.cabinetControl.tabs.control")}</TabsTrigger>
-          <TabsTrigger value="hardware">{t("admin.cabinetControl.tabs.hardware")}</TabsTrigger>
+        <TabsList data-tour="cab-ctrl-tabs">
+          <TabsTrigger value="control" data-tour="cab-ctrl-tab-control">{t("admin.cabinetControl.tabs.control")}</TabsTrigger>
+          <TabsTrigger value="hardware" data-tour="cab-ctrl-tab-hardware">{t("admin.cabinetControl.tabs.hardware")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hardware">
@@ -178,7 +178,7 @@ export default function CabinetControlPage() {
 
         <TabsContent value="control" className="space-y-6">
       {/* Mở ô */}
-      <section className="rounded-xl border border-border p-4">
+      <section className="rounded-xl border border-border p-4" data-tour="cab-ctrl-open-box">
         <h2 className="mb-3 text-base font-semibold">{t("admin.cabinetControl.openBoxTitle")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {boxes.map((b) => (
@@ -199,7 +199,7 @@ export default function CabinetControlPage() {
       </section>
 
       {/* Nắp / thanh trượt */}
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-2" data-tour="cab-ctrl-lids">
         {lids.map((lid) => (
           <LidPanel
             key={lid.axis}
@@ -241,7 +241,7 @@ function CabinetLogSection({
   };
 
   return (
-    <section className="rounded-xl border border-border p-4">
+    <section className="rounded-xl border border-border p-4" data-tour="cab-ctrl-log">
       <h2 className="mb-1 flex items-center gap-2 text-base font-semibold">
         <ScrollText className="h-4 w-4" /> {t("admin.cabinetControl.log.title")}
       </h2>

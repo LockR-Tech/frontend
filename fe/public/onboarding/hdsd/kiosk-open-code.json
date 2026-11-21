@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/kiosk-open-code.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-open-code-locker",
+      "x": 28,
+      "y": 155,
+      "w": 968,
+      "h": 16
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-open-code-input",
+      "x": 287,
+      "y": 209,
+      "w": 450,
+      "h": 68
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-open-code-submit",
+      "x": 287,
+      "y": 311,
+      "w": 450,
+      "h": 56
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-open-code-back",
+      "x": 28,
+      "y": 68,
+      "w": 40,
+      "h": 40
+    }
+  ]
+}

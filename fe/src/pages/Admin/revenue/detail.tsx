@@ -197,7 +197,7 @@ export default function RevenueDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3 border-b border-border/60 pb-5">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border/60 pb-5" data-tour="revenue-detail-header">
         <Button
           variant="outline"
           size="icon"
@@ -221,7 +221,9 @@ export default function RevenueDetailPage() {
         </div>
       </div>
 
-      <DateRangeFilter value={range} onChange={setRange} />
+      <div data-tour="revenue-detail-range">
+        <DateRangeFilter value={range} onChange={setRange} />
+      </div>
 
       {error ? (
         <ReportErrorState
@@ -231,7 +233,7 @@ export default function RevenueDetailPage() {
         />
       ) : (
         <>
-          <Card className="border border-border bg-card">
+          <Card className="border border-border bg-card" data-tour="revenue-detail-customer">
             <CardContent className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
               {isLoading ? (
                 Array.from({ length: 4 }).map((_, index) => (
@@ -266,7 +268,7 @@ export default function RevenueDetailPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3" data-tour="revenue-detail-stats">
             <ReportStatCard
               label={t("admin.revenue.detail.stats.spent")}
               value={formatCurrency(customer?.totalSpent)}
@@ -319,7 +321,7 @@ export default function RevenueDetailPage() {
             />
           </div>
 
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm" data-tour="revenue-detail-orders">
             <CardContent className="p-6 space-y-3">
               <h2 className="text-sm font-semibold">
                 {t("admin.revenue.detail.ordersTitle", {

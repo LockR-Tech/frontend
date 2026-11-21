@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-layout-sidebar.png",
+  "width": 1440,
+  "height": 944,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-layout-sidebar-collapse",
+      "x": 215,
+      "y": 18,
+      "w": 28,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-layout-sidebar-top",
+      "x": 12,
+      "y": 76,
+      "w": 235,
+      "h": 156
+    },
+    {
+      "n": 3,
+      "stepId": "admin-layout-sidebar-groups",
+      "x": 12,
+      "y": 257,
+      "w": 235,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-layout-sidebar-account",
+      "x": 12,
+      "y": 884,
+      "w": 235,
+      "h": 49
+    }
+  ]
+}

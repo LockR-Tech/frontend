@@ -95,8 +95,83 @@ test('mọi neo của bước mobile có TourAnchor trong mã app', () => {
   assert.deepEqual(missing, [], `thiếu neo mobile:\n${missing.join('\n')}`);
 });
 
-test('nhóm nào cũng có ảnh HDSD đã khoanh', () => {
-  const missing = content.groups.filter((g) =>
+// ── Không bỏ sót màn hình: route nào cũng có hướng dẫn ─────────────────────────────────────────────────────────────
+// Trang tĩnh: có bước webRoute / mobileRoute đúng trang đó. Trang chi tiết (route có tham số, hoặc cần dữ liệu đi kèm):
+// có nhóm mở bằng `via` từ trang danh sách. Không dẫn được ⇒ ghi vào bảng ngoại lệ, BẮT BUỘC có lý do; ghi `group`
+// khi màn đó đã được mô tả trong một nhóm khác. Thêm trang mới mà quên hướng dẫn ⇒ test đỏ.
+const groupIds = new Set(content.groups.map((g) => g.id));
+function checkExempt(table, routes, label) {
+  const problems = [];
+  for (const [route, e] of Object.entries(table)) {
+    if (!routes.includes(route)) problems.push(`${label}: ngoại lệ ${route} không còn trong router — xoá khỏi bảng`);
+    if (!e.reason?.trim()) problems.push(`${label}: ngoại lệ ${route} thiếu lý do`);
+    if (e.group && !groupIds.has(e.group)) problems.push(`${label}: ngoại lệ ${route} trỏ tới nhóm không có ${e.group}`);
+  }
+  return problems;
+}
+
+const WEB_ROUTE_EXEMPT = {
+  '/auth/register': { reason: 'trang giữ chỗ — admin không tự đăng ký trên web' },
+  '/admin/maintenance/technicians/:technicianId': { group: 'admin-technicians-detail', reason: 'đường dẫn cũ của /admin/technicians/:technicianId (cùng trang)' },
+  '/admin/lockers/:lockerId/open/:boxId': {
+    group: 'admin-locker-open-qr',
+    reason: 'đích của mã QR thử tủ: mở trang là gửi lệnh mở ô thật — mô tả ở bước cuối nhóm "QR mở ô"',
+  },
+};
+
+test('mọi trang web (đăng nhập + admin) có hướng dẫn hoặc có lý do ngoại lệ', () => {
+  const src = readFileSync(join(FE, 'src', 'routes', 'routes-config.tsx'), 'utf8');
+  const section = (start, end) => src.slice(src.indexOf(start), end ? src.indexOf(end, src.indexOf(start)) : undefined);
+  const pages = (text, prefix) => [...text.matchAll(/path:\s*"([^"]+)",\s*element:\s*\(?\s*<(\w+)/g)]
+    // bỏ route cha (khung bố cục / chặn quyền), chuyển hướng và trang 404
+    .filter((m) => !['Navigate', 'NotFoundPage', 'AuthLayout', 'ProtectedRoute'].includes(m[2]) && m[1] !== '*')
+    .map((m) => `${prefix}/${m[1]}`);
+  const routes = [...pages(section('// Auth Routes', '// Admin Routes'), '/auth'), ...pages(section('// Admin Routes', '// Admin catch-all'), '/admin')];
+  assert.ok(routes.includes('/admin/dashboard') && routes.includes('/auth/login'), `không đọc được router: ${routes.join(', ')}`);
+  const webSteps = steps.filter((s) => s.platforms.includes('web'));
+  const missing = routes.filter((r) => !WEB_ROUTE_EXEMPT[r]).filter((r) => {
+    if (!r.includes('/:')) return !webSteps.some((s) => s.webRoute === r);
+    const list = r.slice(0, r.indexOf('/:'));
+    return !webSteps.some((s) => s.webRoute === list && s.via);
+  });
+  const problems = [...missing.map((r) => `chưa có hướng dẫn: ${r}`), ...checkExempt(WEB_ROUTE_EXEMPT, routes, 'web')];
+  assert.deepEqual(problems, [], problems.join('\n'));
+});
+
+const MOBILE_ROUTE_EXEMPT = {
+  '/': { reason: 'màn hình chờ khởi động, không có thao tác' },
+  '/otp': { group: 'customer-login-phone', reason: 'không còn màn nào mở tới — mã OTP nhập ngay trong bảng đăng nhập' },
+  '/auth/face-verify': { reason: 'đang tắt (FeatureFlags.faceRecognitionEnabled = false) — bật lại thì thêm hướng dẫn' },
+  '/profile/face-registration': { reason: 'đang tắt (FeatureFlags.faceRecognitionEnabled = false) — bật lại thì thêm hướng dẫn' },
+  '/orders/detail': { group: 'customer-order-detail', reason: 'route cũ; chi tiết đơn mở từ danh sách đơn' },
+  '/locker/my-orders': { group: 'customer-orders', reason: 'cùng màn với tab Đơn hàng, mở từ thông báo' },
+  '/locker/my-reports': { group: 'customer-my-reports', reason: 'cùng màn "Báo cáo của tôi", mở từ thông báo' },
+  '/stores/detail': { group: 'customer-store-detail', reason: 'cần điểm gửi đi kèm — mở bằng via từ danh sách điểm gửi' },
+  '/stores/lockers': { reason: 'không còn màn nào mở tới' },
+  '/directions': { group: 'customer-directions', reason: 'cần điểm đến đi kèm — mở bằng via từ chi tiết điểm gửi' },
+  '/drone-delivery': { group: 'customer-drone-tracking', reason: 'cần đơn drone đang giao — mở từ thẻ đơn ở trang chủ' },
+  '/drone-delivery/live-map': { group: 'customer-drone-live-map', reason: 'mở từ màn theo dõi đơn drone' },
+  '/assistant/history': { group: 'customer-assistant-history', reason: 'mở bằng nút lịch sử trong màn trợ lý' },
+};
+
+test('mọi route app mobile có hướng dẫn hoặc có lý do ngoại lệ', () => {
+  const lib = process.env.MOBILE_LIB || join(FE, '..', '..', 'mobile', 'lib');
+  const routerFile = join(lib, 'core', 'routing', 'app_router.dart');
+  assert.ok(existsSync(routerFile), `không thấy ${routerFile} — clone repo mobile cạnh frontend hoặc đặt MOBILE_LIB`);
+  const routes = [...readFileSync(routerFile, 'utf8').matchAll(/static const String \w+ = '([^']+)'/g)].map((m) => m[1]);
+  assert.ok(routes.includes('/home'), 'không đọc được AppRouter');
+  const covered = new Set(steps.filter((s) => s.platforms.includes('mobile') && s.mobileRoute).map((s) => s.mobileRoute));
+  const problems = [
+    ...routes.filter((r) => !covered.has(r) && !MOBILE_ROUTE_EXEMPT[r]).map((r) => `chưa có hướng dẫn: ${r}`),
+    ...checkExempt(MOBILE_ROUTE_EXEMPT, routes, 'mobile'),
+  ];
+  assert.deepEqual(problems, [], problems.join('\n'));
+});
+
+test('nhóm nào cũng có ảnh HDSD đã khoanh (trừ nhóm noImage — và nhóm đó không được còn ảnh cũ)', () => {
+  const stale = content.groups.filter((g) => g.noImage && existsSync(join(PUB, 'hdsd', `${g.id}.png`))).map((g) => g.id);
+  assert.deepEqual(stale, [], `nhóm noImage còn ảnh cũ (xoá hdsd/<nhóm>.png|json):\n${stale.join('\n')}`);
+  const missing = content.groups.filter((g) => !g.noImage).filter((g) =>
     !existsSync(join(PUB, 'hdsd', `${g.id}.png`)) || !existsSync(join(PUB, 'hdsd', `${g.id}.json`))).map((g) => g.id);
   assert.deepEqual(missing, [], `thiếu ảnh HDSD (chạy npm run hdsd:capture):\n${missing.join('\n')}`);
 });
@@ -107,7 +182,7 @@ test('ảnh HDSD khớp nội dung hiện tại: đủ ô khoanh cho mọi bư�
     const metaFile = join(PUB, 'hdsd', `${g.id}.json`);
     if (!existsSync(metaFile)) continue; // đã báo ở test trên
     const meta = JSON.parse(readFileSync(metaFile, 'utf8'));
-    const platform = g.steps.some((s) => s.platforms.includes('web')) ? 'web' : 'mobile';
+    const platform = ['web', 'mobile', 'kiosk'].find((p) => g.steps.some((s) => s.platforms.includes(p)));
     const marked = new Set(meta.marks.map((m) => m.stepId));
     const ids = new Set(g.steps.map((s) => s.id));
     for (const s of g.steps) {

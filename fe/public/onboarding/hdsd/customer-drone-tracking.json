@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-drone-tracking.png",
+  "width": 412,
+  "height": 777,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-drone-tracking-live",
+      "x": 20,
+      "y": 76,
+      "w": 372,
+      "h": 17
+    },
+    {
+      "n": 2,
+      "stepId": "customer-drone-tracking-header",
+      "x": 20,
+      "y": 384,
+      "w": 372,
+      "h": 205
+    },
+    {
+      "n": 3,
+      "stepId": "customer-drone-tracking-block",
+      "x": 20,
+      "y": 605,
+      "w": 372,
+      "h": 144
+    },
+    {
+      "n": 4,
+      "stepId": "customer-drone-tracking-weather",
+      "x": 20,
+      "y": 105,
+      "w": 372,
+      "h": 267
+    }
+  ]
+}

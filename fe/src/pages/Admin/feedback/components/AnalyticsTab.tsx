@@ -117,12 +117,12 @@ export function AnalyticsTab() {
       )}
 
       {/* Xu hướng số lượt đánh giá — nút chọn khoảng chỉ đổi biểu đồ này */}
-      <Card className="border border-border">
+      <Card data-tour="feedback-analytics-trend" className="border border-border">
         <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
           <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
             <TrendingUp size={15} className="text-muted-foreground" /> {t(PERIOD_TITLE_KEY[period])}
           </CardTitle>
-          <div className="flex gap-2">
+          <div data-tour="feedback-analytics-period" className="flex gap-2">
             {(["day", "week", "month"] as const).map((p) => (
               <Button
                 key={p}
@@ -147,7 +147,7 @@ export function AnalyticsTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Feedback overview */}
-        <Card className="border border-border">
+        <Card data-tour="feedback-analytics-overview" className="border border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Star size={15} className="text-muted-foreground" /> {t("admin.feedback.analytics.overview")}
@@ -234,7 +234,7 @@ export function AnalyticsTab() {
         </Card>
 
         {/* Satisfaction metrics */}
-        <Card className="border border-border">
+        <Card data-tour="feedback-analytics-satisfaction" className="border border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
               <ThumbsUp size={15} className="text-muted-foreground" /> {t("admin.feedback.analytics.satisfaction")}

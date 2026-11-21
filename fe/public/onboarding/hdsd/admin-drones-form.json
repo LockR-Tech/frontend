@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-drones-form.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-drones-form-open",
+      "x": 1254,
+      "y": 224,
+      "w": 133,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-drones-form-code",
+      "x": 521,
+      "y": 371,
+      "w": 398,
+      "h": 62
+    },
+    {
+      "n": 3,
+      "stepId": "admin-drones-form-locker",
+      "x": 521,
+      "y": 449,
+      "w": 398,
+      "h": 58
+    },
+    {
+      "n": 4,
+      "stepId": "admin-drones-form-submit",
+      "x": 864,
+      "y": 527,
+      "w": 55,
+      "h": 40
+    }
+  ]
+}

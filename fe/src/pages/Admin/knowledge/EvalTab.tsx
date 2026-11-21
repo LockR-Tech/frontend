@@ -121,7 +121,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <p className="max-w-2xl text-sm text-muted-foreground">
+        <p data-tour="knowledge-eval-summary" className="max-w-2xl text-sm text-muted-foreground">
           {t("admin.knowledge.eval.summary", {
             total: cases.length,
             retrieval: cases.length - refusalCount,
@@ -129,15 +129,15 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
           })}
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
+          <Button data-tour="knowledge-eval-add" variant="outline" size="sm" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
             {t("admin.knowledge.eval.addCase")}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Button data-tour="knowledge-eval-import" variant="outline" size="sm" onClick={() => setImportOpen(true)}>
             <FileJson className="h-4 w-4" />
             {t("admin.knowledge.eval.importJson")}
           </Button>
-          <Button size="sm" onClick={() => run(false)} disabled={running || cases.length === 0}>
+          <Button data-tour="knowledge-eval-run" size="sm" onClick={() => run(false)} disabled={running || cases.length === 0}>
             {runningMode === "retrieval" ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -146,6 +146,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
             {t("admin.knowledge.eval.runRetrieval")}
           </Button>
           <Button
+            data-tour="knowledge-eval-generate"
             variant="outline"
             size="sm"
             className="border-violet-300 text-violet-800 hover:bg-violet-50"
@@ -181,7 +182,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
           onRetry={() => casesQuery.refetch()}
         />
       ) : (
-        <Card className="overflow-hidden border border-border">
+        <Card data-tour="knowledge-eval-cases" className="overflow-hidden border border-border">
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5">
             <h3 className="text-sm font-semibold text-foreground">{t("admin.knowledge.eval.setTitle")}</h3>
             <Button
@@ -227,7 +228,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                cases.map((c) => (
+                cases.map((c, index) => (
                   <TableRow key={c.id}>
                     <TableCell className="align-top font-mono text-xs text-muted-foreground">
                       {c.id}
@@ -273,6 +274,7 @@ export function EvalTab({ lastRun, onRun }: EvalTabProps) {
                     </TableCell>
                     <TableCell className="text-right align-top">
                       <Button
+                        data-tour={index === 0 ? "knowledge-eval-delete" : undefined}
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700"

@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/locker-tech-shift-location.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-shift-location-status",
+      "x": 20,
+      "y": 547,
+      "w": 372,
+      "h": 44
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-shift-location-gps",
+      "x": 20,
+      "y": 635,
+      "w": 141,
+      "h": 16
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-shift-location-actions",
+      "x": 20,
+      "y": 764,
+      "w": 372,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-shift-location-privacy",
+      "x": 20,
+      "y": 812,
+      "w": 372,
+      "h": 56
+    }
+  ]
+}

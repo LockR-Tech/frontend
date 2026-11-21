@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-locker-qr.png",
+  "width": 1440,
+  "height": 908,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-qr-open",
+      "x": 604,
+      "y": 679,
+      "w": 24,
+      "h": 24
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-qr-modes",
+      "x": 912,
+      "y": 75,
+      "w": 231,
+      "h": 38
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-qr-sticker",
+      "x": 358,
+      "y": 191,
+      "w": 350,
+      "h": 534
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-qr-downloads",
+      "x": 358,
+      "y": 738,
+      "w": 350,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "admin-locker-qr-picker",
+      "x": 819,
+      "y": 160,
+      "w": 325,
+      "h": 136
+    },
+    {
+      "n": 6,
+      "stepId": "admin-locker-qr-specs",
+      "x": 819,
+      "y": 311,
+      "w": 325,
+      "h": 132
+    },
+    {
+      "n": 7,
+      "stepId": "admin-locker-qr-payload",
+      "x": 819,
+      "y": 459,
+      "w": 325,
+      "h": 97
+    },
+    {
+      "n": 8,
+      "stepId": "admin-locker-qr-print",
+      "x": 273,
+      "y": 794,
+      "w": 894,
+      "h": 61
+    }
+  ]
+}

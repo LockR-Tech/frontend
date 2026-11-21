@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-login-2fa.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-login-2fa-sent",
+      "x": 257,
+      "y": 410,
+      "w": 384,
+      "h": 20
+    },
+    {
+      "n": 2,
+      "stepId": "admin-login-2fa-code",
+      "x": 257,
+      "y": 458,
+      "w": 384,
+      "h": 84
+    },
+    {
+      "n": 3,
+      "stepId": "admin-login-2fa-actions",
+      "x": 257,
+      "y": 562,
+      "w": 384,
+      "h": 44
+    }
+  ]
+}

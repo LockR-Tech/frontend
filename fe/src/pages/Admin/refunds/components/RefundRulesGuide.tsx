@@ -159,7 +159,7 @@ export function RefundRulesGuide() {
         </CardHeader>
         <CardContent className="space-y-4 pt-1">
           {/* Quy chuẩn 4 bước thực hiện chuyển khoản */}
-          <div className="p-3.5 rounded-xl bg-card border border-border/80 shadow-2xs space-y-2.5">
+          <div className="p-3.5 rounded-xl bg-card border border-border/80 shadow-2xs space-y-2.5" data-tour="refunds-rules-steps">
             <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
               <FileCheck2 className="w-4 h-4 text-emerald-600" />
               <span>{t("admin.refunds.page.guide.steps.title")}</span>
@@ -197,7 +197,7 @@ export function RefundRulesGuide() {
           </div>
 
           {/* Ma trận các tình huống hoàn tiền */}
-          <div className="space-y-3">
+          <div className="space-y-3" data-tour="refunds-rules-scenarios">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {t("admin.refunds.page.guide.scenariosTitle")}

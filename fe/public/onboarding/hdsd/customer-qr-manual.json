@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-qr-manual.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-qr-manual-session",
+      "x": 20,
+      "y": 716,
+      "w": 372,
+      "h": 48
+    },
+    {
+      "n": 2,
+      "stepId": "customer-qr-manual-code",
+      "x": 20,
+      "y": 776,
+      "w": 372,
+      "h": 48
+    },
+    {
+      "n": 3,
+      "stepId": "customer-qr-manual-submit",
+      "x": 20,
+      "y": 840,
+      "w": 372,
+      "h": 32
+    }
+  ]
+}

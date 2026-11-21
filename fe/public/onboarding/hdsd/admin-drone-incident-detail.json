@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-drone-incident-detail.png",
+  "width": 1440,
+  "height": 1567,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-drone-incident-detail-header",
+      "x": 292,
+      "y": 89,
+      "w": 1116,
+      "h": 111
+    },
+    {
+      "n": 2,
+      "stepId": "admin-drone-incident-detail-kpis",
+      "x": 292,
+      "y": 224,
+      "w": 1116,
+      "h": 136
+    },
+    {
+      "n": 3,
+      "stepId": "admin-drone-incident-detail-order",
+      "x": 292,
+      "y": 384,
+      "w": 1116,
+      "h": 293
+    },
+    {
+      "n": 4,
+      "stepId": "admin-drone-incident-detail-dispatch",
+      "x": 292,
+      "y": 701,
+      "w": 1116,
+      "h": 810
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "image": "hdsd/admin-users.png",
   "width": 1440,
-  "height": 1312,
+  "height": 900,
   "capturedAt": "2026-11-21",
   "marks": [
     {
@@ -17,16 +17,48 @@
       "stepId": "admin-users-filters",
       "x": 316,
       "y": 366,
-      "w": 1068,
+      "w": 480,
       "h": 40
     },
     {
       "n": 3,
-      "stepId": "admin-users-list",
-      "x": 292,
-      "y": 342,
-      "w": 1116,
-      "h": 946
+      "stepId": "admin-users-toolbar",
+      "x": 1028,
+      "y": 368,
+      "w": 356,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-users-batch",
+      "x": 316,
+      "y": 430,
+      "w": 1068,
+      "h": 42
+    },
+    {
+      "n": 5,
+      "stepId": "admin-users-first-row",
+      "x": 373,
+      "y": 540,
+      "w": 232,
+      "h": 42
+    },
+    {
+      "n": 6,
+      "stepId": "admin-users-switch",
+      "x": 1190,
+      "y": 545,
+      "w": 92,
+      "h": 32
+    },
+    {
+      "n": 7,
+      "stepId": "admin-users-row-menu",
+      "x": 1314,
+      "y": 545,
+      "w": 32,
+      "h": 32
     }
   ]
 }

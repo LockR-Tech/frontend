@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-notifications-broadcast.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-notifications-broadcast-type",
+      "x": 489,
+      "y": 245,
+      "w": 462,
+      "h": 82
+    },
+    {
+      "n": 2,
+      "stepId": "admin-notifications-broadcast-subject",
+      "x": 489,
+      "y": 343,
+      "w": 462,
+      "h": 64
+    },
+    {
+      "n": 3,
+      "stepId": "admin-notifications-broadcast-content",
+      "x": 489,
+      "y": 423,
+      "w": 462,
+      "h": 104
+    },
+    {
+      "n": 4,
+      "stepId": "admin-notifications-broadcast-target",
+      "x": 489,
+      "y": 543,
+      "w": 462,
+      "h": 82
+    },
+    {
+      "n": 5,
+      "stepId": "admin-notifications-broadcast-submit",
+      "x": 489,
+      "y": 641,
+      "w": 462,
+      "h": 48
+    }
+  ]
+}

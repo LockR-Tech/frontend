@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-technicians-card.png",
+  "width": 1440,
+  "height": 1007,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-technicians-card-identity",
+      "x": 334,
+      "y": 613,
+      "w": 224,
+      "h": 90
+    },
+    {
+      "n": 2,
+      "stepId": "admin-technicians-card-status",
+      "x": 570,
+      "y": 613,
+      "w": 74,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-technicians-card-load",
+      "x": 334,
+      "y": 739,
+      "w": 311,
+      "h": 34
+    },
+    {
+      "n": 4,
+      "stepId": "admin-technicians-card-shift",
+      "x": 334,
+      "y": 781,
+      "w": 311,
+      "h": 66
+    },
+    {
+      "n": 5,
+      "stepId": "admin-technicians-card-metrics",
+      "x": 334,
+      "y": 855,
+      "w": 311,
+      "h": 42
+    },
+    {
+      "n": 6,
+      "stepId": "admin-technicians-card-detail",
+      "x": 334,
+      "y": 918,
+      "w": 161,
+      "h": 32
+    },
+    {
+      "n": 7,
+      "stepId": "admin-technicians-card-assign",
+      "x": 503,
+      "y": 918,
+      "w": 95,
+      "h": 32
+    },
+    {
+      "n": 8,
+      "stepId": "admin-technicians-card-suspend",
+      "x": 607,
+      "y": 918,
+      "w": 38,
+      "h": 32
+    }
+  ]
+}

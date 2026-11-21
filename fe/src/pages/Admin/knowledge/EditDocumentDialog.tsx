@@ -99,7 +99,7 @@ export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProp
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
+          <div data-tour="knowledge-edit-name">
             <Label htmlFor="knowledge-edit-title" className="mb-1.5 block text-xs">
               {t("admin.knowledge.edit.titleLabel")}
             </Label>
@@ -118,7 +118,7 @@ export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProp
             </p>
           </div>
 
-          <div>
+          <div data-tour="knowledge-edit-roles">
             <Label className="mb-1.5 block text-xs">{t("admin.knowledge.edit.rolesLabel")}</Label>
             <RoleCheckboxGroup
               idPrefix="knowledge-edit-role"
@@ -133,7 +133,7 @@ export function EditDocumentDialog({ document, onClose }: EditDocumentDialogProp
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter data-tour="knowledge-edit-submit">
           <Button variant="outline" onClick={close} disabled={isLoading}>
             {t("common.cancel")}
           </Button>

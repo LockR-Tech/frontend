@@ -70,7 +70,7 @@ export function ServiceRevenueTab({
 
   return (
     <div className="space-y-3">
-      {items.map((item) => {
+      {items.map((item, index) => {
         const meta = revenueServiceMeta(item.serviceType);
         const isOvertime = item.serviceType === "OVERTIME_FEE";
         const share = item.sharePct ?? (total > 0 ? (item.revenue / total) * 100 : 0);
@@ -89,6 +89,7 @@ export function ServiceRevenueTab({
                     variant="outline"
                     size="sm"
                     className="h-7 px-2.5 text-xs gap-1.5 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                    data-tour={index === 0 ? "revenue-service-view-orders" : undefined}
                     disabled={item.paidOrderCount === 0 && item.orderCount === 0}
                     onClick={() =>
                       onViewOrders?.({

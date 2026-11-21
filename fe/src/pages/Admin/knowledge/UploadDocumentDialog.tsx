@@ -113,7 +113,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
+          <div data-tour="knowledge-upload-file">
             <Label className="mb-1.5 block text-xs">{t("admin.knowledge.upload.fileLabel")}</Label>
             <input
               ref={inputRef}
@@ -183,7 +183,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
             {fileError && <p className="mt-1 text-xs text-red-600">{fileError}</p>}
           </div>
 
-          <div>
+          <div data-tour="knowledge-upload-name">
             <Label htmlFor="knowledge-upload-title" className="mb-1.5 block text-xs">
               {t("admin.knowledge.upload.titleLabel")}
             </Label>
@@ -200,7 +200,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
             </p>
           </div>
 
-          <div>
+          <div data-tour="knowledge-upload-roles">
             <Label className="mb-1.5 block text-xs">{t("admin.knowledge.edit.rolesLabel")}</Label>
             <RoleCheckboxGroup
               idPrefix="knowledge-upload-role"
@@ -215,7 +215,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter data-tour="knowledge-upload-submit">
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
             {t("common.cancel")}
           </Button>

@@ -148,14 +148,14 @@ export default function LoginPage(): React.JSX.Element {
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("login.otpTitle")}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p data-tour="login-otp-sent" className="text-sm text-muted-foreground">
           {t("login.otpSentTo")}{" "}
           <span className="font-medium text-foreground">{maskedEmail}</span>
         </p>
       </div>
 
       <form onSubmit={handleVerifyOtp} className="grid gap-5">
-        <label className="grid gap-2">
+        <label data-tour="login-otp" className="grid gap-2">
           <span className="text-sm font-medium">{t("login.otpLabel")}</span>
           <Input
             value={otpCode}
@@ -173,7 +173,7 @@ export default function LoginPage(): React.JSX.Element {
 
         {errorBox}
 
-        <div className="grid grid-cols-[auto_1fr] gap-3">
+        <div data-tour="login-otp-actions" className="grid grid-cols-[auto_1fr] gap-3">
           <Button
             type="button"
             variant="outline"
@@ -209,7 +209,7 @@ export default function LoginPage(): React.JSX.Element {
       </div>
 
       <form onSubmit={handleCredentials} className="grid gap-5">
-        <label className="grid gap-2">
+        <label data-tour="login-email" className="grid gap-2">
           <span className="text-sm font-medium">{t("login.email")}</span>
           <div className="relative">
             <Mail
@@ -229,7 +229,7 @@ export default function LoginPage(): React.JSX.Element {
           </div>
         </label>
 
-        <label className="grid gap-2">
+        <label data-tour="login-password" className="grid gap-2">
           <span className="text-sm font-medium">{t("login.password")}</span>
           <div className="relative">
             <LockKeyhole
@@ -261,6 +261,7 @@ export default function LoginPage(): React.JSX.Element {
         {errorBox}
 
         <Button
+          data-tour="login-submit"
           type="submit"
           size="lg"
           disabled={loading}
@@ -270,7 +271,7 @@ export default function LoginPage(): React.JSX.Element {
           {loading ? t("login.submitting") : t("login.submit")}
         </Button>
 
-        <p className="flex items-start gap-2 text-xs text-muted-foreground">
+        <p data-tour="login-2fa-note" className="flex items-start gap-2 text-xs text-muted-foreground">
           <ShieldCheck size={14} className="mt-px shrink-0 text-sky-600" />
           {t("login.twoFaNote")}
         </p>
@@ -323,7 +324,9 @@ export default function LoginPage(): React.JSX.Element {
           />
 
           <div className="relative flex justify-end -mb-4 text-slate-300">
-            <LanguageSwitcher />
+            <div data-tour="login-language">
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <div className="relative space-y-3">

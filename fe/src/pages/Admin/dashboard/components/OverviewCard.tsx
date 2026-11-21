@@ -18,6 +18,8 @@ interface OverviewCardProps {
   onClick?: () => void;
   /** Mở dữ liệu sau dòng phụ (vd "Tháng này: 3 đơn"), khác với cả thẻ. */
   onSublabelClick?: () => void;
+  /** Neo hướng dẫn trên màn hình (F3-G13). */
+  "data-tour"?: string;
 }
 
 export function OverviewCard({
@@ -29,6 +31,7 @@ export function OverviewCard({
   className,
   onClick,
   onSublabelClick,
+  "data-tour": dataTour,
 }: OverviewCardProps) {
   const DeltaIcon =
     delta?.direction === "up"
@@ -39,6 +42,7 @@ export function OverviewCard({
 
   return (
     <Card
+      data-tour={dataTour}
       className={cn(
         "card-hover border border-border bg-card",
         onClick && "cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

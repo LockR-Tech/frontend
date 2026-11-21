@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-maintenance-drone-health.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-drone-health-open",
+      "x": 334,
+      "y": 436,
+      "w": 311,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-drone-health-ops",
+      "x": 409,
+      "y": 156,
+      "w": 622,
+      "h": 324
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-drone-health-history",
+      "x": 409,
+      "y": 500,
+      "w": 622,
+      "h": 112
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-drone-health-resolved",
+      "x": 409,
+      "y": 632,
+      "w": 622,
+      "h": 92
+    }
+  ]
+}

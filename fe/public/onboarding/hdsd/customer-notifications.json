@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/customer-notifications.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-notifications-actions",
+      "x": 195,
+      "y": 12,
+      "w": 197,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-notifications-first",
+      "x": 0,
+      "y": 152,
+      "w": 412,
+      "h": 144
+    }
+  ]
+}

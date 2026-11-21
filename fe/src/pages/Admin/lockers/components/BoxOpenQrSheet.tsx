@@ -156,7 +156,7 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1.5" data-tour="adm-locker-open-qr-base">
           <Label htmlFor="box-open-qr-base" className="text-xs">
             {t("admin.lockers.tools.openQr.baseUrl")}
           </Label>
@@ -175,7 +175,7 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
           )}
         </div>
 
-        <div ref={sheetRef} className="rounded-lg bg-white p-3 text-slate-900">
+        <div ref={sheetRef} className="rounded-lg bg-white p-3 text-slate-900" data-tour="adm-locker-open-qr-sheet">
           <h1 className="text-base font-bold">
             {lockerCode}
             {lockerName ? ` · ${lockerName}` : ""} — {t("admin.lockers.tools.openQr.button")}
@@ -242,7 +242,7 @@ export function BoxOpenQrSheet({ open, onOpenChange, lockerId, lockerCode, locke
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end" data-tour="adm-locker-open-qr-print">
           <Button size="sm" onClick={handlePrint}>
             <Printer className="w-4 h-4 mr-1.5" />
             {t("admin.lockers.tools.openQr.print")}

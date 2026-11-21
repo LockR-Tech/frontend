@@ -66,7 +66,7 @@ export function ConversationDetailSheet({
               t("admin.knowledge.conversation.titleFallback", { id: conversationId ?? "" })}
           </SheetTitle>
           <SheetDescription asChild>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <div data-tour="knowledge-conv-meta" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               {detail ? (
                 <>
                   <span>
@@ -107,7 +107,7 @@ export function ConversationDetailSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+        <div data-tour="knowledge-conv-messages" className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
           {isFetching && !detail ? (
             <div className="flex justify-center py-16 text-muted-foreground">
               <AppLoading size={96} />

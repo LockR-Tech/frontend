@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-voucher-detail.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-voucher-detail-ticket",
+      "x": 16,
+      "y": 168,
+      "w": 380,
+      "h": 140
+    },
+    {
+      "n": 2,
+      "stepId": "customer-voucher-detail-code",
+      "x": 16,
+      "y": 328,
+      "w": 380,
+      "h": 147
+    },
+    {
+      "n": 3,
+      "stepId": "customer-voucher-detail-info",
+      "x": 16,
+      "y": 495,
+      "w": 380,
+      "h": 258
+    },
+    {
+      "n": 4,
+      "stepId": "customer-voucher-detail-howto",
+      "x": 16,
+      "y": 839,
+      "w": 380,
+      "h": 53
+    }
+  ]
+}

@@ -811,6 +811,7 @@ export default function MaintenanceAdminPage() {
           size="sm"
           className="h-9 gap-1.5 font-medium shadow-xs"
           onClick={refetchAll}
+          data-tour="maintenance-sync"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           {t("admin.maintenance.page.syncDevices")}
@@ -818,9 +819,10 @@ export default function MaintenanceAdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 max-w-3xl h-11 p-1 bg-muted/60 border border-border/50 rounded-xl">
+        <TabsList data-tour="maintenance-tabs" className="grid w-full grid-cols-1 sm:grid-cols-3 max-w-3xl h-11 p-1 bg-muted/60 border border-border/50 rounded-xl">
           <TabsTrigger
             value="kiosk"
+            data-tour="maintenance-tab-kiosk"
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <Boxes className="w-4 h-4 text-orange-600" />
@@ -828,6 +830,7 @@ export default function MaintenanceAdminPage() {
           </TabsTrigger>
           <TabsTrigger
             value="drone"
+            data-tour="maintenance-tab-drone"
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <Plane className="w-4 h-4 text-blue-600" />
@@ -835,6 +838,7 @@ export default function MaintenanceAdminPage() {
           </TabsTrigger>
           <TabsTrigger
             value="schedules"
+            data-tour="maintenance-tab-schedules"
             className="rounded-lg gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all"
           >
             <CalendarClock className="w-4 h-4 text-emerald-600" />
@@ -845,7 +849,7 @@ export default function MaintenanceAdminPage() {
         {/* TAB 1: BẢO TRÌ KIOSK */}
         <TabsContent value="kiosk" className="space-y-6">
           {/* Kiosk KPI Cards */}
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-4" data-tour="maintenance-kiosk-kpis">
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -921,7 +925,7 @@ export default function MaintenanceAdminPage() {
 
           {/* Alert Banner cảnh báo sự cố Kiosk quá hạn SLA */}
           {overdueReports > 0 && (
-            <Card className="border-amber-200/80 bg-amber-50/40 shadow-xs">
+            <Card className="border-amber-200/80 bg-amber-50/40 shadow-xs" data-tour="maintenance-kiosk-overdue">
               <CardContent className="p-4 flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
@@ -987,7 +991,7 @@ export default function MaintenanceAdminPage() {
               {/* BỘ LỌC ĐA NĂNG (FILTER TOOLBAR) */}
               <div className="mt-4 pt-3 border-t border-border/40 space-y-3">
                 {/* Hàng 1: Ô tìm kiếm + Các Dropdown lọc */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2.5 items-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2.5 items-center" data-tour="maintenance-kiosk-filters">
                   {/* Ô tìm kiếm */}
                   <div className="relative md:col-span-4">
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -1075,7 +1079,7 @@ export default function MaintenanceAdminPage() {
                 </div>
 
                 {/* Hàng 2: Nút chọn Trạng thái (Status Tabs) & Filter tags */}
-                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1" data-tour="maintenance-kiosk-status">
                   <div className="flex gap-1.5 flex-wrap">
                     {[
                       { id: "ALL", label: t("admin.maintenance.filters.statusAll", { count: kioskReportList.length }) },
@@ -1155,7 +1159,7 @@ export default function MaintenanceAdminPage() {
                 </div>
 
                 {/* Hàng 3: Chọn tất cả và Thanh tác vụ xóa nhiều phiếu Kiosk */}
-                <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-border/40 flex-wrap">
+                <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-border/40 flex-wrap" data-tour="maintenance-kiosk-bulk">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="select-all-kiosk"
@@ -1227,7 +1231,7 @@ export default function MaintenanceAdminPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent data-tour="maintenance-kiosk-list">
               {(() => {
                 const openCount = filteredReports.filter((r) => r.status === "OPEN").length;
                 return openCount > 0 ? (
@@ -1277,7 +1281,7 @@ export default function MaintenanceAdminPage() {
                 </div>
               ) : (
                 <div className="divide-y divide-border/60">
-                  {filteredReports.map((r) => {
+                  {filteredReports.map((r, index) => {
                     const isNew = r.status === "OPEN";
                     const isRecent = r.createdAt && (Date.now() - timestampOf(r.createdAt)) < 3600000;
                     const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
@@ -1298,7 +1302,7 @@ export default function MaintenanceAdminPage() {
                               : "hover:bg-muted/20 my-0.5 border border-transparent"
                         }`}
                       >
-                        <div className="flex items-start gap-3 max-w-xl">
+                        <div className="flex items-start gap-3 max-w-xl" data-tour={index === 0 ? "maintenance-kiosk-first-info" : undefined}>
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => handleToggleKioskReport(r.id)}
@@ -1419,6 +1423,7 @@ export default function MaintenanceAdminPage() {
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
                         <RepairLogDialog
+                          data-tour={index === 0 ? "maintenance-kiosk-first-log" : undefined}
                           reportId={r.id}
                           defaultOpen={isFocused}
                           title={`${r.reportCode || `RPT-${r.id}`} · ${r.title}`}
@@ -1435,6 +1440,7 @@ export default function MaintenanceAdminPage() {
                             size="sm"
                             className="h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-semibold hover:shadow-indigo-200"
                             onClick={() => setAssigningReport(r)}
+                            data-tour={index === 0 ? "maintenance-kiosk-first-assign" : undefined}
                           >
                             <Boxes className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.assignTech")}
                           </Button>
@@ -1446,6 +1452,7 @@ export default function MaintenanceAdminPage() {
                             variant="outline"
                             className="h-8 text-xs gap-1 border-slate-300 text-slate-700 hover:bg-slate-50"
                             onClick={() => setAssigningReport(r)}
+                            data-tour={index === 0 ? "maintenance-kiosk-first-assign" : undefined}
                           >
                             <UserCheck className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.changeTech")}
                           </Button>
@@ -1458,6 +1465,7 @@ export default function MaintenanceAdminPage() {
                             className="h-8 text-xs gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
                             onClick={() => setResolvingReport(r)}
                             disabled={pending === r.id}
+                            data-tour={index === 0 ? "maintenance-kiosk-first-complete" : undefined}
                           >
                             <CheckCircle2 className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.complete")}
                           </Button>
@@ -1475,6 +1483,7 @@ export default function MaintenanceAdminPage() {
                           className="h-8 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50"
                           title={t("admin.maintenance.ui.deleteThisReport")}
                           onClick={() => setReportToDelete(r)}
+                          data-tour={index === 0 ? "maintenance-kiosk-first-delete" : undefined}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
@@ -1488,7 +1497,7 @@ export default function MaintenanceAdminPage() {
           </Card>
 
           {/* Sức Khỏe Kiosk (Cabinet Heartbeat) */}
-          <Card className="border border-border/80 shadow-xs">
+          <Card className="border border-border/80 shadow-xs" data-tour="maintenance-kiosk-heartbeat">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Wifi className="w-4 h-4 text-emerald-600" />
@@ -1557,7 +1566,7 @@ export default function MaintenanceAdminPage() {
         {/* TAB 2: BẢO TRÌ & PIN DRONE */}
         <TabsContent value="drone" className="space-y-6">
           {/* Drone KPI Cards — cùng layout với Bảo trì Kiosk */}
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-4" data-tour="maintenance-drone-kpis">
             <Card className="border border-border/80 shadow-xs hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -1633,7 +1642,7 @@ export default function MaintenanceAdminPage() {
 
           {/* Cảnh báo SLA — cùng layout với Bảo trì Kiosk */}
           {droneOverdueReports > 0 && (
-            <Card className="border-amber-200/80 bg-amber-50/40 shadow-xs">
+            <Card className="border-amber-200/80 bg-amber-50/40 shadow-xs" data-tour="maintenance-drone-overdue">
               <CardContent className="p-4 flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
@@ -1683,6 +1692,7 @@ export default function MaintenanceAdminPage() {
                     size="sm"
                     className="h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-semibold"
                     onClick={() => setCreatingDroneReport(true)}
+                    data-tour="maintenance-drone-create"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     {t("admin.maintenance.reports.createDrone")}
@@ -1699,7 +1709,7 @@ export default function MaintenanceAdminPage() {
               </div>
 
               <div className="mt-4 pt-3 border-t border-border/40 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2.5 items-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-2.5 items-center" data-tour="maintenance-drone-filters">
                   <div className="relative md:col-span-4">
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -1760,7 +1770,7 @@ export default function MaintenanceAdminPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1" data-tour="maintenance-drone-status">
                 <div className="flex gap-1.5 flex-wrap">
                   {[
                     { id: "ALL", label: t("admin.maintenance.filters.statusAll", { count: droneReportList.length }) },
@@ -1810,7 +1820,7 @@ export default function MaintenanceAdminPage() {
                 </div>
 
                 {/* Hàng 3: Chọn tất cả và Thanh tác vụ xóa nhiều phiếu Drone */}
-                <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-border/40 flex-wrap">
+                <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-border/40 flex-wrap" data-tour="maintenance-drone-bulk">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="select-all-drone"
@@ -1882,7 +1892,7 @@ export default function MaintenanceAdminPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent data-tour="maintenance-drone-list">
               {(() => {
                 const openCount = filteredDroneReports.filter((report) => report.status === "OPEN").length;
                 return openCount > 0 ? (
@@ -1921,7 +1931,7 @@ export default function MaintenanceAdminPage() {
                 </div>
               ) : (
                 <div className="divide-y divide-border/60">
-                  {filteredDroneReports.map((report) => {
+                  {filteredDroneReports.map((report, index) => {
                     const assignedTech = report.assignedToUserId ? techniciansMap[report.assignedToUserId] : undefined;
                     const droneCode = (report as LockerReportResponse & { droneCode?: string }).droneCode;
                     const isNew = report.status === "OPEN";
@@ -1948,7 +1958,7 @@ export default function MaintenanceAdminPage() {
                                 : "hover:bg-muted/20 my-0.5 border border-transparent"
                         }`}
                       >
-                        <div className="flex items-start gap-3 max-w-2xl">
+                        <div className="flex items-start gap-3 max-w-2xl" data-tour={index === 0 ? "maintenance-drone-first-info" : undefined}>
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => handleToggleDroneReport(report.id)}
@@ -2054,15 +2064,16 @@ export default function MaintenanceAdminPage() {
                             <Button
                               size="sm"
                               className="h-8 text-xs gap-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold shadow-xs"
+                              data-tour={index === 0 ? "maintenance-drone-first-dispatch" : undefined}
                               onClick={() => navigate(`/admin/drone-incidents?order=${encodeURIComponent(String(report.orderCode ?? report.orderId ?? ""))}`)}
                             >
                               <Radio className="w-3.5 h-3.5 animate-pulse" />
                               {t("admin.maintenance.ui.drop.dispatchRadius")}
                             </Button>
                           )}
-                          <RepairLogDialog reportId={report.id} defaultOpen={isFocused} title={`${displayCode} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
+                          <RepairLogDialog data-tour={index === 0 ? "maintenance-drone-first-log" : undefined} reportId={report.id} defaultOpen={isFocused} title={`${displayCode} · ${report.title}`} technicianName={assignedTech?.fullName} report={report} />
                           {(report.status === "OPEN" || report.status === "IN_PROGRESS") && (
-                            <Button size="sm" variant={report.status === "OPEN" ? "default" : "outline"} className="h-8 text-xs gap-1.5" onClick={() => setAssigningReport(report)}>
+                            <Button size="sm" variant={report.status === "OPEN" ? "default" : "outline"} className="h-8 text-xs gap-1.5" onClick={() => setAssigningReport(report)} data-tour={index === 0 ? "maintenance-drone-first-assign" : undefined}>
                               <UserCheck className="w-3.5 h-3.5" /> {report.status === "OPEN" ? t("admin.maintenance.reports.assignDroneTech") : t("admin.maintenance.reports.changeTech")}
                             </Button>
                           )}
@@ -2072,6 +2083,7 @@ export default function MaintenanceAdminPage() {
                               variant="outline"
                               className="h-8 text-xs gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
                               onClick={() => setResolvingReport(report)}
+                              data-tour={index === 0 ? "maintenance-drone-first-complete" : undefined}
                               disabled={pending === report.id}
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" /> {t("admin.maintenance.reports.complete")}
@@ -2085,6 +2097,7 @@ export default function MaintenanceAdminPage() {
                             className="h-8 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50"
                             title={t("admin.maintenance.ui.deleteThisReport")}
                             onClick={() => setReportToDelete(report)}
+                            data-tour={index === 0 ? "maintenance-drone-first-delete" : undefined}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -2115,7 +2128,7 @@ export default function MaintenanceAdminPage() {
                 </Badge>
               </div>
               <div className="mt-4 pt-3 border-t border-border/40 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5" data-tour="maintenance-fleet-filters">
                   <div className="relative md:col-span-8">
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -2142,7 +2155,7 @@ export default function MaintenanceAdminPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5" data-tour="maintenance-fleet-status">
                   {[
                     { id: "ALL", label: t("admin.maintenance.filters.statusAll", { count: droneList.length }) },
                     { id: "ATTENTION", label: t("admin.maintenance.fleet.attention", { count: droneFaults + droneLowBattery }) },
@@ -2176,7 +2189,7 @@ export default function MaintenanceAdminPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredDrones.map((d) => {
+                  {filteredDrones.map((d, index) => {
                     const battery = d.batteryPercent ?? 0;
                     const isUnderMaintenance = d.status === "MAINTENANCE";
                     const isFaulty = d.status === "FAULT";
@@ -2184,6 +2197,7 @@ export default function MaintenanceAdminPage() {
                     return (
                       <Card
                         key={d.id}
+                        data-tour={index === 0 ? "maintenance-fleet-first" : undefined}
                         className={`border transition-all ${
                           isFaulty
                             ? "border-rose-300 bg-rose-50/20 shadow-xs"
@@ -2243,6 +2257,7 @@ export default function MaintenanceAdminPage() {
                               variant="outline"
                               className="h-7 w-full text-xs gap-1"
                               onClick={() => setViewingDrone(d)}
+                              data-tour={index === 0 ? "maintenance-fleet-first-detail" : undefined}
                             >
                               <History className="w-3 h-3" /> {t("dropdown.viewDetail")}
                             </Button>
@@ -2375,7 +2390,7 @@ export default function MaintenanceAdminPage() {
 
                     <div className="flex flex-wrap items-center justify-end gap-2">
                       {/* Bộ lọc tài sản: Kiosk hoặc Drone */}
-                      <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-lg border border-border/60 text-xs">
+                      <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-lg border border-border/60 text-xs" data-tour="maintenance-history-asset">
                         <button
                           type="button"
                           onClick={() => { setHistoryAsset("KIOSK"); setHistoryFilter("ALL"); }}
@@ -2393,7 +2408,7 @@ export default function MaintenanceAdminPage() {
                       </div>
 
                       {/* Bộ lọc loại hồ sơ: Tất cả, Sự cố, Định kỳ */}
-                      <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-lg border border-border/60 text-xs">
+                      <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-lg border border-border/60 text-xs" data-tour="maintenance-history-type">
                       <button
                         type="button"
                         onClick={() => setHistoryFilter("ALL")}
@@ -2431,7 +2446,7 @@ export default function MaintenanceAdminPage() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent data-tour="maintenance-history-list">
                   {filteredHistory.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-6 text-center">
                       {t("admin.maintenance.history.empty")}
@@ -2723,7 +2738,7 @@ function CreateDroneIncidentDialog({
           <p className="text-xs text-muted-foreground">
             {t("admin.maintenance.createDrone.intro")}
           </p>
-          <div>
+          <div data-tour="create-drone-report-drone">
             <Label className="mb-1.5 block text-xs font-medium">{t("admin.maintenance.createDrone.droneLabel")}</Label>
             <Select value={droneId} onValueChange={setDroneId}>
               <SelectTrigger><SelectValue placeholder={t("admin.maintenance.createDrone.dronePlaceholder")} /></SelectTrigger>
@@ -2736,11 +2751,11 @@ function CreateDroneIncidentDialog({
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div data-tour="create-drone-report-title">
             <Label className="mb-1.5 block text-xs font-medium">{t("admin.maintenance.createDrone.titleLabel")}</Label>
             <Input placeholder={t("admin.maintenance.createDrone.titlePlaceholder")} value={title} onChange={(event) => setTitle(event.target.value)} />
           </div>
-          <div>
+          <div data-tour="create-drone-report-desc">
             <Label className="mb-1.5 block text-xs font-medium">{t("admin.maintenance.createDrone.descLabel")}</Label>
             <textarea
               className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -2749,7 +2764,7 @@ function CreateDroneIncidentDialog({
               onChange={(event) => setDescription(event.target.value)}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="create-drone-report-photos">
             <Label className="text-xs font-medium">{t("admin.maintenance.createDrone.photosLabel")}</Label>
             <PhotoPicker
               value={files}
@@ -2764,7 +2779,7 @@ function CreateDroneIncidentDialog({
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={busy}>{t("button.cancel")}</Button>
-          <Button onClick={submit} disabled={busy || drones.length === 0} className="bg-rose-600 hover:bg-rose-700 text-white">
+          <Button onClick={submit} disabled={busy || drones.length === 0} className="bg-rose-600 hover:bg-rose-700 text-white" data-tour="create-drone-report-submit">
             {busy && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
             {isUploading
               ? t("admin.maintenance.uploadingPhotos")
@@ -2821,7 +2836,7 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
         </DialogHeader>
 
         <div className="space-y-5 py-2">
-          <section className="rounded-lg border bg-muted/20 p-4 space-y-4">
+          <section className="rounded-lg border bg-muted/20 p-4 space-y-4" data-tour="drone-health-ops">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-sm font-semibold">{t("admin.maintenance.droneDetail.opsInfo")}</p>
@@ -2856,7 +2871,7 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
             )}
           </section>
 
-          <section className="space-y-2">
+          <section className="space-y-2" data-tour="drone-health-maintenance">
             <div className="flex items-center gap-2"><Wrench className="w-4 h-4 text-blue-600" /><h3 className="text-sm font-semibold">{t("admin.maintenance.droneDetail.maintenanceHistory")}</h3></div>
             {historyQuery.isLoading ? (
               <AppLoading size={64} message={t("admin.maintenance.droneDetail.loadingHistory")} className="py-4" />
@@ -2876,7 +2891,7 @@ function DroneDetailsDialog({ drone, onClose }: { drone: DroneResponse; onClose:
             )}
           </section>
 
-          <section className="space-y-2">
+          <section className="space-y-2" data-tour="drone-health-resolved">
             <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600" /><h3 className="text-sm font-semibold">{t("admin.maintenance.droneDetail.resolvedIncidents")}</h3></div>
             {historyQuery.isLoading ? null : !history?.resolvedIncidents.length ? (
               <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">{t("admin.maintenance.droneDetail.noResolved")}</p>

@@ -73,6 +73,7 @@ export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDia
         <div className="space-y-3">
           <div className="flex justify-end">
             <Button
+              data-tour="knowledge-import-example"
               type="button"
               variant="ghost"
               size="sm"
@@ -84,6 +85,7 @@ export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDia
             </Button>
           </div>
           <Textarea
+            data-tour="knowledge-import-json"
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={14}
@@ -116,7 +118,7 @@ export function ImportEvalCasesDialog({ open, onOpenChange }: ImportEvalCasesDia
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter data-tour="knowledge-import-submit" className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
             {t("common.cancel")}
           </Button>

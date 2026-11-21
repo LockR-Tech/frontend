@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-profile-settings.png",
+  "width": 412,
+  "height": 1304,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-profile-settings-language",
+      "x": 0,
+      "y": 1100,
+      "w": 412,
+      "h": 64
+    },
+    {
+      "n": 2,
+      "stepId": "customer-profile-settings-theme",
+      "x": 0,
+      "y": 1164,
+      "w": 412,
+      "h": 48
+    },
+    {
+      "n": 3,
+      "stepId": "customer-profile-settings-location",
+      "x": 0,
+      "y": 1212,
+      "w": 412,
+      "h": 64
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-revenue-locker.png",
+  "width": 1440,
+  "height": 2276,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-revenue-locker-tab",
+      "x": 556,
+      "y": 1002,
+      "w": 74,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-revenue-locker-panel",
+      "x": 317,
+      "y": 1058,
+      "w": 1066,
+      "h": 1169
+    }
+  ]
+}

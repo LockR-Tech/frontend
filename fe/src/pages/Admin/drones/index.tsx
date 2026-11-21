@@ -270,7 +270,7 @@ export default function DronesPage() {
               />
             </div>
             <div className="flex shrink-0 gap-2 self-end xl:self-auto">
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <Button variant="outline" size="sm" onClick={() => refetch()} data-tour="drones-refresh">
                 <RefreshCw
                   className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
                 />
@@ -282,7 +282,7 @@ export default function DronesPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
+          <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4" data-tour="drones-filter-chips">
             {STATUS_FILTERS.map((filter) => {
               const active = statusFilter === filter.value;
               const count = filter.value
@@ -317,6 +317,7 @@ export default function DronesPage() {
         </CardContent>
       </Card>
 
+      <div data-tour="drones-batch">
       <BatchDeleteBar
         noun={t("admin.drones.batchNoun")}
         selectedCount={selectedIds.length}
@@ -327,6 +328,7 @@ export default function DronesPage() {
         note={t("admin.drones.batchNote")}
         requireReason
       />
+      </div>
 
       {/* Drone list */}
       <div ref={listRef} className="scroll-mt-4" data-tour="drones-list">
@@ -345,7 +347,7 @@ export default function DronesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((d) => {
+          {filtered.map((d, index) => {
             const battery = d.batteryPercent ?? 0;
             const onMission = ACTIVE_MISSION_STATUSES.includes(d.status);
             return (
@@ -427,10 +429,11 @@ export default function DronesPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  <div className="flex flex-wrap gap-2 pt-1" data-tour={index === 0 ? "drones-first-actions" : undefined}>
                     <Button
                       size="sm"
                       variant="outline"
+                      data-tour={index === 0 ? "drones-first-detail" : undefined}
                       onClick={() =>
                         navigate(`/admin/drones/${d.id}`, {
                           state: { droneCode: d.code },
@@ -622,7 +625,7 @@ function DroneFormDialog({
           <DialogTitle>{t("admin.drones.add")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-1">
-          <div>
+          <div data-tour="drones-form-code">
             <Label className="mb-1.5 block text-xs">{t("admin.drones.form.codeLabel")}</Label>
             <Input
               placeholder="DRONE-01"
@@ -633,7 +636,7 @@ function DroneFormDialog({
               <p className="mt-1 text-xs text-red-600">{t("admin.drones.form.codeRequired")}</p>
             )}
           </div>
-          <div>
+          <div data-tour="drones-form-locker">
             <Label className="mb-1.5 block text-xs">{t("admin.drones.form.homeLockerLabel")}</Label>
             <Select
               value={lockerId}
@@ -673,7 +676,7 @@ function DroneFormDialog({
           <Button variant="outline" onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button onClick={submit} disabled={isSaving}>
+          <Button onClick={submit} disabled={isSaving} data-tour="drones-form-submit">
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t("admin.drones.form.create")}
           </Button>

@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/locker-tech-box-incident.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-box-incident-pick",
+      "x": 20,
+      "y": 486,
+      "w": 372,
+      "h": 162
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-box-incident-options",
+      "x": 20,
+      "y": 740,
+      "w": 157,
+      "h": 19
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-box-incident-lock",
+      "x": 20,
+      "y": 901,
+      "w": 372,
+      "h": 122
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-box-incident-notes",
+      "x": 20,
+      "y": 1037,
+      "w": 150,
+      "h": 19
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-box-incident-photos",
+      "x": 20,
+      "y": 1237,
+      "w": 293,
+      "h": 19
+    },
+    {
+      "n": 6,
+      "stepId": "locker-tech-box-incident-submit",
+      "x": 20,
+      "y": 1648,
+      "w": 372,
+      "h": 32
+    }
+  ]
+}

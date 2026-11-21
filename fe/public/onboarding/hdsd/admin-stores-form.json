@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-stores-form.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-stores-form-name",
+      "x": 470,
+      "y": 252,
+      "w": 500,
+      "h": 64
+    },
+    {
+      "n": 2,
+      "stepId": "admin-stores-form-address",
+      "x": 470,
+      "y": 332,
+      "w": 500,
+      "h": 62
+    },
+    {
+      "n": 3,
+      "stepId": "admin-stores-form-phone",
+      "x": 470,
+      "y": 410,
+      "w": 500,
+      "h": 62
+    },
+    {
+      "n": 4,
+      "stepId": "admin-stores-form-coords",
+      "x": 470,
+      "y": 488,
+      "w": 500,
+      "h": 64
+    },
+    {
+      "n": 5,
+      "stepId": "admin-stores-form-description",
+      "x": 470,
+      "y": 568,
+      "w": 500,
+      "h": 64
+    },
+    {
+      "n": 6,
+      "stepId": "admin-stores-form-actions",
+      "x": 470,
+      "y": 648,
+      "w": 500,
+      "h": 56
+    }
+  ]
+}

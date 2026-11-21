@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-loyalty-transactions.png",
+  "width": 1440,
+  "height": 3188,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-loyalty-transactions-card",
+      "x": 292,
+      "y": 1994,
+      "w": 1116,
+      "h": 1170
+    },
+    {
+      "n": 2,
+      "stepId": "admin-loyalty-transactions-range",
+      "x": 316,
+      "y": 2054,
+      "w": 1068,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-loyalty-transactions-filters",
+      "x": 316,
+      "y": 2106,
+      "w": 1068,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-loyalty-transactions-breakdown",
+      "x": 316,
+      "y": 2186,
+      "w": 1068,
+      "h": 246
+    },
+    {
+      "n": 5,
+      "stepId": "admin-loyalty-transactions-table",
+      "x": 316,
+      "y": 2448,
+      "w": 1068,
+      "h": 692
+    }
+  ]
+}

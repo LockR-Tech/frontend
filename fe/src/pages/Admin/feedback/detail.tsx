@@ -183,7 +183,7 @@ export default function FeedbackDetailPage() {
       {/* Page header */}
       <div className="flex items-center justify-between flex-wrap gap-3 border-b border-border/60 pb-5">
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => navigate(-1)}>
+          <Button data-tour="feedback-detail-back" variant="outline" size="icon" className="h-9 w-9" onClick={() => navigate(-1)}>
             <ArrowLeft size={16} />
           </Button>
           <div>
@@ -196,7 +196,7 @@ export default function FeedbackDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div data-tour="feedback-detail-status" className="flex items-center gap-2">
           <Badge
             variant="outline"
             className={
@@ -231,7 +231,7 @@ export default function FeedbackDetailPage() {
         {/* ─── Left: feedback content + reply ─────────────────────────────── */}
         <div className="md:col-span-2 space-y-5">
           {/* Rating & comment */}
-          <Card>
+          <Card data-tour="feedback-detail-rating">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Star size={16} className="text-foreground/70" />
@@ -267,7 +267,7 @@ export default function FeedbackDetailPage() {
               {fb.relatedOrderId && (
                 <>
                   <Separator />
-                  <div className="flex items-center gap-2">
+                  <div data-tour="feedback-detail-order" className="flex items-center gap-2">
                     <ShoppingBag size={14} className="text-muted-foreground/70" />
                     <span className="text-sm text-muted-foreground">
                       {t("admin.feedback.detail.relatedOrder")}
@@ -301,7 +301,7 @@ export default function FeedbackDetailPage() {
 
           {/* Admin reply (existing) */}
           {fb.adminReply && (
-            <Card className="border-border bg-secondary/30 shadow-xs">
+            <Card data-tour="feedback-detail-admin-reply" className="border-border bg-secondary/30 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
                   <MessageSquare size={16} />
@@ -340,7 +340,7 @@ export default function FeedbackDetailPage() {
           )}
 
           {/* Reply form */}
-          <Card>
+          <Card data-tour="feedback-detail-reply">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <MessageSquare size={16} className="text-muted-foreground" />
@@ -379,7 +379,7 @@ export default function FeedbackDetailPage() {
         {/* ─── Right: user info + timeline ─────────────────────────────────── */}
         <div className="space-y-5">
           {/* User info */}
-          <Card>
+          <Card data-tour="feedback-detail-customer">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <User size={16} />
@@ -423,7 +423,7 @@ export default function FeedbackDetailPage() {
           </Card>
 
           {/* Timeline */}
-          <Card>
+          <Card data-tour="feedback-detail-history">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Calendar size={16} />

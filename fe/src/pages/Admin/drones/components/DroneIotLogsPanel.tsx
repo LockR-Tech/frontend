@@ -264,6 +264,7 @@ export function DroneIotLogsPanel({
       {/* Banner trạng thái kết nối phần cứng Drone thời gian thực (chỉ hiển thị khi đã gán bộ điều khiển Pi) */}
       {device && (
         <div
+          data-tour="drone-iot-banner"
           className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-colors shadow-2xs ${
             device.online
               ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-950 dark:text-emerald-200"
@@ -339,7 +340,7 @@ export function DroneIotLogsPanel({
       )}
 
       {/* Thanh công cụ tìm kiếm và bộ lọc */}
-      <div className="flex flex-wrap items-center gap-2 pt-1">
+      <div className="flex flex-wrap items-center gap-2 pt-1" data-tour="drone-iot-filters">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -436,7 +437,7 @@ export function DroneIotLogsPanel({
             : t("admin.drones.hardware.iot.emptyFiltered")}
         </div>
       ) : (
-        <div className="rounded-lg border border-border/80 overflow-hidden shadow-2xs">
+        <div className="rounded-lg border border-border/80 overflow-hidden shadow-2xs" data-tour="drone-iot-table">
           <div className="max-h-[520px] overflow-y-auto">
             <Table className="text-xs">
               <TableHeader className="bg-muted/40 sticky top-0 z-10">

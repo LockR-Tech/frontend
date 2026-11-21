@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-revenue-store.png",
+  "width": 1440,
+  "height": 1545,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-revenue-store-tab",
+      "x": 630,
+      "y": 1002,
+      "w": 113,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-revenue-store-panel",
+      "x": 317,
+      "y": 1058,
+      "w": 1066,
+      "h": 438
+    }
+  ]
+}

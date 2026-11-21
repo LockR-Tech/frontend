@@ -13,7 +13,7 @@ export function RecommendationsSection({
 }: RecommendationsSectionProps) {
   const { t } = useTranslation();
   return (
-    <div className="mt-8">
+    <div data-tour="dashboard-recommendations" className="mt-8">
       <h2 className="text-lg font-semibold text-foreground mb-4">
         {t("admin.dashboard.recommendations.title")}
       </h2>

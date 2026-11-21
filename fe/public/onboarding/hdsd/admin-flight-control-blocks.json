@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-flight-control-blocks.png",
+  "width": 1440,
+  "height": 1765,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-flight-control-blocks-filters",
+      "x": 292,
+      "y": 1262,
+      "w": 1116,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-flight-control-blocks-table",
+      "x": 292,
+      "y": 1310,
+      "w": 1116,
+      "h": 399
+    }
+  ]
+}

@@ -14,11 +14,27 @@
     },
     {
       "n": 2,
+      "stepId": "admin-storage-filters",
+      "x": 316,
+      "y": 350,
+      "w": 1068,
+      "h": 36
+    },
+    {
+      "n": 3,
       "stepId": "admin-storage-list",
       "x": 292,
       "y": 326,
       "w": 1116,
       "h": 1073
+    },
+    {
+      "n": 4,
+      "stepId": "admin-storage-handover",
+      "x": 1245,
+      "y": 508,
+      "w": 97,
+      "h": 36
     }
   ]
 }

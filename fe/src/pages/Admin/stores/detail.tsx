@@ -322,7 +322,7 @@ export default function StoreDetailPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border/60 pb-5">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-tour="store-detail-title">
           <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -333,7 +333,7 @@ export default function StoreDetailPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="store-detail-status">
           {isDirty && (
             <>
               <Button
@@ -386,7 +386,7 @@ export default function StoreDetailPage() {
       <Card className="overflow-hidden">
         <div className="flex flex-col md:flex-row gap-0">
           {/* Image Panel */}
-          <div className="relative md:w-72 shrink-0 bg-muted/50 min-h-56 md:min-h-0">
+          <div className="relative md:w-72 shrink-0 bg-muted/50 min-h-56 md:min-h-0" data-tour="store-detail-image">
             {storeImage && !imageBroken ? (
               <img
                 src={storeImage}
@@ -443,7 +443,7 @@ export default function StoreDetailPage() {
           </div>
 
           {/* Form Fields */}
-          <div className="flex-1 p-5 space-y-4">
+          <div className="flex-1 p-5 space-y-4" data-tour="store-detail-form">
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
@@ -527,7 +527,7 @@ export default function StoreDetailPage() {
         {/* Bottom Row: Stats | History */}
         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border/60">
           {/* Stats */}
-          <div className="p-5">
+          <div className="p-5" data-tour="store-detail-stats">
             <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1.5 mb-3">
               <TrendingUp className="h-3.5 w-3.5" /> {t("admin.stores.detail.stats")}
             </p>
@@ -584,7 +584,7 @@ export default function StoreDetailPage() {
           </div>
 
           {/* History */}
-          <div className="p-5">
+          <div className="p-5" data-tour="store-detail-history">
             <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1.5 mb-3">
               <Calendar className="h-3.5 w-3.5" /> {t("admin.stores.detail.history")}
             </p>
@@ -614,7 +614,7 @@ export default function StoreDetailPage() {
 
       {/* Lockers Section */}
       <Card>
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/60">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/60" data-tour="store-detail-kiosks">
           <h2 className="text-sm font-semibold flex items-center gap-2 text-foreground">
             <Package className="h-4 w-4 text-muted-foreground" />
             {t("admin.stores.detail.kioskList")}
@@ -636,6 +636,7 @@ export default function StoreDetailPage() {
               size="sm"
               className="h-8 text-xs"
               onClick={() => setShowAddLocker(true)}
+              data-tour="store-detail-add-kiosk"
             >
               <Plus className="h-3.5 w-3.5 mr-1" />
               {t("admin.stores.detail.addKiosk")}
@@ -658,11 +659,12 @@ export default function StoreDetailPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-              {lockersList.map((locker) => (
+              {lockersList.map((locker, index) => (
                 <LockerCard
                   key={locker.id}
                   locker={locker}
                   onRefresh={() => refetch?.()}
+                  tourAnchors={index === 0}
                 />
               ))}
             </div>

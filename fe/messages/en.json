@@ -6993,6 +6993,7 @@
       "onApp": "Mobile app",
       "runOnScreen": "Show on screen",
       "noImage": "No illustration for this section yet.",
+      "noImageState": "This screen only appears while an order is at that stage (awaiting payment, dropping off…), so there is no screenshot — follow the steps alongside.",
       "onKiosk": "At the locker (kiosk)"
     }
   }

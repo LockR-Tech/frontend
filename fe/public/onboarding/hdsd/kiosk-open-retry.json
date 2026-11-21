@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/kiosk-open-retry.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-open-retry-msg",
+      "x": 287,
+      "y": 379,
+      "w": 450,
+      "h": 54
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-open-retry-button",
+      "x": 287,
+      "y": 308,
+      "w": 450,
+      "h": 56
+    }
+  ]
+}

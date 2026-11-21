@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/locker-tech-header.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-header-installations",
+      "x": 182,
+      "y": 30,
+      "w": 38,
+      "h": 38
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-header-assistant",
+      "x": 226,
+      "y": 30,
+      "w": 38,
+      "h": 38
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-header-notifications",
+      "x": 270,
+      "y": 30,
+      "w": 38,
+      "h": 38
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-header-profile",
+      "x": 314,
+      "y": 30,
+      "w": 38,
+      "h": 38
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-header-logout",
+      "x": 358,
+      "y": 30,
+      "w": 38,
+      "h": 38
+    }
+  ]
+}

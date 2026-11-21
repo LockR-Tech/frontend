@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-knowledge-documents.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-documents-header",
+      "x": 292,
+      "y": 89,
+      "w": 1116,
+      "h": 73
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-documents-tabs",
+      "x": 292,
+      "y": 182,
+      "w": 322,
+      "h": 46
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-documents-stats",
+      "x": 292,
+      "y": 252,
+      "w": 357,
+      "h": 60
+    },
+    {
+      "n": 4,
+      "stepId": "admin-knowledge-documents-toolbar",
+      "x": 895,
+      "y": 264,
+      "w": 513,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-knowledge-documents-table",
+      "x": 292,
+      "y": 328,
+      "w": 1116,
+      "h": 454
+    },
+    {
+      "n": 6,
+      "stepId": "admin-knowledge-documents-actions",
+      "x": 1255,
+      "y": 384,
+      "w": 140,
+      "h": 32
+    }
+  ]
+}

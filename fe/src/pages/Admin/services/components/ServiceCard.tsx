@@ -26,6 +26,8 @@ interface ServiceCardProps {
   isSettingsLoading: boolean;
   isRevenueFetching: boolean;
   disabled: boolean;
+  /** Gắn neo hướng dẫn (data-tour) — chỉ thẻ đầu tiên. */
+  tourAnchors?: boolean;
 }
 
 export function ServiceCard({
@@ -38,8 +40,10 @@ export function ServiceCard({
   isSettingsLoading,
   isRevenueFetching,
   disabled,
+  tourAnchors = false,
 }: ServiceCardProps) {
   const { t } = useTranslation();
+  const tour = (anchor: string) => (tourAnchors ? anchor : undefined);
   const navigate = useNavigate();
   const Icon = service.icon;
   const headline = settingByKey.get(service.headlineKey);
@@ -48,7 +52,7 @@ export function ServiceCard({
     <Card className="border border-border bg-card">
       <CardContent className="p-5 space-y-5">
         {/* Tiêu đề + giá chính */}
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3" data-tour={tour("services-card-head")}>
           <div className="w-11 h-11 rounded-xl bg-secondary border border-border/60 flex items-center justify-center shrink-0">
             <Icon className="w-5 h-5 text-foreground" />
           </div>
@@ -86,7 +90,7 @@ export function ServiceCard({
         </p>
 
         {/* Hiệu quả trong kỳ */}
-        <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
+        <div className="rounded-xl border border-border/70 bg-secondary/30 p-3" data-tour={tour("services-card-performance")}>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             {t("admin.services.card.performance")}
           </p>
@@ -115,7 +119,7 @@ export function ServiceCard({
         </div>
 
         {/* Quy tắc sửa được */}
-        <div className="space-y-4">
+        <div className="space-y-4" data-tour={tour("services-card-rules")}>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
             <Pencil className="h-3 w-3" />
             {t("admin.services.card.rules")}

@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/kiosk-payment-expired.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-payment-expired-msg",
+      "x": 316,
+      "y": 352,
+      "w": 680,
+      "h": 38
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-payment-expired-recheck",
+      "x": 316,
+      "y": 400,
+      "w": 334,
+      "h": 56
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-payment-expired-cancel",
+      "x": 660,
+      "y": 400,
+      "w": 336,
+      "h": 56
+    }
+  ]
+}

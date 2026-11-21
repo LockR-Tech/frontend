@@ -133,7 +133,7 @@ export function ScopeSettingsPanel({
     <div className="space-y-4">
       {/* Tiêu đề nhóm */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
+        <div data-tour="settings-panel-head" className="flex min-w-0 items-start gap-3">
           <div className="rounded-lg bg-primary/10 p-2 text-primary">
             <Icon className="h-5 w-5" />
           </div>
@@ -147,8 +147,8 @@ export function ScopeSettingsPanel({
             )}
           </div>
         </div>
-        <div className="flex shrink-0 gap-2 self-start">
-          <Button variant="outline" size="sm" onClick={() => onShowHistory(null)}>
+        <div data-tour="settings-panel-actions" className="flex shrink-0 gap-2 self-start">
+          <Button data-tour="settings-history-btn" variant="outline" size="sm" onClick={() => onShowHistory(null)}>
             <History className="h-4 w-4" />
             {t("admin.settings.panel.history")}
           </Button>
@@ -191,8 +191,12 @@ export function ScopeSettingsPanel({
           </CardContent>
         </Card>
       ) : (
-        groups.map((group) => (
-          <Card key={group.name} className="overflow-hidden border-border/60">
+        groups.map((group, groupIndex) => (
+          <Card
+            key={group.name}
+            data-tour={groupIndex === 0 ? "settings-rule-group" : undefined}
+            className="overflow-hidden border-border/60"
+          >
             <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/40 px-4 py-2.5 sm:px-6">
               <h3 className="text-sm font-semibold text-foreground">{group.name}</h3>
               <span className="text-xs text-muted-foreground">
@@ -200,9 +204,10 @@ export function ScopeSettingsPanel({
               </span>
             </div>
             <div className="divide-y divide-border/60">
-              {group.items.map((setting) => (
+              {group.items.map((setting, rowIndex) => (
                 <SettingRow
                   key={setting.key}
+                  first={groupIndex === 0 && rowIndex === 0}
                   setting={setting}
                   draft={drafts?.[setting.key]}
                   resetting={resettingKey === setting.key}

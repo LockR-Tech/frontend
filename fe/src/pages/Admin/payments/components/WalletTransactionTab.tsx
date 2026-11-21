@@ -185,7 +185,7 @@ export function WalletTransactionTab() {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2" data-tour="wallet-tx-filters">
         <div className="relative w-full sm:w-72">
           <Search
             size={16}
@@ -218,7 +218,9 @@ export function WalletTransactionTab() {
         />
       </div>
 
-      <DateRangeFilter value={range} onChange={handleRangeChange} allowEmpty />
+      <div data-tour="wallet-tx-date-range">
+        <DateRangeFilter value={range} onChange={handleRangeChange} allowEmpty />
+      </div>
       <p className="text-[11px] text-muted-foreground">
         {isFetching
           ? t("common.loadingEllipsis")
@@ -229,6 +231,7 @@ export function WalletTransactionTab() {
 
       {error && <ReportErrorState error={error} onRetry={refetch} />}
 
+      <div data-tour="wallet-tx-table">
       <DataTable
         columns={columns}
         data={transactions}
@@ -246,6 +249,7 @@ export function WalletTransactionTab() {
           },
         }}
       />
+      </div>
     </div>
   );
 }

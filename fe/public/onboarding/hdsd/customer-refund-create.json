@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/customer-refund-create.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-refund-create-order",
+      "x": 16,
+      "y": 274,
+      "w": 380,
+      "h": 84
+    },
+    {
+      "n": 2,
+      "stepId": "customer-refund-create-bank",
+      "x": 16,
+      "y": 406,
+      "w": 380,
+      "h": 217
+    },
+    {
+      "n": 3,
+      "stepId": "customer-refund-create-reason",
+      "x": 16,
+      "y": 671,
+      "w": 360,
+      "h": 68
+    },
+    {
+      "n": 4,
+      "stepId": "customer-refund-create-evidence",
+      "x": 16,
+      "y": 877,
+      "w": 380,
+      "h": 62
+    },
+    {
+      "n": 5,
+      "stepId": "customer-refund-create-submit",
+      "x": 0,
+      "y": 823,
+      "w": 412,
+      "h": 69
+    }
+  ]
+}

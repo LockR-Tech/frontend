@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/kiosk-drop-confirm.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-drop-confirm-hint",
+      "x": 28,
+      "y": 135,
+      "w": 968,
+      "h": 16
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-drop-confirm-pin",
+      "x": 287,
+      "y": 167,
+      "w": 450,
+      "h": 207
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-drop-confirm-done",
+      "x": 287,
+      "y": 386,
+      "w": 450,
+      "h": 56
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-drop-confirm-later",
+      "x": 287,
+      "y": 454,
+      "w": 450,
+      "h": 56
+    }
+  ]
+}

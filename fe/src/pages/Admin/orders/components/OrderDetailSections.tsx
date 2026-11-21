@@ -57,7 +57,7 @@ export function OrderInfoCard({
     .join(" · ");
 
   return (
-    <Card>
+    <Card data-tour="order-detail-info">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <ClipboardList className="h-4 w-4" />
@@ -211,7 +211,7 @@ export function PickupCodeCard({
       : t("admin.orders.detail.code.holderReceiver");
 
   return (
-    <Card>
+    <Card data-tour="order-detail-pickup-code">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <KeyRound className="h-4 w-4" />
@@ -272,13 +272,15 @@ export function PickupCodeCard({
         {order.type === "DRONE_DELIVERY" && (
           <>
             <Separator />
-            <LabelValue label={t("admin.orders.detail.code.homePickup")} mono>
-              {homePickupCode ? (
-                <span className="text-base font-bold tracking-widest">{homePickupCode}</span>
-              ) : drone?.pickup ? (
-                t("admin.orders.detail.code.homePickupUsed")
-              ) : null}
-            </LabelValue>
+            <div data-tour="order-detail-home-code">
+              <LabelValue label={t("admin.orders.detail.code.homePickup")} mono>
+                {homePickupCode ? (
+                  <span className="text-base font-bold tracking-widest">{homePickupCode}</span>
+                ) : drone?.pickup ? (
+                  t("admin.orders.detail.code.homePickupUsed")
+                ) : null}
+              </LabelValue>
+            </div>
           </>
         )}
       </CardContent>
@@ -364,7 +366,7 @@ export function PaymentFullCard({
   const noTransaction = payments !== null && list.length === 0;
 
   return (
-    <Card>
+    <Card data-tour="order-detail-payment">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <CreditCard className="h-4 w-4" />
@@ -423,7 +425,7 @@ export function PaymentFullCard({
               : t("admin.orders.detail.payment.noPayments")}
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" data-tour="order-detail-transactions">
             <SectionLabel>{t("admin.orders.detail.payment.transactions")}</SectionLabel>
             {list.map((payment, index) => (
               <PaymentRow key={payment.id} payment={payment} index={index} total={list.length} />
@@ -432,7 +434,7 @@ export function PaymentFullCard({
         )}
 
         {refunds.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2" data-tour="order-detail-refunds">
             <SectionLabel>{t("admin.orders.detail.payment.refunds")}</SectionLabel>
             {refunds.map((refund) => (
               <RefundRow key={refund.id} refund={refund} />
@@ -490,7 +492,7 @@ export function ParcelRows({ parcel }: { parcel: CustomerOrderParcel | null }) {
 export function ParcelNotesCard({ order, view }: { order: AdminOrder; view: CustomerOrderView | null }) {
   const { t } = useTranslation();
   return (
-    <Card>
+    <Card data-tour="order-detail-parcel">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Package className="h-4 w-4" />

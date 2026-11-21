@@ -223,7 +223,7 @@ export function DashboardOrdersModal({
       <DialogContent className="max-w-5xl max-h-[88vh] flex flex-col p-6">
         <DialogHeader className="shrink-0 space-y-1.5 border-b pb-4">
           <DialogTitle className="text-base sm:text-lg font-bold">{target?.title}</DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground flex flex-wrap items-center gap-2">
+          <DialogDescription data-tour="dashboard-orders-period" className="text-xs text-muted-foreground flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 font-mono text-[11px] bg-muted px-2 py-0.5 rounded">
               <Calendar className="w-3 h-3" />
               {period}
@@ -233,7 +233,7 @@ export function DashboardOrdersModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto py-3 space-y-3">
+        <div data-tour="dashboard-orders-table" className="flex-1 overflow-y-auto py-3 space-y-3">
           {error ? (
             <ReportErrorState
               error={error as Parameters<typeof ReportErrorState>[0]["error"]}
@@ -263,7 +263,7 @@ export function DashboardOrdersModal({
 
         {!byHour && (
           <DialogFooter className="shrink-0 border-t pt-3">
-            <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs" onClick={openOrdersPage}>
+            <Button data-tour="dashboard-orders-open-page" type="button" variant="outline" size="sm" className="gap-1.5 text-xs" onClick={openOrdersPage}>
               <ExternalLink className="h-3.5 w-3.5" />
               {t("admin.dashboard.drilldown.openOrdersPage")}
             </Button>

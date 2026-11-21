@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-lockers.png",
+  "width": 412,
+  "height": 504,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-lockers-map",
+      "x": 352,
+      "y": 10,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-lockers-search",
+      "x": 0,
+      "y": 144,
+      "w": 412,
+      "h": 74
+    },
+    {
+      "n": 3,
+      "stepId": "customer-lockers-kiosks",
+      "x": 0,
+      "y": 218,
+      "w": 412,
+      "h": 47
+    },
+    {
+      "n": 4,
+      "stepId": "customer-lockers-first",
+      "x": 16,
+      "y": 337,
+      "w": 380,
+      "h": 139
+    }
+  ]
+}

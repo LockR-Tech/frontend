@@ -98,7 +98,7 @@ export function DashboardLockersModal({
       <DialogContent className="max-w-4xl max-h-[88vh] flex flex-col p-6">
         <DialogHeader className="shrink-0 space-y-1.5 border-b pb-4">
           <DialogTitle className="text-base sm:text-lg font-bold">{target?.title}</DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
+          <DialogDescription data-tour="dashboard-lockers-totals" className="text-xs text-muted-foreground">
             {t("admin.dashboard.drilldown.lockerTotals", {
               kiosks: formatNumber(rows.length),
               available: formatNumber(totals.available),
@@ -107,7 +107,7 @@ export function DashboardLockersModal({
             })}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto py-3">
+        <div data-tour="dashboard-lockers-table" className="flex-1 overflow-y-auto py-3">
           <DataTable
             columns={columns}
             data={rows}

@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/locker-tech-shift.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-shift-status",
+      "x": 75,
+      "y": 187,
+      "w": 218,
+      "h": 38
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-shift-gps",
+      "x": 300,
+      "y": 195,
+      "w": 22,
+      "h": 22
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-shift-toggle",
+      "x": 326,
+      "y": 194,
+      "w": 57,
+      "h": 24
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-shift-details",
+      "x": 16,
+      "y": 177,
+      "w": 380,
+      "h": 58
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/kiosk-payment-paid.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-payment-paid-msg",
+      "x": 287,
+      "y": 147,
+      "w": 450,
+      "h": 38
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-payment-paid-pin",
+      "x": 287,
+      "y": 197,
+      "w": 450,
+      "h": 220
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-payment-paid-open",
+      "x": 287,
+      "y": 429,
+      "w": 450,
+      "h": 56
+    }
+  ]
+}

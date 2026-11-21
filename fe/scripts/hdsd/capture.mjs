@@ -23,7 +23,7 @@
 //   (rm -rf build/web .dart_tool/flutter_build && flutter build web).
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
@@ -46,6 +46,7 @@ const DEMO_ACCOUNT = {
 const W = 1440;
 const APP_W = 412;
 const APP_H = 892;
+const APP_TALL = 1700;
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, '').split('=')));
 const only = args.only;
@@ -65,7 +66,11 @@ if (args.part) {
 mkdirSync(OUT, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const wanted = (g) => !pick || pick.has(g.id);
+// Nhóm noImage (HDSD chỉ có chữ — màn hình cần dữ liệu thật không tạo được): không chụp, xoá ảnh cũ nếu còn.
+for (const g of content.groups.filter((x) => x.noImage)) {
+  for (const ext of ['png', 'json']) rmSync(join(OUT, `${g.id}.${ext}`), { force: true });
+}
+const wanted = (g) => !g.noImage && (!pick || pick.has(g.id));
 const isWeb = (g) => g.steps.some((s) => s.platforms.includes('web'));
 const isApp = (g) => !isWeb(g) && g.steps.some((s) => s.platforms.includes('mobile'));
 const webGroups = content.groups.filter((g) => wanted(g) && isWeb(g));
@@ -151,6 +156,15 @@ async function webBox(page, anchor) {
   return box && box.width > 0 && box.height > 0 ? box : null;
 }
 
+// Nhóm cần nhập sẵn dữ liệu (giả) trước khi bấm `via` — vd. bấm "Đăng nhập" để sang bước nhập mã 2FA. API đã bị chặn và
+// trả dữ liệu giả (webContext), nên không có gì gửi đi thật.
+const WEB_PREPARE = {
+  'admin-login-2fa': async (page) => {
+    await page.fill('input[type="email"]', 'admin@demo.lockr.test').catch(() => {});
+    await page.fill('input[type="password"]', 'hdsd-demo').catch(() => {});
+  },
+};
+
 // Bấm neo `via` cho các bước chưa thấy phần tử (mở trang chi tiết / tab / hộp thoại), theo thứ tự bước.
 async function walkWeb(page, steps) {
   for (const s of steps) {
@@ -160,7 +174,19 @@ async function walkWeb(page, steps) {
       console.warn(`  ! ${s.id}: không thấy neo via ${s.via}`);
       continue;
     }
-    await v.click().catch((e) => console.warn(`  ! ${s.id}: bấm ${s.via} lỗi: ${e.message.split('\n')[0]}`));
+    // Menu / Select đang mở (do bước trước): bấm lại nút mở sẽ đóng nó — giữ nguyên.
+    if ((await v.getAttribute('aria-expanded').catch(() => null)) === 'true') continue;
+    await v.click({ timeout: 5000 }).catch(async () => {
+      // Phần tử nằm ngoài khung nhìn trong khi Radix khoá cuộn trang (mục menu ở cuối trang…): bấm thẳng trên DOM.
+      await v.evaluate((el) => {
+        const init = { bubbles: true, cancelable: true, button: 0, view: window };
+        el.dispatchEvent(new PointerEvent('pointerdown', { ...init, buttons: 1, pointerType: 'mouse', isPrimary: true }));
+        el.dispatchEvent(new MouseEvent('mousedown', { ...init, buttons: 1 }));
+        el.dispatchEvent(new PointerEvent('pointerup', { ...init, pointerType: 'mouse', isPrimary: true }));
+        el.dispatchEvent(new MouseEvent('mouseup', init));
+        el.click();
+      }).catch((e) => console.warn(`  ! ${s.id}: bấm ${s.via} lỗi: ${e.message.split('\n')[0]}`));
+    });
     await settleWeb(page);
   }
 }
@@ -216,6 +242,7 @@ async function captureWeb(browser) {
       await page.goto(`http://localhost:${port}${route}`, { waitUntil: 'domcontentloaded' });
       if (!signedOut) await page.waitForSelector('[data-tour="nav-sidebar"]', { timeout: 90000 });
       await settleWeb(page);
+      await WEB_PREPARE[group.id]?.(page);
       await walkWeb(page, steps);
       // Ảnh chỉ cao tới hết ô khoanh cuối cùng; khung nhìn kéo dài đúng bằng đó để sidebar cố định phủ hết chiều cao.
       let marks = await measureWeb(page, steps);
@@ -348,8 +375,21 @@ async function appBox(page, anchor) {
   const el = page.locator(`[flt-semantics-identifier="tour:${anchor}"]`).first();
   if (!(await el.count())) return null;
   const box = await el.boundingBox();
-  if (!box || box.width === 0 || box.height === 0 || box.y > APP_H || box.y + box.height < 0) return null;
+  const vp = page.viewportSize();
+  if (!box || box.width === 0 || box.height === 0) return null;
+  if (box.y > vp.height || box.y + box.height < 0 || box.x > vp.width || box.x + box.width < 0) return null;
   return box;
+}
+
+// Cuộn phần tử có neo vào tầm nhìn (tab ngoài thanh tab cuộn ngang…) bằng hook của app.
+async function revealApp(page, anchor) {
+  // Hook trả true khi neo đang có trên màn hình (đã cuộn tới); bản app cũ trả undefined ⇒ coi như đã cuộn.
+  const ok = await page.evaluate((a) => {
+    if (typeof window.__lockrReveal !== 'function') return false;
+    return window.__lockrReveal(a) !== false;
+  }, anchor);
+  if (ok) await page.waitForTimeout(700);
+  return ok;
 }
 
 async function goApp(page, group, route) {
@@ -378,6 +418,7 @@ async function walkApp(page, steps) {
     if (await appBox(page, s.anchor)) continue;
     let v = null;
     for (let t = 0; t < 20 && !v; t++) {
+      await revealApp(page, s.via);
       v = await appBox(page, s.via);
       if (!v) {
         await page.waitForTimeout(500);
@@ -482,17 +523,50 @@ async function captureApp(browser) {
           sessions[role] = p;
         }
         page = sessions[role];
+        await page.setViewportSize({ width: APP_W, height: APP_H });
+        // Đóng bảng / hộp thoại do nhóm trước mở.
+        await page.evaluate(() => window.__lockrReset?.());
+        await page.waitForTimeout(600);
         if (route) await goApp(page, group, route);
         await dismissPopups(page);
       }
       await walkApp(page, steps);
-      const marks = await measureApp(page, steps);
+      let marks = await measureApp(page, steps);
+      const missingNow = steps.filter((s) => s.anchor && !s.optional && !marks.some((m) => m.stepId === s.id));
+      if (missingNow.length || steps.some((s) => s.anchor && s.optional && !marks.some((m) => m.stepId === s.id))) {
+        // Phần tử nằm dưới mép màn hình: thử màn hình cao hơn (app tự dàn lại, ảnh cao hơn).
+        await page.setViewportSize({ width: APP_W, height: APP_TALL });
+        await page.waitForTimeout(1500);
+        const tall = await measureApp(page, steps);
+        if (tall.length > marks.length) marks = tall;
+        else await page.setViewportSize({ width: APP_W, height: APP_H });
+      }
+      const notYet = steps.filter((s) => s.anchor && !marks.some((m) => m.stepId === s.id));
+      if (notYet.length) {
+        // Vẫn thiếu (phần dưới của trang dài): cuộn neo thiếu đầu tiên lên đầu màn hình rồi đo lại.
+        // Chỉ cuộn khi neo thiếu thật sự có trên màn hình (bước optional không hiện thì bỏ qua, giữ nguyên ảnh).
+        const before = marks;
+        const prevH = page.viewportSize().height;
+        await page.setViewportSize({ width: APP_W, height: APP_TALL });
+        let moved = false;
+        for (const s of notYet) if ((moved = await revealApp(page, s.anchor))) break;
+        const revealed = moved ? await measureApp(page, steps) : [];
+        if (revealed.length > before.length) marks = revealed;
+        else if (!moved) await page.setViewportSize({ width: APP_W, height: prevH });
+        else {
+          // Không hơn: cuộn về neo đã khoanh đầu tiên và đo lại để ảnh khớp toạ độ.
+          await page.setViewportSize({ width: APP_W, height: prevH });
+          if (before.length) await revealApp(page, steps.find((s) => s.id === before[0].stepId).anchor);
+          marks = await measureApp(page, steps);
+        }
+      }
       await page.waitForTimeout(1000);
       if (warnMissing(group, steps, marks).length) await dumpSemantics(page);
       await annotate(page, marks, 'fixed');
       // Cắt ảnh ngay dưới ô khoanh cuối: phần danh sách bên dưới không cần cho hướng dẫn (và có thể chứa dữ liệu
       // của người khác nhìn thấy được từ tài khoản KTV).
-      const height = Math.min(APP_H, Math.max(420, Math.ceil(Math.max(0, ...marks.map((m) => m.y + m.h)) + 28)));
+      const vpH = page.viewportSize().height;
+      const height = Math.min(vpH, Math.max(420, Math.ceil(Math.max(0, ...marks.map((m) => m.y + m.h)) + 28)));
       const file = join(OUT, `${group.id}.png`);
       await page.screenshot({ path: file, clip: { x: 0, y: 0, width: APP_W, height } });
       save(group, file, { width: APP_W, height }, marks);

@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-maintenance-create-drone.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-create-drone-open",
+      "x": 1040,
+      "y": 555,
+      "w": 181,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-create-drone-drone",
+      "x": 489,
+      "y": 258,
+      "w": 462,
+      "h": 58
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-create-drone-title",
+      "x": 489,
+      "y": 332,
+      "w": 462,
+      "h": 62
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-create-drone-desc",
+      "x": 489,
+      "y": 410,
+      "w": 462,
+      "h": 118
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-create-drone-photos",
+      "x": 489,
+      "y": 544,
+      "w": 462,
+      "h": 127
+    },
+    {
+      "n": 6,
+      "stepId": "admin-maintenance-create-drone-submit",
+      "x": 804,
+      "y": 695,
+      "w": 147,
+      "h": 40
+    }
+  ]
+}

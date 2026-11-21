@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-maintenance-schedules-drone.png",
+  "width": 1440,
+  "height": 1328,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-schedules-drone-tab",
+      "x": 1203,
+      "y": 309,
+      "w": 175,
+      "h": 30
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-schedules-drone-kpis",
+      "x": 317,
+      "y": 357,
+      "w": 1066,
+      "h": 110
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-schedules-drone-form",
+      "x": 317,
+      "y": 479,
+      "w": 1066,
+      "h": 534
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-schedules-drone-create",
+      "x": 1178,
+      "y": 964,
+      "w": 192,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-schedules-drone-list",
+      "x": 325,
+      "y": 1041,
+      "w": 543,
+      "h": 230
+    }
+  ]
+}

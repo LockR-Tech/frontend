@@ -354,7 +354,7 @@ export function RefundTable({
     columnHelper.accessor("id", {
       header: t("admin.payments.refund.table.ticket"),
       cell: ({ row }) => (
-        <div>
+        <div data-tour={row.index === 0 ? "refunds-first-row" : undefined}>
           <button
             type="button"
             onClick={() => handleOpenAction(row.original, "DETAIL")}
@@ -521,16 +521,18 @@ export function RefundTable({
       ),
       cell: ({ row }) => {
         const item = row.original;
+        const first = row.index === 0;
         // Nút xếp dọc, cùng bề rộng, cỡ nhỏ: cột hẹp lại để cả bảng vừa màn hình, không phải kéo ngang.
         const btn = "h-6 w-full justify-start gap-1 px-2 text-[11px] font-medium";
         return (
-          <div className="ml-auto flex w-max flex-col gap-1">
+          <div className="ml-auto flex w-max flex-col gap-1" data-tour={first ? "refunds-first-actions" : undefined}>
             <Button
               type="button"
               size="sm"
               variant="ghost"
               className={cn(btn, "text-muted-foreground hover:text-foreground")}
               onClick={() => handleOpenAction(item, "DETAIL")}
+              data-tour={first ? "refunds-first-detail" : undefined}
             >
               <Eye className="h-3 w-3 shrink-0" />
               {t("button.detail")}
@@ -546,6 +548,7 @@ export function RefundTable({
                     "border-emerald-300 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950",
                   )}
                   onClick={() => handleOpenAction(item, "APPROVE")}
+                  data-tour={first ? "refunds-first-approve" : undefined}
                 >
                   <CheckCircle2 className="h-3 w-3 shrink-0" />
                   {t("admin.payments.refund.table.approve")}
@@ -559,6 +562,7 @@ export function RefundTable({
                     "border-rose-300 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950",
                   )}
                   onClick={() => handleOpenAction(item, "REJECT")}
+                  data-tour={first ? "refunds-first-reject" : undefined}
                 >
                   <XCircle className="h-3 w-3 shrink-0" />
                   {t("dropdown.reject")}
@@ -579,7 +583,7 @@ export function RefundTable({
     <div className="space-y-4">
       {/* Thanh lọc trạng thái và thời gian */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg">
+        <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg" data-tour="refunds-status-filter">
           {STATUS_TABS.map((tab) => {
             const isTabActive = statusFilter === tab.key;
             const showBadge = tab.key === "PENDING" && typeof pendingCount === "number" && pendingCount > 0;
@@ -611,7 +615,9 @@ export function RefundTable({
           })}
         </div>
 
-        <DateRangeFilter value={range} onChange={handleRangeChange} allowEmpty />
+        <div data-tour="refunds-date-range">
+          <DateRangeFilter value={range} onChange={handleRangeChange} allowEmpty />
+        </div>
       </div>
 
       <p className="text-[11px] text-muted-foreground">
@@ -666,7 +672,7 @@ export function RefundTable({
               {/* PHẦN BÊN TRÁI (7 CỘT): Thông tin STK, Chi tiết đơn hàng, Lý do & Tải ảnh minh chứng */}
               <div className="lg:col-span-7 space-y-4">
                 {/* 1. Thông tin STK của customer */}
-                <div className="bg-card border border-border/80 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+                <div className="bg-card border border-border/80 rounded-xl p-3.5 space-y-2.5 shadow-2xs" data-tour="refund-approve-account">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-primary" />
@@ -734,7 +740,7 @@ export function RefundTable({
                 </div>
 
                 {/* 2. Nội dung customer yêu cầu hoàn tiền cho đơn nào & lý do */}
-                <div className="bg-card border border-border/80 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+                <div className="bg-card border border-border/80 rounded-xl p-3.5 space-y-2.5 shadow-2xs" data-tour="refund-approve-order">
                   <span className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-primary" />
                     {t("admin.refunds.page.approve.orderInfoTitle")}
@@ -824,7 +830,7 @@ export function RefundTable({
                 </div>
 
                 {/* 3. Nhập Mã tham chiếu giao dịch ngân hàng / UNC */}
-                <div className="space-y-1.5">
+                <div className="space-y-1.5" data-tour="refund-approve-ref">
                   <label className="text-xs font-semibold text-foreground flex items-center justify-between">
                     <span>
                       {t("admin.payments.refund.approve.transferRefLabel")}
@@ -849,7 +855,7 @@ export function RefundTable({
                 </div>
 
                 {/* 4. Tải ảnh minh chứng chuyển khoản */}
-                <div className="space-y-2">
+                <div className="space-y-2" data-tour="refund-approve-proof">
                   <label className="text-xs font-semibold text-foreground flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <Upload className="w-3.5 h-3.5 text-primary" />
@@ -928,7 +934,7 @@ export function RefundTable({
 
               {/* PHẦN BÊN PHẢI (5 CỘT): Mã QR Code ngân hàng (VietQR) quét chuyển khoản */}
               <div className="lg:col-span-5 flex flex-col justify-between space-y-4 bg-muted/20 border border-border/80 rounded-xl p-4">
-                <div className="space-y-3">
+                <div className="space-y-3" data-tour="refund-approve-qr">
                   <div className="text-center space-y-1">
                     <span className="text-xs font-semibold text-foreground uppercase tracking-wide flex items-center justify-center gap-1.5">
                       <QrCode className="w-4 h-4 text-emerald-600" />
@@ -1012,7 +1018,7 @@ export function RefundTable({
                 </div>
 
                 {/* Cảnh báo hành động */}
-                <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs">
+                <div data-tour="refund-approve-warning" className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs">
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                   <p className="leading-relaxed text-[11px]">
                     {selectedIncidentCode ? (
@@ -1033,7 +1039,7 @@ export function RefundTable({
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0 pt-3 border-t">
+          <DialogFooter className="gap-2 sm:gap-0 pt-3 border-t" data-tour="refund-approve-actions">
             <Button
               type="button"
               variant="outline"
@@ -1084,7 +1090,7 @@ export function RefundTable({
 
           {selectedRefund && (
             <div className="space-y-3 py-1">
-              <div className="bg-muted/60 p-3 rounded-lg space-y-1.5 text-xs border border-border/40">
+              <div className="bg-muted/60 p-3 rounded-lg space-y-1.5 text-xs border border-border/40" data-tour="refund-reject-info">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("admin.payments.refund.table.ticket")}:</span>
                   <span className="font-mono font-semibold">#{selectedRefund.id}</span>
@@ -1142,7 +1148,7 @@ export function RefundTable({
                 </div>
               )}
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5" data-tour="refund-reject-reason">
                 <label className="text-xs font-semibold text-foreground">
                   {t("admin.payments.rejectionReason")} <span className="text-rose-500">*</span>:
                 </label>
@@ -1157,7 +1163,7 @@ export function RefundTable({
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-0" data-tour="refund-reject-actions">
             <Button
               type="button"
               variant="outline"
@@ -1195,7 +1201,7 @@ export function RefundTable({
 
           {selectedRefund && (
             <div className="space-y-3.5 py-1 text-xs">
-              <div className="bg-muted/60 p-3.5 rounded-xl space-y-2.5 border border-border/60">
+              <div className="bg-muted/60 p-3.5 rounded-xl space-y-2.5 border border-border/60" data-tour="refund-detail-info">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">{t("common.status")}:</span>
                   <MetaBadge meta={refundStatusMeta(selectedRefund.status)} />
@@ -1270,7 +1276,7 @@ export function RefundTable({
                     <span className="font-mono">{formatDateTime(selectedRefund.processedAt)}</span>
                   </div>
                 )}
-                <div className="pt-2 border-t border-border/40 space-y-1.5">
+                <div className="pt-2 border-t border-border/40 space-y-1.5" data-tour="refund-detail-reason">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground font-medium">{t("admin.payments.refund.detail.originalReason")}:</span>
                     {cleanReason(selectedRefund.reason).includes("[Bồi thường sự cố") && (
@@ -1287,7 +1293,7 @@ export function RefundTable({
 
               {/* Ảnh đính kèm từ khách hàng (nếu có) */}
               {getCustomerAttachment(selectedRefund) ? (
-                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border/80">
+                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border/80" data-tour="refund-detail-customer-proof">
                   <span className="font-semibold text-foreground flex items-center justify-between text-xs">
                     <span className="flex items-center gap-1.5 text-blue-600">
                       <ImageIcon className="w-3.5 h-3.5" />
@@ -1312,14 +1318,14 @@ export function RefundTable({
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-lg bg-muted/40 text-muted-foreground text-center text-[11px] italic">
+                <div className="p-3 rounded-lg bg-muted/40 text-muted-foreground text-center text-[11px] italic" data-tour="refund-detail-customer-proof">
                   {t("admin.refunds.page.detail.noCustomerProof")}
                 </div>
               )}
 
               {/* Ảnh minh chứng chuyển khoản từ Admin (nếu có) */}
               {getAdminProof(selectedRefund) ? (
-                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border/80">
+                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border/80" data-tour="refund-detail-transfer-proof">
                   <span className="font-semibold text-foreground flex items-center gap-1.5">
                     <ImageIcon className="w-3.5 h-3.5 text-primary" />
                     {t("admin.refunds.page.transferProof")}:
@@ -1346,7 +1352,7 @@ export function RefundTable({
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-lg bg-muted/40 text-muted-foreground text-center text-[11px] italic">
+                <div className="p-3 rounded-lg bg-muted/40 text-muted-foreground text-center text-[11px] italic" data-tour="refund-detail-transfer-proof">
                   {t("admin.refunds.page.detail.noTransferProof")}
                 </div>
               )}

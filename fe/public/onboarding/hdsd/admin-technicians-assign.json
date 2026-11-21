@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-technicians-assign.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-technicians-assign-open",
+      "x": 1013,
+      "y": 89,
+      "w": 128,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-technicians-assign-pick",
+      "x": 489,
+      "y": 354,
+      "w": 462,
+      "h": 201
+    },
+    {
+      "n": 3,
+      "stepId": "admin-technicians-assign-confirm",
+      "x": 489,
+      "y": 572,
+      "w": 462,
+      "h": 36
+    }
+  ]
+}

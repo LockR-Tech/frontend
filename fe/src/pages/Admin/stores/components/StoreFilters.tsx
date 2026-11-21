@@ -50,7 +50,7 @@ export function StoreFilters({
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-3">
+    <div className="flex flex-col sm:flex-row items-center gap-3" data-tour="stores-filters">
       <StatusDropdown
         options={optionsWithCounts}
         value={status}

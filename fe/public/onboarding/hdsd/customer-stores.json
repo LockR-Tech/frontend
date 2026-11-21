@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-stores.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-stores-actions",
+      "x": 304,
+      "y": 10,
+      "w": 88,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-stores-search",
+      "x": 16,
+      "y": 156,
+      "w": 328,
+      "h": 48
+    },
+    {
+      "n": 3,
+      "stepId": "customer-stores-nearby",
+      "x": 352,
+      "y": 158,
+      "w": 44,
+      "h": 44
+    },
+    {
+      "n": 4,
+      "stepId": "customer-stores-first",
+      "x": 16,
+      "y": 220,
+      "w": 380,
+      "h": 86
+    }
+  ]
+}

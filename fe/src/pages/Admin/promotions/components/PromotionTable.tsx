@@ -152,7 +152,7 @@ export function PromotionTable({
       cell: (info) => {
         const pointsCost = info.row.original.pointsCost;
         return (
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-0.5" data-tour={info.row.index === 0 ? "promotions-first-row" : undefined}>
             <div className="flex items-center gap-1.5">
               <Tag size={13} className="text-orange-500 shrink-0" />
               <span className="font-mono font-semibold text-xs text-foreground tracking-wide">
@@ -309,7 +309,12 @@ export function PromotionTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                data-tour={info.row.index === 0 ? "promotions-row-menu" : undefined}
+              >
                 <MoreHorizontal size={14} />
               </Button>
             </DropdownMenuTrigger>

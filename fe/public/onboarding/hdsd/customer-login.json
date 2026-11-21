@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/customer-login.png",
+  "width": 412,
+  "height": 736,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-login-language",
+      "x": 316,
+      "y": 40,
+      "w": 76,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "customer-login-tabs",
+      "x": 24,
+      "y": 282,
+      "w": 364,
+      "h": 53
+    },
+    {
+      "n": 3,
+      "stepId": "customer-login-identifier",
+      "x": 24,
+      "y": 387,
+      "w": 364,
+      "h": 48
+    },
+    {
+      "n": 4,
+      "stepId": "customer-login-password",
+      "x": 24,
+      "y": 479,
+      "w": 364,
+      "h": 48
+    },
+    {
+      "n": 5,
+      "stepId": "customer-login-links",
+      "x": 24,
+      "y": 527,
+      "w": 364,
+      "h": 19
+    },
+    {
+      "n": 6,
+      "stepId": "customer-login-social",
+      "x": 24,
+      "y": 566,
+      "w": 364,
+      "h": 83
+    },
+    {
+      "n": 7,
+      "stepId": "customer-login-submit",
+      "x": 24,
+      "y": 669,
+      "w": 364,
+      "h": 39
+    }
+  ]
+}

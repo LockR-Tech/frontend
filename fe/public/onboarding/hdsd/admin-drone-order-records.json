@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-drone-order-records.png",
+  "width": 1440,
+  "height": 4441,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-drone-order-records-route",
+      "x": 292,
+      "y": 2193,
+      "w": 1116,
+      "h": 241
+    },
+    {
+      "n": 2,
+      "stepId": "admin-drone-order-records-progress",
+      "x": 292,
+      "y": 2458,
+      "w": 1116,
+      "h": 710
+    },
+    {
+      "n": 3,
+      "stepId": "admin-drone-order-records-order",
+      "x": 292,
+      "y": 3192,
+      "w": 1116,
+      "h": 326
+    },
+    {
+      "n": 4,
+      "stepId": "admin-drone-order-records-people",
+      "x": 292,
+      "y": 3541,
+      "w": 1116,
+      "h": 168
+    },
+    {
+      "n": 5,
+      "stepId": "admin-drone-order-records-mission",
+      "x": 292,
+      "y": 3733,
+      "w": 1116,
+      "h": 288
+    },
+    {
+      "n": 6,
+      "stepId": "admin-drone-order-records-log",
+      "x": 292,
+      "y": 4045,
+      "w": 1116,
+      "h": 372
+    }
+  ]
+}

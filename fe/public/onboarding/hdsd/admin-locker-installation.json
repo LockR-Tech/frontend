@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-locker-installation.png",
+  "width": 1440,
+  "height": 988,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-installation-tab",
+      "x": 663,
+      "y": 281,
+      "w": 71,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-installation-info",
+      "x": 292,
+      "y": 333,
+      "w": 361,
+      "h": 631
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-installation-edit",
+      "x": 527,
+      "y": 358,
+      "w": 102,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-installation-actions",
+      "x": 317,
+      "y": 837,
+      "w": 311,
+      "h": 88
+    },
+    {
+      "n": 5,
+      "stepId": "admin-locker-installation-checklist",
+      "x": 669,
+      "y": 333,
+      "w": 739,
+      "h": 513
+    },
+    {
+      "n": 6,
+      "stepId": "admin-locker-installation-photos",
+      "x": 669,
+      "y": 862,
+      "w": 739,
+      "h": 102
+    }
+  ]
+}

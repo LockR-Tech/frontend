@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-maintenance-drone-report.png",
+  "width": 1440,
+  "height": 1177,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-drone-report-info",
+      "x": 333,
+      "y": 847,
+      "w": 672,
+      "h": 226
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-drone-report-dispatch",
+      "x": 333,
+      "y": 1089,
+      "w": 185,
+      "h": 32
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-drone-report-log",
+      "x": 526,
+      "y": 1089,
+      "w": 89,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-drone-report-assign",
+      "x": 623,
+      "y": 1089,
+      "w": 166,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-drone-report-complete",
+      "x": 796,
+      "y": 1089,
+      "w": 93,
+      "h": 32
+    },
+    {
+      "n": 6,
+      "stepId": "admin-maintenance-drone-report-delete",
+      "x": 898,
+      "y": 1089,
+      "w": 32,
+      "h": 32
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-drone-tracking-info.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-drone-tracking-info-order",
+      "x": 20,
+      "y": 512,
+      "w": 372,
+      "h": 732
+    },
+    {
+      "n": 2,
+      "stepId": "customer-drone-tracking-info-people",
+      "x": 20,
+      "y": 1260,
+      "w": 372,
+      "h": 330
+    },
+    {
+      "n": 3,
+      "stepId": "customer-drone-tracking-info-mission",
+      "x": 20,
+      "y": 1606,
+      "w": 372,
+      "h": 94
+    }
+  ]
+}

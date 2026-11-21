@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/customer-vouchers-exchange.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-vouchers-exchange-balance",
+      "x": 16,
+      "y": 212,
+      "w": 380,
+      "h": 110
+    }
+  ]
+}

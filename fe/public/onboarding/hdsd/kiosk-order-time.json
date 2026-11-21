@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/kiosk-order-time.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-order-time-mode",
+      "x": 403,
+      "y": 152,
+      "w": 228,
+      "h": 41
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-order-time-quick",
+      "x": 47,
+      "y": 203,
+      "w": 584,
+      "h": 58
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-order-time-stepper",
+      "x": 47,
+      "y": 271,
+      "w": 584,
+      "h": 44
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-order-time-rate",
+      "x": 47,
+      "y": 325,
+      "w": 584,
+      "h": 15
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-order-time-back",
+      "x": 28,
+      "y": 68,
+      "w": 40,
+      "h": 40
+    }
+  ]
+}

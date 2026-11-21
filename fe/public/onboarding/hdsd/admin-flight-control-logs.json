@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/admin-flight-control-logs.png",
+  "width": 1440,
+  "height": 1543,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-flight-control-logs-table",
+      "x": 292,
+      "y": 1262,
+      "w": 1116,
+      "h": 225
+    }
+  ]
+}

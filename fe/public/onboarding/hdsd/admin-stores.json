@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-stores.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-stores-filters",
+      "x": 316,
+      "y": 210,
+      "w": 672,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-stores-toolbar",
+      "x": 1045,
+      "y": 212,
+      "w": 339,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-stores-batch",
+      "x": 316,
+      "y": 274,
+      "w": 1068,
+      "h": 58
+    },
+    {
+      "n": 4,
+      "stepId": "admin-stores-list",
+      "x": 316,
+      "y": 332,
+      "w": 1068,
+      "h": 503
+    },
+    {
+      "n": 5,
+      "stepId": "admin-stores-status",
+      "x": 1164,
+      "y": 410,
+      "w": 106,
+      "h": 32
+    },
+    {
+      "n": 6,
+      "stepId": "admin-stores-menu",
+      "x": 1302,
+      "y": 410,
+      "w": 32,
+      "h": 32
+    }
+  ]
+}

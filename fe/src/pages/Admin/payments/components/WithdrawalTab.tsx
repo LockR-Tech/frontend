@@ -86,6 +86,8 @@ export function WithdrawalTab() {
   }, [withdrawals, searchTerm]);
 
   const pendingCount = pendingData?.data?.length ?? 0;
+  // Neo hướng dẫn: nút Duyệt / Từ chối của yêu cầu chờ duyệt đầu tiên trong bảng.
+  const firstPendingIndex = filteredWithdrawals.findIndex((w) => w.status === "PENDING");
 
   const handleOpenAction = (item: WithdrawalResponse, action: "APPROVE" | "REJECT") => {
     setSelectedItem(item);
@@ -174,7 +176,7 @@ export function WithdrawalTab() {
       {/* Controls & Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Status filters */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-muted/60 p-1 rounded-lg">
+        <div className="flex flex-wrap items-center gap-1.5 bg-muted/60 p-1 rounded-lg" data-tour="withdrawals-status-filter">
           <Button
             type="button"
             size="sm"
@@ -219,7 +221,7 @@ export function WithdrawalTab() {
         </div>
 
         {/* Search input & Refresh button */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="withdrawals-search">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <Input
@@ -248,7 +250,7 @@ export function WithdrawalTab() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border bg-card">
+      <div className="rounded-md border bg-card" data-tour="withdrawals-table">
         <Table>
           <TableHeader>
             <TableRow>
@@ -283,7 +285,7 @@ export function WithdrawalTab() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredWithdrawals.map((item) => (
+              filteredWithdrawals.map((item, index) => (
                 <TableRow key={item.id} className="hover:bg-muted/40">
                   <TableCell>
                     <span className="font-mono font-semibold text-xs text-primary">
@@ -359,13 +361,17 @@ export function WithdrawalTab() {
                   </TableCell>
                   <TableCell className="text-right">
                     {item.status === "PENDING" ? (
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div
+                        className="flex items-center justify-end gap-1.5"
+                        data-tour={index === firstPendingIndex ? "withdrawals-first-actions" : undefined}
+                      >
                         <Button
                           type="button"
                           size="sm"
                           variant="outline"
                           className="h-7 px-2.5 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950"
                           onClick={() => handleOpenAction(item, "APPROVE")}
+                          data-tour={index === firstPendingIndex ? "withdrawals-first-approve" : undefined}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
                           {t("admin.payments.review.approve")}
@@ -376,6 +382,7 @@ export function WithdrawalTab() {
                           variant="outline"
                           className="h-7 px-2.5 text-xs text-rose-600 border-rose-300 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950"
                           onClick={() => handleOpenAction(item, "REJECT")}
+                          data-tour={index === firstPendingIndex ? "withdrawals-first-reject" : undefined}
                         >
                           <XCircle className="h-3.5 w-3.5 mr-1" />
                           {t("dropdown.reject")}
@@ -412,7 +419,7 @@ export function WithdrawalTab() {
 
           {selectedItem && (
             <div className="space-y-3 py-2">
-              <div className="bg-muted/60 p-3 rounded-lg space-y-2 text-xs">
+              <div className="bg-muted/60 p-3 rounded-lg space-y-2 text-xs" data-tour="withdrawal-approve-info">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("admin.payments.withdrawal.table.requestId")}:</span>
                   <span className="font-mono font-semibold text-primary">
@@ -445,7 +452,10 @@ export function WithdrawalTab() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-2 p-2.5 rounded-md bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs">
+              <div
+                className="flex items-start gap-2 p-2.5 rounded-md bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs"
+                data-tour="withdrawal-approve-warning"
+              >
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                 <span>
                   <Trans
@@ -457,7 +467,7 @@ export function WithdrawalTab() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-0" data-tour="withdrawal-approve-actions">
             <Button
               type="button"
               variant="outline"
@@ -497,7 +507,7 @@ export function WithdrawalTab() {
 
           {selectedItem && (
             <div className="space-y-3 py-2">
-              <div className="bg-muted/60 p-3 rounded-lg space-y-1.5 text-xs">
+              <div className="bg-muted/60 p-3 rounded-lg space-y-1.5 text-xs" data-tour="withdrawal-reject-info">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("admin.payments.withdrawal.table.requestId")}:</span>
                   <span className="font-mono font-semibold">{selectedItem.referenceId}</span>
@@ -510,7 +520,7 @@ export function WithdrawalTab() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5" data-tour="withdrawal-reject-reason">
                 <label className="text-xs font-semibold text-foreground">
                   {t("admin.payments.rejectionReason")} <span className="text-rose-500">*</span>:
                 </label>
@@ -534,7 +544,7 @@ export function WithdrawalTab() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-0" data-tour="withdrawal-reject-actions">
             <Button
               type="button"
               variant="outline"

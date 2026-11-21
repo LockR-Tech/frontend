@@ -13,7 +13,7 @@ export function JobResults({ results }: JobResultsProps) {
 
   if (results.length === 0) {
     return (
-      <Card className="border border-border/50 bg-muted/30">
+      <Card data-tour="scheduler-results" className="border border-border/50 bg-muted/30">
         <CardContent className="p-8 text-center text-muted-foreground">
           <Clock size={32} className="mx-auto mb-2 text-muted-foreground/70" />
           <p>{t("admin.scheduler.noResults")}</p>
@@ -24,7 +24,7 @@ export function JobResults({ results }: JobResultsProps) {
   }
 
   return (
-    <Card className="border border-border/50 shadow-sm">
+    <Card data-tour="scheduler-results" className="border border-border/50 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg">{t("admin.scheduler.historyTitle")}</CardTitle>
       </CardHeader>

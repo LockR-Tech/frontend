@@ -12,6 +12,16 @@ import { UserStats } from "./components/UserStats";
 import { CreateUserModal } from "./components/CreateUserModal";
 import { useUsers, type AdminUserRow, type UserSegment } from "./hooks/useUsers";
 
+/** Biểu tượng nút "Thêm người dùng" kèm neo hướng dẫn (TableToolbar không nhận data-tour). Bấm vào biểu tượng
+ *  nổi bọt lên nút nên mở hộp thoại như bấm nút. */
+function AddUserIcon({ size, className }: { size?: number; className?: string }) {
+  return (
+    <span data-tour="users-add-user">
+      <UserPlus size={size} className={className} />
+    </span>
+  );
+}
+
 const SEGMENT_LABEL: Record<UserSegment, string> = {
   CUSTOMER: "admin.users.stats.segment.customer",
   STAFF: "admin.users.stats.segment.staff",
@@ -87,20 +97,22 @@ export default function UsersPage() {
               statusCounts={statusCounts}
             />
 
-            <TableToolbar
-              createButton={{
-                label: t("admin.users.addUser"),
-                onClick: () => setShowCreateModal(true),
-                icon: UserPlus,
-              }}
-              onRefresh={refetch}
-              onClearFilters={clearFilters}
-              canClearFilters={hasActiveFilters}
-            />
+            <div data-tour="users-toolbar">
+              <TableToolbar
+                createButton={{
+                  label: t("admin.users.addUser"),
+                  onClick: () => setShowCreateModal(true),
+                  icon: AddUserIcon,
+                }}
+                onRefresh={refetch}
+                onClearFilters={clearFilters}
+                canClearFilters={hasActiveFilters}
+              />
+            </div>
           </div>
 
           {segment && (
-            <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground" data-tour="users-segment">
               <span>
                 {t("admin.users.stats.segment.showing", {
                   label: t(SEGMENT_LABEL[segment]),
@@ -114,14 +126,16 @@ export default function UsersPage() {
             </div>
           )}
 
-          <BatchDeleteBar
-            noun={t("admin.users.batchNoun")}
-            selectedCount={selection.selectedIds.length}
-            onClearSelection={selection.clear}
-            onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
-            note={t("admin.users.batchNote")}
-            requireReason
-          />
+          <div data-tour="users-batch-bar">
+            <BatchDeleteBar
+              noun={t("admin.users.batchNoun")}
+              selectedCount={selection.selectedIds.length}
+              onClearSelection={selection.clear}
+              onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
+              note={t("admin.users.batchNote")}
+              requireReason
+            />
+          </div>
 
           <UserTable
             selectColumn={selection.selectColumn}

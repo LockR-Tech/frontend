@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-user-detail.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-user-detail-header",
+      "x": 292,
+      "y": 89,
+      "w": 277,
+      "h": 52
+    },
+    {
+      "n": 2,
+      "stepId": "admin-user-detail-actions",
+      "x": 1226,
+      "y": 97,
+      "w": 182,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-user-detail-avatar",
+      "x": 317,
+      "y": 238,
+      "w": 112,
+      "h": 132
+    },
+    {
+      "n": 4,
+      "stepId": "admin-user-detail-profile",
+      "x": 292,
+      "y": 165,
+      "w": 736,
+      "h": 503
+    },
+    {
+      "n": 5,
+      "stepId": "admin-user-detail-roles",
+      "x": 453,
+      "y": 314,
+      "w": 550,
+      "h": 24
+    },
+    {
+      "n": 6,
+      "stepId": "admin-user-detail-account",
+      "x": 1052,
+      "y": 165,
+      "w": 356,
+      "h": 279
+    },
+    {
+      "n": 7,
+      "stepId": "admin-user-detail-terms",
+      "x": 1052,
+      "y": 468,
+      "w": 356,
+      "h": 186
+    },
+    {
+      "n": 8,
+      "stepId": "admin-user-detail-stats",
+      "x": 292,
+      "y": 692,
+      "w": 1116,
+      "h": 116
+    }
+  ]
+}

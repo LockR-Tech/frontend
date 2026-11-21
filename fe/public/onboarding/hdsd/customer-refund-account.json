@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/customer-refund-account.png",
+  "width": 412,
+  "height": 601,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-refund-account-intro",
+      "x": 20,
+      "y": 72,
+      "w": 372,
+      "h": 109
+    },
+    {
+      "n": 2,
+      "stepId": "customer-refund-account-bank",
+      "x": 20,
+      "y": 233,
+      "w": 372,
+      "h": 68
+    },
+    {
+      "n": 3,
+      "stepId": "customer-refund-account-number",
+      "x": 20,
+      "y": 347,
+      "w": 372,
+      "h": 48
+    },
+    {
+      "n": 4,
+      "stepId": "customer-refund-account-holder",
+      "x": 20,
+      "y": 441,
+      "w": 372,
+      "h": 48
+    },
+    {
+      "n": 5,
+      "stepId": "customer-refund-account-save",
+      "x": 20,
+      "y": 521,
+      "w": 372,
+      "h": 52
+    }
+  ]
+}

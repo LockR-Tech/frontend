@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-stores-detail.png",
+  "width": 1440,
+  "height": 1073,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-stores-detail-title",
+      "x": 292,
+      "y": 89,
+      "w": 321,
+      "h": 50
+    },
+    {
+      "n": 2,
+      "stepId": "admin-stores-detail-status",
+      "x": 1118,
+      "y": 96,
+      "w": 290,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-stores-detail-image",
+      "x": 293,
+      "y": 185,
+      "w": 288,
+      "h": 345
+    },
+    {
+      "n": 4,
+      "stepId": "admin-stores-detail-form",
+      "x": 581,
+      "y": 185,
+      "w": 826,
+      "h": 345
+    },
+    {
+      "n": 5,
+      "stepId": "admin-stores-detail-stats",
+      "x": 293,
+      "y": 531,
+      "w": 557,
+      "h": 262
+    },
+    {
+      "n": 6,
+      "stepId": "admin-stores-detail-history",
+      "x": 850,
+      "y": 531,
+      "w": 557,
+      "h": 262
+    },
+    {
+      "n": 7,
+      "stepId": "admin-stores-detail-kiosks",
+      "x": 293,
+      "y": 819,
+      "w": 1114,
+      "h": 61
+    },
+    {
+      "n": 8,
+      "stepId": "admin-stores-detail-card",
+      "x": 309,
+      "y": 896,
+      "w": 259,
+      "h": 136
+    }
+  ]
+}

@@ -152,7 +152,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
     g?.availableSlots != null && highestBoxNumber > g.availableSlots;
 
   return (
-    <Card className="border border-border/80 shadow-xs">
+    <Card className="border border-border/80 shadow-xs" data-tour="adm-locker-gateway">
       <CardContent className="p-4 space-y-3">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -205,7 +205,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap" data-tour="adm-locker-gateway-actions">
             {current ? (
               <>
                 <Button size="sm" variant="outline" className="h-9" onClick={() => openAssign(current)} disabled={busy}>

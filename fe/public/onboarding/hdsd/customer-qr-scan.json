@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-qr-scan.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-qr-scan-torch",
+      "x": 332,
+      "y": 8,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-qr-scan-home",
+      "x": 372,
+      "y": 8,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "customer-qr-scan-hint",
+      "x": 20,
+      "y": 782,
+      "w": 372,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "customer-qr-scan-manual",
+      "x": 117,
+      "y": 832,
+      "w": 178,
+      "h": 32
+    }
+  ]
+}

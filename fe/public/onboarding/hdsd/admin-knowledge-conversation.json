@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-knowledge-conversation.png",
+  "width": 1440,
+  "height": 922,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-knowledge-conversation-open",
+      "x": 293,
+      "y": 345,
+      "w": 80,
+      "h": 57
+    },
+    {
+      "n": 2,
+      "stepId": "admin-knowledge-conversation-meta",
+      "x": 789,
+      "y": 48,
+      "w": 603,
+      "h": 16
+    },
+    {
+      "n": 3,
+      "stepId": "admin-knowledge-conversation-messages",
+      "x": 769,
+      "y": 81,
+      "w": 671,
+      "h": 841
+    }
+  ]
+}

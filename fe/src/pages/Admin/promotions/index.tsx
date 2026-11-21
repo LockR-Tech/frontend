@@ -131,14 +131,14 @@ export default function PromotionsPage() {
             {t("admin.promotions.title").toLowerCase()}
           </p>
         </div>
-        <Button onClick={handleCreate} className="gap-1.5">
+        <Button onClick={handleCreate} className="gap-1.5" data-tour="promotions-create">
           <Plus size={14} />
           {t("admin.promotions.createBtn")}
         </Button>
       </div>
 
       {/* Status tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" data-tour="promotions-status-tabs">
         {STATUS_TABS.map((tab) => {
           const Icon = tab.icon;
           const count = statusCounts[tab.value] ?? 0;
@@ -179,6 +179,7 @@ export default function PromotionsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-9 w-full sm:w-64 text-sm"
+                data-tour="promotions-search"
               />
               <Select
                 value={lockerFilter}
@@ -187,6 +188,7 @@ export default function PromotionsPage() {
                 <SelectTrigger
                   className="h-9 w-full sm:w-64 text-sm"
                   aria-label={t("admin.promotions.scope.filterLabel")}
+                  data-tour="promotions-scope-filter"
                   title={t("admin.promotions.scope.filterLabel")}
                 >
                   <div className="flex min-w-0 items-center gap-2">
@@ -208,13 +210,16 @@ export default function PromotionsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <TableToolbar
-              onRefresh={refetch}
-              onClearFilters={clearFilters}
-              canClearFilters={hasActiveFilters}
-            />
+            <div data-tour="promotions-toolbar">
+              <TableToolbar
+                onRefresh={refetch}
+                onClearFilters={clearFilters}
+                canClearFilters={hasActiveFilters}
+              />
+            </div>
           </div>
 
+          <div data-tour="promotions-batch-bar">
           <BatchDeleteBar
             noun={t("admin.promotions.batchNoun")}
             selectedCount={selection.selectedIds.length}
@@ -225,6 +230,7 @@ export default function PromotionsPage() {
             note={t("admin.promotions.batchNote")}
             requireReason
           />
+          </div>
 
           <PromotionTable
             selectColumn={selection.selectColumn}

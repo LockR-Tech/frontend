@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/kiosk-otp.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-otp-sent",
+      "x": 28,
+      "y": 135,
+      "w": 968,
+      "h": 16
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-otp-input",
+      "x": 28,
+      "y": 191,
+      "w": 968,
+      "h": 56
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-otp-confirm",
+      "x": 28,
+      "y": 247,
+      "w": 968,
+      "h": 56
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-otp-resend",
+      "x": 28,
+      "y": 315,
+      "w": 968,
+      "h": 56
+    }
+  ]
+}

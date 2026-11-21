@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/admin-notifications-row-menu.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-notifications-row-menu-items",
+      "x": 1179,
+      "y": 511,
+      "w": 176,
+      "h": 107
+    }
+  ]
+}

@@ -4,6 +4,24 @@
     "schemaVersion": 1,
     "groups": [
       {
+        "id": "admin-intro",
+        "version": 1,
+        "order": 8,
+        "roles": [
+          "ADMIN"
+        ],
+        "intro": true,
+        "steps": [
+          {
+            "id": "admin-intro-1",
+            "anchor": "x",
+            "platforms": [
+              "web"
+            ]
+          }
+        ]
+      },
+      {
         "id": "admin-a",
         "version": 2,
         "order": 10,
@@ -170,6 +188,7 @@
       ],
       "platform": "web",
       "expected": [
+        "admin-intro",
         "admin-a",
         "admin-b",
         "admin-detail"
@@ -226,6 +245,7 @@
         "cus-sign-in",
         "cus-home",
         "tech-shift",
+        "admin-intro",
         "admin-a",
         "admin-b",
         "admin-detail"
@@ -507,6 +527,77 @@
       "expected": {
         "kind": "none",
         "reason": "nothing-new"
+      }
+    },
+    {
+      "name": "có nhóm tổng quan (intro): lần đầu chỉ chạy nhóm tổng quan",
+      "input": {
+        "signedIn": true,
+        "inWorkspace": true,
+        "mandatoryDone": true,
+        "autoShow": true,
+        "sessionSkipped": false,
+        "shownThisSession": false,
+        "groups": [
+          "admin-intro",
+          "admin-a",
+          "admin-detail"
+        ],
+        "seen": {}
+      },
+      "expected": {
+        "kind": "welcome",
+        "groups": [
+          "admin-intro"
+        ]
+      }
+    },
+    {
+      "name": "đã xem nhóm tổng quan: nhóm chi tiết mới không tự báo",
+      "input": {
+        "signedIn": true,
+        "inWorkspace": true,
+        "mandatoryDone": true,
+        "autoShow": true,
+        "sessionSkipped": false,
+        "shownThisSession": false,
+        "groups": [
+          "admin-intro",
+          "admin-a",
+          "admin-detail"
+        ],
+        "seen": {
+          "admin-intro": 1
+        }
+      },
+      "expected": {
+        "kind": "none",
+        "reason": "nothing-new"
+      }
+    },
+    {
+      "name": "nhóm tổng quan tăng phiên bản: báo nhóm đó",
+      "input": {
+        "signedIn": true,
+        "inWorkspace": true,
+        "mandatoryDone": true,
+        "autoShow": true,
+        "sessionSkipped": false,
+        "shownThisSession": false,
+        "groups": [
+          "admin-intro",
+          "admin-a"
+        ],
+        "seen": {
+          "admin-intro": 0,
+          "admin-a": 2
+        }
+      },
+      "expected": {
+        "kind": "whatsNew",
+        "groups": [
+          "admin-intro"
+        ]
       }
     }
   ],

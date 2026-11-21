@@ -137,7 +137,7 @@ function Breadcrumb() {
 
   if (paths.length < 2) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+      <div data-tour="header-breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
         <span>{t("admin.breadcrumb.admin")}</span>
         <ChevronRight size={13} className="text-muted-foreground/40" />
         <span className="text-foreground font-semibold">
@@ -177,7 +177,7 @@ function Breadcrumb() {
   });
 
   return (
-    <nav className="flex items-center gap-1.5 text-xs font-medium">
+    <nav data-tour="header-breadcrumb" className="flex items-center gap-1.5 text-xs font-medium">
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
 
@@ -268,6 +268,7 @@ function QuickSearch() {
   return (
     <>
       <button
+        data-tour="header-search-open"
         type="button"
         onClick={() => setOpen(true)}
         className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-md bg-secondary text-muted-foreground text-xs border border-border/50 hover:text-foreground hover:border-border transition-colors"
@@ -285,8 +286,8 @@ function QuickSearch() {
         <DialogDescription className="sr-only">
           {t("header.searchDescription")}
         </DialogDescription>
-        <CommandInput placeholder={t("header.searchPlaceholder")} />
-        <CommandList>
+        <CommandInput data-tour="header-search-input" placeholder={t("header.searchPlaceholder")} />
+        <CommandList data-tour="header-search-list">
           <CommandEmpty>{t("header.searchEmpty")}</CommandEmpty>
           <CommandGroup heading={t("header.searchGroup")}>
             {destinations.map((item) => {
@@ -377,7 +378,7 @@ function NotificationBell() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 sm:w-96 p-0 shadow-lg border border-border/80">
-        <div className="p-3 border-b border-border/60 flex items-center justify-between bg-muted/30">
+        <div data-tour="header-notif-head" className="p-3 border-b border-border/60 flex items-center justify-between bg-muted/30">
           <div className="flex items-center gap-2">
             <Bell size={15} className="text-primary" />
             <span className="text-xs font-semibold text-foreground">
@@ -396,7 +397,7 @@ function NotificationBell() {
             {t("button.viewAll")}
           </Link>
         </div>
-        <div className="max-h-72 overflow-y-auto divide-y divide-border/50">
+        <div data-tour="header-notif-list" className="max-h-72 overflow-y-auto divide-y divide-border/50">
           {inboxQuery.isError ? (
             <div className="py-6 text-center text-xs text-muted-foreground">
               {t("header.notificationsError")}
@@ -431,7 +432,7 @@ function NotificationBell() {
             ))
           )}
         </div>
-        <div className="p-2 border-t border-border/60 text-center bg-muted/20">
+        <div data-tour="header-notif-footer" className="p-2 border-t border-border/60 text-center bg-muted/20">
           <Link
             to="/admin/notifications"
             className="text-xs text-muted-foreground hover:text-foreground font-medium block py-1"
@@ -549,6 +550,7 @@ export function Header({ className }: HeaderProps) {
           <DropdownMenu open={openTheme} onOpenChange={setOpenTheme}>
             <DropdownMenuTrigger asChild>
               <Button
+                data-tour="header-theme"
                 variant="ghost"
                 size="sm"
                 className="h-8 gap-1.5 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"

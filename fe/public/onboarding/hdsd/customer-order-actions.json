@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/customer-order-actions.png",
+  "width": 412,
+  "height": 1059,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-order-actions-track",
+      "x": 20,
+      "y": 973,
+      "w": 372,
+      "h": 58
+    }
+  ]
+}

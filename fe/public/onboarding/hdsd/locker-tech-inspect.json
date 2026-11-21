@@ -6,6 +6,14 @@
   "marks": [
     {
       "n": 1,
+      "stepId": "locker-tech-inspect-tab",
+      "x": 4,
+      "y": 251,
+      "w": 100,
+      "h": 49
+    },
+    {
+      "n": 2,
       "stepId": "locker-tech-inspect-picker",
       "x": 16,
       "y": 343,
@@ -13,7 +21,7 @@
       "h": 72
     },
     {
-      "n": 2,
+      "n": 3,
       "stepId": "locker-tech-inspect-locker",
       "x": 16,
       "y": 427,
@@ -21,7 +29,15 @@
       "h": 303
     },
     {
-      "n": 3,
+      "n": 4,
+      "stepId": "locker-tech-inspect-directions",
+      "x": 281,
+      "y": 639,
+      "w": 98,
+      "h": 32
+    },
+    {
+      "n": 5,
       "stepId": "locker-tech-inspect-report",
       "x": 33,
       "y": 681,

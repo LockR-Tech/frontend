@@ -584,7 +584,7 @@ export function BoxQrModal({
             </div>
 
             {/* Segmented Mode Control: In 1 ô vs In toàn bộ tủ */}
-            <div className="inline-flex rounded-xl border border-border/80 p-1 bg-muted/50 text-xs self-start sm:self-auto">
+            <div className="inline-flex rounded-xl border border-border/80 p-1 bg-muted/50 text-xs self-start sm:self-auto" data-tour="adm-locker-qr-modes">
               <button
                 type="button"
                 className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -841,6 +841,7 @@ export function BoxQrModal({
                   {/* THẺ TEM NHÃN IN HOÀN CHỈNH (PRINTABLE DECAL) */}
                   <div
                     id="printable-box-sticker"
+                    data-tour="adm-locker-qr-sticker"
                     className="w-full bg-white text-slate-900 rounded-2xl border border-slate-200/90 shadow-xl p-5 flex flex-col items-center text-center space-y-3.5 transition-all relative overflow-hidden"
                   >
                     {/* Header tem */}
@@ -960,7 +961,7 @@ export function BoxQrModal({
                   </div>
 
                   {/* Nút hành động nhanh ngay bên dưới tem */}
-                  <div className="w-full grid grid-cols-2 gap-2 mt-3.5">
+                  <div className="w-full grid grid-cols-2 gap-2 mt-3.5" data-tour="adm-locker-qr-downloads">
                     <Button
                       type="button"
                       variant="outline"
@@ -989,7 +990,7 @@ export function BoxQrModal({
               <div className="lg:col-span-5 p-6 bg-card flex flex-col justify-between space-y-4">
                 <div className="space-y-4">
                   {/* Bộ chọn ô tủ trực quan */}
-                  <div>
+                  <div data-tour="adm-locker-qr-picker">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <Box className="w-3.5 h-3.5 text-sky-500" />
@@ -1072,7 +1073,7 @@ export function BoxQrModal({
                   </div>
 
                   {/* Thông tin kỹ thuật ô đang chọn */}
-                  <div className="p-3.5 rounded-xl border bg-muted/30 space-y-2.5">
+                  <div className="p-3.5 rounded-xl border bg-muted/30 space-y-2.5" data-tour="adm-locker-qr-specs">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         <Cpu className="w-3.5 h-3.5 text-sky-500" />
@@ -1136,7 +1137,7 @@ export function BoxQrModal({
                   </div>
 
                   {/* Dữ liệu mã QR (Payload JSON) */}
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5" data-tour="adm-locker-qr-payload">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-muted-foreground flex items-center gap-1">
                         <Info className="w-3.5 h-3.5" />
@@ -1271,7 +1272,7 @@ export function BoxQrModal({
         </div>
 
         {/* Footer Modal duy nhất */}
-        <DialogFooter className="p-3 px-6 border-t border-border/80 bg-muted/20 flex flex-row items-center justify-between shrink-0">
+        <DialogFooter className="p-3 px-6 border-t border-border/80 bg-muted/20 flex flex-row items-center justify-between shrink-0" data-tour="adm-locker-qr-print">
           <p className="text-[11px] text-muted-foreground hidden sm:block">
             {t("admin.lockers.tools.boxQr.footerNote")}
           </p>

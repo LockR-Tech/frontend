@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-loyalty-members.png",
+  "width": 1440,
+  "height": 2026,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-loyalty-members-search",
+      "x": 1128,
+      "y": 1088,
+      "w": 256,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-loyalty-members-segments",
+      "x": 316,
+      "y": 1132,
+      "w": 1068,
+      "h": 26
+    },
+    {
+      "n": 3,
+      "stepId": "admin-loyalty-members-table",
+      "x": 292,
+      "y": 1198,
+      "w": 1116,
+      "h": 772
+    }
+  ]
+}

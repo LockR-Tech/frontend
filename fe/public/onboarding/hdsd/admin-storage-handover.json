@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-storage-handover.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-storage-handover-open",
+      "x": 1245,
+      "y": 508,
+      "w": 97,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-storage-handover-summary",
+      "x": 233,
+      "y": 238,
+      "w": 974,
+      "h": 81
+    },
+    {
+      "n": 3,
+      "stepId": "admin-storage-handover-recipient",
+      "x": 233,
+      "y": 338,
+      "w": 475,
+      "h": 128
+    },
+    {
+      "n": 4,
+      "stepId": "admin-storage-handover-payment",
+      "x": 233,
+      "y": 486,
+      "w": 475,
+      "h": 64
+    },
+    {
+      "n": 5,
+      "stepId": "admin-storage-handover-note",
+      "x": 233,
+      "y": 570,
+      "w": 475,
+      "h": 104
+    },
+    {
+      "n": 6,
+      "stepId": "admin-storage-handover-photo",
+      "x": 732,
+      "y": 338,
+      "w": 475,
+      "h": 336
+    },
+    {
+      "n": 7,
+      "stepId": "admin-storage-handover-footer",
+      "x": 209,
+      "y": 694,
+      "w": 1022,
+      "h": 73
+    }
+  ]
+}

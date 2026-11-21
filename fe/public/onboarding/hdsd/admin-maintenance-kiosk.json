@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-maintenance-kiosk.png",
+  "width": 1440,
+  "height": 2536,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-kiosk-kpis",
+      "x": 292,
+      "y": 278,
+      "w": 1116,
+      "h": 127
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-kiosk-overdue",
+      "x": 292,
+      "y": 429,
+      "w": 1116,
+      "h": 72
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-kiosk-filters",
+      "x": 317,
+      "y": 627,
+      "w": 1066,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-kiosk-status",
+      "x": 317,
+      "y": 671,
+      "w": 1066,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-kiosk-bulk",
+      "x": 317,
+      "y": 715,
+      "w": 1066,
+      "h": 39
+    },
+    {
+      "n": 6,
+      "stepId": "admin-maintenance-kiosk-list",
+      "x": 293,
+      "y": 767,
+      "w": 1114,
+      "h": 1439
+    },
+    {
+      "n": 7,
+      "stepId": "admin-maintenance-kiosk-heartbeat",
+      "x": 292,
+      "y": 2231,
+      "w": 1116,
+      "h": 257
+    }
+  ]
+}

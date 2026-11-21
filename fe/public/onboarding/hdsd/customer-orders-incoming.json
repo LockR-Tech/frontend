@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-orders-incoming.png",
+  "width": 412,
+  "height": 521,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-orders-incoming-filters",
+      "x": 0,
+      "y": 199,
+      "w": 412,
+      "h": 59
+    },
+    {
+      "n": 2,
+      "stepId": "customer-orders-incoming-head",
+      "x": 32,
+      "y": 321,
+      "w": 348,
+      "h": 23
+    },
+    {
+      "n": 3,
+      "stepId": "customer-orders-incoming-action",
+      "x": 130,
+      "y": 460,
+      "w": 73,
+      "h": 33
+    }
+  ]
+}

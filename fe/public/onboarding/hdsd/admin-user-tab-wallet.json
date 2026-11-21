@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-user-tab-wallet.png",
+  "width": 1440,
+  "height": 1378,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-user-tab-wallet-tab",
+      "x": 660,
+      "y": 836,
+      "w": 37,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-user-tab-wallet-panel",
+      "x": 292,
+      "y": 888,
+      "w": 1116,
+      "h": 466
+    }
+  ]
+}

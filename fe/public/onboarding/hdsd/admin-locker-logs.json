@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-locker-logs.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-logs-tab",
+      "x": 589,
+      "y": 281,
+      "w": 74,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-logs-tabs",
+      "x": 1000,
+      "y": 364,
+      "w": 272,
+      "h": 46
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-logs-refresh",
+      "x": 1280,
+      "y": 371,
+      "w": 103,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-logs-kpis",
+      "x": 309,
+      "y": 445,
+      "w": 1082,
+      "h": 75
+    },
+    {
+      "n": 5,
+      "stepId": "admin-locker-logs-filters",
+      "x": 309,
+      "y": 536,
+      "w": 1082,
+      "h": 36
+    },
+    {
+      "n": 6,
+      "stepId": "admin-locker-logs-table",
+      "x": 309,
+      "y": 588,
+      "w": 1082,
+      "h": 154
+    }
+  ]
+}

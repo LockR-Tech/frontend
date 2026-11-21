@@ -61,7 +61,7 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
   };
 
   return (
-    <Card>
+    <Card data-tour="flight-stations">
       <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
         <div className="min-w-0">
           <CardTitle className="text-base">{t("admin.flightControl.stations.title")}</CardTitle>
@@ -84,7 +84,7 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
           <p className="text-sm text-muted-foreground">{t("admin.droneOrders.weather.noLockers")}</p>
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {list.map((station) => (
+            {list.map((station, index) => (
               <div key={station.lockerId} className="flex flex-col gap-2 rounded-lg border p-3">
                 <WeatherSummary weather={station.weather} title={stationName(station)} suspension={station.suspension} />
                 {station.suspension ? (
@@ -110,7 +110,7 @@ export function StationsSection({ stations }: { stations: ReturnType<typeof useG
                     {t("admin.flightControl.stations.blocks24h", { count: blockCounts.data[String(station.lockerId)] })}
                   </p>
                 ) : null}
-                <div className="mt-auto flex justify-end">
+                <div className="mt-auto flex justify-end" data-tour={index === 0 ? "flight-station-first-action" : undefined}>
                   {station.suspension ? (
                     <Button size="sm" variant="outline" onClick={() => setResumeTarget(station)} disabled={resuming}>
                       <PlayCircle className="h-4 w-4" />

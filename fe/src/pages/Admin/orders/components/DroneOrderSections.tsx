@@ -60,7 +60,7 @@ export function DroneFeesCard({ drone }: { drone: DroneOrderTracking }) {
   const amountDue = Number(drone.amountDue ?? 0);
 
   return (
-    <Card>
+    <Card data-tour="order-detail-drone-fees">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Receipt className="h-4 w-4" />
@@ -129,7 +129,7 @@ export function DroneParcelCard({
       : null;
 
   return (
-    <Card>
+    <Card data-tour="order-detail-drone-parcel">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Package className="h-4 w-4" />
@@ -193,7 +193,7 @@ export function DronePickupCard({ drone }: { drone: DroneOrderTracking }) {
   const pickup = drone.pickup;
 
   return (
-    <Card>
+    <Card data-tour="order-detail-drone-pickup">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Home className="h-4 w-4" />
@@ -281,7 +281,7 @@ export function DronePickupCard({ drone }: { drone: DroneOrderTracking }) {
 export function DronePaymentCodes({ drone }: { drone: DroneOrderTracking }) {
   const { t } = useTranslation();
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-3" data-tour="order-detail-drone-payment-codes">
       <LabelValue label={t("admin.droneOrders.fields.paymentMethod")}>
         {drone.paymentMethod ? <MetaBadge meta={paymentMethodMeta(drone.paymentMethod)} hideIcon /> : null}
       </LabelValue>

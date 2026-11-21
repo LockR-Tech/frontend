@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-maintenance-inspect.png",
+  "width": 1440,
+  "height": 1094,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-inspect-open",
+      "x": 1128,
+      "y": 106,
+      "w": 147,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-inspect-place",
+      "x": 457,
+      "y": 203,
+      "w": 526,
+      "h": 134
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-inspect-tech",
+      "x": 457,
+      "y": 351,
+      "w": 526,
+      "h": 56
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-inspect-result",
+      "x": 457,
+      "y": 421,
+      "w": 526,
+      "h": 365
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-inspect-note",
+      "x": 457,
+      "y": 799,
+      "w": 526,
+      "h": 86
+    },
+    {
+      "n": 6,
+      "stepId": "admin-maintenance-inspect-photos",
+      "x": 457,
+      "y": 899,
+      "w": 526,
+      "h": 67
+    },
+    {
+      "n": 7,
+      "stepId": "admin-maintenance-inspect-save",
+      "x": 818,
+      "y": 1016,
+      "w": 165,
+      "h": 36
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-dashboard-lockers.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-dashboard-lockers-totals",
+      "x": 297,
+      "y": 113,
+      "w": 846,
+      "h": 16
+    },
+    {
+      "n": 2,
+      "stepId": "admin-dashboard-lockers-table",
+      "x": 297,
+      "y": 162,
+      "w": 846,
+      "h": 659
+    }
+  ]
+}

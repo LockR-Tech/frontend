@@ -132,7 +132,7 @@ export default function StoragePage() {
 
       <Card className="border-0 shadow-sm" data-tour="storage-list">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
+          <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4" data-tour="storage-filters">
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-80">
                 <Search

@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/admin-settings-scopes.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-settings-scopes-order",
+      "x": 297,
+      "y": 167,
+      "w": 148,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-settings-scopes-locker",
+      "x": 449,
+      "y": 167,
+      "w": 123,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-settings-scopes-payment",
+      "x": 576,
+      "y": 167,
+      "w": 148,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-settings-scopes-iot",
+      "x": 729,
+      "y": 167,
+      "w": 120,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-settings-scopes-auth",
+      "x": 853,
+      "y": 167,
+      "w": 103,
+      "h": 36
+    },
+    {
+      "n": 6,
+      "stepId": "admin-settings-scopes-loyalty",
+      "x": 960,
+      "y": 167,
+      "w": 188,
+      "h": 36
+    },
+    {
+      "n": 7,
+      "stepId": "admin-settings-scopes-store",
+      "x": 1152,
+      "y": 167,
+      "w": 109,
+      "h": 36
+    },
+    {
+      "n": 8,
+      "stepId": "admin-settings-scopes-assistant",
+      "x": 1265,
+      "y": 167,
+      "w": 135,
+      "h": 36
+    }
+  ]
+}

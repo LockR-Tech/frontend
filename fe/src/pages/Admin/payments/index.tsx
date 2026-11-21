@@ -68,7 +68,7 @@ export default function PaymentsPage() {
           title={t("admin.payments.title")}
           description={t("admin.payments.description")}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="payments-header-links">
           <Link to="/admin/refunds">
             <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
               <RotateCcw className="w-3.5 h-3.5" />
@@ -107,14 +107,14 @@ export default function PaymentsPage() {
             next.set("tab", value);
             setSearchParams(next);
           }}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="payments" className="text-xs px-4">
+            <TabsList className="mb-4" data-tour="payments-tabs">
+              <TabsTrigger value="payments" className="text-xs px-4" data-tour="payments-tab-transactions">
                 {t("admin.payments.tabs.transactions")}
               </TabsTrigger>
-              <TabsTrigger value="wallet" className="text-xs px-4">
+              <TabsTrigger value="wallet" className="text-xs px-4" data-tour="payments-tab-wallet">
                 {t("admin.payments.tabs.wallet")}
               </TabsTrigger>
-              <TabsTrigger value="withdrawals" className="text-xs px-4">
+              <TabsTrigger value="withdrawals" className="text-xs px-4" data-tour="payments-tab-withdrawals">
                 {t("admin.payments.tabs.withdrawals")}
               </TabsTrigger>
             </TabsList>
@@ -126,11 +126,13 @@ export default function PaymentsPage() {
                   onFilterChange={setFilter}
                   onDateRangeChange={setDateRange}
                 />
-                <TableToolbar
-                  onRefresh={refetch}
-                  onClearFilters={clearFilters}
-                  canClearFilters={hasActiveFilters}
-                />
+                <div data-tour="payments-toolbar">
+                  <TableToolbar
+                    onRefresh={refetch}
+                    onClearFilters={clearFilters}
+                    canClearFilters={hasActiveFilters}
+                  />
+                </div>
               </div>
 
               <p className="text-xs text-muted-foreground">
@@ -143,6 +145,7 @@ export default function PaymentsPage() {
 
               {error && <ReportErrorState error={error} onRetry={refetch} />}
 
+              <div data-tour="payments-table">
               <PaymentTable
                 payments={payments}
                 isLoading={isLoading}
@@ -154,6 +157,7 @@ export default function PaymentsPage() {
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
               />
+              </div>
             </TabsContent>
 
             <TabsContent value="wallet" className="mt-0">

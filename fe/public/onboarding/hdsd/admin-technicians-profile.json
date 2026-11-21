@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-technicians-profile.png",
+  "width": 1440,
+  "height": 1999,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-technicians-profile-profile",
+      "x": 292,
+      "y": 359,
+      "w": 356,
+      "h": 273
+    },
+    {
+      "n": 2,
+      "stepId": "admin-technicians-profile-phone",
+      "x": 599,
+      "y": 527,
+      "w": 24,
+      "h": 24
+    },
+    {
+      "n": 3,
+      "stepId": "admin-technicians-profile-presence",
+      "x": 292,
+      "y": 656,
+      "w": 356,
+      "h": 315
+    },
+    {
+      "n": 4,
+      "stepId": "admin-technicians-profile-devices",
+      "x": 292,
+      "y": 995,
+      "w": 356,
+      "h": 446
+    },
+    {
+      "n": 5,
+      "stepId": "admin-technicians-profile-sla",
+      "x": 292,
+      "y": 1465,
+      "w": 356,
+      "h": 478
+    }
+  ]
+}

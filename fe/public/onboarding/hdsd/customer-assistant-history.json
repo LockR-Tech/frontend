@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/customer-assistant-history.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-assistant-history-refresh",
+      "x": 352,
+      "y": 12,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "customer-assistant-history-first",
+      "x": 16,
+      "y": 164,
+      "w": 380,
+      "h": 64
+    }
+  ]
+}

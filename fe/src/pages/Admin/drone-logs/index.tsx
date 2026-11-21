@@ -535,6 +535,7 @@ export default function DroneLogsPage() {
           className="bg-muted/40 hover:bg-muted/60 cursor-pointer select-none border-t border-border"
           onClick={() => toggleOrder(orderId)}
           aria-expanded={expanded}
+          data-tour={orderId === groupOrderIds[0] ? "drone-logs-first-group" : undefined}
         >
           <td colSpan={5} className="py-2.5 px-4">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
@@ -597,6 +598,7 @@ export default function DroneLogsPage() {
   return (
     <div className="space-y-4 w-full">
       {/* Header */}
+      <div data-tour="drone-logs-header">
       <PageHeader
         title={t('admin.droneLogs.title')}
         description={t('admin.droneLogs.description')}
@@ -606,6 +608,7 @@ export default function DroneLogsPage() {
           icon: RefreshCw,
         }}
       />
+      </div>
 
       {/* Chế độ thử nắp trượt theo mã ArUco (bật/tắt) */}
       <LidTestModeCard
@@ -616,7 +619,7 @@ export default function DroneLogsPage() {
       />
 
       {/* Filter Card */}
-      <Card>
+      <Card data-tour="drone-logs-filters">
         <CardContent className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
@@ -712,7 +715,7 @@ export default function DroneLogsPage() {
       </Card>
 
       {/* Logs Table Card */}
-      <Card>
+      <Card data-tour="drone-logs-table">
         <CardHeader className="py-3 px-4 border-b">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -720,7 +723,7 @@ export default function DroneLogsPage() {
               {t('admin.droneLogs.listTitle', { total: totalElements })}
             </CardTitle>
             {groupOrderIds.length > 0 && (
-              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={toggleAll}>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={toggleAll} data-tour="drone-logs-expand">
                 {allExpanded ? (
                   <ChevronsDownUp className="w-3.5 h-3.5 mr-1" />
                 ) : (

@@ -52,11 +52,13 @@ export default function OrdersPage() {
               onDateRangeChange={setDateRange}
             />
 
-            <TableToolbar
-              onRefresh={refetch}
-              onClearFilters={clearFilters}
-              canClearFilters={hasActiveFilters}
-            />
+            <div data-tour="orders-toolbar">
+              <TableToolbar
+                onRefresh={refetch}
+                onClearFilters={clearFilters}
+                canClearFilters={hasActiveFilters}
+              />
+            </div>
           </div>
 
           <p className="text-xs text-muted-foreground">
@@ -65,6 +67,7 @@ export default function OrdersPage() {
               : t("admin.orders.matchCount", { total: formatNumber(totalElements) })}
           </p>
 
+          <div data-tour="orders-table">
           <OrderTable
             orders={orders}
             isLoading={isLoading}
@@ -76,6 +79,7 @@ export default function OrdersPage() {
             onPageSizeChange={setPageSize}
             onUpdateStatus={setEditingOrder}
           />
+          </div>
         </CardContent>
       </Card>
 

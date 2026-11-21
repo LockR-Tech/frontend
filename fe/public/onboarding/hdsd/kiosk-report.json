@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/kiosk-report.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-report-map",
+      "x": 402,
+      "y": 187,
+      "w": 540,
+      "h": 384
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-report-whole",
+      "x": 864,
+      "y": 148,
+      "w": 119,
+      "h": 31
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-report-reasons",
+      "x": 30,
+      "y": 244,
+      "w": 296,
+      "h": 141
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-report-detail",
+      "x": 30,
+      "y": 393,
+      "w": 296,
+      "h": 40
+    },
+    {
+      "n": 5,
+      "stepId": "kiosk-report-picked",
+      "x": 30,
+      "y": 443,
+      "w": 296,
+      "h": 40
+    },
+    {
+      "n": 6,
+      "stepId": "kiosk-report-send",
+      "x": 30,
+      "y": 530,
+      "w": 296,
+      "h": 52
+    },
+    {
+      "n": 7,
+      "stepId": "kiosk-report-back",
+      "x": 28,
+      "y": 68,
+      "w": 40,
+      "h": 40
+    }
+  ]
+}

@@ -70,7 +70,7 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <div className="rounded-lg bg-secondary/50 border border-border p-4 text-center">
+          <div className="rounded-lg bg-secondary/50 border border-border p-4 text-center" data-tour="user-wallet-balance">
             <p className="text-xs text-muted-foreground">{t("admin.users.wallet.currentBalance")}</p>
             <p className="text-2xl font-bold tracking-tight text-foreground mt-0.5">
               {isLoading ? "..." : formatVnd(balance)}
@@ -83,7 +83,7 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
             </div>
           )}
 
-          <div>
+          <div data-tour="user-wallet-amount">
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
               {t("admin.users.wallet.amount")}
             </label>
@@ -95,7 +95,7 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
               onChange={(e) => setAmount(e.target.value)}
             />
           </div>
-          <div>
+          <div data-tour="user-wallet-reason">
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
               {t("admin.users.wallet.reason")}
             </label>
@@ -107,7 +107,7 @@ export function WalletModal({ open, onClose, userId, userName }: Props) {
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2" data-tour="user-wallet-actions">
           <Button
             variant="outline"
             onClick={() => handleAdjust(-1)}

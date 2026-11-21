@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-feedback-ratings.png",
+  "width": 1440,
+  "height": 1252,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-feedback-ratings-filters",
+      "x": 292,
+      "y": 250,
+      "w": 1116,
+      "h": 36
+    },
+    {
+      "n": 2,
+      "stepId": "admin-feedback-ratings-table",
+      "x": 292,
+      "y": 302,
+      "w": 1116,
+      "h": 910
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "image": "hdsd/admin-locker-grid.png",
+  "width": 1440,
+  "height": 1379,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-grid-tab",
+      "x": 296,
+      "y": 281,
+      "w": 90,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-grid-grid",
+      "x": 292,
+      "y": 333,
+      "w": 1116,
+      "h": 1006
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-grid-screen",
+      "x": 330,
+      "y": 534,
+      "w": 339,
+      "h": 163
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-grid-legend",
+      "x": 313,
+      "y": 1302,
+      "w": 1074,
+      "h": 16
+    },
+    {
+      "n": 5,
+      "stepId": "admin-locker-grid-cell",
+      "x": 330,
+      "y": 1137,
+      "w": 339,
+      "h": 132
+    },
+    {
+      "n": 6,
+      "stepId": "admin-locker-grid-cell-qr",
+      "x": 604,
+      "y": 1150,
+      "w": 24,
+      "h": 24
+    },
+    {
+      "n": 7,
+      "stepId": "admin-locker-grid-cell-menu",
+      "x": 632,
+      "y": 1150,
+      "w": 24,
+      "h": 24
+    },
+    {
+      "n": 8,
+      "stepId": "admin-locker-grid-cell-actions",
+      "x": 343,
+      "y": 1224,
+      "w": 313,
+      "h": 32
+    },
+    {
+      "n": 9,
+      "stepId": "admin-locker-grid-overlap",
+      "x": 313,
+      "y": 415,
+      "w": 1074,
+      "h": 86
+    }
+  ]
+}

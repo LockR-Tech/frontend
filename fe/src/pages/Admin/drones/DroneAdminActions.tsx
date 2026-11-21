@@ -164,6 +164,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
       <CardContent className="grid gap-4 md:grid-cols-3">
         <form
           className="space-y-1.5"
+          data-tour="drone-actions-rename"
           onSubmit={(e) => {
             e.preventDefault();
             if (codeChanged && !activeMission) setPending({ kind: "rename", code: trimmedCode });
@@ -190,6 +191,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
 
         <form
           className="space-y-1.5"
+          data-tour="drone-actions-battery"
           onSubmit={(e) => {
             e.preventDefault();
             if (batteryValid) setPending({ kind: "battery", percent: batteryValue });
@@ -222,7 +224,7 @@ export function DroneAdminActions({ drone, activeMission }: DroneAdminActionsPro
           )}
         </form>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1.5" data-tour="drone-actions-decommission">
           <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Trash2 className="h-3.5 w-3.5" />
             {t("admin.drones.actions.decommission")}

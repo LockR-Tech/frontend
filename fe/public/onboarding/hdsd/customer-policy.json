@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-policy.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-policy-switch",
+      "x": 16,
+      "y": 184,
+      "w": 380,
+      "h": 47
+    },
+    {
+      "n": 2,
+      "stepId": "customer-policy-consent-status",
+      "x": 16,
+      "y": 243,
+      "w": 380,
+      "h": 89
+    },
+    {
+      "n": 3,
+      "stepId": "customer-policy-contents",
+      "x": 16,
+      "y": 528,
+      "w": 380,
+      "h": 364
+    }
+  ]
+}

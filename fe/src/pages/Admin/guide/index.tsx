@@ -50,7 +50,8 @@ export default function GuideManualPage() {
   const groups = useMemo(() => (content ? browseGroups(content, normalizeRoles(user?.role)) : []), [content, user?.role]);
 
   useEffect(() => {
-    groups.forEach((g) => {
+    // Nhóm noImage không có ảnh (màn hình cần đơn thật ở đúng trạng thái) — không tải.
+    groups.filter((g) => !g.noImage).forEach((g) => {
       fetch(`/onboarding/hdsd/${g.id}.json`, { cache: "no-cache" })
         .then((r) => (r.ok ? (r.json() as Promise<HdsdMeta>) : null))
         .catch(() => null)
@@ -69,19 +70,23 @@ export default function GuideManualPage() {
   const sections = TOUR_ROLES.map((role) => ({ role, groups: groups.filter((g) => g.roles[0] === role) })).filter(
     (s) => s.groups.length > 0,
   );
+  // Neo hướng dẫn trên màn hình (F3-G13): nút "Xem trên màn hình" của nhóm đầu tiên chạy được trên web.
+  const firstRunnable = sections.flatMap((s) => s.groups).find((g) => runnable(g, "web"))?.id;
 
   return (
     <div className="space-y-8">
-      <div className="border-b border-border/60 pb-5">
+      <div data-tour="guide-header" className="border-b border-border/60 pb-5">
         <h1 className="text-2xl font-bold tracking-tight">{t("onboarding.manual.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("onboarding.manual.subtitle")}</p>
       </div>
       {sections.map((s) => (
         <section key={s.role} className="space-y-6">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{getRoleLabel(s.role)}</h2>
-          {s.groups.map((g) => (
+          {s.groups.map((g, index) => (
             <GroupManual
               key={g.id}
+              first={sections[0] === s && index === 0}
+              firstRunnable={g.id === firstRunnable}
               group={g}
               meta={meta[g.id]}
               status={groupStatus(g, seen)}
@@ -96,11 +101,16 @@ export default function GuideManualPage() {
 
 function GroupManual({
   group,
+  first,
+  firstRunnable,
   meta,
   status,
   onRun,
 }: {
   group: TourGroup;
+  /** Nhóm đầu trang / nhóm đầu tiên có nút "Xem trên màn hình": gắn neo hướng dẫn trên màn hình (F3-G13). */
+  first?: boolean;
+  firstRunnable?: boolean;
   meta: HdsdMeta | null | undefined;
   status: ReturnType<typeof groupStatus>;
   onRun?: () => void;
@@ -121,7 +131,7 @@ function GroupManual({
   return (
     <article id={`hdsd-${group.id}`} className="scroll-mt-24 rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div data-tour={first ? "guide-group-head" : undefined} className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-semibold">{t(`${TOUR_NS}:groups.${group.id}.title`)}</h3>
             <Badge variant="outline">{t(platform === "web" ? "onboarding.manual.onWeb" : platform === "mobile" ? "onboarding.manual.onApp" : "onboarding.manual.onKiosk")}</Badge>
@@ -132,7 +142,7 @@ function GroupManual({
           <p className="mt-1 text-sm text-muted-foreground">{t(`${TOUR_NS}:groups.${group.id}.summary`)}</p>
         </div>
         {onRun && (
-          <Button size="sm" variant="outline" onClick={onRun}>
+          <Button data-tour={firstRunnable ? "guide-run" : undefined} size="sm" variant="outline" onClick={onRun}>
             <PlayCircle className="mr-1.5 h-4 w-4" />
             {t("onboarding.manual.runOnScreen")}
           </Button>
@@ -144,7 +154,7 @@ function GroupManual({
         </p>
       ))}
       <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div className="min-w-0">
+        <div data-tour={first ? "guide-image" : undefined} className="min-w-0">
           {meta ? (
             <img
               src={`/onboarding/${meta.image}`}
@@ -155,10 +165,12 @@ function GroupManual({
               className={platform === "mobile" ? "mx-auto max-h-[640px] w-auto rounded-lg border" : "w-full rounded-lg border"}
             />
           ) : (
-            <p className="text-sm text-muted-foreground">{t("onboarding.manual.noImage")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t(group.noImage ? "onboarding.manual.noImageState" : "onboarding.manual.noImage")}
+            </p>
           )}
         </div>
-        <ol className="space-y-3">
+        <ol data-tour={first ? "guide-steps" : undefined} className="space-y-3">
           {numbered.map((s) => (
             <li key={s.id} className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">

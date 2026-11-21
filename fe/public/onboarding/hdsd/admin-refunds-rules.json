@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-refunds-rules.png",
+  "width": 1440,
+  "height": 1389,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-refunds-rules-tab",
+      "x": 643,
+      "y": 471,
+      "w": 224,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-refunds-rules-steps",
+      "x": 317,
+      "y": 618,
+      "w": 1066,
+      "h": 151
+    },
+    {
+      "n": 3,
+      "stepId": "admin-refunds-rules-scenarios",
+      "x": 317,
+      "y": 784,
+      "w": 1066,
+      "h": 555
+    }
+  ]
+}

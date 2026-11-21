@@ -109,7 +109,7 @@ export function CreateNotificationModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
+          <div data-tour="notif-create-type" className="space-y-1.5">
             <Label>{t("admin.notifications.create.notifType")}</Label>
             <Select
               value={formData.type}
@@ -129,7 +129,7 @@ export function CreateNotificationModal({
             {typeHint && <p className="text-xs text-muted-foreground/70">{typeHint}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div data-tour="notif-create-recipient" className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t("admin.notifications.create.recipient")} *</Label>
               <Input
@@ -170,7 +170,7 @@ export function CreateNotificationModal({
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div data-tour="notif-create-subject" className="space-y-1.5">
             <Label>{t("admin.notifications.create.subject")} *</Label>
             <Input
               value={formData.title}
@@ -182,7 +182,7 @@ export function CreateNotificationModal({
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div data-tour="notif-create-content" className="space-y-1.5">
             <Label>{t("admin.notifications.create.content")} *</Label>
             <Textarea
               value={formData.message}
@@ -195,7 +195,7 @@ export function CreateNotificationModal({
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div data-tour="notif-create-submit" className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"

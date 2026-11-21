@@ -33,7 +33,7 @@ export function SchedulerStatus() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* System status row */}
-        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+        <div data-tour="scheduler-status" className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
           <div>
             <span className="font-medium">{t("admin.scheduler.systemStatus")}</span>
             {status?.owner && (
@@ -76,7 +76,7 @@ export function SchedulerStatus() {
         </div>
 
         {/* Job list — dựng từ OrderScheduler.java, không lấy từ API */}
-        <div>
+        <div data-tour="scheduler-auto-jobs">
           <h4 className="text-sm font-medium text-muted-foreground mb-3">
             {t("admin.scheduler.autoJobs")}
           </h4>

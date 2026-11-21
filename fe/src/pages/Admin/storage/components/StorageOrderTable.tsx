@@ -181,6 +181,7 @@ export function StorageOrderTable({
           variant="outline"
           className="gap-1.5 whitespace-nowrap"
           onClick={() => onHandOver(row.original)}
+          data-tour={row.index === 0 ? "storage-first-handover" : undefined}
         >
           <HandHelping className="h-4 w-4" />
           {t("admin.storage.table.handOver")}

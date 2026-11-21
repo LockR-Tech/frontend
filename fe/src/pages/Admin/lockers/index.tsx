@@ -68,11 +68,13 @@ export default function LockersPage() {
               totalLockers={totalLockers}
             />
 
-            <TableToolbar
-              onRefresh={refetch}
-              onClearFilters={clearFilters}
-              canClearFilters={hasActiveFilters}
-            />
+            <div data-tour="adm-lockers-toolbar">
+              <TableToolbar
+                onRefresh={refetch}
+                onClearFilters={clearFilters}
+                canClearFilters={hasActiveFilters}
+              />
+            </div>
           </div>
 
           <LockerTable

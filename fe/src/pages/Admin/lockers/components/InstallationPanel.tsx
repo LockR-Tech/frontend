@@ -140,7 +140,7 @@ export function InstallationPanel({ lockerId, lockerCode, technicians }: Props) 
   return (
     <div className="space-y-4">
       {!isOpen && (
-        <Card>
+        <Card data-tour="adm-locker-install-create">
           <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-lg bg-secondary border border-border/60 flex items-center justify-center shrink-0">
@@ -268,7 +268,7 @@ function InstallationView({
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-      <Card className="xl:col-span-1">
+      <Card className="xl:col-span-1" data-tour="adm-locker-install-info">
         <CardHeader className="pb-3 flex flex-row items-start justify-between gap-2 space-y-0">
           <div className="space-y-1.5">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -280,7 +280,7 @@ function InstallationView({
             </Badge>
           </div>
           {open && (
-            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={onEdit}>
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={onEdit} data-tour="adm-locker-install-edit">
               <Pencil className="w-3.5 h-3.5" />
               {t("button.edit")}
             </Button>
@@ -327,7 +327,7 @@ function InstallationView({
             </div>
           )}
           {open && (
-            <div className="pt-2 flex flex-wrap gap-2">
+            <div className="pt-2 flex flex-wrap gap-2" data-tour="adm-locker-install-actions">
               {installation.status === "SUBMITTED" && (
                 <>
                   <Button
@@ -356,7 +356,7 @@ function InstallationView({
       </Card>
 
       <div className="xl:col-span-2 space-y-4">
-        <Card>
+        <Card data-tour="adm-locker-install-checklist">
           <CardHeader className="pb-3 flex flex-row items-center justify-between gap-2 space-y-0">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <ClipboardCheck className="w-4 h-4 text-muted-foreground" />
@@ -404,7 +404,7 @@ function InstallationView({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="adm-locker-install-photos">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Camera className="w-4 h-4 text-muted-foreground" />

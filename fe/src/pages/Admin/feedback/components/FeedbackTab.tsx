@@ -52,7 +52,7 @@ export function FeedbackTab() {
       {isError && <ErrorBanner onRetry={refetch} />}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center justify-between">
+      <div data-tour="feedback-list-filters" className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-2.5 items-center">
           <Select
             value={minRating}
@@ -105,7 +105,7 @@ export function FeedbackTab() {
           ))}
         </div>
       ) : (
-        <Card className="overflow-hidden border border-border">
+        <Card data-tour="feedback-list-table" className="overflow-hidden border border-border">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
@@ -129,9 +129,10 @@ export function FeedbackTab() {
                   </TableCell>
                 </TableRow>
               )}
-              {list.map((fb) => (
+              {list.map((fb, index) => (
                 <TableRow
                   key={fb.id}
+                  data-tour={index === 0 ? "feedback-first-row" : undefined}
                   className="cursor-pointer hover:bg-secondary/40 transition-colors"
                   onClick={() => navigate(`/admin/feedback/${fb.id}`)}
                 >
@@ -191,7 +192,7 @@ export function FeedbackTab() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-2">
+        <div data-tour="feedback-list-pagination" className="flex items-center justify-center gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"

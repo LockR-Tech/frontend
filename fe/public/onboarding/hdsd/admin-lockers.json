@@ -14,11 +14,51 @@
     },
     {
       "n": 2,
+      "stepId": "admin-lockers-toolbar",
+      "x": 1192,
+      "y": 238,
+      "w": 192,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-lockers-batch",
+      "x": 316,
+      "y": 326,
+      "w": 1068,
+      "h": 58
+    },
+    {
+      "n": 4,
       "stepId": "admin-lockers-list",
-      "x": 292,
-      "y": 186,
-      "w": 1116,
-      "h": 1206
+      "x": 316,
+      "y": 400,
+      "w": 1068,
+      "h": 968
+    },
+    {
+      "n": 5,
+      "stepId": "admin-lockers-tech",
+      "x": 981,
+      "y": 489,
+      "w": 124,
+      "h": 20
+    },
+    {
+      "n": 6,
+      "stepId": "admin-lockers-boxes",
+      "x": 1139,
+      "y": 484,
+      "w": 128,
+      "h": 32
+    },
+    {
+      "n": 7,
+      "stepId": "admin-lockers-menu",
+      "x": 1299,
+      "y": 484,
+      "w": 32,
+      "h": 32
     }
   ]
 }

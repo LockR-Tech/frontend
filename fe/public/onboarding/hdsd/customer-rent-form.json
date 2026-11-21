@@ -1,0 +1,72 @@
+{
+  "image": "hdsd/customer-rent-form.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-rent-form-locker",
+      "x": 16,
+      "y": 271,
+      "w": 380,
+      "h": 72
+    },
+    {
+      "n": 2,
+      "stepId": "customer-rent-form-type",
+      "x": 16,
+      "y": 390,
+      "w": 380,
+      "h": 160
+    },
+    {
+      "n": 3,
+      "stepId": "customer-rent-form-mode",
+      "x": 16,
+      "y": 597,
+      "w": 380,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "customer-rent-form-duration",
+      "x": 16,
+      "y": 641,
+      "w": 380,
+      "h": 86
+    },
+    {
+      "n": 5,
+      "stepId": "customer-rent-form-note",
+      "x": 16,
+      "y": 827,
+      "w": 380,
+      "h": 72
+    },
+    {
+      "n": 6,
+      "stepId": "customer-rent-form-promo",
+      "x": 16,
+      "y": 942,
+      "w": 380,
+      "h": 51
+    },
+    {
+      "n": 7,
+      "stepId": "customer-rent-form-points",
+      "x": 16,
+      "y": 1036,
+      "w": 380,
+      "h": 97
+    },
+    {
+      "n": 8,
+      "stepId": "customer-rent-form-bottom",
+      "x": 16,
+      "y": 1545,
+      "w": 380,
+      "h": 139
+    }
+  ]
+}

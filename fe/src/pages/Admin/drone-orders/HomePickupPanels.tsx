@@ -47,9 +47,10 @@ function apiMessage(error: unknown): string | undefined {
   return (error as { data?: { message?: string } })?.data?.message;
 }
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+/** `data-tour` = neo hướng dẫn trên màn hình (data-tour) của khối. */
+function Panel({ title, children, "data-tour": tour }: { title: string; children: React.ReactNode; "data-tour"?: string }) {
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-tour={tour}>
       <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </h3>
@@ -104,7 +105,7 @@ export function PickupPanel({ order }: { order: DroneOrderTracking }) {
       : null;
 
   return (
-    <Panel title={t("admin.droneOrders.section.pickup")}>
+    <Panel title={t("admin.droneOrders.section.pickup")} data-tour="drone-order-pickup">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <LabelValue label={t("admin.droneOrders.pickup.status")}>
           {t(`admin.droneOrders.pickup.statusLabel.${status}`, { defaultValue: status })}
@@ -276,7 +277,7 @@ export function CloseAsFailedForm({ order }: { order: DroneOrderTracking }) {
   };
 
   return (
-    <Panel title={t("admin.droneOrders.section.closeAsFailed")}>
+    <Panel title={t("admin.droneOrders.section.closeAsFailed")} data-tour="drone-order-close-failed">
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
         <select
           aria-label={t("admin.droneOrders.closeAsFailed.reasonLabel")}

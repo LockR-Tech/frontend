@@ -6990,6 +6990,7 @@
       "onApp": "App mobile",
       "runOnScreen": "Xem trên màn hình",
       "noImage": "Chưa có ảnh minh hoạ cho nhóm này.",
+      "noImageState": "Màn hình này chỉ hiện khi đơn đang ở đúng bước (chờ thanh toán, đang bỏ hàng…) nên không có ảnh — làm theo các bước bên cạnh.",
       "onKiosk": "Tại tủ (kiosk)"
     }
   }

@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/kiosk-success.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-success-title",
+      "x": 209,
+      "y": 294,
+      "w": 154,
+      "h": 31
+    },
+    {
+      "n": 2,
+      "stepId": "kiosk-success-card",
+      "x": 518,
+      "y": 170,
+      "w": 420,
+      "h": 313
+    },
+    {
+      "n": 3,
+      "stepId": "kiosk-success-home",
+      "x": 136,
+      "y": 394,
+      "w": 300,
+      "h": 52
+    },
+    {
+      "n": 4,
+      "stepId": "kiosk-success-countdown",
+      "x": 205,
+      "y": 456,
+      "w": 162,
+      "h": 16
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/locker-tech-inspect-cabinet.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-inspect-cabinet-summary",
+      "x": 16,
+      "y": 742,
+      "w": 380,
+      "h": 90
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-inspect-cabinet-legend",
+      "x": 16,
+      "y": 840,
+      "w": 380,
+      "h": 56
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-inspect-cabinet-cabinet",
+      "x": 16,
+      "y": 908,
+      "w": 380,
+      "h": 656
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-inspect-cabinet-first-cell",
+      "x": 141,
+      "y": 976,
+      "w": 79,
+      "h": 77
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-inspect-cabinet-box-health",
+      "x": 16,
+      "y": 1576,
+      "w": 380,
+      "h": 124
+    }
+  ]
+}

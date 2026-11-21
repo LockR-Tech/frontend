@@ -92,7 +92,7 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
+        <DialogHeader data-tour="store-detail-settings-head">
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-4 w-4 text-muted-foreground" />
             {t("admin.stores.lockerSetting.title")}
@@ -103,7 +103,7 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <div className="space-y-3">
+          <div className="space-y-3" data-tour="store-detail-settings-form">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">
                 {t("admin.stores.lockerForm.name")} <span className="text-red-500">*</span>
@@ -173,7 +173,7 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
             </div>
           </div>
 
-          <div className="border-t pt-3">
+          <div className="border-t pt-3" data-tour="store-detail-settings-maintenance">
             <p className="text-xs text-muted-foreground mb-2 font-medium">
               {t("admin.stores.lockerSetting.maintenanceMode")}
             </p>
@@ -201,7 +201,7 @@ export function LockerSettingModal({ locker, onClose, onRefresh }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter data-tour="store-detail-settings-actions">
           <Button variant="outline" onClick={onClose}>
             {t("button.cancel")}
           </Button>

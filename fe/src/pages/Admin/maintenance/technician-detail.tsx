@@ -752,7 +752,7 @@ export default function TechnicianDetailPage() {
       {/* 1. TOP HEADER & BREADCRUMB                                   */}
       {/* ============================================================ */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b pb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-tour="tech-detail-header">
           <Button
             variant="outline"
             size="icon"
@@ -815,6 +815,7 @@ export default function TechnicianDetailPage() {
             variant="outline"
             size="sm"
             className="h-9 gap-1.5 text-xs"
+            data-tour="tech-detail-refresh"
             onClick={() => {
               refetchPerf();
               refetchReports();
@@ -831,6 +832,7 @@ export default function TechnicianDetailPage() {
             <Button
               size="sm"
               className="h-9 gap-1.5 text-xs bg-primary text-primary-foreground shadow-xs"
+              data-tour="tech-detail-assign"
               onClick={() => setAssignDialogOpen(true)}
             >
               <Plus className="w-3.5 h-3.5" />
@@ -844,6 +846,7 @@ export default function TechnicianDetailPage() {
               size="sm"
               className="h-9 gap-1.5 text-xs border-amber-300 text-amber-800 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-300"
               onClick={handleSendWarning}
+              data-tour="tech-detail-warning"
             >
               <Send className="w-3.5 h-3.5" />
               {t("admin.maintenance.techDetail.sendWarning")}
@@ -860,6 +863,7 @@ export default function TechnicianDetailPage() {
             }`}
             onClick={() => (technician.enabled ? setSuspendConfirmOpen(true) : void handleToggleStatus())}
             disabled={isUpdatingStatus}
+            data-tour="tech-detail-suspend"
           >
             {technician.enabled ? (
               <>
@@ -879,7 +883,7 @@ export default function TechnicianDetailPage() {
       {/* ============================================================ */}
       {/* 2. KPI STATS ROW (CLEAN ADMIN CARDS)                         */}
       {/* ============================================================ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-tour="tech-detail-kpis">
         {/* Total Assigned */}
         <Card className="border border-border/80 shadow-xs">
           <CardContent className="p-4">
@@ -992,7 +996,7 @@ export default function TechnicianDetailPage() {
         {/* LEFT COLUMN: Profile & SLA Regulation Card */}
         <div className="space-y-6">
           {/* Card: Profile Info */}
-          <Card className="border border-border/80 shadow-xs">
+          <Card className="border border-border/80 shadow-xs" data-tour="tech-detail-profile">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground" />
@@ -1086,6 +1090,7 @@ export default function TechnicianDetailPage() {
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+                      data-tour="tech-detail-edit-phone"
                       onClick={() => {
                         setPhoneInput(technician.phoneNumber || "");
                         setEditPhoneOpen(true);
@@ -1130,7 +1135,7 @@ export default function TechnicianDetailPage() {
           </Card>
 
           {/* Card: Ca làm việc & Vị trí GPS hiện trường */}
-          <Card className="border border-border/80 shadow-xs">
+          <Card className="border border-border/80 shadow-xs" data-tour="tech-detail-presence">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -1252,7 +1257,7 @@ export default function TechnicianDetailPage() {
           </Card>
 
           {/* Card: Thiết bị (Kiosk / Drone) phụ trách */}
-          <Card className="border border-border/80 shadow-xs">
+          <Card className="border border-border/80 shadow-xs" data-tour="tech-detail-devices">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -1406,7 +1411,7 @@ export default function TechnicianDetailPage() {
           </Card>
 
           {/* Card: SLA Policy & Penalty Status */}
-          <Card className="border border-border/80 shadow-xs">
+          <Card className="border border-border/80 shadow-xs" data-tour="tech-detail-sla">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -1499,6 +1504,7 @@ export default function TechnicianDetailPage() {
             <div className="border-b pb-2 overflow-x-auto scrollbar-none">
               <TabsList className="h-9 p-1 bg-muted/60 border border-border/50 rounded-lg inline-flex w-auto min-w-full sm:min-w-0">
                 <TabsTrigger
+                  data-tour="tech-detail-tab-tickets"
                   value="tickets"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs whitespace-nowrap"
                 >
@@ -1508,6 +1514,7 @@ export default function TechnicianDetailPage() {
                   })}
                 </TabsTrigger>
                 <TabsTrigger
+                  data-tour="tech-detail-tab-timeline"
                   value="timeline"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs whitespace-nowrap"
                 >
@@ -1515,6 +1522,7 @@ export default function TechnicianDetailPage() {
                   {t("admin.maintenance.techDetail.tabTimeline")}
                 </TabsTrigger>
                 <TabsTrigger
+                  data-tour="tech-detail-tab-schedules"
                   value="schedules"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs whitespace-nowrap"
                 >
@@ -1525,6 +1533,7 @@ export default function TechnicianDetailPage() {
                   ({assignedSchedules.length})
                 </TabsTrigger>
                 <TabsTrigger
+                  data-tour="tech-detail-tab-reviews"
                   value="reviews"
                   className="rounded-md gap-1.5 text-xs data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs whitespace-nowrap"
                 >
@@ -1541,7 +1550,7 @@ export default function TechnicianDetailPage() {
               {/* Filter & Search Toolbar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-muted/30 border border-border/60 rounded-xl p-2.5">
                 {/* Filter Pills with Parentheses Counts */}
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap" data-tour="tech-detail-ticket-filters">
                   {[
                     {
                       key: "ALL" as const,
@@ -1589,7 +1598,7 @@ export default function TechnicianDetailPage() {
                 </div>
 
                 {/* Search input */}
-                <div className="relative w-full sm:w-60 shrink-0">
+                <div className="relative w-full sm:w-60 shrink-0" data-tour="tech-detail-ticket-search">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <Input
                     placeholder={t("admin.maintenance.techDetail.searchPlaceholder")}
@@ -1638,7 +1647,7 @@ export default function TechnicianDetailPage() {
                 </Card>
               ) : (
                 <div className="space-y-3">
-                  {filteredReports.map((report) => {
+                  {filteredReports.map((report, index) => {
                     const isDone = report.status === "RESOLVED";
                     const isWorking = report.status === "IN_PROGRESS";
                     const isNew = !isDone && !isWorking;
@@ -1662,7 +1671,10 @@ export default function TechnicianDetailPage() {
                       >
                         <CardContent className="p-4 space-y-3">
                           <div className="flex items-start justify-between gap-3">
-                            <div className="space-y-1 flex-1 min-w-0">
+                            <div
+                              className="space-y-1 flex-1 min-w-0"
+                              data-tour={index === 0 ? "tech-detail-ticket-summary" : undefined}
+                            >
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-sm text-foreground">
                                   RPT-{report.id} · {report.title}
@@ -1764,7 +1776,10 @@ export default function TechnicianDetailPage() {
                               )}
                             </div>
 
-                            <div className="flex flex-col items-end gap-1.5 shrink-0">
+                            <div
+                              className="flex flex-col items-end gap-1.5 shrink-0"
+                              data-tour={index === 0 ? "tech-detail-ticket-actions" : undefined}
+                            >
                               <RepairLogDialog
                                 reportId={report.id}
                                 title={`RPT-${report.id} · ${report.title}`}
@@ -1801,7 +1816,10 @@ export default function TechnicianDetailPage() {
                           </div>
 
                           {/* Location & Time info row */}
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2 border-t border-border/60 text-xs text-muted-foreground">
+                          <div
+                            className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2 border-t border-border/60 text-xs text-muted-foreground"
+                            data-tour={index === 0 ? "tech-detail-ticket-info" : undefined}
+                          >
                             <div className="flex items-center gap-1.5 truncate">
                               <MapPin className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                               <Link
@@ -1854,7 +1872,7 @@ export default function TechnicianDetailPage() {
 
             {/* TAB 2: ACTIVITY TIMELINE */}
             <TabsContent value="timeline" className="space-y-4 pt-1">
-              <Card className="border border-border/80 shadow-xs">
+              <Card className="border border-border/80 shadow-xs" data-tour="tech-detail-timeline">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
                     <History className="w-4 h-4 text-muted-foreground" />
@@ -1927,7 +1945,7 @@ export default function TechnicianDetailPage() {
             {/* TAB 3: REVIEWS & CSAT */}
             <TabsContent value="reviews" className="space-y-4 pt-1">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border border-border/80 shadow-xs md:col-span-1">
+                <Card className="border border-border/80 shadow-xs md:col-span-1" data-tour="tech-detail-csat">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold">
                       {t("admin.maintenance.techDetail.csat")}
@@ -1975,7 +1993,7 @@ export default function TechnicianDetailPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border border-border/80 shadow-xs md:col-span-2">
+                <Card className="border border-border/80 shadow-xs md:col-span-2" data-tour="tech-detail-ratings">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-semibold">
                       {t("admin.maintenance.techDetail.recentRatings")}
@@ -2029,7 +2047,7 @@ export default function TechnicianDetailPage() {
             {/* TAB 4: PREVENTIVE SCHEDULES ASSIGNED TO THIS TECHNICIAN */}
             <TabsContent value="schedules" className="space-y-4 pt-1">
               {/* Card 1: Thiết bị (Kiosk / Drone) phụ trách định kỳ */}
-              <Card className="border border-border/70 shadow-xs">
+              <Card className="border border-border/70 shadow-xs" data-tour="tech-detail-schedules">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div>
@@ -2187,7 +2205,7 @@ export default function TechnicianDetailPage() {
               </Card>
 
               {/* Card 2: Lịch Sử Các Đợt Kiểm Tra Đã Hoàn Tất Của KTV */}
-              <Card className="border border-border/70 shadow-xs">
+              <Card className="border border-border/70 shadow-xs" data-tour="tech-detail-inspections">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
                     <History className="w-4 h-4 text-emerald-600" />
@@ -2360,7 +2378,7 @@ export default function TechnicianDetailPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 py-2">
+          <div className="space-y-3 py-2" data-tour="tech-detail-assign-list">
             <p className="text-xs text-muted-foreground">
               {t("admin.maintenance.techDetail.assignPick")}
             </p>
@@ -2411,7 +2429,7 @@ export default function TechnicianDetailPage() {
             )}
           </div>
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-2" data-tour="tech-detail-assign-actions">
             <Button
               variant="outline"
               size="sm"

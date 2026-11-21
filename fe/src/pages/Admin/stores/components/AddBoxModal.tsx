@@ -79,7 +79,7 @@ export function AddBoxModal({
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-xs">
-        <DialogHeader>
+        <DialogHeader data-tour="store-detail-add-box-head">
           <DialogTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
             {t("admin.stores.addBox.title")}
@@ -89,7 +89,7 @@ export function AddBoxModal({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
-          <div>
+          <div data-tour="store-detail-add-box-number">
             <label className="text-xs text-muted-foreground mb-1 block">
               {t("admin.stores.addBox.boxNumber")} <span className="text-red-500">*</span>
             </label>
@@ -103,7 +103,7 @@ export function AddBoxModal({
               }}
             />
           </div>
-          <div>
+          <div data-tour="store-detail-add-box-size">
             <label className="text-xs text-muted-foreground mb-1 block">
               {t("admin.stores.addBox.sizeLabel")}
             </label>
@@ -121,7 +121,7 @@ export function AddBoxModal({
             </Select>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter data-tour="store-detail-add-box-actions">
           <Button variant="outline" onClick={onClose} disabled={saving}>
             {t("button.cancel")}
           </Button>

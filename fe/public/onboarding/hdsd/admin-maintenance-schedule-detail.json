@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/admin-maintenance-schedule-detail.png",
+  "width": 1440,
+  "height": 904,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-maintenance-schedule-detail-open",
+      "x": 980,
+      "y": 434,
+      "w": 140,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-maintenance-schedule-detail-params",
+      "x": 409,
+      "y": 193,
+      "w": 622,
+      "h": 77
+    },
+    {
+      "n": 3,
+      "stepId": "admin-maintenance-schedule-detail-location",
+      "x": 409,
+      "y": 286,
+      "w": 622,
+      "h": 139
+    },
+    {
+      "n": 4,
+      "stepId": "admin-maintenance-schedule-detail-checklist",
+      "x": 409,
+      "y": 441,
+      "w": 622,
+      "h": 106
+    },
+    {
+      "n": 5,
+      "stepId": "admin-maintenance-schedule-detail-history",
+      "x": 409,
+      "y": 563,
+      "w": 622,
+      "h": 215
+    },
+    {
+      "n": 6,
+      "stepId": "admin-maintenance-schedule-detail-actions",
+      "x": 409,
+      "y": 812,
+      "w": 622,
+      "h": 36
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/locker-tech-routine.png",
+  "width": 412,
+  "height": 806,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-routine-tab",
+      "x": 153,
+      "y": 251,
+      "w": 107,
+      "h": 49
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-routine-intro",
+      "x": 12,
+      "y": 312,
+      "w": 388,
+      "h": 113
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-routine-scope",
+      "x": 12,
+      "y": 435,
+      "w": 388,
+      "h": 34
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-routine-due-filter",
+      "x": 12,
+      "y": 478,
+      "w": 388,
+      "h": 34
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-routine-first-card",
+      "x": 12,
+      "y": 551,
+      "w": 388,
+      "h": 227
+    },
+    {
+      "n": 6,
+      "stepId": "locker-tech-routine-first-details",
+      "x": 28,
+      "y": 730,
+      "w": 84,
+      "h": 32
+    },
+    {
+      "n": 7,
+      "stepId": "locker-tech-routine-first-inspect",
+      "x": 281,
+      "y": 730,
+      "w": 102,
+      "h": 32
+    }
+  ]
+}

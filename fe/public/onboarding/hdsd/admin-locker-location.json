@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-locker-location.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-location-tab",
+      "x": 386,
+      "y": 281,
+      "w": 131,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-location-open",
+      "x": 1245,
+      "y": 367,
+      "w": 146,
+      "h": 36
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-location-search",
+      "x": 285,
+      "y": 129,
+      "w": 522,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-location-tools",
+      "x": 817,
+      "y": 129,
+      "w": 338,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-locker-location-map",
+      "x": 273,
+      "y": 178,
+      "w": 894,
+      "h": 434
+    },
+    {
+      "n": 6,
+      "stepId": "admin-locker-location-fields",
+      "x": 273,
+      "y": 612,
+      "w": 894,
+      "h": 182
+    },
+    {
+      "n": 7,
+      "stepId": "admin-locker-location-save",
+      "x": 273,
+      "y": 793,
+      "w": 894,
+      "h": 61
+    }
+  ]
+}

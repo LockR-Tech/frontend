@@ -197,7 +197,7 @@ export function EditBoxModal({
 
             <div className="space-y-3.5 py-4 text-xs">
               {/* Chọn công năng / loại ô */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5" data-tour="adm-locker-edit-type">
                 <Label htmlFor="editCellType" className="font-semibold text-xs flex items-center justify-between">
                   <span>{t("admin.lockers.editBox.cellType")}</span>
                   <span className="text-[10px] text-muted-foreground font-normal">{t("admin.lockers.editBox.cellTypeHint")}</span>
@@ -239,7 +239,7 @@ export function EditBoxModal({
               </div>
 
               {/* Số ô & Kích cỡ */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3" data-tour="adm-locker-edit-number">
                 <div className="space-y-1.5">
                   <Label htmlFor="editBoxNumber" className="font-semibold text-xs">
                     {t("admin.lockers.editBox.boxNumber")}
@@ -311,7 +311,7 @@ export function EditBoxModal({
               </div>
 
               {/* Trạng thái hoạt động */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5" data-tour="adm-locker-edit-status">
                 <Label htmlFor="editStatus" className="font-semibold text-xs">
                   {t("admin.lockers.editBox.status")}
                 </Label>
@@ -360,7 +360,7 @@ export function EditBoxModal({
               </div>
             </div>
 
-            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
+            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-2" data-tour="adm-locker-edit-footer">
               <Button
                 type="button"
                 variant="ghost"

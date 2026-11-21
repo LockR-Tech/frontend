@@ -10,6 +10,8 @@ interface JobCardProps {
   onTrigger: () => void;
   isLoading: boolean;
   lastRun?: string;
+  /** Neo hướng dẫn trên màn hình (F3-G13), gắn trên nút "Chạy ngay". */
+  "data-tour"?: string;
 }
 
 export function JobCard({
@@ -20,6 +22,7 @@ export function JobCard({
   onTrigger,
   isLoading,
   lastRun,
+  "data-tour": dataTour,
 }: JobCardProps) {
   const { t } = useTranslation();
   return (
@@ -46,6 +49,7 @@ export function JobCard({
         )}
 
         <Button
+          data-tour={dataTour}
           onClick={onTrigger}
           disabled={isLoading}
           className="w-full"

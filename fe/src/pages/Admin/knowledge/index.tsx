@@ -61,19 +61,21 @@ export default function KnowledgePage() {
   return (
     <TooltipProvider delayDuration={200}>
       <div className="space-y-5 pb-6">
-        <PageHeader
-          title={t("admin.knowledge.page.title")}
-          description={t("admin.knowledge.page.description")}
-          className="mb-0"
-          action={{
-            label: t("admin.knowledge.page.assistantSettings"),
-            onClick: () => navigate(SETTINGS_PATH),
-            icon: Settings2,
-          }}
-        />
+        <div data-tour="knowledge-header">
+          <PageHeader
+            title={t("admin.knowledge.page.title")}
+            description={t("admin.knowledge.page.description")}
+            className="mb-0"
+            action={{
+              label: t("admin.knowledge.page.assistantSettings"),
+              onClick: () => navigate(SETTINGS_PATH),
+              icon: Settings2,
+            }}
+          />
+        </div>
 
         {status?.configured === false && (
-          <Alert className="border-amber-300 bg-amber-50 text-amber-900">
+          <Alert data-tour="knowledge-alert" className="border-amber-300 bg-amber-50 text-amber-900">
             <TriangleAlert className="h-4 w-4" />
             <AlertTitle className="text-sm">{t("admin.knowledge.alerts.missingKeysTitle")}</AlertTitle>
             <AlertDescription className="text-xs">
@@ -95,7 +97,7 @@ export default function KnowledgePage() {
           </Alert>
         )}
         {status?.enabled === false && (
-          <Alert className="bg-muted/30">
+          <Alert data-tour="knowledge-alert" className="bg-muted/30">
             <PowerOff className="h-4 w-4" />
             <AlertTitle className="text-sm">{t("admin.knowledge.alerts.disabledTitle")}</AlertTitle>
             <AlertDescription className="text-xs">
@@ -111,13 +113,14 @@ export default function KnowledgePage() {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-5">
           <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-            <TabsList className="h-auto w-max gap-1 rounded-xl border border-border/50 bg-muted/60 p-1">
+            <TabsList data-tour="knowledge-tabs" className="h-auto w-max gap-1 rounded-xl border border-border/50 bg-muted/60 p-1">
               {TABS.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
+                    data-tour={`knowledge-tab-${tab.value}`} /* "knowledge-tab-documents" "knowledge-tab-conversations" "knowledge-tab-eval" */
                     className="gap-2 rounded-lg px-3 py-2 text-xs sm:text-sm"
                   >
                     <Icon className="h-4 w-4" />

@@ -81,7 +81,7 @@ export function PaymentFilters({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2" data-tour="payments-filter-row">
         <div className="relative w-full sm:w-80">
           <Search
             size={16}
@@ -144,14 +144,16 @@ export function PaymentFilters({
         </Select>
       </div>
 
-      <DateRangeFilter
-        value={{ from: filters.from, to: filters.to }}
-        onChange={onDateRangeChange}
-        allowEmpty
-      />
-      <p className="text-[11px] text-muted-foreground">
-        {t("admin.payments.filters.dateHint")}
-      </p>
+      <div data-tour="payments-date-range" className="space-y-3">
+        <DateRangeFilter
+          value={{ from: filters.from, to: filters.to }}
+          onChange={onDateRangeChange}
+          allowEmpty
+        />
+        <p className="text-[11px] text-muted-foreground">
+          {t("admin.payments.filters.dateHint")}
+        </p>
+      </div>
     </div>
   );
 }

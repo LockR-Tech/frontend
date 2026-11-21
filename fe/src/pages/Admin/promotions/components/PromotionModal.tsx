@@ -233,7 +233,7 @@ export function PromotionModal({
           )}
 
           {/* Code + Title */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3" data-tour="promo-form-code">
             <div className="space-y-1.5">
               <Label>
                 {t("admin.promotions.modal.code")}{" "}
@@ -265,7 +265,7 @@ export function PromotionModal({
           </div>
 
           {/* Description */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="promo-form-description">
             <Label>{t("admin.promotions.modal.description")}</Label>
             <Textarea
               value={form.description}
@@ -276,7 +276,7 @@ export function PromotionModal({
           </div>
 
           {/* Áp dụng tại */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="promo-form-scope">
             <Label htmlFor="promotion-locker-scope">
               {t("admin.promotions.modal.scope")}
             </Label>
@@ -298,7 +298,7 @@ export function PromotionModal({
           </div>
 
           {/* Discount */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3" data-tour="promo-form-discount">
             <div className="space-y-1.5">
               <Label>
                 {t("admin.promotions.modal.discountType")}{" "}
@@ -362,7 +362,7 @@ export function PromotionModal({
           </div>
 
           {/* Min order + Limits */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3" data-tour="promo-form-limits">
             <div className="space-y-1.5">
               <Label>{t("admin.promotions.modal.minOrder")}</Label>
               <Input
@@ -396,7 +396,7 @@ export function PromotionModal({
           </div>
 
           {/* Đổi bằng điểm */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5" data-tour="promo-form-points">
             <Label>{t("admin.promotions.modal.pointsCost")}</Label>
             <Input
               type="number"
@@ -411,7 +411,7 @@ export function PromotionModal({
           </div>
 
           {/* Date range */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3" data-tour="promo-form-dates">
             <div className="space-y-1.5">
               <Label>
                 {t("admin.promotions.modal.startDate")}{" "}
@@ -439,7 +439,7 @@ export function PromotionModal({
           </div>
 
           {/* Toggles */}
-          <div className="flex items-center gap-6 pt-1">
+          <div className="flex items-center gap-6 pt-1" data-tour="promo-form-toggles">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"

@@ -157,7 +157,13 @@ export function NotificationTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={pending}>
+              <Button
+                data-tour={info.row.index === 0 ? "notifications-row-menu" : undefined}
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                disabled={pending}
+              >
                 {pending ? (
                   <Loader2 size={14} className="animate-spin" />
                 ) : (
@@ -165,7 +171,7 @@ export function NotificationTable({
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuContent data-tour="notifications-row-menu-items" align="end" className="w-44">
               {row.status === NotificationStatus.UNREAD && (
                 <DropdownMenuItem onClick={() => onMarkRead(row.id)} className="text-xs">
                   <BookOpen size={13} className="mr-2" />

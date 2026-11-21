@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-layout-notifications.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-layout-notifications-head",
+      "x": 1033,
+      "y": 53,
+      "w": 382,
+      "h": 44
+    },
+    {
+      "n": 2,
+      "stepId": "admin-layout-notifications-list",
+      "x": 1033,
+      "y": 97,
+      "w": 382,
+      "h": 288
+    },
+    {
+      "n": 3,
+      "stepId": "admin-layout-notifications-footer",
+      "x": 1033,
+      "y": 385,
+      "w": 382,
+      "h": 41
+    }
+  ]
+}

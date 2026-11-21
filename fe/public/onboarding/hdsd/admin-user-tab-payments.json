@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-user-tab-payments.png",
+  "width": 1440,
+  "height": 1292,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-user-tab-payments-tab",
+      "x": 478,
+      "y": 836,
+      "w": 96,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-user-tab-payments-panel",
+      "x": 292,
+      "y": 888,
+      "w": 1116,
+      "h": 380
+    }
+  ]
+}

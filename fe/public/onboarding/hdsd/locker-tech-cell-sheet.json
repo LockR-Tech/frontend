@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/locker-tech-cell-sheet.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-cell-sheet-head",
+      "x": 20,
+      "y": 704,
+      "w": 372,
+      "h": 44
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-cell-sheet-actions",
+      "x": 20,
+      "y": 764,
+      "w": 372,
+      "h": 116
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-cell-sheet-force-open",
+      "x": 20,
+      "y": 822,
+      "w": 372,
+      "h": 58
+    }
+  ]
+}

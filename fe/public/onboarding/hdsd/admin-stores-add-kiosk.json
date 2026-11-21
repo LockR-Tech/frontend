@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/admin-stores-add-kiosk.png",
+  "width": 1440,
+  "height": 923,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-stores-add-kiosk-open",
+      "x": 1272,
+      "y": 835,
+      "w": 115,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-stores-add-kiosk-head",
+      "x": 521,
+      "y": 257,
+      "w": 398,
+      "h": 46
+    },
+    {
+      "n": 3,
+      "stepId": "admin-stores-add-kiosk-code",
+      "x": 521,
+      "y": 327,
+      "w": 398,
+      "h": 60
+    },
+    {
+      "n": 4,
+      "stepId": "admin-stores-add-kiosk-name",
+      "x": 521,
+      "y": 399,
+      "w": 398,
+      "h": 60
+    },
+    {
+      "n": 5,
+      "stepId": "admin-stores-add-kiosk-location",
+      "x": 521,
+      "y": 471,
+      "w": 398,
+      "h": 60
+    },
+    {
+      "n": 6,
+      "stepId": "admin-stores-add-kiosk-coords",
+      "x": 521,
+      "y": 543,
+      "w": 398,
+      "h": 60
+    },
+    {
+      "n": 7,
+      "stepId": "admin-stores-add-kiosk-actions",
+      "x": 521,
+      "y": 627,
+      "w": 398,
+      "h": 40
+    }
+  ]
+}

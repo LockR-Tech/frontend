@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/customer-locker-detail-map.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-locker-detail-map-preview",
+      "x": 16,
+      "y": 790,
+      "w": 379,
+      "h": 82
+    }
+  ]
+}

@@ -44,6 +44,12 @@ export interface TourGroup {
   manualOnly?: boolean;
   /** Màn hình trước khi đăng nhập (đăng nhập, đăng ký, OTP, 2FA): script chụp ảnh không đăng nhập. Luôn kèm manualOnly. */
   signedOut?: boolean;
+  /** Nhóm tổng quan: tự chạy khi đăng nhập lần đầu và báo "Có hướng dẫn mới" khi tăng phiên bản. Nhóm khác (chi tiết,
+   *  hộp thoại…) chỉ mở khi người dùng chọn. Nội dung không có nhóm nào đánh dấu ⇒ mọi nhóm đều tự chạy. */
+  intro?: boolean;
+  /** Trang HDSD chỉ có chữ, không ảnh: màn hình cần dữ liệu thật ở đúng trạng thái (đơn chờ thanh toán, đang bỏ hàng…)
+   *  mà script chụp không tạo được. Luôn kèm manualOnly. */
+  noImage?: boolean;
 }
 
 export interface TourContent {
@@ -133,10 +139,12 @@ export function decideAutoOpen(input: AutoOpenInput): AutoOpenDecision {
   if (!input.autoShow) return { kind: "none", reason: "skipped-forever" };
   if (input.sessionSkipped) return { kind: "none", reason: "skipped-this-session" };
   if (input.shownThisSession) return { kind: "none", reason: "already-shown" };
-  const pending = pendingGroups(input.groups, input.seen);
+  // Có nhóm tổng quan (intro) ⇒ chỉ chúng tự chạy / tự báo; nhóm chi tiết để người dùng tự chọn.
+  const auto = input.groups.some((g) => g.intro) ? input.groups.filter((g) => g.intro) : input.groups;
+  const pending = pendingGroups(auto, input.seen);
   if (pending.length === 0) return { kind: "none", reason: "nothing-new" };
   const seenAny = input.groups.some((g) => (input.seen?.[g.id] ?? 0) > 0);
-  return seenAny ? { kind: "whatsNew", groups: pending } : { kind: "welcome", groups: [...input.groups] };
+  return seenAny ? { kind: "whatsNew", groups: pending } : { kind: "welcome", groups: [...auto] };
 }
 
 /** Bước có neo mà không tìm thấy phần tử: bước "có thể không xuất hiện" bỏ qua, bước thường hiện ở giữa kèm lời báo. */
@@ -174,6 +182,8 @@ export function validateContent(content: TourContent): string[] {
     }
     if (!g.steps?.length) errors.push(`${g.id}: không có bước nào`);
     if (g.signedOut && !g.manualOnly) errors.push(`${g.id}: nhóm signedOut phải kèm manualOnly`);
+    if (g.noImage && !g.manualOnly) errors.push(`${g.id}: nhóm noImage phải kèm manualOnly`);
+    if (g.intro && g.manualOnly) errors.push(`${g.id}: nhóm intro không được là manualOnly`);
     for (const s of g.steps ?? []) {
       if (!ID_PATTERN.test(s.id) || !s.id.startsWith(`${g.id}-`)) errors.push(`${g.id}: id bước phải dạng "${g.id}-…": ${s.id}`);
       if (stepIds.has(s.id)) errors.push(`trùng id bước: ${s.id}`);

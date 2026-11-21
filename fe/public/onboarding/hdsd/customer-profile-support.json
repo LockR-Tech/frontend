@@ -1,0 +1,56 @@
+{
+  "image": "hdsd/customer-profile-support.png",
+  "width": 412,
+  "height": 1700,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-profile-support-assistant",
+      "x": 0,
+      "y": 1337,
+      "w": 412,
+      "h": 64
+    },
+    {
+      "n": 2,
+      "stepId": "customer-profile-support-quick-help",
+      "x": 0,
+      "y": 1401,
+      "w": 412,
+      "h": 64
+    },
+    {
+      "n": 3,
+      "stepId": "customer-profile-support-contact",
+      "x": 0,
+      "y": 1465,
+      "w": 412,
+      "h": 48
+    },
+    {
+      "n": 4,
+      "stepId": "customer-profile-support-terms",
+      "x": 0,
+      "y": 1513,
+      "w": 412,
+      "h": 48
+    },
+    {
+      "n": 5,
+      "stepId": "customer-profile-support-privacy",
+      "x": 0,
+      "y": 1561,
+      "w": 412,
+      "h": 48
+    },
+    {
+      "n": 6,
+      "stepId": "customer-profile-support-logout",
+      "x": 0,
+      "y": 1626,
+      "w": 412,
+      "h": 48
+    }
+  ]
+}

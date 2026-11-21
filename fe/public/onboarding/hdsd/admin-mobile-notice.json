@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/admin-mobile-notice.png",
+  "width": 412,
+  "height": 607,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-mobile-notice-logout",
+      "x": 24,
+      "y": 547,
+      "w": 364,
+      "h": 32
+    }
+  ]
+}

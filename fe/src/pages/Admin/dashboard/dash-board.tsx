@@ -258,8 +258,8 @@ export default function Dashboard() {
 
       {/* Hero KPI Cards */}
       <div data-tour="dashboard-kpis" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {heroCards.map((card) => (
-          <OverviewCard key={card.label} {...card} />
+        {heroCards.map((card, index) => (
+          <OverviewCard key={card.label} {...card} data-tour={index === 0 ? "dashboard-kpi-orders" : undefined} />
         ))}
       </div>
 

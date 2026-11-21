@@ -184,6 +184,8 @@ function CellTile({
   onShowQr,
   onShowOrders,
   busy,
+  tourFirst = false,
+  tourOrders = false,
 }: {
   cell: CellResponse;
   /** Đơn còn giữ ô này (thường 0 hoặc 1). */
@@ -195,7 +197,11 @@ function CellTile({
   onShowQr: (cell: CellResponse) => void;
   onShowOrders: (cell: CellResponse) => void;
   busy: boolean;
+  /** Neo hướng dẫn (F3-G13): ô đầu sơ đồ / ô đầu tiên đang có đơn. */
+  tourFirst?: boolean;
+  tourOrders?: boolean;
 }) {
+  const tour = (id: string) => (tourFirst ? id : undefined);
   const { t } = useTranslation();
   const isXl = isXlCell(cell);
   const isDrone = isDroneCell(cell);
@@ -334,6 +340,7 @@ function CellTile({
     <div
       className={`relative h-full rounded-xl border p-3 flex flex-col gap-1.5 overflow-hidden shadow-xs hover:shadow-md transition-all ${bgClass} ${borderClass} ${doorRingClass} ${textClass}`}
       title={cell.faultReason ?? undefined}
+      data-tour={tour("adm-locker-cell-first")}
     >
       <div className="flex items-center justify-between gap-2 z-10">
         <div className="flex items-center gap-1.5 min-w-0">
@@ -348,6 +355,7 @@ function CellTile({
             variant="ghost"
             className="h-6 w-6 p-0 hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 rounded"
             title={t("admin.lockers.cell.qrTooltip")}
+            data-tour={tour("adm-locker-cell-qr")}
             onClick={(e) => {
               e.stopPropagation();
               onShowQr(cell);
@@ -363,44 +371,45 @@ function CellTile({
                 className="h-6 w-6 p-0 hover:bg-black/10 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 rounded"
                 disabled={busy}
                 title={t("admin.lockers.cell.moreActions")}
+                data-tour={tour("adm-locker-cell-menu")}
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 text-xs">
-              <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium">
+              <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium" data-tour={tour("adm-locker-cell-menu-qr")}>
                 <QrCode className="w-3.5 h-3.5 mr-2 text-primary" /> {t("admin.lockers.cell.qrAndLabel")}
               </DropdownMenuItem>
               {isDrone && (
-                <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium text-sky-600 dark:text-sky-400">
+                <DropdownMenuItem onClick={() => onShowQr(cell)} className="cursor-pointer font-medium text-sky-600 dark:text-sky-400" data-tour={tour("adm-locker-cell-menu-aruco")}>
                   <Plane className="w-3.5 h-3.5 mr-2 text-sky-500" />
                   {cell.arucoMarkerId !== null && cell.arucoMarkerId !== undefined
                     ? t("admin.lockers.tools.layout.arucoCode", { id: cell.arucoMarkerId })
                     : t("admin.lockers.tools.layout.assignAruco")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => onEdit(cell)} className="cursor-pointer font-medium">
+              <DropdownMenuItem onClick={() => onEdit(cell)} className="cursor-pointer font-medium" data-tour={tour("adm-locker-cell-menu-edit")}>
                 <Sliders className="w-3.5 h-3.5 mr-2 text-indigo-600" /> {t("admin.lockers.cell.editFunction")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {cell.status === "AVAILABLE" && (
                 <>
-                  <DropdownMenuItem onClick={() => onAction(cell, "OUT_OF_SERVICE")} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => onAction(cell, "OUT_OF_SERVICE")} className="cursor-pointer" data-tour={tour("adm-locker-cell-menu-suspend")}>
                     <Ban className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.suspendUse")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onAction(cell, "CLEANING")} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => onAction(cell, "CLEANING")} className="cursor-pointer" data-tour={tour("adm-locker-cell-menu-cleaning")}>
                     <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-500" /> {t("admin.lockers.cell.sendToCleaning")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
               {(cell.status === "FAULT" || cell.status === "PENDING_CHECK" || cell.status === "OUT_OF_SERVICE" || cell.status === "CLEANING") && (
-                <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => onAction(cell, "FORCE_OPEN")} className="cursor-pointer" data-tour={tour("adm-locker-cell-menu-force-open")}>
                   <Unlock className="w-3.5 h-3.5 mr-2 text-slate-500" /> {t("admin.lockers.cell.forceOpen")}
                 </DropdownMenuItem>
               )}
               {cell.status !== "FAULT" && (
-                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400">
+                <DropdownMenuItem onClick={() => onAction(cell, "FAULT")} className="cursor-pointer text-rose-600 dark:text-rose-400" data-tour={tour("adm-locker-cell-menu-fault")}>
                   <Wrench className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.reportFault")}
                 </DropdownMenuItem>
               )}
@@ -410,6 +419,7 @@ function CellTile({
                 disabled={cell.status === "OCCUPIED" || cell.status === "RESERVED" || busy}
                 className="cursor-pointer text-rose-600 dark:text-rose-400 focus:text-rose-600 font-medium"
                 title={cell.status === "OCCUPIED" || cell.status === "RESERVED" ? t("admin.lockers.cell.cannotDelete") : undefined}
+                data-tour={tour("adm-locker-cell-menu-delete")}
               >
                 <Trash2 className="w-3.5 h-3.5 mr-2" /> {t("admin.lockers.cell.deleteBox")}
               </DropdownMenuItem>
@@ -460,13 +470,14 @@ function CellTile({
       )}
 
       {/* Hàng thao tác: đơn đang giữ ô (chỉ hiện khi có) và thao tác chính theo trạng thái */}
-      <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-2 z-10">
+      <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-2 z-10" data-tour={tour("adm-locker-cell-actions")}>
         {hasOrder && (
           <Button
             size="sm"
             variant="outline"
             className="h-6 px-2 text-[10px] font-semibold border-violet-300 text-violet-700 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800"
             onClick={() => onShowOrders(cell)}
+            data-tour={tourOrders ? "adm-locker-cell-orders" : undefined}
           >
             <PackageSearch className="w-3 h-3 mr-1" />
             {orders.length > 1
@@ -802,6 +813,11 @@ export default function LockerLayoutPage() {
     return byBox;
   }, [openOrdersData]);
   const [ordersCell, setOrdersCell] = useState<CellResponse | null>(null);
+  // Neo hướng dẫn: nút "Đơn đang chứa" của ô đầu tiên có đơn.
+  const firstOrderCellId = useMemo(
+    () => (openOrdersData?.data?.content ?? []).flatMap(orderBoxIds)[0] ?? null,
+    [openOrdersData],
+  );
   const ordersCellOrders = ordersCell ? ordersByBox.get(ordersCell.id) ?? [] : [];
 
   // Modal State for Adding Box(es)
@@ -1296,7 +1312,7 @@ export default function LockerLayoutPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-tour="adm-locker-title">
           <Button variant="ghost" size="icon" onClick={() => navigate("/admin/lockers")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -1318,20 +1334,20 @@ export default function LockerLayoutPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching} data-tour="adm-locker-refresh">
             <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} /> {t("button.refresh")}
           </Button>
-          <Button onClick={openAddModal} className="bg-primary text-primary-foreground shadow-xs">
+          <Button onClick={openAddModal} className="bg-primary text-primary-foreground shadow-xs" data-tour="adm-locker-add-box">
             <Plus className="w-4 h-4 mr-1.5" /> {t("admin.lockers.layout.addBox")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" title={t("admin.lockers.cell.moreActions")}>
+              <Button variant="outline" size="icon" title={t("admin.lockers.cell.moreActions")} data-tour="adm-locker-more">
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setShowLocationModal(true)}>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => setShowLocationModal(true)} data-tour="adm-locker-more-location">
                 <MapPin className="w-4 h-4 mr-2 text-sky-600 dark:text-sky-400" />
                 {staffLocker?.latitude != null && staffLocker?.longitude != null
                   ? t("admin.lockers.tools.layout.locationMenu")
@@ -1344,13 +1360,14 @@ export default function LockerLayoutPage() {
                   setSelectedQrCell(cells[0] || null);
                   setShowQrModal(true);
                 }}
+                data-tour="adm-locker-more-qr"
               >
                 <QrCode className="w-4 h-4 mr-2 text-primary" /> {t("admin.lockers.layout.qrAndPrint")}
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={() => setShowOpenQrSheet(true)}>
+              <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={() => setShowOpenQrSheet(true)} data-tour="adm-locker-more-open-qr">
                 <Unlock className="w-4 h-4 mr-2 text-amber-600" /> {t("admin.lockers.tools.openQr.button")}
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={openArrange}>
+              <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={openArrange} data-tour="adm-locker-more-arrange">
                 <LayoutGrid className="w-4 h-4 mr-2 text-primary" /> {t("admin.lockers.layout.autoArrange")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -1358,6 +1375,7 @@ export default function LockerLayoutPage() {
                 className="cursor-pointer text-destructive focus:text-destructive"
                 disabled={cells.length === 0 || isDeletingAll || isDeletingBatch || isDeletingBox}
                 onClick={() => setShowDeleteAllBoxesModal(true)}
+                data-tour="adm-locker-more-delete-all"
               >
                 <Trash2 className="w-4 h-4 mr-2" /> {t("admin.lockers.layout.deleteAllBoxes")}
               </DropdownMenuItem>
@@ -1367,7 +1385,7 @@ export default function LockerLayoutPage() {
       </div>
 
       {SUSPENDED_LOCKER_STATUSES.includes(lockerStatus) && (
-        <div className="p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 flex items-start gap-3">
+        <div className="p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 flex items-start gap-3" data-tour="adm-locker-suspended">
           <Ban className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1 text-xs">
             <p className="font-semibold text-sm text-amber-900 dark:text-amber-200">
@@ -1388,7 +1406,7 @@ export default function LockerLayoutPage() {
       )}
 
       {INSTALLATION_LOCKER_STATUSES.includes(lockerStatus) && (
-        <div className="p-4 rounded-xl border border-sky-300 bg-sky-50 dark:bg-sky-950/40 dark:border-sky-800 flex items-start gap-3">
+        <div className="p-4 rounded-xl border border-sky-300 bg-sky-50 dark:bg-sky-950/40 dark:border-sky-800 flex items-start gap-3" data-tour="adm-locker-installing">
           <Hammer className="w-5 h-5 text-sky-700 dark:text-sky-400 shrink-0 mt-0.5" />
           <div className="space-y-1 text-xs">
             <p className="font-semibold text-sm text-sky-900 dark:text-sky-200">
@@ -1400,7 +1418,7 @@ export default function LockerLayoutPage() {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-tour="adm-locker-kpis">
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">{t("admin.lockers.layout.kpi.totalBoxes")}</p>
@@ -1440,7 +1458,7 @@ export default function LockerLayoutPage() {
 
       {/* Cảnh báo cửa đang mở (đồng bộ Mobile) */}
       {cells.some((c) => isDoorOpen(c)) && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200" data-tour="adm-locker-door-warning">
           <div className="flex items-center gap-2.5">
             <DoorOpen className="w-5 h-5 text-amber-600 animate-pulse shrink-0" />
             <div>
@@ -1462,16 +1480,16 @@ export default function LockerLayoutPage() {
       )}
 
       <Tabs defaultValue={INSTALLATION_LOCKER_STATUSES.includes(lockerStatus) ? "installation" : "grid"} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="grid">{t("admin.lockers.layout.tabs.grid")}</TabsTrigger>
-          <TabsTrigger value="operations">{t("admin.lockers.layout.tabs.operations")}</TabsTrigger>
-          <TabsTrigger value="devices">{t("admin.lockers.layout.tabs.devices")}</TabsTrigger>
-          <TabsTrigger value="logs">{t("admin.lockers.layout.tabs.logs")}</TabsTrigger>
-          <TabsTrigger value="installation">{t("admin.lockers.layout.tabs.installation")}</TabsTrigger>
+        <TabsList data-tour="adm-locker-tabs">
+          <TabsTrigger value="grid" data-tour="adm-locker-tab-grid">{t("admin.lockers.layout.tabs.grid")}</TabsTrigger>
+          <TabsTrigger value="operations" data-tour="adm-locker-tab-operations">{t("admin.lockers.layout.tabs.operations")}</TabsTrigger>
+          <TabsTrigger value="devices" data-tour="adm-locker-tab-devices">{t("admin.lockers.layout.tabs.devices")}</TabsTrigger>
+          <TabsTrigger value="logs" data-tour="adm-locker-tab-logs">{t("admin.lockers.layout.tabs.logs")}</TabsTrigger>
+          <TabsTrigger value="installation" data-tour="adm-locker-tab-installation">{t("admin.lockers.layout.tabs.installation")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="grid" className="mt-0">
-      <Card className="border border-border/80 shadow-xs overflow-hidden">
+      <Card className="border border-border/80 shadow-xs overflow-hidden" data-tour="adm-locker-grid">
         <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Plane className="w-4 h-4 text-sky-600 dark:text-sky-400" />
@@ -1481,7 +1499,7 @@ export default function LockerLayoutPage() {
         <CardContent className="space-y-4 p-5">
           {/* Cảnh báo ô lưu trùng hàng/cột: trên lưới các ô này vẽ đè lên nhau nên dễ bị bỏ sót */}
           {overlapGroups.length > 0 && (
-            <div className="p-3.5 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-3.5 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3" data-tour="adm-locker-overlap">
               <div className="flex items-start gap-2.5">
                 <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="space-y-1 text-xs">
@@ -1516,6 +1534,7 @@ export default function LockerLayoutPage() {
               className="flex flex-col h-full shadow-xs transition-all hover:shadow-md"
             >
               <div
+                data-tour="adm-locker-screen"
                 onClick={() => setShowScreenModal(true)}
                 className={`relative h-full rounded-xl border-2 p-3.5 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md cursor-pointer transition-all group ${
                   isKioskScreenOnline
@@ -1592,7 +1611,7 @@ export default function LockerLayoutPage() {
               </div>
             </div>
 
-            {cells.map((cell) => {
+            {cells.map((cell, index) => {
               const slot = placement.get(cell.id) ?? baseSlot(cell);
               const gridStyle = getBoxGridStyle(slot, rowSpanOf(cell, occupied, gridRows, slot));
               return (
@@ -1609,6 +1628,8 @@ export default function LockerLayoutPage() {
                     onEdit={handleOpenEdit}
                     onShowQr={handleOpenQr}
                     onShowOrders={setOrdersCell}
+                    tourFirst={index === 0}
+                    tourOrders={cell.id === firstOrderCellId}
                     busy={
                       (faulting || clearing || oosing || cleaningBusy || returning || forceOpening) &&
                       pendingBox === cell.id
@@ -1619,7 +1640,7 @@ export default function LockerLayoutPage() {
             })}
           </div>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground" data-tour="adm-locker-legend">
             {[
               { label: t("admin.lockers.boxStatus.available"), dot: "bg-sky-500", match: (c: CellResponse) => c.status === "AVAILABLE" },
               { label: t("admin.lockers.layout.kpi.inUse"), dot: "bg-amber-500", match: (c: CellResponse) => ["OCCUPIED", "IN_USE", "RESERVED"].includes(c.status) },
@@ -1647,7 +1668,7 @@ export default function LockerLayoutPage() {
         <TabsContent value="operations" className="mt-0">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Kỹ thuật viên phụ trách */}
-        <Card className="border border-border/80 shadow-xs">
+        <Card className="border border-border/80 shadow-xs" data-tour="adm-locker-ops-tech">
           <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 h-full">
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-200/60 dark:bg-indigo-950/40 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
@@ -1680,7 +1701,7 @@ export default function LockerLayoutPage() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" data-tour="adm-locker-ops-tech-select">
               <Select value={selectedTechValue} onValueChange={setTechChoice} disabled={!staffLocker || savingTechnician}>
                 <SelectTrigger className="w-full md:w-56 h-9 text-xs">
                   <SelectValue placeholder={t("admin.lockers.layout.tech.selectPlaceholder")} />
@@ -1712,7 +1733,7 @@ export default function LockerLayoutPage() {
         </Card>
 
         {/* Vị trí & Tọa độ GPS của tủ */}
-        <Card className="border border-border/80 shadow-xs">
+        <Card className="border border-border/80 shadow-xs" data-tour="adm-locker-ops-gps">
           <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 h-full">
             <div className="flex items-start gap-3 min-w-0">
               <div className="w-9 h-9 rounded-lg bg-sky-50 border border-sky-200/60 dark:bg-sky-950/40 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
@@ -1758,6 +1779,7 @@ export default function LockerLayoutPage() {
                 variant="outline"
                 className="h-9 text-xs gap-1.5 border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40"
                 onClick={() => setShowLocationModal(true)}
+                data-tour="adm-locker-ops-location"
               >
                 <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                 {staffLocker?.latitude != null
@@ -1889,7 +1911,7 @@ export default function LockerLayoutPage() {
               {/* CỘT TRÁI (5/12 cols): Form nhập thông số */}
               <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
                 <Tabs value={addMode} onValueChange={(v) => setAddMode(v as any)} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-2" data-tour="adm-locker-add-mode">
                     <TabsTrigger value="single" className="flex items-center gap-1.5 text-xs">
                       <BoxIcon className="w-3.5 h-3.5" /> {t("admin.lockers.layout.add.tabSingle")}
                     </TabsTrigger>
@@ -1898,7 +1920,7 @@ export default function LockerLayoutPage() {
                     </TabsTrigger>
                   </TabsList>
 
-                  <div className="grid gap-3.5 py-3">
+                  <div className="grid gap-3.5 py-3" data-tour="adm-locker-add-fields">
                     {addMode === "single" ? (
                       <>
                         <div className="grid grid-cols-4 items-center gap-3">
@@ -2078,7 +2100,7 @@ export default function LockerLayoutPage() {
                     )}
 
                     {/* Common fields */}
-                    <div className="grid grid-cols-4 items-center gap-3">
+                    <div className="grid grid-cols-4 items-center gap-3" data-tour="adm-locker-add-type">
                       <Label htmlFor="cellType" className="text-right font-medium text-xs">
                         {t("admin.lockers.layout.add.cellType")}
                       </Label>
@@ -2112,7 +2134,7 @@ export default function LockerLayoutPage() {
                   </div>
                 </Tabs>
 
-                <DialogFooter className="pt-2 border-t border-border/60">
+                <DialogFooter className="pt-2 border-t border-border/60" data-tour="adm-locker-add-submit">
                   <Button type="button" variant="outline" size="sm" onClick={() => setShowAddModal(false)}>
                     {t("button.cancel")}
                   </Button>
@@ -2129,7 +2151,7 @@ export default function LockerLayoutPage() {
               </div>
 
               {/* CỘT PHẢI (7/12 cols): Phần xem trước trực quan như Word Table */}
-              <div className="lg:col-span-7 bg-muted/20 p-3.5 rounded-xl border border-border/70 flex flex-col justify-between">
+              <div className="lg:col-span-7 bg-muted/20 p-3.5 rounded-xl border border-border/70 flex flex-col justify-between" data-tour="adm-locker-add-preview">
                 <LockerAddBoxPreview
                   cells={cells}
                   mode={addMode}
@@ -2160,7 +2182,7 @@ export default function LockerLayoutPage() {
 
       {/* Đơn đang giữ ô — mở từ nút "Đơn đang chứa" trên thẻ ô */}
       <Dialog open={ordersCell != null} onOpenChange={(open) => !open && setOrdersCell(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" data-tour="adm-locker-orders-dialog">
           <DialogHeader>
             <DialogTitle>
               {t("admin.lockers.cell.ordersDialogTitle", { number: ordersCell?.boxNumber ?? "" })}
@@ -2171,8 +2193,8 @@ export default function LockerLayoutPage() {
             {ordersCellOrders.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("admin.lockers.cell.noOrder")}</p>
             ) : (
-              ordersCellOrders.map((order) => (
-                <div key={order.id} className="rounded-lg border border-border p-3 space-y-1.5">
+              ordersCellOrders.map((order, index) => (
+                <div key={order.id} className="rounded-lg border border-border p-3 space-y-1.5" data-tour={index === 0 ? "adm-locker-orders-first" : undefined}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono font-bold text-sm select-all">{order.orderCode ?? `#${order.id}`}</span>
                     <Link

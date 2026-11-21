@@ -6,6 +6,14 @@
   "marks": [
     {
       "n": 1,
+      "stepId": "customer-home-banner",
+      "x": 0,
+      "y": 70,
+      "w": 412,
+      "h": 214
+    },
+    {
+      "n": 2,
       "stepId": "customer-home-quick",
       "x": 0,
       "y": 304,
@@ -13,7 +21,7 @@
       "h": 94
     },
     {
-      "n": 2,
+      "n": 3,
       "stepId": "customer-home-scan",
       "x": 246,
       "y": 10,
@@ -21,7 +29,7 @@
       "h": 42
     },
     {
-      "n": 3,
+      "n": 4,
       "stepId": "customer-home-notifications",
       "x": 296,
       "y": 10,
@@ -29,20 +37,12 @@
       "h": 42
     },
     {
-      "n": 4,
-      "stepId": "customer-home-active",
-      "x": 0,
-      "y": 418,
-      "w": 412,
-      "h": 233
-    },
-    {
       "n": 5,
-      "stepId": "customer-home-tabs",
-      "x": 0,
-      "y": 816,
-      "w": 412,
-      "h": 76
+      "stepId": "customer-home-avatar",
+      "x": 350,
+      "y": 10,
+      "w": 42,
+      "h": 42
     },
     {
       "n": 6,
@@ -51,6 +51,22 @@
       "y": 10,
       "w": 42,
       "h": 42
+    },
+    {
+      "n": 7,
+      "stepId": "customer-home-tabs",
+      "x": 0,
+      "y": 816,
+      "w": 412,
+      "h": 76
+    },
+    {
+      "n": 8,
+      "stepId": "customer-home-assistant",
+      "x": 178,
+      "y": 820,
+      "w": 56,
+      "h": 56
     }
   ]
 }

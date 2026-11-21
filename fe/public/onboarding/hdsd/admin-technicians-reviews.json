@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-technicians-reviews.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-technicians-reviews-tab",
+      "x": 1099,
+      "y": 363,
+      "w": 154,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-technicians-reviews-csat",
+      "x": 672,
+      "y": 424,
+      "w": 235,
+      "h": 364
+    },
+    {
+      "n": 3,
+      "stepId": "admin-technicians-reviews-ratings",
+      "x": 923,
+      "y": 424,
+      "w": 485,
+      "h": 364
+    }
+  ]
+}

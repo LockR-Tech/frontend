@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-technicians-timeline.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-technicians-timeline-tab",
+      "x": 800,
+      "y": 363,
+      "w": 142,
+      "h": 28
+    },
+    {
+      "n": 2,
+      "stepId": "admin-technicians-timeline-list",
+      "x": 672,
+      "y": 424,
+      "w": 736,
+      "h": 179
+    }
+  ]
+}

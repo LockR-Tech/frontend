@@ -108,13 +108,14 @@ export default function BusinessSettingsPage() {
         <Tabs value={activeScope} onValueChange={handleTabChange} className="space-y-5">
           <div className="space-y-3">
             <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-              <TabsList className="h-auto w-max gap-1 rounded-xl border border-border/50 bg-muted/60 p-1">
+              <TabsList data-tour="settings-tabs" className="h-auto w-max gap-1 rounded-xl border border-border/50 bg-muted/60 p-1">
                 {SCOPE_TABS.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <TabsTrigger
                       key={tab.scope}
                       value={tab.scope}
+                      data-tour={`settings-tab-${tab.scope}`} /* "settings-tab-order" "settings-tab-locker" "settings-tab-payment" "settings-tab-iot" "settings-tab-auth" "settings-tab-loyalty" "settings-tab-store" "settings-tab-assistant" */
                       className="gap-2 rounded-lg px-3 py-2 text-xs sm:text-sm"
                     >
                       <Icon className="h-4 w-4" />
@@ -127,7 +128,7 @@ export default function BusinessSettingsPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="relative min-w-0 flex-1 sm:max-w-md">
+              <div data-tour="settings-search" className="relative min-w-0 flex-1 sm:max-w-md">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}

@@ -33,6 +33,33 @@ function isRendered(el: Element) {
   return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden";
 }
 
+/** Đóng hộp thoại / menu Radix còn mở (do `via` của nhóm trước) bằng phím Esc giả lập — đánh dấu để lớp khoanh
+ *  không hiểu nhầm là người dùng bấm Esc đóng hướng dẫn. */
+function closeOpenDialogs() {
+  for (let i = 0; i < 3; i++) {
+    const open = document.querySelector('[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [role="menu"][data-state="open"]');
+    if (!open || open.closest("[data-tour-overlay]")) return;
+    const ev = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+    Object.defineProperty(ev, "tourReset", { value: true });
+    open.dispatchEvent(ev);
+  }
+}
+
+/** Bấm neo `via` như người dùng thật: menu / Select / tab của Radix mở bằng pointerdown hoặc mousedown chứ không bằng
+ *  click, nên gửi đủ chuỗi sự kiện chuột rồi mới click (nút thường). */
+function activate(el: HTMLElement) {
+  const init = { bubbles: true, cancelable: true, composed: true, button: 0, view: window };
+  const pointer = (type: string, buttons: number) =>
+    typeof PointerEvent === "function"
+      ? new PointerEvent(type, { ...init, buttons, pointerId: 1, pointerType: "mouse", isPrimary: true })
+      : new MouseEvent(type, { ...init, buttons });
+  el.dispatchEvent(pointer("pointerdown", 1));
+  el.dispatchEvent(new MouseEvent("mousedown", { ...init, buttons: 1 }));
+  el.dispatchEvent(pointer("pointerup", 0));
+  el.dispatchEvent(new MouseEvent("mouseup", { ...init, buttons: 0 }));
+  el.click();
+}
+
 function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 }
@@ -87,6 +114,8 @@ export function TourOverlay({ groups, onGroupDone, onClose }: Props) {
     setPhase({ kind: "searching" });
     setRect(null);
     setPopXY(null);
+    // Nhóm mới: đóng hộp thoại do nhóm trước mở.
+    if (pos.si === 0) closeOpenDialogs();
     const found = () => {
       const el = step.anchor ? document.querySelector(`[data-tour="${step.anchor}"]`) : null;
       return el && isRendered(el) ? el : null;
@@ -116,8 +145,9 @@ export function TourOverlay({ groups, onGroupDone, onClose }: Props) {
       // Chưa thấy phần tử: bấm neo `via` (dòng đầu, tab, nút "Chi tiết"…) một lần rồi tìm tiếp từ đầu.
       if (step.via && !viaClicked && performance.now() - started > VIA_DELAY_MS) {
         const v = document.querySelector(`[data-tour="${step.via}"]`);
-        if (v && isRendered(v)) {
-          (v as HTMLElement).click();
+        // Menu / Select đang mở (do bước trước): bấm lại nút mở sẽ đóng nó, nên không bấm.
+        if (v && isRendered(v) && v.getAttribute("aria-expanded") !== "true") {
+          activate(v as HTMLElement);
           viaClicked = true;
           started = performance.now();
         }
@@ -166,6 +196,7 @@ export function TourOverlay({ groups, onGroupDone, onClose }: Props) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if ((e as KeyboardEvent & { tourReset?: boolean }).tourReset) return;
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
@@ -189,7 +220,16 @@ export function TourOverlay({ groups, onGroupDone, onClose }: Props) {
   const titleId = `tour-title-${step.id}`;
 
   return createPortal(
-    <div className="fixed inset-0 z-100" data-testid="tour-overlay">
+    <div
+      className="fixed inset-0 z-100"
+      data-testid="tour-overlay"
+      data-tour-overlay=""
+      // Hộp thoại / menu Radix đang mở (do `via`) đặt pointer-events:none lên body và tự đóng khi bấm ra ngoài:
+      // lớp hướng dẫn vẫn bấm được, và cú bấm / focus trong lớp không lọt tới Radix (không đóng menu đang dẫn).
+      style={{ pointerEvents: "auto" }}
+      onPointerDown={(e) => e.stopPropagation()}
+      onFocus={(e) => e.stopPropagation()}
+    >
       {/* Chặn bấm vào trang phía sau; nền tối khi không có phần tử để khoanh. */}
       <div
         className={cn("fixed inset-0", phase.kind !== "show" && "bg-black/55")}

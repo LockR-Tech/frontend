@@ -78,8 +78,9 @@ export default function NotificationsPage() {
             {t("admin.notifications.title").toLowerCase()}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div data-tour="notifications-actions" className="flex items-center gap-2">
           <Button
+            data-tour="notifications-broadcast-btn"
             variant="outline"
             size="sm"
             onClick={() => setShowBroadcastModal(true)}
@@ -89,6 +90,7 @@ export default function NotificationsPage() {
             {t("admin.notifications.broadcastBtn")}
           </Button>
           <Button
+            data-tour="notifications-create-btn"
             size="sm"
             onClick={() => setShowCreateModal(true)}
             className="gap-1.5"
@@ -99,13 +101,15 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <NotificationStats stats={stats} isLoading={isLoading} />
+      <div data-tour="notifications-stats">
+        <NotificationStats stats={stats} isLoading={isLoading} />
+      </div>
 
       <Card className="border-0 shadow-sm">
         <CardContent className="p-6">
           {/* Filters */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-            <div className="flex flex-wrap items-center gap-3">
+            <div data-tour="notifications-filters" className="flex flex-wrap items-center gap-3">
               <Input
                 placeholder={t("admin.notifications.searchPlaceholder")}
                 value={searchQuery}
@@ -155,38 +159,44 @@ export default function NotificationsPage() {
               </Select>
             </div>
 
-            <TableToolbar
-              onRefresh={refetch}
-              onClearFilters={clearFilters}
-              canClearFilters={hasActiveFilters}
+            <div data-tour="notifications-toolbar">
+              <TableToolbar
+                onRefresh={refetch}
+                onClearFilters={clearFilters}
+                canClearFilters={hasActiveFilters}
+              />
+            </div>
+          </div>
+
+          <div data-tour="notifications-batch">
+            <BatchDeleteBar
+              noun={t("admin.notifications.batchNoun")}
+              selectedCount={selection.selectedIds.length}
+              onClearSelection={selection.clear}
+              onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
+              allCount={filteredIds.length}
+              onDeleteAll={(reason) => deleteIds(filteredIds, reason)}
+              requireReason
             />
           </div>
 
-          <BatchDeleteBar
-            noun={t("admin.notifications.batchNoun")}
-            selectedCount={selection.selectedIds.length}
-            onClearSelection={selection.clear}
-            onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
-            allCount={filteredIds.length}
-            onDeleteAll={(reason) => deleteIds(filteredIds, reason)}
-            requireReason
-          />
-
-          <NotificationTable
-            selectColumn={selection.selectColumn}
-            notifications={notifications}
-            isLoading={isLoading}
-            pendingIds={pendingIds}
-            onDelete={setDeleteTarget}
-            onMarkRead={(id) => void handleMarkRead(id)}
-            onResend={(id) => void handleResend(id)}
-            page={page}
-            pageSize={pageSize}
-            totalPages={totalPages}
-            totalElements={totalElements}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-          />
+          <div data-tour="notifications-table">
+            <NotificationTable
+              selectColumn={selection.selectColumn}
+              notifications={notifications}
+              isLoading={isLoading}
+              pendingIds={pendingIds}
+              onDelete={setDeleteTarget}
+              onMarkRead={(id) => void handleMarkRead(id)}
+              onResend={(id) => void handleResend(id)}
+              page={page}
+              pageSize={pageSize}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </div>
         </CardContent>
       </Card>
 

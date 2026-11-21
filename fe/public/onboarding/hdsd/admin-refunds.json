@@ -1,11 +1,19 @@
 {
   "image": "hdsd/admin-refunds.png",
   "width": 1440,
-  "height": 1262,
+  "height": 900,
   "capturedAt": "2026-11-21",
   "marks": [
     {
       "n": 1,
+      "stepId": "admin-refunds-header",
+      "x": 1081,
+      "y": 120,
+      "w": 327,
+      "h": 36
+    },
+    {
+      "n": 2,
       "stepId": "admin-refunds-stats",
       "x": 292,
       "y": 210,
@@ -13,7 +21,7 @@
       "h": 139
     },
     {
-      "n": 2,
+      "n": 3,
       "stepId": "admin-refunds-tabs",
       "x": 292,
       "y": 373,
@@ -21,12 +29,44 @@
       "h": 40
     },
     {
-      "n": 3,
-      "stepId": "admin-refunds-pending",
-      "x": 292,
-      "y": 437,
-      "w": 1116,
-      "h": 786
+      "n": 4,
+      "stepId": "admin-refunds-check-rules",
+      "x": 1245,
+      "y": 462,
+      "w": 139,
+      "h": 36
+    },
+    {
+      "n": 5,
+      "stepId": "admin-refunds-status",
+      "x": 316,
+      "y": 542,
+      "w": 289,
+      "h": 52
+    },
+    {
+      "n": 6,
+      "stepId": "admin-refunds-dates",
+      "x": 617,
+      "y": 528,
+      "w": 767,
+      "h": 80
+    },
+    {
+      "n": 7,
+      "stepId": "admin-refunds-first-row",
+      "x": 341,
+      "y": 746,
+      "w": 65,
+      "h": 37
+    },
+    {
+      "n": 8,
+      "stepId": "admin-refunds-actions",
+      "x": 1264,
+      "y": 724,
+      "w": 95,
+      "h": 80
     }
   ]
 }

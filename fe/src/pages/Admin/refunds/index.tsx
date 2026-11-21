@@ -87,7 +87,7 @@ export default function RefundsPage() {
           title={t("admin.refunds.title")}
           description={t("admin.refunds.description")}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="refunds-header-actions">
           <Button
             variant="outline"
             size="sm"
@@ -110,7 +110,10 @@ export default function RefundsPage() {
 
       {/* Banner thông báo nếu có yêu cầu chờ duyệt */}
       {pendingCount > 0 && activeTab !== "pending" && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200">
+        <div
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200"
+          data-tour="refunds-pending-alert"
+        >
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 shrink-0">
               <Clock className="w-5 h-5 animate-pulse" />
@@ -164,7 +167,7 @@ export default function RefundsPage() {
             )}
           </TabsTrigger>
 
-          <TabsTrigger value="history" className="text-xs font-semibold gap-1.5 px-4 py-2">
+          <TabsTrigger value="history" className="text-xs font-semibold gap-1.5 px-4 py-2" data-tour="refunds-tab-history">
             <History className="w-3.5 h-3.5 text-primary" />
             <span>{t("admin.refunds.page.tabs.history")}</span>
             <span className="ml-1 text-[11px] text-muted-foreground font-normal">
@@ -172,7 +175,7 @@ export default function RefundsPage() {
             </span>
           </TabsTrigger>
 
-          <TabsTrigger value="rules" className="text-xs font-semibold gap-1.5 px-4 py-2">
+          <TabsTrigger value="rules" className="text-xs font-semibold gap-1.5 px-4 py-2" data-tour="refunds-tab-rules">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>{t("admin.refunds.page.tabs.rules")}</span>
           </TabsTrigger>
@@ -197,6 +200,7 @@ export default function RefundsPage() {
                   size="sm"
                   className="text-xs text-primary gap-1"
                   onClick={() => setIsRulesModalOpen(true)}
+                  data-tour="refunds-check-rules"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
                   {t("admin.refunds.page.pendingTab.checkRules")}
@@ -214,7 +218,7 @@ export default function RefundsPage() {
 
         {/* Tab 2: Lịch sử hoàn tiền */}
         <TabsContent value="history" className="space-y-4">
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm" data-tour="refunds-history">
             <CardContent className="p-6">
               <div className="mb-4 pb-3 border-b">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">

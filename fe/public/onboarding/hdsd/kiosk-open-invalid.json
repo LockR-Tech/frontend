@@ -1,0 +1,16 @@
+{
+  "image": "hdsd/kiosk-open-invalid.png",
+  "width": 1024,
+  "height": 600,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "kiosk-open-invalid-msg",
+      "x": 287,
+      "y": 379,
+      "w": 450,
+      "h": 38
+    }
+  ]
+}

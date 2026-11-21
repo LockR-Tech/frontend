@@ -57,7 +57,7 @@ export function PaymentMethodChart({ items, year, isLoading, error, onRetry, onM
   );
 
   return (
-    <Card className="border border-border bg-card shadow-xs">
+    <Card data-tour="dashboard-payment-methods" className="border border-border bg-card shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-foreground tracking-tight">
           {t("admin.dashboard.paymentMethod.title")}

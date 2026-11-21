@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/customer-home-sections.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-home-sections-active",
+      "x": 0,
+      "y": 418,
+      "w": 412,
+      "h": 233
+    },
+    {
+      "n": 2,
+      "stepId": "customer-home-sections-active-all",
+      "x": 309,
+      "y": 422,
+      "w": 83,
+      "h": 19
+    },
+    {
+      "n": 3,
+      "stepId": "customer-home-sections-kiosks",
+      "x": 0,
+      "y": 675,
+      "w": 412,
+      "h": 30
+    },
+    {
+      "n": 4,
+      "stepId": "customer-home-sections-kiosk-list",
+      "x": 0,
+      "y": 719,
+      "w": 412,
+      "h": 158
+    }
+  ]
+}

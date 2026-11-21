@@ -1,0 +1,64 @@
+{
+  "image": "hdsd/customer-home-utilities.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-home-utilities-offers",
+      "x": 20,
+      "y": 698,
+      "w": 72,
+      "h": 77
+    },
+    {
+      "n": 2,
+      "stepId": "customer-home-utilities-report",
+      "x": 108,
+      "y": 698,
+      "w": 72,
+      "h": 77
+    },
+    {
+      "n": 3,
+      "stepId": "customer-home-utilities-reports",
+      "x": 196,
+      "y": 698,
+      "w": 72,
+      "h": 77
+    },
+    {
+      "n": 4,
+      "stepId": "customer-home-utilities-stores",
+      "x": 284,
+      "y": 698,
+      "w": 72,
+      "h": 77
+    },
+    {
+      "n": 5,
+      "stepId": "customer-home-utilities-favorites",
+      "x": 20,
+      "y": 791,
+      "w": 72,
+      "h": 77
+    },
+    {
+      "n": 6,
+      "stepId": "customer-home-utilities-drone",
+      "x": 108,
+      "y": 791,
+      "w": 72,
+      "h": 77
+    },
+    {
+      "n": 7,
+      "stepId": "customer-home-utilities-notifications",
+      "x": 196,
+      "y": 791,
+      "w": 72,
+      "h": 77
+    }
+  ]
+}

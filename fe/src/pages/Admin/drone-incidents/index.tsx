@@ -358,7 +358,7 @@ export default function DroneIncidentsPage() {
         title={t("admin.droneIncidents.title")}
         description={t("admin.droneIncidents.description")}
       />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-tour="drone-incidents-stats">
         <Stat
           label={t("admin.droneIncidents.stats.open")}
           value={counts.open}
@@ -384,7 +384,7 @@ export default function DroneIncidentsPage() {
           onClick={() => showCard("closed")}
         />
       </div>
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm" data-tour="drone-incidents-filters">
         <CardContent className="flex flex-wrap items-end justify-between gap-3 p-4">
           <div className="flex min-w-0 flex-1 flex-wrap items-end gap-3">
             {orderFilter && (
@@ -450,7 +450,7 @@ export default function DroneIncidentsPage() {
         </CardContent>
       </Card>
       <div ref={listRef} className="scroll-mt-4" />
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm" data-tour="drone-incidents-list">
         <CardContent className="overflow-x-auto p-0">
           {isLoading ? (
             <AppLoading size={96} className="my-12" />
@@ -490,7 +490,7 @@ export default function DroneIncidentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {visible.map((item) => (
+                {visible.map((item, index) => (
                   <tr
                     key={item.id}
                     className="border-b last:border-0 transition-colors hover:bg-muted/30"
@@ -569,7 +569,7 @@ export default function DroneIncidentsPage() {
                         )}
                     </td>
                     <td className="px-4 py-3">
-                      <Link to={`/admin/drone-incidents/${item.id}`}>
+                      <Link to={`/admin/drone-incidents/${item.id}`} data-tour={index === 0 ? "drone-incidents-first-detail" : undefined}>
                         <Button variant="ghost" size="sm">
                           <Eye className="mr-1 h-4 w-4" />
                           {t("button.detail")}
@@ -1001,7 +1001,7 @@ export function IncidentOrderContext({
     : "—";
 
   return (
-    <section className="rounded-xl border border-sky-200 bg-sky-50/40 p-4 space-y-4 shadow-2xs">
+    <section className="rounded-xl border border-sky-200 bg-sky-50/40 p-4 space-y-4 shadow-2xs" data-tour="drone-incident-order">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sky-200/80 pb-3">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-lg bg-sky-100 text-sky-700">

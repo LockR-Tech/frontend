@@ -117,14 +117,14 @@ export default function FlightControlPage() {
 
         <Tabs defaultValue="blocks" className="space-y-4">
           <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-            <TabsList className="h-auto w-max gap-1 rounded-xl border border-border/50 bg-muted/60 p-1">
-              <TabsTrigger value="blocks" className="rounded-lg px-3 py-2 text-xs sm:text-sm">
+            <TabsList className="h-auto w-max gap-1 rounded-xl border border-border/50 bg-muted/60 p-1" data-tour="flight-tabs">
+              <TabsTrigger value="blocks" className="rounded-lg px-3 py-2 text-xs sm:text-sm" data-tour="flight-tab-blocks">
                 {t("admin.flightControl.tabs.blocks")}
               </TabsTrigger>
-              <TabsTrigger value="logs" className="rounded-lg px-3 py-2 text-xs sm:text-sm">
+              <TabsTrigger value="logs" className="rounded-lg px-3 py-2 text-xs sm:text-sm" data-tour="flight-tab-logs">
                 {t("admin.flightControl.tabs.logs")}
               </TabsTrigger>
-              <TabsTrigger value="rules" className="rounded-lg px-3 py-2 text-xs sm:text-sm">
+              <TabsTrigger value="rules" className="rounded-lg px-3 py-2 text-xs sm:text-sm" data-tour="flight-tab-rules">
                 {t("admin.flightControl.tabs.rules")}
               </TabsTrigger>
             </TabsList>
@@ -135,7 +135,7 @@ export default function FlightControlPage() {
           <TabsContent value="logs" className="mt-0">
             <SuspensionLogTable stationName={stationName} />
           </TabsContent>
-          <TabsContent value="rules" className="mt-0">
+          <TabsContent value="rules" className="mt-0" data-tour="flight-rules">
             <ScopeSettingsPanel
               tab={RULES_TAB}
               drafts={drafts}
@@ -188,7 +188,7 @@ function GlobalSuspensionCard() {
   };
 
   return (
-    <Card className={suspended ? "border-amber-500/50 bg-amber-500/5" : undefined}>
+    <Card className={suspended ? "border-amber-500/50 bg-amber-500/5" : undefined} data-tour="flight-global">
       <CardContent className="flex h-full items-start gap-4 p-5">
         <div className={`rounded-lg p-2 ${suspended ? "bg-amber-500/15 text-amber-700" : "bg-emerald-500/10 text-emerald-700"}`}>
           {suspended ? <OctagonPause className="h-5 w-5" /> : <Plane className="h-5 w-5" />}
@@ -265,7 +265,7 @@ function WeatherCheckCard() {
   };
 
   return (
-    <Card className={off ? "border-amber-500/50 bg-amber-500/5" : undefined}>
+    <Card className={off ? "border-amber-500/50 bg-amber-500/5" : undefined} data-tour="flight-weather-check">
       <CardContent className="flex h-full items-start gap-4 p-5">
         <div className={`rounded-lg p-2 ${off ? "bg-amber-500/15 text-amber-700" : "bg-sky-500/10 text-sky-700"}`}>
           {off ? <FlaskConical className="h-5 w-5" /> : <CloudSunRain className="h-5 w-5" />}
@@ -323,7 +323,7 @@ function BlockSummaryCard() {
   const { data, isLoading } = useGetFlightBlockSummaryQuery(24, { pollingInterval: STATIONS_REFRESH_MS });
   const counts = data?.data ?? {};
   return (
-    <Card>
+    <Card data-tour="flight-block-summary">
       <CardContent className="space-y-3 p-5">
         <p className="font-semibold">{t("admin.flightControl.summary.title")}</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

@@ -55,7 +55,7 @@ export function PaymentTable({
       cell: ({ row }) => {
         const payment = row.original;
         return (
-          <div className="min-w-0">
+          <div className="min-w-0" data-tour={row.index === 0 ? "payments-first-row" : undefined}>
             {/* Giao dịch không có tên; mã tham chiếu là thứ đối soát được với cổng
                 thanh toán nên đưa lên làm nhãn chính thay cho số thứ tự nội bộ. */}
             <p className="font-mono font-semibold text-sm text-foreground truncate max-w-[200px]">

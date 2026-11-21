@@ -37,6 +37,8 @@ interface SettingRowProps {
   onRevertDraft: (key: string) => void;
   onReset: (setting: SettingView) => void;
   onShowHistory: (key: string) => void;
+  /** Dòng đầu tiên của trang: gắn neo hướng dẫn trên màn hình (F3-G13). */
+  first?: boolean;
 }
 
 function SettingRowComponent({
@@ -48,6 +50,7 @@ function SettingRowComponent({
   onRevertDraft,
   onReset,
   onShowHistory,
+  first,
 }: SettingRowProps) {
   const { t } = useTranslation();
   const label = settingLabel(setting);
@@ -59,6 +62,7 @@ function SettingRowComponent({
 
   return (
     <div
+      data-tour={first ? "settings-row-first" : undefined}
       className={cn(
         "grid gap-x-8 gap-y-3 px-4 py-4 transition-colors sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]",
         dirty && "bg-amber-50/70 dark:bg-amber-500/5",
@@ -122,6 +126,7 @@ function SettingRowComponent({
             </span>
           )}
           <button
+            data-tour={first ? "settings-row-history" : undefined}
             type="button"
             onClick={() => onShowHistory(setting.key)}
             className="inline-flex items-center gap-1 font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
@@ -133,7 +138,7 @@ function SettingRowComponent({
       </div>
 
       {/* Ô nhập + thao tác */}
-      <div className="min-w-0 space-y-1.5">
+      <div data-tour={first ? "settings-row-input" : undefined} className="min-w-0 space-y-1.5">
         <SettingInput
           id={inputId}
           setting={setting}
