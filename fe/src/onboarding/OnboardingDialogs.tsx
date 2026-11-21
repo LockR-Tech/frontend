@@ -14,7 +14,7 @@ import { Badge } from "~/components/ui/badge";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Switch } from "~/components/ui/switch";
 import { getRoleLabel } from "~/constants/roles";
-import { groupStatus, stepsFor, TOUR_ROLES, type GroupStatus, type TourGroup } from "./engine";
+import { groupStatus, runnable as canRun, TOUR_ROLES, type GroupStatus, type TourGroup } from "./engine";
 import { TOUR_NS } from "./content";
 
 function StatusBadge({ status }: { status: GroupStatus }) {
@@ -137,7 +137,7 @@ interface PickerProps {
 export function GuidePicker({ open, onOpenChange, groups, seen, autoShow, onAutoShowChange, onStart, onOpenManual }: PickerProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<string[]>([]);
-  const runnable = (g: TourGroup) => stepsFor(g, "web").length > 0;
+  const runnable = (g: TourGroup) => canRun(g, "web");
   const sections = useMemo(
     () => TOUR_ROLES.map((role) => ({ role, groups: groups.filter((g) => g.roles[0] === role) })).filter((s) => s.groups.length),
     [groups],

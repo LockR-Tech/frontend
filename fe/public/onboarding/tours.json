@@ -314,7 +314,7 @@
     {
       "id": "customer-home",
       "version": 1,
-      "order": 110,
+      "order": 1010,
       "roles": [
         "CUSTOMER"
       ],
@@ -388,7 +388,7 @@
     {
       "id": "customer-orders",
       "version": 1,
-      "order": 120,
+      "order": 1020,
       "roles": [
         "CUSTOMER"
       ],
@@ -425,7 +425,7 @@
     {
       "id": "customer-profile",
       "version": 1,
-      "order": 130,
+      "order": 1030,
       "roles": [
         "CUSTOMER"
       ],
@@ -463,7 +463,7 @@
     {
       "id": "locker-tech-home",
       "version": 1,
-      "order": 210,
+      "order": 2010,
       "roles": [
         "LOCKER_TECHNICIAN"
       ],
@@ -518,7 +518,7 @@
     {
       "id": "locker-tech-inspect",
       "version": 1,
-      "order": 220,
+      "order": 2020,
       "roles": [
         "LOCKER_TECHNICIAN"
       ],
@@ -557,7 +557,7 @@
     {
       "id": "drone-tech-home",
       "version": 1,
-      "order": 310,
+      "order": 3010,
       "roles": [
         "DRONE_TECHNICIAN"
       ],
@@ -612,7 +612,7 @@
     {
       "id": "drone-tech-dispatch",
       "version": 1,
-      "order": 320,
+      "order": 3020,
       "roles": [
         "DRONE_TECHNICIAN"
       ],

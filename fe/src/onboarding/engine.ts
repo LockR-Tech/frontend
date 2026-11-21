@@ -5,7 +5,8 @@
 
 export const TOUR_ROLES = ["ADMIN", "CUSTOMER", "LOCKER_TECHNICIAN", "DRONE_TECHNICIAN"] as const;
 export type TourRole = (typeof TOUR_ROLES)[number];
-export const TOUR_PLATFORMS = ["web", "mobile"] as const;
+/** kiosk = màn hình cảm ứng tại tủ (repo iot, ui/) — chỉ có trong trang HDSD (nhóm manualOnly). */
+export const TOUR_PLATFORMS = ["web", "mobile", "kiosk"] as const;
 export type TourPlatform = (typeof TOUR_PLATFORMS)[number];
 export const TOUR_PLACEMENTS = ["auto", "top", "bottom", "left", "right"] as const;
 export type TourPlacement = (typeof TOUR_PLACEMENTS)[number];
@@ -28,6 +29,9 @@ export interface TourStep {
   platforms: TourPlatform[];
   /** Màn hẹp: mở menu ngăn kéo trước khi khoanh. */
   openNav?: boolean;
+  /** Neo cần bấm trước khi tìm phần tử của bước (dòng đầu danh sách, tab, nút "Chi tiết"…) — để mở trang chi tiết,
+   *  tab hay hộp thoại chứa phần tử. Chỉ bấm khi chưa thấy phần tử; đã ở đúng chỗ thì không đổi trang. */
+  via?: string | null;
 }
 
 export interface TourGroup {
@@ -36,6 +40,10 @@ export interface TourGroup {
   order?: number;
   roles: TourRole[];
   steps: TourStep[];
+  /** Chỉ có ở trang HDSD: không tự mở, không chạy trên màn hình (màn hình trước đăng nhập, luồng cần dữ liệu thật…). */
+  manualOnly?: boolean;
+  /** Màn hình trước khi đăng nhập (đăng nhập, đăng ký, OTP, 2FA): script chụp ảnh không đăng nhập. Luôn kèm manualOnly. */
+  signedOut?: boolean;
 }
 
 export interface TourContent {
@@ -70,10 +78,15 @@ export function stepsFor(group: TourGroup, platform: TourPlatform): TourStep[] {
   return group.steps.filter((s) => s.platforms.includes(platform));
 }
 
-/** Nhóm người dùng tự chạy được trên nền tảng này: đúng vai trò của mình và có ít nhất một bước ở nền tảng đó. */
+/** Chạy được trên màn hình ở nền tảng này: có bước ở nền tảng đó và không phải nhóm chỉ có trong HDSD. */
+export function runnable(group: TourGroup, platform: TourPlatform): boolean {
+  return !group.manualOnly && stepsFor(group, platform).length > 0;
+}
+
+/** Nhóm người dùng tự chạy được trên nền tảng này: đúng vai trò của mình và chạy được trên màn hình. */
 export function ownGroups(content: TourContent, roles: readonly TourRole[], platform: TourPlatform): TourGroup[] {
   return content.groups
-    .filter((g) => g.roles.some((r) => roles.includes(r)) && stepsFor(g, platform).length > 0)
+    .filter((g) => g.roles.some((r) => roles.includes(r)) && runnable(g, platform))
     .sort(byOrder);
 }
 
@@ -160,17 +173,21 @@ export function validateContent(content: TourContent): string[] {
       errors.push(`${g.id}: vai trò không hợp lệ`);
     }
     if (!g.steps?.length) errors.push(`${g.id}: không có bước nào`);
+    if (g.signedOut && !g.manualOnly) errors.push(`${g.id}: nhóm signedOut phải kèm manualOnly`);
     for (const s of g.steps ?? []) {
       if (!ID_PATTERN.test(s.id) || !s.id.startsWith(`${g.id}-`)) errors.push(`${g.id}: id bước phải dạng "${g.id}-…": ${s.id}`);
       if (stepIds.has(s.id)) errors.push(`trùng id bước: ${s.id}`);
       stepIds.add(s.id);
       if (!s.platforms?.length || s.platforms.some((p) => !(TOUR_PLATFORMS as readonly string[]).includes(p))) {
-        errors.push(`${s.id}: platforms phải là web / mobile`);
+        errors.push(`${s.id}: platforms phải là web / mobile / kiosk`);
       }
+      if (s.platforms?.includes("kiosk") && !g.manualOnly) errors.push(`${s.id}: bước kiosk chỉ dùng trong nhóm manualOnly`);
       if (s.placement && !(TOUR_PLACEMENTS as readonly string[]).includes(s.placement)) errors.push(`${s.id}: placement sai`);
       if (s.anchor != null && !ID_PATTERN.test(s.anchor)) errors.push(`${s.id}: neo sai định dạng: ${s.anchor}`);
       if (s.webRoute && !s.webRoute.startsWith("/")) errors.push(`${s.id}: webRoute phải bắt đầu bằng /`);
       if (s.mobileRoute && !s.mobileRoute.startsWith("/")) errors.push(`${s.id}: mobileRoute phải bắt đầu bằng /`);
+      if (s.via != null && !ID_PATTERN.test(s.via)) errors.push(`${s.id}: via sai định dạng: ${s.via}`);
+      if (s.via && !s.anchor) errors.push(`${s.id}: via chỉ dùng cho bước có neo`);
     }
   }
   return errors;

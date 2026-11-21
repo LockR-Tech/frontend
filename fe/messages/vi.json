@@ -6989,7 +6989,8 @@
       "onWeb": "Web quản trị",
       "onApp": "App mobile",
       "runOnScreen": "Xem trên màn hình",
-      "noImage": "Chưa có ảnh minh hoạ cho nhóm này."
+      "noImage": "Chưa có ảnh minh hoạ cho nhóm này.",
+      "onKiosk": "Tại tủ (kiosk)"
     }
   }
 }

@@ -1,3 +1,7 @@
+import { existsSync, readdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
 // Dữ liệu giả cho admin web khi chụp ảnh HDSD (F3-G13). Script chặn MỌI lời gọi /api/** và trả từ đây,
 // nên không có request nào ra production. Số liệu là mẫu demo, không phải số thật của hệ thống.
 
@@ -89,11 +93,26 @@ function order(i) {
   };
 }
 
+// Dữ liệu giả theo khu: mỗi file scripts/hdsd/fixtures/<khu>.mjs export default (ctx, h) ⇒ {status, json} | undefined.
+// ctx = { url: URL, path, query, method, body }; h = các hàm dựng sẵn bên dưới (ok, order, STORES…). File nào trả
+// kết quả trước thì dùng; không file nào nhận thì rơi xuống dữ liệu chung ở hàm adminFixture.
+export const helpers = { ok, order, days, period, int, rnd, plain, demoMail, phone, STORES, LOCKERS, STAFF, NAMES, today,
+  fail: (status, code, message) => ({ status, json: { success: false, code, message } }) };
+const AREA_DIR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
+const areas = existsSync(AREA_DIR)
+  ? await Promise.all(readdirSync(AREA_DIR).filter((f) => f.endsWith('.mjs')).sort()
+    .map((f) => import(pathToFileURL(join(AREA_DIR, f)).href).then((m) => ({ name: f, handle: m.default }))))
+  : [];
+
 /** Trả {status, json} cho một request /api/**. */
-export function adminFixture(urlString, method) {
+export function adminFixture(urlString, method, body = null) {
   const url = new URL(urlString);
   const p = url.pathname;
   const q = Object.fromEntries(url.searchParams.entries());
+  for (const area of areas) {
+    const r = area.handle?.({ url, path: p, query: q, method, body }, helpers);
+    if (r) return r;
+  }
   if (p.startsWith('/api/user/onboarding')) return ok({ autoShow: false, seenGroups: {}, updatedAt: null });
   if (method !== 'GET') return ok(null);
   if (p === '/api/notifications/unread/count') return ok(3);

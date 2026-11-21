@@ -6992,7 +6992,8 @@
       "onWeb": "Admin web",
       "onApp": "Mobile app",
       "runOnScreen": "Show on screen",
-      "noImage": "No illustration for this section yet."
+      "noImage": "No illustration for this section yet.",
+      "onKiosk": "At the locker (kiosk)"
     }
   }
 }

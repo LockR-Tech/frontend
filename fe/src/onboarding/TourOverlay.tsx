@@ -10,6 +10,8 @@ import { OPEN_NAV_EVENT, resolveStep, stepsFor, type TourGroup, type TourPlaceme
 import { TOUR_NS } from "./content";
 
 const FIND_TIMEOUT_MS = 1800;
+/** Chờ chút cho trang vẽ xong rồi mới bấm neo `via` (phần tử có thể đã sẵn trên trang). */
+const VIA_DELAY_MS = 400;
 const PAD = 6;
 const NARROW = 1024;
 
@@ -85,10 +87,16 @@ export function TourOverlay({ groups, onGroupDone, onClose }: Props) {
     setPhase({ kind: "searching" });
     setRect(null);
     setPopXY(null);
-    const needsRoute = !!step.webRoute && pathRef.current !== step.webRoute;
+    const found = () => {
+      const el = step.anchor ? document.querySelector(`[data-tour="${step.anchor}"]`) : null;
+      return el && isRendered(el) ? el : null;
+    };
+    // Bước có `via` mà phần tử đã có trên trang (đang ở trang chi tiết) thì không quay về trang danh sách.
+    const needsRoute = !!step.webRoute && pathRef.current !== step.webRoute && !(step.via && found());
     if (needsRoute) navigate(step.webRoute!);
-    const started = performance.now();
+    let started = performance.now();
     let navOpened = false;
+    let viaClicked = false;
     const tick = () => {
       if (cancelled) return;
       if (step.openNav && !navOpened && window.innerWidth < NARROW) {
@@ -99,11 +107,20 @@ export function TourOverlay({ groups, onGroupDone, onClose }: Props) {
         setPhase({ kind: "center", missing: false });
         return;
       }
-      const el = document.querySelector(`[data-tour="${step.anchor}"]`);
-      if (el && isRendered(el)) {
+      const el = found();
+      if (el) {
         el.scrollIntoView({ block: "center", inline: "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" });
         setPhase({ kind: "show", el });
         return;
+      }
+      // Chưa thấy phần tử: bấm neo `via` (dòng đầu, tab, nút "Chi tiết"…) một lần rồi tìm tiếp từ đầu.
+      if (step.via && !viaClicked && performance.now() - started > VIA_DELAY_MS) {
+        const v = document.querySelector(`[data-tour="${step.via}"]`);
+        if (v && isRendered(v)) {
+          (v as HTMLElement).click();
+          viaClicked = true;
+          started = performance.now();
+        }
       }
       if (performance.now() - started > FIND_TIMEOUT_MS) {
         const r = resolveStep(step, false);

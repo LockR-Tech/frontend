@@ -11,6 +11,7 @@ import {
   browseGroups,
   groupStatus,
   normalizeRoles,
+  runnable,
   stepsFor,
   TOUR_ROLES,
   type TourContent,
@@ -84,7 +85,7 @@ export default function GuideManualPage() {
               group={g}
               meta={meta[g.id]}
               status={groupStatus(g, seen)}
-              onRun={stepsFor(g, "web").length ? () => startGroups([g.id]) : undefined}
+              onRun={runnable(g, "web") ? () => startGroups([g.id]) : undefined}
             />
           ))}
         </section>
@@ -105,7 +106,11 @@ function GroupManual({
   onRun?: () => void;
 }) {
   const { t } = useTranslation();
-  const platform = group.steps.some((s) => s.platforms.includes("web")) ? "web" : "mobile";
+  const platform = group.steps.some((s) => s.platforms.includes("web"))
+    ? "web"
+    : group.steps.some((s) => s.platforms.includes("mobile"))
+      ? "mobile"
+      : "kiosk";
   const own = stepsFor(group, platform);
   // Chưa có file toạ độ: đánh số theo thứ tự các bước có neo (ảnh cũng được vẽ theo thứ tự đó).
   const numberOf = new Map(
@@ -119,7 +124,7 @@ function GroupManual({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-semibold">{t(`${TOUR_NS}:groups.${group.id}.title`)}</h3>
-            <Badge variant="outline">{t(platform === "web" ? "onboarding.manual.onWeb" : "onboarding.manual.onApp")}</Badge>
+            <Badge variant="outline">{t(platform === "web" ? "onboarding.manual.onWeb" : platform === "mobile" ? "onboarding.manual.onApp" : "onboarding.manual.onKiosk")}</Badge>
             {status !== "seen" && (
               <Badge>{t(status === "new" ? "onboarding.status.new" : "onboarding.status.updated")}</Badge>
             )}

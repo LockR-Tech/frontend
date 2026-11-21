@@ -47,12 +47,30 @@ test('không thừa chữ cho bước / nhóm đã xoá', () => {
   }
 });
 
+// Neo web: `data-tour="x"`, hoặc chuỗi "x" nằm trên dòng có data-tour (vd. neo chỉ gắn cho dòng đầu danh sách:
+// data-tour={i === 0 ? "orders-first-row" : undefined}). Neo `via` (bấm trước để mở chi tiết / tab) cũng phải có.
+const webTourLines = webSource.split('\n').filter((l) => l.includes('data-tour'));
+const hasWebAnchor = (a) => webTourLines.some((l) => l.includes(`"${a}"`) || l.includes(`'${a}'`));
+
 test('mọi neo của bước web có data-tour trong mã web', () => {
   const missing = steps
-    .filter((s) => s.platforms.includes('web') && s.anchor)
-    .filter((s) => !webSource.includes(`data-tour="${s.anchor}"`))
-    .map((s) => `${s.id} → data-tour="${s.anchor}"`);
+    .filter((s) => s.platforms.includes('web'))
+    .flatMap((s) => [s.anchor, s.via].filter(Boolean).map((a) => ({ s, a })))
+    .filter(({ a }) => !hasWebAnchor(a))
+    .map(({ s, a }) => `${s.id} → data-tour="${a}"`);
   assert.deepEqual(missing, [], `thiếu neo web:\n${missing.join('\n')}`);
+});
+
+// Kiosk (repo iot, ui/) không gắn neo trong mã: script chụp tìm phần tử theo bảng neo → CSS selector.
+test('mọi neo của bước kiosk có trong scripts/hdsd/kiosk-anchors.json', () => {
+  const kioskSteps = steps.filter((s) => s.platforms.includes('kiosk'));
+  if (kioskSteps.length === 0) return;
+  const map = JSON.parse(readFileSync(join(FE, 'scripts', 'hdsd', 'kiosk-anchors.json'), 'utf8'));
+  const missing = kioskSteps
+    .flatMap((s) => [s.anchor, s.via].filter(Boolean).map((a) => ({ s, a })))
+    .filter(({ a }) => typeof map[a] !== 'string' || !map[a].trim())
+    .map(({ s, a }) => `${s.id} → ${a}`);
+  assert.deepEqual(missing, [], `thiếu selector kiosk:\n${missing.join('\n')}`);
 });
 
 test('mọi webRoute có trong router', () => {
@@ -71,8 +89,9 @@ test('mọi neo của bước mobile có TourAnchor trong mã app', () => {
   assert.ok(existsSync(lib), `không thấy mã app mobile ở ${lib} — clone repo mobile cạnh frontend hoặc đặt MOBILE_LIB`);
   const dart = walk(lib, ['.dart']).map((f) => readFileSync(f, 'utf8')).join('\n');
   const missing = mobileSteps
-    .filter((s) => !new RegExp(`TourAnchor\\(\\s*(id:\\s*)?['"]${s.anchor}['"]`).test(dart))
-    .map((s) => `${s.id} → TourAnchor('${s.anchor}')`);
+    .flatMap((s) => [s.anchor, s.via].filter(Boolean).map((a) => ({ s, a })))
+    .filter(({ a }) => !new RegExp(`TourAnchor\\(\\s*(id:\\s*)?['"]${a}['"]`).test(dart))
+    .map(({ s, a }) => `${s.id} → TourAnchor('${a}')`);
   assert.deepEqual(missing, [], `thiếu neo mobile:\n${missing.join('\n')}`);
 });
 

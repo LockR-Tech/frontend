@@ -13,6 +13,7 @@ import {
   decideAutoOpen,
   normalizeRoles,
   ownGroups,
+  runnable,
   type TourContent,
   type TourGroup,
 } from "./engine";
@@ -103,7 +104,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const api = useMemo<TourApi>(
     () => ({
       openGuide: () => setDialog({ kind: "picker" }),
-      startGroups: (ids: string[]) => start(browse.filter((g) => ids.includes(g.id))),
+      startGroups: (ids: string[]) => start(browse.filter((g) => ids.includes(g.id) && runnable(g, "web"))),
       ready: !!content,
     }),
     [content, browse, start],
