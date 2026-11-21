@@ -20,6 +20,14 @@
 - [ ] Đổi hợp đồng API / MQTT dùng chung — client cũ (app đã phát hành, kiosk, Pi) vẫn chạy
 - [ ] Dùng `[skip ci]` — lý do:
 
+## Hướng dẫn trên màn hình (F3-G13)
+
+<!-- BẮT BUỘC khi đổi giao diện: màn hình, nút, tab, hộp thoại, menu, bộ lọc, nhãn. Check CI "Hướng dẫn trên màn hình" đỏ nếu PR đổi giao diện mà không cập nhật hướng dẫn và không tick "Không ảnh hưởng" kèm lý do (sửa mô tả là check tự chạy lại). Luật: https://github.com/LockR-Tech/docs/blob/main/04-engineering/huong-dan-giao-dien.md -->
+
+- [ ] Đã cập nhật hướng dẫn: neo, `tours.json`, chữ vi + en, **tăng `version`** nhóm đã sửa, chụp lại ảnh HDSD <!-- app: dán link PR frontend nếu nội dung nằm ở đó -->
+- [ ] Không ảnh hưởng hướng dẫn — lý do:
+- [ ] PR không đổi giao diện
+
 ## Tài liệu
 
 - [ ] PR docs: <!-- link https://github.com/LockR-Tech/docs/pull/… -->
