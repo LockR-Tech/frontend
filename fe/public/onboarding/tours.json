@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "groups": [
+    {
+      "id": "admin-basics",
+      "version": 1,
+      "order": 10,
+      "roles": ["ADMIN"],
+      "steps": [
+        { "id": "admin-basics-intro", "anchor": null, "platforms": ["web"], "placement": "auto" },
+        { "id": "admin-basics-sidebar", "anchor": "nav-sidebar", "platforms": ["web"], "placement": "right", "openNav": true },
+        { "id": "admin-basics-search", "anchor": "header-search", "platforms": ["web"], "placement": "bottom" },
+        { "id": "admin-basics-notifications", "anchor": "header-notifications", "platforms": ["web"], "placement": "bottom" },
+        { "id": "admin-basics-language", "anchor": "header-language", "platforms": ["web"], "placement": "bottom" },
+        { "id": "admin-basics-guide", "anchor": "header-guide", "platforms": ["web"], "placement": "bottom" }
+      ]
+    },
+    {
+      "id": "admin-dashboard",
+      "version": 1,
+      "order": 20,
+      "roles": ["ADMIN"],
+      "steps": [
+        { "id": "admin-dashboard-kpis", "anchor": "dashboard-kpis", "webRoute": "/admin/dashboard", "platforms": ["web"], "placement": "bottom" },
+        { "id": "admin-dashboard-trend", "anchor": "dashboard-trend", "webRoute": "/admin/dashboard", "platforms": ["web"], "placement": "bottom" },
+        { "id": "admin-dashboard-capacity", "anchor": "dashboard-capacity", "webRoute": "/admin/dashboard", "platforms": ["web"], "placement": "left" },
+        { "id": "admin-dashboard-locations", "anchor": "dashboard-top-locations", "webRoute": "/admin/dashboard", "platforms": ["web"], "placement": "top", "optional": true }
+      ]
+    },
+    {
+      "id": "admin-orders",
+      "version": 1,
+      "order": 30,
+      "roles": ["ADMIN"],
+      "steps": [
+        { "id": "admin-orders-filters", "anchor": "orders-filters", "webRoute": "/admin/orders", "platforms": ["web"], "placement": "bottom" },
+        { "id": "admin-orders-list", "anchor": "orders-list", "webRoute": "/admin/orders", "platforms": ["web"], "placement": "top" },
+        { "id": "admin-orders-detail", "anchor": null, "webRoute": "/admin/orders", "platforms": ["web"], "placement": "auto" }
+      ]
+    }
+  ]
+}

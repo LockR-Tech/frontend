@@ -9,6 +9,7 @@ import { ADMIN_NAV_GROUPS, ADMIN_NAV_TOP } from "~/constants/sidebar";
 import { useInitialPrefetch } from "~/hooks/use-route-prefetch";
 import { useAdminRealtimeSync } from "~/hooks/useAdminRealtimeSync";
 import PreferencesModal from "./preferences-modal";
+import { TourProvider } from "~/onboarding/TourProvider";
 
 // Inner component that uses sidebar context
 function AdminLayoutInner() {
@@ -76,7 +77,10 @@ function AdminLayoutInner() {
 export default function AdminLayout() {
   return (
     <SidebarProvider>
-      <AdminLayoutInner />
+      {/* Hướng dẫn lần đầu trên màn hình (F3-G13): chỉ trong khu quản trị, sau khi đã đăng nhập + 2FA */}
+      <TourProvider>
+        <AdminLayoutInner />
+      </TourProvider>
     </SidebarProvider>
   );
 }

@@ -18,6 +18,7 @@ import {
 import { cn } from "~/lib/utils";
 import { useAuth } from "~/context/auth-context";
 import { useSidebar } from "~/context/sidebar-context";
+import { OPEN_NAV_EVENT } from "~/onboarding/engine";
 import { useTranslation } from "react-i18next";
 import type { NavGroup, NavItem } from "~/types/common/sidebar";
 import {
@@ -84,6 +85,13 @@ export function Sidebar({
   useEffect(() => {
     setIsMobileOpen(false);
   }, [location.pathname]);
+
+  // Hướng dẫn trên màn hình (F3-G13): màn hẹp phải mở menu ngăn kéo trước khi khoanh mục trong đó.
+  useEffect(() => {
+    const open = () => setIsMobileOpen(true);
+    window.addEventListener(OPEN_NAV_EVENT, open);
+    return () => window.removeEventListener(OPEN_NAV_EVENT, open);
+  }, []);
 
   // Detect tablet / mobile screens
   useEffect(() => {
@@ -227,6 +235,7 @@ export function Sidebar({
 
       {/* Sidebar Container */}
       <aside
+        data-tour="nav-sidebar"
         className={cn(
           "fixed left-0 top-0 h-screen bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border flex flex-col z-50 transition-all duration-300 ease-in-out",
           isTablet && !isMobileOpen && "-translate-x-full lg:translate-x-0",

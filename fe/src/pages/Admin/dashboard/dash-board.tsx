@@ -257,7 +257,7 @@ export default function Dashboard() {
       </div>
 
       {/* Hero KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div data-tour="dashboard-kpis" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {heroCards.map((card) => (
           <OverviewCard key={card.label} {...card} />
         ))}
@@ -265,7 +265,7 @@ export default function Dashboard() {
 
       {/* Row 1: Main Trend + Infrastructure Capacity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+        <div data-tour="dashboard-trend" className="lg:col-span-2">
           <MainChart
             data={chartData}
             selectedYear={selectedYear}
@@ -289,7 +289,7 @@ export default function Dashboard() {
             }}
           />
         </div>
-        <div className="lg:col-span-1">
+        <div data-tour="dashboard-capacity" className="lg:col-span-1">
           <OverviewSection
             data={overview}
             activeLockers={lockersLoaded ? activeLockers : null}
@@ -360,16 +360,18 @@ export default function Dashboard() {
       </div>
 
       {/* Row 4: Top Performing Locations */}
-      <TopLocationsTable
-        items={byStore.data?.data?.items}
-        year={selectedYear}
-        isLoading={byStore.isFetching}
-        error={byStore.error}
-        onRetry={byStore.refetch}
-        onStoreClick={(item, name) =>
-          setRevenueOrders({ type: "STORE", storeId: item.storeId, label: name, paidOrderCount: item.paidOrderCount })
-        }
-      />
+      <div data-tour="dashboard-top-locations">
+        <TopLocationsTable
+          items={byStore.data?.data?.items}
+          year={selectedYear}
+          isLoading={byStore.isFetching}
+          error={byStore.error}
+          onRetry={byStore.refetch}
+          onStoreClick={(item, name) =>
+            setRevenueOrders({ type: "STORE", storeId: item.storeId, label: name, paidOrderCount: item.paidOrderCount })
+          }
+        />
+      </div>
 
       {/* Row 5: Shortcuts to admin pages */}
       <RecommendationsSection

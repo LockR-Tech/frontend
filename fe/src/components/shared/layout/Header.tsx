@@ -9,6 +9,7 @@ import {
   Bell,
   ChevronRight,
   Search,
+  CircleHelp,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { formatDateTime } from "~/lib/datetime";
@@ -45,6 +46,7 @@ import { useGetDroneIncidentQuery } from "~/stores/apis/admin/droneIncidents";
 import { useGetLockerLayoutQuery } from "~/stores/apis/admin/lockerOps";
 import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
 import { SUPPORTED_LANGUAGES, currentLanguage } from "~/utils/i18n";
+import { useTour } from "~/onboarding/useTour";
 
 interface HeaderProps {
   className?: string;
@@ -354,6 +356,7 @@ function NotificationBell() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          data-tour="header-notifications"
           variant="ghost"
           size="icon"
           className="h-8 w-8 text-muted-foreground hover:text-foreground relative"
@@ -441,6 +444,7 @@ export function Header({ className }: HeaderProps) {
   const { t, i18n: i18nInstance } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { toggleSidebar } = useSidebar();
+  const { openGuide } = useTour();
   const [openLang, setOpenLang] = useState(false);
   const [openTheme, setOpenTheme] = useState(false);
 
@@ -487,12 +491,28 @@ export function Header({ className }: HeaderProps) {
 
         {/* Right Controls: Search + Lang + Theme + Notifications */}
         <div className="flex items-center gap-2">
-          <QuickSearch />
+          <div data-tour="header-search">
+            <QuickSearch />
+          </div>
+
+          {/* Hướng dẫn lần đầu trên màn hình (F3-G13): luôn mở lại được */}
+          <Button
+            data-tour="header-guide"
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1.5 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={openGuide}
+            aria-label={t("onboarding.headerButton")}
+          >
+            <CircleHelp size={15} />
+            <span className="hidden md:inline">{t("onboarding.headerButton")}</span>
+          </Button>
 
           {/* Language Switcher */}
           <DropdownMenu open={openLang} onOpenChange={setOpenLang}>
             <DropdownMenuTrigger asChild>
               <Button
+                data-tour="header-language"
                 variant="ghost"
                 size="sm"
                 className="h-8 gap-1.5 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"

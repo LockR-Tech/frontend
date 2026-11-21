@@ -1,0 +1,75 @@
+{
+  "_note": "Bộ ca kiểm tra dùng chung cho engine TypeScript (fe/src/onboarding/engine.ts) và Dart (mobile/lib/features/onboarding/domain/tour_engine.dart). Sửa ở đây rồi chép sang mobile bằng tool/sync_onboarding.sh.",
+  "content": {
+    "schemaVersion": 1,
+    "groups": [
+      { "id": "admin-a", "version": 2, "order": 10, "roles": ["ADMIN"], "steps": [
+        { "id": "admin-a-1", "anchor": "x", "platforms": ["web"] } ] },
+      { "id": "admin-b", "version": 1, "order": 20, "roles": ["ADMIN"], "steps": [
+        { "id": "admin-b-1", "anchor": "y", "platforms": ["web"] } ] },
+      { "id": "cus-home", "version": 1, "order": 5, "roles": ["CUSTOMER"], "steps": [
+        { "id": "cus-home-1", "anchor": "z", "platforms": ["mobile"] } ] },
+      { "id": "tech-shift", "version": 3, "order": 7, "roles": ["LOCKER_TECHNICIAN", "DRONE_TECHNICIAN"], "steps": [
+        { "id": "tech-shift-1", "anchor": "w", "platforms": ["mobile"] },
+        { "id": "tech-shift-2", "anchor": "v", "platforms": ["web", "mobile"] } ] }
+    ]
+  },
+  "normalizeRoles": [
+    { "input": "ADMIN, DRONE_TECHNICIAN", "expected": ["ADMIN", "DRONE_TECHNICIAN"] },
+    { "input": ["ROLE_customer", "CUSTOMER"], "expected": ["CUSTOMER"] },
+    { "input": ["SUPER_ADMIN"], "expected": ["ADMIN"] },
+    { "input": "CUSTOMER,LOCKER_TECHNICIAN, CUSTOMER", "expected": ["CUSTOMER", "LOCKER_TECHNICIAN"] },
+    { "input": null, "expected": [] },
+    { "input": ["OPERATOR"], "expected": [] }
+  ],
+  "ownGroups": [
+    { "roles": ["ADMIN"], "platform": "web", "expected": ["admin-a", "admin-b"] },
+    { "roles": ["ADMIN"], "platform": "mobile", "expected": [] },
+    { "roles": ["CUSTOMER"], "platform": "mobile", "expected": ["cus-home"] },
+    { "roles": ["DRONE_TECHNICIAN"], "platform": "mobile", "expected": ["tech-shift"] },
+    { "roles": ["DRONE_TECHNICIAN"], "platform": "web", "expected": ["tech-shift"] },
+    { "roles": ["CUSTOMER"], "platform": "web", "expected": [] }
+  ],
+  "browseGroups": [
+    { "roles": ["ADMIN"], "expected": ["cus-home", "tech-shift", "admin-a", "admin-b"] },
+    { "roles": ["CUSTOMER"], "expected": ["cus-home"] },
+    { "roles": ["LOCKER_TECHNICIAN"], "expected": ["tech-shift"] }
+  ],
+  "groupStatus": [
+    { "group": "admin-a", "seen": {}, "expected": "new" },
+    { "group": "admin-a", "seen": { "admin-a": 1 }, "expected": "updated" },
+    { "group": "admin-a", "seen": { "admin-a": 2 }, "expected": "seen" },
+    { "group": "admin-a", "seen": { "admin-a": 5 }, "expected": "seen" },
+    { "group": "admin-a", "seen": null, "expected": "new" }
+  ],
+  "decideAutoOpen": [
+    { "name": "lần đầu: chào", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": true, "autoShow": true, "sessionSkipped": false, "shownThisSession": false, "groups": ["admin-a", "admin-b"], "seen": {} },
+      "expected": { "kind": "welcome", "groups": ["admin-a", "admin-b"] } },
+    { "name": "đã xem hết", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": true, "autoShow": true, "sessionSkipped": false, "shownThisSession": false, "groups": ["admin-a", "admin-b"], "seen": { "admin-a": 2, "admin-b": 1 } },
+      "expected": { "kind": "none", "reason": "nothing-new" } },
+    { "name": "một nhóm tăng phiên bản: chỉ báo nhóm đó", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": true, "autoShow": true, "sessionSkipped": false, "shownThisSession": false, "groups": ["admin-a", "admin-b"], "seen": { "admin-a": 1, "admin-b": 1 } },
+      "expected": { "kind": "whatsNew", "groups": ["admin-a"] } },
+    { "name": "nhóm mới thêm sau khi đã xem nhóm khác", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": true, "autoShow": true, "sessionSkipped": false, "shownThisSession": false, "groups": ["admin-a", "admin-b"], "seen": { "admin-a": 2 } },
+      "expected": { "kind": "whatsNew", "groups": ["admin-b"] } },
+    { "name": "bỏ qua vĩnh viễn", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": true, "autoShow": false, "sessionSkipped": false, "shownThisSession": false, "groups": ["admin-a"], "seen": {} },
+      "expected": { "kind": "none", "reason": "skipped-forever" } },
+    { "name": "bỏ qua phiên này", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": true, "autoShow": true, "sessionSkipped": true, "shownThisSession": false, "groups": ["admin-a"], "seen": {} },
+      "expected": { "kind": "none", "reason": "skipped-this-session" } },
+    { "name": "đã tự mở trong phiên", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": true, "autoShow": true, "sessionSkipped": false, "shownThisSession": true, "groups": ["admin-a"], "seen": {} },
+      "expected": { "kind": "none", "reason": "already-shown" } },
+    { "name": "chưa qua bước bắt buộc", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": false, "autoShow": true, "sessionSkipped": false, "shownThisSession": false, "groups": ["admin-a"], "seen": {} },
+      "expected": { "kind": "none", "reason": "mandatory-steps-pending" } },
+    { "name": "đang ở trang đăng nhập", "input": { "signedIn": true, "inWorkspace": false, "mandatoryDone": true, "autoShow": true, "sessionSkipped": false, "shownThisSession": false, "groups": ["admin-a"], "seen": {} },
+      "expected": { "kind": "none", "reason": "not-in-workspace" } },
+    { "name": "chưa đăng nhập", "input": { "signedIn": false, "inWorkspace": true, "mandatoryDone": true, "autoShow": true, "sessionSkipped": false, "shownThisSession": false, "groups": ["admin-a"], "seen": {} },
+      "expected": { "kind": "none", "reason": "signed-out" } },
+    { "name": "không có nhóm nào cho vai trò", "input": { "signedIn": true, "inWorkspace": true, "mandatoryDone": true, "autoShow": true, "sessionSkipped": false, "shownThisSession": false, "groups": [], "seen": {} },
+      "expected": { "kind": "none", "reason": "nothing-new" } }
+  ],
+  "resolveStep": [
+    { "step": { "id": "s", "anchor": "x", "platforms": ["web"] }, "found": true, "expected": "show" },
+    { "step": { "id": "s", "anchor": "x", "platforms": ["web"] }, "found": false, "expected": "missing" },
+    { "step": { "id": "s", "anchor": "x", "optional": true, "platforms": ["web"] }, "found": false, "expected": "skip" },
+    { "step": { "id": "s", "anchor": null, "platforms": ["web"] }, "found": false, "expected": "center" }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "groups": {
+    "admin-basics": {
+      "title": "Làm quen trang quản trị",
+      "summary": "Menu bên trái, tìm nhanh, thông báo, đổi ngôn ngữ và nút mở lại hướng dẫn."
+    },
+    "admin-dashboard": {
+      "title": "Dashboard",
+      "summary": "Số liệu chính trong ngày, xu hướng doanh thu – đơn hàng và công suất các tủ."
+    },
+    "admin-orders": {
+      "title": "Đơn hàng",
+      "summary": "Lọc, tìm và mở chi tiết mọi đơn gửi hàng, thuê ô và giao bằng drone."
+    }
+  },
+  "steps": {
+    "admin-basics-intro": {
+      "title": "Chào mừng tới trang quản trị Lock.R",
+      "body": "Ở đây bạn theo dõi đơn hàng, tủ, drone, kỹ thuật viên và doanh thu. Hướng dẫn này đi qua những phần bạn dùng nhiều nhất, mất khoảng 1 phút."
+    },
+    "admin-basics-sidebar": {
+      "title": "Menu chức năng",
+      "body": "Mọi trang quản trị nằm ở đây, chia theo nhóm: Tủ & vận hành, Drone, Tài chính, Người dùng… Bấm mũi tên ở đầu menu để thu gọn."
+    },
+    "admin-basics-search": {
+      "title": "Tìm nhanh",
+      "body": "Gõ tên trang, mã đơn hay mã tủ để nhảy thẳng tới. Phím tắt Ctrl + K."
+    },
+    "admin-basics-notifications": {
+      "title": "Thông báo",
+      "body": "Yêu cầu hoàn tiền, ticket mới, sự cố drone… hiện ở chuông này. Số đỏ là số tin chưa đọc."
+    },
+    "admin-basics-language": {
+      "title": "Ngôn ngữ",
+      "body": "Đổi giữa tiếng Việt và tiếng Anh. Lựa chọn được nhớ cho lần sau."
+    },
+    "admin-basics-guide": {
+      "title": "Mở lại hướng dẫn",
+      "body": "Bấm nút này bất cứ lúc nào để xem lại hướng dẫn, chọn nhóm muốn xem hoặc bật/tắt tự mở hướng dẫn."
+    },
+    "admin-dashboard-kpis": {
+      "title": "Chỉ số chính",
+      "body": "Doanh thu, số đơn, khách và tủ đang hoạt động. Bấm vào một thẻ để xem danh sách chi tiết."
+    },
+    "admin-dashboard-trend": {
+      "title": "Xu hướng theo thời gian",
+      "body": "Doanh thu và số đơn theo ngày. Chọn năm ngay trên khung biểu đồ."
+    },
+    "admin-dashboard-capacity": {
+      "title": "Công suất hạ tầng",
+      "body": "Bao nhiêu ô đang trống, đang giữ hàng hoặc báo lỗi trên toàn hệ thống."
+    },
+    "admin-dashboard-locations": {
+      "title": "Điểm tủ đông khách nhất",
+      "body": "Xếp hạng các tủ theo số đơn và doanh thu để biết nơi cần thêm ô hay thêm kỹ thuật viên."
+    },
+    "admin-orders-filters": {
+      "title": "Bộ lọc đơn",
+      "body": "Lọc theo loại đơn, trạng thái, thanh toán và khoảng ngày. Nút xoá lọc đưa danh sách về mặc định."
+    },
+    "admin-orders-list": {
+      "title": "Danh sách đơn",
+      "body": "Mỗi dòng là một đơn. Bấm vào dòng để mở chi tiết: mốc thời gian, thanh toán, mã lấy hàng và hành trình drone."
+    },
+    "admin-orders-detail": {
+      "title": "Chi tiết đơn",
+      "body": "Trong trang chi tiết, khung \"Mã lấy hàng\" cho biết PIN và mã QR khách dùng ở tủ, ai đang giữ mã và mã còn dùng được không."
+    }
+  }
+}

@@ -8,6 +8,7 @@ import {
 import type { AuthContextType, User } from "../types";
 import { API_BASE_URL, AUTH_ENDPOINTS } from "../constants/api-paths";
 import { isMockEnabled, mockDelay } from "./mock/mock-data-context";
+import { tourSession } from "~/onboarding/session";
 import {
   AuthApiError,
   clearAuthStorage,
@@ -257,6 +258,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Thu hồi refresh token ở backend trước khi xoá (best-effort, tối đa 3s)
     if (!isMockEnabled) await revokeRefreshToken();
     clearAuthStorage();
+    // "Bỏ qua" hướng dẫn chỉ có hiệu lực trong phiên: đăng nhập lại thì hỏi lại (F3-G13).
+    tourSession.clear();
     setUser(null);
     setError(null);
     cancelAdmin2FA();

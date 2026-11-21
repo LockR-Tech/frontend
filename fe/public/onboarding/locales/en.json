@@ -1,0 +1,70 @@
+{
+  "groups": {
+    "admin-basics": {
+      "title": "Getting around the admin console",
+      "summary": "The left menu, quick search, notifications, language and the button that reopens this guide."
+    },
+    "admin-dashboard": {
+      "title": "Dashboard",
+      "summary": "Today's key figures, revenue and order trends, and locker capacity."
+    },
+    "admin-orders": {
+      "title": "Orders",
+      "summary": "Filter, search and open any parcel, box rental or drone delivery order."
+    }
+  },
+  "steps": {
+    "admin-basics-intro": {
+      "title": "Welcome to the Lock.R admin console",
+      "body": "Here you track orders, lockers, drones, technicians and revenue. This guide walks through the parts you use most and takes about a minute."
+    },
+    "admin-basics-sidebar": {
+      "title": "Main menu",
+      "body": "Every admin page lives here, grouped by area: Lockers & operations, Drones, Finance, Users… Use the arrow at the top of the menu to collapse it."
+    },
+    "admin-basics-search": {
+      "title": "Quick search",
+      "body": "Type a page name, order code or locker code to jump straight to it. Shortcut: Ctrl + K."
+    },
+    "admin-basics-notifications": {
+      "title": "Notifications",
+      "body": "Refund requests, new tickets, drone incidents and more appear under this bell. The red number counts unread items."
+    },
+    "admin-basics-language": {
+      "title": "Language",
+      "body": "Switch between Vietnamese and English. Your choice is remembered."
+    },
+    "admin-basics-guide": {
+      "title": "Reopen the guide",
+      "body": "Use this button at any time to replay the guide, pick the sections you want, or turn automatic guides on or off."
+    },
+    "admin-dashboard-kpis": {
+      "title": "Key figures",
+      "body": "Revenue, orders, customers and active lockers. Click a card to see the detailed list."
+    },
+    "admin-dashboard-trend": {
+      "title": "Trends over time",
+      "body": "Revenue and orders per day. Pick the year on the chart card."
+    },
+    "admin-dashboard-capacity": {
+      "title": "Infrastructure capacity",
+      "body": "How many boxes are free, holding parcels or reporting faults across the system."
+    },
+    "admin-dashboard-locations": {
+      "title": "Busiest locker sites",
+      "body": "Lockers ranked by orders and revenue, so you know where to add boxes or technicians."
+    },
+    "admin-orders-filters": {
+      "title": "Order filters",
+      "body": "Filter by order type, status, payment and date range. Clear filters resets the list."
+    },
+    "admin-orders-list": {
+      "title": "Order list",
+      "body": "Each row is one order. Click a row to open its details: timeline, payment, pickup code and drone journey."
+    },
+    "admin-orders-detail": {
+      "title": "Order details",
+      "body": "On the detail page, the \"Pickup code\" card shows the PIN and QR code the customer uses at the locker, who holds the code and whether it still works."
+    }
+  }
+}

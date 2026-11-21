@@ -43,9 +43,9 @@ export default function OrdersPage() {
 
       {error && <ReportErrorState error={error} onRetry={refetch} />}
 
-      <Card className="border-0 shadow-sm">
+      <Card data-tour="orders-list" className="border-0 shadow-sm">
         <CardContent className="p-6 space-y-4">
-          <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
+          <div data-tour="orders-filters" className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
             <OrderFilters
               filters={filters}
               onFilterChange={setFilter}

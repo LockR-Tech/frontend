@@ -11,7 +11,8 @@ import {
   DialogDescription,
 } from "~/components/ui";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, Globe, SunMoon, SlidersHorizontal, Sun, Moon, Monitor } from "lucide-react";
+import { ChevronRight, CircleHelp, Globe, SunMoon, SlidersHorizontal, Sun, Moon, Monitor } from "lucide-react";
+import { useTour } from "~/onboarding/useTour";
 import { useTheme } from "~/context/theme-context";
 
 const THEME_TITLE_KEY = {
@@ -40,6 +41,13 @@ export default function PreferencesModal({
   const openBusinessSettings = () => {
     onOpenChange?.(false);
     navigate("/admin/settings");
+  };
+
+  // Hướng dẫn trên màn hình (F3-G13): mở lại được cả khi đã chọn "Bỏ qua vĩnh viễn".
+  const { openGuide } = useTour();
+  const openTour = () => {
+    onOpenChange?.(false);
+    openGuide();
   };
 
   return (
@@ -91,6 +99,22 @@ export default function PreferencesModal({
               ))}
             </div>
           </div>
+
+          {/* On-screen guide */}
+          <button
+            type="button"
+            onClick={openTour}
+            className="flex w-full items-center justify-between py-3 text-left group"
+          >
+            <div className="flex items-center gap-2.5">
+              <CircleHelp size={16} className="text-muted-foreground shrink-0" />
+              <div>
+                <p className="text-sm font-medium">{t("onboarding.settings.title")}</p>
+                <p className="text-xs text-muted-foreground">{t("onboarding.settings.description")}</p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground group-hover:text-foreground" />
+          </button>
 
           {/* Business rules live on their own page */}
           <button
