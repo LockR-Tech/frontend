@@ -145,6 +145,173 @@
       ]
     },
     {
+      "id": "admin-users",
+      "version": 1,
+      "order": 40,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-users-stats",
+          "anchor": "users-stats",
+          "webRoute": "/admin/users",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-users-filters",
+          "anchor": "users-filters",
+          "webRoute": "/admin/users",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-users-list",
+          "anchor": "users-list",
+          "webRoute": "/admin/users",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top"
+        }
+      ]
+    },
+    {
+      "id": "admin-lockers",
+      "version": 1,
+      "order": 50,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-lockers-filters",
+          "anchor": "lockers-filters",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-lockers-list",
+          "anchor": "lockers-list",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top"
+        }
+      ]
+    },
+    {
+      "id": "admin-drones",
+      "version": 1,
+      "order": 60,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-drones-summary",
+          "anchor": "drones-summary",
+          "webRoute": "/admin/drones",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-drones-add",
+          "anchor": "drones-add",
+          "webRoute": "/admin/drones",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left"
+        },
+        {
+          "id": "admin-drones-list",
+          "anchor": "drones-list",
+          "webRoute": "/admin/drones",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top"
+        }
+      ]
+    },
+    {
+      "id": "admin-storage",
+      "version": 1,
+      "order": 70,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-storage-stats",
+          "anchor": "storage-stats",
+          "webRoute": "/admin/storage",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-storage-list",
+          "anchor": "storage-list",
+          "webRoute": "/admin/storage",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top"
+        }
+      ]
+    },
+    {
+      "id": "admin-refunds",
+      "version": 1,
+      "order": 80,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-refunds-stats",
+          "anchor": "refunds-stats",
+          "webRoute": "/admin/refunds",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-refunds-tabs",
+          "anchor": "refunds-tabs",
+          "webRoute": "/admin/refunds",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-refunds-pending",
+          "anchor": "refunds-pending",
+          "webRoute": "/admin/refunds",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top"
+        }
+      ]
+    },
+    {
       "id": "customer-home",
       "version": 1,
       "order": 110,
@@ -219,6 +386,81 @@
       ]
     },
     {
+      "id": "customer-orders",
+      "version": 1,
+      "order": 120,
+      "roles": [
+        "CUSTOMER"
+      ],
+      "steps": [
+        {
+          "id": "customer-orders-scope",
+          "anchor": "orders-scope-tabs",
+          "mobileRoute": "/orders",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "customer-orders-filters",
+          "anchor": "orders-filter-chips",
+          "mobileRoute": "/orders",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "customer-orders-list",
+          "anchor": "orders-list",
+          "mobileRoute": "/orders",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "top"
+        }
+      ]
+    },
+    {
+      "id": "customer-profile",
+      "version": 1,
+      "order": 130,
+      "roles": [
+        "CUSTOMER"
+      ],
+      "steps": [
+        {
+          "id": "customer-profile-header",
+          "anchor": "profile-header",
+          "mobileRoute": "/profile",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "bottom",
+          "optional": true
+        },
+        {
+          "id": "customer-profile-refund",
+          "anchor": "profile-refund-account",
+          "mobileRoute": "/profile",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "customer-profile-guide",
+          "anchor": "profile-guide",
+          "mobileRoute": "/profile",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "top"
+        }
+      ]
+    },
+    {
       "id": "locker-tech-home",
       "version": 1,
       "order": 210,
@@ -274,6 +516,45 @@
       ]
     },
     {
+      "id": "locker-tech-inspect",
+      "version": 1,
+      "order": 220,
+      "roles": [
+        "LOCKER_TECHNICIAN"
+      ],
+      "steps": [
+        {
+          "id": "locker-tech-inspect-picker",
+          "anchor": "tech-inspect-picker",
+          "mobileRoute": "/technician-home",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "locker-tech-inspect-locker",
+          "anchor": "tech-inspect-locker",
+          "mobileRoute": "/technician-home",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "bottom",
+          "optional": true
+        },
+        {
+          "id": "locker-tech-inspect-report",
+          "anchor": "tech-inspect-report",
+          "mobileRoute": "/technician-home",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "top",
+          "optional": true
+        }
+      ]
+    },
+    {
       "id": "drone-tech-home",
       "version": 1,
       "order": 310,
@@ -325,6 +606,35 @@
           ],
           "placement": "bottom",
           "mobileRoute": "/maintenance-home"
+        }
+      ]
+    },
+    {
+      "id": "drone-tech-dispatch",
+      "version": 1,
+      "order": 320,
+      "roles": [
+        "DRONE_TECHNICIAN"
+      ],
+      "steps": [
+        {
+          "id": "drone-tech-dispatch-weather",
+          "anchor": "drone-dispatch-weather",
+          "mobileRoute": "/maintenance-home",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "drone-tech-dispatch-duty",
+          "anchor": "drone-dispatch-duty",
+          "mobileRoute": "/maintenance-home",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "bottom",
+          "optional": true
         }
       ]
     }

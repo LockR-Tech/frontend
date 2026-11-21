@@ -139,6 +139,7 @@ export default function RefundsPage() {
       )}
 
       {/* Các thẻ KPI thống kê nhanh */}
+      <div data-tour="refunds-stats">
       <RefundStats
         pendingCount={pendingCount}
         completedCount={completedCount}
@@ -148,10 +149,11 @@ export default function RefundsPage() {
         activeStatus={statusFilter}
         onStatusClick={handleStatusChange}
       />
+      </div>
 
       {/* Bộ chọn Tab chính */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-        <TabsList className="bg-muted/70 p-1 rounded-xl">
+        <TabsList className="bg-muted/70 p-1 rounded-xl" data-tour="refunds-tabs">
           <TabsTrigger value="pending" className="text-xs font-semibold gap-1.5 px-4 py-2">
             <Clock className="w-3.5 h-3.5 text-amber-600" />
             <span>{t("admin.refunds.page.tabs.pending")}</span>
@@ -178,7 +180,7 @@ export default function RefundsPage() {
 
         {/* Tab 1: Yêu cầu chờ xử lý */}
         <TabsContent value="pending" className="space-y-4">
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm" data-tour="refunds-pending">
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between pb-3 border-b">
                 <div>

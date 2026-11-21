@@ -6969,7 +6969,8 @@
       "onlyOnApp": "This area is in the mobile app — open the illustrated manual",
       "autoShow": "Open guides automatically after sign-in or when there is something new",
       "viewNew": "View {{count}} new",
-      "viewSelected": "View {{count}} selected"
+      "viewSelected": "View {{count}} selected",
+      "openManual": "Open the manual"
     },
     "overlay": {
       "next": "Next",
@@ -6984,6 +6985,14 @@
       "title": "On-screen guide",
       "description": "Replay the guide or turn automatic guides on or off.",
       "open": "Open guide"
+    },
+    "manual": {
+      "title": "User guide",
+      "subtitle": "One real screenshot per area; the red numbers match the explanations beside it. Same content as the on-screen guide.",
+      "onWeb": "Admin web",
+      "onApp": "Mobile app",
+      "runOnScreen": "Show on screen",
+      "noImage": "No illustration for this section yet."
     }
   }
 }

@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/locker-tech-inspect.png",
+  "width": 412,
+  "height": 759,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-inspect-picker",
+      "x": 16,
+      "y": 343,
+      "w": 380,
+      "h": 72
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-inspect-locker",
+      "x": 16,
+      "y": 427,
+      "w": 380,
+      "h": 303
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-inspect-report",
+      "x": 33,
+      "y": 681,
+      "w": 346,
+      "h": 32
+    }
+  ]
+}

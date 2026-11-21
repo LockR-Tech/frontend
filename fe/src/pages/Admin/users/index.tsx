@@ -71,12 +71,14 @@ export default function UsersPage() {
         description={t("admin.users.description")}
       />
 
-      <UserStats stats={stats} isLoading={isLoading} segment={segment} onSelect={showSegment} />
+      <div data-tour="users-stats">
+        <UserStats stats={stats} isLoading={isLoading} segment={segment} onSelect={showSegment} />
+      </div>
 
-      <Card ref={listRef} className="scroll-mt-20 border-0 shadow-sm">
+      <Card ref={listRef} className="scroll-mt-20 border-0 shadow-sm" data-tour="users-list">
         <CardContent className="p-6">
           {/* Toolbar - 1 hàng */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6" data-tour="users-filters">
             <UserFilters
               status={status}
               onStatusChange={setStatus}

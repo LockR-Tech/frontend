@@ -129,8 +129,8 @@ interface PickerProps {
   autoShow: boolean;
   onAutoShowChange: (value: boolean) => void;
   onStart: (groups: TourGroup[]) => void;
-  /** Nhóm không chạy được trên web (chỉ có trên app): mở trang HDSD. */
-  onOpenManual: (group: TourGroup) => void;
+  /** Mở trang HDSD (nhóm cụ thể hoặc cả trang). Nhóm chỉ có trên app không khoanh được trên web. */
+  onOpenManual: (group?: TourGroup) => void;
 }
 
 /** Danh sách hướng dẫn: mở từ nút "Hướng dẫn" trên thanh trên cùng và từ Tuỳ chọn, kể cả khi đã bỏ qua vĩnh viễn. */
@@ -191,6 +191,9 @@ export function GuidePicker({ open, onOpenChange, groups, seen, autoShow, onAuto
           <Switch id="tour-auto-show" checked={autoShow} onCheckedChange={onAutoShowChange} />
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="ghost" className="sm:mr-auto" onClick={() => onOpenManual()}>
+            {t("onboarding.picker.openManual")}
+          </Button>
           {pending.length > 0 && (
             <Button variant="outline" onClick={() => start(pending)}>{t("onboarding.picker.viewNew", { count: pending.length })}</Button>
           )}

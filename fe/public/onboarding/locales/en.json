@@ -23,6 +23,42 @@
     "drone-tech-home": {
       "title": "Drone technician home",
       "summary": "Go on shift to receive orders, see pending work and the dispatch, fleet and incident tabs."
+    },
+    "admin-users": {
+      "title": "Accounts",
+      "summary": "See user figures, filter and search accounts, and create accounts for staff."
+    },
+    "admin-lockers": {
+      "title": "Kiosks (lockers)",
+      "summary": "Track every locker: status, store and assigned technician; put a locker into maintenance or bring it back."
+    },
+    "admin-drones": {
+      "title": "Drone fleet",
+      "summary": "See how many drones are idle, charging or faulty at a glance; add drones and open each one."
+    },
+    "admin-storage": {
+      "title": "Items in storage",
+      "summary": "Orders not picked up in time are moved to storage; customers collect them at the counter after paying the overdue fee."
+    },
+    "admin-refunds": {
+      "title": "Refunds",
+      "summary": "Approve or reject refund requests, look up the history and the reconciliation rules."
+    },
+    "customer-orders": {
+      "title": "Your orders",
+      "summary": "See orders you sent and orders sent to you, filter by status, and open one for its pickup code."
+    },
+    "customer-profile": {
+      "title": "Account",
+      "summary": "Personal details, refund account, security, and the guide."
+    },
+    "locker-tech-inspect": {
+      "title": "Locker check",
+      "summary": "Pick a locker, check each cell and report a fault found on site."
+    },
+    "drone-tech-dispatch": {
+      "title": "Drone dispatch",
+      "summary": "Check the weather at drone lockers and turn on pickup jobs while on shift."
     }
   },
   "steps": {
@@ -145,6 +181,102 @@
     "drone-tech-home-guide": {
       "title": "Reopen the guide",
       "body": "Tap this button at any time to replay the guide or turn automatic guides on or off."
+    },
+    "admin-users-stats": {
+      "title": "User figures",
+      "body": "Total accounts, active ones, new this month… Click a card to filter the list to that group."
+    },
+    "admin-users-filters": {
+      "title": "Filter and create accounts",
+      "body": "Search by name, email, phone or role and filter by status. \"Add user\" creates an account for a staff member."
+    },
+    "admin-users-list": {
+      "title": "Account list",
+      "body": "Click a row to open the profile: roles, wallet, reward points, orders and payments."
+    },
+    "admin-lockers-filters": {
+      "title": "Filter lockers",
+      "body": "Filter by status, store and assigned technician, including lockers nobody is assigned to."
+    },
+    "admin-lockers-list": {
+      "title": "Locker list",
+      "body": "Each row is a locker with its free cells. Click it for the cell map; the row menu puts it into maintenance or reactivates it."
+    },
+    "admin-drones-summary": {
+      "title": "Fleet status",
+      "body": "Cards count idle, charging and faulty drones. Click a card or a status chip to see only that group."
+    },
+    "admin-drones-add": {
+      "title": "Add a drone",
+      "body": "Register a new drone: its code, home locker and assigned technician."
+    },
+    "admin-drones-list": {
+      "title": "Each drone",
+      "body": "Each card shows battery, locker, technician and any fault. Click it for flight and maintenance logs."
+    },
+    "admin-storage-stats": {
+      "title": "Storage overview",
+      "body": "Items in storage, those still owing the overdue fee and those fully paid. Click a card to filter."
+    },
+    "admin-storage-list": {
+      "title": "Items in storage",
+      "body": "Search by order code or phone. When the customer arrives: open the item, check the phone number, collect what is owed, then hand it over to close the order."
+    },
+    "admin-refunds-stats": {
+      "title": "Refund requests",
+      "body": "Counts of pending, refunded and rejected requests. Click a card to filter by status."
+    },
+    "admin-refunds-tabs": {
+      "title": "Three work areas",
+      "body": "\"Pending\" to review, \"History\" to look up, \"Rules\" to check before sending a refund transfer."
+    },
+    "admin-refunds-pending": {
+      "title": "Review a request",
+      "body": "Each request shows the amount, order and receiving account. Approve once the transfer is done (with its reference), or reject with a reason."
+    },
+    "customer-orders-scope": {
+      "title": "Sent / Received",
+      "body": "Switch between orders you created and orders sent to you. Received orders carry a cell code once the parcel is in the locker."
+    },
+    "customer-orders-filters": {
+      "title": "Filter orders",
+      "body": "Filter by status (recent, in use, completed) and by service type."
+    },
+    "customer-orders-list": {
+      "title": "Order list",
+      "body": "Tap an order for details: pickup PIN / QR, payment, drone journey and receiver delegation."
+    },
+    "customer-profile-header": {
+      "title": "Your profile",
+      "body": "Avatar, name and membership tier. Tap to edit your details."
+    },
+    "customer-profile-refund": {
+      "title": "Refund account",
+      "body": "Add your bank and account number to receive money when an order is refunded."
+    },
+    "customer-profile-guide": {
+      "title": "User guide",
+      "body": "Replay the on-screen guide any time, open the manual, and turn automatic guides on or off."
+    },
+    "locker-tech-inspect-picker": {
+      "title": "Pick a locker",
+      "body": "Choose the locker to check from the ones you are assigned to."
+    },
+    "locker-tech-inspect-locker": {
+      "title": "Locker status",
+      "body": "Whether the controller is online, reserved and occupied cells, cells by size. \"Directions\" takes you there."
+    },
+    "locker-tech-inspect-report": {
+      "title": "Report a locker fault",
+      "body": "Only after confirming a physical fault on site: title, description, photo and an option to pause new orders."
+    },
+    "drone-tech-dispatch-weather": {
+      "title": "Weather at drone lockers",
+      "body": "Shows which lockers can fly in the next 30 minutes; rain or strong wind is flagged."
+    },
+    "drone-tech-dispatch-duty": {
+      "title": "Pickup jobs",
+      "body": "Turn on while on shift to be offered drone delivery jobs; while busy with one you will not get more offers."
     }
   }
 }

@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/customer-orders.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "customer-orders-scope",
+      "x": 0,
+      "y": 144,
+      "w": 412,
+      "h": 55
+    },
+    {
+      "n": 2,
+      "stepId": "customer-orders-filters",
+      "x": 0,
+      "y": 199,
+      "w": 412,
+      "h": 59
+    },
+    {
+      "n": 3,
+      "stepId": "customer-orders-list",
+      "x": 0,
+      "y": 266,
+      "w": 412,
+      "h": 626
+    }
+  ]
+}

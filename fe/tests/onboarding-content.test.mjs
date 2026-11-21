@@ -3,7 +3,7 @@
 // - mọi neo của bước web có `data-tour="…"` trong fe/src, mọi trang webRoute có trong router;
 // - mọi neo của bước mobile có `TourAnchor('…')` trong mã app Flutter (repo mobile cạnh repo này,
 //   hoặc thư mục ở biến môi trường MOBILE_LIB);
-// - nhóm nào cũng có ảnh HDSD đã khoanh (public/onboarding/hdsd/<nhóm>.png + .json).
+// - nhóm nào cũng có ảnh HDSD đã khoanh (public/onboarding/hdsd/<nhóm>.png + .json), và ảnh khớp bước hiện tại.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -80,4 +80,25 @@ test('nhóm nào cũng có ảnh HDSD đã khoanh', () => {
   const missing = content.groups.filter((g) =>
     !existsSync(join(PUB, 'hdsd', `${g.id}.png`)) || !existsSync(join(PUB, 'hdsd', `${g.id}.json`))).map((g) => g.id);
   assert.deepEqual(missing, [], `thiếu ảnh HDSD (chạy npm run hdsd:capture):\n${missing.join('\n')}`);
+});
+
+test('ảnh HDSD khớp nội dung hiện tại: đủ ô khoanh cho mọi bước có neo, không khoanh bước đã xoá', () => {
+  const problems = [];
+  for (const g of content.groups) {
+    const metaFile = join(PUB, 'hdsd', `${g.id}.json`);
+    if (!existsSync(metaFile)) continue; // đã báo ở test trên
+    const meta = JSON.parse(readFileSync(metaFile, 'utf8'));
+    const platform = g.steps.some((s) => s.platforms.includes('web')) ? 'web' : 'mobile';
+    const marked = new Set(meta.marks.map((m) => m.stepId));
+    const ids = new Set(g.steps.map((s) => s.id));
+    for (const s of g.steps) {
+      if (s.anchor && !s.optional && s.platforms.includes(platform) && !marked.has(s.id)) {
+        problems.push(`${g.id}: thiếu ô khoanh cho ${s.id}`);
+      }
+    }
+    for (const id of marked) if (!ids.has(id)) problems.push(`${g.id}: ảnh khoanh bước không còn ${id}`);
+    const numbers = meta.marks.map((m) => m.n).sort((a, b) => a - b);
+    if (numbers.some((n, i) => n !== i + 1)) problems.push(`${g.id}: số thứ tự không liền 1..${numbers.length}`);
+  }
+  assert.deepEqual(problems, [], `chụp lại ảnh HDSD (npm run hdsd:capture -- --groups=<nhóm>):\n${problems.join('\n')}`);
 });

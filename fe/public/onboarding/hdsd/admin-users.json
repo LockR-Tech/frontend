@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-users.png",
+  "width": 1440,
+  "height": 1312,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-users-stats",
+      "x": 292,
+      "y": 186,
+      "w": 1116,
+      "h": 132
+    },
+    {
+      "n": 2,
+      "stepId": "admin-users-filters",
+      "x": 316,
+      "y": 366,
+      "w": 1068,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "admin-users-list",
+      "x": 292,
+      "y": 342,
+      "w": 1116,
+      "h": 946
+    }
+  ]
+}

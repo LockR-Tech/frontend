@@ -101,8 +101,12 @@ export function TourProvider({ children }: { children: ReactNode }) {
   );
 
   const api = useMemo<TourApi>(
-    () => ({ openGuide: () => setDialog({ kind: "picker" }), ready: !!content }),
-    [content],
+    () => ({
+      openGuide: () => setDialog({ kind: "picker" }),
+      startGroups: (ids: string[]) => start(browse.filter((g) => ids.includes(g.id))),
+      ready: !!content,
+    }),
+    [content, browse, start],
   );
 
   const name = user?.fullName?.trim() || user?.email || "";
@@ -142,7 +146,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
           onStart={start}
           onOpenManual={(g) => {
             setDialog(null);
-            navigate(`/admin/huong-dan#${g.id}`);
+            navigate(g ? `/admin/huong-dan#${g.id}` : "/admin/huong-dan");
           }}
         />
       )}

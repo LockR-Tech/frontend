@@ -23,6 +23,42 @@
     "drone-tech-home": {
       "title": "Trang KTV drone",
       "summary": "Vào ca để nhận đơn, xem việc đang chờ và các tab điều phối, đội bay, sự cố."
+    },
+    "admin-users": {
+      "title": "Tài khoản",
+      "summary": "Xem số liệu người dùng, lọc và tìm tài khoản, tạo tài khoản mới cho nhân sự."
+    },
+    "admin-lockers": {
+      "title": "Kiosk (tủ)",
+      "summary": "Theo dõi mọi tủ: trạng thái, cửa hàng, kỹ thuật viên phụ trách; chuyển tủ sang bảo trì hoặc kích hoạt lại."
+    },
+    "admin-drones": {
+      "title": "Đội drone",
+      "summary": "Xem nhanh số drone rảnh, đang sạc, đang lỗi; thêm drone và mở hồ sơ từng chiếc."
+    },
+    "admin-storage": {
+      "title": "Đồ lưu kho",
+      "summary": "Đơn quá hạn lấy hàng được dời vào kho; khách tới quầy nhận lại sau khi trả đủ phí quá hạn."
+    },
+    "admin-refunds": {
+      "title": "Hoàn tiền",
+      "summary": "Duyệt hoặc từ chối yêu cầu hoàn tiền, xem lịch sử và quy tắc đối chiếu."
+    },
+    "customer-orders": {
+      "title": "Đơn hàng của bạn",
+      "summary": "Xem đơn bạn gửi đi và đơn người khác gửi cho bạn, lọc theo trạng thái, mở chi tiết để lấy mã nhận hàng."
+    },
+    "customer-profile": {
+      "title": "Tài khoản",
+      "summary": "Thông tin cá nhân, tài khoản nhận hoàn tiền, bảo mật và mở lại hướng dẫn."
+    },
+    "locker-tech-inspect": {
+      "title": "Kiểm tra tủ",
+      "summary": "Chọn tủ, xem tình trạng từng ô và báo sự cố khi phát hiện lỗi tại tủ."
+    },
+    "drone-tech-dispatch": {
+      "title": "Điều phối giao drone",
+      "summary": "Xem thời tiết tại các tủ drone và bật nhận việc lấy hàng khi đang trong ca."
     }
   },
   "steps": {
@@ -145,6 +181,102 @@
     "drone-tech-home-guide": {
       "title": "Mở lại hướng dẫn",
       "body": "Bấm nút này bất cứ lúc nào để xem lại hướng dẫn hoặc bật/tắt tự mở."
+    },
+    "admin-users-stats": {
+      "title": "Số liệu người dùng",
+      "body": "Tổng tài khoản, đang hoạt động, mới trong tháng… Bấm vào một thẻ để lọc danh sách đúng nhóm đó."
+    },
+    "admin-users-filters": {
+      "title": "Lọc và tạo tài khoản",
+      "body": "Tìm theo tên, email, số điện thoại hoặc vai trò; lọc theo trạng thái. Nút \"Thêm người dùng\" tạo tài khoản cho nhân sự."
+    },
+    "admin-users-list": {
+      "title": "Danh sách tài khoản",
+      "body": "Bấm vào một dòng để mở hồ sơ: vai trò, ví, điểm thưởng, đơn và thanh toán của người đó."
+    },
+    "admin-lockers-filters": {
+      "title": "Lọc tủ",
+      "body": "Lọc theo trạng thái, cửa hàng và kỹ thuật viên phụ trách; có lọc riêng các tủ chưa giao cho ai."
+    },
+    "admin-lockers-list": {
+      "title": "Danh sách tủ",
+      "body": "Mỗi dòng là một tủ với số ô trống. Bấm để xem sơ đồ ô; menu cuối dòng chuyển tủ sang bảo trì hoặc kích hoạt lại."
+    },
+    "admin-drones-summary": {
+      "title": "Tình trạng đội bay",
+      "body": "Các thẻ đếm drone rảnh, đang sạc, đang lỗi. Bấm thẻ hoặc chip trạng thái để chỉ xem nhóm đó."
+    },
+    "admin-drones-add": {
+      "title": "Thêm drone",
+      "body": "Khai báo drone mới: mã, tủ đặt drone và kỹ thuật viên phụ trách."
+    },
+    "admin-drones-list": {
+      "title": "Từng drone",
+      "body": "Mỗi thẻ cho biết pin, tủ, kỹ thuật viên và lỗi nếu có. Bấm vào thẻ để xem nhật ký bay và bảo trì."
+    },
+    "admin-storage-stats": {
+      "title": "Tổng quan kho",
+      "body": "Số kiện đang lưu kho, còn nợ phí quá hạn và đã trả đủ. Bấm thẻ để lọc danh sách."
+    },
+    "admin-storage-list": {
+      "title": "Kiện đang lưu kho",
+      "body": "Tìm theo mã đơn hoặc số điện thoại. Khi khách tới quầy: mở kiện, đối chiếu số điện thoại, thu phí còn thiếu rồi trao trả để chốt đơn."
+    },
+    "admin-refunds-stats": {
+      "title": "Số yêu cầu hoàn tiền",
+      "body": "Đếm yêu cầu chờ xử lý, đã hoàn và bị từ chối. Bấm thẻ để lọc theo trạng thái."
+    },
+    "admin-refunds-tabs": {
+      "title": "Ba khu làm việc",
+      "body": "\"Chờ xử lý\" để duyệt, \"Lịch sử\" để tra cứu, \"Quy tắc\" để đối chiếu trước khi chuyển khoản hoàn."
+    },
+    "admin-refunds-pending": {
+      "title": "Duyệt yêu cầu",
+      "body": "Mỗi yêu cầu có số tiền, đơn và tài khoản nhận. Duyệt khi đã chuyển khoản (kèm mã giao dịch), hoặc từ chối kèm lý do."
+    },
+    "customer-orders-scope": {
+      "title": "Gửi đi / Nhận về",
+      "body": "Chuyển giữa đơn bạn tạo và đơn người khác gửi cho bạn. Đơn nhận về có mã mở ô khi kiện đã vào tủ."
+    },
+    "customer-orders-filters": {
+      "title": "Lọc đơn",
+      "body": "Lọc nhanh theo trạng thái (gần đây, đang dùng, hoàn thành) và theo loại dịch vụ."
+    },
+    "customer-orders-list": {
+      "title": "Danh sách đơn",
+      "body": "Bấm vào một đơn để xem chi tiết: mã PIN / QR lấy hàng, thanh toán, hành trình drone, ủy quyền người nhận."
+    },
+    "customer-profile-header": {
+      "title": "Hồ sơ của bạn",
+      "body": "Ảnh đại diện, tên và hạng thành viên. Bấm để sửa thông tin cá nhân."
+    },
+    "customer-profile-refund": {
+      "title": "Tài khoản nhận hoàn tiền",
+      "body": "Khai báo ngân hàng và số tài khoản để nhận tiền khi đơn được hoàn."
+    },
+    "customer-profile-guide": {
+      "title": "Hướng dẫn sử dụng",
+      "body": "Mở lại hướng dẫn trên màn hình bất cứ lúc nào, xem trang HDSD, bật hoặc tắt tự mở."
+    },
+    "locker-tech-inspect-picker": {
+      "title": "Chọn tủ",
+      "body": "Chọn tủ cần kiểm tra trong danh sách tủ bạn phụ trách."
+    },
+    "locker-tech-inspect-locker": {
+      "title": "Tình trạng tủ",
+      "body": "Bộ điều khiển có trực tuyến không, số ô đang giữ chỗ, có đồ, theo kích thước. Bấm \"Chỉ đường\" để tới tủ."
+    },
+    "locker-tech-inspect-report": {
+      "title": "Báo sự cố cả tủ",
+      "body": "Chỉ báo khi đã xác nhận lỗi vật lý tại tủ: tiêu đề, mô tả, ảnh và tuỳ chọn tạm ngưng nhận đơn."
+    },
+    "drone-tech-dispatch-weather": {
+      "title": "Thời tiết tại tủ drone",
+      "body": "Cho biết tủ nào bay được trong 30 phút tới; tủ có mưa hoặc gió mạnh sẽ bị đánh dấu."
+    },
+    "drone-tech-dispatch-duty": {
+      "title": "Nhận việc lấy hàng",
+      "body": "Bật khi đang trong ca để được mời nhận đơn giao bằng drone; đang bận một việc thì chưa được mời thêm."
     }
   }
 }

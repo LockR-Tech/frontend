@@ -31,6 +31,7 @@ const UserDetailPage = lazy(() => import("../pages/Admin/users/detail"));
 const OrdersPage = lazy(() => import("../pages/Admin/orders"));
 const OrderDetailPage = lazy(() => import("../pages/Admin/orders/detail"));
 const StoragePage = lazy(() => import("../pages/Admin/storage"));
+const GuideManualPage = lazy(() => import("../pages/Admin/guide"));
 const FeedbackPage = lazy(() => import("../pages/Admin/feedback"));
 const FeedbackDetailPage = lazy(() => import("../pages/Admin/feedback/detail"));
 const StoresPage = lazy(() => import("../pages/Admin/stores"));
@@ -457,6 +458,15 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <BusinessSettingsPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        // Hướng dẫn sử dụng (F3-G13): dựng từ cùng nội dung với hướng dẫn trên màn hình
+        path: "huong-dan",
+        element: (
+          <LazyWrapper>
+            <GuideManualPage />
           </LazyWrapper>
         ),
       },

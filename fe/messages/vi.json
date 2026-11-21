@@ -6966,7 +6966,8 @@
       "onlyOnApp": "Phần này nằm trên app mobile — mở trang HDSD có ảnh minh hoạ",
       "autoShow": "Tự mở hướng dẫn khi đăng nhập hoặc khi có nội dung mới",
       "viewNew": "Xem {{count}} nhóm mới",
-      "viewSelected": "Xem {{count}} nhóm đã chọn"
+      "viewSelected": "Xem {{count}} nhóm đã chọn",
+      "openManual": "Mở trang HDSD"
     },
     "overlay": {
       "next": "Tiếp",
@@ -6981,6 +6982,14 @@
       "title": "Hướng dẫn trên màn hình",
       "description": "Xem lại hướng dẫn hoặc bật/tắt tự mở.",
       "open": "Mở hướng dẫn"
+    },
+    "manual": {
+      "title": "Hướng dẫn sử dụng",
+      "subtitle": "Mỗi khu chức năng một ảnh chụp thật, các số đỏ ứng với từng dòng giải thích bên cạnh. Cùng nội dung với hướng dẫn trên màn hình.",
+      "onWeb": "Web quản trị",
+      "onApp": "App mobile",
+      "runOnScreen": "Xem trên màn hình",
+      "noImage": "Chưa có ảnh minh hoạ cho nhóm này."
     }
   }
 }

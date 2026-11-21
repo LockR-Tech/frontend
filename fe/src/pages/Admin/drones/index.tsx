@@ -236,7 +236,7 @@ export default function DronesPage() {
         description={t("admin.drones.description")}
       />
 
-      <Card className="border-border/70 shadow-sm">
+      <Card className="border-border/70 shadow-sm" data-tour="drones-summary">
         <CardContent className="space-y-4 p-4 md:p-5">
           <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
             <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 xl:max-w-2xl">
@@ -276,7 +276,7 @@ export default function DronesPage() {
                 />
                 {t("button.refresh")}
               </Button>
-              <Button size="sm" onClick={openCreate}>
+              <Button size="sm" onClick={openCreate} data-tour="drones-add">
                 <Plus className="mr-2 h-4 w-4" /> {t("admin.drones.add")}
               </Button>
             </div>
@@ -329,7 +329,7 @@ export default function DronesPage() {
       />
 
       {/* Drone list */}
-      <div ref={listRef} className="scroll-mt-4">
+      <div ref={listRef} className="scroll-mt-4" data-tour="drones-list">
       {isLoading ? (
         <div className="flex justify-center py-16 text-muted-foreground">
           <AppLoading size={110} />

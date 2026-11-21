@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/admin-refunds.png",
+  "width": 1440,
+  "height": 1262,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-refunds-stats",
+      "x": 292,
+      "y": 210,
+      "w": 1116,
+      "h": 139
+    },
+    {
+      "n": 2,
+      "stepId": "admin-refunds-tabs",
+      "x": 292,
+      "y": 373,
+      "w": 579,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "admin-refunds-pending",
+      "x": 292,
+      "y": 437,
+      "w": 1116,
+      "h": 786
+    }
+  ]
+}

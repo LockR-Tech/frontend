@@ -89,6 +89,10 @@ const pathLabelKeys: Record<string, string> = {
   technicians: "admin.sidebar.technicians",
   promotions: "admin.sidebar.promotions",
   knowledge: "admin.sidebar.knowledge",
+  storage: "admin.sidebar.storage",
+  "cabinet-control": "admin.sidebar.cabinetControl",
+  "drone-logs": "admin.sidebar.droneLogs",
+  "huong-dan": "onboarding.manual.title",
 };
 
 const isNumeric = (str: string) => /^\d+$/.test(str);
