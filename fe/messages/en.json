@@ -218,7 +218,8 @@
         "operations": "Lockers & operations",
         "drone": "Drone",
         "finance": "Finance",
-        "customers": "Users & Engagement",
+        "customers": "Users",
+        "rewards": "Rewards & feedback",
         "system": "System"
       }
     },

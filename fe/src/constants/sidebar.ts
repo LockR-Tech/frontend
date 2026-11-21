@@ -19,6 +19,7 @@ import {
   SlidersHorizontal,
   BookOpen,
   Gift,
+  BadgePercent,
   Sparkles,
   RotateCcw,
   UserCheck,
@@ -174,6 +175,13 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
         label: "admin.sidebar.technicians",
         permission: "admin_access",
       },
+    ],
+  },
+  {
+    id: "rewards",
+    icon: BadgePercent,
+    label: "admin.sidebar.groups.rewards",
+    items: [
       {
         icon: Gift,
         path: "/admin/loyalty",
