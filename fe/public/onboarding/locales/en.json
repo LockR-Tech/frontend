@@ -11,6 +11,18 @@
     "admin-orders": {
       "title": "Orders",
       "summary": "Filter, search and open any parcel, box rental or drone delivery order."
+    },
+    "customer-home": {
+      "title": "Lock.R home",
+      "summary": "Send parcels, rent boxes, book drones, scan at the locker and follow active orders."
+    },
+    "locker-tech-home": {
+      "title": "Locker technician home",
+      "summary": "Go on shift, see pending work and the tabs for locker checks, incidents and routine maintenance."
+    },
+    "drone-tech-home": {
+      "title": "Drone technician home",
+      "summary": "Go on shift to receive orders, see pending work and the dispatch, fleet and incident tabs."
     }
   },
   "steps": {
@@ -65,6 +77,74 @@
     "admin-orders-detail": {
       "title": "Order details",
       "body": "On the detail page, the \"Pickup code\" card shows the PIN and QR code the customer uses at the locker, who holds the code and whether it still works."
+    },
+    "customer-home-intro": {
+      "title": "Welcome to Lock.R",
+      "body": "Lock.R lets you send parcels through lockers, rent a box for your things and deliver by drone. Here are the main buttons."
+    },
+    "customer-home-quick": {
+      "title": "Shortcuts",
+      "body": "Find a nearby locker, send a parcel, rent a box or open more services in one tap."
+    },
+    "customer-home-scan": {
+      "title": "Scan at the locker",
+      "body": "In front of a locker, tap here to scan the QR code on the kiosk screen and open your box."
+    },
+    "customer-home-notifications": {
+      "title": "Notifications",
+      "body": "Pickup codes, pickup reminders and drone progress all arrive here. A red dot means unread messages."
+    },
+    "customer-home-active": {
+      "title": "Active order",
+      "body": "Your latest order holding a box or on its way shows here with each milestone. Tap it for details."
+    },
+    "customer-home-tabs": {
+      "title": "Navigation bar",
+      "body": "Switch between Home, lockers, your orders and your account."
+    },
+    "customer-home-guide": {
+      "title": "Reopen the guide",
+      "body": "Tap this button at any time to replay the guide or turn automatic guides on or off."
+    },
+    "locker-tech-home-intro": {
+      "title": "Welcome, locker technician",
+      "body": "Here you receive incident tickets, run routine locker checks and manage the IoT devices of your lockers."
+    },
+    "locker-tech-home-shift": {
+      "title": "Go on shift",
+      "body": "Turn on \"On shift\" when you start work to receive new tickets. The app needs location access to know which locker you are near."
+    },
+    "locker-tech-home-hud": {
+      "title": "Pending work",
+      "body": "Incidents waiting, work in progress, routine schedules and the stations you cover. Tap a tile to jump to its tab."
+    },
+    "locker-tech-home-tabs": {
+      "title": "Work tabs",
+      "body": "Inspect, Incidents, My work, Routine, IoT devices and Drone parcel recovery. Swipe sideways to see them all."
+    },
+    "locker-tech-home-guide": {
+      "title": "Reopen the guide",
+      "body": "Tap this button at any time to replay the guide or turn automatic guides on or off."
+    },
+    "drone-tech-home-intro": {
+      "title": "Welcome, drone technician",
+      "body": "Here you take drone delivery orders, collect parcels from customers, load drones, follow flights and maintain the fleet."
+    },
+    "drone-tech-home-shift": {
+      "title": "Go on shift",
+      "body": "Turn on \"On shift\" so the system can offer you the nearest pickup. Location must be on to measure distance."
+    },
+    "drone-tech-home-hud": {
+      "title": "Pending work",
+      "body": "Orders waiting for dispatch, flights in the air and maintenance jobs. Tap a tile to jump to its tab."
+    },
+    "drone-tech-home-tabs": {
+      "title": "Work tabs",
+      "body": "Dispatch, Fleet, Incidents, My work, Routine and Flight tools. Swipe sideways to see them all."
+    },
+    "drone-tech-home-guide": {
+      "title": "Reopen the guide",
+      "body": "Tap this button at any time to replay the guide or turn automatic guides on or off."
     }
   }
 }

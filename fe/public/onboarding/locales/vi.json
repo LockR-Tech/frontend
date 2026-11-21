@@ -11,6 +11,18 @@
     "admin-orders": {
       "title": "Đơn hàng",
       "summary": "Lọc, tìm và mở chi tiết mọi đơn gửi hàng, thuê ô và giao bằng drone."
+    },
+    "customer-home": {
+      "title": "Trang chủ Lock.R",
+      "summary": "Gửi hàng, thuê ô, đặt drone, quét mã ở tủ và theo dõi đơn đang chạy."
+    },
+    "locker-tech-home": {
+      "title": "Trang KTV tủ",
+      "summary": "Vào ca, xem số việc đang chờ và các tab kiểm tra tủ, sự cố, lịch định kỳ."
+    },
+    "drone-tech-home": {
+      "title": "Trang KTV drone",
+      "summary": "Vào ca để nhận đơn, xem việc đang chờ và các tab điều phối, đội bay, sự cố."
     }
   },
   "steps": {
@@ -65,6 +77,74 @@
     "admin-orders-detail": {
       "title": "Chi tiết đơn",
       "body": "Trong trang chi tiết, khung \"Mã lấy hàng\" cho biết PIN và mã QR khách dùng ở tủ, ai đang giữ mã và mã còn dùng được không."
+    },
+    "customer-home-intro": {
+      "title": "Chào mừng tới Lock.R",
+      "body": "Lock.R giúp bạn gửi hàng qua tủ, thuê ô cất đồ và giao hàng bằng drone. Xem nhanh các nút chính nhé."
+    },
+    "customer-home-quick": {
+      "title": "Việc hay dùng",
+      "body": "Tìm tủ gần bạn, gửi hàng, thuê ô hoặc mở thêm dịch vụ chỉ với một chạm."
+    },
+    "customer-home-scan": {
+      "title": "Quét mã ở tủ",
+      "body": "Đứng trước tủ, bấm đây để quét mã QR trên màn hình kiosk và mở ô của bạn."
+    },
+    "customer-home-notifications": {
+      "title": "Thông báo",
+      "body": "Mã nhận hàng, nhắc hạn lấy đồ và tiến độ giao drone đều gửi về đây. Chấm đỏ là có tin chưa đọc."
+    },
+    "customer-home-active": {
+      "title": "Đơn đang chạy",
+      "body": "Đơn gần nhất đang giữ ô hoặc đang giao hiện ở đây kèm từng mốc. Bấm vào để xem chi tiết."
+    },
+    "customer-home-tabs": {
+      "title": "Thanh điều hướng",
+      "body": "Chuyển giữa Trang chủ, danh sách tủ, đơn của bạn và tài khoản."
+    },
+    "customer-home-guide": {
+      "title": "Mở lại hướng dẫn",
+      "body": "Bấm nút này bất cứ lúc nào để xem lại hướng dẫn hoặc bật/tắt tự mở."
+    },
+    "locker-tech-home-intro": {
+      "title": "Chào mừng KTV tủ",
+      "body": "Đây là nơi bạn nhận ticket sự cố, kiểm tra tủ định kỳ và quản lý thiết bị IoT của các tủ được giao."
+    },
+    "locker-tech-home-shift": {
+      "title": "Vào ca",
+      "body": "Bật \"Vào ca\" khi bắt đầu làm việc để được giao ticket mới. Ứng dụng cần quyền vị trí để biết bạn gần tủ nào."
+    },
+    "locker-tech-home-hud": {
+      "title": "Việc đang chờ",
+      "body": "Số sự cố chờ nhận, việc đang làm, lịch định kỳ và số trạm bạn phụ trách. Bấm vào ô để nhảy tới tab tương ứng."
+    },
+    "locker-tech-home-tabs": {
+      "title": "Các tab công việc",
+      "body": "Kiểm tra tủ, Sự cố, Việc của tôi, Định kỳ, Thiết bị IoT và Thu hồi kiện drone. Vuốt ngang để xem hết."
+    },
+    "locker-tech-home-guide": {
+      "title": "Mở lại hướng dẫn",
+      "body": "Bấm nút này bất cứ lúc nào để xem lại hướng dẫn hoặc bật/tắt tự mở."
+    },
+    "drone-tech-home-intro": {
+      "title": "Chào mừng KTV drone",
+      "body": "Đây là nơi bạn nhận đơn giao bằng drone, lấy hàng tận nơi, nạp hàng, theo dõi chuyến bay và bảo dưỡng drone."
+    },
+    "drone-tech-home-shift": {
+      "title": "Vào ca",
+      "body": "Bật \"Vào ca\" để hệ thống mời bạn nhận đơn lấy hàng gần nhất. Cần bật vị trí để tính khoảng cách."
+    },
+    "drone-tech-home-hud": {
+      "title": "Việc đang chờ",
+      "body": "Đơn chờ điều phối, chuyến đang bay và việc bảo trì. Bấm vào ô để nhảy tới tab tương ứng."
+    },
+    "drone-tech-home-tabs": {
+      "title": "Các tab công việc",
+      "body": "Điều phối, Đội bay, Sự cố, Việc của tôi, Định kỳ và Công cụ bay. Vuốt ngang để xem hết."
+    },
+    "drone-tech-home-guide": {
+      "title": "Mở lại hướng dẫn",
+      "body": "Bấm nút này bất cứ lúc nào để xem lại hướng dẫn hoặc bật/tắt tự mở."
     }
   }
 }
