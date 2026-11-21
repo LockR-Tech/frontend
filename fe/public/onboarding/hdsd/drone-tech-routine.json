@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/drone-tech-routine.png",
+  "width": 412,
+  "height": 813,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-routine-banner",
+      "x": 12,
+      "y": 337,
+      "w": 388,
+      "h": 77
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-routine-search",
+      "x": 12,
+      "y": 424,
+      "w": 388,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-routine-due",
+      "x": 12,
+      "y": 472,
+      "w": 388,
+      "h": 31
+    },
+    {
+      "n": 4,
+      "stepId": "drone-tech-routine-filters",
+      "x": 12,
+      "y": 510,
+      "w": 388,
+      "h": 34
+    },
+    {
+      "n": 5,
+      "stepId": "drone-tech-routine-list",
+      "x": 12,
+      "y": 556,
+      "w": 388,
+      "h": 228
+    }
+  ]
+}

@@ -3,5 +3,46 @@
   "width": 412,
   "height": 420,
   "capturedAt": "2026-11-21",
-  "marks": []
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-iot-device-head",
+      "x": 20,
+      "y": 52,
+      "w": 372,
+      "h": 27
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-iot-device-info",
+      "x": 20,
+      "y": 197,
+      "w": 372,
+      "h": 32
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-iot-device-restart",
+      "x": 20,
+      "y": 241,
+      "w": 372,
+      "h": 32
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-iot-device-mark",
+      "x": 20,
+      "y": 281,
+      "w": 372,
+      "h": 32
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-iot-device-logs",
+      "x": 20,
+      "y": 325,
+      "w": 372,
+      "h": 27
+    }
+  ]
 }

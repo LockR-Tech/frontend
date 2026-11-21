@@ -43,6 +43,11 @@ const DEMO_ACCOUNT = {
   LOCKER_TECHNICIAN: `ktv.tu${DEMO_DOMAIN}`,
   DRONE_TECHNICIAN: `ktv.drone${DEMO_DOMAIN}`,
 };
+// Trang chủ + neo chắc chắn có của từng vai trò KTV — để biết đăng nhập đã thật sự vào app.
+const ROLE_HOME = {
+  LOCKER_TECHNICIAN: { route: '/technician-home', anchor: 'tech-home-tabs' },
+  DRONE_TECHNICIAN: { route: '/maintenance-home', anchor: 'drone-home-tabs' },
+};
 const W = 1440;
 const APP_W = 412;
 const APP_H = 892;
@@ -392,6 +397,13 @@ async function revealApp(page, anchor) {
   return ok;
 }
 
+// Có neo (hoặc neo via) nào của nhóm trong cây semantics không — không xét khung nhìn.
+async function anyGroupAnchor(page, steps) {
+  await enableSemantics(page);
+  const ids = [...new Set(steps.flatMap((s) => [s.anchor, s.via]).filter(Boolean))];
+  return page.evaluate((list) => list.some((a) => document.querySelector(`[flt-semantics-identifier="tour:${a}"]`)), ids);
+}
+
 async function goApp(page, group, route) {
   const hooked = await page.evaluate((r) => {
     if (typeof window.__lockrGo !== 'function') return false;
@@ -516,18 +528,43 @@ async function captureApp(browser) {
           continue;
         }
         if (!sessions[role]) {
-          const c = await appContext(browser);
-          const p = await c.newPage();
-          await flutterLogin(p, `${base}/`, email, password);
-          await dismissPopups(p);
-          sessions[role] = p;
+          // Thỉnh thoảng (máy tải nặng) đăng nhập không ăn và app ở lại trang chủ dạng khách vãng lai ⇒ KTV kiểm neo
+          // trang chủ của vai trò, chưa thấy thì đăng nhập lại trong ngữ cảnh mới (tối đa 3 lần).
+          const check = ROLE_HOME[role];
+          for (let attempt = 0; attempt < 3 && !sessions[role]; attempt++) {
+            const c = await appContext(browser);
+            const p = await c.newPage();
+            // HDSD_CONSOLE=1: in console của app (gỡ lỗi đăng nhập / điều hướng theo vai trò).
+            if (process.env.HDSD_CONSOLE) p.on('console', (m) => console.log(`    [app ${role}] ${m.text().slice(0, 300)}`));
+            await flutterLogin(p, `${base}/`, email, password);
+            await dismissPopups(p);
+            if (check) {
+              await goApp(p, group, check.route);
+              // Hộp "Chào" / "Có hướng dẫn mới" tự mở ~1 giây sau khi vào trang và che cây semantics bên dưới.
+              await p.waitForTimeout(1500);
+              await dismissPopups(p);
+              if (!(await anyGroupAnchor(p, [{ anchor: check.anchor }]))) {
+                console.warn(`  ! đăng nhập ${role} chưa vào trang ${check.route} — thử lại`);
+                if (process.env.HDSD_CONSOLE) await p.screenshot({ path: join(OUT, '..', `_dang-nhap-loi-${role}-${attempt}.png`) });
+                await c.close();
+                continue;
+              }
+            }
+            sessions[role] = p;
+          }
+          if (!sessions[role]) throw new Error(`không vào được trang chủ của ${role}`);
         }
         page = sessions[role];
         await page.setViewportSize({ width: APP_W, height: APP_H });
         // Đóng bảng / hộp thoại do nhóm trước mở.
         await page.evaluate(() => window.__lockrReset?.());
         await page.waitForTimeout(600);
-        if (route) await goApp(page, group, route);
+        if (route) {
+          await goApp(page, group, route);
+          // Máy tải nặng: bộ chặn route của app đôi khi đọc token ra rỗng và đẩy KTV về trang chủ khách ⇒ chưa thấy neo
+          // nào của nhóm thì mở lại trang (tối đa 2 lần).
+          for (let t = 0; t < 2 && !(await anyGroupAnchor(page, steps)); t++) await goApp(page, group, route);
+        }
         await dismissPopups(page);
       }
       await walkApp(page, steps);

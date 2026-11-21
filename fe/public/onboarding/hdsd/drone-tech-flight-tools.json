@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/drone-tech-flight-tools.png",
+  "width": 412,
+  "height": 542,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-flight-tools-mission",
+      "x": 12,
+      "y": 337,
+      "w": 388,
+      "h": 76
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-flight-tools-flight",
+      "x": 12,
+      "y": 423,
+      "w": 388,
+      "h": 90
+    }
+  ]
+}

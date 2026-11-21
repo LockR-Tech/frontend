@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/drone-tech-incidents.png",
+  "width": 412,
+  "height": 781,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-incidents-banner",
+      "x": 12,
+      "y": 337,
+      "w": 388,
+      "h": 60
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-incidents-search",
+      "x": 12,
+      "y": 407,
+      "w": 388,
+      "h": 40
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-incidents-status",
+      "x": 12,
+      "y": 457,
+      "w": 388,
+      "h": 34
+    },
+    {
+      "n": 4,
+      "stepId": "drone-tech-incidents-filters",
+      "x": 12,
+      "y": 499,
+      "w": 388,
+      "h": 67
+    },
+    {
+      "n": 5,
+      "stepId": "drone-tech-incidents-first",
+      "x": 12,
+      "y": 578,
+      "w": 388,
+      "h": 174
+    }
+  ]
+}

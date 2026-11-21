@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/locker-tech-recovery.png",
+  "width": 412,
+  "height": 420,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-recovery-tab",
+      "x": 279,
+      "y": 251,
+      "w": 129,
+      "h": 49
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-recovery-banner",
+      "x": 12,
+      "y": 312,
+      "w": 388,
+      "h": 62
+    }
+  ]
+}

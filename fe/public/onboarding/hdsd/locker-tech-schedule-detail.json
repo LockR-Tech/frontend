@@ -1,7 +1,72 @@
 {
   "image": "hdsd/locker-tech-schedule-detail.png",
   "width": 412,
-  "height": 420,
+  "height": 1700,
   "capturedAt": "2026-11-21",
-  "marks": []
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "locker-tech-schedule-detail-head",
+      "x": 0,
+      "y": 228,
+      "w": 412,
+      "h": 60
+    },
+    {
+      "n": 2,
+      "stepId": "locker-tech-schedule-detail-badges",
+      "x": 18,
+      "y": 416,
+      "w": 267,
+      "h": 90
+    },
+    {
+      "n": 3,
+      "stepId": "locker-tech-schedule-detail-location",
+      "x": 18,
+      "y": 522,
+      "w": 376,
+      "h": 139
+    },
+    {
+      "n": 4,
+      "stepId": "locker-tech-schedule-detail-plan",
+      "x": 18,
+      "y": 675,
+      "w": 376,
+      "h": 233
+    },
+    {
+      "n": 5,
+      "stepId": "locker-tech-schedule-detail-checklist",
+      "x": 18,
+      "y": 922,
+      "w": 376,
+      "h": 165
+    },
+    {
+      "n": 6,
+      "stepId": "locker-tech-schedule-detail-sop",
+      "x": 18,
+      "y": 1101,
+      "w": 376,
+      "h": 71
+    },
+    {
+      "n": 7,
+      "stepId": "locker-tech-schedule-detail-history",
+      "x": 18,
+      "y": 1186,
+      "w": 376,
+      "h": 449
+    },
+    {
+      "n": 8,
+      "stepId": "locker-tech-schedule-detail-actions",
+      "x": 0,
+      "y": 1635,
+      "w": 412,
+      "h": 65
+    }
+  ]
 }

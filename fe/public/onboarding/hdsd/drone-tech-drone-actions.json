@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/drone-tech-drone-actions.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-drone-actions-head",
+      "x": 20,
+      "y": 584,
+      "w": 372,
+      "h": 27
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-drone-actions-assign",
+      "x": 20,
+      "y": 648,
+      "w": 372,
+      "h": 58
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-drone-actions-status",
+      "x": 20,
+      "y": 706,
+      "w": 372,
+      "h": 58
+    },
+    {
+      "n": 4,
+      "stepId": "drone-tech-drone-actions-battery",
+      "x": 20,
+      "y": 764,
+      "w": 372,
+      "h": 58
+    },
+    {
+      "n": 5,
+      "stepId": "drone-tech-drone-actions-log",
+      "x": 20,
+      "y": 822,
+      "w": 372,
+      "h": 58
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "image": "hdsd/drone-tech-order-detail.png",
+  "width": 412,
+  "height": 892,
+  "capturedAt": "2026-11-21",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "drone-tech-order-detail-head",
+      "x": 16,
+      "y": 153,
+      "w": 380,
+      "h": 29
+    },
+    {
+      "n": 2,
+      "stepId": "drone-tech-order-detail-camera",
+      "x": 16,
+      "y": 217,
+      "w": 380,
+      "h": 375
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-order-detail-weather",
+      "x": 16,
+      "y": 606,
+      "w": 380,
+      "h": 267
+    }
+  ]
+}

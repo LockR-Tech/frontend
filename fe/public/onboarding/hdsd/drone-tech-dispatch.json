@@ -1,7 +1,7 @@
 {
   "image": "hdsd/drone-tech-dispatch.png",
   "width": 412,
-  "height": 516,
+  "height": 555,
   "capturedAt": "2026-11-21",
   "marks": [
     {
@@ -19,6 +19,14 @@
       "y": 413,
       "w": 388,
       "h": 74
+    },
+    {
+      "n": 3,
+      "stepId": "drone-tech-dispatch-filters",
+      "x": 12,
+      "y": 495,
+      "w": 388,
+      "h": 31
     }
   ]
 }

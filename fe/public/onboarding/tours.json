@@ -12393,6 +12393,7 @@
         "CUSTOMER"
       ],
       "manualOnly": true,
+      "noImage": true,
       "steps": [
         {
           "id": "customer-drone-live-map-open",
