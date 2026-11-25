@@ -81,6 +81,7 @@ export default function LockersPage() {
             lockers={lockers}
             isLoading={isLoading}
             onMaintenance={handleMaintenance}
+            onMaintenanceSuccess={refetch}
             onActivate={handleActivate}
             onDelete={handleDeleteLocker}
             onDeleteBatch={handleDeleteBatchLockers}

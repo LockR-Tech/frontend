@@ -28,6 +28,7 @@ import {
   ExternalLink,
   PackageSearch,
   Hammer,
+  Power,
 } from "lucide-react";
 import {
   isXlCell,
@@ -110,6 +111,9 @@ import { KioskScreenModal } from "./components/KioskScreenModal";
 import { LockerAddBoxPreview } from "./components/LockerAddBoxPreview";
 import { LockerLocationModal } from "./components/LockerLocationModal";
 import { InstallationPanel } from "./components/InstallationPanel";
+import { LockerMaintenanceDialog } from "./components/LockerMaintenanceDialog";
+import { LockerMaintenanceHistoryPanel } from "./components/LockerMaintenanceHistoryPanel";
+import { useSetLockerMaintenanceMutation } from "~/stores/apis/admin/lockers";
 import { INSTALLATION_LOCKER_STATUSES } from "~/stores/apis/admin/installations";
 
 // Nhãn trạng thái tủ — cùng câu chữ với admin.lockers.status (messages/vi.json)
@@ -775,6 +779,19 @@ export default function LockerLayoutPage() {
 
   // Phiếu đang chặn cả tủ (chỉ cần khi tủ đang bảo trì)
   const lockerStatus = data?.data?.status ?? staffLocker?.status ?? "";
+  const [setLockerMaintenance, { isLoading: togglingMaintenance }] = useSetLockerMaintenanceMutation();
+  const [showMaintenanceDialog, setShowMaintenanceDialog] = useState(false);
+
+  const handleReactivateLocker = async () => {
+    try {
+      await setLockerMaintenance({ id, data: { maintenance: false } }).unwrap();
+      toast.success(t("admin.lockers.toast.reactivated"));
+      refetch();
+      refetchStaffLocker();
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || t("admin.lockers.toast.activateFailed"));
+    }
+  };
   // Tải luôn (không chỉ khi tủ bảo trì): ô có phiếu khách báo qua đơn vẫn OCCUPIED,
   // chỉ phiếu mới cho biết ô đang hỏng như app khách thấy.
   const { data: reportsData } = useGetAllAdminReportsQuery(undefined, {
@@ -1370,6 +1387,23 @@ export default function LockerLayoutPage() {
               <DropdownMenuItem className="cursor-pointer" disabled={cells.length === 0} onClick={openArrange} data-tour="adm-locker-more-arrange">
                 <LayoutGrid className="w-4 h-4 mr-2 text-primary" /> {t("admin.lockers.layout.autoArrange")}
               </DropdownMenuItem>
+              {lockerStatus === "ACTIVE" && (
+                <DropdownMenuItem
+                  className="cursor-pointer text-amber-600 focus:text-amber-600"
+                  onClick={() => setShowMaintenanceDialog(true)}
+                >
+                  <Wrench className="w-4 h-4 mr-2" /> {t("dropdown.maintenance")}
+                </DropdownMenuItem>
+              )}
+              {(lockerStatus === "MAINTENANCE" || lockerStatus === "INACTIVE") && (
+                <DropdownMenuItem
+                  className="cursor-pointer text-emerald-600 focus:text-emerald-600"
+                  disabled={togglingMaintenance}
+                  onClick={() => void handleReactivateLocker()}
+                >
+                  <Power className="w-4 h-4 mr-2" /> {t("dropdown.activate")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer text-destructive focus:text-destructive"
@@ -1485,6 +1519,7 @@ export default function LockerLayoutPage() {
           <TabsTrigger value="operations" data-tour="adm-locker-tab-operations">{t("admin.lockers.layout.tabs.operations")}</TabsTrigger>
           <TabsTrigger value="devices" data-tour="adm-locker-tab-devices">{t("admin.lockers.layout.tabs.devices")}</TabsTrigger>
           <TabsTrigger value="logs" data-tour="adm-locker-tab-logs">{t("admin.lockers.layout.tabs.logs")}</TabsTrigger>
+          <TabsTrigger value="maintenance" data-tour="adm-locker-tab-maintenance">{t("admin.lockers.layout.tabs.maintenance")}</TabsTrigger>
           <TabsTrigger value="installation" data-tour="adm-locker-tab-installation">{t("admin.lockers.layout.tabs.installation")}</TabsTrigger>
         </TabsList>
 
@@ -1806,6 +1841,10 @@ export default function LockerLayoutPage() {
 
         <TabsContent value="logs" className="mt-0">
           <LockerLogsPanel lockerId={id} lockerCode={layout.code} cells={cells} gateway={currentGateway} />
+        </TabsContent>
+
+        <TabsContent value="maintenance" className="mt-0">
+          <LockerMaintenanceHistoryPanel lockerId={id} lockerCode={layout.code} />
         </TabsContent>
 
         <TabsContent value="installation" className="mt-0">
@@ -2324,6 +2363,23 @@ export default function LockerLayoutPage() {
           onSuccess={() => refetchStaffLocker?.()}
         />
       )}
+
+      {/* 7) Modal chuyển tủ sang bảo trì + tạo phiếu sự cố cho KTV */}
+      <LockerMaintenanceDialog
+        open={showMaintenanceDialog}
+        onOpenChange={setShowMaintenanceDialog}
+        locker={{
+          id,
+          code: layout.code,
+          name: layout.name,
+          assignedTechnicianId: assignedTechId,
+          assignedTechnicianName: assignedTechName,
+        }}
+        onSuccess={() => {
+          refetch();
+          refetchStaffLocker();
+        }}
+      />
     </div>
   );
 }

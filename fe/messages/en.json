@@ -1658,6 +1658,7 @@
           "operations": "Technician & location",
           "devices": "Devices",
           "logs": "Logs",
+          "maintenance": "Repairs & Maintenance",
           "installation": "Installation"
         },
         "installing": {
@@ -1760,7 +1761,52 @@
           "resolved": "Resolved",
           "inProgress": "In progress",
           "open": "Open",
+          "rejected": "Rejected",
           "noDescription": "No description"
+        },
+        "maintenanceDialog": {
+          "title": "Switch locker {{code}} to maintenance",
+          "description": "Temporarily pause new orders at {{name}} for inspection and servicing.",
+          "createReportLabel": "Create an incident report for a locker technician",
+          "createReportHint": "Recommended — opens a blocking report (RPT), notifies the responsible technician, and auto-reactivates the locker when resolved.",
+          "defaultTitle": "Maintenance for Kiosk {{code}}",
+          "reportTitleLabel": "Incident report title",
+          "reportTitlePlaceholder": "e.g. Power supply inspection / door servicing...",
+          "reportDescLabel": "Condition description / maintenance reason",
+          "reportDescPlaceholder": "Describe what the technician needs to check or repair...",
+          "validationRequired": "Please enter both title and description when creating an incident report.",
+          "createdReportSuccess": "Switched {{code}} to maintenance and created report RPT-{{id}}",
+          "noReportWarning": "The locker will only switch to Maintenance WITHOUT creating an incident report or notifying technicians.",
+          "submitting": "Processing...",
+          "confirmWithReport": "Confirm & Create Report",
+          "confirmOnly": "Maintenance Only"
+        },
+        "maintenanceHistory": {
+          "title": "Repair & Maintenance History for Kiosk {{locker}}",
+          "description": "Unified timeline of all kiosk/box incident reports and periodic maintenance inspections.",
+          "scheduleFallback": "Periodic Schedule #{{id}}",
+          "routedTo": "Awaiting claim ({{name}})",
+          "kpi": {
+            "totalReports": "Total Incidents",
+            "activeReports": "Open / In Progress",
+            "resolvedReports": "Resolved",
+            "inspections": "Periodic Inspections"
+          },
+          "filterAll": "All ({{count}})",
+          "filterIncidents": "Incidents ({{count}})",
+          "filterInspections": "Periodic ({{count}})",
+          "loading": "Loading repair & maintenance history...",
+          "empty": "No incident reports or periodic maintenance records for this kiosk yet.",
+          "blockingBadge": "Blocking locker",
+          "openInMaintenance": "Maintenance Page",
+          "technicianLabel": "Technician:",
+          "createdAt": "Created:",
+          "resolvedAt": "Resolved:",
+          "completedAt": "Completed:",
+          "periodicBadge": "Periodic Inspection",
+          "linkedReport": "→ Opened RPT-{{id}}",
+          "inspectionPhotoAlt": "Periodic inspection photo #{{index}}",
+          "photoPreviewTitle": "Inspection photo"
         }
       },
       "boxQr": {
