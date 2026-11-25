@@ -40,6 +40,7 @@ import {
 import {
   useGetLockerAccessLogsQuery,
   useGetAllAdminReportsQuery,
+  useGetAllInspectionLogsQuery,
   useGetGatewaysQuery,
   type BoxAccessLogResponse,
   type CellResponse,
@@ -50,8 +51,8 @@ import {
   type DroneLockerCommLog,
 } from "~/stores/apis/admin/droneCommLogs";
 import { describeDroneCommLog, isDroneCommLogError } from "~/lib/droneCommLogMessage";
-import { useNavigate } from "react-router-dom";
 import { describeAccessLogMessage } from "./accessLogMessage";
+import { LockerMaintenanceHistoryPanel } from "./LockerMaintenanceHistoryPanel";
 import { formatDateTime } from "~/lib/datetime";
 import { useTranslation } from "react-i18next";
 import i18n from "~/utils/i18n";
@@ -131,7 +132,6 @@ function fromDroneLog(log: DroneLockerCommLog): PanelLog {
 
 export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGateway }: LockerLogsPanelProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const lockerLabel = lockerCode || `#${lockerId}`;
   const { data, isLoading, isFetching, refetch } = useGetLockerAccessLogsQuery(lockerId, {
     pollingInterval: 10000,
@@ -149,6 +149,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
   );
 
   const { data: reportsData } = useGetAllAdminReportsQuery();
+  const { data: inspectionLogsData } = useGetAllInspectionLogsQuery({ lockerId });
 
   const [activeTab, setActiveTab] = useState<"access" | "reports">("access");
   const [selectedBox, setSelectedBox] = useState<string>("ALL");
@@ -249,10 +250,18 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
     });
   }, [logs, selectedBox, selectedResult, selectedType, searchQuery, boxIdToNumber]);
 
-  // Phiếu sự cố của tủ
+  // Phiếu sự cố & bảo trì định kỳ của tủ
   const lockerReports = useMemo(() => {
-    return (reportsData?.data ?? []).filter((r) => r.lockerId === lockerId);
+    return (reportsData?.data ?? []).filter(
+      (r) => r.lockerId === lockerId && r.droneUnitId == null && r.category !== "DRONE"
+    );
   }, [reportsData, lockerId]);
+
+  const inspectionLogCount = useMemo(() => {
+    return (inspectionLogsData?.data ?? []).filter(
+      (log) => (log.lockerId == null || log.lockerId === lockerId) && log.droneUnitId == null
+    ).length;
+  }, [inspectionLogsData, lockerId]);
 
   // Thống kê nhanh
   const stats = useMemo(() => {
@@ -312,7 +321,7 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                 }`}
                 onClick={() => setActiveTab("reports")}
               >
-                {t("admin.lockers.logs.tabReports", { count: lockerReports.length })}
+                {t("admin.lockers.logs.tabReports", { count: lockerReports.length + inspectionLogCount })}
               </button>
             </div>
             <Button
@@ -679,85 +688,8 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
             )}
           </>
         ) : (
-          /* Tab: Sự cố & Sửa chữa */
-          <div>
-            {lockerReports.length === 0 ? (
-              <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed">
-                <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500 opacity-60" />
-                {t("admin.lockers.logs.noReports")}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-border/80 overflow-hidden">
-                <Table className="text-xs">
-                  <TableHeader className="bg-muted/40">
-                    <TableRow>
-                      <TableHead className="w-[100px] font-semibold">{t("admin.lockers.logs.reports.id")}</TableHead>
-                      <TableHead className="w-[100px] font-semibold">{t("admin.lockers.logs.reports.box")}</TableHead>
-                      <TableHead className="w-[120px] font-semibold">{t("admin.lockers.logs.reports.category")}</TableHead>
-                      <TableHead className="w-[120px] font-semibold">{t("common.status")}</TableHead>
-                      <TableHead className="font-semibold">{t("admin.lockers.logs.reports.description")}</TableHead>
-                      <TableHead className="w-[150px] font-semibold">{t("common.time")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lockerReports.map((report) => (
-                      // Bấm cả dòng để mở thẳng phiếu ở trang Bảo trì thay vì phải đi tìm.
-                      <TableRow
-                        key={report.id}
-                        className="cursor-pointer hover:bg-muted/40"
-                        role="link"
-                        tabIndex={0}
-                        title={t("admin.lockers.logs.reports.openReport", { id: report.id })}
-                        onClick={() => navigate(`/admin/maintenance?reportId=${report.id}`)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") navigate(`/admin/maintenance?reportId=${report.id}`);
-                        }}
-                      >
-                        <TableCell className="font-bold text-primary underline-offset-2 hover:underline">RPT-{report.id}</TableCell>
-                        <TableCell className="font-semibold">
-                          {report.boxNumber != null ? (
-                            <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
-                              {t("admin.lockers.boxLabel", { number: report.boxNumber })}
-                            </Badge>
-                          ) : (
-                            "—"
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-[10px]">
-                            {report.category || t("admin.lockers.logs.reports.categoryGeneral")}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={`text-[10px] ${
-                              report.status === "RESOLVED"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : report.status === "IN_PROGRESS"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-rose-100 text-rose-800"
-                            }`}
-                          >
-                            {report.status === "RESOLVED"
-                              ? t("admin.lockers.logs.reports.resolved")
-                              : report.status === "IN_PROGRESS"
-                              ? t("admin.lockers.logs.reports.inProgress")
-                              : t("admin.lockers.logs.reports.open")}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-[300px] truncate" title={report.description}>
-                          {report.description || t("admin.lockers.logs.reports.noDescription")}
-                        </TableCell>
-                        <TableCell className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">
-                          {formatDateTime(report.createdAt)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
+          /* Tab: Sự cố & Bảo trì tủ (phiếu sự cố + kiểm tra định kỳ) */
+          <LockerMaintenanceHistoryPanel lockerId={lockerId} lockerCode={lockerCode} embedded />
         )}
       </CardContent>
     </Card>

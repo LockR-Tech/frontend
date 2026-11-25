@@ -16,6 +16,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { DataTable, DeleteReasonDialog } from "~/components/shared/data-table";
+import { LockerMaintenanceDialog } from "./LockerMaintenanceDialog";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -40,7 +41,8 @@ import { useTranslation } from "react-i18next";
 interface LockerTableProps {
   lockers: AdminLockerResponse[];
   isLoading: boolean;
-  onMaintenance: (lockerId: number) => void;
+  onMaintenance?: (lockerId: number) => void;
+  onMaintenanceSuccess?: () => void;
   onActivate: (lockerId: number) => void;
   onDelete?: (lockerId: number, reason: string) => Promise<boolean>;
   onDeleteBatch?: (lockerIds: number[], reason: string) => Promise<boolean>;
@@ -189,7 +191,7 @@ const getStatusBadge = (status: LockerStatus, t: (key: string) => string) => {
 export function LockerTable({
   lockers,
   isLoading,
-  onMaintenance,
+  onMaintenanceSuccess,
   onActivate,
   onDelete,
   onDeleteBatch,
@@ -207,6 +209,7 @@ export function LockerTable({
 
   const [selectedLockerIds, setSelectedLockerIds] = useState<number[]>([]);
   const [deleteSingleTarget, setDeleteSingleTarget] = useState<AdminLockerResponse | null>(null);
+  const [maintenanceTarget, setMaintenanceTarget] = useState<AdminLockerResponse | null>(null);
   const [showBatchDeleteConfirm, setShowBatchDeleteConfirm] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
@@ -453,7 +456,7 @@ export function LockerTable({
                 </DropdownMenuItem>
                 {locker.status === LockerStatus.ACTIVE && (
                   <DropdownMenuItem
-                    onClick={() => onMaintenance(locker.id)}
+                    onClick={() => setMaintenanceTarget(locker)}
                     className="cursor-pointer text-amber-600 focus:text-amber-600"
                     data-tour={first ? "adm-lockers-row-status" : undefined}
                   >
@@ -593,6 +596,13 @@ export function LockerTable({
         }
         loading={isDeleting}
         onConfirm={(reason) => void handleConfirmDelete(reason)}
+      />
+
+      <LockerMaintenanceDialog
+        open={Boolean(maintenanceTarget)}
+        onOpenChange={(open) => !open && setMaintenanceTarget(null)}
+        locker={maintenanceTarget}
+        onSuccess={onMaintenanceSuccess}
       />
     </div>
   );

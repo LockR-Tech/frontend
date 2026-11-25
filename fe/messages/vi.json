@@ -1658,6 +1658,7 @@
           "operations": "Phụ trách & vị trí",
           "devices": "Thiết bị",
           "logs": "Nhật ký",
+          "maintenance": "Sửa chữa & Bảo trì",
           "installation": "Lắp đặt"
         },
         "installing": {
@@ -1760,7 +1761,52 @@
           "resolved": "Đã xử lý",
           "inProgress": "Đang xử lý",
           "open": "Đang mở",
+          "rejected": "Từ chối",
           "noDescription": "Không có mô tả"
+        },
+        "maintenanceDialog": {
+          "title": "Chuyển tủ {{code}} sang bảo trì",
+          "description": "Tạm ngưng nhận đơn tại {{name}} để kiểm tra, bảo dưỡng.",
+          "createReportLabel": "Tạo phiếu sự cố cho KTV tủ xử lý",
+          "createReportHint": "Khuyến nghị bật — hệ thống mở phiếu chặn tủ (RPT), thông báo cho KTV phụ trách và tự mở lại tủ khi phiếu hoàn tất.",
+          "defaultTitle": "Bảo trì Kiosk {{code}}",
+          "reportTitleLabel": "Tiêu đề phiếu sự cố",
+          "reportTitlePlaceholder": "VD: Kiểm tra nguồn / bảo trì cửa Kiosk...",
+          "reportDescLabel": "Mô tả tình trạng / lý do bảo trì",
+          "reportDescPlaceholder": "Nhập nội dung cần KTV kiểm tra, sửa chữa...",
+          "validationRequired": "Vui lòng nhập đầy đủ tiêu đề và mô tả khi tạo phiếu sự cố.",
+          "createdReportSuccess": "Đã chuyển {{code}} sang bảo trì và tạo phiếu RPT-{{id}}",
+          "noReportWarning": "Tủ chỉ chuyển sang trạng thái Bảo trì và KHÔNG tạo phiếu sự cố hay gửi thông báo cho KTV.",
+          "submitting": "Đang xử lý...",
+          "confirmWithReport": "Xác nhận & Tạo phiếu",
+          "confirmOnly": "Chỉ chuyển bảo trì"
+        },
+        "maintenanceHistory": {
+          "title": "Lịch sử sửa chữa & bảo trì Kiosk {{locker}}",
+          "description": "Tổng hợp toàn bộ phiếu sự cố của Kiosk/ô tủ và các lần kiểm tra, bảo trì định kỳ.",
+          "scheduleFallback": "Lịch bảo trì định kỳ #{{id}}",
+          "routedTo": "Chờ nhận ({{name}})",
+          "kpi": {
+            "totalReports": "Tổng phiếu sự cố",
+            "activeReports": "Đang mở / Đang sửa",
+            "resolvedReports": "Đã hoàn tất",
+            "inspections": "Lần bảo trì định kỳ"
+          },
+          "filterAll": "Tất cả ({{count}})",
+          "filterIncidents": "Phiếu sự cố ({{count}})",
+          "filterInspections": "Bảo trì định kỳ ({{count}})",
+          "loading": "Đang tải lịch sử sửa chữa & bảo trì...",
+          "empty": "Chưa có phiếu sự cố hay lần bảo trì định kỳ nào cho Kiosk này.",
+          "blockingBadge": "Chặn cả tủ",
+          "openInMaintenance": "Trang Bảo trì",
+          "technicianLabel": "KTV:",
+          "createdAt": "Tạo lúc:",
+          "resolvedAt": "Hoàn tất:",
+          "completedAt": "Thực hiện:",
+          "periodicBadge": "Bảo trì định kỳ",
+          "linkedReport": "→ Sinh phiếu RPT-{{id}}",
+          "inspectionPhotoAlt": "Ảnh kiểm tra định kỳ #{{index}}",
+          "photoPreviewTitle": "Ảnh kiểm tra bảo trì"
         }
       },
       "boxQr": {

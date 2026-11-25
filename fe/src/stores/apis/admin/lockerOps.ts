@@ -173,6 +173,15 @@ export interface BatchDeleteReportsRequest {
   category?: 'LOCKER' | 'DRONE' | 'KIOSK' | string;
 }
 
+export interface CreateLockerReportRequest {
+  lockerId: number;
+  title: string;
+  description: string;
+  blocking?: boolean;
+  boxId?: number;
+  attachments?: ReportAttachmentRequest[];
+}
+
 export interface RepairLogResponse {
   id: number;
   reportId: number;
@@ -1058,6 +1067,19 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
+    // Admin / user báo sự cố tủ (blocking: true -> chuyển tủ sang MAINTENANCE + tạo phiếu sự cố cho KTV)
+    createLockerReport: builder.mutation<
+      ApiResponse<LockerReportResponse>,
+      CreateLockerReportRequest
+    >({
+      query: ({ lockerId, ...body }) => ({
+        url: `/api/lockers/${lockerId}/report`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [TAG],
+    }),
+
     // Admin gửi thông báo (in-app + push) cho một người dùng — dùng cho cảnh cáo SLA KTV.
     sendUserNotification: builder.mutation<
       ApiResponse<unknown>,
@@ -1161,5 +1183,6 @@ export const {
   useDeleteReportsBatchMutation,
   useGetTechnicianPerformanceQuery,
   useGetTechnicianPresencesQuery,
+  useCreateLockerReportMutation,
   useSendUserNotificationMutation,
 } = lockerOpsApi;
