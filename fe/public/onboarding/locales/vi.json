@@ -6949,6 +6949,10 @@
     "admin-mobile-notice-switch-role": {
       "title": "Đổi vai trò",
       "body": "Tài khoản quản trị kiêm kỹ thuật viên hoặc khách: bấm \"Đổi vai trò\" để dùng app với vai trò đó, không cần đăng xuất."
+    },
+    "kiosk-home-language": {
+      "title": "Tiếng Việt / English",
+      "body": "Chọn VI hoặc EN trước khi bắt đầu. Hết lượt của bạn, kiosk tự về tiếng Việt cho khách sau."
     }
   }
 }

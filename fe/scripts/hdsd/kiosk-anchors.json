@@ -1,6 +1,7 @@
 {
   "kiosk-topbar": ".top-bar-status",
   "kiosk-home-locker": ".home-right .locker-info-card",
+  "kiosk-home-language": ".screen-home-split .lang-toggle",
   "kiosk-home-open-card": ".kiosk-action-cards .card-3d-action.primary",
   "kiosk-home-send-card": ".kiosk-action-cards .card-3d-action.secondary",
   "kiosk-home-report": "button.home-report-fab",

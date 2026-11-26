@@ -9519,7 +9519,7 @@
     },
     {
       "id": "kiosk-home",
-      "version": 1,
+      "version": 2,
       "order": 1040,
       "roles": [
         "CUSTOMER"
@@ -9537,6 +9537,14 @@
         {
           "id": "kiosk-home-status",
           "anchor": "kiosk-topbar",
+          "platforms": [
+            "kiosk"
+          ],
+          "placement": "auto"
+        },
+        {
+          "id": "kiosk-home-language",
+          "anchor": "kiosk-home-language",
           "platforms": [
             "kiosk"
           ],

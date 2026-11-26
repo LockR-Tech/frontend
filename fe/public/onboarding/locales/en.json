@@ -6949,6 +6949,10 @@
     "admin-mobile-notice-switch-role": {
       "title": "Switch role",
       "body": "An admin account that is also a technician or customer: tap \"Switch role\" to use the app in that role without logging out."
+    },
+    "kiosk-home-language": {
+      "title": "Vietnamese / English",
+      "body": "Pick VI or EN before you start. When your session ends, the kiosk switches back to Vietnamese for the next customer."
     }
   }
 }
