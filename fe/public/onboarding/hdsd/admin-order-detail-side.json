@@ -1,8 +1,8 @@
 {
   "image": "hdsd/admin-order-detail-side.png",
   "width": 1440,
-  "height": 3125,
-  "capturedAt": "2026-11-21",
+  "height": 2867,
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
@@ -51,14 +51,6 @@
       "y": 2605,
       "w": 306,
       "h": 182
-    },
-    {
-      "n": 7,
-      "stepId": "admin-order-detail-side-links",
-      "x": 1052,
-      "y": 2827,
-      "w": 356,
-      "h": 242
     }
   ]
 }

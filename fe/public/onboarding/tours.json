@@ -2376,7 +2376,7 @@
     },
     {
       "id": "admin-order-detail",
-      "version": 1,
+      "version": 2,
       "order": 200,
       "roles": [
         "ADMIN"
@@ -2424,16 +2424,6 @@
           "via": "orders-first-row"
         },
         {
-          "id": "admin-order-detail-milestones",
-          "anchor": "order-detail-milestones",
-          "webRoute": "/admin/orders",
-          "platforms": [
-            "web"
-          ],
-          "placement": "right",
-          "via": "orders-first-row"
-        },
-        {
           "id": "admin-order-detail-fees",
           "anchor": "order-detail-fees",
           "webRoute": "/admin/orders",
@@ -2467,7 +2457,7 @@
     },
     {
       "id": "admin-order-detail-side",
-      "version": 1,
+      "version": 2,
       "order": 201,
       "roles": [
         "ADMIN"
@@ -2534,16 +2524,6 @@
           "placement": "left",
           "via": "orders-first-row",
           "optional": true
-        },
-        {
-          "id": "admin-order-detail-side-links",
-          "anchor": "order-detail-links",
-          "webRoute": "/admin/orders",
-          "platforms": [
-            "web"
-          ],
-          "placement": "left",
-          "via": "orders-first-row"
         }
       ]
     },
