@@ -125,7 +125,7 @@ export const droneManagementApi = baseApi.injectEndpoints({
 
     createDrone: builder.mutation<
       ApiResponse<DroneResponse>,
-      { lockerId: number; code: string }
+      { lockerId: number; code: string; assignedTechnicianId?: number | null }
     >({
       query: (body) => ({
         url: "/api/admin/lockers/drones",

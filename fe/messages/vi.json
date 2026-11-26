@@ -3511,6 +3511,9 @@
         "selectLocker": "Chọn tủ có bãi đáp…",
         "lockerRequired": "Chọn tủ gốc.",
         "noLandingPadHint": "Chưa có tủ nào được cấu hình bãi đáp — cần có tủ có bãi đáp trước khi thêm drone.",
+        "technicianLabel": "KTV phụ trách",
+        "selectTechnician": "Chọn KTV drone (tuỳ chọn)…",
+        "noTechnician": "Chưa phân công",
         "create": "Tạo"
       },
       "missionStatus": {
