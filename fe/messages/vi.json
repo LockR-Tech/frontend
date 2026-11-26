@@ -2539,6 +2539,65 @@
       "errors": {
         "timeout": "Máy chủ phản hồi quá lâu",
         "forbidden": "Tài khoản không có quyền thực hiện thao tác này"
+      },
+      "simulation": {
+        "title": "Giả lập & demo",
+        "description": "Gom mọi chế độ giả lập và dữ liệu demo ở các dịch vụ. Vận hành chính thức thì tắt hết; cần demo thì bật lại.",
+        "status": {
+          "off": "Đã tắt hết — vận hành chính thức",
+          "on": "Đang bật {{on}}/{{total}}"
+        },
+        "allOff": "Tắt toàn bộ (vận hành chính thức)",
+        "demoOn": "Bật chế độ demo",
+        "loading": "Đang tải…",
+        "unsupported": "Chưa hỗ trợ",
+        "confirmOff": {
+          "title": "Tắt toàn bộ giả lập?",
+          "description": "Các mục dưới đây tắt ngay trên hệ thống thật: khách không còn thấy nút giả lập thanh toán, tủ và điểm gửi demo; đơn drone mới bay bằng drone thật. Bật lại được bất cứ lúc nào.",
+          "action": "Tắt {{count}} mục"
+        },
+        "confirmDemo": {
+          "title": "Bật chế độ demo?",
+          "description": "Bật lại các mục phục vụ demo dưới đây. Hai công cụ thử tủ (mở thử ô bằng QR, thử nắp trượt) điều khiển tủ thật nên phải bật riêng bằng công tắc của từng mục.",
+          "action": "Bật {{count}} mục"
+        },
+        "toast": {
+          "allOff": "Đã tắt {{count}} mục giả lập",
+          "demoOn": "Đã bật {{count}} mục demo",
+          "oneOn": "Đã bật: {{name}}",
+          "oneOff": "Đã tắt: {{name}}",
+          "failed": "Không lưu được cấu hình giả lập"
+        },
+        "flags": {
+          "payment": {
+            "title": "Nút giả lập thanh toán",
+            "desc": "App và kiosk hiện nút \"Giả lập thanh toán (test)\": trả tiền đơn mà không chuyển khoản thật."
+          },
+          "droneDemo": {
+            "title": "Drone DEMO (bay giả lập)",
+            "desc": "Đơn drone mới chạy theo chặng bay giả lập thay vì drone thật."
+          },
+          "demoLockers": {
+            "title": "Tủ demo hiện cho khách",
+            "desc": "Các tủ demo HCM-… (bộ giả lập trả lời, không có tủ thật) hiện trong app, kiosk và nhận đơn. Tắt thì chỉ admin và tài khoản demo thấy."
+          },
+          "demoStores": {
+            "title": "Điểm gửi demo hiện cho khách",
+            "desc": "Các điểm gửi LockR demo trong mục Điểm gửi và bản đồ. Tắt thì chỉ admin và tài khoản demo thấy."
+          },
+          "bleTest": {
+            "title": "Thử mở ô qua Bluetooth",
+            "desc": "Tài khoản được admin cấp quyền thấy mục thử mở ô qua Bluetooth trong app."
+          },
+          "testOpen": {
+            "title": "Mở thử ô bằng QR",
+            "desc": "Công cụ thử tủ: quét QR mở ô không cần đơn. Chỉ bật khi đang thử tủ."
+          },
+          "lidTest": {
+            "title": "Thử nắp trượt theo mã ArUco",
+            "desc": "Camera drone thấy mã thử là nắp tủ thật mở rồi đóng. Chỉ bật khi đang thử nắp."
+          }
+        }
       }
     },
     "notifications": {
@@ -4263,7 +4322,9 @@
           "policy": "Chính sách: {{version}}",
           "sentToCustomer": "Nội dung gửi khách:",
           "customerResponse": "Phản hồi của khách:"
-        }
+        },
+        "relatedOrder": "Đơn hàng liên quan:",
+        "flightJourney": "Hành trình bay:"
       },
       "listPage": {
         "filters": {

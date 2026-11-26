@@ -21,6 +21,7 @@ import {
 } from "~/stores/apis/admin/businessSettings";
 import { DEFAULT_SCOPE, SCOPE_TABS, isSettingScope, scopeTitle } from "./constants";
 import { ScopeSettingsPanel } from "./ScopeSettingsPanel";
+import { SimulationClusterCard } from "./SimulationClusterCard";
 import { AuditHistorySheet } from "./AuditHistorySheet";
 import { collectChanges, type DraftMap, type ScopeDrafts } from "./setting-utils";
 import { useUnsavedChangesGuard } from "./useUnsavedChangesGuard";
@@ -104,6 +105,9 @@ export default function BusinessSettingsPage() {
           description={t("admin.settings.business.description")}
           className="mb-0"
         />
+
+        {/* Cụm "Giả lập & demo" (F3-G14): tắt/bật hàng loạt mọi cờ giả lập ở các service */}
+        <SimulationClusterCard />
 
         <Tabs value={activeScope} onValueChange={handleTabChange} className="space-y-5">
           <div className="space-y-3">

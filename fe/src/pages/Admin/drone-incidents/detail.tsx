@@ -536,7 +536,7 @@ export default function DroneIncidentDetailPage() {
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <div className="flex items-center gap-1.5">
             <InfoIcon className="h-4 w-4 text-sky-600 shrink-0" />
-            <span>Đơn hàng liên quan:</span>
+            <span>{t("admin.droneIncidents.detailPage.relatedOrder")}</span>
             <Link
               to={`/admin/orders/${incident.orderId}`}
               className="font-mono font-bold text-sky-900 hover:text-sky-700 underline inline-flex items-center gap-1"
@@ -548,7 +548,7 @@ export default function DroneIncidentDetailPage() {
           <span className="text-sky-300 font-bold">·</span>
           <div className="flex items-center gap-1.5">
             <Plane className="h-3.5 w-3.5 text-sky-600 shrink-0" />
-            <span>Hành trình bay:</span>
+            <span>{t("admin.droneIncidents.detailPage.flightJourney")}</span>
             <Link
               to={`/admin/drone-orders/${incident.orderId}`}
               className="font-mono font-bold text-sky-900 hover:text-sky-700 underline inline-flex items-center gap-1"

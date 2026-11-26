@@ -1,0 +1,48 @@
+{
+  "image": "hdsd/admin-settings-simulation.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-26",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-settings-simulation-card",
+      "x": 292,
+      "y": 162,
+      "w": 1116,
+      "h": 490
+    },
+    {
+      "n": 2,
+      "stepId": "admin-settings-simulation-status",
+      "x": 481,
+      "y": 184,
+      "w": 94,
+      "h": 22
+    },
+    {
+      "n": 3,
+      "stepId": "admin-settings-simulation-actions",
+      "x": 961,
+      "y": 183,
+      "w": 426,
+      "h": 36
+    },
+    {
+      "n": 4,
+      "stepId": "admin-settings-simulation-list",
+      "x": 313,
+      "y": 267,
+      "w": 1074,
+      "h": 364
+    },
+    {
+      "n": 5,
+      "stepId": "admin-settings-simulation-confirm",
+      "x": 464,
+      "y": 283,
+      "w": 512,
+      "h": 334
+    }
+  ]
+}

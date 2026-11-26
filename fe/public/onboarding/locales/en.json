@@ -341,8 +341,8 @@
       "summary": "The overall state of one cabinet: boxes by status, warnings, and the management tabs."
     },
     "admin-locker-more-menu": {
-      "title": "Cabinet \"More actions\" menu",
-      "summary": "Less frequent cabinet tools: location, QR labels, test QR, arrange and delete boxes."
+      "title": "More locker actions menu",
+      "summary": "Less-used locker tools: coordinates, QR labels, test QR, arranging boxes, putting the locker into maintenance or reactivating it, deleting boxes."
     },
     "admin-locker-grid": {
       "title": "Box layout",
@@ -1127,6 +1127,18 @@
     "locker-tech-profile": {
       "title": "Technician profile",
       "summary": "Change your photo, see shift figures, edit your details, switch language and log out."
+    },
+    "admin-locker-maintenance-mode": {
+      "title": "Put a locker into maintenance",
+      "summary": "Stop the whole locker from taking new orders and optionally create a fault ticket for the assigned technician."
+    },
+    "admin-locker-maintenance-history": {
+      "title": "Locker repair & maintenance history",
+      "summary": "Every fault ticket and scheduled inspection of one locker on a single timeline."
+    },
+    "admin-settings-simulation": {
+      "title": "Simulation & demo cluster",
+      "summary": "Turn all simulation off for live operation and back on for demos — one button for every service."
     }
   },
   "steps": {
@@ -6905,6 +6917,78 @@
     "locker-tech-profile-logout": {
       "title": "Log out of account",
       "body": "Ends your shift and logs out after asking you to confirm."
+    },
+    "admin-locker-more-menu-maintenance": {
+      "title": "Maintenance",
+      "body": "Only shown while the locker is active: opens the dialog that puts the whole locker into maintenance (no new orders), optionally with a fault ticket for a technician."
+    },
+    "admin-locker-more-menu-activate": {
+      "title": "Activate",
+      "body": "Only shown while the locker is in maintenance or inactive: puts the locker back into service."
+    },
+    "admin-locker-maintenance-mode-detail": {
+      "title": "Open the locker",
+      "body": "Choose \"View details\" in the ⋯ menu of the locker that needs maintenance."
+    },
+    "admin-locker-maintenance-mode-more": {
+      "title": "More actions",
+      "body": "The ⋯ button at the top holds the command that puts the locker into maintenance."
+    },
+    "admin-locker-maintenance-mode-menu": {
+      "title": "Maintenance",
+      "body": "Opens the dialog. Only shown while the locker is active."
+    },
+    "admin-locker-maintenance-mode-dialog": {
+      "title": "Locker maintenance dialog",
+      "body": "A locker in maintenance takes no new orders; parcels already inside can still be collected."
+    },
+    "admin-locker-maintenance-mode-report": {
+      "title": "Add a fault ticket",
+      "body": "Tick to create a ticket for the locker's assigned technician (or all technicians if none is assigned); enter a title and a description of the fault."
+    },
+    "admin-locker-maintenance-mode-confirm": {
+      "title": "Confirm",
+      "body": "Puts the locker into maintenance (and creates the ticket if ticked). Reactivate it with \"Activate\" in the ⋯ menu."
+    },
+    "admin-locker-maintenance-history-detail": {
+      "title": "Open the locker",
+      "body": "Choose \"View details\" in the ⋯ menu of the locker whose history you want."
+    },
+    "admin-locker-maintenance-history-tab": {
+      "title": "Repair & maintenance tab",
+      "body": "Brings together this locker's fault tickets and scheduled inspections."
+    },
+    "admin-locker-maintenance-history-kpis": {
+      "title": "Quick figures",
+      "body": "Total fault tickets, open tickets, resolved tickets and number of scheduled inspections."
+    },
+    "admin-locker-maintenance-history-filters": {
+      "title": "Filter",
+      "body": "Show everything, faults only or scheduled inspections only."
+    },
+    "admin-locker-maintenance-history-list": {
+      "title": "Timeline",
+      "body": "Each card is a ticket or an inspection with its status, technician and photos; click it for details."
+    },
+    "admin-settings-simulation-card": {
+      "title": "Simulation & demo cluster",
+      "body": "All simulation modes and demo data of every service in one place, at the top of Business settings."
+    },
+    "admin-settings-simulation-status": {
+      "title": "Status",
+      "body": "\"All off — live operation\" is the right state when the system serves real customers."
+    },
+    "admin-settings-simulation-actions": {
+      "title": "Turn off / on in bulk",
+      "body": "\"Turn everything off\" switches every item off at once. \"Turn on demo mode\" turns the demo items back on; the two locker test tools must be turned on separately."
+    },
+    "admin-settings-simulation-list": {
+      "title": "Each item",
+      "body": "Each item has its own switch and its underlying setting key; changes here take effect immediately on the live system."
+    },
+    "admin-settings-simulation-confirm": {
+      "title": "Confirm",
+      "body": "The confirmation lists exactly which items will change before saving."
     }
   }
 }

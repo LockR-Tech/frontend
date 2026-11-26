@@ -1389,6 +1389,7 @@ export default function LockerLayoutPage() {
               </DropdownMenuItem>
               {lockerStatus === "ACTIVE" && (
                 <DropdownMenuItem
+                  data-tour="adm-locker-more-maintenance"
                   className="cursor-pointer text-amber-600 focus:text-amber-600"
                   onClick={() => setShowMaintenanceDialog(true)}
                 >
@@ -1397,6 +1398,7 @@ export default function LockerLayoutPage() {
               )}
               {(lockerStatus === "MAINTENANCE" || lockerStatus === "INACTIVE") && (
                 <DropdownMenuItem
+                  data-tour="adm-locker-more-activate"
                   className="cursor-pointer text-emerald-600 focus:text-emerald-600"
                   disabled={togglingMaintenance}
                   onClick={() => void handleReactivateLocker()}

@@ -102,7 +102,7 @@ export function LockerMaintenanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !isSubmitting && onOpenChange(next)}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" data-tour="adm-locker-maint-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wrench className="h-5 w-5 text-amber-600" />
@@ -116,7 +116,7 @@ export function LockerMaintenanceDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50/70 p-3 dark:border-amber-900/60 dark:bg-amber-950/30">
+          <div data-tour="adm-locker-maint-dialog-report" className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50/70 p-3 dark:border-amber-900/60 dark:bg-amber-950/30">
             <Checkbox
               id="locker-maintenance-create-report"
               checked={createReport}
@@ -199,6 +199,7 @@ export function LockerMaintenanceDialog({
           </Button>
           <Button
             type="button"
+            data-tour="adm-locker-maint-dialog-confirm"
             onClick={() => void handleConfirm()}
             disabled={isSubmitting || (createReport && (!title.trim() || !description.trim()))}
             className="bg-amber-600 hover:bg-amber-700 text-white"

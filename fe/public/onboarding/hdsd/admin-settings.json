@@ -1,22 +1,22 @@
 {
   "image": "hdsd/admin-settings.png",
   "width": 1440,
-  "height": 1042,
+  "height": 1552,
   "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
       "stepId": "admin-settings-tabs",
       "x": 292,
-      "y": 162,
-      "w": 1084,
+      "y": 672,
+      "w": 1113,
       "h": 46
     },
     {
       "n": 2,
       "stepId": "admin-settings-search",
       "x": 292,
-      "y": 224,
+      "y": 734,
       "w": 448,
       "h": 36
     },
@@ -24,7 +24,7 @@
       "n": 3,
       "stepId": "admin-settings-head",
       "x": 292,
-      "y": 280,
+      "y": 790,
       "w": 411,
       "h": 60
     },
@@ -32,7 +32,7 @@
       "n": 4,
       "stepId": "admin-settings-actions",
       "x": 1145,
-      "y": 280,
+      "y": 790,
       "w": 263,
       "h": 36
     },
@@ -40,7 +40,7 @@
       "n": 5,
       "stepId": "admin-settings-group",
       "x": 292,
-      "y": 356,
+      "y": 866,
       "w": 1116,
       "h": 630
     },
@@ -48,7 +48,7 @@
       "n": 6,
       "stepId": "admin-settings-row",
       "x": 293,
-      "y": 398,
+      "y": 908,
       "w": 1114,
       "h": 98
     },
@@ -56,7 +56,7 @@
       "n": 7,
       "stepId": "admin-settings-input",
       "x": 1031,
-      "y": 414,
+      "y": 924,
       "w": 352,
       "h": 65
     },
@@ -64,7 +64,7 @@
       "n": 8,
       "stepId": "admin-settings-history",
       "x": 399,
-      "y": 463,
+      "y": 973,
       "w": 73,
       "h": 17
     }

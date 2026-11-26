@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-locker-maintenance-mode.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-26",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-maintenance-mode-more",
+      "x": 1368,
+      "y": 96,
+      "w": 40,
+      "h": 40
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-maintenance-mode-dialog",
+      "x": 470,
+      "y": 185,
+      "w": 500,
+      "h": 530
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-maintenance-mode-report",
+      "x": 495,
+      "y": 300,
+      "w": 450,
+      "h": 82
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-maintenance-mode-confirm",
+      "x": 744,
+      "y": 650,
+      "w": 201,
+      "h": 40
+    }
+  ]
+}

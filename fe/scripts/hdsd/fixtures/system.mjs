@@ -115,15 +115,22 @@ const SATISFACTION = {
 
 // ------------------------------------------------------------------------------------------------ cấu hình nghiệp vụ
 const SCOPE_RULES = {
-  locker: [['app.locker.report-sla-hours', 'Hạn xử lý sự cố', 'Bảo trì', 'INTEGER', '4', '4', 'giờ']],
-  payment: [['app.payment.refund-min-amount', 'Số tiền hoàn tối thiểu', 'Hoàn tiền & khiếu nại', 'INTEGER', '10000', '10000', 'VND']],
-  iot: [['app.iot.max-wrong-pin', 'Số lần nhập sai PIN trước khi khoá tạm', 'Bảo mật', 'INTEGER', '5', '5', 'lần']],
+  locker: [['app.locker.report-sla-hours', 'Hạn xử lý sự cố', 'Bảo trì', 'INTEGER', '4', '4', 'giờ'],
+    ['app.locker.demo.visible', 'Hiện tủ demo cho khách', 'Giả lập & demo', 'BOOLEAN', 'true', 'true', null]],
+  payment: [['app.payment.refund-min-amount', 'Số tiền hoàn tối thiểu', 'Hoàn tiền & khiếu nại', 'INTEGER', '10000', '10000', 'VND'],
+    ['app.payment.simulation-enabled', 'Hiện nút giả lập thanh toán', 'Giả lập thanh toán (thử nghiệm)', 'BOOLEAN', 'true', 'false', null]],
+  iot: [['app.iot.max-wrong-pin', 'Số lần nhập sai PIN trước khi khoá tạm', 'Bảo mật', 'INTEGER', '5', '5', 'lần'],
+    ['app.iot.ble-test.enabled', 'Cho tài khoản thử mở ô qua Bluetooth', 'Thử tủ bằng QR (không cần đơn)', 'BOOLEAN', 'true', 'true', null],
+    ['app.iot.test-open.enabled', 'Cho tài khoản thử mở ô bằng QR', 'Thử tủ bằng QR (không cần đơn)', 'BOOLEAN', 'false', 'false', null]],
   auth: [['app.auth.otp-ttl-seconds', 'Hiệu lực mã OTP', 'OTP', 'INTEGER', '300', '300', 'giây']],
   loyalty: [['app.loyalty.points-per-order', 'Điểm cộng mỗi đơn', 'Điểm', 'INTEGER', '10', '10', 'điểm']],
-  store: [['app.store.nearby-radius-km', 'Bán kính tìm cửa hàng gần', 'Tìm kiếm', 'INTEGER', '5', '5', 'km']],
+  store: [['app.store.nearby-radius-km', 'Bán kính tìm cửa hàng gần', 'Tìm kiếm', 'INTEGER', '5', '5', 'km'],
+    ['app.store.demo.visible', 'Hiện điểm gửi demo cho khách', 'Giả lập & demo', 'BOOLEAN', 'true', 'true', null]],
   assistant: [['app.assistant.enabled', 'Bật trợ lý hỏi đáp', 'Chung', 'BOOLEAN', 'true', 'true', null],
     ['app.assistant.min-score', 'Ngưỡng liên quan tối thiểu', 'Truy xuất', 'DECIMAL', '0.35', '0.35', null]],
-  order: [['app.order.send-base-fee', 'Phí gửi hàng mỗi đơn', 'Giá & phí', 'INTEGER', '15000', '15000', 'đ']],
+  order: [['app.order.send-base-fee', 'Phí gửi hàng mỗi đơn', 'Giá & phí', 'INTEGER', '15000', '15000', 'đ'],
+    ['app.drone.demo.enabled', 'Cho phép chế độ drone DEMO', 'Mô phỏng & Thử nghiệm Drone', 'BOOLEAN', 'true', 'true', null],
+    ['app.drone.lid-test.enabled', 'Chế độ thử nắp trượt theo mã ArUco', 'Mô phỏng & Thử nghiệm Drone', 'BOOLEAN', 'false', 'false', null]],
 };
 
 function settingViews(scope) {

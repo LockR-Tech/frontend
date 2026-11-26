@@ -342,7 +342,7 @@
     },
     "admin-locker-more-menu": {
       "title": "Menu thao tác khác của tủ",
-      "summary": "Các công cụ ít dùng của tủ: tọa độ, tem QR, QR thử tủ, sắp xếp và xoá ô."
+      "summary": "Các công cụ ít dùng của tủ: tọa độ, tem QR, QR thử tủ, sắp xếp ô, chuyển tủ sang bảo trì hoặc kích hoạt lại, xoá ô."
     },
     "admin-locker-grid": {
       "title": "Sơ đồ ô tủ",
@@ -1127,6 +1127,18 @@
     "locker-tech-profile": {
       "title": "Hồ sơ kỹ thuật viên",
       "summary": "Đổi ảnh đại diện, xem chỉ số ca trực, sửa thông tin, đổi ngôn ngữ và đăng xuất."
+    },
+    "admin-locker-maintenance-mode": {
+      "title": "Chuyển tủ sang bảo trì",
+      "summary": "Tạm ngừng nhận đơn mới ở cả tủ, kèm tạo phiếu sự cố giao cho KTV phụ trách."
+    },
+    "admin-locker-maintenance-history": {
+      "title": "Lịch sử sửa chữa & bảo trì của tủ",
+      "summary": "Mọi phiếu sự cố và lần kiểm tra định kỳ của một tủ trên cùng một dòng thời gian."
+    },
+    "admin-settings-simulation": {
+      "title": "Cụm Giả lập & demo",
+      "summary": "Tắt toàn bộ giả lập khi vận hành chính thức, bật lại khi cần demo — một nút cho mọi dịch vụ."
     }
   },
   "steps": {
@@ -6905,6 +6917,78 @@
     "locker-tech-profile-logout": {
       "title": "Đăng xuất tài khoản",
       "body": "Kết thúc ca trực và đăng xuất, có hỏi xác nhận."
+    },
+    "admin-locker-more-menu-maintenance": {
+      "title": "Bảo trì",
+      "body": "Chỉ hiện khi tủ đang hoạt động: mở hộp thoại chuyển cả tủ sang bảo trì (ngừng nhận đơn mới), có thể kèm tạo phiếu sự cố cho KTV."
+    },
+    "admin-locker-more-menu-activate": {
+      "title": "Kích hoạt",
+      "body": "Chỉ hiện khi tủ đang bảo trì hoặc ngừng hoạt động: đưa tủ trở lại phục vụ khách."
+    },
+    "admin-locker-maintenance-mode-detail": {
+      "title": "Mở chi tiết tủ",
+      "body": "Bấm \"Xem chi tiết\" trong menu ⋯ của tủ cần bảo trì."
+    },
+    "admin-locker-maintenance-mode-more": {
+      "title": "Menu thao tác khác",
+      "body": "Nút ⋯ ở góc trên chứa lệnh chuyển tủ sang bảo trì."
+    },
+    "admin-locker-maintenance-mode-menu": {
+      "title": "Bảo trì",
+      "body": "Bấm để mở hộp thoại. Mục này chỉ hiện khi tủ đang hoạt động."
+    },
+    "admin-locker-maintenance-mode-dialog": {
+      "title": "Hộp thoại bảo trì tủ",
+      "body": "Tủ chuyển sang bảo trì thì không nhận đơn mới; đơn đang chứa hàng vẫn lấy được."
+    },
+    "admin-locker-maintenance-mode-report": {
+      "title": "Kèm phiếu sự cố",
+      "body": "Tick để tạo phiếu giao cho KTV phụ trách tủ (hoặc mọi KTV nếu tủ chưa có người phụ trách); nhập tiêu đề và mô tả lỗi."
+    },
+    "admin-locker-maintenance-mode-confirm": {
+      "title": "Xác nhận",
+      "body": "Chuyển tủ sang bảo trì (và tạo phiếu nếu đã tick). Kích hoạt lại bằng mục \"Kích hoạt\" trong menu ⋯."
+    },
+    "admin-locker-maintenance-history-detail": {
+      "title": "Mở chi tiết tủ",
+      "body": "Bấm \"Xem chi tiết\" trong menu ⋯ của tủ cần xem lịch sử."
+    },
+    "admin-locker-maintenance-history-tab": {
+      "title": "Tab Sửa chữa & Bảo trì",
+      "body": "Gom phiếu sự cố và lịch kiểm tra định kỳ của riêng tủ này."
+    },
+    "admin-locker-maintenance-history-kpis": {
+      "title": "Số liệu nhanh",
+      "body": "Tổng phiếu sự cố, phiếu đang mở, phiếu đã xử lý và số lần kiểm tra định kỳ."
+    },
+    "admin-locker-maintenance-history-filters": {
+      "title": "Lọc",
+      "body": "Xem tất cả, chỉ sự cố hoặc chỉ kiểm tra định kỳ."
+    },
+    "admin-locker-maintenance-history-list": {
+      "title": "Dòng thời gian",
+      "body": "Mỗi thẻ là một phiếu hoặc một lần kiểm tra, kèm trạng thái, KTV xử lý và ảnh; bấm để xem chi tiết."
+    },
+    "admin-settings-simulation-card": {
+      "title": "Cụm Giả lập & demo",
+      "body": "Gom mọi chế độ giả lập và dữ liệu demo của các dịch vụ vào một chỗ, ngay đầu trang Cấu hình nghiệp vụ."
+    },
+    "admin-settings-simulation-status": {
+      "title": "Trạng thái",
+      "body": "\"Đã tắt hết — vận hành chính thức\" là trạng thái đúng khi hệ thống phục vụ khách thật."
+    },
+    "admin-settings-simulation-actions": {
+      "title": "Tắt / bật hàng loạt",
+      "body": "\"Tắt toàn bộ\" tắt mọi mục cùng lúc. \"Bật chế độ demo\" bật lại các mục phục vụ demo; hai công cụ thử tủ phải bật riêng."
+    },
+    "admin-settings-simulation-list": {
+      "title": "Từng mục",
+      "body": "Mỗi mục có công tắc riêng và tên cấu hình gốc; đổi ở đây có hiệu lực ngay trên hệ thống thật."
+    },
+    "admin-settings-simulation-confirm": {
+      "title": "Xác nhận",
+      "body": "Hộp xác nhận liệt kê đúng các mục sẽ đổi trước khi lưu."
     }
   }
 }

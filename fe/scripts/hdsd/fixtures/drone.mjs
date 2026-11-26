@@ -340,6 +340,7 @@ function orderSettings() {
     setting('app.order.drone-flights-suspended', 'BOOLEAN', 'false', { group: 'Giao hàng drone', label: 'Tạm dừng toàn bộ chuyến bay drone' }),
     setting('app.drone.weather.check-enabled', 'BOOLEAN', 'true', { label: 'Bật kiểm tra thời tiết trước khi bay' }),
     setting('app.drone.lid-test.enabled', 'BOOLEAN', 'false', { group: 'Giao hàng drone', label: 'Chế độ thử nắp trượt theo mã ArUco' }),
+    setting('app.drone.demo.enabled', 'BOOLEAN', 'true', { group: 'Mô phỏng & Thử nghiệm Drone', label: 'Cho phép chế độ drone DEMO' }),
     setting('app.drone.weather.max-wind-kmh', 'INTEGER', '30', { label: 'Gió tối đa cho phép bay', unit: 'km/h', min: '5', max: '80',
       description: 'Dự báo gió vượt ngưỡng này trong 30 phút tới thì không cho đặt đơn / phóng drone.' }),
     setting('app.drone.weather.max-gust-kmh', 'INTEGER', '45', { label: 'Gió giật tối đa', unit: 'km/h', min: '5', max: '100' }),

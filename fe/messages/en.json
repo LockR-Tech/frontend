@@ -2539,6 +2539,65 @@
       "errors": {
         "timeout": "The server took too long to respond",
         "forbidden": "Your account doesn't have permission to perform this action"
+      },
+      "simulation": {
+        "title": "Simulation & demo",
+        "description": "Every simulation mode and demo data set across services in one place. Turn everything off for live operation; turn it back on for demos.",
+        "status": {
+          "off": "All off — live operation",
+          "on": "{{on}}/{{total}} on"
+        },
+        "allOff": "Turn everything off (live operation)",
+        "demoOn": "Turn on demo mode",
+        "loading": "Loading…",
+        "unsupported": "Not supported yet",
+        "confirmOff": {
+          "title": "Turn off all simulation?",
+          "description": "The items below turn off immediately on the live system: customers no longer see the payment simulation button or demo lockers and drop-off points, and new drone orders fly with real drones. You can turn them back on at any time.",
+          "action": "Turn off {{count}}"
+        },
+        "confirmDemo": {
+          "title": "Turn on demo mode?",
+          "description": "Turns the demo items below back on. The two locker test tools (test-open by QR, sliding lid test) drive real hardware, so turn them on one by one with their own switches.",
+          "action": "Turn on {{count}}"
+        },
+        "toast": {
+          "allOff": "Turned off {{count}} simulation items",
+          "demoOn": "Turned on {{count}} demo items",
+          "oneOn": "Turned on: {{name}}",
+          "oneOff": "Turned off: {{name}}",
+          "failed": "Could not save the simulation settings"
+        },
+        "flags": {
+          "payment": {
+            "title": "Payment simulation button",
+            "desc": "The app and kiosks show a \"Simulate payment (test)\" button: orders get paid without a real transfer."
+          },
+          "droneDemo": {
+            "title": "DEMO drone (simulated flights)",
+            "desc": "New drone orders follow simulated flight stages instead of a real drone."
+          },
+          "demoLockers": {
+            "title": "Demo lockers visible to customers",
+            "desc": "The demo HCM-… lockers (answered by the simulator, no real cabinet) show in the app and kiosks and take orders. Off = only admins and demo accounts see them."
+          },
+          "demoStores": {
+            "title": "Demo drop-off points visible to customers",
+            "desc": "The demo LockR drop-off points in Drop-off points and the map. Off = only admins and demo accounts see them."
+          },
+          "bleTest": {
+            "title": "Bluetooth test-open",
+            "desc": "Accounts granted by an admin see the Bluetooth test-open entry in the app."
+          },
+          "testOpen": {
+            "title": "Test-open boxes by QR",
+            "desc": "Locker test tool: scan a QR to open a box without an order. Only turn on while testing a locker."
+          },
+          "lidTest": {
+            "title": "Sliding lid test by ArUco",
+            "desc": "When the drone camera sees a test marker, the real cabinet lid opens and closes. Only turn on while testing the lid."
+          }
+        }
       }
     },
     "notifications": {
@@ -4263,7 +4322,9 @@
           "policy": "Policy: {{version}}",
           "sentToCustomer": "Content sent to customer:",
           "customerResponse": "Customer response:"
-        }
+        },
+        "relatedOrder": "Related order:",
+        "flightJourney": "Flight journey:"
       },
       "listPage": {
         "filters": {
