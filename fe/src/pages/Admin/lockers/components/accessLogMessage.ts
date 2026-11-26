@@ -1,3 +1,4 @@
+import i18n from "~/utils/i18n";
 import type { BoxAccessLogResponse } from "~/stores/apis/admin/lockerOps";
 
 /**
@@ -19,6 +20,14 @@ const PREFIX = "admin.lockers.logs.message";
 function operatorNote(message: string): string {
   const parts = message.split(" · ").filter((p) => /^(Lý do|Ghi chú):/.test(p.trim()));
   return parts.join(" · ");
+}
+
+/** Mã lỗi Pi gửi lên có nhãn riêng (`hwCode.<MÃ>`); Pi ghi "Hardware error: <MÃ>" bằng tiếng Anh. */
+const HW_CODES = ["INVALID_SLOT", "HW_ERROR", "JAMMED", "LID_JAMMED", "LID_BUSY", "LID_ERROR", "DOOR_OPEN"];
+
+function hardwareDetail(detail: string): string {
+  const code = /^Hardware error:\s*([A-Z_]+)$/i.exec(detail.trim())?.[1]?.toUpperCase();
+  return code && HW_CODES.includes(code) ? i18n.t(`${PREFIX}.hwCode.${code}`) : detail;
 }
 
 export function describeAccessLogMessage(log: BoxAccessLogResponse): AccessLogMessageView | null {
@@ -49,7 +58,7 @@ export function describeAccessLogMessage(log: BoxAccessLogResponse): AccessLogMe
     return {
       titleKey: `${PREFIX}.hardwareTitle`,
       hintKey: `${PREFIX}.hardwareHint`,
-      params: { code: hardware[1], detail: hardware[2], note },
+      params: { code: hardware[1], detail: hardwareDetail(hardware[2]), note },
     };
   }
   if (result === "FAILED" && /không gửi được lệnh/i.test(message)) {

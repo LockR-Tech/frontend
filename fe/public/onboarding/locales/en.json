@@ -686,7 +686,7 @@
     },
     "customer-vouchers": {
       "title": "My offers",
-      "summary": "Your voucher wallet: usable codes, point exchange and history."
+      "summary": "Your voucher collection: usable codes, point exchange and history."
     },
     "customer-voucher-detail": {
       "title": "Voucher details",
@@ -4340,7 +4340,7 @@
     },
     "customer-profile-vouchers": {
       "title": "Offers & gifts",
-      "body": "Open your voucher wallet: usable codes, exchanging points for vouchers, and used ones."
+      "body": "Open your voucher collection: usable codes, exchanging points for vouchers, and used ones."
     },
     "customer-loyalty-refresh": {
       "title": "Refresh",
@@ -4564,7 +4564,7 @@
     },
     "customer-transactions-filter": {
       "title": "Filter by method",
-      "body": "Filter the list: \"All methods\", \"SePay gateway\"; wallet, VNPay, MoMo and withdrawals only appear for old transactions."
+      "body": "Filter the list: \"All methods\", \"SePay gateway\"; older payment methods only appear for old transactions."
     },
     "customer-transactions-first": {
       "title": "A transaction",
@@ -4596,7 +4596,7 @@
     },
     "customer-vouchers-empty": {
       "title": "No vouchers yet",
-      "body": "Tap \"Explore offers and save codes\" to open Offers and save codes to your wallet."
+      "body": "Tap \"Explore offers and save codes\" to open Offers and save codes to your collection."
     },
     "customer-voucher-detail-ticket": {
       "title": "Voucher card",
@@ -4627,7 +4627,7 @@
       "body": "Tap the code chip to copy the promo code."
     },
     "customer-promotions-save": {
-      "title": "Save to wallet",
+      "title": "Save the code",
       "body": "Tap \"Save\" to add the code to \"My offers\"; it is marked used once applied to an order."
     },
     "customer-promotion-detail-ticket": {
