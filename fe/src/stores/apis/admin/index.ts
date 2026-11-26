@@ -17,3 +17,4 @@ export * from "./droneIncidents";
 export * from "./businessSettings";
 export * from "./knowledge";
 export * from "./droneCommLogs";
+export * from "./auditLogs";

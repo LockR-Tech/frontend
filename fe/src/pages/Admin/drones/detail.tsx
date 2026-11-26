@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ActionLogPanel } from "~/pages/Admin/audit-logs/components/ActionLogPanel";
 import { MISSION_STATUS_LABELS } from "./mission-status";
 import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -745,6 +746,11 @@ export default function DroneDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Ai đổi trạng thái, gán / bỏ KTV, chuyển trạm drone này, lúc nào (F3-G16). */}
+      <div data-tour="drone-detail-audit">
+        <ActionLogPanel scope={{ targetType: "DRONE", targetId: id }} />
+      </div>
     </div>
   );
 }

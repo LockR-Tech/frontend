@@ -27,6 +27,7 @@ import {
   Landmark,
   Settings,
   Warehouse,
+  ScrollText,
 } from "lucide-react";
 import type { NavGroup, NavItem } from "@/types";
 
@@ -217,6 +218,12 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
         icon: Clock,
         path: "/admin/scheduler",
         label: "admin.sidebar.scheduler",
+        permission: "admin_access",
+      },
+      {
+        icon: ScrollText,
+        path: "/admin/audit-logs",
+        label: "admin.sidebar.auditLogs",
         permission: "admin_access",
       },
       {

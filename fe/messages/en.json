@@ -222,7 +222,8 @@
         "customers": "Users",
         "rewards": "Rewards & feedback",
         "system": "System"
-      }
+      },
+      "auditLogs": "Activity log"
     },
     "dashboard": {
       "title": "Overview",
@@ -1254,12 +1255,14 @@
       },
       "table": {
         "technicianId": "Technician #{{id}}",
-        "unassignedBroadcast": "Unassigned kiosk — new incident tickets notify all on-duty technicians.",
+        "unassignedBroadcast": "This locker has no assigned technician, so it takes NO new orders (send, rental, drone). Assign one on the locker page to reopen it. New incident tickets go to every locker technician.",
         "boxCount": "{{count}} box(es)",
         "availableCount": "{{count}} free",
         "underMaintenance": "Under maintenance",
         "disabled": "Disabled",
-        "notAcceptingOrders": "· not accepting orders"
+        "notAcceptingOrders": "· not accepting orders",
+        "noTechnicianNoOrders": "No technician · not taking orders",
+        "unassignedNoOrders": "No technician"
       },
       "toast": {
         "maintenanceOn": "Locker switched to maintenance",
@@ -1490,21 +1493,24 @@
           "layoutUpdated": "The kiosk layout was just updated"
         },
         "tech": {
-          "unassignedToast": "Assigned technician removed from the locker",
-          "unassignedToastDesc": "New incident reports for this locker will notify all locker technicians.",
+          "unassignedToast": "Locker technician removed",
+          "unassignedToastDesc": "The locker stops taking new orders until a technician is assigned. Running orders continue; new incident tickets go to every locker technician.",
           "assignedToast": "Locker assigned to {{name}}",
-          "assignedToastDesc": "The technician has been notified. New and unclaimed reports for this locker now go to this technician.",
+          "assignedToastDesc": "The technician has been notified. The locker takes new orders; new and waiting tickets go to this technician.",
           "saveFailed": "Couldn't save the assigned technician",
           "routedTo": "New incident reports for this locker go only to <b>{{name}}</b>.",
-          "unassignedHint": "Unassigned — new incident reports for this locker notify all locker technicians.",
+          "unassignedHint": "Unassigned — the locker takes NO new orders (send, rental, drone) until a technician is assigned.",
           "selectPlaceholder": "Select a technician",
-          "noneOption": "Unassigned (notify all locker technicians)",
-          "locked": "Locked"
+          "noneOption": "Unassigned (locker stops taking orders)",
+          "locked": "Locked",
+          "unassignConfirmTitle": "Remove the locker technician?",
+          "unassignConfirmBody": "Removing {{name}} makes this locker STOP TAKING NEW ORDERS (send, rental, drone) in the app, kiosk and web until another technician is assigned. Running orders are not affected.",
+          "unassignConfirmAction": "Remove and stop orders"
         },
         "routing": {
           "byTechnician": "The report is routed to the locker's assigned technician.",
           "toTechnician": "The report goes to the locker's assigned technician: {{name}}.",
-          "allTechnicians": "This locker has no assigned technician — the report notifies all locker technicians."
+          "allTechnicians": "This locker has no technician — it takes no new orders; tickets go to every locker technician."
         },
         "arrange": {
           "done": "Rearranged {{count}} box(es)",
@@ -1663,7 +1669,8 @@
           "devices": "Devices",
           "logs": "Logs",
           "maintenance": "Repairs & Maintenance",
-          "installation": "Installation"
+          "installation": "Installation",
+          "audit": "Activity log"
         },
         "installing": {
           "title": "Locker is being installed ({{status}})",
@@ -6809,6 +6816,123 @@
     },
     "technicians": {
       "description": "See shift status, GPS location, SLA performance and device assignments for kiosk and drone technicians"
+    },
+    "auditLogs": {
+      "title": "Activity log",
+      "description": "Who did what, and when: maintenance on, locker activated, technician assigned, box / drone status, account locked, deletions…",
+      "countLabel": "{{count}} entries",
+      "panelTitle": "Activity log",
+      "searchPlaceholder": "Search by person, locker code, drone, reason…",
+      "empty": "No activity recorded yet.",
+      "system": "System",
+      "userId": "User #{{id}}",
+      "note": "Reason / note",
+      "columns": {
+        "time": "Time",
+        "actor": "By",
+        "action": "Action",
+        "target": "Target",
+        "change": "Change"
+      },
+      "filter": {
+        "group": "Action group",
+        "allGroups": "All actions",
+        "target": "Target",
+        "allTargets": "All targets",
+        "actor": "By",
+        "allActors": "People and system",
+        "actors": {
+          "people": "People only",
+          "system": "System only"
+        },
+        "from": "From",
+        "to": "To"
+      },
+      "groups": {
+        "maintenance": "Locker maintenance / activation",
+        "technician": "Technician assignment",
+        "boxes": "Boxes",
+        "landingPad": "Landing pad",
+        "drones": "Drones",
+        "accounts": "Accounts",
+        "deleted": "Deletions"
+      },
+      "targetTypes": {
+        "LOCKER": "Locker",
+        "BOX": "Box",
+        "DRONE": "Drone",
+        "USER": "Account"
+      },
+      "actions": {
+        "LOCKER_CREATED": "Locker created",
+        "LOCKER_DELETED": "Locker deleted",
+        "LOCKER_MAINTENANCE_ON": "Locker set to maintenance",
+        "LOCKER_MAINTENANCE_BY_TICKET": "Ticket put locker into maintenance",
+        "LOCKER_ACTIVATED": "Locker activated",
+        "LOCKER_DEACTIVATED": "Locker deactivated",
+        "LOCKER_STATUS_CHANGED": "Locker status changed",
+        "LOCKER_TECHNICIAN_ASSIGNED": "Locker technician assigned",
+        "LOCKER_TECHNICIAN_CHANGED": "Locker technician changed",
+        "LOCKER_TECHNICIAN_UNASSIGNED": "Locker technician removed",
+        "LOCKER_INFO_UPDATED": "Locker details edited",
+        "LANDING_PAD_STATUS_CHANGED": "Landing pad status changed",
+        "LANDING_PAD_ENABLED": "Landing pad enabled",
+        "LANDING_PAD_DISABLED": "Landing pad disabled",
+        "BOX_CREATED": "Box added",
+        "BOX_DELETED": "Box deleted",
+        "BOX_FAULT": "Box reported faulty",
+        "BOX_CLEANING": "Box sent to cleaning",
+        "BOX_OUT_OF_SERVICE": "Box taken out of service",
+        "BOX_BACK_IN_SERVICE": "Box back in service",
+        "BOX_STATUS_CHANGED": "Box status changed",
+        "BOX_ENABLED": "Box enabled",
+        "BOX_DISABLED": "Box disabled",
+        "BOX_UPDATED": "Box edited",
+        "DRONE_CREATED": "Drone added",
+        "DRONE_DELETED": "Drone deleted",
+        "DRONE_STATUS_CHANGED": "Drone status changed",
+        "DRONE_TECHNICIAN_ASSIGNED": "Drone technician assigned",
+        "DRONE_TECHNICIAN_CHANGED": "Drone technician changed",
+        "DRONE_TECHNICIAN_UNASSIGNED": "Drone technician removed",
+        "DRONE_MOVED": "Drone moved to another station",
+        "DRONE_ENABLED": "Drone enabled",
+        "DRONE_DISABLED": "Drone disabled",
+        "USER_CREATED": "Account created",
+        "USER_ACTIVATED": "Account unlocked",
+        "USER_LOCKED": "Account locked",
+        "USER_ROLES_CHANGED": "Roles changed",
+        "USER_DELETED": "Account deleted"
+      },
+      "values": {
+        "ACTIVE": "Active",
+        "INACTIVE": "Inactive",
+        "MAINTENANCE": "Maintenance",
+        "PLANNED": "Planned",
+        "INSTALLING": "Installing",
+        "COMMISSIONING": "Commissioning",
+        "AVAILABLE": "Available",
+        "RESERVED": "Reserved",
+        "OCCUPIED": "Occupied",
+        "FAULT": "Faulty",
+        "CLEANING": "Cleaning",
+        "OUT_OF_SERVICE": "Out of service",
+        "DISABLED": "Disabled",
+        "OK": "Ready",
+        "IDLE": "Idle",
+        "CHARGING": "Charging",
+        "IN_FLIGHT": "In flight"
+      },
+      "fields": {
+        "code": "Code",
+        "name": "Name",
+        "address": "Address",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "storeId": "Store",
+        "description": "Description",
+        "size": "Size",
+        "cellType": "Cell type"
+      }
     }
   },
   "dropdown": {
