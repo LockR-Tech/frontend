@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Megaphone } from "lucide-react";
 import { Card, CardContent } from "~/components/ui/card";
-import { BatchDeleteBar, DeleteReasonDialog, TableToolbar, deleteMany, useRowSelection } from "~/components/shared/data-table";
+import { BatchDeleteBar, DeleteReasonDialog, TableToolbar, useRowSelection } from "~/components/shared/data-table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -29,6 +29,7 @@ export default function NotificationsPage() {
     notifications,
     totalElements,
     isLoading,
+    isStatsLoading,
     isDeleting,
     pendingIds,
     stats,
@@ -50,14 +51,19 @@ export default function NotificationsPage() {
     pageSize,
     setPageSize,
     totalPages,
-    filteredIds,
-    deleteOne,
+    deleteSelected,
+    deleteAllMatching,
   } = useNotifications();
 
   const selection = useRowSelection(notifications);
-  const deleteIds = async (ids: number[], reason: string) => {
-    const result = await deleteMany(ids, (id) => deleteOne(id, reason));
+  const deleteSelectedRows = async (reason: string) => {
+    const result = await deleteSelected(selection.selectedIds, reason);
     selection.remove(result.deleted);
+    return result;
+  };
+  const deleteAllRows = async (reason: string) => {
+    const result = await deleteAllMatching(reason);
+    selection.clear();
     return result;
   };
 
@@ -74,8 +80,8 @@ export default function NotificationsPage() {
             {t("admin.notifications.title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {t("admin.notifications.description")} • {totalElements}{" "}
-            {t("admin.notifications.title").toLowerCase()}
+            {t("admin.notifications.description")} •{" "}
+            {t("admin.notifications.countLabel", { count: totalElements })}
           </p>
         </div>
         <div data-tour="notifications-actions" className="flex items-center gap-2">
@@ -102,7 +108,7 @@ export default function NotificationsPage() {
       </div>
 
       <div data-tour="notifications-stats">
-        <NotificationStats stats={stats} isLoading={isLoading} />
+        <NotificationStats stats={stats} isLoading={isStatsLoading} />
       </div>
 
       <Card className="border-0 shadow-sm">
@@ -139,7 +145,7 @@ export default function NotificationsPage() {
                 </SelectContent>
               </Select>
 
-              {/* Loại lọc dựng từ dữ liệu đã tải */}
+              {/* Loại lọc lấy từ thống kê của mọi thông báo */}
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="h-9 w-48 text-sm">
                   <SelectValue
@@ -173,9 +179,9 @@ export default function NotificationsPage() {
               noun={t("admin.notifications.batchNoun")}
               selectedCount={selection.selectedIds.length}
               onClearSelection={selection.clear}
-              onDeleteSelected={(reason) => deleteIds(selection.selectedIds, reason)}
-              allCount={filteredIds.length}
-              onDeleteAll={(reason) => deleteIds(filteredIds, reason)}
+              onDeleteSelected={deleteSelectedRows}
+              allCount={totalElements}
+              onDeleteAll={deleteAllRows}
               requireReason
             />
           </div>

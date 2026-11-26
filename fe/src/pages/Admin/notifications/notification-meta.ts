@@ -32,7 +32,10 @@ const TYPE_LABEL_KEYS: Record<string, string> = {
 export function notificationTypeLabel(type: string | null | undefined): string {
   if (!type) return "—";
   const key = TYPE_LABEL_KEYS[type];
-  return key ? i18n.t(key) : type;
+  if (key) return i18n.t(key);
+  // Các loại còn lại (kể cả dạng có dấu chấm như `locker.report.routed`) dịch theo
+  // `admin.notifications.typeLabel.<mã, '.' → '_'>`; loại lạ hiện nguyên mã.
+  return i18n.t(`admin.notifications.typeLabel.${type.replace(/\./g, "_")}`, { defaultValue: type });
 }
 
 /** Nhóm màu theo tiền tố loại. */

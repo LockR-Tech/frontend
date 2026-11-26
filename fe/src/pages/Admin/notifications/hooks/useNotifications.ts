@@ -4,14 +4,18 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { NotificationStatus } from "~/types/admin/enums";
 import {
-  useGetAllNotificationsQuery,
+  useBulkDeleteNotificationsMutation,
   useDeleteNotificationMutation,
+  useGetNotificationStatsQuery,
   useMarkAdminNotificationReadMutation,
   useResendNotificationMutation,
+  useSearchNotificationsQuery,
+  type BulkDeleteNotificationsBody,
+  type SearchNotificationsParams,
 } from "@/stores/apis/admin/notifications";
 import { useGetAllUsersQuery } from "@/stores/apis/admin/users";
 import type { AdminNotificationResponse } from "~/types/admin/notification";
-import { parseBackendDateTime } from "~/lib/datetime";
+import type { DeleteManyResult } from "~/components/shared/data-table";
 import { extractList } from "~/lib/extract-list";
 import { notificationErrorMessage, notificationTypeLabel } from "../notification-meta";
 
@@ -31,11 +35,17 @@ export interface NotificationStats {
   averageReadMinutes: number | null;
 }
 
+/** Chờ người dùng ngừng gõ rồi mới tìm ở backend. */
+const SEARCH_DELAY_MS = 300;
+/** Số người nhận tối đa (khớp tên/email) gửi kèm khi tìm. */
+const MAX_RECIPIENT_MATCHES = 200;
+
 export function useNotifications() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [statusFilter, setStatusFilterState] = useState<NotificationStatusFilter>("ALL");
   const [typeFilter, setTypeFilterState] = useState<string>("ALL");
   const [searchQuery, setSearchQueryState] = useState("");
+  const [search, setSearch] = useState("");
   const [urlParams, setUrlParams] = useSearchParams();
   const page = Math.max(0, Number(urlParams.get("page") ?? "0") || 0);
   const pageSize = Math.max(1, Number(urlParams.get("size") ?? "10") || 10);
@@ -59,13 +69,10 @@ export function useNotifications() {
     resetPage();
   };
 
-  // GET /api/admin/notifications trả toàn bộ (List) — lọc/phân trang tại client.
-  const { data, isLoading, refetch } = useGetAllNotificationsQuery({});
-
-  const [deleteNotification, { isLoading: isDeleting }] = useDeleteNotificationMutation();
-  const [markRead] = useMarkAdminNotificationReadMutation();
-  const [resendNotification] = useResendNotificationMutation();
-  const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
+  useEffect(() => {
+    const handle = setTimeout(() => setSearch(searchQuery.trim()), SEARCH_DELAY_MS);
+    return () => clearTimeout(handle);
+  }, [searchQuery]);
 
   // notification-service chỉ có `userId` → ghép tên/email từ danh sách người dùng.
   const { data: usersData } = useGetAllUsersQuery({ page: 0, size: 1000 });
@@ -81,13 +88,52 @@ export function useNotifications() {
     return m;
   }, [usersData]);
 
-  const allNotifications: NotificationRow[] = useMemo(
+  // Tìm theo tên/email người nhận: tra mã người nhận ở đây rồi gửi kèm, backend gộp với tìm theo chữ.
+  const recipientIds = useMemo(() => {
+    const query = search.toLowerCase();
+    if (!query) return [];
+    const ids: number[] = [];
+    for (const [id, u] of userById) {
+      if (u.name.toLowerCase().includes(query) || (u.email ?? "").toLowerCase().includes(query)) {
+        ids.push(id);
+        if (ids.length >= MAX_RECIPIENT_MATCHES) break;
+      }
+    }
+    return ids;
+  }, [search, userById]);
+
+  const filterArgs = useMemo(
+    () => ({
+      ...(statusFilter !== "ALL" ? { status: statusFilter } : {}),
+      ...(typeFilter !== "ALL" ? { type: typeFilter } : {}),
+      ...(search ? { search } : {}),
+      ...(recipientIds.length ? { recipientIds } : {}),
+    }),
+    [statusFilter, typeFilter, search, recipientIds],
+  );
+  const queryArgs: SearchNotificationsParams = useMemo(
+    () => ({ page, size: pageSize, ...filterArgs }),
+    [page, pageSize, filterArgs],
+  );
+
+  const { data, isLoading, isFetching, refetch } = useSearchNotificationsQuery(queryArgs);
+  const { data: statsData, isLoading: isStatsLoading, refetch: refetchStats } = useGetNotificationStatsQuery();
+
+  const [deleteNotification, { isLoading: isDeleting }] = useDeleteNotificationMutation();
+  const [bulkDelete] = useBulkDeleteNotificationsMutation();
+  const [markRead] = useMarkAdminNotificationReadMutation();
+  const [resendNotification] = useResendNotificationMutation();
+  const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
+
+  const pageData = data?.data;
+  const notifications: NotificationRow[] = useMemo(
     () =>
-      extractList<AdminNotificationResponse & { isRead?: boolean }>(data?.data).map((n) => {
+      (pageData?.content ?? []).map((n) => {
         const recipientId = n.recipientId ?? n.userId;
         const matched = recipientId != null ? userById.get(recipientId) : undefined;
+        const raw = n as AdminNotificationResponse & { isRead?: boolean };
         const status =
-          n.status === NotificationStatus.READ || (!n.status && n.isRead)
+          raw.status === NotificationStatus.READ || (!raw.status && raw.isRead)
             ? NotificationStatus.READ
             : NotificationStatus.UNREAD;
         return {
@@ -99,73 +145,42 @@ export function useNotifications() {
           recipientEmail: n.recipientEmail ?? matched?.email,
         };
       }),
-    [data, userById],
+    [pageData, userById],
   );
 
-  // Danh sách loại lọc dựng từ dữ liệu thật (type là chuỗi tự do ở backend).
-  const typeOptions = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const n of allNotifications) counts.set(n.type, (counts.get(n.type) ?? 0) + 1);
-    return [...counts.entries()]
-      .map(([value, count]) => ({ value, label: notificationTypeLabel(value), count }))
-      .sort((a, b) => a.label.localeCompare(b.label, "vi"));
+  // Loại lọc lấy từ thống kê của mọi thông báo (type là chuỗi tự do ở backend).
+  const statsPayload = statsData?.data;
+  const typeOptions = useMemo(
+    () =>
+      (statsPayload?.types ?? [])
+        .filter((row) => row.type)
+        .map((row) => ({ value: row.type, label: notificationTypeLabel(row.type), count: row.count }))
+        .sort((a, b) => a.label.localeCompare(b.label, i18n.language)),
     // `t` đổi khi đổi ngôn ngữ → dựng lại nhãn.
-  }, [allNotifications, t]);
-
-  const filteredNotifications = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return allNotifications.filter((n) => {
-      if (statusFilter !== "ALL" && n.status !== statusFilter) return false;
-      if (typeFilter !== "ALL" && n.type !== typeFilter) return false;
-      if (!query) return true;
-      return (
-        (n.title ?? "").toLowerCase().includes(query) ||
-        (n.recipientName ?? "").toLowerCase().includes(query) ||
-        (n.message ?? "").toLowerCase().includes(query) ||
-        (n.recipientEmail ?? "").toLowerCase().includes(query) ||
-        String(n.id).includes(query)
-      );
-    });
-  }, [allNotifications, searchQuery, statusFilter, typeFilter]);
-
-  const stats: NotificationStats = useMemo(() => {
-    let read = 0;
-    let readTimeSum = 0;
-    let readTimeCount = 0;
-    for (const n of allNotifications) {
-      if (n.status === NotificationStatus.READ) read += 1;
-      const created = parseBackendDateTime(n.createdAt);
-      const readAt = parseBackendDateTime(n.readAt ?? null);
-      if (created && readAt && readAt >= created) {
-        readTimeSum += (readAt.getTime() - created.getTime()) / 60000;
-        readTimeCount += 1;
-      }
-    }
-    return {
-      total: allNotifications.length,
-      unread: allNotifications.length - read,
-      read,
-      averageReadMinutes: readTimeCount > 0 ? Math.round(readTimeSum / readTimeCount) : null,
-    };
-  }, [allNotifications]);
-
-  const totalElements = filteredNotifications.length;
-  const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
-  const pagedNotifications = useMemo(
-    () => filteredNotifications.slice(page * pageSize, (page + 1) * pageSize),
-    [filteredNotifications, page, pageSize],
+    [statsPayload, t, i18n.language],
   );
+
+  const stats: NotificationStats = {
+    total: statsPayload?.total ?? 0,
+    unread: statsPayload?.unread ?? 0,
+    read: statsPayload?.read ?? 0,
+    averageReadMinutes: statsPayload?.averageReadMinutes ?? null,
+  };
+
+  const totalElements = pageData?.totalElements ?? 0;
+  const totalPages = Math.max(1, pageData?.totalPages ?? 1);
 
   useEffect(() => {
-    if (!isLoading && page > 0 && page >= totalPages) {
+    if (!isFetching && page > 0 && page >= totalPages) {
       setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(totalPages - 1)); return next; });
     }
-  }, [isLoading, page, totalPages, setUrlParams]);
+  }, [isFetching, page, totalPages, setUrlParams]);
 
   const clearFilters = () => {
     setStatusFilterState("ALL");
     setTypeFilterState("ALL");
     setSearchQueryState("");
+    setSearch("");
     setPage(0);
   };
 
@@ -199,6 +214,29 @@ export function useNotifications() {
     }
   };
 
+  /// Xoá mềm hàng loạt bằng một lệnh. Lỗi cả lệnh ⇒ mọi mục coi là không xoá được, kèm lý do backend.
+  const runBulkDelete = async (
+    body: BulkDeleteNotificationsBody,
+    requestedIds: number[] | null,
+  ): Promise<DeleteManyResult> => {
+    try {
+      const res = await bulkDelete(body).unwrap();
+      const deleted = res.data ?? [];
+      const done = new Set(deleted);
+      const failed = (requestedIds ?? [])
+        .filter((id) => !done.has(id))
+        .map((id) => ({ id, message: t("admin.notifications.toast.alreadyDeleted") }));
+      return { deleted, failed };
+    } catch (err) {
+      const message = notificationErrorMessage(err, t("common.pleaseRetry"));
+      const ids = requestedIds ?? [];
+      return { deleted: [], failed: ids.length ? ids.map((id) => ({ id, message })) : [{ id: 0, message }] };
+    }
+  };
+
+  const deleteSelected = (ids: number[], reason: string) => runBulkDelete({ ids, reason }, ids);
+  const deleteAllMatching = (reason: string) => runBulkDelete({ all: true, ...filterArgs, reason }, null);
+
   const handleMarkRead = (id: number) =>
     withPending(id, async () => {
       try {
@@ -224,14 +262,14 @@ export function useNotifications() {
     });
 
   return {
-    notifications: pagedNotifications,
-    /// Mọi thông báo khớp bộ lọc (mọi trang) — cho "Xoá tất cả".
-    filteredIds: filteredNotifications.map((n) => n.id),
-    deleteOne: (id: number, reason: string) => deleteNotification({ id, reason }).unwrap(),
+    notifications,
+    deleteSelected,
+    deleteAllMatching,
     totalElements,
     totalPages,
     stats,
     isLoading,
+    isStatsLoading,
     isDeleting,
     pendingIds,
     statusFilter,
@@ -245,7 +283,10 @@ export function useNotifications() {
     setPage,
     pageSize,
     setPageSize,
-    refetch,
+    refetch: () => {
+      void refetch();
+      void refetchStats();
+    },
     clearFilters,
     hasActiveFilters,
     handleDelete,
