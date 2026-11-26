@@ -9253,7 +9253,7 @@
     },
     {
       "id": "admin-mobile-notice",
-      "version": 1,
+      "version": 2,
       "order": 1005,
       "roles": [
         "ADMIN"
@@ -9269,6 +9269,16 @@
           ],
           "placement": "auto",
           "mobileRoute": "/admin-web-notice"
+        },
+        {
+          "id": "admin-mobile-notice-switch-role",
+          "anchor": "admin-notice-switch-role",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "top",
+          "mobileRoute": "/admin-web-notice",
+          "optional": true
         },
         {
           "id": "admin-mobile-notice-logout",
@@ -9375,7 +9385,7 @@
     },
     {
       "id": "customer-orders",
-      "version": 2,
+      "version": 3,
       "order": 1020,
       "roles": [
         "CUSTOMER"
@@ -9509,7 +9519,7 @@
     },
     {
       "id": "kiosk-home",
-      "version": 1,
+      "version": 2,
       "order": 1040,
       "roles": [
         "CUSTOMER"
@@ -9527,6 +9537,14 @@
         {
           "id": "kiosk-home-status",
           "anchor": "kiosk-topbar",
+          "platforms": [
+            "kiosk"
+          ],
+          "placement": "auto"
+        },
+        {
+          "id": "kiosk-home-language",
+          "anchor": "kiosk-home-language",
           "platforms": [
             "kiosk"
           ],
@@ -9569,7 +9587,7 @@
     },
     {
       "id": "kiosk-open-code",
-      "version": 1,
+      "version": 2,
       "order": 1041,
       "roles": [
         "CUSTOMER"
@@ -9957,7 +9975,7 @@
     },
     {
       "id": "kiosk-boxes-manage",
-      "version": 1,
+      "version": 2,
       "order": 1050,
       "roles": [
         "CUSTOMER"
@@ -9994,15 +10012,6 @@
         {
           "id": "kiosk-boxes-manage-end",
           "anchor": "kiosk-manage-end",
-          "platforms": [
-            "kiosk"
-          ],
-          "placement": "auto",
-          "via": "kiosk-boxes-yours"
-        },
-        {
-          "id": "kiosk-boxes-manage-delegate",
-          "anchor": "kiosk-manage-delegate",
           "platforms": [
             "kiosk"
           ],
@@ -11542,7 +11551,7 @@
     },
     {
       "id": "customer-payment-vietqr",
-      "version": 1,
+      "version": 2,
       "order": 1230,
       "roles": [
         "CUSTOMER"
@@ -12361,7 +12370,7 @@
     },
     {
       "id": "customer-order-detail",
-      "version": 1,
+      "version": 2,
       "order": 1330,
       "roles": [
         "CUSTOMER"
@@ -12557,23 +12566,12 @@
     },
     {
       "id": "customer-order-more",
-      "version": 1,
+      "version": 2,
       "order": 1350,
       "roles": [
         "CUSTOMER"
       ],
       "steps": [
-        {
-          "id": "customer-order-more-delegate",
-          "anchor": "order-act-delegate",
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "bottom",
-          "mobileRoute": "/orders",
-          "via": "orders-first-item",
-          "optional": true
-        },
         {
           "id": "customer-order-more-pin",
           "anchor": "order-act-pin",
@@ -12639,90 +12637,6 @@
           "mobileRoute": "/orders",
           "via": "orders-first-item",
           "optional": true
-        }
-      ]
-    },
-    {
-      "id": "customer-delegations",
-      "version": 1,
-      "order": 1360,
-      "roles": [
-        "CUSTOMER"
-      ],
-      "steps": [
-        {
-          "id": "customer-delegations-intro",
-          "anchor": null,
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "auto",
-          "mobileRoute": "/my-delegations"
-        },
-        {
-          "id": "customer-delegations-refresh",
-          "anchor": "delegations-refresh",
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "bottom",
-          "mobileRoute": "/my-delegations"
-        },
-        {
-          "id": "customer-delegations-first",
-          "anchor": "delegations-first-item",
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "bottom",
-          "mobileRoute": "/my-delegations",
-          "optional": true
-        }
-      ]
-    },
-    {
-      "id": "customer-authorized-opening",
-      "version": 1,
-      "order": 1370,
-      "roles": [
-        "CUSTOMER"
-      ],
-      "steps": [
-        {
-          "id": "customer-authorized-opening-intro",
-          "anchor": "ao-intro",
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "bottom",
-          "mobileRoute": "/authorized-opening"
-        },
-        {
-          "id": "customer-authorized-opening-locker",
-          "anchor": "ao-locker",
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "bottom",
-          "mobileRoute": "/authorized-opening"
-        },
-        {
-          "id": "customer-authorized-opening-code",
-          "anchor": "ao-code",
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "top",
-          "mobileRoute": "/authorized-opening"
-        },
-        {
-          "id": "customer-authorized-opening-open",
-          "anchor": "ao-open",
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "top",
-          "mobileRoute": "/authorized-opening"
         }
       ]
     },
@@ -13184,7 +13098,7 @@
     },
     {
       "id": "customer-profile-manage",
-      "version": 1,
+      "version": 2,
       "order": 1505,
       "roles": [
         "CUSTOMER"
@@ -13193,15 +13107,6 @@
         {
           "id": "customer-profile-manage-notifications",
           "anchor": "profile-notifications",
-          "platforms": [
-            "mobile"
-          ],
-          "placement": "auto",
-          "mobileRoute": "/profile"
-        },
-        {
-          "id": "customer-profile-manage-delegations",
-          "anchor": "profile-delegations",
           "platforms": [
             "mobile"
           ],
@@ -13249,12 +13154,22 @@
     },
     {
       "id": "customer-profile-settings",
-      "version": 1,
+      "version": 2,
       "order": 1506,
       "roles": [
         "CUSTOMER"
       ],
       "steps": [
+        {
+          "id": "customer-profile-settings-switch-role",
+          "anchor": "profile-switch-role",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "auto",
+          "mobileRoute": "/profile",
+          "optional": true
+        },
         {
           "id": "customer-profile-settings-language",
           "anchor": "profile-language",
@@ -16385,7 +16300,7 @@
     },
     {
       "id": "locker-tech-profile",
-      "version": 1,
+      "version": 2,
       "order": 2800,
       "roles": [
         "LOCKER_TECHNICIAN"
@@ -16436,6 +16351,16 @@
           ],
           "placement": "top",
           "mobileRoute": "/technician-profile"
+        },
+        {
+          "id": "locker-tech-profile-switch-role",
+          "anchor": "tech-profile-switch-role",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "top",
+          "mobileRoute": "/technician-profile",
+          "optional": true
         },
         {
           "id": "locker-tech-profile-logout",
@@ -17293,7 +17218,7 @@
     },
     {
       "id": "drone-tech-profile",
-      "version": 1,
+      "version": 2,
       "order": 3220,
       "roles": [
         "DRONE_TECHNICIAN"
@@ -17340,6 +17265,16 @@
         {
           "id": "drone-tech-profile-language",
           "anchor": "tech-profile-language",
+          "platforms": [
+            "mobile"
+          ],
+          "placement": "top",
+          "mobileRoute": "/technician-profile",
+          "optional": true
+        },
+        {
+          "id": "drone-tech-profile-switch-role",
+          "anchor": "tech-profile-switch-role",
           "platforms": [
             "mobile"
           ],

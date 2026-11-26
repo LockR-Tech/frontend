@@ -1,8 +1,8 @@
 {
   "image": "hdsd/customer-profile-manage.png",
   "width": 412,
-  "height": 1067,
-  "capturedAt": "2026-11-21",
+  "height": 1019,
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
@@ -14,7 +14,7 @@
     },
     {
       "n": 2,
-      "stepId": "customer-profile-manage-delegations",
+      "stepId": "customer-profile-manage-refunds",
       "x": 0,
       "y": 847,
       "w": 412,
@@ -22,7 +22,7 @@
     },
     {
       "n": 3,
-      "stepId": "customer-profile-manage-refunds",
+      "stepId": "customer-profile-manage-transactions",
       "x": 0,
       "y": 895,
       "w": 412,
@@ -30,17 +30,9 @@
     },
     {
       "n": 4,
-      "stepId": "customer-profile-manage-transactions",
-      "x": 0,
-      "y": 943,
-      "w": 412,
-      "h": 48
-    },
-    {
-      "n": 5,
       "stepId": "customer-profile-manage-reports",
       "x": 0,
-      "y": 991,
+      "y": 943,
       "w": 412,
       "h": 48
     }

@@ -45,7 +45,8 @@ import { useGetDroneQuery } from "~/stores/apis/admin/drones";
 import { useGetDroneIncidentQuery } from "~/stores/apis/admin/droneIncidents";
 import { useGetLockerLayoutQuery } from "~/stores/apis/admin/lockerOps";
 import { ADMIN_NAV_ITEMS } from "~/constants/sidebar";
-import { SUPPORTED_LANGUAGES, currentLanguage } from "~/utils/i18n";
+import { SUPPORTED_LANGUAGES, currentLanguage, type SupportedLanguage } from "~/utils/i18n";
+import { syncAccountLanguage } from "~/utils/account-language";
 import { useTour } from "~/onboarding/useTour";
 
 interface HeaderProps {
@@ -469,6 +470,8 @@ export function Header({ className }: HeaderProps) {
   const handleChangeLanguage = (code: string) => {
     // i18next-browser-languagedetector tự lưu lựa chọn vào localStorage
     void i18nInstance.changeLanguage(code);
+    // Ngôn ngữ đi theo tài khoản: app và web trên máy khác dùng lại (F3-G15).
+    void syncAccountLanguage(code as SupportedLanguage);
     setOpenLang(false);
   };
 

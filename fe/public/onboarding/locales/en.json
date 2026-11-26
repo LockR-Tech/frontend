@@ -650,7 +650,7 @@
     },
     "customer-profile-manage": {
       "title": "Notifications and management",
-      "summary": "Notifications, delegated orders, refunds, transactions and incident reports."
+      "summary": "Notifications, refunds, transactions and incident reports."
     },
     "customer-profile-settings": {
       "title": "Settings",
@@ -849,16 +849,8 @@
       "summary": "Buttons in order details follow the state: pay, open, confirm, extend."
     },
     "customer-order-more": {
-      "title": "Delegation, PIN & help",
-      "summary": "Delegate pickup, change PIN, recipient email, report a box, cancel, directions and refunds."
-    },
-    "customer-delegations": {
-      "title": "Delegated orders",
-      "summary": "Orders other people asked you to collect."
-    },
-    "customer-authorized-opening": {
-      "title": "Delegated locker opening",
-      "summary": "Collect with a code sent to you, right at the locker."
+      "title": "PIN & help",
+      "summary": "Change PIN, recipient email, report a box, cancel, directions and refunds."
     },
     "customer-qr-scan": {
       "title": "Kiosk login by QR",
@@ -1304,7 +1296,7 @@
     },
     "customer-orders-list": {
       "title": "Order list",
-      "body": "Orders grouped by day; cards warn about overdue pickups, fees paused by a box fault or items moved to storage. Tap one for its PIN/QR, payment and delegation."
+      "body": "Orders grouped by day; cards warn about overdue pickups, fees paused by a box fault or items moved to storage. Tap one for its PIN/QR and payment."
     },
     "customer-profile-header": {
       "title": "Your profile",
@@ -4316,7 +4308,7 @@
     },
     "admin-mobile-notice-logout": {
       "title": "Log out",
-      "body": "Tap \"Log out\", then log in with a customer or technician account if you need the app."
+      "body": "Tap \"Log out\", then log in with a customer or technician account if you need the app (accounts with several roles can use \"Switch role\")."
     },
     "customer-profile-info": {
       "title": "Personal information",
@@ -4405,10 +4397,6 @@
     "customer-profile-manage-notifications": {
       "title": "Notifications",
       "body": "Open your notifications; the red number is how many are unread."
-    },
-    "customer-profile-manage-delegations": {
-      "title": "Delegated orders",
-      "body": "See orders others asked you to pick up; the blue number is how many are still active."
     },
     "customer-profile-manage-refunds": {
       "title": "Refunds",
@@ -5092,7 +5080,7 @@
     },
     "customer-payment-vietqr-bank": {
       "title": "Banking app",
-      "body": "On a phone, tap “Pay with banking app” to pick your app and open a prefilled transfer."
+      "body": "On a phone (app or browser), tap “Pay with banking app” and pick your app: apps marked “Fills in…” open with the account, amount and memo already filled — you just confirm."
     },
     "customer-payment-vietqr-leave": {
       "title": "Leaving before paying",
@@ -5424,7 +5412,7 @@
     },
     "customer-order-detail-info": {
       "title": "Order info",
-      "body": "Locker, address, box, order date, rental/storage time, deadline, overtime fee, recipient, delegation, price, discounts, payment and transaction code."
+      "body": "Locker, address, box, order date, rental/storage time, deadline, overtime fee, recipient, price, discounts, payment and transaction code."
     },
     "customer-order-detail-timeline": {
       "title": "Timeline",
@@ -5466,10 +5454,6 @@
       "title": "Reorder",
       "body": "Quickly create a new order like this one (not for drone orders)."
     },
-    "customer-order-more-delegate": {
-      "title": "Delegate pickup",
-      "body": "Items in the box: enter the delegate’s phone, name and a message. They see it under “Delegated orders”; the current PIN is renewed."
-    },
     "customer-order-more-pin": {
       "title": "Change PIN",
       "body": "Asks “Change PIN?”: the current code stops working and a new one is issued; for send orders, pass the new code on."
@@ -5493,34 +5477,6 @@
     "customer-order-more-refund": {
       "title": "Request a refund",
       "body": "Paid orders: send a refund request and follow it in Profile › Refund requests."
-    },
-    "customer-delegations-intro": {
-      "title": "Collecting for others",
-      "body": "When someone delegates to your phone number, the order appears here with its pickup code. Otherwise you see “No delegated orders yet”."
-    },
-    "customer-delegations-refresh": {
-      "title": "Refresh",
-      "body": "Reload the list, or pull it down."
-    },
-    "customer-delegations-first": {
-      "title": "Delegated card",
-      "body": "Who delegated, locker and box, deadline, the PIN/QR for the kiosk and “Open … to pick up”. Tap the card for the delegated order details."
-    },
-    "customer-authorized-opening-intro": {
-      "title": "A code sent to you",
-      "body": "Use the pickup PIN from “Delegated orders” or from the sender. You must be at the locker."
-    },
-    "customer-authorized-opening-locker": {
-      "title": "Choose locker",
-      "body": "Tap to choose the locker holding the parcel."
-    },
-    "customer-authorized-opening-code": {
-      "title": "Pickup code",
-      "body": "Enter the numeric code, at least 4 digits."
-    },
-    "customer-authorized-opening-open": {
-      "title": "Open compartment to pick up",
-      "body": "The app asks you to scan the locker’s QR sticker to confirm you are there, then opens the box and shows the result."
     },
     "customer-qr-scan-intro": {
       "title": "Scan at the kiosk",
@@ -5860,7 +5816,7 @@
     },
     "kiosk-open-code-intro": {
       "title": "Which code?",
-      "body": "A drop-off code, a pickup code (shared by the sender), a delegated pickup code or the code of a box you rent. Your codes are under Locker orders in the Lock.R app."
+      "body": "A drop-off code, a pickup code (shared by the sender) or the code of a box you rent. Your codes are under Locker orders in the Lock.R app."
     },
     "kiosk-open-code-locker": {
       "title": "Current locker",
@@ -6001,10 +5957,6 @@
     "kiosk-boxes-manage-end": {
       "title": "\"Kết thúc thuê & trả ô\" (End & return)",
       "body": "Take everything, close the door, then tap; the kiosk confirms before returning the box and completing the order."
-    },
-    "kiosk-boxes-manage-delegate": {
-      "title": "\"Ủy quyền người khác lấy hộ\" (Delegate pickup)",
-      "body": "Let someone else collect: set it up in the Lock.R app; they enter the delegation code in \"Mở Tủ / Nhận Đồ\"."
     },
     "kiosk-boxes-manage-report": {
       "title": "\"Báo ô lỗi\" (Report fault)",
@@ -6981,6 +6933,26 @@
     "admin-settings-simulation-confirm": {
       "title": "Confirm",
       "body": "The confirmation lists exactly which items will change before saving."
+    },
+    "customer-profile-settings-switch-role": {
+      "title": "Switch role",
+      "body": "Shown only when your account has several roles (e.g. both customer and technician): pick another role to open its screens. Next time you log in, the app asks which role to use."
+    },
+    "locker-tech-profile-switch-role": {
+      "title": "Switch role",
+      "body": "Shown only when your account has several roles (e.g. both customer and technician): pick another role to open its screens. Next time you log in, the app asks which role to use."
+    },
+    "drone-tech-profile-switch-role": {
+      "title": "Switch role",
+      "body": "Shown only when your account has several roles (e.g. both customer and technician): pick another role to open its screens. Next time you log in, the app asks which role to use."
+    },
+    "admin-mobile-notice-switch-role": {
+      "title": "Switch role",
+      "body": "An admin account that is also a technician or customer: tap \"Switch role\" to use the app in that role without logging out."
+    },
+    "kiosk-home-language": {
+      "title": "Vietnamese / English",
+      "body": "Pick VI or EN before you start. When your session ends, the kiosk switches back to Vietnamese for the next customer."
     }
   }
 }

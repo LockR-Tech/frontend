@@ -650,7 +650,7 @@
     },
     "customer-profile-manage": {
       "title": "Thông báo và quản lý",
-      "summary": "Thông báo, đơn ủy quyền, hoàn tiền, giao dịch và báo cáo sự cố."
+      "summary": "Thông báo, hoàn tiền, giao dịch và báo cáo sự cố."
     },
     "customer-profile-settings": {
       "title": "Cài đặt",
@@ -849,16 +849,8 @@
       "summary": "Nút trong chi tiết đơn đổi theo trạng thái: thanh toán, mở ô, xác nhận, gia hạn."
     },
     "customer-order-more": {
-      "title": "Uỷ quyền, mã PIN & hỗ trợ",
-      "summary": "Nhờ người lấy hộ, đổi PIN, email người nhận, báo ô lỗi, huỷ đơn, chỉ đường và hoàn tiền."
-    },
-    "customer-delegations": {
-      "title": "Đơn ủy quyền",
-      "summary": "Đơn người khác nhờ bạn lấy hộ."
-    },
-    "customer-authorized-opening": {
-      "title": "Mở tủ ủy quyền",
-      "summary": "Lấy hàng bằng mã được gửi cho bạn, ngay tại tủ."
+      "title": "Mã PIN & hỗ trợ",
+      "summary": "Đổi PIN, email người nhận, báo ô lỗi, huỷ đơn, chỉ đường và hoàn tiền."
     },
     "customer-qr-scan": {
       "title": "Đăng nhập kiosk bằng QR",
@@ -1304,7 +1296,7 @@
     },
     "customer-orders-list": {
       "title": "Danh sách đơn",
-      "body": "Đơn xếp theo ngày; thẻ có cảnh báo khi quá hạn, phí tạm dừng vì sự cố ô hay đồ đã về kho. Bấm một đơn để xem PIN/QR, thanh toán, uỷ quyền."
+      "body": "Đơn xếp theo ngày; thẻ có cảnh báo khi quá hạn, phí tạm dừng vì sự cố ô hay đồ đã về kho. Bấm một đơn để xem PIN/QR và thanh toán."
     },
     "customer-profile-header": {
       "title": "Hồ sơ của bạn",
@@ -4316,7 +4308,7 @@
     },
     "admin-mobile-notice-logout": {
       "title": "Đăng xuất",
-      "body": "Bấm \"Đăng xuất\" rồi đăng nhập bằng tài khoản khách hoặc kỹ thuật viên nếu cần dùng app."
+      "body": "Bấm \"Đăng xuất\" rồi đăng nhập bằng tài khoản khách hoặc kỹ thuật viên nếu cần dùng app (tài khoản có nhiều vai trò thì dùng \"Đổi vai trò\")."
     },
     "customer-profile-info": {
       "title": "Thông tin cá nhân",
@@ -4405,10 +4397,6 @@
     "customer-profile-manage-notifications": {
       "title": "Thông báo",
       "body": "Mở danh sách thông báo; số đỏ là số thông báo chưa đọc."
-    },
-    "customer-profile-manage-delegations": {
-      "title": "Đơn ủy quyền",
-      "body": "Xem các đơn người khác nhờ bạn lấy hộ; số xanh là số đơn ủy quyền còn hiệu lực."
     },
     "customer-profile-manage-refunds": {
       "title": "Hoàn tiền",
@@ -5092,7 +5080,7 @@
     },
     "customer-payment-vietqr-bank": {
       "title": "App ngân hàng",
-      "body": "Trên điện thoại, bấm “Thanh toán bằng app ngân hàng” để chọn app và mở lệnh chuyển khoản điền sẵn."
+      "body": "Trên điện thoại (app hoặc trình duyệt), bấm “Thanh toán bằng app ngân hàng” rồi chọn app: app ghi “Tự điền…” mở ra đã có số tài khoản, số tiền và nội dung — bạn chỉ cần xác nhận."
     },
     "customer-payment-vietqr-leave": {
       "title": "Huỷ khi chưa trả",
@@ -5424,7 +5412,7 @@
     },
     "customer-order-detail-info": {
       "title": "Thông tin đơn",
-      "body": "Tủ, địa chỉ, ô, ngày đặt, thời gian thuê/giữ hàng, hạn lấy, phí quá giờ, người nhận, uỷ quyền, giá, giảm giá, thanh toán và mã giao dịch."
+      "body": "Tủ, địa chỉ, ô, ngày đặt, thời gian thuê/giữ hàng, hạn lấy, phí quá giờ, người nhận, giá, giảm giá, thanh toán và mã giao dịch."
     },
     "customer-order-detail-timeline": {
       "title": "Mốc thời gian",
@@ -5466,10 +5454,6 @@
       "title": "Đặt lại đơn",
       "body": "Tạo nhanh đơn mới giống đơn này (không áp dụng cho đơn drone)."
     },
-    "customer-order-more-delegate": {
-      "title": "Ủy quyền lấy hộ",
-      "body": "Đồ đang trong ô: nhập số điện thoại người lấy hộ, tên và lời nhắn. Họ thấy đơn trong “Đơn ủy quyền”; PIN hiện tại được đổi mới."
-    },
     "customer-order-more-pin": {
       "title": "Đổi mã PIN",
       "body": "App hỏi “Đổi mã PIN?”: mã hiện tại hết hiệu lực ngay và được thay mã mới; đơn gửi hàng nhớ gửi lại mã cho người nhận."
@@ -5493,34 +5477,6 @@
     "customer-order-more-refund": {
       "title": "Yêu cầu hoàn tiền",
       "body": "Đơn đã thanh toán: gửi yêu cầu hoàn tiền, theo dõi ở Hồ sơ › Yêu cầu hoàn tiền."
-    },
-    "customer-delegations-intro": {
-      "title": "Lấy hộ người khác",
-      "body": "Khi ai đó uỷ quyền cho số điện thoại của bạn, đơn hiện ở đây kèm mã lấy hàng. Chưa có thì trang báo “Chưa có đơn ủy quyền”."
-    },
-    "customer-delegations-refresh": {
-      "title": "Làm mới",
-      "body": "Tải lại danh sách, hoặc kéo xuống."
-    },
-    "customer-delegations-first": {
-      "title": "Thẻ đơn lấy hộ",
-      "body": "Người uỷ quyền, tủ và ô, hạn lấy, PIN/QR nhập ở kiosk và nút “Mở … lấy hàng”. Bấm thẻ để xem chi tiết đơn lấy hộ."
-    },
-    "customer-authorized-opening-intro": {
-      "title": "Mã được gửi cho bạn",
-      "body": "Dùng mã lấy hàng (PIN) trong mục “Đơn ủy quyền” hoặc do người gửi chuyển. Bạn cần đứng tại tủ."
-    },
-    "customer-authorized-opening-locker": {
-      "title": "Chọn tủ",
-      "body": "Chạm để chọn tủ đang giữ hàng."
-    },
-    "customer-authorized-opening-code": {
-      "title": "Mã lấy hàng",
-      "body": "Nhập mã số, ít nhất 4 chữ số."
-    },
-    "customer-authorized-opening-open": {
-      "title": "Mở ô lấy hàng",
-      "body": "App yêu cầu quét tem QR trên tủ để chắc bạn đang ở đúng tủ, rồi mở ô và báo kết quả."
     },
     "customer-qr-scan-intro": {
       "title": "Quét mã ở kiosk",
@@ -5860,7 +5816,7 @@
     },
     "kiosk-open-code-intro": {
       "title": "Dùng mã nào?",
-      "body": "Mã gửi hàng, mã nhận hàng (người gửi chia sẻ cho bạn), mã uỷ quyền lấy hộ hoặc mã của ô đang thuê. Mã của bạn nằm trong mục Đơn tủ của app Lock.R."
+      "body": "Mã gửi hàng, mã nhận hàng (người gửi chia sẻ cho bạn) hoặc mã của ô đang thuê. Mã của bạn nằm trong mục Đơn tủ của app Lock.R."
     },
     "kiosk-open-code-locker": {
       "title": "Tủ hiện tại",
@@ -6001,10 +5957,6 @@
     "kiosk-boxes-manage-end": {
       "title": "\"Kết thúc thuê & trả ô\"",
       "body": "Lấy hết đồ, đóng cửa rồi bấm; kiosk hỏi lại trước khi trả ô và hoàn tất đơn."
-    },
-    "kiosk-boxes-manage-delegate": {
-      "title": "\"Ủy quyền người khác lấy hộ\"",
-      "body": "Nhờ người khác lấy đồ: làm trên app Lock.R; người được uỷ quyền nhập mã uỷ quyền ở \"Mở Tủ / Nhận Đồ\"."
     },
     "kiosk-boxes-manage-report": {
       "title": "\"Báo ô lỗi\"",
@@ -6981,6 +6933,26 @@
     "admin-settings-simulation-confirm": {
       "title": "Xác nhận",
       "body": "Hộp xác nhận liệt kê đúng các mục sẽ đổi trước khi lưu."
+    },
+    "customer-profile-settings-switch-role": {
+      "title": "Đổi vai trò",
+      "body": "Chỉ hiện khi tài khoản có nhiều vai trò (vd. vừa là khách vừa là kỹ thuật viên): chọn vai trò khác để mở trang của vai trò đó. Đăng nhập lần sau app hỏi lại vào với vai trò nào."
+    },
+    "locker-tech-profile-switch-role": {
+      "title": "Đổi vai trò",
+      "body": "Chỉ hiện khi tài khoản có nhiều vai trò (vd. vừa là khách vừa là kỹ thuật viên): chọn vai trò khác để mở trang của vai trò đó. Đăng nhập lần sau app hỏi lại vào với vai trò nào."
+    },
+    "drone-tech-profile-switch-role": {
+      "title": "Đổi vai trò",
+      "body": "Chỉ hiện khi tài khoản có nhiều vai trò (vd. vừa là khách vừa là kỹ thuật viên): chọn vai trò khác để mở trang của vai trò đó. Đăng nhập lần sau app hỏi lại vào với vai trò nào."
+    },
+    "admin-mobile-notice-switch-role": {
+      "title": "Đổi vai trò",
+      "body": "Tài khoản quản trị kiêm kỹ thuật viên hoặc khách: bấm \"Đổi vai trò\" để dùng app với vai trò đó, không cần đăng xuất."
+    },
+    "kiosk-home-language": {
+      "title": "Tiếng Việt / English",
+      "body": "Chọn VI hoặc EN trước khi bắt đầu. Hết lượt của bạn, kiosk tự về tiếng Việt cho khách sau."
     }
   }
 }
