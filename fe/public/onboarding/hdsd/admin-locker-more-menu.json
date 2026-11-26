@@ -2,7 +2,7 @@
   "image": "hdsd/admin-locker-more-menu.png",
   "width": 1440,
   "height": 900,
-  "capturedAt": "2026-11-21",
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
@@ -46,9 +46,17 @@
     },
     {
       "n": 6,
+      "stepId": "admin-locker-more-menu-maintenance",
+      "x": 1191,
+      "y": 275,
+      "w": 210,
+      "h": 32
+    },
+    {
+      "n": 7,
       "stepId": "admin-locker-more-menu-delete-all",
       "x": 1191,
-      "y": 284,
+      "y": 316,
       "w": 210,
       "h": 32
     }
