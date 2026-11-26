@@ -96,9 +96,6 @@ export const ADMIN_ENDPOINTS = {
   ORDER_CUSTOMER_VIEW: (id: number) => `/api/orders/${id}`,
 
   // Payments Management
-  PAYMENTS: `${ROOT_URI.ADMIN}/payments`,
-  PAYMENT_BY_ID: (paymentId: number) =>
-    `${ROOT_URI.ADMIN}/payments/${paymentId}`,
   PAYMENT_STATUS: (paymentId: number) =>
     `${ROOT_URI.ADMIN}/payments/${paymentId}/status`,
 
@@ -111,7 +108,6 @@ export const ADMIN_ENDPOINTS = {
     `${ROOT_URI.ADMIN}/payments/refunds/${refundId}/approve`,
   REFUND_REJECT: (refundId: number) =>
     `${ROOT_URI.ADMIN}/payments/refunds/${refundId}/reject`,
-  PAYMENT_WALLET_TRANSACTIONS: `${ROOT_URI.ADMIN}/payments/wallet-transactions`,
   PAYMENT_STATS: `${ROOT_URI.ADMIN}/payments/stats`,
 
   // Báo cáo doanh thu theo tiền thực thu
@@ -126,14 +122,6 @@ export const ADMIN_ENDPOINTS = {
   REVENUE_BY_CUSTOMER: `${ROOT_URI.ADMIN}/revenue/by-customer`,
   REVENUE_CUSTOMER_DETAIL: (userId: number) =>
     `${ROOT_URI.ADMIN}/revenue/customers/${userId}`,
-
-  // Wallet Management
-  WALLET_BY_USER: (userId: number) => `${ROOT_URI.ADMIN}/wallet/${userId}`,
-  WALLET_TRANSACTIONS: (userId: number) =>
-    `${ROOT_URI.ADMIN}/wallet/${userId}/transactions`,
-  WALLET_ADJUST: (userId: number) => `${ROOT_URI.ADMIN}/wallet/${userId}/adjust`,
-  WITHDRAWALS: `${ROOT_URI.ADMIN}/withdrawals`,
-  WITHDRAWAL_PROCESS: (id: number) => `${ROOT_URI.ADMIN}/withdrawals/${id}/process`,
 
   // Scheduler Management
   SCHEDULER_STATUS: `${ROOT_URI.ADMIN}/scheduler/status`,
@@ -169,9 +157,10 @@ export const ADMIN_ENDPOINTS = {
   NOTIFICATION_BY_ID: (id: number) => `${ROOT_URI.ADMIN}/notifications/${id}`,
   NOTIFICATION_STATUS: (id: number) =>
     `${ROOT_URI.ADMIN}/notifications/${id}/status`,
+  NOTIFICATION_SEARCH: `${ROOT_URI.ADMIN}/notifications/search`,
   NOTIFICATION_STATS: `${ROOT_URI.ADMIN}/notifications/stats`,
   NOTIFICATION_BROADCAST: `${ROOT_URI.ADMIN}/notifications/broadcast`,
-  NOTIFICATION_BULK_DELETE: `${ROOT_URI.ADMIN}/notifications/bulk`,
+  NOTIFICATION_BULK_DELETE: `${ROOT_URI.ADMIN}/notifications/bulk-delete`,
   NOTIFICATION_TEMPLATES: `${ROOT_URI.ADMIN}/notifications/templates`,
   NOTIFICATION_RESEND: (id: number) =>
     `${ROOT_URI.ADMIN}/notifications/${id}/resend`,

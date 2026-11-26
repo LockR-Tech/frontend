@@ -75,6 +75,38 @@ export function getCellTypeLabel(cell: {
   return i18n.t("admin.lockers.cellType.standard");
 }
 
+/** Nhãn loại ô từ mã backend (STANDARD / XL / DRONE) khi không có đủ thông tin ô để suy ra. */
+export function getCellTypeCodeLabel(code?: string | null): string {
+  switch ((code ?? "").toUpperCase()) {
+    case "DRONE":
+      return i18n.t("admin.lockers.cellType.drone");
+    case "XL":
+      return i18n.t("admin.lockers.cellType.xl");
+    case "STANDARD":
+      return i18n.t("admin.lockers.cellType.standard");
+    default:
+      return code || "—";
+  }
+}
+
+/** Trạng thái tủ → khoá con của `admin.lockers.status` (mã lạ giữ nguyên). */
+const LOCKER_STATUS_KEYS: Record<string, string> = {
+  ACTIVE: "active",
+  INACTIVE: "inactive",
+  MAINTENANCE: "maintenance",
+  DISCONNECTED: "disconnected",
+  PLANNED: "planned",
+  INSTALLING: "installing",
+  COMMISSIONING: "commissioning",
+};
+
+/** Nhãn trạng thái tủ theo ngôn ngữ đang chọn. */
+export function getLockerStatusLabel(status?: string | null): string {
+  const raw = (status ?? "").toUpperCase();
+  const key = LOCKER_STATUS_KEYS[raw];
+  return key ? i18n.t(`admin.lockers.status.${key}`) : raw || "—";
+}
+
 /**
  * Lấy nhãn trạng thái ô chuẩn hóa (đồng bộ Mobile)
  */

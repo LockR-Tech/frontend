@@ -25,13 +25,13 @@
       "stepId": "admin-settings-scopes-payment",
       "x": 576,
       "y": 677,
-      "w": 148,
+      "w": 120,
       "h": 36
     },
     {
       "n": 4,
       "stepId": "admin-settings-scopes-iot",
-      "x": 729,
+      "x": 700,
       "y": 677,
       "w": 120,
       "h": 36
@@ -39,7 +39,7 @@
     {
       "n": 5,
       "stepId": "admin-settings-scopes-auth",
-      "x": 853,
+      "x": 824,
       "y": 677,
       "w": 103,
       "h": 36
@@ -47,7 +47,7 @@
     {
       "n": 6,
       "stepId": "admin-settings-scopes-loyalty",
-      "x": 960,
+      "x": 931,
       "y": 677,
       "w": 188,
       "h": 36
@@ -55,7 +55,7 @@
     {
       "n": 7,
       "stepId": "admin-settings-scopes-store",
-      "x": 1152,
+      "x": 1124,
       "y": 677,
       "w": 109,
       "h": 36
@@ -63,7 +63,7 @@
     {
       "n": 8,
       "stepId": "admin-settings-scopes-assistant",
-      "x": 1265,
+      "x": 1236,
       "y": 677,
       "w": 135,
       "h": 36

@@ -33,6 +33,7 @@ import {
 } from "./setting-utils";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
+import { UserName } from "~/components/shared/UserName";
 
 const ALL_KEYS = "__all__";
 const AUDIT_LIMIT = 100;
@@ -245,9 +246,7 @@ function AuditItem({
         </span>
         <span className="inline-flex items-center gap-1">
           <UserRound className="h-3 w-3" />
-          {audit.actorUserId != null
-            ? t("admin.settings.audit.actorUser", { id: audit.actorUserId })
-            : t("common.system")}
+          {audit.actorUserId != null ? <UserName id={audit.actorUserId} /> : t("common.system")}
         </span>
       </div>
     </li>

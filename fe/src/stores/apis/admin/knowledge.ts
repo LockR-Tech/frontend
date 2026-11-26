@@ -306,12 +306,14 @@ export const knowledgeApi = baseApi.injectEndpoints({
           : [],
     }),
 
-    deleteKnowledgeDocument: builder.mutation<KnowledgeApiResponse<null>, number>({
-      query: (id) => ({
+    // Xoá mềm — backend bắt buộc lý do (DELETE_REASON_REQUIRED), các đoạn đã nhúng bị gỡ khỏi truy xuất.
+    deleteKnowledgeDocument: builder.mutation<KnowledgeApiResponse<null>, { id: number; reason: string }>({
+      query: ({ id, reason }) => ({
         url: ADMIN_ENDPOINTS.KNOWLEDGE_DOCUMENT_BY_ID(id),
         method: "DELETE",
+        params: { reason },
       }),
-      invalidatesTags: (result, _error, id) =>
+      invalidatesTags: (result, _error, { id }) =>
         result
           ? [
               { type: DOC_TAG, id },

@@ -18,6 +18,7 @@ import {
   normalizeValue,
   splitList,
   validateListItem,
+  displayUnit,
 } from "./setting-utils";
 import { useTranslation } from "react-i18next";
 
@@ -89,7 +90,7 @@ export function SettingInput({ id, setting, value, invalid, disabled, onChange }
       />
       {setting.unit && (
         <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-r-md border border-l-0 border-input bg-muted px-3 text-xs font-medium text-muted-foreground">
-          {setting.unit}
+          {displayUnit(setting.unit)}
         </span>
       )}
     </div>

@@ -4,31 +4,57 @@
 // Thời gian có giờ:phút:giây dùng `formatDateTime` ở `./datetime`. File này lo phần còn lại.
 
 import { APP_TIME_ZONE } from "./datetime";
-import i18n from "~/utils/i18n";
+import i18n, { currentLanguage } from "~/utils/i18n";
 
 /** Giá trị hiển thị khi không có số liệu. */
 export const EMPTY_VALUE = "—";
 
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-});
+/**
+ * Locale định dạng số theo ngôn ngữ đang chọn: tiếng Việt `1.234,5`, tiếng Anh `1,234.5`.
+ * Ngày giờ vẫn theo kiểu Việt Nam (`dd/MM/yyyy`, xem `./datetime`) ở cả hai ngôn ngữ.
+ */
+export function numberLocale(): "vi-VN" | "en-US" {
+  return currentLanguage(i18n) === "vi" ? "vi-VN" : "en-US";
+}
 
-const numberFormatter = new Intl.NumberFormat("vi-VN");
+const formatterCache = new Map<string, Intl.NumberFormat>();
 
-/** `15.000 ₫`; `—` khi không có số. Backend trả `BigDecimal` nên chấp nhận cả chuỗi. */
+function numberFormat(options: Intl.NumberFormatOptions = {}): Intl.NumberFormat {
+  const locale = numberLocale();
+  const key = `${locale}|${JSON.stringify(options)}`;
+  let formatter = formatterCache.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, options);
+    formatterCache.set(key, formatter);
+  }
+  return formatter;
+}
+
+/** `15.000 ₫` (vi) / `15,000 ₫` (en); `—` khi không có số. Backend trả `BigDecimal` nên chấp nhận cả chuỗi. */
 export function formatCurrency(value: number | string | null | undefined): string {
   const amount = toNumber(value);
   if (amount === null) return EMPTY_VALUE;
-  return currencyFormatter.format(amount);
+  return `${numberFormat({ maximumFractionDigits: 0 }).format(amount)}\u00A0₫`;
 }
 
-/** Số nguyên có phân cách hàng nghìn; `—` khi không có số. */
+/** Số có phân cách hàng nghìn theo ngôn ngữ; `—` khi không có số. */
 export function formatNumber(value: number | string | null | undefined): string {
   const amount = toNumber(value);
   if (amount === null) return EMPTY_VALUE;
-  return numberFormatter.format(amount);
+  return numberFormat().format(amount);
+}
+
+/** Số thập phân tối đa `digits` chữ số lẻ (`4,31` / `4.31`), dùng cho số rút gọn triệu/tỷ, km… */
+export function formatDecimal(value: number | string | null | undefined, digits = 1): string {
+  const amount = toNumber(value);
+  if (amount === null) return EMPTY_VALUE;
+  return numberFormat({ maximumFractionDigits: digits }).format(amount);
+}
+
+/** Phần trăm theo kiểu từng ngôn ngữ: `84,17 %` (vi) / `84.17%` (en). */
+function percentText(value: number, digits = 2): string {
+  const text = numberFormat({ maximumFractionDigits: digits }).format(value);
+  return numberLocale() === "vi-VN" ? `${text} %` : `${text}%`;
 }
 
 /**
@@ -39,14 +65,14 @@ export function formatPercentChange(value: number | null | undefined): string {
   const pct = toNumber(value);
   if (pct === null) return EMPTY_VALUE;
   const sign = pct > 0 ? "+" : pct < 0 ? "−" : "";
-  return `${sign}${numberFormatter.format(Math.abs(round2(pct)))} %`;
+  return `${sign}${percentText(Math.abs(round2(pct)))}`;
 }
 
-/** `84,17 %` cho tỉ lệ tuyệt đối (không phải mức thay đổi); `—` khi `null`. */
-export function formatPercent(value: number | null | undefined): string {
+/** `84,17 %` cho tỉ lệ tuyệt đối (không phải mức thay đổi); `—` khi `null`. `digits` = số chữ số lẻ tối đa. */
+export function formatPercent(value: number | null | undefined, digits = 2): string {
   const pct = toNumber(value);
   if (pct === null) return EMPTY_VALUE;
-  return `${numberFormatter.format(round2(pct))} %`;
+  return percentText(round2(pct), digits);
 }
 
 /** `+1,20 điểm` — dùng cho `successRatePoints` (chênh lệch theo điểm phần trăm). */
@@ -55,7 +81,7 @@ export function formatPercentPoints(value: number | null | undefined): string {
   if (points === null) return EMPTY_VALUE;
   const sign = points > 0 ? "+" : points < 0 ? "−" : "";
   return i18n.t("shared.format.percentPoints", {
-    value: `${sign}${numberFormatter.format(Math.abs(round2(points)))}`,
+    value: `${sign}${numberFormat().format(Math.abs(round2(points)))}`,
   });
 }
 

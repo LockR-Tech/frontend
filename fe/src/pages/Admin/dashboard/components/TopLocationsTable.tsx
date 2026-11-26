@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/com
 import { MapPin, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { formatCurrency } from "~/lib/report-format";
+import { formatCurrency, formatNumber } from "~/lib/report-format";
 import type { RevenueByStoreItem } from "~/types/admin/reporting";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
@@ -107,13 +107,13 @@ export function TopLocationsTable({ items, year, isLoading, error, onRetry, onSt
                     <p className="hidden sm:block text-xs text-muted-foreground">
                       {t("admin.dashboard.topLocations.kioskOrders", {
                         kiosks: loc.lockerCount,
-                        orders: loc.orderCount.toLocaleString("vi-VN"),
+                        orders: formatNumber(loc.orderCount),
                       })}
                     </p>
                     <div>
                       <p className="text-sm font-bold text-foreground">{formatCurrency(loc.revenue)}</p>
                       <p className="text-[11px] text-muted-foreground sm:hidden">
-                        {t("admin.dashboard.chart.ordersValue", { value: loc.orderCount.toLocaleString("vi-VN") })}
+                        {t("admin.dashboard.chart.ordersValue", { value: formatNumber(loc.orderCount) })}
                       </p>
                     </div>
                   </div>

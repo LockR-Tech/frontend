@@ -10,6 +10,7 @@ import {
   paymentMethodMeta,
   paymentStatusMeta,
   refundStatusMeta,
+  revenueServiceMeta,
 } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency, formatNumber } from "~/lib/report-format";
@@ -21,7 +22,7 @@ import type {
   CustomerOrderParcel,
   CustomerOrderView,
 } from "~/types/admin/reporting";
-import { PARCEL_CATEGORY_LABELS, routeDistance } from "../../drone-orders/format";
+import { CANCEL_REASON_LABELS, PARCEL_CATEGORY_LABELS, routeDistance } from "../../drone-orders/format";
 import { DronePaymentCodes } from "./DroneOrderSections";
 
 // Các khối giúp trang chi tiết đơn admin hiện đúng những gì khách thấy trên app (màn "Chi tiết đơn"):
@@ -505,7 +506,9 @@ export function ParcelNotesCard({ order, view }: { order: AdminOrder; view: Cust
         {(order.serviceCategory || order.actualWeight !== null) && (
           <div className="grid grid-cols-2 gap-3">
             {order.serviceCategory && (
-              <LabelValue label={t("admin.orders.detail.parcel.serviceCategory")}>{order.serviceCategory}</LabelValue>
+              <LabelValue label={t("admin.orders.detail.parcel.serviceCategory")}>
+                {revenueServiceMeta(order.serviceCategory).label}
+              </LabelValue>
             )}
             {order.actualWeight !== null && (
               <LabelValue label={t("admin.orders.detail.parcel.measuredWeight")}>
@@ -543,11 +546,17 @@ export function ParcelNotesCard({ order, view }: { order: AdminOrder; view: Cust
           <LabelValue label={t("admin.orders.detail.parcel.customerNote")}>{view?.customerNote ?? order.customerNote}</LabelValue>
           <LabelValue label={t("admin.orders.detail.parcel.staffNote")}>{order.staffNote}</LabelValue>
           <LabelValue label={t("admin.orders.detail.parcel.nextAction")}>
-            {order.nextActionMessage ?? order.nextAction}
+            {order.nextAction
+              ? t(`admin.orders.nextAction.${order.nextAction}`, {
+                  defaultValue: order.nextActionMessage ?? order.nextAction,
+                })
+              : null}
           </LabelValue>
-          <LabelValue label={t("admin.orders.detail.parcel.cancelReason")} mono>
+          <LabelValue label={t("admin.orders.detail.parcel.cancelReason")}>
             {order.cancelReason !== null
-              ? t("admin.orders.detail.parcel.cancelReasonCode", { code: order.cancelReason })
+              ? CANCEL_REASON_LABELS[order.cancelReason]
+                ? t(CANCEL_REASON_LABELS[order.cancelReason])
+                : t("admin.orders.detail.parcel.cancelReasonCode", { code: order.cancelReason })
               : null}
           </LabelValue>
         </div>

@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Badge } from "~/components/ui/badge";
+import { formatDecimal } from "~/lib/report-format";
 
 // Thiếu trường (backend cũ) thì hiện "—" chứ không vẽ số 0.
 export function fmtNum(n?: number | null, digits = 0) {
   if (n === null || n === undefined || !Number.isFinite(n)) return "—";
-  return n.toLocaleString("vi-VN", { maximumFractionDigits: digits });
+  return formatDecimal(n, digits);
 }
 
 export interface UserInfo {

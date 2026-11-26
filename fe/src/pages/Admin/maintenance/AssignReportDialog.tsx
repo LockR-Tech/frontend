@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getReportStatusLabel } from "~/lib/drone-status";
 import { useTranslation } from "react-i18next";
 import { UserCheck, Boxes, AlertTriangle, CheckCircle2, User, Phone } from "lucide-react";
 import {
@@ -107,7 +108,7 @@ export function AssignReportDialog({
               {t("admin.maintenance.reportLabel", { id: report.id, title: report.title })}
             </span>
             <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]">
-              {report.status}
+              {getReportStatusLabel(report.status)}
             </Badge>
           </div>
           <p className="text-muted-foreground">{report.description}</p>

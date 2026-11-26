@@ -438,27 +438,19 @@ export const ADMIN_PAYMENT_STATUSES = ["PENDING", "COMPLETED", "FAILED"] as cons
 export type AdminPaymentStatus = (typeof ADMIN_PAYMENT_STATUSES)[number];
 
 /** Phương thức đang dùng — nguồn cho mọi danh sách lựa chọn (bộ lọc, form). */
-export const ADMIN_PAYMENT_METHODS = [
-  "CASH",
-  "WALLET",
-  "SEPAY",
-  "SEPAY_TOPUP",
-] as const;
+export const ADMIN_PAYMENT_METHODS = ["SEPAY", "CASH"] as const;
 
 /**
- * Đã ngừng (bỏ MoMo/VNPay): backend không nhận thanh toán mới bằng các phương thức này,
- * nhưng giao dịch cũ vẫn mang giá trị đó. Chỉ giữ để hiển thị lịch sử — không đưa vào lựa chọn.
+ * Đã ngừng: backend không nhận thanh toán mới bằng các phương thức này, nhưng giao dịch cũ vẫn mang
+ * giá trị đó. Chỉ giữ để hiển thị lịch sử — không đưa vào lựa chọn. `WALLET` hiện là "Phương thức cũ".
  */
-export const LEGACY_ADMIN_PAYMENT_METHODS = ["VNPAY", "MOMO", "VNPAY_TOPUP"] as const;
+export const LEGACY_ADMIN_PAYMENT_METHODS = ["WALLET", "VNPAY", "MOMO"] as const;
 
 export type AdminPaymentMethod =
   | (typeof ADMIN_PAYMENT_METHODS)[number]
   | (typeof LEGACY_ADMIN_PAYMENT_METHODS)[number];
 
-/** `TOPUP` = nạp ví (`VNPAY_TOPUP` cũ, hoặc `orderId <= 0` như `SEPAY_TOPUP`). */
-export type AdminPaymentKind = "ORDER" | "TOPUP";
-
-/** Tóm tắt đơn kèm theo giao dịch; `null` khi là giao dịch nạp ví. */
+/** Tóm tắt đơn kèm theo giao dịch. */
 export interface AdminPaymentOrderBrief {
   id: number;
   orderCode: string | null;
@@ -478,7 +470,6 @@ export interface AdminPayment {
   amount: number;
   method: AdminPaymentMethod;
   status: AdminPaymentStatus;
-  kind: AdminPaymentKind;
   referenceId: string | null;
   referenceTransactionId: string | null;
   paymentUrl: string | null;
@@ -525,38 +516,10 @@ export interface AdminRefund {
   processedBy: CustomerSummary | null;
 }
 
-export type WalletTransactionType = "CREDIT" | "DEBIT";
-
-export type WalletTransactionSource =
-  | "TOPUP"
-  | "ORDER_PAYMENT"
-  | "REFUND"
-  | "ADJUST"
-  | "WITHDRAW";
-
-export interface AdminWalletTransaction {
-  id: number;
-  walletId: number | null;
-  userId: number | null;
-  type: WalletTransactionType;
-  amount: number;
-  balanceAfter: number | null;
-  source: WalletTransactionSource;
-  referenceId: string | null;
-  description: string | null;
-  createdAt: string | null;
-  /** Chỉ có khi `source = ORDER_PAYMENT`. */
-  relatedOrderId: number | null;
-  /** Mã đơn hiển thị (`ORD-...`) — cùng nguồn với orderCode ở AdminPayment, luôn khớp app khách. */
-  orderCode: string | null;
-  customer: CustomerSummary | null;
-}
-
 export interface AdminPaymentDetail {
   payment: AdminPayment;
   refunds: AdminRefund[];
-  walletTransactions: AdminWalletTransaction[];
-  /** Các giao dịch khác của cùng đơn, mới nhất trước; `[]` với giao dịch nạp ví. */
+  /** Các giao dịch khác của cùng đơn, mới nhất trước. */
   orderPayments: AdminPayment[];
 }
 
@@ -565,8 +528,6 @@ export interface AdminPaymentSearchParams {
   size?: number;
   status?: string[];
   method?: string[];
-  kind?: "ALL" | AdminPaymentKind;
-  includeTopups?: boolean;
   from?: string;
   to?: string;
   userId?: number;
@@ -612,18 +573,6 @@ export interface AdminRefundSearchParams {
   sort?: string;
 }
 
-export interface AdminWalletTransactionSearchParams {
-  page?: number;
-  size?: number;
-  userId?: number;
-  type?: string[];
-  source?: string[];
-  from?: string;
-  to?: string;
-  q?: string;
-  sort?: string;
-}
-
 /** Một dòng thống kê theo khoá (trạng thái hoặc phương thức). */
 export interface PaymentStatsBucket {
   key: string;
@@ -656,10 +605,9 @@ export interface PaymentStatsPeriod {
   /** `completedCount / totalCount × 100`; `null` khi chưa có giao dịch nào. */
   successRate: number | null;
   orderPayments: PaymentStatsGroup;
-  topups: PaymentStatsGroup;
   refundCount: number;
   refundAmount: number;
-  /** `orderPayments.completedAmount − refundAmount` — không tính nạp ví. */
+  /** `orderPayments.completedAmount − refundAmount`. */
   netCollectedAmount: number;
   byStatus: PaymentStatsBucket[];
   byMethod: PaymentStatsBucket[];

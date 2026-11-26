@@ -382,7 +382,9 @@ export function LockerMaintenanceHistoryPanel({
                         </Badge>
                         {report.category && (
                           <Badge variant="outline" className="text-[10px]">
-                            {report.category}
+                            {t(`admin.lockers.maintenanceHistory.category.${report.category}`, {
+                              defaultValue: report.category,
+                            })}
                           </Badge>
                         )}
                       </div>

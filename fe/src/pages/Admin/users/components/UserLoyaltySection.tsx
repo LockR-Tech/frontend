@@ -23,6 +23,7 @@ import {
 import type { PointTransactionDTO } from "~/types/admin/loyalty";
 import { extractList } from "~/lib/extract-list";
 import { formatDateTime } from "~/lib/datetime";
+import { formatNumber } from "~/lib/report-format";
 
 interface Props {
   userId: number;
@@ -162,7 +163,7 @@ export function UserLoyaltySection({ userId }: Props) {
                   <span className="text-sm text-muted-foreground">{t("admin.users.loyalty.currentPoints")}</span>
                   <span className="font-semibold text-foreground">
                     {t("admin.users.loyalty.pointsValue", {
-                      points: (loyalty.points ?? 0).toLocaleString("vi-VN"),
+                      points: formatNumber((loyalty.points ?? 0)),
                     })}
                   </span>
                 </div>
@@ -173,7 +174,7 @@ export function UserLoyaltySection({ userId }: Props) {
                     </span>
                     <span className="font-semibold text-foreground">
                       {t("admin.users.loyalty.pointsValue", {
-                        points: loyalty.lifetimePoints.toLocaleString("vi-VN"),
+                        points: formatNumber(loyalty.lifetimePoints),
                       })}
                     </span>
                   </div>
@@ -181,7 +182,7 @@ export function UserLoyaltySection({ userId }: Props) {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{t("admin.users.loyalty.stamps")}</span>
                   <span className="font-semibold text-foreground">
-                    {(loyalty.stamps ?? 0).toLocaleString("vi-VN")}
+                    {formatNumber((loyalty.stamps ?? 0))}
                   </span>
                 </div>
                 {loyalty.id == null && (
@@ -307,7 +308,7 @@ export function UserLoyaltySection({ userId }: Props) {
                             }`}
                           >
                             {points > 0 ? "+" : ""}
-                            {points.toLocaleString("vi-VN")}
+                            {formatNumber(points)}
                           </td>
                           <td className="py-2.5 px-3 text-muted-foreground text-xs font-mono">
                             {tx.orderId ? (

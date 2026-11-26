@@ -106,11 +106,11 @@ export interface DroneOrderTracking {
   missionCreatedAt: string | null;
   missionUpdatedAt: string | null;
   paidAt: string | null;
-  /** Lần thanh toán thành công gần nhất: phương thức (WALLET, SEPAY, ...; đơn cũ có thể là VNPAY/MOMO). */
+  /** Lần thanh toán thành công gần nhất: phương thức (SEPAY, CASH; đơn cũ có thể là phương thức đã ngừng). */
   paymentMethod: string | null;
   /** Mã tham chiếu Lock.R của giao dịch — nội dung chuyển khoản / mã gửi sang cổng. */
   paymentReference: string | null;
-  /** Mã giao dịch phía cổng thanh toán/ngân hàng; null với ví Lock.R và tiền mặt. */
+  /** Mã giao dịch phía cổng thanh toán/ngân hàng; null với tiền mặt. */
   paymentTransactionId: string | null;
   pickupDeadline: string | null;
   completedAt: string | null;

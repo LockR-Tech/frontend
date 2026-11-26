@@ -50,6 +50,7 @@ import {
 import type { MediaUpload } from "~/stores/apis/media";
 import { LockerCard } from "./components/LockerCard";
 import { AddLockerModal } from "./components/AddLockerModal";
+import { formatNumber } from "~/lib/report-format";
 
 // Chỉ các trường store-service thật sự lưu (StoreRequest).
 const toForm = (store: StoreRecord) => ({
@@ -550,7 +551,7 @@ export default function StoreDetailPage() {
               </div>
               <div className="bg-secondary/60 border border-border/50 rounded-lg p-3 text-center">
                 <p className="text-xl font-bold text-foreground">
-                  {revenueStats ? revenueStats.orderCount.toLocaleString("vi-VN") : "—"}
+                  {revenueStats ? formatNumber(revenueStats.orderCount) : "—"}
                 </p>
                 <p
                   className="text-xs text-muted-foreground mt-0.5"

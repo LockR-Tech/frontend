@@ -3,10 +3,10 @@ import {
   CheckCircle,
   Clock,
   CreditCard,
-  PiggyBank,
+  Landmark,
   RefreshCcw,
   Target,
-  Wallet,
+  Banknote,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { SerializedError } from "@reduxjs/toolkit";
@@ -152,7 +152,7 @@ export function PaymentStats({
             label={t("admin.payments.stats.netCollected")}
             value={formatCurrency(current?.netCollectedAmount)}
             hint={t("admin.payments.stats.netCollectedHint")}
-            icon={Wallet}
+            icon={Banknote}
             changePct={changes?.netCollectedAmountPct}
             isLoading={isLoading}
             onClick={() => onShowEntries("NET", t("admin.payments.stats.netCollected"))}
@@ -173,7 +173,7 @@ export function PaymentStats({
           <StatsBreakdown
             title={t("admin.payments.stats.byMethod")}
             rows={current.byMethod}
-            icon={PiggyBank}
+            icon={Landmark}
             formatKey={(key) => paymentMethodMeta(key).label}
             selectedKey={selected?.method}
             onSelect={(method) => onSelect({ method })}

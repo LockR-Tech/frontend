@@ -25,6 +25,7 @@ import { fmtDate, StarRow, ErrorBanner } from "./shared";
 import { extractList } from "~/lib/extract-list";
 import type { FeedbackDTO } from "~/types/admin/feedback";
 import { useTranslation } from "react-i18next";
+import { formatNumber } from "~/lib/report-format";
 
 const PAGE_SIZE = 20;
 
@@ -93,7 +94,7 @@ export function FeedbackTab() {
         </div>
 
         <span className="text-xs text-muted-foreground">
-          {isLoading ? "..." : t("admin.feedback.list.count", { total: total.toLocaleString("vi-VN") })}
+          {isLoading ? "..." : t("admin.feedback.list.count", { total: formatNumber(total) })}
         </span>
       </div>
 

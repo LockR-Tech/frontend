@@ -29,6 +29,7 @@ import {
   useReplyToFeedbackMutation,
 } from "~/stores/apis/admin";
 import { useTranslation } from "react-i18next";
+import { formatCurrency } from "~/lib/report-format";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 // Chuỗi backend không kèm múi giờ = UTC, phải qua formatDateTime mới ra giờ VN.
@@ -287,10 +288,7 @@ export default function FeedbackDetailPage() {
                     {fb.orderAmount != null && (
                       <span className="text-sm text-muted-foreground">
                         —{" "}
-                        {fb.orderAmount.toLocaleString("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        })}
+                        {formatCurrency(fb.orderAmount)}
                       </span>
                     )}
                   </div>

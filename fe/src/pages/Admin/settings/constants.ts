@@ -6,7 +6,7 @@ import {
   Package,
   ShieldCheck,
   Store,
-  Wallet,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -45,7 +45,7 @@ function scopeTab(
 export const SCOPE_TABS: ScopeTab[] = [
   scopeTab("order", Package, "admin.settings.scopes.order.title", "admin.settings.scopes.order.description"),
   scopeTab("locker", Boxes, "admin.settings.scopes.locker.title", "admin.settings.scopes.locker.description"),
-  scopeTab("payment", Wallet, "admin.settings.scopes.payment.title", "admin.settings.scopes.payment.description"),
+  scopeTab("payment", CreditCard, "admin.settings.scopes.payment.title", "admin.settings.scopes.payment.description"),
   scopeTab("iot", Cpu, "admin.settings.scopes.iot.title", "admin.settings.scopes.iot.description"),
   scopeTab("auth", ShieldCheck, "admin.settings.scopes.auth.title", "admin.settings.scopes.auth.description"),
   scopeTab("loyalty", Award, "admin.settings.scopes.loyalty.title", "admin.settings.scopes.loyalty.description"),

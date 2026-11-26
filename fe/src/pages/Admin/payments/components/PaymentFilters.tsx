@@ -20,7 +20,7 @@ import {
   ADMIN_PAYMENT_STATUSES,
   LEGACY_ADMIN_PAYMENT_METHODS,
 } from "~/types/admin/reporting";
-import type { PaymentFilterState, PaymentKindFilter } from "../hooks/usePayments";
+import type { PaymentFilterState } from "../hooks/usePayments";
 
 interface PaymentFiltersProps {
   filters: PaymentFilterState;
@@ -30,13 +30,6 @@ interface PaymentFiltersProps {
   ) => void;
   onDateRangeChange: (range: { from: string; to: string }) => void;
 }
-
-/** `kind` quyết định có tính giao dịch nạp ví hay không (§ 2.2 của hợp đồng API). */
-const KIND_OPTIONS: { value: PaymentKindFilter; labelKey: string }[] = [
-  { value: "ALL", labelKey: "admin.payments.kind.all" },
-  { value: "ORDER", labelKey: "admin.payments.kind.order" },
-  { value: "TOPUP", labelKey: "admin.payments.kind.topup" },
-];
 
 const SORT_OPTIONS = [
   { value: "createdAt,desc", labelKey: "admin.orders.sort.createdDesc" },
@@ -58,8 +51,8 @@ export function PaymentFilters({
     value,
     label: paymentStatusMeta(value).label,
   }));
-  // MoMo/VNPay đã ngừng: không đưa vào lựa chọn. Chỉ hiện lại khi URL cũ đang lọc theo
-  // chúng, để có nhãn đúng và bỏ chọn được.
+  // Phương thức đã ngừng (MoMo, VNPay và phương thức cũ): không đưa vào lựa chọn. Chỉ hiện lại khi
+  // URL đang lọc theo chúng (vd. bấm từ biểu đồ cơ cấu thanh toán), để có nhãn đúng và bỏ chọn được.
   const methodOptions = [
     ...ADMIN_PAYMENT_METHODS,
     ...LEGACY_ADMIN_PAYMENT_METHODS.filter((value) => filters.method.includes(value)),
@@ -107,24 +100,6 @@ export function PaymentFilters({
           value={filters.method}
           onChange={(value) => onFilterChange("method", value)}
         />
-
-        <Select
-          value={filters.kind}
-          onValueChange={(value) =>
-            onFilterChange("kind", value as PaymentKindFilter)
-          }
-        >
-          <SelectTrigger className="h-9 w-[180px]">
-            <SelectValue placeholder={t("admin.payments.filters.kindPlaceholder")} />
-          </SelectTrigger>
-          <SelectContent>
-            {KIND_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {t(option.labelKey)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         <Select
           value={filters.sort}

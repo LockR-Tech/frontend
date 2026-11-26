@@ -226,11 +226,7 @@
     },
     "admin-user-detail": {
       "title": "Hồ sơ người dùng",
-      "summary": "Thông tin cá nhân sửa được, ảnh đại diện, vai trò, tài khoản, điều khoản và số liệu đơn, chi tiêu, ví, điểm."
-    },
-    "admin-user-wallet": {
-      "title": "Ví người dùng",
-      "summary": "Xem số dư và cộng / trừ tiền ví của một người dùng, kèm lý do."
+      "summary": "Thông tin cá nhân sửa được, ảnh đại diện, vai trò, tài khoản, điều khoản và số liệu đơn, chi tiêu, điểm."
     },
     "admin-user-tab-orders": {
       "title": "Hồ sơ – các tab hoạt động",
@@ -238,11 +234,7 @@
     },
     "admin-user-tab-payments": {
       "title": "Hồ sơ – tab Thanh toán",
-      "summary": "Mọi giao dịch của người dùng, kể cả nạp ví; mở chi tiết giao dịch ngay trong hồ sơ."
-    },
-    "admin-user-tab-wallet": {
-      "title": "Hồ sơ – tab Ví",
-      "summary": "Lịch sử cộng / trừ tiền ví của người dùng."
+      "summary": "Mọi giao dịch thanh toán đơn của người dùng; mở chi tiết giao dịch ngay trong hồ sơ."
     },
     "admin-user-tab-loyalty": {
       "title": "Hồ sơ – tab Điểm thưởng",
@@ -262,23 +254,7 @@
     },
     "admin-payment-detail": {
       "title": "Chi tiết giao dịch",
-      "summary": "Thông tin thu tiền, đơn liên quan, hoàn tiền, biến động ví và đổi trạng thái giao dịch."
-    },
-    "admin-payments-wallet": {
-      "title": "Thanh toán – Biến động ví",
-      "summary": "Mọi lần cộng / trừ ví của toàn bộ khách, lọc theo chiều, nguồn và ngày."
-    },
-    "admin-payments-withdrawals": {
-      "title": "Thanh toán – Yêu cầu rút tiền",
-      "summary": "Khách rút tiền ví về ngân hàng; admin chuyển khoản thật rồi duyệt hoặc từ chối."
-    },
-    "admin-withdrawal-approve": {
-      "title": "Duyệt yêu cầu rút tiền",
-      "summary": "Hộp thoại xác nhận đã chuyển tiền cho một yêu cầu rút tiền."
-    },
-    "admin-withdrawal-reject": {
-      "title": "Từ chối yêu cầu rút tiền",
-      "summary": "Hộp thoại từ chối rút tiền: nhập lý do, tiền tự hoàn về ví khách."
+      "summary": "Thông tin thu tiền, đơn liên quan, hoàn tiền và đổi trạng thái giao dịch."
     },
     "admin-refunds-history": {
       "title": "Hoàn tiền – Lịch sử",
@@ -2200,7 +2176,7 @@
     },
     "admin-users-row-menu": {
       "title": "Menu dòng",
-      "body": "Nút \"…\": \"Xem chi tiết\", \"Ví\" (xem và cộng / trừ số dư) và \"Xóa\" (bắt buộc lý do). Chỉ muốn chặn đăng nhập thì tắt công tắc thay vì xoá."
+      "body": "Nút \"…\": \"Xem chi tiết\" và \"Xóa\" (bắt buộc lý do). Chỉ muốn chặn đăng nhập thì tắt công tắc thay vì xoá."
     },
     "admin-users-create-name": {
       "title": "Tên và họ",
@@ -2236,7 +2212,7 @@
     },
     "admin-user-detail-actions": {
       "title": "Nút thao tác",
-      "body": "\"Ví\" mở hộp thoại số dư; \"Hồ sơ kỹ thuật viên\" (chỉ KTV) mở trang KTV; nhãn \"Đang hoạt động\" / \"Đã khóa\". Khi bạn sửa thông tin, nơi này đổi thành \"Hủy\" và \"Lưu thay đổi\"."
+      "body": "\"Hồ sơ kỹ thuật viên\" (chỉ KTV) mở trang KTV; nhãn \"Đang hoạt động\" / \"Đã khóa\". Khi bạn sửa thông tin, nơi này đổi thành \"Hủy\" và \"Lưu thay đổi\"."
     },
     "admin-user-detail-avatar": {
       "title": "Ảnh đại diện",
@@ -2260,31 +2236,11 @@
     },
     "admin-user-detail-stats": {
       "title": "Số liệu nhanh",
-      "body": "Số đơn và tổng chi tiêu 12 tháng gần nhất (tiền thực thu), số dư ví và điểm thưởng hiện có."
-    },
-    "admin-user-wallet-open": {
-      "title": "Mở ví",
-      "body": "Bấm \"Ví\" trên hồ sơ (hoặc \"Ví\" trong menu \"…\" của danh sách) để mở hộp thoại ví."
-    },
-    "admin-user-wallet-balance": {
-      "title": "Số dư hiện tại",
-      "body": "Số dư ví Lock.R của người dùng lúc mở hộp thoại."
-    },
-    "admin-user-wallet-amount": {
-      "title": "Số tiền điều chỉnh",
-      "body": "Nhập số tiền dương (VND)."
-    },
-    "admin-user-wallet-reason": {
-      "title": "Lý do",
-      "body": "Tuỳ chọn, ví dụ hoàn tiền, khuyến mãi, điều chỉnh — được lưu kèm biến động ví."
-    },
-    "admin-user-wallet-actions": {
-      "title": "Cộng hoặc trừ",
-      "body": "\"Cộng tiền\" nạp thêm vào ví, \"Trừ tiền\" rút bớt; số dư cập nhật ngay và có dòng mới ở tab \"Ví\"."
+      "body": "Số đơn và tổng chi tiêu 12 tháng gần nhất (tiền thực thu) và điểm thưởng hiện có."
     },
     "admin-user-tab-orders-tabs": {
       "title": "Các tab hoạt động",
-      "body": "\"Đơn đã đặt\", \"Đơn nhận\", \"Thanh toán\", \"Hoàn tiền\", \"Ví\", \"Điểm thưởng\", \"Đánh giá\", \"Báo cáo sự cố\", \"Thông báo\", \"Trợ lý AI\". Tab đang mở nằm trên địa chỉ trang nên quay lại vẫn đúng chỗ."
+      "body": "\"Đơn đã đặt\", \"Đơn nhận\", \"Thanh toán\", \"Hoàn tiền\", \"Điểm thưởng\", \"Đánh giá\", \"Báo cáo sự cố\", \"Thông báo\", \"Trợ lý AI\". Tab đang mở nằm trên địa chỉ trang nên quay lại vẫn đúng chỗ."
     },
     "admin-user-tab-orders-panel": {
       "title": "Đơn đã đặt",
@@ -2296,15 +2252,7 @@
     },
     "admin-user-tab-payments-panel": {
       "title": "Danh sách giao dịch",
-      "body": "Bấm mã thanh toán để mở hộp thoại chi tiết, bấm mã đơn để mở đơn; có loại (đơn / nạp ví), phương thức, số tiền, trạng thái. Tab \"Hoàn tiền\" bên cạnh liệt kê phiếu hoàn của người này."
-    },
-    "admin-user-tab-wallet-tab": {
-      "title": "Tab Ví",
-      "body": "Bấm để xem biến động ví của người dùng."
-    },
-    "admin-user-tab-wallet-panel": {
-      "title": "Biến động ví",
-      "body": "Nguồn (nạp ví, thanh toán đơn, hoàn tiền, điều chỉnh tay, rút tiền), chiều cộng / trừ, số tiền, số dư sau, đơn liên quan (bấm để mở) và mô tả."
+      "body": "Bấm mã thanh toán để mở hộp thoại chi tiết, bấm mã đơn để mở đơn; có phương thức, số tiền, trạng thái. Tab \"Hoàn tiền\" bên cạnh liệt kê phiếu hoàn của người này."
     },
     "admin-user-tab-loyalty-tab": {
       "title": "Tab Điểm thưởng",
@@ -2344,15 +2292,11 @@
     },
     "admin-payments-breakdown": {
       "title": "Theo trạng thái / phương thức",
-      "body": "Số giao dịch và số tiền từng trạng thái, từng phương thức (SePay chuyển khoản, nạp ví qua SePay, tiền mặt…). Bấm một dòng để lọc bảng."
-    },
-    "admin-payments-tabs": {
-      "title": "Ba tab",
-      "body": "\"Giao dịch\" là mọi lần thu tiền; \"Biến động ví\" là cộng / trừ ví khách; \"Yêu cầu rút tiền\" để duyệt rút về ngân hàng."
+      "body": "Số giao dịch và số tiền từng trạng thái, từng phương thức (SePay chuyển khoản, tiền mặt, phương thức cũ). Bấm một dòng để lọc bảng."
     },
     "admin-payments-list-filters": {
       "title": "Tìm và lọc",
-      "body": "Tìm theo mã tham chiếu, mô tả, mã giao dịch hoặc mã đơn; lọc \"Trạng thái\", \"Phương thức\", loại (đơn và nạp ví / chỉ thu theo đơn / chỉ nạp ví) và chọn thứ tự sắp xếp."
+      "body": "Tìm theo mã tham chiếu, mô tả, mã giao dịch hoặc mã đơn; lọc \"Trạng thái\", \"Phương thức\" và chọn thứ tự sắp xếp."
     },
     "admin-payments-list-dates": {
       "title": "Khoảng ngày",
@@ -2382,77 +2326,13 @@
       "title": "Hoàn tiền",
       "body": "Các lần hoàn của giao dịch: trạng thái, số tiền, lý do, mã giao dịch hoàn, người xử lý. Tạo hoàn tiền không tự đổi trạng thái giao dịch."
     },
-    "admin-payment-detail-wallet": {
-      "title": "Biến động ví",
-      "body": "Cộng / trừ ví sinh ra từ giao dịch này và số dư sau."
-    },
     "admin-payment-detail-others": {
       "title": "Giao dịch khác của đơn",
       "body": "Các lần thanh toán khác của cùng đơn, ví dụ lần trước bị lỗi."
     },
     "admin-payment-detail-status": {
       "title": "Cập nhật trạng thái",
-      "body": "Chọn trạng thái rồi \"Lưu trạng thái\". Bị khoá với giao dịch nạp ví hoặc đã thành công / thất bại — cần trả tiền cho khách thì dùng Hoàn tiền."
-    },
-    "admin-payments-wallet-tab": {
-      "title": "Tab Biến động ví",
-      "body": "Bấm để xem biến động ví của mọi khách."
-    },
-    "admin-payments-wallet-filters": {
-      "title": "Tìm và lọc",
-      "body": "Tìm theo mã tham chiếu hoặc nội dung; lọc \"Chiều\" (cộng / trừ) và \"Nguồn\" (nạp ví, thanh toán đơn, hoàn tiền, điều chỉnh tay, rút tiền)."
-    },
-    "admin-payments-wallet-dates": {
-      "title": "Khoảng ngày",
-      "body": "Chọn khoảng ngày hoặc mốc nhanh; để trống là mọi thời điểm."
-    },
-    "admin-payments-wallet-table": {
-      "title": "Bảng biến động",
-      "body": "Mã biến động và ví, khách, chiều, nguồn, số tiền (xanh cộng / đỏ trừ) kèm số dư sau, đơn liên quan (bấm để mở), tham chiếu, thời điểm; có phân trang."
-    },
-    "admin-payments-withdrawals-tab": {
-      "title": "Tab Yêu cầu rút tiền",
-      "body": "Bấm để xem các yêu cầu rút tiền."
-    },
-    "admin-payments-withdrawals-status": {
-      "title": "Lọc trạng thái",
-      "body": "\"Tất cả\", \"Chờ duyệt\" (kèm số đang chờ), \"Đã chuyển\", \"Từ chối\"."
-    },
-    "admin-payments-withdrawals-search": {
-      "title": "Tìm và tải lại",
-      "body": "Tìm theo mã, tên, số tài khoản, ngân hàng; nút mũi tên xoay tải lại danh sách."
-    },
-    "admin-payments-withdrawals-table": {
-      "title": "Bảng yêu cầu",
-      "body": "Mã yêu cầu, khách, tài khoản thụ hưởng (ngân hàng, số TK, chủ TK), số tiền rút, trạng thái, giờ tạo / duyệt, lý do từ chối."
-    },
-    "admin-payments-withdrawals-actions": {
-      "title": "Duyệt hoặc từ chối",
-      "body": "Chỉ yêu cầu \"Chờ duyệt\" có nút. \"Duyệt\" sau khi đã chuyển khoản thật (không hoàn tác được); \"Từ chối\" phải nhập lý do và tiền tự trả lại ví khách."
-    },
-    "admin-withdrawal-approve-info": {
-      "title": "Kiểm tra thông tin",
-      "body": "Mã yêu cầu, số tiền, ngân hàng, số tài khoản, chủ tài khoản — đối chiếu trước khi chuyển."
-    },
-    "admin-withdrawal-approve-warning": {
-      "title": "Cảnh báo",
-      "body": "Duyệt đánh dấu giao dịch \"đã chuyển tiền\" và không thể hoàn tác."
-    },
-    "admin-withdrawal-approve-actions": {
-      "title": "Xác nhận",
-      "body": "\"Xác nhận đã chuyển & Duyệt\" chỉ bấm khi tiền đã chuyển; \"Hủy\" để quay lại."
-    },
-    "admin-withdrawal-reject-info": {
-      "title": "Yêu cầu bị từ chối",
-      "body": "Mã yêu cầu và số tiền sẽ được hoàn lại ví khách."
-    },
-    "admin-withdrawal-reject-reason": {
-      "title": "Lý do từ chối",
-      "body": "Bắt buộc, ví dụ sai tên chủ tài khoản; khách thấy lý do này."
-    },
-    "admin-withdrawal-reject-actions": {
-      "title": "Xác nhận từ chối",
-      "body": "\"Xác nhận từ chối & Hoàn tiền ví\" cộng trả số tiền vào ví ngay."
+      "body": "Chọn trạng thái rồi \"Lưu trạng thái\". Bị khoá khi giao dịch đã thành công / thất bại / hoàn tiền — cần trả tiền cho khách thì dùng Hoàn tiền."
     },
     "admin-refunds-header": {
       "title": "Lối tắt",
@@ -4159,8 +4039,8 @@
       "body": "SLA xử lý sự cố, ngưỡng phạt, ảnh nghiệm thu, giữ ô và drone."
     },
     "admin-settings-scopes-payment": {
-      "title": "\"Thanh toán & ví\"",
-      "body": "Hạn mức nạp ví, mệnh giá gợi ý và phương thức thanh toán."
+      "title": "\"Thanh toán\"",
+      "body": "Phương thức thanh toán, hoàn tiền và chế độ giả lập thanh toán."
     },
     "admin-settings-scopes-iot": {
       "title": "\"Thiết bị IoT\"",

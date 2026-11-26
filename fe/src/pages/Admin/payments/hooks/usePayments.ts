@@ -5,11 +5,7 @@ import {
   useSearchAdminPaymentsQuery,
 } from "@/stores/apis/admin/payments";
 import { defaultReportRange } from "~/components/shared/reporting";
-import type {
-  AdminPayment,
-  AdminPaymentKind,
-  AdminPaymentSearchParams,
-} from "~/types/admin/reporting";
+import type { AdminPayment, AdminPaymentSearchParams } from "~/types/admin/reporting";
 
 // Bộ lọc nằm trên URL; lọc, phân trang và thống kê đều do backend làm.
 //
@@ -20,12 +16,9 @@ import type {
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_SORT = "createdAt,desc";
 
-export type PaymentKindFilter = "ALL" | AdminPaymentKind;
-
 export interface PaymentFilterState {
   status: string[];
   method: string[];
-  kind: PaymentKindFilter;
   from: string;
   to: string;
   q: string;
@@ -52,7 +45,6 @@ export function usePayments() {
     () => ({
       status: readList(urlParams, "status"),
       method: readList(urlParams, "method"),
-      kind: (urlParams.get("kind") as PaymentKindFilter) || "ALL",
       from: urlParams.get("from") ?? "",
       to: urlParams.get("to") ?? "",
       q: urlParams.get("q") ?? "",
@@ -121,9 +113,7 @@ export function usePayments() {
         to: statsRange.to,
         status: status ?? "",
         method: method ?? "",
-        kind: "",
         q: "",
-        tab: "",
       }),
     [patchParams, statsRange],
   );
@@ -145,7 +135,6 @@ export function usePayments() {
       sort: filters.sort,
       ...(filters.status.length ? { status: filters.status } : {}),
       ...(filters.method.length ? { method: filters.method } : {}),
-      ...(filters.kind !== "ALL" ? { kind: filters.kind } : {}),
       ...(filters.from ? { from: filters.from } : {}),
       ...(filters.to ? { to: filters.to } : {}),
       ...(filters.q.trim() ? { q: filters.q.trim() } : {}),
@@ -174,7 +163,6 @@ export function usePayments() {
   const hasActiveFilters =
     filters.status.length > 0 ||
     filters.method.length > 0 ||
-    filters.kind !== "ALL" ||
     filters.from !== "" ||
     filters.to !== "" ||
     filters.q !== "" ||

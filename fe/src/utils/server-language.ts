@@ -4,18 +4,18 @@ import i18n from "~/utils/i18n";
 export const SERVER_LANGUAGE_HEADER = "X-App-Language";
 
 /**
- * Màn admin tự soạn nội dung (tên/mô tả khuyến mãi, cửa hàng, mẫu thông báo, cài đặt, tài liệu trợ lý):
+ * Màn admin tự soạn nội dung (tên/mô tả khuyến mãi, cửa hàng, mẫu thông báo, tài liệu trợ lý):
  * không xin bản dịch, để form sửa luôn thấy và lưu lại đúng chữ admin đã gõ — bản dịch lưu ngược vào DB
  * sẽ đổi nội dung cho mọi người dùng.
+ *
+ * Cài đặt (`/api/admin/settings`) vẫn xin tiếng Anh: backend chỉ dịch nhóm, tên, mô tả, đơn vị của quy tắc,
+ * giá trị giữ nguyên (`@KeepServerText` ở `BusinessSettingsController`).
  */
 const AUTHORED_CONTENT = [
   /^\/api\/admin\/promotions/,
   /^\/api\/admin\/stores/,
   /^\/api\/admin\/notifications\/templates/,
-  /^\/api\/admin\/settings/,
-  /^\/api\/settings/,
   /^\/api\/admin\/knowledge/,
-  /^\/api\/admin\/services/,
 ];
 
 function pathOf(url: string): string {

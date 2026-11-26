@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { ExternalLink, Package, RefreshCcw, Wallet } from "lucide-react";
+import { ExternalLink, Package, RefreshCcw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,12 +27,10 @@ import {
   ReportErrorState,
   orderPaymentStatusMeta,
   orderStatusMeta,
-  paymentKindMeta,
+  orderTypeMeta,
   paymentMethodMeta,
   paymentStatusMeta,
   refundStatusMeta,
-  walletSourceMeta,
-  walletTypeMeta,
 } from "~/components/shared/reporting";
 import {
   useGetAdminPaymentDetailQuery,
@@ -46,7 +44,6 @@ import {
   type AdminPayment,
   type AdminPaymentStatus,
   type AdminRefund,
-  type AdminWalletTransaction,
 } from "~/types/admin/reporting";
 
 interface PaymentDetailModalProps {
@@ -156,7 +153,9 @@ export function PaymentDetailModal({
                     </Button>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <LabelValue label={t("admin.orders.fields.orderType")}>{payment.order.type}</LabelValue>
+                    <LabelValue label={t("admin.orders.fields.orderType")}>
+                      {payment.order.type ? orderTypeMeta(payment.order.type).label : null}
+                    </LabelValue>
                     <LabelValue label={t("admin.payments.detail.orderTotal")}>
                       {formatCurrency(payment.order.totalPrice)}
                     </LabelValue>
@@ -171,7 +170,6 @@ export function PaymentDetailModal({
             )}
 
             <RefundSection refunds={detail.refunds} />
-            <WalletSection transactions={detail.walletTransactions} />
             <OtherPaymentsSection payments={detail.orderPayments} />
 
             <Separator />
@@ -219,14 +217,8 @@ export function PaymentDetailModal({
 /** Trạng thái cuối — backend không hoàn tác tiền khi đổi tay nên không cho sửa. */
 const TERMINAL_STATUSES = ["COMPLETED", "FAILED", "REFUNDED"];
 
-/**
- * Lý do khoá ô đổi trạng thái, `null` = được sửa. Nạp ví chỉ được ghi nhận qua callback
- * cổng thanh toán: đổi tay sang "Thành công" không cộng tiền vào ví khách.
- */
+/** Lý do khoá ô đổi trạng thái, `null` = được sửa. */
 function statusEditLock(payment: AdminPayment, t: TFunction): string | null {
-  if (payment.kind === "TOPUP" || payment.method?.endsWith("_TOPUP")) {
-    return t("admin.payments.detail.lockTopup");
-  }
   if (TERMINAL_STATUSES.includes(payment.status)) {
     return t("admin.payments.detail.lockTerminal", {
       status: paymentStatusMeta(payment.status).label,
@@ -264,7 +256,6 @@ function PaymentSummary({ payment }: { payment: AdminPayment }) {
         <div className="flex flex-wrap items-center gap-2">
           <MetaBadge meta={paymentStatusMeta(payment.status)} />
           <MetaBadge meta={paymentMethodMeta(payment.method)} />
-          <MetaBadge meta={paymentKindMeta(payment.kind)} hideIcon />
         </div>
       </div>
 
@@ -348,49 +339,6 @@ function RefundSection({ refunds }: { refunds: AdminRefund[] }) {
           <p className="text-[11px] text-muted-foreground">
             {t("admin.payments.detail.refundNote")}
           </p>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function WalletSection({
-  transactions,
-}: {
-  transactions: AdminWalletTransaction[];
-}) {
-  const { t } = useTranslation();
-  return (
-    <section className="space-y-2" data-tour="payment-detail-wallet">
-      <SectionTitle icon={Wallet}>
-        {t("admin.payments.detail.walletCount", { count: transactions.length })}
-      </SectionTitle>
-      {transactions.length === 0 ? (
-        <p className="text-xs text-muted-foreground">
-          {t("admin.payments.detail.noWallet")}
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {transactions.map((tx) => (
-            <div
-              key={tx.id}
-              className="rounded-lg border border-border p-3 flex flex-wrap items-center gap-2"
-            >
-              <MetaBadge meta={walletTypeMeta(tx.type)} hideIcon />
-              <MetaBadge meta={walletSourceMeta(tx.source)} hideIcon />
-              <span className="font-semibold text-sm">
-                {formatCurrency(tx.amount)}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {t("admin.payments.detail.balanceAfter", {
-                  amount: formatCurrency(tx.balanceAfter),
-                })}
-              </span>
-              <span className="text-[11px] text-muted-foreground font-mono ml-auto">
-                {formatDateTime(tx.createdAt)}
-              </span>
-            </div>
-          ))}
         </div>
       )}
     </section>

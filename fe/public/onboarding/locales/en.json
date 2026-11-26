@@ -226,11 +226,7 @@
     },
     "admin-user-detail": {
       "title": "User profile",
-      "summary": "Editable personal details, avatar, roles, account, terms and the order, spending, wallet and points figures."
-    },
-    "admin-user-wallet": {
-      "title": "User wallet",
-      "summary": "See a user's balance and add or deduct wallet money with a reason."
+      "summary": "Editable personal details, avatar, roles, account, terms and the order, spending and points figures."
     },
     "admin-user-tab-orders": {
       "title": "Profile – activity tabs",
@@ -238,11 +234,7 @@
     },
     "admin-user-tab-payments": {
       "title": "Profile – Payments tab",
-      "summary": "All of the user's transactions, including top-ups; open a transaction right from the profile."
-    },
-    "admin-user-tab-wallet": {
-      "title": "Profile – Wallet tab",
-      "summary": "The user's wallet credit / debit history."
+      "summary": "All of the user's order payments; open a transaction right from the profile."
     },
     "admin-user-tab-loyalty": {
       "title": "Profile – Loyalty tab",
@@ -262,23 +254,7 @@
     },
     "admin-payment-detail": {
       "title": "Transaction details",
-      "summary": "Payment information, the related order, refunds, wallet movements and changing the transaction status."
-    },
-    "admin-payments-wallet": {
-      "title": "Payments – Wallet movements",
-      "summary": "Every wallet credit / debit of all customers, filtered by direction, source and date."
-    },
-    "admin-payments-withdrawals": {
-      "title": "Payments – Withdrawal requests",
-      "summary": "Customers withdraw wallet money to a bank; the admin transfers it and approves, or rejects."
-    },
-    "admin-withdrawal-approve": {
-      "title": "Approve a withdrawal",
-      "summary": "The dialog for confirming that a withdrawal has been transferred."
-    },
-    "admin-withdrawal-reject": {
-      "title": "Reject a withdrawal",
-      "summary": "The rejection dialog: enter a reason and the money returns to the customer's wallet."
+      "summary": "Payment information, the related order, refunds and changing the transaction status."
     },
     "admin-refunds-history": {
       "title": "Refunds – History",
@@ -2200,7 +2176,7 @@
     },
     "admin-users-row-menu": {
       "title": "Row menu",
-      "body": "The \"…\" button: \"View Detail\", \"Wallet\" (view and adjust the balance) and \"Delete\" (reason required). To only block sign-in, flip the switch instead of deleting."
+      "body": "The \"…\" button: \"View Detail\" and \"Delete\" (reason required). To only block sign-in, flip the switch instead of deleting."
     },
     "admin-users-create-name": {
       "title": "First and last name",
@@ -2236,7 +2212,7 @@
     },
     "admin-user-detail-actions": {
       "title": "Actions",
-      "body": "\"Wallet\" opens the balance dialog; \"Technician profile\" (technicians only) opens their page; the badge shows Active / Locked. While you edit, this area turns into \"Cancel\" and \"Save changes\"."
+      "body": "\"Technician profile\" (technicians only) opens their page; the badge shows Active / Locked. While you edit, this area turns into \"Cancel\" and \"Save changes\"."
     },
     "admin-user-detail-avatar": {
       "title": "Avatar",
@@ -2260,31 +2236,11 @@
     },
     "admin-user-detail-stats": {
       "title": "Quick figures",
-      "body": "Orders and total spending over the last 12 months (money actually collected), wallet balance and current loyalty points."
-    },
-    "admin-user-wallet-open": {
-      "title": "Open the wallet",
-      "body": "Click \"Wallet\" on the profile (or \"Wallet\" in the list's \"…\" menu) to open the wallet dialog."
-    },
-    "admin-user-wallet-balance": {
-      "title": "Current balance",
-      "body": "The user's Lock.R wallet balance when the dialog opened."
-    },
-    "admin-user-wallet-amount": {
-      "title": "Adjustment amount",
-      "body": "Enter a positive amount in VND."
-    },
-    "admin-user-wallet-reason": {
-      "title": "Reason",
-      "body": "Optional, e.g. refund, promotion, correction — saved with the wallet movement."
-    },
-    "admin-user-wallet-actions": {
-      "title": "Add or deduct",
-      "body": "\"Add\" credits the wallet, \"Deduct\" debits it; the balance updates at once and a new line appears in the \"Wallet\" tab."
+      "body": "Orders and total spending over the last 12 months (money actually collected) and current loyalty points."
     },
     "admin-user-tab-orders-tabs": {
       "title": "Activity tabs",
-      "body": "Orders placed, orders received, payments, refunds, wallet, loyalty points, reviews, incident reports, notifications and AI assistant. The open tab is kept in the page address, so coming back lands in the same place."
+      "body": "Orders placed, orders received, payments, refunds, loyalty points, reviews, incident reports, notifications and AI assistant. The open tab is kept in the page address, so coming back lands in the same place."
     },
     "admin-user-tab-orders-panel": {
       "title": "Orders placed",
@@ -2296,15 +2252,7 @@
     },
     "admin-user-tab-payments-panel": {
       "title": "Transactions",
-      "body": "Click a payment code to open its details, click an order code to open the order; type (order / top-up), method, amount and status are shown. The \"Refunds\" tab next to it lists this user's refund tickets."
-    },
-    "admin-user-tab-wallet-tab": {
-      "title": "Wallet tab",
-      "body": "Click to see the user's wallet movements."
-    },
-    "admin-user-tab-wallet-panel": {
-      "title": "Wallet movements",
-      "body": "Source (top-up, order payment, refund, manual adjustment, withdrawal), credit / debit, amount, balance after, related order (click to open) and description."
+      "body": "Click a payment code to open its details, click an order code to open the order; method, amount and status are shown. The \"Refunds\" tab next to it lists this user's refund tickets."
     },
     "admin-user-tab-loyalty-tab": {
       "title": "Loyalty tab",
@@ -2344,15 +2292,11 @@
     },
     "admin-payments-breakdown": {
       "title": "By status / method",
-      "body": "Count and amount per status and per method (SePay transfer, SePay top-up, cash…). Click a row to filter the table."
-    },
-    "admin-payments-tabs": {
-      "title": "Three tabs",
-      "body": "\"Transactions\" lists every payment; \"Wallet Movements\" lists customer wallet credits / debits; \"Withdrawal Requests\" is where bank withdrawals are approved."
+      "body": "Count and amount per status and per method (SePay transfer, cash, legacy methods). Click a row to filter the table."
     },
     "admin-payments-list-filters": {
       "title": "Search and filter",
-      "body": "Search by reference, description, transaction id or order code; filter by status, method and kind (orders and top-ups / orders only / top-ups only) and choose the sort order."
+      "body": "Search by reference, description, transaction id or order code; filter by status and method and choose the sort order."
     },
     "admin-payments-list-dates": {
       "title": "Date range",
@@ -2382,77 +2326,13 @@
       "title": "Refunds",
       "body": "Refunds of this transaction: status, amount, reason, refund transaction id and who processed it. Creating a refund does not change the transaction status."
     },
-    "admin-payment-detail-wallet": {
-      "title": "Wallet movements",
-      "body": "Wallet credits / debits created by this transaction and the balance after."
-    },
     "admin-payment-detail-others": {
       "title": "Other payments of the order",
       "body": "Other payment attempts of the same order, e.g. an earlier failed one."
     },
     "admin-payment-detail-status": {
       "title": "Update status",
-      "body": "Pick a status and click \"Save status\". Locked for top-ups and for successful / failed transactions — to give money back, use Refunds."
-    },
-    "admin-payments-wallet-tab": {
-      "title": "Wallet Movements tab",
-      "body": "Click to see the wallet movements of all customers."
-    },
-    "admin-payments-wallet-filters": {
-      "title": "Search and filter",
-      "body": "Search by reference or content; filter by direction (credit / debit) and source (top-up, order payment, refund, manual adjustment, withdrawal)."
-    },
-    "admin-payments-wallet-dates": {
-      "title": "Date range",
-      "body": "Pick a range or preset; leave empty for all time."
-    },
-    "admin-payments-wallet-table": {
-      "title": "Movements table",
-      "body": "Movement and wallet id, customer, direction, source, amount (green credit / red debit) with balance after, related order (click to open), reference and time; with paging."
-    },
-    "admin-payments-withdrawals-tab": {
-      "title": "Withdrawal Requests tab",
-      "body": "Click to see the withdrawal requests."
-    },
-    "admin-payments-withdrawals-status": {
-      "title": "Status filter",
-      "body": "All, Pending (with the count waiting), Transferred, Rejected."
-    },
-    "admin-payments-withdrawals-search": {
-      "title": "Search and reload",
-      "body": "Search by code, name, account number or bank; the circular-arrow button reloads the list."
-    },
-    "admin-payments-withdrawals-table": {
-      "title": "Requests table",
-      "body": "Request code, customer, beneficiary (bank, account number, holder), amount, status, created / processed time and rejection reason."
-    },
-    "admin-payments-withdrawals-actions": {
-      "title": "Approve or reject",
-      "body": "Only pending requests have buttons. \"Approve\" after the real transfer is done (cannot be undone); \"Reject\" needs a reason and returns the money to the customer's wallet."
-    },
-    "admin-withdrawal-approve-info": {
-      "title": "Check the details",
-      "body": "Request code, amount, bank, account number and holder — check them before transferring."
-    },
-    "admin-withdrawal-approve-warning": {
-      "title": "Warning",
-      "body": "Approving marks the request as transferred and cannot be undone."
-    },
-    "admin-withdrawal-approve-actions": {
-      "title": "Confirm",
-      "body": "Click \"Confirm transfer & approve\" only once the money has been sent; \"Cancel\" goes back."
-    },
-    "admin-withdrawal-reject-info": {
-      "title": "Request being rejected",
-      "body": "The request code and the amount that will go back to the wallet."
-    },
-    "admin-withdrawal-reject-reason": {
-      "title": "Rejection reason",
-      "body": "Required, e.g. wrong account holder name; the customer sees it."
-    },
-    "admin-withdrawal-reject-actions": {
-      "title": "Confirm rejection",
-      "body": "\"Confirm rejection & refund wallet\" returns the amount to the wallet immediately."
+      "body": "Pick a status and click \"Save status\". Locked once a transaction has succeeded, failed or been refunded — to give money back, use Refunds."
     },
     "admin-refunds-header": {
       "title": "Shortcuts",
@@ -4159,8 +4039,8 @@
       "body": "Incident handling SLAs, penalty thresholds, acceptance photos, box holds and drones."
     },
     "admin-settings-scopes-payment": {
-      "title": "\"Payments & Wallet\"",
-      "body": "Wallet top-up limits, suggested amounts and payment methods."
+      "title": "\"Payments\"",
+      "body": "Payment methods, refunds and payment simulation."
     },
     "admin-settings-scopes-iot": {
       "title": "\"IoT Devices\"",

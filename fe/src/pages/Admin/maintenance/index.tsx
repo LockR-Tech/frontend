@@ -1,4 +1,5 @@
 import { formatDateTime, parseBackendDateTime } from "~/lib/datetime";
+import { getCellTypeCodeLabel } from "~/lib/lockerLayoutHelper";
 import { AppLoading } from "~/components/ui/app-loading";
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -107,6 +108,8 @@ import {
   useCreateDroneIncidentReportMutation,
   type DroneResponse,
 } from "~/stores/apis/admin/drones";
+import { StandalonePagination } from "~/components/shared/data-table/DataTablePagination";
+import { DeleteReasonDialog } from "~/components/shared/data-table";
 
 // Bản cũ dựng Date từ chuỗi trần nên hiển thị giờ UTC; dùng formatDateTime
 // dùng chung (src/lib/datetime.ts) để ra đúng giờ VN.
@@ -143,6 +146,9 @@ function droneStatusLabel(t: TFunction, status: string): string {
   const key = DRONE_STATUS_LABEL_KEYS[status];
   return key ? t(key) : status;
 }
+
+/** Số phiếu mỗi trang ở hai danh sách phiếu sự cố. */
+const REPORT_PAGE_SIZE = 20;
 
 // Cùng cửa sổ backend dùng cho bộ điều khiển tủ: quá 150 s không thấy heartbeat ⇒ mất kết nối
 const HEARTBEAT_ONLINE_WINDOW_MS = 150_000;
@@ -281,6 +287,11 @@ export default function MaintenanceAdminPage() {
   const [dateFilter, setDateFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<"NEWEST_FIRST" | "PRIORITY_NEW" | "SLA_URGENT" | "OLDEST_FIRST">("NEWEST_FIRST");
+  // Phân trang phía trình duyệt cho hai danh sách phiếu (trước đây hiện hết một lần, trang dài hàng chục nghìn px).
+  const [kioskPage, setKioskPage] = useState(0);
+  const [kioskPageSize, setKioskPageSize] = useState(REPORT_PAGE_SIZE);
+  const [dronePage, setDronePage] = useState(0);
+  const [dronePageSize, setDronePageSize] = useState(REPORT_PAGE_SIZE);
 
   const [assigningReport, setAssigningReport] = useState<LockerReportResponse | null>(null);
 
@@ -539,6 +550,17 @@ export default function MaintenanceAdminPage() {
       });
   }, [droneReportList, droneReportFilter, droneSearchQuery, droneTechFilter, droneUnitFilter, droneDateFilter, droneReportSort]);
 
+  useEffect(() => {
+    setDronePage(0);
+  }, [droneReportFilter, droneSearchQuery, droneTechFilter, droneUnitFilter, droneDateFilter, droneReportSort]);
+  const dronePageCount = Math.max(1, Math.ceil(filteredDroneReports.length / dronePageSize));
+  const dronePageIndex = Math.min(dronePage, dronePageCount - 1);
+  const pagedDroneReports = useMemo(
+    () => filteredDroneReports.slice(dronePageIndex * dronePageSize, (dronePageIndex + 1) * dronePageSize),
+    [filteredDroneReports, dronePageIndex, dronePageSize],
+  );
+
+
   const hasDroneReportFilters = droneSearchQuery.trim() !== "" || droneReportFilter !== "ALL" || droneTechFilter !== "ALL" || droneUnitFilter !== "ALL" || droneDateFilter !== "ALL" || droneReportSort !== "NEWEST_FIRST";
   const resetDroneReportFilters = () => {
     setDroneSearchQuery("");
@@ -671,6 +693,27 @@ export default function MaintenanceAdminPage() {
     t,
   ]);
 
+  // Đổi bộ lọc ⇒ về trang đầu; dữ liệu tự làm mới (15 giây) không làm nhảy trang.
+  useEffect(() => {
+    setKioskPage(0);
+  }, [reportFilter, selectedTechFilter, selectedLockerFilter, dateFilter, searchQuery, sortBy]);
+  const kioskPageCount = Math.max(1, Math.ceil(filteredReports.length / kioskPageSize));
+  const kioskPageIndex = Math.min(kioskPage, kioskPageCount - 1);
+  const pagedReports = useMemo(
+    () => filteredReports.slice(kioskPageIndex * kioskPageSize, (kioskPageIndex + 1) * kioskPageSize),
+    [filteredReports, kioskPageIndex, kioskPageSize],
+  );
+
+  // Mở phiếu từ liên kết (?report=…) ⇒ chuyển tới trang chứa phiếu đó trước khi cuộn tới.
+  useEffect(() => {
+    if (focusedReportId == null) return;
+    const kioskIndex = filteredReports.findIndex((r) => r.id === focusedReportId);
+    if (kioskIndex >= 0) setKioskPage(Math.floor(kioskIndex / kioskPageSize));
+    const droneIndex = filteredDroneReports.findIndex((r) => r.id === focusedReportId);
+    if (droneIndex >= 0) setDronePage(Math.floor(droneIndex / dronePageSize));
+    // Chỉ chạy khi đổi phiếu cần mở.
+  }, [focusedReportId]);
+
   // Phiếu OPEN chưa ai nhận: chờ KTV phụ trách tủ (routedToUserId) hoặc đã báo mọi KTV tủ (null).
   // undefined = backend cũ chưa trả trường định tuyến.
   const routingLabel = (r: LockerReportResponse): string => {
@@ -731,10 +774,10 @@ export default function MaintenanceAdminPage() {
   };
 
   // --- Handler xóa 1 phiếu sự cố ---
-  const handleDeleteSingleReport = async () => {
+  const handleDeleteSingleReport = async (reason: string) => {
     if (!reportToDelete) return;
     try {
-      await deleteReportMutation(reportToDelete.id).unwrap();
+      await deleteReportMutation({ reportId: reportToDelete.id, reason }).unwrap();
       toast.success(
         t("admin.maintenance.ui.deleteToast.single", { code: reportToDelete.reportCode || `RPT-${reportToDelete.id}` })
       );
@@ -749,7 +792,7 @@ export default function MaintenanceAdminPage() {
   };
 
   // --- Handler xóa nhiều phiếu hoặc xóa tất cả ---
-  const handleExecuteBatchDelete = async () => {
+  const handleExecuteBatchDelete = async (reason: string) => {
     const { category, ids, all } = batchDeleteConfirm;
     const isKiosk = category === "KIOSK";
     const selectedIds = ids || (isKiosk ? selectedKioskIds : selectedDroneIds);
@@ -759,6 +802,7 @@ export default function MaintenanceAdminPage() {
         const res = await deleteReportsBatchMutation({
           deleteAll: true,
           category: isKiosk ? "KIOSK" : "DRONE",
+          reason,
         }).unwrap();
         const count = res.data?.deletedCount ?? 0;
         toast.success(
@@ -772,6 +816,7 @@ export default function MaintenanceAdminPage() {
           const res = await deleteReportsBatchMutation({
             reportIds: selectedIds,
             category: isKiosk ? "KIOSK" : "DRONE",
+            reason,
           }).unwrap();
           count = res.data?.deletedCount ?? selectedIds.length;
         }
@@ -1281,7 +1326,7 @@ export default function MaintenanceAdminPage() {
                 </div>
               ) : (
                 <div className="divide-y divide-border/60">
-                  {filteredReports.map((r, index) => {
+                  {pagedReports.map((r, index) => {
                     const isNew = r.status === "OPEN";
                     const isRecent = r.createdAt && (Date.now() - timestampOf(r.createdAt)) < 3600000;
                     const assignedTech = r.assignedToUserId ? techniciansMap[r.assignedToUserId] : undefined;
@@ -1376,7 +1421,7 @@ export default function MaintenanceAdminPage() {
                               >
                                 <UserCheck className="w-3 h-3 text-indigo-700" />
                                 <span>
-                                  {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[r.assignedToUserId] ?? `#${r.assignedToUserId}` })}
+                                  {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[r.assignedToUserId] ?? t("admin.maintenance.deletedAccount", { id: r.assignedToUserId }) })}
                                 </span>
                                 {assignedTech?.phoneNumber && (
                                   <span className="text-[10px] text-indigo-600 font-mono">
@@ -1397,7 +1442,7 @@ export default function MaintenanceAdminPage() {
                               : r.boxId
                                 ? ` · ${t("admin.maintenance.boxNumber", { number: r.boxId })}`
                                 : ""}{" "}
-                            {r.cellType ? `· ${t("admin.maintenance.reports.cellType", { type: r.cellType })} ` : ""}
+                            {r.cellType ? `· ${t("admin.maintenance.reports.cellType", { type: getCellTypeCodeLabel(r.cellType) })} ` : ""}
                             · {t("common.createdAtTime")}: <span className="text-foreground font-mono">{formatDateTime(r.createdAt)}</span>{" "}
                             {r.createdAt && (
                               <span className="text-[11px] text-muted-foreground font-medium">
@@ -1558,6 +1603,20 @@ export default function MaintenanceAdminPage() {
                     );
                   })}
                 </div>
+              )}
+              {filteredReports.length > 0 && (
+                <StandalonePagination
+                  className="pt-4"
+                  pageIndex={kioskPageIndex}
+                  pageSize={kioskPageSize}
+                  pageCount={kioskPageCount}
+                  totalRows={filteredReports.length}
+                  onPageChange={setKioskPage}
+                  onPageSizeChange={(size) => {
+                    setKioskPageSize(size);
+                    setKioskPage(0);
+                  }}
+                />
               )}
             </CardContent>
           </Card>
@@ -1931,7 +1990,7 @@ export default function MaintenanceAdminPage() {
                 </div>
               ) : (
                 <div className="divide-y divide-border/60">
-                  {filteredDroneReports.map((report, index) => {
+                  {pagedDroneReports.map((report, index) => {
                     const assignedTech = report.assignedToUserId ? techniciansMap[report.assignedToUserId] : undefined;
                     const droneCode = (report as LockerReportResponse & { droneCode?: string }).droneCode;
                     const isNew = report.status === "OPEN";
@@ -2015,7 +2074,7 @@ export default function MaintenanceAdminPage() {
                             <SlaCountdownBadge slaDueAt={report.slaDueAt} createdAt={report.createdAt} slaHours={report.slaHours ?? 4} status={report.status} />
                             {report.assignedToUserId ? (
                               <button type="button" onClick={() => navigate(`/admin/technicians/${report.assignedToUserId}`)} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 hover:bg-indigo-200">
-                                <UserCheck className="w-3 h-3" /> {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[report.assignedToUserId] ?? `#${report.assignedToUserId}` })}
+                                <UserCheck className="w-3 h-3" /> {t("admin.maintenance.technicianLabel", { name: assignedTech?.fullName ?? userNames[report.assignedToUserId] ?? t("admin.maintenance.deletedAccount", { id: report.assignedToUserId }) })}
                               </button>
                             ) : null}
                           </div>
@@ -2106,6 +2165,20 @@ export default function MaintenanceAdminPage() {
                     );
                   })}
                 </div>
+              )}
+              {filteredDroneReports.length > 0 && (
+                <StandalonePagination
+                  className="pt-4"
+                  pageIndex={dronePageIndex}
+                  pageSize={dronePageSize}
+                  pageCount={dronePageCount}
+                  totalRows={filteredDroneReports.length}
+                  onPageChange={setDronePage}
+                  onPageSizeChange={(size) => {
+                    setDronePageSize(size);
+                    setDronePage(0);
+                  }}
+                />
               )}
             </CardContent>
           </Card>
@@ -2574,108 +2647,70 @@ export default function MaintenanceAdminPage() {
       {viewingDrone && <DroneDetailsDialog drone={viewingDrone} onClose={() => setViewingDrone(null)} />}
 
       {/* Hộp thoại xác nhận xóa 1 phiếu sự cố */}
-      <AlertDialog open={!!reportToDelete} onOpenChange={(open) => !open && setReportToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
-              <Trash2 className="w-5 h-5" />
-              {t("admin.maintenance.ui.deleteDialog.title", { code: reportToDelete?.reportCode || `RPT-${reportToDelete?.id}` })}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2 text-sm text-muted-foreground">
-              <p>
-                <Trans
-                  i18nKey="admin.maintenance.ui.deleteDialog.confirm"
-                  values={{
-                    code: reportToDelete?.reportCode || `RPT-${reportToDelete?.id}`,
-                    title: reportToDelete?.title,
-                  }}
-                  components={{ b: <span className="font-semibold text-foreground" /> }}
-                />
-              </p>
-              <div className="rounded-md bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 leading-relaxed">
-                {t("admin.maintenance.ui.deleteDialog.warning")}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeletingSingle}>{t("common.cancelAction")}</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-rose-600 hover:bg-rose-700 text-white"
-              disabled={isDeletingSingle}
-              onClick={(e) => {
-                e.preventDefault();
-                handleDeleteSingleReport();
-              }}
-            >
-              {isDeletingSingle ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1.5" />}
-              {t("admin.maintenance.schedules.delete.confirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Xoá mềm 1 phiếu: bắt buộc lý do, ảnh và nhật ký vẫn được giữ (ADR-0009) */}
+      <DeleteReasonDialog
+        open={!!reportToDelete}
+        onOpenChange={(open) => !open && setReportToDelete(null)}
+        title={t("admin.maintenance.ui.deleteDialog.title", { code: reportToDelete?.reportCode || `RPT-${reportToDelete?.id}` })}
+        description={
+          <Trans
+            i18nKey="admin.maintenance.ui.deleteDialog.confirm"
+            values={{
+              code: reportToDelete?.reportCode || `RPT-${reportToDelete?.id}`,
+              title: reportToDelete?.title,
+            }}
+            components={{ b: <span className="font-semibold text-foreground" /> }}
+          />
+        }
+        note={t("admin.maintenance.ui.deleteDialog.warning")}
+        actionLabel={t("admin.maintenance.ui.deleteDialog.action")}
+        loading={isDeletingSingle}
+        onConfirm={(reason) => void handleDeleteSingleReport(reason)}
+      />
 
-      {/* Hộp thoại xác nhận xóa hàng loạt / xóa toàn bộ phiếu sự cố */}
-      <AlertDialog
+      {/* Xoá mềm hàng loạt / toàn bộ phiếu sự cố của một nhóm, cùng một lý do */}
+      <DeleteReasonDialog
         open={batchDeleteConfirm.open}
         onOpenChange={(open) =>
           !open && setBatchDeleteConfirm({ open: false, category: "KIOSK", count: 0 })
         }
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-rose-600">
-              <Trash2 className="w-5 h-5" />
-              {batchDeleteConfirm.all
-                ? t("admin.maintenance.ui.batchDialog.titleAll", {
-                    category: batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone",
-                  })
-                : t("admin.maintenance.ui.batchDialog.titleSome", { count: batchDeleteConfirm.count })}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2 text-sm text-muted-foreground">
-              <p>
-                {batchDeleteConfirm.all ? (
-                  <Trans
-                    i18nKey="admin.maintenance.ui.batchDialog.confirmAll"
-                    values={{
-                      count: batchDeleteConfirm.count,
-                      category: batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone",
-                    }}
-                    components={{
-                      danger: <span className="font-bold text-rose-600" />,
-                      b: <span className="font-semibold text-foreground" />,
-                    }}
-                  />
-                ) : (
-                  <Trans
-                    i18nKey="admin.maintenance.ui.batchDialog.confirmSome"
-                    values={{ count: batchDeleteConfirm.count }}
-                    components={{ danger: <span className="font-bold text-rose-600" /> }}
-                  />
-                )}
-              </p>
-              <div className="rounded-md bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 leading-relaxed">
-                {t("admin.maintenance.ui.batchDialog.warning")}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeletingBatch}>{t("common.cancelAction")}</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-rose-600 hover:bg-rose-700 text-white"
-              disabled={isDeletingBatch}
-              onClick={(e) => {
-                e.preventDefault();
-                handleExecuteBatchDelete();
+        title={
+          batchDeleteConfirm.all
+            ? t("admin.maintenance.ui.batchDialog.titleAll", {
+                category: batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone",
+              })
+            : t("admin.maintenance.ui.batchDialog.titleSome", { count: batchDeleteConfirm.count })
+        }
+        description={
+          batchDeleteConfirm.all ? (
+            <Trans
+              i18nKey="admin.maintenance.ui.batchDialog.confirmAll"
+              values={{
+                count: batchDeleteConfirm.count,
+                category: batchDeleteConfirm.category === "KIOSK" ? "Kiosk" : "Drone",
               }}
-            >
-              {isDeletingBatch ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1.5" />}
-              {batchDeleteConfirm.all
-                ? t("admin.maintenance.ui.batchDialog.deleteAll")
-                : t("admin.maintenance.ui.batchDialog.deleteCount", { count: batchDeleteConfirm.count })}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              components={{
+                danger: <span className="font-bold text-rose-600" />,
+                b: <span className="font-semibold text-foreground" />,
+              }}
+            />
+          ) : (
+            <Trans
+              i18nKey="admin.maintenance.ui.batchDialog.confirmSome"
+              values={{ count: batchDeleteConfirm.count }}
+              components={{ danger: <span className="font-bold text-rose-600" /> }}
+            />
+          )
+        }
+        note={t("admin.maintenance.ui.batchDialog.warning")}
+        actionLabel={
+          batchDeleteConfirm.all
+            ? t("admin.maintenance.ui.batchDialog.deleteAll")
+            : t("admin.maintenance.ui.batchDialog.deleteCount", { count: batchDeleteConfirm.count })
+        }
+        loading={isDeletingBatch}
+        onConfirm={(reason) => void handleExecuteBatchDelete(reason)}
+      />
     </div>
   );
 }

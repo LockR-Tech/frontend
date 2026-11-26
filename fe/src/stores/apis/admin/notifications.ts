@@ -1,20 +1,53 @@
 import { baseApi } from "../../baseAPi";
 import { ADMIN_ENDPOINTS } from "../../../constants";
-import type {
-  ApiResponse,
-  Page,
-  PageableRequest,
-  AdminNotificationResponse,
-} from "../../../types";
+import type { ApiResponse, AdminNotificationResponse } from "../../../types";
+import type { AdminPage } from "~/types/admin/feedback";
 
 const TAGS = {
   NOTIFICATIONS: "Notifications",
+  NOTIFICATION_STATS: "NotificationStats",
 } as const;
 
-// GET /api/admin/notifications chỉ nhận `userId` (trả List, không phân trang);
-// page/size giữ để tương thích chỗ gọi cũ, backend bỏ qua.
-export interface GetNotificationsParams extends PageableRequest {
-  userId?: number;
+/** GET /api/admin/notifications?userId= — thông báo của một người dùng (List, không phân trang). */
+export interface GetNotificationsParams {
+  userId: number;
+}
+
+/**
+ * GET /api/admin/notifications/search — bảng trang Thông báo, lọc + phân trang ở backend.
+ * `search` tìm trong tiêu đề/nội dung/mã thông báo; `recipientIds` = người nhận có tên/email khớp `search`.
+ */
+export interface SearchNotificationsParams {
+  page: number;
+  size: number;
+  status?: string;
+  type?: string;
+  search?: string;
+  recipientIds?: number[];
+}
+
+/** GET /api/admin/notifications/stats — thẻ số liệu và danh sách loại (mọi thông báo). */
+export interface AdminNotificationStats {
+  total: number;
+  unread: number;
+  read: number;
+  /** Phút trung bình từ lúc tạo tới lúc đọc; null khi chưa có thông báo nào được đọc. */
+  averageReadMinutes: number | null;
+  types: { type: string; count: number }[];
+}
+
+/**
+ * POST /api/admin/notifications/bulk-delete — xoá mềm theo `ids` đã tích, hoặc `all` = mọi thông báo
+ * khớp bộ lọc (cùng tham số với bảng). Trả mã các thông báo đã xoá.
+ */
+export interface BulkDeleteNotificationsBody {
+  ids?: number[];
+  all?: boolean;
+  status?: string;
+  type?: string;
+  search?: string;
+  recipientIds?: number[];
+  reason: string;
 }
 
 /** NotificationRequest (common-lib) — body của POST /api/admin/notifications/send. */
@@ -38,7 +71,7 @@ export interface BroadcastNotificationBody {
 export const notificationManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllNotifications: builder.query<
-      ApiResponse<Page<AdminNotificationResponse>>,
+      ApiResponse<AdminNotificationResponse[]>,
       GetNotificationsParams
     >({
       query: (params) => ({
@@ -46,6 +79,31 @@ export const notificationManagementApi = baseApi.injectEndpoints({
         params,
       }),
       providesTags: [TAGS.NOTIFICATIONS],
+    }),
+
+    searchNotifications: builder.query<
+      ApiResponse<AdminPage<AdminNotificationResponse>>,
+      SearchNotificationsParams
+    >({
+      query: ({ recipientIds, ...params }) => ({
+        url: ADMIN_ENDPOINTS.NOTIFICATION_SEARCH,
+        params: recipientIds?.length ? { ...params, recipientIds: recipientIds.join(",") } : params,
+      }),
+      providesTags: [TAGS.NOTIFICATIONS],
+    }),
+
+    getNotificationStats: builder.query<ApiResponse<AdminNotificationStats>, void>({
+      query: () => ADMIN_ENDPOINTS.NOTIFICATION_STATS,
+      providesTags: [TAGS.NOTIFICATIONS, TAGS.NOTIFICATION_STATS],
+    }),
+
+    bulkDeleteNotifications: builder.mutation<ApiResponse<number[]>, BulkDeleteNotificationsBody>({
+      query: (body) => ({
+        url: ADMIN_ENDPOINTS.NOTIFICATION_BULK_DELETE,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [TAGS.NOTIFICATIONS],
     }),
 
     sendNotification: builder.mutation<
@@ -111,6 +169,9 @@ export const notificationManagementApi = baseApi.injectEndpoints({
 
 export const {
   useGetAllNotificationsQuery,
+  useSearchNotificationsQuery,
+  useGetNotificationStatsQuery,
+  useBulkDeleteNotificationsMutation,
   useSendNotificationMutation,
   useDeleteNotificationMutation,
   useMarkAdminNotificationReadMutation,

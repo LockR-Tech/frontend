@@ -24,7 +24,7 @@ import {
   RotateCcw,
   UserCheck,
   Users,
-  Wallet,
+  Landmark,
   Settings,
   Warehouse,
 } from "lucide-react";
@@ -135,7 +135,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
   },
   {
     id: "finance",
-    icon: Wallet,
+    icon: Landmark,
     label: "admin.sidebar.groups.finance",
     items: [
       {

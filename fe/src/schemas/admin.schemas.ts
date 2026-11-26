@@ -66,24 +66,6 @@ export const OrderStatusSchema = z.enum([
   'CANCELED',
 ]);
 
-export const PaymentMethodSchema = z.enum([
-  'CASH',
-  'WALLET',
-  'BANK_TRANSFER',
-  'MOMO',
-  'VNPAY',
-  'ZALOPAY',
-]);
-
-export const PaymentStatusSchema = z.enum([
-  'PENDING',
-  'PROCESSING',
-  'COMPLETED',
-  'FAILED',
-  'REFUNDED',
-  'CANCELED',
-]);
-
 export const PointTransactionTypeSchema = z.enum([
   'EARN',
   'REDEEM',
@@ -208,14 +190,6 @@ export const UpdateOrderStatusRequestSchema = z.object({
 });
 
 // ============================================
-// Payment Management Schemas
-// ============================================
-
-export const UpdatePaymentStatusRequestSchema = z.object({
-  status: PaymentStatusSchema,
-});
-
-// ============================================
 // Loyalty Management Schemas
 // ============================================
 
@@ -235,8 +209,6 @@ export type LockerStatus = z.infer<typeof LockerStatusSchema>;
 export type BoxStatus = z.infer<typeof BoxStatusSchema>;
 export type OrderType = z.infer<typeof OrderTypeSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
-export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
-export type PaymentStatus = z.infer<typeof PaymentStatusSchema>;
 export type PointTransactionType = z.infer<typeof PointTransactionTypeSchema>;
 export type StampType = z.infer<typeof StampTypeSchema>;
 
@@ -258,6 +230,5 @@ export type UpdateLockerMaintenanceRequest = z.infer<typeof UpdateLockerMaintena
 export type UpdateBoxStatusRequest = z.infer<typeof UpdateBoxStatusRequestSchema>;
 
 export type UpdateOrderStatusRequest = z.infer<typeof UpdateOrderStatusRequestSchema>;
-export type UpdatePaymentStatusRequest = z.infer<typeof UpdatePaymentStatusRequestSchema>;
 
 export type AdjustUserPointsRequest = z.infer<typeof AdjustUserPointsRequestSchema>;

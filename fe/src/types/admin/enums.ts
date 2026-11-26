@@ -86,34 +86,6 @@ export const OrderStatus = {
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 
 // ============================================
-// Payment Method
-// ============================================
-export const PaymentMethod = {
-  CASH: "CASH",
-  WALLET: "WALLET",
-  BANK_TRANSFER: "BANK_TRANSFER",
-  MOMO: "MOMO",
-  VNPAY: "VNPAY",
-  ZALOPAY: "ZALOPAY",
-} as const;
-
-export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
-
-// ============================================
-// Payment Status
-// ============================================
-export const PaymentStatus = {
-  PENDING: "PENDING",
-  PROCESSING: "PROCESSING",
-  COMPLETED: "COMPLETED",
-  FAILED: "FAILED",
-  REFUNDED: "REFUNDED",
-  CANCELED: "CANCELED",
-} as const;
-
-export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
-
-// ============================================
 // Point Transaction Type
 // ============================================
 export const PointTransactionType = {

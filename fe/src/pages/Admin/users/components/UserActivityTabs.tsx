@@ -10,12 +10,9 @@ import {
   orderPaymentStatusMeta,
   orderStatusMeta,
   orderTypeMeta,
-  paymentKindMeta,
   paymentMethodMeta,
   paymentStatusMeta,
   refundStatusMeta,
-  walletSourceMeta,
-  walletTypeMeta,
 } from "~/components/shared/reporting";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Badge } from "~/components/ui/badge";
@@ -26,7 +23,6 @@ import { useGetAllNotificationsQuery } from "~/stores/apis/admin/notifications";
 import { useSearchAdminOrdersQuery } from "~/stores/apis/admin/orders";
 import {
   useGetAdminRefundsQuery,
-  useGetAdminWalletTransactionsQuery,
   useSearchAdminPaymentsQuery,
 } from "~/stores/apis/admin/payments";
 import { extractList } from "~/lib/extract-list";
@@ -37,7 +33,6 @@ import type {
   AdminOrder,
   AdminPayment,
   AdminRefund,
-  AdminWalletTransaction,
 } from "~/types/admin/reporting";
 import type { FeedbackDTO } from "~/types/admin/feedback";
 import type { AssistantConversationView } from "~/stores/apis/admin/knowledge";
@@ -53,7 +48,6 @@ const TAB_IDS = [
   "received",
   "payments",
   "refunds",
-  "wallet",
   "loyalty",
   "feedback",
   "reports",
@@ -195,7 +189,6 @@ function PaymentsPanel({ userId, onOpenPayment }: { userId: number; onOpenPaymen
     page,
     size,
     userId,
-    includeTopups: true,
     sort: NEWEST_FIRST,
   });
   const result = data?.data;
@@ -217,11 +210,6 @@ function PaymentsPanel({ userId, onOpenPayment }: { userId: number; onOpenPaymen
         cell: ({ row }) => (
           <OrderLink id={row.original.order?.id ?? row.original.orderId} code={row.original.order?.orderCode} />
         ),
-      },
-      {
-        id: "kind",
-        header: t("admin.users.activity.type"),
-        cell: ({ row }) => <MetaBadge meta={paymentKindMeta(row.original.kind)} hideIcon />,
       },
       {
         id: "method",
@@ -329,73 +317,6 @@ function RefundsPanel({ userId, onOpenPayment }: { userId: number; onOpenPayment
         data={result?.content ?? []}
         isLoading={isLoading}
         emptyMessage={t("admin.users.activity.emptyRefunds")}
-        serverPagination={pagination(result?.totalElements ?? 0, result?.totalPages ?? 1)}
-      />
-    </Panel>
-  );
-}
-
-function WalletPanel({ userId }: { userId: number }) {
-  const { t } = useTranslation();
-  const { page, size, pagination } = usePaging();
-  const { data, isLoading, error, refetch } = useGetAdminWalletTransactionsQuery({
-    page,
-    size,
-    userId,
-    sort: NEWEST_FIRST,
-  });
-  const result = data?.data;
-
-  const columns = useMemo<ColumnDef<AdminWalletTransaction>[]>(
-    () => [
-      {
-        id: "source",
-        header: t("admin.users.activity.source"),
-        cell: ({ row }) => <MetaBadge meta={walletSourceMeta(row.original.source)} hideIcon />,
-      },
-      {
-        id: "type",
-        header: t("admin.users.activity.type"),
-        cell: ({ row }) => <MetaBadge meta={walletTypeMeta(row.original.type)} hideIcon />,
-      },
-      {
-        id: "amount",
-        header: t("admin.users.activity.amount"),
-        cell: ({ row }) => formatCurrency(row.original.amount),
-      },
-      {
-        id: "balanceAfter",
-        header: t("admin.users.activity.balanceAfter"),
-        cell: ({ row }) => formatCurrency(row.original.balanceAfter),
-      },
-      {
-        id: "order",
-        header: t("common.order"),
-        cell: ({ row }) => <OrderLink id={row.original.relatedOrderId} code={row.original.orderCode} />,
-      },
-      {
-        id: "description",
-        header: t("admin.users.activity.description"),
-        cell: ({ row }) => (
-          <span className="line-clamp-2 max-w-[260px] text-xs">{row.original.description || "—"}</span>
-        ),
-      },
-      {
-        id: "createdAt",
-        header: t("common.time"),
-        cell: ({ row }) => <Time value={row.original.createdAt} />,
-      },
-    ],
-    [t],
-  );
-
-  return (
-    <Panel error={error} onRetry={refetch}>
-      <DataTable
-        columns={columns}
-        data={result?.content ?? []}
-        isLoading={isLoading}
-        emptyMessage={t("admin.users.activity.emptyWallet")}
         serverPagination={pagination(result?.totalElements ?? 0, result?.totalPages ?? 1)}
       />
     </Panel>
@@ -673,7 +594,7 @@ export function UserActivityTabs({ userId }: { userId: number }) {
             <TabsTrigger
               key={id}
               value={id}
-              data-tour={({ orders: "user-tab-orders", payments: "user-tab-payments", wallet: "user-tab-wallet", loyalty: "user-tab-loyalty", assistant: "user-tab-assistant" } as Partial<Record<TabId, string>>)[id]}
+              data-tour={({ orders: "user-tab-orders", payments: "user-tab-payments", loyalty: "user-tab-loyalty", assistant: "user-tab-assistant" } as Partial<Record<TabId, string>>)[id]}
             >
               {t(`admin.users.activity.tabs.${id}`)}
             </TabsTrigger>
@@ -690,9 +611,6 @@ export function UserActivityTabs({ userId }: { userId: number }) {
         </TabsContent>
         <TabsContent value="refunds" className="mt-4">
           <RefundsPanel userId={userId} onOpenPayment={setPaymentId} />
-        </TabsContent>
-        <TabsContent value="wallet" className="mt-4" data-tour="user-panel-wallet">
-          <WalletPanel userId={userId} />
         </TabsContent>
         <TabsContent value="loyalty" className="mt-4">
           <UserLoyaltySection userId={userId} />

@@ -3,6 +3,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { useTranslation } from "react-i18next";
 import { orderStatusMeta } from "~/components/shared/reporting";
 import { ChartPlaceholder } from "./ChartPlaceholder";
+import { formatNumber, formatPercent } from "~/lib/report-format";
 
 interface OrderStatusChartProps {
   /** `byStatus` của /api/admin/dashboard/overview — số đơn theo từng trạng thái. */
@@ -89,7 +90,7 @@ export function OrderStatusChart({ byStatus, isLoading, onStatusClick }: OrderSt
                   <Tooltip
                     formatter={(value) => [
                       t("admin.dashboard.chart.ordersValue", {
-                        value: Number(value).toLocaleString("vi-VN"),
+                        value: formatNumber(Number(value)),
                       }),
                       t("admin.dashboard.orderStatus.quantity"),
                     ]}
@@ -106,7 +107,7 @@ export function OrderStatusChart({ byStatus, isLoading, onStatusClick }: OrderSt
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-[11px] text-muted-foreground font-medium">{t("admin.dashboard.orderStatus.totalOrders")}</span>
                 <span className="text-sm font-bold text-foreground">
-                  {total.toLocaleString("vi-VN")}
+                  {formatNumber(total)}
                 </span>
               </div>
             </div>
@@ -127,7 +128,7 @@ export function OrderStatusChart({ byStatus, isLoading, onStatusClick }: OrderSt
                     <span className="text-muted-foreground truncate">{item.name}</span>
                   </div>
                   <span className="font-semibold text-foreground shrink-0">
-                    {item.value.toLocaleString("vi-VN")} · {item.percentage.toFixed(1)}%
+                    {formatNumber(item.value)} · {formatPercent(item.percentage, 1)}
                   </span>
                 </button>
               ))}

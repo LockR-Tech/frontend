@@ -171,6 +171,8 @@ export interface BatchDeleteReportsRequest {
   reportIds?: number[];
   deleteAll?: boolean;
   category?: 'LOCKER' | 'DRONE' | 'KIOSK' | string;
+  /** Bắt buộc: lý do xoá mềm lưu cùng từng phiếu. */
+  reason: string;
 }
 
 export interface CreateLockerReportRequest {
@@ -917,10 +919,12 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: TAG, id: 'schedules' }],
     }),
 
-    deleteMaintenanceSchedule: builder.mutation<ApiResponse<void>, number>({
-      query: (id) => ({
+    // Xoá mềm lịch bảo trì — backend bắt buộc lý do (DELETE_REASON_REQUIRED).
+    deleteMaintenanceSchedule: builder.mutation<ApiResponse<void>, { id: number; reason: string }>({
+      query: ({ id, reason }) => ({
         url: `/api/admin/lockers/schedules/${id}`,
         method: 'DELETE',
+        params: { reason },
       }),
       invalidatesTags: [{ type: TAG, id: 'schedules' }],
     }),
@@ -1045,11 +1049,12 @@ export const lockerOpsApi = baseApi.injectEndpoints({
       invalidatesTags: [TAG],
     }),
 
-    // Admin xóa một phiếu sự cố
-    deleteReport: builder.mutation<ApiResponse<void>, number>({
-      query: (reportId) => ({
+    // Admin xoá mềm một phiếu sự cố — backend bắt buộc lý do (DELETE_REASON_REQUIRED), ảnh và nhật ký được giữ.
+    deleteReport: builder.mutation<ApiResponse<void>, { reportId: number; reason: string }>({
+      query: ({ reportId, reason }) => ({
         url: `/api/admin/lockers/reports/${reportId}`,
         method: 'DELETE',
+        params: { reason },
       }),
       invalidatesTags: [TAG],
     }),

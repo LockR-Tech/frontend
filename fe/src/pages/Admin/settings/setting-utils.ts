@@ -4,6 +4,7 @@ import type {
   SettingView,
 } from "~/stores/apis/admin/businessSettings";
 import i18n from "~/utils/i18n";
+import { formatDecimal } from "~/lib/report-format";
 
 // Toàn bộ logic kiểm tra / chuẩn hoá / hiển thị giá trị quy tắc nghiệp vụ.
 // Dựa hoàn toàn vào metadata từ API (type, min, max, allowedValues, unit) — không biết trước key nào.
@@ -63,11 +64,16 @@ function parseBound(bound: string | null | undefined): number | null {
 }
 
 export function formatNumber(n: number): string {
-  return n.toLocaleString("vi-VN", { maximumFractionDigits: 10 });
+  return formatDecimal(n, 10);
+}
+
+/** Đơn vị hiển thị: tiền ghi `₫` như mọi chỗ khác của trang quản trị (`VND/giờ` → `₫/giờ`). */
+export function displayUnit(unit: string | null | undefined): string {
+  return (unit ?? "").replace(/^VND/, "₫");
 }
 
 function withUnit(text: string, unit: string | null | undefined): string {
-  return unit ? `${text} ${unit}` : text;
+  return unit ? `${text} ${displayUnit(unit)}` : text;
 }
 
 function checkRange(setting: SettingView, n: number, lowercase = false): string | null {

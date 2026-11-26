@@ -54,12 +54,9 @@ export function tagsForRealtimeMessage(topic: string, message: RealtimeMessage |
         case "ORDER":
           return ORDER_TAGS;
         case "PAYMENT":
-          return ["Payments", "PaymentStats", "Revenue", "WalletTransactions", "Dashboard"];
+          return ["Payments", "PaymentStats", "Revenue", "Dashboard"];
         case "REFUND":
           return ["PaymentRefunds", "Payments", "PaymentStats", "Revenue"];
-        case "WITHDRAWAL":
-        case "WALLET":
-          return ["Wallet", "WalletTransactions", "PaymentStats"];
         case "LOYALTY":
           return ["Loyalty"];
         case "FEEDBACK":

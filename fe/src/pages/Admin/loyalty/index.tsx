@@ -51,6 +51,7 @@ import type {
   LoyaltyTier,
   LoyaltyTransactionScope,
 } from "~/types/admin/loyalty";
+import { formatPercent } from "~/lib/report-format";
 
 const TIERS: LoyaltyTier[] = ["PLATINUM", "GOLD", "SILVER", "BRONZE"];
 
@@ -505,7 +506,7 @@ export default function LoyaltyPage() {
                       {fmtNum(count)}
                     </span>
                     <span className="text-xs text-muted-foreground/70 w-12">
-                      {pct.toFixed(1)}%
+                      {formatPercent(pct, 1)}
                     </span>
                   </button>
                 );

@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useAuth } from "~/context/auth-context";
 import { formatDateTime } from "~/lib/datetime";
 import { HardwareConfigTab } from "./HardwareConfigTab";
+import { getCellStatusLabel, getCellTypeLabel, getLockerStatusLabel } from "~/lib/lockerLayoutHelper";
 import {
   useGetStaffLockersQuery,
   useGetLockerLayoutQuery,
@@ -22,6 +23,7 @@ import {
   type LidAction,
   type LidStatus,
 } from "~/stores/apis/admin/cabinetControl";
+import { UserName } from "~/components/shared/UserName";
 
 // Lưu khoá i18n; dịch lúc render bằng t()
 const ACTION_LABEL_KEYS: Record<string, string> = {
@@ -154,7 +156,7 @@ export default function CabinetControlPage() {
         >
           {lockers.map((l) => (
             <option key={l.id} value={l.id}>
-              {l.code} — {l.name} ({l.status})
+              {l.code} — {l.name} ({getLockerStatusLabel(l.status)})
             </option>
           ))}
         </select>
@@ -190,7 +192,7 @@ export default function CabinetControlPage() {
               <DoorOpen className="h-5 w-5 text-primary" />
               <span className="font-semibold">{t("admin.cabinetControl.box", { n: b.boxNumber })}</span>
               <span className="text-[11px] text-muted-foreground">
-                {b.cellType === "DRONE" ? "Drone" : b.cellType} · {b.status}
+                {getCellTypeLabel(b)} · {getCellStatusLabel(b)}
               </span>
             </button>
           ))}
@@ -269,16 +271,26 @@ function CabinetLogSection({
                 <tr key={log.id} className="border-t border-border align-top">
                   <td className="whitespace-nowrap py-2 pr-3 tabular-nums">{formatDateTime(log.occurredAt)}</td>
                   <td className="py-2 pr-3">
-                    {log.source === "WEB"
-                      ? `Web${log.actorUserId != null ? ` · #${log.actorUserId}` : ""}`
-                      : t("admin.cabinetControl.log.sourceLocker")}
+                    {log.source === "WEB" ? (
+                      <>
+                        {t("admin.cabinetControl.log.sourceWeb")}
+                        {log.actorUserId != null && (
+                          <>
+                            {" · "}
+                            <UserName id={log.actorUserId} className="text-primary hover:underline" />
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      t("admin.cabinetControl.log.sourceLocker")
+                    )}
                   </td>
                   <td className="whitespace-nowrap py-2 pr-3">{ACTION_LABEL_KEYS[log.action] ? t(ACTION_LABEL_KEYS[log.action]) : log.action}</td>
                   <td className="py-2 pr-3">{target(log)}</td>
                   <td className="py-2 pr-3 tabular-nums">{log.revolutions != null ? log.revolutions : "—"}</td>
                   <td className="py-2 pr-3">
                     <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusClass(log.status)}`}>
-                      {log.status}
+                      {t(`admin.cabinetControl.log.status.${log.status?.toLowerCase()}`, { defaultValue: log.status })}
                     </span>
                   </td>
                   <td className="py-2 text-muted-foreground">{log.message ?? ""}</td>

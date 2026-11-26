@@ -13,7 +13,6 @@ import {
 import {
   MetaBadge,
   orderStatusMeta,
-  paymentKindMeta,
   paymentMethodMeta,
   paymentStatusMeta,
 } from "~/components/shared/reporting";
@@ -62,9 +61,11 @@ export function PaymentTable({
               {payment.referenceId ??
                 t("admin.payments.table.transactionId", { id: payment.id })}
             </p>
-            <p className="text-[11px] text-muted-foreground">
-              {paymentKindMeta(payment.kind).label}
-            </p>
+            {payment.referenceId && (
+              <p className="text-[11px] text-muted-foreground">
+                {t("admin.payments.table.transactionId", { id: payment.id })}
+              </p>
+            )}
           </div>
         );
       },
@@ -91,12 +92,6 @@ export function PaymentTable({
       header: t("common.order"),
       cell: ({ row }) => {
         const payment = row.original;
-        // Giao dịch nạp ví không gắn đơn nào (`orderId = 0`).
-        if (payment.kind === "TOPUP") {
-          return (
-            <MetaBadge meta={paymentKindMeta("TOPUP")} hideIcon />
-          );
-        }
         const order = payment.order;
         if (!order) {
           // `order` rỗng nghĩa là order-service không trả lời — nói thẳng thay vì

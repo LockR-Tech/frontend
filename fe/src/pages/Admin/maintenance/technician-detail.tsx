@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
+import { getLockerStatusLabel } from "~/lib/lockerLayoutHelper";
+import { getDroneStatusLabel } from "~/lib/drone-status";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import {
@@ -1314,7 +1316,7 @@ export default function TechnicianDetailPage() {
                             variant="outline"
                             className="text-[10px] font-semibold px-1.5 py-0"
                           >
-                            {drone.status}
+                            {getDroneStatusLabel(drone.status)}
                           </Badge>
                         </div>
                         <div className="text-[11px] text-muted-foreground space-y-1">
@@ -1375,7 +1377,7 @@ export default function TechnicianDetailPage() {
                           variant="outline"
                           className="text-[10px] font-semibold px-1.5 py-0 shrink-0"
                         >
-                          {locker.status}
+                          {getLockerStatusLabel(locker.status)}
                         </Badge>
                       </div>
                       <p className="font-mono text-[11px] text-muted-foreground">

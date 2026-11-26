@@ -52,6 +52,8 @@ import {
   statusMeta,
 } from "./knowledge-utils";
 import { useTranslation } from "react-i18next";
+import { formatNumber } from "~/lib/report-format";
+import { DeleteReasonDialog } from "~/components/shared/data-table";
 
 // Message key — dịch lúc render.
 const PENDING_HINT_KEY = "admin.knowledge.documents.pendingHint";
@@ -119,12 +121,12 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
     );
   }, [documents, search]);
 
-  const confirmPending = async () => {
+  const confirmPending = async (reason?: string) => {
     if (!pending) return;
     const { kind, doc } = pending;
     try {
       if (kind === "delete") {
-        await remove(doc.id).unwrap();
+        await remove({ id: doc.id, reason: reason ?? "" }).unwrap();
         toast.success(t("admin.knowledge.documents.deleted", { title: doc.title }));
       } else {
         await reindex(doc.id).unwrap();
@@ -280,7 +282,7 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
 
       {documents.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          {t("admin.knowledge.documents.footer", { total: counts.chunks.toLocaleString("vi-VN") })}
+          {t("admin.knowledge.documents.footer", { total: formatNumber(counts.chunks) })}
         </p>
       )}
 
@@ -292,24 +294,22 @@ export function DocumentsTab({ assistantStatus }: DocumentsTabProps) {
         onClose={() => setViewOpen(false)}
       />
 
-      <ConfirmActionDialog
+      {/* Xoá mềm tài liệu: bắt buộc lý do (ADR-0009) */}
+      <DeleteReasonDialog
         open={confirmOpen && pending?.kind === "delete"}
         onOpenChange={setConfirmOpen}
         title={t("admin.knowledge.documents.deleteTitle")}
         description={
-          <>
-            <p>
-              {t("admin.knowledge.documents.deleteDescriptionBefore")}{" "}
-              <span className="font-semibold text-foreground">“{pending?.doc.title}”</span>{" "}
-              {t("admin.knowledge.documents.deleteDescriptionAfter")}
-            </p>
-            <p>{t("admin.knowledge.documents.deleteNote")}</p>
-          </>
+          <p>
+            {t("admin.knowledge.documents.deleteDescriptionBefore")}{" "}
+            <span className="font-semibold text-foreground">“{pending?.doc.title}”</span>{" "}
+            {t("admin.knowledge.documents.deleteDescriptionAfter")}
+          </p>
         }
+        note={t("admin.knowledge.documents.deleteNote")}
         actionLabel={t("admin.knowledge.documents.deleteAction")}
-        destructive
         loading={removeState.isLoading}
-        onConfirm={confirmPending}
+        onConfirm={(reason) => void confirmPending(reason)}
       />
 
       <ConfirmActionDialog
