@@ -9,6 +9,7 @@ import type { AuthContextType, User } from "../types";
 import { API_BASE_URL, AUTH_ENDPOINTS } from "../constants/api-paths";
 import { isMockEnabled, mockDelay } from "./mock/mock-data-context";
 import { tourSession } from "~/onboarding/session";
+import { adoptAccountLanguage } from "~/utils/account-language";
 import {
   AuthApiError,
   clearAuthStorage,
@@ -241,6 +242,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       refreshToken: data.refreshToken as string,
       user: normalizedUser,
     });
+    // Ngôn ngữ đi theo tài khoản: đã chọn ở app/web máy khác thì dùng lại (F3-G15).
+    void adoptAccountLanguage();
   };
 
   const cancelAdmin2FA = () => {

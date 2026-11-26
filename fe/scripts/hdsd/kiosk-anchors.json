@@ -49,7 +49,6 @@
   "kiosk-manage-open": ".manage-box-modal .manage-actions button:has-text(\"Mở tủ\")",
   "kiosk-manage-extend": ".manage-box-modal .manage-actions button:has-text(\"Gia hạn thuê\")",
   "kiosk-manage-end": ".manage-box-modal .manage-actions button:has-text(\"Kết thúc thuê\")",
-  "kiosk-manage-delegate": ".manage-box-modal .manage-actions button:has-text(\"Ủy quyền\")",
   "kiosk-manage-report": ".manage-box-modal .manage-actions button:has-text(\"Báo ô lỗi\")",
   "kiosk-manage-close": ".manage-box-modal .close-btn",
 

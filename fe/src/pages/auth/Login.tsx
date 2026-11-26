@@ -303,6 +303,10 @@ export default function LoginPage(): React.JSX.Element {
                 {t("login.portal")}
               </div>
             </div>
+            {/* Màn hẹp không có cột giới thiệu (chứa bộ chọn ngôn ngữ) ⇒ đặt bộ chọn ở đây (F3-G15). */}
+            <div className="ml-auto md:hidden text-muted-foreground">
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <div className="flex-1 flex flex-col justify-center gap-7 py-8 w-full md:max-w-sm">
