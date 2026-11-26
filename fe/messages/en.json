@@ -3511,6 +3511,9 @@
         "selectLocker": "Select a locker with a landing pad…",
         "lockerRequired": "Select a home locker.",
         "noLandingPadHint": "No locker has a landing pad configured — a locker with a landing pad is required before adding a drone.",
+        "technicianLabel": "Assigned technician",
+        "selectTechnician": "Select drone technician (optional)…",
+        "noTechnician": "Unassigned",
         "create": "Create"
       },
       "missionStatus": {

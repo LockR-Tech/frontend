@@ -138,6 +138,24 @@ export default function DronesPage() {
     return m;
   }, [usersQuery.data]);
 
+  const droneTechnicians = useMemo(
+    () =>
+      extractList<{ id: number; fullName?: string; name?: string; status?: string; roles?: string[] }>(usersQuery.data?.data)
+        .filter((u) => {
+          const roles = u.roles ?? [];
+          const isDroneTech =
+            roles.includes("DRONE_TECHNICIAN") ||
+            roles.includes("ROLE_DRONE_TECHNICIAN");
+          const isActive = !u.status || u.status.toUpperCase() === "ACTIVE";
+          return isDroneTech && isActive;
+        })
+        .map((u) => ({
+          id: u.id,
+          name: (u.fullName || u.name || t("admin.lockers.table.technicianId", { id: u.id })).trim(),
+        })),
+    [usersQuery.data, t],
+  );
+
   const drones = useMemo(() => data?.data ?? [], [data]);
   // Drone chỉ đậu được ở Kiosk có bãi đáp
   const landingPadLockers = useMemo(
@@ -532,11 +550,16 @@ export default function DronesPage() {
         open={formOpen}
         onClose={() => setFormOpen(false)}
         lockers={landingPadLockers}
+        technicians={droneTechnicians}
         lockersLoading={lockersQuery.isLoading}
         isSaving={createState.isLoading}
-        onSubmit={async ({ lockerId, code }) => {
+        onSubmit={async ({ lockerId, code, assignedTechnicianId }) => {
           try {
-            await createDrone({ lockerId, code }).unwrap();
+            await createDrone({
+              lockerId,
+              code,
+              ...(assignedTechnicianId != null ? { assignedTechnicianId } : {}),
+            }).unwrap();
             toast.success(t("admin.drones.toast.created", { code }));
             setFormOpen(false);
           } catch (error) {
@@ -584,10 +607,18 @@ interface LockerOption {
   name: string;
 }
 
+interface TechnicianOption {
+  id: number;
+  name: string;
+}
+
+const NO_TECHNICIAN = "NONE";
+
 function DroneFormDialog({
   open,
   onClose,
   lockers,
+  technicians,
   lockersLoading,
   isSaving,
   onSubmit,
@@ -595,19 +626,22 @@ function DroneFormDialog({
   open: boolean;
   onClose: () => void;
   lockers: LockerOption[];
+  technicians: TechnicianOption[];
   lockersLoading: boolean;
   isSaving: boolean;
-  onSubmit: (v: { lockerId: number; code: string }) => void;
+  onSubmit: (v: { lockerId: number; code: string; assignedTechnicianId?: number | null }) => void;
 }) {
   const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [lockerId, setLockerId] = useState<string>("");
+  const [technicianId, setTechnicianId] = useState<string>(NO_TECHNICIAN);
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setCode("");
     setLockerId("");
+    setTechnicianId(NO_TECHNICIAN);
     setTouched(false);
   }, [open]);
 
@@ -615,7 +649,9 @@ function DroneFormDialog({
     setTouched(true);
     const id = Number(lockerId);
     if (!code.trim() || !id) return;
-    onSubmit({ lockerId: id, code: code.trim() });
+    const assignedTechnicianId =
+      technicianId !== NO_TECHNICIAN ? Number(technicianId) : null;
+    onSubmit({ lockerId: id, code: code.trim(), assignedTechnicianId });
   };
 
   return (
@@ -670,6 +706,22 @@ function DroneFormDialog({
                 {t("admin.drones.form.noLandingPadHint")}
               </p>
             )}
+          </div>
+          <div>
+            <Label className="mb-1.5 block text-xs">{t("admin.drones.form.technicianLabel")}</Label>
+            <Select value={technicianId} onValueChange={setTechnicianId}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("admin.drones.form.selectTechnician")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_TECHNICIAN}>{t("admin.drones.form.noTechnician")}</SelectItem>
+                {technicians.map((tech) => (
+                  <SelectItem key={tech.id} value={String(tech.id)}>
+                    {tech.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>
