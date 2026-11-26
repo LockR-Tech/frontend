@@ -10,7 +10,6 @@ import {
   Clock,
   Edit3,
   ExternalLink,
-  KeyRound,
   MapPin,
   Plane,
   Receipt,
@@ -105,7 +104,7 @@ function feeRows(fees: AdminOrderFees) {
     { labelKey: "admin.orders.detail.fees.shippingFee", value: fees.shippingFee },
     { labelKey: "admin.orders.detail.fees.overtimeFee", value: fees.overtimeFee },
     { labelKey: "admin.orders.detail.fees.discount", value: fees.discount, negative: true },
-  ].filter((row) => row.value !== null && row.value !== undefined);
+  ].filter((row) => Number(row.value ?? 0) > 0);
 }
 
 /** Dòng "Điểm thưởng": chỉ hiện khi đơn có dùng điểm (trừ sau voucher). */
@@ -162,6 +161,7 @@ function DetailSkeleton() {
 function CustomerCard({ order }: { order: AdminOrder }) {
   const { t } = useTranslation();
   const { customer, receiver } = order;
+  const isRental = order.type === "RENTAL";
   return (
     <Card data-tour="order-detail-customer">
       <CardHeader className="pb-3">
@@ -174,7 +174,7 @@ function CustomerCard({ order }: { order: AdminOrder }) {
         <div className="space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
             <User className="h-3 w-3" />
-            {t("admin.orders.fields.sender")}
+            {isRental ? t("admin.orders.fields.renter") : t("admin.orders.fields.sender")}
           </p>
           <LabelValue label={t("admin.orders.fields.fullName")}>{customer?.fullName}</LabelValue>
           <LabelValue label={t("common.phoneShort")} mono>
@@ -186,6 +186,9 @@ function CustomerCard({ order }: { order: AdminOrder }) {
           </LabelValue>
         </div>
 
+        {/* Thuê ô không có người nhận: người thuê tự bỏ và lấy đồ. */}
+        {!isRental && (
+        <>
         <Separator />
 
         <div className="space-y-2">
@@ -194,24 +197,34 @@ function CustomerCard({ order }: { order: AdminOrder }) {
             {t("admin.orders.fields.receiver")}
           </p>
           <LabelValue label={t("admin.orders.detail.customer.receiverName")}>{receiver?.name}</LabelValue>
-          <LabelValue label={t("admin.orders.detail.customer.receiverPhone")} mono>
-            {receiver?.phone}
-          </LabelValue>
-          <LabelValue label={t("admin.orders.detail.customer.receiverEmail")}>{receiver?.email}</LabelValue>
+          {receiver?.phone && (
+            <LabelValue label={t("admin.orders.detail.customer.receiverPhone")} mono>
+              {receiver.phone}
+            </LabelValue>
+          )}
+          {receiver?.email && (
+            <LabelValue label={t("admin.orders.detail.customer.receiverEmail")}>{receiver.email}</LabelValue>
+          )}
           {/* Thông tin tài khoản chỉ có khi người nhận đã có tài khoản Lock.R. */}
-          <LabelValue label={t("admin.orders.detail.customer.receiverAccount")}>
-            {receiver?.userId ? (
-              <span>
-                {receiver.accountFullName ??
-                  t("admin.orders.detail.customer.receiverAccountNoName")}
-                {receiver.accountPhoneNumber
-                  ? ` · ${receiver.accountPhoneNumber}`
-                  : ""}
-              </span>
-            ) : null}
-          </LabelValue>
-          <LabelValue label={t("admin.orders.detail.customer.accountEmail")}>{receiver?.accountEmail}</LabelValue>
+          {receiver?.userId ? (
+            <>
+              <LabelValue label={t("admin.orders.detail.customer.receiverAccount")}>
+                <span>
+                  {receiver.accountFullName ??
+                    t("admin.orders.detail.customer.receiverAccountNoName")}
+                  {receiver.accountPhoneNumber
+                    ? ` · ${receiver.accountPhoneNumber}`
+                    : ""}
+                </span>
+              </LabelValue>
+              {receiver.accountEmail && (
+                <LabelValue label={t("admin.orders.detail.customer.accountEmail")}>{receiver.accountEmail}</LabelValue>
+              )}
+            </>
+          ) : null}
         </div>
+        </>
+        )}
       </CardContent>
     </Card>
   );
@@ -224,6 +237,11 @@ function isDroneOrder(order: AdminOrder) {
 
 function droneReceiveBoxNumber(order: AdminOrder) {
   return order.receiveBoxNumber ?? order.reservedBoxNumber ?? order.sendBoxNumber;
+}
+
+/** Ô của đơn gửi hàng / thuê ô (backend đổi cả ba trường khi chuyển ô, nên lấy trường đầu tiên có giá trị). */
+function orderBoxNumber(order: AdminOrder) {
+  return order.sendBoxNumber ?? order.receiveBoxNumber ?? order.reservedBoxNumber;
 }
 
 function DroneLockerCard({ order }: { order: AdminOrder }) {
@@ -267,8 +285,8 @@ function LockerCard({ order }: { order: AdminOrder }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <LabelValue label={t("admin.orders.detail.locker.sendLocker")}>{lockerLabel(locker, t)}</LabelValue>
-        <LabelValue label={t("admin.orders.detail.locker.sendLockerAddress")}>{locker?.address}</LabelValue>
+        <LabelValue label={t("admin.orders.detail.locker.locker")}>{lockerLabel(locker, t)}</LabelValue>
+        <LabelValue label={t("admin.orders.detail.locker.lockerAddress")}>{locker?.address}</LabelValue>
 
         {destinationLocker && (
           <>
@@ -281,23 +299,18 @@ function LockerCard({ order }: { order: AdminOrder }) {
           </>
         )}
 
-        <div className="grid grid-cols-3 gap-2">
-          <LabelValue label={t("admin.orders.detail.locker.sendBox")}>
-            {order.sendBoxNumber !== null
-              ? t("admin.orders.boxNumber", { number: order.sendBoxNumber })
-              : null}
+        {/* Gửi hàng và thuê ô chỉ dùng MỘT ô: người gửi bỏ và người nhận lấy (hoặc người thuê dùng) cùng ô. */}
+        {order.status !== "EXPIRED" && (
+          <LabelValue
+            label={
+              order.type === "RENTAL"
+                ? t("admin.orders.detail.locker.rentalBox")
+                : t("admin.orders.detail.locker.sendBoxSingle")
+            }
+          >
+            {orderBoxNumber(order) !== null ? t("admin.orders.boxNumber", { number: orderBoxNumber(order) }) : null}
           </LabelValue>
-          <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
-            {order.receiveBoxNumber !== null
-              ? t("admin.orders.boxNumber", { number: order.receiveBoxNumber })
-              : null}
-          </LabelValue>
-          <LabelValue label={t("admin.orders.detail.locker.reservedBox")}>
-            {order.reservedBoxNumber !== null
-              ? t("admin.orders.boxNumber", { number: order.reservedBoxNumber })
-              : null}
-          </LabelValue>
-        </div>
+        )}
         {order.status === "EXPIRED" && (
           <div className="space-y-1">
             <p className="text-[11px] text-muted-foreground">
@@ -562,9 +575,17 @@ export default function OrderDetailPage() {
             <ExternalLink className="h-3 w-3 text-red-500 opacity-70" />
           </Link>
         )}
-        {order.overtime && (
+        {/* Đơn đã kết thúc chỉ báo khi thật sự có phí quá hạn (backend cũ gắn cờ theo giờ hiện tại). */}
+        {/* Đơn "Quá hạn" (đồ đã vào kho) đã có nhãn trạng thái riêng nên không lặp lại. */}
+        {order.overtime &&
+          order.status !== "EXPIRED" &&
+          (!["COMPLETED", "CANCELED"].includes(order.status) || Number(order.fees?.overtimeFee ?? order.extraFee ?? 0) > 0) && (
           <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-            {t("admin.orders.detail.overtimeCharged")}
+            {["COMPLETED", "CANCELED"].includes(order.status)
+              ? t("admin.orders.detail.overtime.charged")
+              : order.type === "RENTAL"
+                ? t("admin.orders.detail.overtime.rental")
+                : t("admin.orders.detail.overtime.pickup")}
           </span>
         )}
         <span className="text-xs text-muted-foreground ml-auto font-mono">
@@ -583,47 +604,6 @@ export default function OrderDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start">
         <div className="lg:col-span-2 flex flex-col gap-6">
           <OrderInfoCard order={order} view={extras.view} drone={droneOrder} />
-
-          {/* Mốc thời gian nghiệp vụ */}
-          <Card data-tour="order-detail-milestones">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4" />
-                {t("admin.orders.detail.milestones.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <LabelValue label={t("admin.orders.detail.milestones.created")}>
-                {formatDateTime(order.createdAt)}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.milestones.paid")}>
-                {order.paidAt ? formatDateTime(order.paidAt) : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.milestones.pickupDeadline")}>
-                {order.pickupDeadline ? formatDateTime(order.pickupDeadline) : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.milestones.intendedReceive")}>
-                {order.intendedReceiveAt
-                  ? formatDateTime(order.intendedReceiveAt)
-                  : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.milestones.actualReceive")}>
-                {order.receiveAt ? formatDateTime(order.receiveAt) : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.milestones.completed")}>
-                {order.completedAt ? formatDateTime(order.completedAt) : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.milestones.returned")}>
-                {order.returnedAt ? formatDateTime(order.returnedAt) : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.milestones.lastReminder")}>
-                {order.lastReminderAt ? formatDateTime(order.lastReminderAt) : null}
-              </LabelValue>
-              <LabelValue label={t("admin.orders.detail.updatedAt")}>
-                {order.updatedAt ? formatDateTime(order.updatedAt) : null}
-              </LabelValue>
-            </CardContent>
-          </Card>
 
           {/* Phí */}
           {droneOrder ? (
@@ -654,11 +634,13 @@ export default function OrderDetailPage() {
                     <span>{t("admin.orders.detail.fees.total")}</span>
                     <span className="text-base">{formatCurrency(fees.totalPrice)}</span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    {t("admin.orders.detail.fees.basePrice", {
-                      amount: formatCurrency(fees.basePrice),
-                    })}
-                  </p>
+                  {Number(fees.overtimeFee ?? 0) > 0 && (
+                    <p className="text-[11px] text-muted-foreground">
+                      {t("admin.orders.detail.fees.basePrice", {
+                        amount: formatCurrency(fees.basePrice),
+                      })}
+                    </p>
+                  )}
                 </>
               ) : (
                 <>
@@ -718,52 +700,6 @@ export default function OrderDetailPage() {
             refunds={extras.refunds}
           />
           <DroneCard order={order} parcelDropIncident={parcelDropIncident} droneOrder={droneOrder} />
-
-          {/* Khối này trước đây liệt kê 6 dòng mã số thô (`#701`, `#7`, `#3`) — nhìn vào
-              không biết là tủ nào, cửa hàng nào. Nay hiện tên và số ô mà API chi tiết
-              vốn đã trả về sẵn; chỉ giữ lại mã số ở nơi thật sự không có tên. */}
-          <Card data-tour="order-detail-links">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <KeyRound className="h-4 w-4" />
-                {t("admin.orders.detail.links.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3">
-              <LabelValue label={t("admin.orders.fields.locker")}>
-                {order.locker?.name ?? order.locker?.code}
-              </LabelValue>
-              <LabelValue label={t("common.store")}>{order.store?.name}</LabelValue>
-              {isDroneOrder(order) ? (
-                <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
-                  {droneReceiveBoxNumber(order) !== null
-                    ? t("admin.orders.boxNumberLong", { number: droneReceiveBoxNumber(order) })
-                    : null}
-                </LabelValue>
-              ) : (
-                <>
-                  <LabelValue label={t("admin.orders.detail.locker.sendBox")}>
-                    {order.sendBoxNumber !== null
-                      ? t("admin.orders.boxNumberLong", { number: order.sendBoxNumber })
-                      : null}
-                  </LabelValue>
-                  <LabelValue label={t("admin.orders.detail.locker.receiveBox")}>
-                    {order.receiveBoxNumber !== null
-                      ? t("admin.orders.boxNumberLong", { number: order.receiveBoxNumber })
-                      : null}
-                  </LabelValue>
-                  <LabelValue label={t("admin.orders.detail.locker.reservedBox")}>
-                    {order.reservedBoxNumber !== null
-                      ? t("admin.orders.boxNumberLong", { number: order.reservedBoxNumber })
-                      : null}
-                  </LabelValue>
-                </>
-              )}
-              <LabelValue label={t("admin.orders.detail.links.type")}>
-                {orderTypeMeta(order.type).label}
-              </LabelValue>
-            </CardContent>
-          </Card>
 
           <Card className="border-dashed">
             <CardContent className="p-4 flex items-start gap-2.5">

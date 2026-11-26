@@ -1,14 +1,14 @@
 {
   "image": "hdsd/admin-order-detail-drone.png",
   "width": 1440,
-  "height": 2566,
-  "capturedAt": "2026-11-21",
+  "height": 2218,
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
       "stepId": "admin-order-detail-drone-fees",
       "x": 292,
-      "y": 903,
+      "y": 503,
       "w": 736,
       "h": 143
     },
@@ -16,15 +16,15 @@
       "n": 2,
       "stepId": "admin-order-detail-drone-parcel",
       "x": 292,
-      "y": 1070,
+      "y": 670,
       "w": 736,
-      "h": 373
+      "h": 323
     },
     {
       "n": 3,
       "stepId": "admin-order-detail-drone-pickup",
       "x": 292,
-      "y": 1467,
+      "y": 1016,
       "w": 736,
       "h": 431
     },
@@ -32,7 +32,7 @@
       "n": 4,
       "stepId": "admin-order-detail-drone-locker",
       "x": 1052,
-      "y": 839,
+      "y": 699,
       "w": 356,
       "h": 267
     },
@@ -40,23 +40,15 @@
       "n": 5,
       "stepId": "admin-order-detail-drone-home-code",
       "x": 1077,
-      "y": 1219,
+      "y": 1080,
       "w": 306,
       "h": 51
     },
     {
       "n": 6,
-      "stepId": "admin-order-detail-drone-pay-codes",
-      "x": 1077,
-      "y": 1617,
-      "w": 306,
-      "h": 134
-    },
-    {
-      "n": 7,
       "stepId": "admin-order-detail-drone-flight",
       "x": 1052,
-      "y": 2115,
+      "y": 1766,
       "w": 356,
       "h": 395
     }

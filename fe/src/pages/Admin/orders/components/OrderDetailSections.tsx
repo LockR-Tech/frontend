@@ -10,7 +10,6 @@ import {
   paymentMethodMeta,
   paymentStatusMeta,
   refundStatusMeta,
-  revenueServiceMeta,
 } from "~/components/shared/reporting";
 import { formatDateTime } from "~/lib/datetime";
 import { formatCurrency, formatNumber } from "~/lib/report-format";
@@ -38,7 +37,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Các dòng của khối thông tin chính trên app khách (tủ/ô đã có ở khối "Tủ & ô"). */
+/**
+ * Mốc chính của đơn theo từng loại (tủ/ô ở khối "Tủ & ô", người gửi/nhận ở khối "Khách hàng"):
+ * - Thuê ô: thời gian thuê, hết giờ thuê, lúc bỏ đồ vào ô.
+ * - Gửi hàng: thời gian giữ hàng, hạn người nhận lấy, lúc người gửi bỏ hàng.
+ * - Giao bằng drone: hạn lấy hàng ở tủ nhận, tủ gửi và quãng bay.
+ * Dòng phụ (hẹn nhận, người nhận lấy lúc, hoàn tất, nhắc lấy hàng, địa chỉ giao) chỉ hiện khi có dữ liệu.
+ */
 export function OrderInfoCard({
   order,
   view,
@@ -51,11 +56,17 @@ export function OrderInfoCard({
   const { t } = useTranslation();
   const isRental = order.type === "RENTAL";
   const isDrone = order.type === "DRONE_DELIVERY";
+  const isSend = !isRental && !isDrone;
   const overdue = Number(view?.pickupOvertimeFee ?? 0) > 0;
   const delegated = Boolean(view?.delegatedAt);
-  const receiverLine = [view?.receiverName ?? order.receiverName, view?.receiverPhone ?? order.receiverPhone]
-    .filter(Boolean)
-    .join(" · ");
+  const droppedAt = view?.parcelDroppedAt ?? view?.dropOpenedAt;
+  const intendedReceive = view?.intendedReceiveAt ?? order.intendedReceiveAt;
+  const deliveryAddress = view?.deliveryAddress ?? order.deliveryAddress;
+  const deadlineLabel = isRental
+    ? t("admin.orders.detail.view.rentalEnd")
+    : isDrone
+      ? t("admin.orders.detail.view.droneDeadline")
+      : t("admin.orders.detail.view.sendDeadline");
 
   return (
     <Card data-tour="order-detail-info">
@@ -69,23 +80,38 @@ export function OrderInfoCard({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <LabelValue label={t("admin.orders.detail.view.createdAt")}>{at(order.createdAt)}</LabelValue>
-          {isRental && (
-            <LabelValue label={t("admin.orders.detail.view.rentalHours")}>
-              {order.rentalDurationHours !== null
+          {(isRental || (isSend && order.rentalDurationHours != null)) && (
+            <LabelValue
+              label={isRental ? t("admin.orders.detail.view.rentalHours") : t("admin.orders.detail.view.holdHours")}
+            >
+              {order.rentalDurationHours !== null && order.rentalDurationHours !== undefined
                 ? t("admin.orders.detail.parcel.hours", { hours: formatNumber(order.rentalDurationHours) })
                 : null}
             </LabelValue>
           )}
-          <LabelValue label={t("admin.orders.detail.view.deadline")}>{at(order.pickupDeadline)}</LabelValue>
-          <LabelValue label={t("admin.orders.detail.view.intendedReceive")}>
-            {at(view?.intendedReceiveAt ?? order.intendedReceiveAt)}
-          </LabelValue>
-          <LabelValue label={t("admin.orders.detail.view.droppedAt")}>
-            {at(view?.parcelDroppedAt ?? view?.dropOpenedAt)}
-          </LabelValue>
-          <LabelValue label={t("admin.orders.detail.view.deliveryAddress")}>
-            {view?.deliveryAddress ?? order.deliveryAddress}
-          </LabelValue>
+          <LabelValue label={deadlineLabel}>{at(order.pickupDeadline)}</LabelValue>
+          {!isDrone && (
+            <LabelValue
+              label={isRental ? t("admin.orders.detail.view.rentalDroppedAt") : t("admin.orders.detail.view.sendDroppedAt")}
+            >
+              {at(droppedAt)}
+            </LabelValue>
+          )}
+          {isSend && intendedReceive && (
+            <LabelValue label={t("admin.orders.detail.view.intendedReceive")}>{at(intendedReceive)}</LabelValue>
+          )}
+          {!isRental && order.receiveAt && (
+            <LabelValue label={t("admin.orders.detail.view.receivedAt")}>{at(order.receiveAt)}</LabelValue>
+          )}
+          {order.completedAt && (
+            <LabelValue label={t("admin.orders.detail.view.completedAt")}>{at(order.completedAt)}</LabelValue>
+          )}
+          {order.lastReminderAt && (
+            <LabelValue label={t("admin.orders.detail.view.lastReminder")}>{at(order.lastReminderAt)}</LabelValue>
+          )}
+          {deliveryAddress && (
+            <LabelValue label={t("admin.orders.detail.view.deliveryAddress")}>{deliveryAddress}</LabelValue>
+          )}
         </div>
 
         {overdue && (
@@ -104,20 +130,15 @@ export function OrderInfoCard({
           </div>
         )}
 
-        <Separator />
-        <SectionLabel>{t("admin.orders.fields.receiver")}</SectionLabel>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <LabelValue label={t("admin.orders.detail.view.receiver")}>{receiverLine || null}</LabelValue>
-          <LabelValue label={t("admin.orders.detail.customer.receiverEmail")}>
-            {view?.receiverEmail ?? order.receiver?.email}
-          </LabelValue>
-        </div>
-        {delegated && (
+        {/* Người nhận ở khối "Khách hàng"; ở đây chỉ còn phần ủy quyền lấy hộ (nếu có). */}
+        {!isRental && delegated && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 rounded-lg bg-muted/40 p-3">
             <LabelValue label={t("admin.orders.detail.view.delegate")}>
               {[view?.delegateName, view?.delegatePhone].filter(Boolean).join(" · ") || null}
             </LabelValue>
-            <LabelValue label={t("admin.orders.detail.view.delegateNote")}>{view?.delegateNote}</LabelValue>
+            {view?.delegateNote && (
+              <LabelValue label={t("admin.orders.detail.view.delegateNote")}>{view.delegateNote}</LabelValue>
+            )}
             <LabelValue label={t("admin.orders.detail.view.delegatedAt")}>{at(view?.delegatedAt)}</LabelValue>
           </div>
         )}
@@ -267,7 +288,13 @@ export function PickupCodeCard({
             </div>
           </>
         ) : (
-          <p className="text-xs text-muted-foreground">{t("admin.orders.detail.code.none")}</p>
+          <p className="text-xs text-muted-foreground">
+            {order.status === "EXPIRED"
+              ? t("admin.orders.detail.code.inStorage")
+              : closed
+                ? t("admin.orders.detail.code.revoked")
+                : t("admin.orders.detail.code.none")}
+          </p>
         )}
 
         {order.type === "DRONE_DELIVERY" && (
@@ -377,7 +404,7 @@ export function PaymentFullCard({
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <MetaBadge meta={orderPaymentStatusMeta(order.paymentStatus)} />
-          {order.paymentRequired === false && (
+          {order.paymentRequired === false && !(Number(due ?? 0) > 0) && (
             <span className="text-[11px] text-muted-foreground">{t("admin.orders.detail.payment.noMoreDue")}</span>
           )}
         </div>
@@ -392,15 +419,19 @@ export function PaymentFullCard({
               </span>
             ) : null}
           </LabelValue>
-          <LabelValue label={t("admin.orders.detail.payment.refunded")}>{money(summary?.refundedAmount)}</LabelValue>
+          {Number(summary?.refundedAmount ?? 0) > 0 && (
+            <LabelValue label={t("admin.orders.detail.payment.refunded")}>{money(summary?.refundedAmount)}</LabelValue>
+          )}
           <LabelValue label={t("admin.droneOrders.fields.paidAt")} mono>{at(view?.paidAt ?? order.paidAt)}</LabelValue>
           <LabelValue label={t("admin.orders.detail.payment.paymentCount")}>
             {payments !== null ? formatNumber(list.length) : summary ? formatNumber(summary.paymentCount) : null}
           </LabelValue>
           {/* Bảng danh sách gộp phương thức vào cột trạng thái — chi tiết luôn ghi rõ, kể cả khi không tải được giao dịch. */}
-          <LabelValue label={t("admin.orders.detail.payment.lastMethod")}>
-            {summary?.lastPaidMethod ? paymentMethodMeta(summary.lastPaidMethod).label : null}
-          </LabelValue>
+          {summary?.lastPaidMethod && (
+            <LabelValue label={t("admin.orders.detail.payment.lastMethod")}>
+              {paymentMethodMeta(summary.lastPaidMethod).label}
+            </LabelValue>
+          )}
           {Number(view?.pointsUsed ?? order.pointsUsed ?? 0) > 0 && (
             <LabelValue label={t("admin.orders.detail.fees.pointsDiscount")} className="col-span-2">
               − {formatCurrency(view?.pointsDiscount ?? order.pointsDiscount ?? 0)} (
@@ -409,7 +440,8 @@ export function PaymentFullCard({
           )}
         </div>
 
-        {hasDroneCodes && drone && (
+        {/* Mã thanh toán drone chỉ cần khi không tải được danh sách giao dịch (danh sách đã có đủ mã). */}
+        {hasDroneCodes && drone && (paymentsError || list.length === 0) && (
           <>
             <Separator />
             <DronePaymentCodes drone={drone} />
@@ -468,30 +500,89 @@ export function ParcelRows({ parcel }: { parcel: CustomerOrderParcel | null }) {
     parcel.lengthCm && parcel.widthCm && parcel.heightCm
       ? `${parcel.lengthCm} × ${parcel.widthCm} × ${parcel.heightCm} cm`
       : null;
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-      <LabelValue label={t("admin.orders.detail.parcel.description")} className="col-span-2 md:col-span-3">
-        {parcel.description}
-      </LabelValue>
-      <LabelValue label={t("admin.orders.detail.parcel.category")}>{categoryLabel(parcel.category, t)}</LabelValue>
-      <LabelValue label={t("admin.orders.detail.parcel.weight")}>{weight}</LabelValue>
-      <LabelValue label={t("admin.orders.detail.parcel.size")}>{size}</LabelValue>
-      <LabelValue label={t("admin.orders.detail.parcel.fragile")}>
-        {parcel.fragile === null || parcel.fragile === undefined
+  // Chỉ hiện dòng khách có khai; đơn gửi hàng thường chỉ có mô tả.
+  const rows = [
+    { key: "category", label: t("admin.orders.detail.parcel.category"), value: categoryLabel(parcel.category, t) },
+    { key: "weight", label: t("admin.orders.detail.parcel.weight"), value: weight },
+    { key: "size", label: t("admin.orders.detail.parcel.size"), value: size },
+    {
+      key: "fragile",
+      label: t("admin.orders.detail.parcel.fragile"),
+      value:
+        parcel.fragile === null || parcel.fragile === undefined
           ? null
           : parcel.fragile
             ? t("admin.orders.detail.parcel.fragileYes")
-            : t("admin.orders.detail.parcel.fragileNo")}
-      </LabelValue>
-      <LabelValue label={t("admin.orders.detail.parcel.declaredValue")}>{money(parcel.declaredValue)}</LabelValue>
-      <LabelValue label={t("admin.orders.detail.parcel.prohibitedDeclared")}>{at(parcel.prohibitedItemsDeclaredAt)}</LabelValue>
+            : t("admin.orders.detail.parcel.fragileNo"),
+    },
+    { key: "declaredValue", label: t("admin.orders.detail.parcel.declaredValue"), value: money(parcel.declaredValue) },
+    { key: "prohibited", label: t("admin.orders.detail.parcel.prohibitedDeclared"), value: at(parcel.prohibitedItemsDeclaredAt) },
+  ].filter((row) => row.value);
+  if (!parcel.description && rows.length === 0) return null;
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {parcel.description && (
+        <LabelValue label={t("admin.orders.detail.parcel.description")} className="col-span-2 md:col-span-3">
+          {parcel.description}
+        </LabelValue>
+      )}
+      {rows.map((row) => (
+        <LabelValue key={row.key} label={row.label}>
+          {row.value}
+        </LabelValue>
+      ))}
     </div>
   );
 }
 
-/** "Kiện hàng & ghi chú" cho đơn gửi hàng / thuê ô: khai báo kiện như app khách + dịch vụ + ghi chú. */
+/**
+ * "Kiện hàng & ghi chú" cho đơn gửi hàng / thuê ô: khai báo kiện như app khách, đồ gửi kèm, ghi chú, bước
+ * tiếp theo (khi đơn còn mở), lý do huỷ. Dòng không có dữ liệu thì ẩn; không còn gì thì ẩn cả khối.
+ * Loại dịch vụ không lặp lại ở đây vì đã có ở băng trạng thái.
+ */
 export function ParcelNotesCard({ order, view }: { order: AdminOrder; view: CustomerOrderView | null }) {
   const { t } = useTranslation();
+  const rawParcel = view?.parcel ?? null;
+  const parcel =
+    rawParcel &&
+    (rawParcel.description ||
+      rawParcel.category ||
+      rawParcel.weightGrams != null ||
+      rawParcel.actualWeight != null ||
+      rawParcel.lengthCm ||
+      rawParcel.fragile != null ||
+      rawParcel.declaredValue != null ||
+      rawParcel.prohibitedItemsDeclaredAt)
+      ? rawParcel
+      : null;
+  const customerNote = view?.customerNote ?? order.customerNote;
+  const open = !["COMPLETED", "CANCELED"].includes(order.status);
+  const nextAction =
+    open && order.nextAction && order.nextAction !== "DONE"
+      ? t(
+          order.type === "RENTAL"
+            ? [`admin.orders.nextAction.rental.${order.nextAction}`, `admin.orders.nextAction.${order.nextAction}`]
+            : `admin.orders.nextAction.${order.nextAction}`,
+          { defaultValue: order.nextActionMessage ?? order.nextAction },
+        )
+      : null;
+  const cancelReason =
+    order.cancelReason !== null && order.cancelReason !== undefined
+      ? CANCEL_REASON_LABELS[order.cancelReason]
+        ? t(CANCEL_REASON_LABELS[order.cancelReason])
+        : t("admin.orders.detail.parcel.cancelReasonCode", { code: order.cancelReason })
+      : null;
+  const measured = order.actualWeight !== null && order.actualWeight !== undefined && Number(order.actualWeight) > 0;
+  const lines = order.orderDetails ?? [];
+  const notes = [
+    customerNote ? { key: "customerNote", label: t("admin.orders.detail.parcel.customerNote"), value: customerNote } : null,
+    order.staffNote ? { key: "staffNote", label: t("admin.orders.detail.parcel.staffNote"), value: order.staffNote } : null,
+    nextAction ? { key: "nextAction", label: t("admin.orders.detail.parcel.nextAction"), value: nextAction } : null,
+    cancelReason ? { key: "cancelReason", label: t("admin.orders.detail.parcel.cancelReason"), value: cancelReason } : null,
+  ].filter((row): row is { key: string; label: string; value: string } => row !== null);
+
+  if (!parcel && !measured && lines.length === 0 && notes.length === 0) return null;
+
   return (
     <Card data-tour="order-detail-parcel">
       <CardHeader className="pb-3">
@@ -501,28 +592,19 @@ export function ParcelNotesCard({ order, view }: { order: AdminOrder; view: Cust
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <ParcelRows parcel={view?.parcel ?? null} />
+        {parcel && <ParcelRows parcel={parcel} />}
 
-        {(order.serviceCategory || order.actualWeight !== null) && (
-          <div className="grid grid-cols-2 gap-3">
-            {order.serviceCategory && (
-              <LabelValue label={t("admin.orders.detail.parcel.serviceCategory")}>
-                {revenueServiceMeta(order.serviceCategory).label}
-              </LabelValue>
-            )}
-            {order.actualWeight !== null && (
-              <LabelValue label={t("admin.orders.detail.parcel.measuredWeight")}>
-                {`${formatNumber(order.actualWeight)} ${order.weightUnit ?? ""}`}
-              </LabelValue>
-            )}
-          </div>
+        {measured && (
+          <LabelValue label={t("admin.orders.detail.parcel.measuredWeight")}>
+            {`${formatNumber(order.actualWeight)} ${order.weightUnit ?? ""}`}
+          </LabelValue>
         )}
 
-        {order.orderDetails && order.orderDetails.length > 0 && (
+        {lines.length > 0 && (
           <div className="space-y-2">
             <SectionLabel>{t("admin.orders.detail.parcel.services")}</SectionLabel>
             {/* `price` của dòng đã là thành tiền (đơn giá × số lượng) — không nhân lại. */}
-            {order.orderDetails.map((line, index) => (
+            {lines.map((line, index) => (
               <div
                 key={`${line.serviceId ?? "line"}-${index}`}
                 className="flex items-center justify-between gap-3 rounded-lg bg-muted/30 p-2.5 text-sm"
@@ -541,25 +623,18 @@ export function ParcelNotesCard({ order, view }: { order: AdminOrder; view: Cust
           </div>
         )}
 
-        <Separator />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <LabelValue label={t("admin.orders.detail.parcel.customerNote")}>{view?.customerNote ?? order.customerNote}</LabelValue>
-          <LabelValue label={t("admin.orders.detail.parcel.staffNote")}>{order.staffNote}</LabelValue>
-          <LabelValue label={t("admin.orders.detail.parcel.nextAction")}>
-            {order.nextAction
-              ? t(`admin.orders.nextAction.${order.nextAction}`, {
-                  defaultValue: order.nextActionMessage ?? order.nextAction,
-                })
-              : null}
-          </LabelValue>
-          <LabelValue label={t("admin.orders.detail.parcel.cancelReason")}>
-            {order.cancelReason !== null
-              ? CANCEL_REASON_LABELS[order.cancelReason]
-                ? t(CANCEL_REASON_LABELS[order.cancelReason])
-                : t("admin.orders.detail.parcel.cancelReasonCode", { code: order.cancelReason })
-              : null}
-          </LabelValue>
-        </div>
+        {notes.length > 0 && (
+          <>
+            {(parcel || measured || lines.length > 0) && <Separator />}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {notes.map((row) => (
+                <LabelValue key={row.key} label={row.label}>
+                  {row.value}
+                </LabelValue>
+              ))}
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

@@ -206,7 +206,7 @@
     },
     "admin-order-detail": {
       "title": "Chi tiết đơn – thông tin chính",
-      "summary": "Mã đơn, băng trạng thái, thông tin như app khách, mốc thời gian, phí, kiện hàng và lịch sử trạng thái."
+      "summary": "Mã đơn, băng trạng thái, thông tin đơn theo loại (như app khách), phí, kiện hàng và lịch sử trạng thái."
     },
     "admin-order-detail-side": {
       "title": "Chi tiết đơn – khách, tủ, mã, thanh toán",
@@ -2064,19 +2064,15 @@
     },
     "admin-order-detail-info": {
       "title": "Thông tin đơn",
-      "body": "Đúng các dòng khách thấy trên app: hạn lấy, giờ dự kiến nhận, người nhận, người được uỷ quyền lấy hộ, phí quá hạn, sự cố và các mốc đã qua."
-    },
-    "admin-order-detail-milestones": {
-      "title": "Mốc thời gian",
-      "body": "Giờ tạo, thanh toán, hạn lấy, nhận thực tế, hoàn thành, trả hàng, lần nhắc gần nhất. Ô trống là mốc chưa xảy ra."
+      "body": "Đúng các dòng khách thấy trên app, theo loại đơn: thuê ô có thời gian thuê, hết giờ thuê, lúc bỏ đồ; gửi hàng có thời gian giữ, hạn người nhận lấy, lúc người gửi bỏ hàng; drone có hạn lấy ở tủ nhận, tủ gửi và quãng bay. Dòng phụ (hoàn tất, nhắc lấy hàng…) chỉ hiện khi có, kèm uỷ quyền lấy hộ, phí quá hạn, sự cố và các mốc khách thấy."
     },
     "admin-order-detail-fees": {
       "title": "Chi tiết phí",
-      "body": "Phí gốc, giữ ô, lưu, giao, phí quá hạn, giảm giá, điểm thưởng đã dùng và tổng phải trả; kèm mã khuyến mãi đã áp."
+      "body": "Các khoản thực tính (phí gốc, lưu, giao, phí quá hạn), giảm giá, điểm thưởng đã dùng và tổng phải trả; khoản bằng 0 không hiện. Kèm mã khuyến mãi đã áp."
     },
     "admin-order-detail-parcel": {
       "title": "Kiện hàng & ghi chú",
-      "body": "Khai báo kiện của khách (mô tả, loại, cân nặng, kích thước, giá trị), dịch vụ đã chọn, ghi chú khách / nhân viên, bước tiếp theo và lý do huỷ."
+      "body": "Khai báo kiện của khách, đồ gửi kèm, ghi chú khách / nhân viên, bước tiếp theo (khi đơn còn mở) và lý do huỷ. Đơn không có gì để ghi thì khối này ẩn."
     },
     "admin-order-detail-history": {
       "title": "Lịch sử trạng thái",
@@ -2084,11 +2080,11 @@
     },
     "admin-order-detail-side-customer": {
       "title": "Khách hàng",
-      "body": "Người gửi (tên, SĐT, email, trạng thái tài khoản) và người nhận; người nhận có tài khoản Lock.R thì hiện thêm tài khoản đó."
+      "body": "Người gửi (đơn thuê ô: người thuê) — tên, SĐT, email, trạng thái tài khoản — và người nhận (không có ở đơn thuê ô); người nhận có tài khoản Lock.R thì hiện thêm tài khoản đó."
     },
     "admin-order-detail-side-locker": {
       "title": "Tủ & ô",
-      "body": "Tủ gửi / tủ đích, địa chỉ, ô gửi – nhận – giữ chỗ, cửa hàng và SĐT liên hệ. Đơn quá hạn có giờ dời vào kho và liên kết \"Xem danh sách đồ lưu kho\"; đơn đã trao ở quầy có \"Biên bản trao trả\"."
+      "body": "Tủ, địa chỉ và ô của đơn: đơn gửi hàng chỉ một ô (người gửi bỏ, người nhận lấy cùng ô), đơn thuê ô là ô đang thuê; cửa hàng và SĐT liên hệ. Đơn quá hạn có giờ dời vào kho và liên kết \"Xem danh sách đồ lưu kho\"; đơn đã trao ở quầy có \"Biên bản trao trả\"."
     },
     "admin-order-detail-side-code": {
       "title": "Mã lấy hàng",
@@ -2105,10 +2101,6 @@
     "admin-order-detail-side-refunds": {
       "title": "Hoàn tiền của đơn",
       "body": "Từng phiếu hoàn: số tiền, trạng thái, lý do, mã giao dịch, giờ yêu cầu và giờ xử lý. Duyệt phiếu ở trang Hoàn tiền."
-    },
-    "admin-order-detail-side-links": {
-      "title": "Tóm tắt liên kết",
-      "body": "Tên tủ, cửa hàng, số ô và loại đơn gọn một chỗ. Mọi giờ trên trang theo giờ Việt Nam, giống app khách."
     },
     "admin-order-detail-drone-fees": {
       "title": "Phí đơn drone",

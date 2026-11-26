@@ -171,7 +171,7 @@ export default function RevenueDetailPage() {
       ),
     }),
     columnHelper.accessor("completedAt", {
-      header: t("admin.orders.detail.milestones.completed"),
+      header: t("admin.orders.detail.view.completedAt"),
       cell: ({ row }) => (
         <p className="font-mono text-xs whitespace-nowrap text-muted-foreground">
           {row.original.completedAt

@@ -617,7 +617,8 @@
         "sender": "Người gửi",
         "receiver": "Người nhận",
         "fullName": "Họ tên",
-        "accountStatus": "Trạng thái tài khoản"
+        "accountStatus": "Trạng thái tài khoản",
+        "renter": "Người thuê"
       },
       "sort": {
         "createdDesc": "Mới tạo trước",
@@ -667,7 +668,6 @@
         "invalidId": "Mã đơn không hợp lệ",
         "backToList": "Về danh sách đơn",
         "idCreated": "ID #{{id}} · tạo {{time}}",
-        "overtimeCharged": "Đơn bị tính phí quá hạn",
         "updatedAtTime": "Cập nhật {{time}}",
         "updatedAt": "Cập nhật",
         "statusHistory": "Lịch sử trạng thái",
@@ -696,7 +696,11 @@
           "qrCode": "Mã QR",
           "receiveLocker": "Tủ nhận",
           "receiveLockerAddress": "Địa chỉ tủ nhận",
-          "droneNoSendBox": "Đơn drone chỉ giao vào tủ nhận nên không có ô gửi — drone bay từ tủ xuất phát do hệ thống chọn (xem khối Drone)."
+          "droneNoSendBox": "Đơn drone chỉ giao vào tủ nhận nên không có ô gửi — drone bay từ tủ xuất phát do hệ thống chọn (xem khối Drone).",
+          "locker": "Tủ",
+          "lockerAddress": "Địa chỉ tủ",
+          "rentalBox": "Ô thuê",
+          "sendBoxSingle": "Ô gửi hàng"
         },
         "payment": {
           "lastMethod": "Phương thức gần nhất",
@@ -733,17 +737,6 @@
           "launching": "Bắt đầu cất cánh",
           "missionCreated": "Tạo nhiệm vụ"
         },
-        "milestones": {
-          "title": "Mốc thời gian",
-          "created": "Tạo đơn",
-          "paid": "Thanh toán",
-          "pickupDeadline": "Hạn lấy hàng",
-          "intendedReceive": "Hẹn nhận",
-          "actualReceive": "Nhận thực tế",
-          "completed": "Hoàn thành",
-          "returned": "Trả lại",
-          "lastReminder": "Nhắc lần cuối"
-        },
         "fees": {
           "title": "Chi tiết phí",
           "originalPrice": "Giá gốc",
@@ -773,7 +766,6 @@
         },
         "parcel": {
           "title": "Kiện hàng & ghi chú",
-          "serviceCategory": "Nhóm dịch vụ",
           "declaredWeight": "Khối lượng khai báo",
           "measuredWeight": "Khối lượng cân",
           "rentalHours": "Số giờ thuê",
@@ -798,18 +790,12 @@
           "prohibitedDeclared": "Cam kết không hàng cấm",
           "services": "Dịch vụ"
         },
-        "links": {
-          "title": "Tóm tắt liên kết",
-          "type": "Loại hình"
-        },
         "view": {
           "title": "Thông tin đơn",
           "subtitle": "Đúng các dòng khách thấy ở màn \"Chi tiết đơn\" trên app.",
           "createdAt": "Ngày đặt",
           "rentalHours": "Thời gian thuê",
-          "deadline": "Hạn lấy / hạn thuê",
           "intendedReceive": "Dự kiến người nhận lấy",
-          "droppedAt": "Bỏ kiện vào ô / KTV nhận kiện lúc",
           "deliveryAddress": "Địa chỉ giao",
           "overtimeFee": "Phí quá giờ tạm tính",
           "overtimeRate": "Đơn giá quá giờ",
@@ -823,7 +809,6 @@
             "OVERTIME_FEE_UNPAID": "Chặn — chưa nộp phí quá giờ",
             "BOX_INCIDENT_OPEN": "Chặn — ô đang báo sự cố, chờ KTV"
           },
-          "receiver": "Người nhận",
           "delegate": "Ủy quyền lấy hộ cho",
           "delegateNote": "Lời nhắn ủy quyền",
           "delegatedAt": "Ủy quyền lúc",
@@ -834,7 +819,16 @@
           "failed": "Giao không hoàn tất",
           "parcelReturned": "Đã trả kiện cho người gửi",
           "boxIncident": "Ô báo sự cố từ",
-          "milestones": "Mốc thời gian khách thấy"
+          "milestones": "Mốc thời gian khách thấy",
+          "rentalEnd": "Hết giờ thuê",
+          "sendDeadline": "Hạn người nhận lấy",
+          "droneDeadline": "Hạn lấy hàng tại tủ nhận",
+          "holdHours": "Thời gian giữ hàng",
+          "rentalDroppedAt": "Bỏ đồ vào ô lúc",
+          "sendDroppedAt": "Người gửi bỏ hàng lúc",
+          "receivedAt": "Người nhận lấy hàng lúc",
+          "completedAt": "Hoàn tất lúc",
+          "lastReminder": "Nhắc lấy hàng gần nhất"
         },
         "code": {
           "title": "Mã lấy hàng",
@@ -849,7 +843,9 @@
           "qrSigned": "Đúng mã QR khách quét trên app",
           "none": "Chưa phát mã mở ô cho đơn này.",
           "homePickup": "Mã lấy hàng tận nơi (người gửi đọc cho KTV)",
-          "homePickupUsed": "Đã dùng — KTV đã nhận kiện hoặc đơn đã kết thúc"
+          "homePickupUsed": "Đã dùng — KTV đã nhận kiện hoặc đơn đã kết thúc",
+          "revoked": "Đơn đã kết thúc — mã mở ô đã được thu hồi.",
+          "inStorage": "Đồ đã chuyển vào kho — trao trả tại quầy, không dùng mã mở ô."
         },
         "extra": {
           "incidentStatus": {
@@ -867,6 +863,11 @@
           "dropIncidentWithCode": "Sự cố rơi ({{code}}): {{status}}",
           "dropIncidentTitle": "Sự cố rơi {{code}} - Nhấp để xem chi tiết",
           "dropIncident": "Sự cố rơi: {{status}}"
+        },
+        "overtime": {
+          "charged": "Có thu phí quá hạn",
+          "rental": "Quá giờ thuê — đang tính phí",
+          "pickup": "Quá hạn lấy hàng — đang tính phí"
         }
       },
       "location": {
@@ -893,7 +894,11 @@
         "DROP_PARCEL_FOR_DRONE": "Khách bỏ kiện vào ô drone ở tủ gửi và xác nhận",
         "PAY_BEFORE_PICKUP": "Thanh toán phí giao drone trước khi mở ô lấy hàng",
         "INCIDENT_IN_PROGRESS": "Đang xử lý sự cố giao hàng; theo dõi ở mục sự cố",
-        "UNKNOWN": "Chưa xác định"
+        "UNKNOWN": "Chưa xác định",
+        "rental": {
+          "PICKUP": "Người thuê dùng ô, lấy đồ và kết thúc thuê",
+          "PAY_AND_DROP": "Người thuê thanh toán và cất đồ vào ô"
+        }
       }
     },
     "storage": {

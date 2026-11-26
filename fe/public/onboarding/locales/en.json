@@ -206,7 +206,7 @@
     },
     "admin-order-detail": {
       "title": "Order details – main information",
-      "summary": "Order code, status strip, the customer-app view, milestones, fees, parcel and status history."
+      "summary": "Order code, status strip, order information by type (as in the customer app), fees, parcel and status history."
     },
     "admin-order-detail-side": {
       "title": "Order details – customer, locker, code, payment",
@@ -2064,19 +2064,15 @@
     },
     "admin-order-detail-info": {
       "title": "Order information",
-      "body": "The same rows the customer sees in the app: pickup deadline, expected pickup, recipient, delegate, overtime fee, incidents and past milestones."
-    },
-    "admin-order-detail-milestones": {
-      "title": "Milestones",
-      "body": "Created, paid, pickup deadline, actual pickup, completed, returned and last reminder. An empty cell means it has not happened yet."
+      "body": "The same rows the customer sees in the app, by order type: rentals show rental hours, rental end and when items were placed; deliveries show hold time, the receiver pickup deadline and when the sender dropped off; drone orders show the pickup deadline at the receiving locker, the sending locker and flight distance. Extra rows (completed, last reminder…) appear only when set, plus delegate, overdue fee, incidents and customer milestones."
     },
     "admin-order-detail-fees": {
       "title": "Fee breakdown",
-      "body": "Original price, reservation, storage, shipping, overtime fee, discount, loyalty points used and the total; plus the promotion codes applied."
+      "body": "Charges actually applied (original price, storage, shipping, overdue fee), discount, loyalty points used and the total; zero amounts are hidden. Plus the promotion codes applied."
     },
     "admin-order-detail-parcel": {
       "title": "Parcel & notes",
-      "body": "The customer's parcel declaration (description, category, weight, size, value), chosen services, customer / staff notes, next action and cancel reason."
+      "body": "The customer's parcel declaration, extra items, customer / staff notes, next action (while the order is open) and cancel reason. Hidden when there is nothing to show."
     },
     "admin-order-detail-history": {
       "title": "Status history",
@@ -2084,11 +2080,11 @@
     },
     "admin-order-detail-side-customer": {
       "title": "Customer",
-      "body": "The sender (name, phone, email, account status) and the recipient; if the recipient has a Lock.R account, that account is shown too."
+      "body": "The sender (renter for rentals) — name, phone, email, account status — and the recipient (not for rentals); if the recipient has a Lock.R account, that account is shown too."
     },
     "admin-order-detail-side-locker": {
       "title": "Locker & box",
-      "body": "Send / destination locker, address, send – receive – reserved box, store and contact phone. Expired orders show when the item went to storage plus \"Open stored items list\"; handed-over orders show the \"Handover record\"."
+      "body": "The locker, address and box of the order: deliveries use one box (the sender drops off and the receiver picks up from the same box), rentals show the rented box; plus store and contact phone. Expired orders show when the item went to storage plus \"Open stored items list\"; handed-over orders show the \"Handover record\"."
     },
     "admin-order-detail-side-code": {
       "title": "Pickup code",
@@ -2105,10 +2101,6 @@
     "admin-order-detail-side-refunds": {
       "title": "Order refunds",
       "body": "Each refund ticket: amount, status, reason, transaction id, request and processing time. Tickets are approved on the Refunds page."
-    },
-    "admin-order-detail-side-links": {
-      "title": "Links summary",
-      "body": "Locker, store, box numbers and order type in one place. All times on the page are Vietnam time, as in the customer app."
     },
     "admin-order-detail-drone-fees": {
       "title": "Drone order fees",
