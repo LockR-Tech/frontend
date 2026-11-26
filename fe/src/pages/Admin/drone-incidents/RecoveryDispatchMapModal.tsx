@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { BaseTileLayer } from "~/components/shared/map/BaseTileLayer";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -6,7 +7,6 @@ import {
   MapContainer,
   Marker,
   Popup,
-  TileLayer,
   Tooltip,
   useMap,
 } from "react-leaflet";
@@ -631,10 +631,7 @@ export function RecoveryDispatchMapModal({
               zoom={14}
               style={{ width: "100%", height: "100%" }}
             >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
+              <BaseTileLayer />
 
               {/* Tự động canh góc nhìn bao gồm điểm rơi & các KTV */}
               <MapAutoBounds

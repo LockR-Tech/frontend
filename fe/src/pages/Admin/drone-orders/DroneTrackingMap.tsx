@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { BaseTileLayer } from "~/components/shared/map/BaseTileLayer";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, Marker, Polyline, TileLayer, Tooltip } from "react-leaflet";
+import { MapContainer, Marker, Polyline, Tooltip } from "react-leaflet";
 import { useTranslation } from "react-i18next";
 import { deliveryStageMeta } from "~/components/shared/reporting";
 import { formatTime } from "~/lib/datetime";
@@ -120,10 +121,7 @@ export function DroneTrackingMap({
           scrollWheelZoom={false}
           className="h-full w-full"
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          <BaseTileLayer />
           <Polyline positions={[a, b]} pathOptions={{ color: "#94a3b8", weight: 3, dashArray: "8 6" }} />
           {isDrop && dropPoint ? (
             <Polyline positions={[a, dropPoint]} pathOptions={{ color: "#dc2626", weight: 4 }} />

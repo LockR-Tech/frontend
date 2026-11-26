@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useMapPointDialog } from "~/components/shared/map/MapPointView";
 import { ActionLogPanel } from "~/pages/Admin/audit-logs/components/ActionLogPanel";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -729,6 +730,8 @@ export default function LockerLayoutPage() {
   // KTV phụ trách tủ: phiếu mới của tủ chỉ gửi cho người này; chưa gán ⇒ báo mọi KTV tủ
   const { data: staffLockerData, refetch: refetchStaffLocker } = useGetStaffLockerQuery(id, { skip: !Number.isFinite(id) });
   const staffLocker = staffLockerData?.data;
+  // Xem vị trí tủ trên bản đồ ngay trong web (F3-G16).
+  const { openMap, dialog: mapDialog } = useMapPointDialog();
   const [assignLockerTechnician, { isLoading: savingTechnician }] = useAssignLockerTechnicianMutation();
   const { data: usersData } = useGetAllUsersQuery(TECHNICIAN_USERS_QUERY);
   const lockerTechnicians = useMemo(
@@ -1849,11 +1852,14 @@ export default function LockerLayoutPage() {
                   variant="outline"
                   className="h-9 w-9 text-muted-foreground hover:text-foreground"
                   title={t("admin.lockers.tools.layout.openGoogleMaps")}
-                  onClick={() => window.open(`https://www.google.com/maps?q=${staffLocker.latitude},${staffLocker.longitude}`, "_blank")}
+                  onClick={() =>
+                    openMap({ lat: staffLocker.latitude!, lng: staffLocker.longitude!, title: staffLocker.name })
+                  }
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <MapPin className="w-3.5 h-3.5" />
                 </Button>
               )}
+              {mapDialog}
               <Button
                 size="sm"
                 variant="outline"

@@ -74,7 +74,9 @@
       "copy": "Copy coordinates",
       "copied": "Copied {{value}}",
       "copyFailed": "Copy failed — select and copy manually",
-      "openMap": "Open this point in Google Maps"
+      "openMap": "View on the map",
+      "mapTitle": "Location on the map",
+      "openGoogleMaps": "Open in Google Maps (directions)"
     },
     "loading": "Loading...",
     "noData": "No data",
@@ -2014,7 +2016,7 @@
           "located": "Located",
           "noGps": "No GPS",
           "noAddress": "No specific address set",
-          "openGoogleMaps": "Open Google Maps",
+          "openGoogleMaps": "View the locker on the map",
           "editMap": "Edit on Map",
           "pickOnMap": "Pick on Map"
         },
@@ -3331,7 +3333,7 @@
         "address": "Pickup address",
         "note": "Sender instructions",
         "technicianNote": "Technician notes",
-        "openMap": "Open map",
+        "openMap": "view on the map",
         "toSourceLocker": "Distance to source locker",
         "technician": "Pickup technician",
         "technicianDistance": "{{distance}} from pickup",
@@ -4896,7 +4898,20 @@
       }
     },
     "preferences": {
-      "businessSettingsHelp": "System prices, fees, time limits, SLAs and limits"
+      "businessSettingsHelp": "System prices, fees, time limits, SLAs and limits",
+      "mapCache": {
+        "title": "Map cache",
+        "help": "Map tiles you have viewed are kept for 30 days in this browser so maps open without reloading.",
+        "summary": "{{tiles}} tiles · {{size}} · since {{since}}",
+        "empty": "No map tiles saved yet.",
+        "loading": "Reading size…",
+        "notReady": "The map cache turns on after the page reloads.",
+        "unsupported": "This browser cannot cache maps.",
+        "clear": "Clear cache",
+        "clearing": "Clearing…",
+        "cleared": "Map cache cleared",
+        "clearFailed": "Could not clear the map cache"
+      }
     },
     "maintenance": {
       "schedules": {
@@ -5845,7 +5860,7 @@
           "accuracy": "Accuracy:",
           "meters": "±{{value}} m",
           "updatedAt": "Updated at:",
-          "openMaps": "Open in Google Maps",
+          "openMaps": "View on the map",
           "waitingGps": "Waiting for the technician to send GPS coordinates...",
           "noGps": "No GPS location data yet",
           "hint": "The location updates when the technician starts a shift in the mobile app."

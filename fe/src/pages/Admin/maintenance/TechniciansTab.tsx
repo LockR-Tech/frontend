@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
+import { useMapPointDialog } from "~/components/shared/map/MapPointView";
 import { CardFilterChip } from "~/components/shared/card-filter-chip";
 import { scrollToList } from "~/lib/scroll-to-list";
 import { useNavigate } from "react-router-dom";
@@ -78,6 +79,7 @@ function TechnicianPerformanceSync({
 export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { openMap, dialog: mapDialog } = useMapPointDialog();
   const [searchQuery, setSearchQuery] = useState("");
   // Đình chỉ chặn đăng nhập và thu hồi phiên của KTV ⇒ luôn hỏi lại; mở khoá thì làm ngay.
   const [suspendTarget, setSuspendTarget] = useState<TechnicianSummary | null>(null);
@@ -406,6 +408,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
 
   return (
     <div className="space-y-6">
+      {mapDialog}
       {technicians.map((t) => (
         <TechnicianPerformanceSync key={t.id} techId={t.id} onData={handlePerf} />
       ))}
@@ -768,12 +771,13 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                           </div>
 
                           {presence?.latitude != null && presence?.longitude != null ? (
-                            <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${presence.latitude},${presence.longitude}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="pt-1.5 border-t border-border/40 flex items-start gap-1.5 text-[11px] text-sky-700 hover:text-sky-800 hover:underline group cursor-pointer"
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openMap({ lat: presence.latitude!, lng: presence.longitude! });
+                              }}
+                              className="w-full text-left pt-1.5 border-t border-border/40 flex items-start gap-1.5 text-[11px] text-sky-700 hover:text-sky-800 hover:underline group cursor-pointer"
                               title={
                                 presence.lastLocatedAt
                                   ? t("admin.maintenance.ui.shift.coordsUpdated", {
@@ -788,7 +792,7 @@ export function TechniciansTab({ onAssignToTech }: TechniciansTabProps) {
                               <span className="font-mono text-[11px] font-medium text-sky-700 hover:text-sky-800 dark:text-sky-400">
                                 {presence.latitude.toFixed(6)}, {presence.longitude.toFixed(6)}
                               </span>
-                            </a>
+                            </button>
                           ) : (
                             <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground flex items-center gap-1.5">
                               <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />

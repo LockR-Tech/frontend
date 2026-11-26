@@ -3,3 +3,7 @@
 /onboarding/*
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=300
+
+# Service worker lưu ô bản đồ (F3-G16): luôn hỏi lại bản mới để sửa lỗi lan tới trình duyệt ngay.
+/map-tiles-sw.js
+  Cache-Control: no-cache

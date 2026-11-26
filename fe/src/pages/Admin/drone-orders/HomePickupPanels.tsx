@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMapPointDialog } from "~/components/shared/map/MapPointView";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Loader2, TriangleAlert, UserCheck } from "lucide-react";
@@ -95,13 +96,14 @@ export function IncidentBlockBanner({ order }: { order: DroneOrderTracking }) {
 /** Lấy hàng tận nhà: điểm lấy, trạng thái, KTV; admin gán tay khi chưa ai cầm kiện. */
 export function PickupPanel({ order }: { order: DroneOrderTracking }) {
   const { t } = useTranslation();
+  const { openMap, dialog: mapDialog } = useMapPointDialog();
   const pickup = order.pickup;
   if (!pickup) return null;
   const status = pickup.status ?? (order.paymentStatus === "PAID" ? "SEARCHING" : "AWAITING_PAYMENT");
   const assignable = canAssignPickup(order, pickup);
-  const mapsLink =
+  const pickupPoint =
     pickup.latitude != null && pickup.longitude != null
-      ? `https://www.google.com/maps/search/?api=1&query=${pickup.latitude},${pickup.longitude}`
+      ? { lat: pickup.latitude, lng: pickup.longitude, title: pickup.address ?? undefined }
       : null;
 
   return (
@@ -112,12 +114,13 @@ export function PickupPanel({ order }: { order: DroneOrderTracking }) {
         </LabelValue>
         <LabelValue label={t("admin.droneOrders.pickup.address")} className="col-span-2">
           {pickup.address}
-          {mapsLink ? (
+          {pickupPoint ? (
             <>
               {" · "}
-              <a href={mapsLink} target="_blank" rel="noreferrer" className="underline underline-offset-2">
+              <button type="button" onClick={() => openMap(pickupPoint)} className="underline underline-offset-2">
                 {t("admin.droneOrders.pickup.openMap")}
-              </a>
+              </button>
+              {mapDialog}
             </>
           ) : null}
         </LabelValue>

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { BaseTileLayer } from "~/components/shared/map/BaseTileLayer";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, useMap, useMapEvents } from "react-leaflet";
 import {
   MapPin,
   Search,
@@ -622,10 +623,7 @@ export function LockerLocationModal({ locker, open, onOpenChange, onSuccess }: P
             style={{ width: "100%", height: "100%" }}
             zoomControl={false}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            <BaseTileLayer />
 
             <MapEventHandler
               onCenterChange={(lat, lng) => handleCoordsChange(lat, lng, true)}
