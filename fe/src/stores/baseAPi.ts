@@ -68,7 +68,6 @@ export const baseApi = createApi({
     "NotificationStats", // Stats của notifications
     "NotificationTemplates", // Templates của notifications
     "Promotions", // Quản lý khuyến mãi
-    "Wallet", // Ví nội bộ / điều chỉnh số dư
     "Drones", // Đội drone giao/nhận gắn bãi đáp tủ
     "DroneOrders", // Hành trình giao hàng bằng drone (admin theo dõi)
     "DroneIncidents", // Sự cố rơi kiện, thu hồi và phương án xử lý
@@ -76,7 +75,6 @@ export const baseApi = createApi({
     "BusinessSettings", // Quy tắc nghiệp vụ theo scope (ADR-0005)
     "BusinessSettingAudits", // Lịch sử thay đổi quy tắc nghiệp vụ
     "PaymentRefunds", // Hoàn tiền (báo cáo admin)
-    "WalletTransactions", // Biến động ví của mọi khách (báo cáo admin)
     "PaymentStats", // Thống kê giao dịch có so sánh kỳ trước
     "Revenue", // Doanh thu theo tiền thực thu
     "KnowledgeDocuments", // Kho tri thức của trợ lý hỏi đáp (assistant-service)

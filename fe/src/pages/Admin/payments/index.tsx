@@ -1,19 +1,16 @@
 import { useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, RotateCcw, TrendingUp } from "lucide-react";
 import { PageHeader } from "~/components/shared/page-header";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { TableToolbar } from "~/components/shared/data-table";
 import { ReportErrorState } from "~/components/shared/reporting";
 import { PaymentTable } from "./components/PaymentTable";
 import { PaymentFilters } from "./components/PaymentFilters";
 import { PaymentStats } from "./components/PaymentStats";
 import { PaymentDetailModal } from "./components/PaymentDetailModal";
-import { WalletTransactionTab } from "./components/WalletTransactionTab";
-import { WithdrawalTab } from "./components/WithdrawalTab";
 import {
   RevenueEntriesModal,
   type RevenueEntriesTarget,
@@ -22,8 +19,6 @@ import { usePayments } from "./hooks/usePayments";
 import { formatNumber } from "~/lib/report-format";
 
 export default function PaymentsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") ?? "payments";
   const {
     payments,
     isLoading,
@@ -57,7 +52,7 @@ export default function PaymentsPage() {
   // Tô sáng thẻ khi bảng đang lọc đúng khoảng ngày và đúng một giá trị của thẻ đó.
   const matchesStatsRange = filters.from === statsRange.from && filters.to === statsRange.to;
   const selectedStat =
-    tab === "payments" && matchesStatsRange && filters.status.length <= 1 && filters.method.length <= 1
+    matchesStatsRange && filters.status.length <= 1 && filters.method.length <= 1
       ? { status: filters.status[0], method: filters.method[0] }
       : null;
 
@@ -72,7 +67,7 @@ export default function PaymentsPage() {
           <Link to="/admin/refunds">
             <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
               <RotateCcw className="w-3.5 h-3.5" />
-              {t("admin.sidebar.refunds", "Hoàn tiền")}
+              {t("admin.sidebar.refunds")}
             </Button>
           </Link>
           <Link to="/admin/revenue">
@@ -102,50 +97,33 @@ export default function PaymentsPage() {
 
       <Card ref={tableRef} className="scroll-mt-20 border-0 shadow-sm">
         <CardContent className="p-6">
-          <Tabs value={tab} onValueChange={value => {
-            const next = new URLSearchParams(searchParams);
-            next.set("tab", value);
-            setSearchParams(next);
-          }}>
-            <TabsList className="mb-4" data-tour="payments-tabs">
-              <TabsTrigger value="payments" className="text-xs px-4" data-tour="payments-tab-transactions">
-                {t("admin.payments.tabs.transactions")}
-              </TabsTrigger>
-              <TabsTrigger value="wallet" className="text-xs px-4" data-tour="payments-tab-wallet">
-                {t("admin.payments.tabs.wallet")}
-              </TabsTrigger>
-              <TabsTrigger value="withdrawals" className="text-xs px-4" data-tour="payments-tab-withdrawals">
-                {t("admin.payments.tabs.withdrawals")}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="payments" className="mt-0 space-y-4">
-              <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
-                <PaymentFilters
-                  filters={filters}
-                  onFilterChange={setFilter}
-                  onDateRangeChange={setDateRange}
+          <div className="space-y-4">
+            <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
+              <PaymentFilters
+                filters={filters}
+                onFilterChange={setFilter}
+                onDateRangeChange={setDateRange}
+              />
+              <div data-tour="payments-toolbar">
+                <TableToolbar
+                  onRefresh={refetch}
+                  onClearFilters={clearFilters}
+                  canClearFilters={hasActiveFilters}
                 />
-                <div data-tour="payments-toolbar">
-                  <TableToolbar
-                    onRefresh={refetch}
-                    onClearFilters={clearFilters}
-                    canClearFilters={hasActiveFilters}
-                  />
-                </div>
               </div>
+            </div>
 
-              <p className="text-xs text-muted-foreground">
-                {isFetching
-                  ? t("common.loadingEllipsis")
-                  : t("admin.payments.matchCount", {
-                      total: formatNumber(totalElements),
-                    })}
-              </p>
+            <p className="text-xs text-muted-foreground">
+              {isFetching
+                ? t("common.loadingEllipsis")
+                : t("admin.payments.matchCount", {
+                    total: formatNumber(totalElements),
+                  })}
+            </p>
 
-              {error && <ReportErrorState error={error} onRetry={refetch} />}
+            {error && <ReportErrorState error={error} onRetry={refetch} />}
 
-              <div data-tour="payments-table">
+            <div data-tour="payments-table">
               <PaymentTable
                 payments={payments}
                 isLoading={isLoading}
@@ -157,17 +135,8 @@ export default function PaymentsPage() {
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
               />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="wallet" className="mt-0">
-              <WalletTransactionTab />
-            </TabsContent>
-
-            <TabsContent value="withdrawals" className="mt-0">
-              <WithdrawalTab />
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

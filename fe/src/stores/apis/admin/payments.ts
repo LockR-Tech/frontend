@@ -2,77 +2,30 @@ import { baseApi } from '../../baseAPi';
 import { ADMIN_ENDPOINTS } from '../../../constants';
 import type {
   ApiResponse,
-  Page,
-  PageableRequest,
-  PaymentResponse,
-  PaymentStatus,
   AdminPayment,
   AdminPaymentDetail,
   AdminPaymentSearchParams,
   AdminPaymentStatus,
   AdminRefund,
   AdminRefundSearchParams,
-  AdminWalletTransaction,
-  AdminWalletTransactionSearchParams,
   DateRange,
   PaymentStatsResponse,
   ReportEnvelope,
   ReportPage,
 } from '../../../types';
-import { UpdatePaymentStatusRequestSchema, createValidator } from '../../../schemas';
 import { toQueryParams } from './reporting-params';
 
 const TAGS = {
   PAYMENTS: 'Payments',
   REFUNDS: 'PaymentRefunds',
-  WALLET_TX: 'WalletTransactions',
   STATS: 'PaymentStats',
 } as const;
 
-// Create validator
-const updatePaymentStatusValidator = createValidator(UpdatePaymentStatusRequestSchema);
-
 export const paymentManagementApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllPayments: builder.query<
-      ApiResponse<Page<PaymentResponse>>,
-      PageableRequest & { status?: PaymentStatus }
-    >({
-      query: (params) => ({
-        url: ADMIN_ENDPOINTS.PAYMENTS,
-        params,
-      }),
-      providesTags: [TAGS.PAYMENTS],
-    }),
-
-    getPaymentById: builder.query<ApiResponse<PaymentResponse>, number>({
-      query: (paymentId) => ADMIN_ENDPOINTS.PAYMENT_BY_ID(paymentId),
-      providesTags: (result, error, id) => [{ type: TAGS.PAYMENTS, id }],
-    }),
-
-    updatePaymentStatus: builder.mutation<
-      ApiResponse<PaymentResponse>,
-      { paymentId: number; status: PaymentStatus }
-    >({
-      query: ({ paymentId, status }) => {
-        // Validate with Zod before sending
-        updatePaymentStatusValidator.validateRequestBody({ status });
-        return {
-          url: ADMIN_ENDPOINTS.PAYMENT_STATUS(paymentId),
-          method: 'PUT',
-          params: { status },
-        };
-      },
-      invalidatesTags: (result, error, { paymentId }) => [
-        { type: TAGS.PAYMENTS, id: paymentId },
-        TAGS.PAYMENTS,
-      ],
-    }),
-
     /**
      * Đổi trạng thái giao dịch bằng **body JSON**
-     * (docs/01-overview/admin-reporting-api.md § 2.1). Mutation cũ gửi qua query param
-     * nên backend trả 400 — dùng mutation này ở màn hình thanh toán.
+     * (docs/01-overview/admin-reporting-api.md § 2.1).
      */
     updateAdminPaymentStatus: builder.mutation<
       ReportEnvelope<AdminPayment>,
@@ -87,7 +40,6 @@ export const paymentManagementApi = baseApi.injectEndpoints({
         { type: TAGS.PAYMENTS, id: paymentId },
         TAGS.PAYMENTS,
         TAGS.REFUNDS,
-        TAGS.WALLET_TX,
         TAGS.STATS,
       ],
     }),
@@ -104,7 +56,7 @@ export const paymentManagementApi = baseApi.injectEndpoints({
       providesTags: [TAGS.PAYMENTS],
     }),
 
-    /** Chi tiết giao dịch kèm hoàn tiền, biến động ví và giao dịch khác cùng đơn (§ 2.3). */
+    /** Chi tiết giao dịch kèm hoàn tiền và giao dịch khác cùng đơn (§ 2.3). */
     getAdminPaymentDetail: builder.query<
       ReportEnvelope<AdminPaymentDetail>,
       number
@@ -125,18 +77,6 @@ export const paymentManagementApi = baseApi.injectEndpoints({
         params: toQueryParams({ ...params }),
       }),
       providesTags: [TAGS.REFUNDS],
-    }),
-
-    /** Biến động ví của mọi khách (§ 2.5). */
-    getAdminWalletTransactions: builder.query<
-      ReportEnvelope<ReportPage<AdminWalletTransaction>>,
-      AdminWalletTransactionSearchParams
-    >({
-      query: (params) => ({
-        url: ADMIN_ENDPOINTS.PAYMENT_WALLET_TRANSACTIONS,
-        params: toQueryParams({ ...params }),
-      }),
-      providesTags: [TAGS.WALLET_TX],
     }),
 
     /** Thống kê giao dịch có so sánh kỳ trước, cho các thẻ tổng quan (§ 2.6). */
@@ -182,14 +122,10 @@ export const paymentManagementApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useGetAllPaymentsQuery,
-  useGetPaymentByIdQuery,
-  useUpdatePaymentStatusMutation,
   useUpdateAdminPaymentStatusMutation,
   useSearchAdminPaymentsQuery,
   useGetAdminPaymentDetailQuery,
   useGetAdminRefundsQuery,
-  useGetAdminWalletTransactionsQuery,
   useGetAdminPaymentStatsQuery,
   useApproveRefundMutation,
   useRejectRefundMutation,

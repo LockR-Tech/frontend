@@ -3,7 +3,7 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { paymentMethodMeta } from "~/components/shared/reporting";
-import { formatPercent } from "~/lib/report-format";
+import { formatCurrency, formatDecimal, formatPercent } from "~/lib/report-format";
 import type { RevenueByMethodItem } from "~/types/admin/reporting";
 import { useTranslation } from "react-i18next";
 import { ChartPlaceholder } from "./ChartPlaceholder";
@@ -19,18 +19,17 @@ interface PaymentMethodChartProps {
 }
 
 const METHOD_COLORS: Record<string, string> = {
-  WALLET: "#10B981",
   SEPAY: "#0EA5E9",
   CASH: "#F59E0B",
-  // Đã ngừng (MoMo/VNPay) — vẫn có thể có doanh thu cũ trong năm đang xem.
+  // Đã ngừng — vẫn có thể có doanh thu cũ trong năm đang xem ("Phương thức cũ", MoMo, VNPay).
+  WALLET: "#94A3B8",
   VNPAY: "#2563EB",
   MOMO: "#EC4899",
-  VNPAY_TOPUP: "#8B5CF6",
 };
 const FALLBACK_COLORS = ["#64748B", "#A855F7", "#F97316", "#14B8A6"];
 
 function formatVND(val: number) {
-  return val.toLocaleString("vi-VN") + " đ";
+  return formatCurrency(val);
 }
 
 // /api/admin/revenue/by-method — tiền thực thu theo phương thức trong năm đang chọn.
@@ -105,7 +104,7 @@ export function PaymentMethodChart({ items, year, isLoading, error, onRetry, onM
                 <span className="text-[11px] text-muted-foreground font-medium">{t("admin.dashboard.chart.total")}</span>
                 <span className="text-sm font-bold text-foreground">
                   {total >= 1_000_000
-                    ? t("admin.dashboard.format.millionShort", { value: (total / 1_000_000).toFixed(1) })
+                    ? t("admin.dashboard.format.millionShort", { value: formatDecimal(total / 1_000_000, 1) })
                     : formatVND(total)}
                 </span>
               </div>

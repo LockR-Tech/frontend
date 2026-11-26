@@ -10,8 +10,9 @@ test('order and payment events refresh order, dashboard, payment and revenue pag
 test('admin data changes map each entity to the pages that show it', () => {
   assert.deepEqual(tagsForRealtimeMessage('/topic/admin/changes', { entity: 'USER' }), ['Users', 'Dashboard']);
   assert.ok(tagsForRealtimeMessage('/topic/admin/changes', { entity: 'REFUND' }).includes('PaymentRefunds'));
-  assert.ok(tagsForRealtimeMessage('/topic/admin/changes', { entity: 'WITHDRAWAL' }).includes('Wallet'));
-  assert.ok(tagsForRealtimeMessage('/topic/admin/changes', { entity: 'wallet' }).includes('WalletTransactions'));
+  // Ví đã gỡ khỏi sản phẩm: tin ví/rút tiền cũ (nếu còn) không làm mới trang nào.
+  assert.deepEqual(tagsForRealtimeMessage('/topic/admin/changes', { entity: 'WITHDRAWAL' }), []);
+  assert.deepEqual(tagsForRealtimeMessage('/topic/admin/changes', { entity: 'wallet' }), []);
   assert.deepEqual(tagsForRealtimeMessage('/topic/admin/changes', { entity: 'LOYALTY' }), ['Loyalty']);
   assert.ok(tagsForRealtimeMessage('/topic/admin/changes', { entity: 'FEEDBACK' }).includes('Notifications'));
 });

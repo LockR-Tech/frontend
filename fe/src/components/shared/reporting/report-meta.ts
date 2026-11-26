@@ -9,39 +9,32 @@
 
 import {
   AlertTriangle,
-  ArrowUpFromLine,
-  Ban,
   Banknote,
   Box,
   CheckCircle2,
   Clock,
   CreditCard,
+  History,
   Hourglass,
   Landmark,
   Package,
   PackageCheck,
-  PiggyBank,
   Plane,
-  RotateCcw,
   Route,
   Smartphone,
   Timer,
   Undo2,
-  Wallet,
   XCircle,
 } from "lucide-react";
 import type {
   AdminOrderPaymentStatus,
   AdminOrderStatus,
   AdminOrderType,
-  AdminPaymentKind,
   AdminPaymentMethod,
   AdminPaymentStatus,
   AdminRefundStatus,
   DroneDeliveryStage,
   RevenueServiceType,
-  WalletTransactionSource,
-  WalletTransactionType,
 } from "~/types/admin/reporting";
 import i18n from "~/utils/i18n";
 
@@ -187,31 +180,19 @@ export function paymentStatusMeta(
 
 // Kiểu Record<AdminPaymentMethod, …> bắt buộc có nhãn cho cả phương thức đã ngừng.
 const PAYMENT_METHOD_META: Record<AdminPaymentMethod, MetaDef> = {
-  CASH: { labelKey: "shared.reportMeta.paymentMethod.cash", style: NEUTRAL, icon: Banknote },
-  WALLET: { labelKey: "shared.reportMeta.paymentMethod.wallet", style: VIOLET, icon: Wallet },
   SEPAY: { labelKey: "shared.reportMeta.paymentMethod.sepay", style: BLUE, icon: Landmark },
-  SEPAY_TOPUP: { labelKey: "shared.reportMeta.paymentMethod.sepayTopup", style: AMBER, icon: PiggyBank },
-  // Đã ngừng (MoMo/VNPay) — chỉ còn ở giao dịch cũ; giữ nhãn để lịch sử hiển thị đúng.
+  CASH: { labelKey: "shared.reportMeta.paymentMethod.cash", style: NEUTRAL, icon: Banknote },
+  // Đã ngừng — chỉ còn ở giao dịch cũ; giữ nhãn để lịch sử hiển thị đúng. `WALLET` là phương thức
+  // đã gỡ khỏi sản phẩm: chỉ hiện là "Phương thức cũ", không nhắc tới ví.
+  WALLET: { labelKey: "shared.reportMeta.paymentMethod.legacy", style: MUTED, icon: History },
   VNPAY: { labelKey: "shared.reportMeta.paymentMethod.vnpay", style: BLUE, icon: CreditCard },
   MOMO: { labelKey: "shared.reportMeta.paymentMethod.momo", style: VIOLET, icon: Smartphone },
-  VNPAY_TOPUP: { labelKey: "shared.reportMeta.paymentMethod.vnpayTopup", style: AMBER, icon: PiggyBank },
 };
 
 export function paymentMethodMeta(
   method: AdminPaymentMethod | string | null | undefined,
 ): BadgeMeta {
   return resolveMeta(PAYMENT_METHOD_META, method);
-}
-
-const PAYMENT_KIND_META: Record<string, MetaDef> = {
-  ORDER: { labelKey: "shared.reportMeta.paymentKind.order", style: BLUE, icon: Package },
-  TOPUP: { labelKey: "shared.reportMeta.paymentKind.topup", style: AMBER, icon: PiggyBank },
-};
-
-export function paymentKindMeta(
-  kind: AdminPaymentKind | string | null | undefined,
-): BadgeMeta {
-  return resolveMeta(PAYMENT_KIND_META, kind);
 }
 
 const REFUND_STATUS_META: Record<string, MetaDef> = {
@@ -225,31 +206,6 @@ export function refundStatusMeta(
   status: AdminRefundStatus | string | null | undefined,
 ): BadgeMeta {
   return resolveMeta(REFUND_STATUS_META, status);
-}
-
-const WALLET_TYPE_META: Record<string, MetaDef> = {
-  CREDIT: { labelKey: "shared.reportMeta.walletType.credit", style: GREEN, icon: CheckCircle2 },
-  DEBIT: { labelKey: "shared.reportMeta.walletType.debit", style: RED, icon: Ban },
-};
-
-export function walletTypeMeta(
-  type: WalletTransactionType | string | null | undefined,
-): BadgeMeta {
-  return resolveMeta(WALLET_TYPE_META, type);
-}
-
-const WALLET_SOURCE_META: Record<string, MetaDef> = {
-  TOPUP: { labelKey: "shared.reportMeta.walletSource.topup", style: AMBER, icon: PiggyBank },
-  ORDER_PAYMENT: { labelKey: "shared.reportMeta.walletSource.orderPayment", style: BLUE, icon: Package },
-  REFUND: { labelKey: "shared.reportMeta.walletSource.refund", style: VIOLET, icon: Undo2 },
-  ADJUST: { labelKey: "shared.reportMeta.walletSource.adjust", style: NEUTRAL, icon: RotateCcw },
-  WITHDRAW: { labelKey: "shared.reportMeta.walletSource.withdraw", style: RED, icon: ArrowUpFromLine },
-};
-
-export function walletSourceMeta(
-  source: WalletTransactionSource | string | null | undefined,
-): BadgeMeta {
-  return resolveMeta(WALLET_SOURCE_META, source);
 }
 
 // ============================================

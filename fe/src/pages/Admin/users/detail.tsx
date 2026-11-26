@@ -18,7 +18,6 @@ import {
   AlertCircle,
   Save,
   ShieldCheck,
-  Wallet,
   Wrench,
   X,
   Trash2,
@@ -42,12 +41,10 @@ import { signsTerms } from "./hooks/useUsers";
 import {
   useDeleteUserAvatarMutation,
   useGetUserLoyaltySummaryQuery,
-  useGetUserWalletQuery,
   useUpdateUserAvatarMutation,
   useUpdateUserMutation,
 } from "~/stores/apis/admin";
 import { UserActivityTabs } from "./components/UserActivityTabs";
-import { WalletModal } from "./components/WalletModal";
 import { ImageUploadButton } from "~/components/shared/media";
 import { ReportStatCard } from "~/components/shared/reporting";
 import { getRoleLabel } from "~/constants";
@@ -57,6 +54,7 @@ import { formatCurrency, formatDayLabel, formatNumber } from "~/lib/report-forma
 import { toReportError } from "~/lib/report-error";
 import { apiGet } from "~/utils/api";
 import type { MediaUpload } from "~/stores/apis/media";
+import { getInitials } from "~/lib/utils";
 
 const getRoleBadge = (role: string) => {
   return (
@@ -116,9 +114,7 @@ export default function UserDetailPage() {
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showWallet, setShowWallet] = useState(false);
   const [updateUser] = useUpdateUserMutation();
-  const wallet = useGetUserWalletQuery(numUserId, { skip: !numUserId });
   const loyalty = useGetUserLoyaltySummaryQuery(numUserId, { skip: !numUserId });
   // Ảnh đại diện cập nhật tại chỗ sau PUT/DELETE …/avatar (không reload để giữ dữ liệu form)
   const [avatarOverride, setAvatarOverride] = useState<string | null | undefined>(undefined);
@@ -250,11 +246,7 @@ export default function UserDetailPage() {
     );
   }
 
-  const initials = (user.name || user.email || "U")
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+  const initials = getInitials(user.name, user.email);
 
   return (
     <div className="space-y-6">
@@ -297,18 +289,6 @@ export default function UserDetailPage() {
                 <Wrench className="h-4 w-4" />
                 {t("admin.users.detail.technicianProfile")}
               </Link>
-            </Button>
-          )}
-          {!isDirty && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => setShowWallet(true)}
-              data-tour="user-detail-wallet-btn"
-            >
-              <Wallet className="h-4 w-4" />
-              {t("admin.users.table.wallet")}
             </Button>
           )}
           {!isDirty && user && (
@@ -526,7 +506,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Số đơn/chi tiêu lấy từ /api/admin/revenue/customers/{userId}, 12 tháng gần nhất */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3" data-tour="user-detail-stats">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" data-tour="user-detail-stats">
         <ReportStatCard
           label={t("admin.users.detail.orders")}
           value={revenueError ? "—" : formatNumber(revenue.data?.orderCount)}
@@ -545,13 +525,6 @@ export default function UserDetailPage() {
           isLoading={revenue.isLoading}
         />
         <ReportStatCard
-          label={t("admin.users.detail.walletBalance")}
-          value={wallet.isError ? "—" : formatCurrency(wallet.data?.data?.balance)}
-          hint={t("admin.users.detail.walletBalanceHint")}
-          icon={Wallet}
-          isLoading={wallet.isLoading}
-        />
-        <ReportStatCard
           label={t("admin.users.detail.loyaltyPoints")}
           value={loyalty.isError ? "—" : formatNumber(loyalty.data?.data?.points)}
           hint={t("admin.users.detail.loyaltyPointsHint")}
@@ -566,13 +539,6 @@ export default function UserDetailPage() {
       </div>
 
       <UserActivityTabs userId={numUserId} />
-
-      <WalletModal
-        open={showWallet}
-        onClose={() => setShowWallet(false)}
-        userId={numUserId}
-        userName={user.name || user.email}
-      />
 
       {/* Confirm Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>

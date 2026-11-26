@@ -12,7 +12,6 @@ import {
   Search,
   Facebook,
   Loader2,
-  Wallet,
   Trash2,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -39,8 +38,8 @@ import { useDeleteUserMutation, useUpdateUserStatusMutation } from "~/stores/api
 import { formatDate, formatTime } from "~/lib/datetime";
 import { useAuth } from "~/context/auth-context";
 import type { AdminUserRow } from "../hooks/useUsers";
-import { WalletModal } from "./WalletModal";
 import { toast } from "sonner";
+import { getInitials } from "~/lib/utils";
 
 interface UserTableProps {
   users: AdminUserRow[];
@@ -130,7 +129,6 @@ export function UserTable({
   const navigate = useNavigate();
   const [updateStatus] = useUpdateUserStatusMutation();
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
-  const [walletUser, setWalletUser] = useState<AdminUserRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
@@ -179,9 +177,7 @@ export function UserTable({
       header: t("admin.users.columns.user"),
       cell: ({ row }) => {
         const user = row.original;
-        const initials = (user.name || user.email || "U")
-          .slice(0, 2)
-          .toUpperCase();
+        const initials = getInitials(user.name, user.email);
 
         return (
           <div className="flex items-center gap-3" data-tour={row.index === 0 ? "users-first-row" : undefined}>
@@ -345,13 +341,6 @@ export function UserTable({
               {t("dropdown.viewDetail")}
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => setWalletUser(row.original)}
-            >
-              <Wallet className="mr-2 h-4 w-4" />
-              {t("admin.users.table.wallet")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
               className="cursor-pointer text-red-600 focus:text-red-600"
               disabled={String(row.original.id) === me?.id}
               onClick={() => setDeleteTarget(row.original)}
@@ -381,14 +370,6 @@ export function UserTable({
           onPageSizeChange,
         }}
       />
-      {walletUser && (
-        <WalletModal
-          open={!!walletUser}
-          onClose={() => setWalletUser(null)}
-          userId={walletUser.id}
-          userName={walletUser.name || walletUser.email}
-        />
-      )}
       <DeleteReasonDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
