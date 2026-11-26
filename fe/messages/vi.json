@@ -1254,6 +1254,7 @@
       },
       "table": {
         "technicianId": "KTV #{{id}}",
+        "unassignedBroadcast": "Kiosk chưa gán KTV — phiếu sự cố mới sẽ thông báo tới toàn bộ KTV đang trực.",
         "boxCount": "{{count}} ô",
         "availableCount": "{{count}} trống",
         "underMaintenance": "Đang bảo trì",
@@ -2083,6 +2084,7 @@
         "iotUnavailable": "Chưa đọc được dữ liệu tủ từ IoT — các bước tự động đang hiện kết quả lần đọc trước.",
         "approve": "Duyệt nghiệm thu",
         "approveBlocked": "Hồ sơ còn thiếu bước / ảnh — không duyệt được",
+        "assignOnApproveHint": "Khi duyệt nghiệm thu, tủ tự động kích hoạt và gán {{name}} phụ trách nếu tủ chưa có KTV.",
         "return": "Trả lại KTV",
         "returnTitle": "Trả hồ sơ về KTV",
         "returnDesc": "KTV nhận thông báo kèm lý do, bổ sung rồi gửi duyệt lại. Tủ quay về trạng thái Đang lắp đặt.",
@@ -3594,7 +3596,7 @@
           "description": "Chuyến bay, phiếu sửa chữa và các thao tác (phân công, đổi trạm, pin, ngừng hoạt động) được ghi nhận cho Drone.",
           "iotTab": "Nhật ký IoT ({{count}})",
           "flightsTab": "Nhật ký chuyến bay ({{count}})",
-          "reportsTab": "Sự cố & Sửa chữa ({{count}})",
+          "reportsTab": "Sửa chữa & Bảo trì ({{count}})",
           "operationsTab": "Thao tác ({{count}})",
           "noFlights": "Drone chưa có chuyến bay nào được ghi nhận.",
           "operationsLoadFailed": "Không tải được nhật ký thao tác. Bấm Làm mới để thử lại.",
@@ -3660,6 +3662,32 @@
         "activateDesc": "Drone trở về trạng thái sẵn sàng và có thể được điều phối cho đơn mới.",
         "noteLabel": "Ghi chú",
         "notePlaceholder": "VD: đã thay cánh quạt, bay thử ổn (không bắt buộc)"
+      },
+      "maintenanceDialog": {
+        "title": "Chuyển drone {{code}} sang bảo trì",
+        "description": "Drone đang bảo trì sẽ không nhận chuyến bay mới cho đến khi hoàn tất và kích hoạt lại.",
+        "createReportLabel": "Tạo phiếu bảo trì cho KTV drone xử lý",
+        "createReportHint": "Khuyến nghị bật — hệ thống mở phiếu bảo trì (RPT), thông báo cho KTV drone phụ trách và tự đưa drone về sẵn sàng khi phiếu hoàn tất.",
+        "defaultTitle": "Bảo trì Drone {{code}}",
+        "reportTitleLabel": "Tiêu đề phiếu bảo trì",
+        "reportTitlePlaceholder": "VD: Kiểm tra động cơ, cánh quạt, hiệu chuẩn la bàn...",
+        "reportDescLabel": "Nội dung / lý do bảo trì",
+        "reportDescPlaceholder": "Nhập hạng mục cần KTV kiểm tra, bảo dưỡng...",
+        "validationRequired": "Vui lòng nhập đầy đủ tiêu đề và nội dung khi tạo phiếu bảo trì.",
+        "createdReportSuccess": "Đã chuyển {{code}} sang bảo trì và tạo phiếu RPT-{{id}}",
+        "noReportWarning": "Drone chỉ chuyển sang trạng thái Bảo trì và KHÔNG tạo phiếu hay gửi thông báo cho KTV.",
+        "routingToTechnician": "Phiếu sẽ được gửi tới KTV phụ trách: {{name}}.",
+        "routingAllTechnicians": "Drone chưa gán KTV — phiếu sẽ thông báo tới toàn bộ KTV drone đang trực.",
+        "submitting": "Đang xử lý...",
+        "confirmWithReport": "Xác nhận & Tạo phiếu",
+        "confirmOnly": "Chỉ chuyển bảo trì"
+      },
+      "maintenanceHistory": {
+        "title": "Lịch sử sửa chữa & bảo trì {{drone}}",
+        "description": "Tổng hợp toàn bộ phiếu sự cố, bảo trì của Drone và các lần kiểm tra định kỳ.",
+        "empty": "Chưa có phiếu sự cố, bảo trì hay lần kiểm tra định kỳ nào cho Drone này.",
+        "maintenanceTicketBadge": "Bảo trì",
+        "incidentTicketBadge": "Sự cố"
       },
       "hardware": {
         "online": "Trực tuyến",

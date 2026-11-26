@@ -36,6 +36,7 @@ import {
 } from "~/components/ui/select";
 import { PageHeader } from "~/components/shared/page-header";
 import { BatchDeleteBar, DeleteReasonDialog, ReasonConfirmDialog, deleteMany } from "~/components/shared/data-table";
+import { DroneMaintenanceDialog } from "./components/DroneMaintenanceDialog";
 import {
   useGetDronesQuery,
   useCreateDroneMutation,
@@ -238,11 +239,12 @@ export default function DronesPage() {
           ? t("admin.drones.toast.reactivated")
           : t("admin.drones.toast.maintenanceOn"),
       );
-    } catch {
+    } catch (error) {
       toast.error(
         maintenanceEnabled
           ? t("admin.drones.toast.reactivateFailed")
           : t("admin.drones.toast.maintenanceFailed"),
+        { description: apiErrorMessage(error, t("common.pleaseRetry")) },
       );
     }
   };
@@ -503,37 +505,31 @@ export default function DronesPage() {
       </div>
 
       <ReasonConfirmDialog
-        open={statusTarget !== null}
+        open={statusTarget !== null && statusTarget.status === "MAINTENANCE"}
         onOpenChange={(open) => !open && setStatusTarget(null)}
-        title={t(
-          statusTarget?.status === "MAINTENANCE"
-            ? "admin.drones.statusDialog.activateTitle"
-            : "admin.drones.statusDialog.maintenanceTitle",
-          { code: statusTarget?.code },
-        )}
-        description={
-          <p>
-            {t(
-              statusTarget?.status === "MAINTENANCE"
-                ? "admin.drones.statusDialog.activateDesc"
-                : "admin.drones.statusDialog.maintenanceDesc",
-            )}
-          </p>
-        }
-        reasonLabel={t(
-          statusTarget?.status === "MAINTENANCE"
-            ? "admin.drones.statusDialog.noteLabel"
-            : "admin.drones.statusDialog.reasonLabel",
-        )}
-        placeholder={t(
-          statusTarget?.status === "MAINTENANCE"
-            ? "admin.drones.statusDialog.notePlaceholder"
-            : "admin.drones.statusDialog.reasonPlaceholder",
-        )}
-        required={statusTarget?.status !== "MAINTENANCE"}
-        actionLabel={t(statusTarget?.status === "MAINTENANCE" ? "dropdown.activate" : "dropdown.maintenance")}
+        title={t("admin.drones.statusDialog.activateTitle", { code: statusTarget?.code })}
+        description={<p>{t("admin.drones.statusDialog.activateDesc")}</p>}
+        reasonLabel={t("admin.drones.statusDialog.noteLabel")}
+        placeholder={t("admin.drones.statusDialog.notePlaceholder")}
+        required={false}
+        actionLabel={t("dropdown.activate")}
         loading={statusState.isLoading}
         onConfirm={(reason) => statusTarget && void toggleMaintenance(statusTarget, reason)}
+      />
+
+      <DroneMaintenanceDialog
+        open={statusTarget !== null && statusTarget.status !== "MAINTENANCE"}
+        onOpenChange={(open) => !open && setStatusTarget(null)}
+        drone={
+          statusTarget && statusTarget.status !== "MAINTENANCE"
+            ? {
+                id: statusTarget.id,
+                code: statusTarget.code,
+                assignedTechnicianId: statusTarget.assignedTechnicianId,
+                assignedTechnicianName: statusTarget.assignedTechnicianName,
+              }
+            : null
+        }
       />
 
       <DeleteReasonDialog

@@ -141,6 +141,7 @@ export interface LockerReportResponse {
   orderCode?: string | null;
   orderId?: number | null;
   incidentCode?: string | null;
+  ticketType?: string | null;
 }
 
 /** Tủ ở góc nhìn nhân sự (`/api/admin/lockers/**`) — kèm KTV phụ trách. */
@@ -181,6 +182,7 @@ export interface CreateLockerReportRequest {
   description: string;
   blocking?: boolean;
   boxId?: number;
+  ticketType?: string;
   attachments?: ReportAttachmentRequest[];
 }
 
@@ -886,7 +888,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
 
     getAllInspectionLogs: builder.query<
       ApiResponse<MaintenanceInspectionLogResponse[]>,
-      { lockerId?: number; technicianId?: number } | void
+      { lockerId?: number; technicianId?: number; droneUnitId?: number } | void
     >({
       query: (params) => ({
         url: '/api/maintenance/inspection-logs',

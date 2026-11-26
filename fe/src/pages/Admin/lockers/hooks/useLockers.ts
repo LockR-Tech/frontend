@@ -34,8 +34,10 @@ export function useLockers() {
   const [storeFilter, setStoreFilterState] = useState<string>(ALL_FILTER);
   const [technicianFilter, setTechnicianFilterState] = useState<string>(ALL_FILTER);
   const [urlParams, setUrlParams] = useSearchParams();
-  const page = Number(urlParams.get("page") ?? "0");
-  const pageSize = Number(urlParams.get("size") ?? "10");
+  const parsedPage = Number(urlParams.get("page") ?? "0");
+  const parsedSize = Number(urlParams.get("size") ?? "10");
+  const page = Number.isFinite(parsedPage) && parsedPage >= 0 ? Math.floor(parsedPage) : 0;
+  const pageSize = Number.isFinite(parsedSize) && parsedSize >= 1 ? Math.floor(parsedSize) : 10;
   const setPage = (newPage: number) =>
     setUrlParams((prev) => { const next = new URLSearchParams(prev); next.set("page", String(newPage)); return next; });
   const setPageSize = (newSize: number) =>
@@ -59,7 +61,7 @@ export function useLockers() {
     if (page !== 0) setPage(0);
   };
 
-  const { data, isLoading, refetch } = useGetAllLockersQuery({
+  const { data, isLoading, isError, error, refetch } = useGetAllLockersQuery({
     page: 0,
     size: 200,
   });
@@ -88,11 +90,11 @@ export function useLockers() {
   const allLockers = useMemo(
     () =>
       extractList<AdminLockerResponse>(data?.data).map((l) => {
+        const techNameRaw =
+          typeof l.assignedTechnicianName === "string" ? l.assignedTechnicianName : undefined;
         const resolvedTechName =
           (l.assignedTechnicianId ? technicianNameById.get(l.assignedTechnicianId) : undefined) ||
-          (l.assignedTechnicianName && !l.assignedTechnicianName.startsWith("KTV #")
-            ? l.assignedTechnicianName
-            : undefined);
+          (techNameRaw && !techNameRaw.startsWith("KTV #") ? techNameRaw : undefined);
 
         return {
           ...l,
@@ -289,6 +291,8 @@ export function useLockers() {
     totalElements: filteredLockers.length,
     totalPages: Math.ceil(filteredLockers.length / pageSize),
     isLoading,
+    isError,
+    error,
     status,
     setStatus,
     searchQuery,

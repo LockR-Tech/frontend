@@ -330,6 +330,11 @@ function InstallationView({
             <div className="pt-2 flex flex-wrap gap-2" data-tour="adm-locker-install-actions">
               {installation.status === "SUBMITTED" && (
                 <>
+                  <p className="w-full text-[11px] text-muted-foreground">
+                    {t("admin.lockers.installation.assignOnApproveHint", {
+                      name: technicianName(installation.technicianId),
+                    })}
+                  </p>
                   <Button
                     size="sm"
                     className="gap-1.5"

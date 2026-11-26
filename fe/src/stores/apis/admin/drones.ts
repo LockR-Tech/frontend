@@ -171,14 +171,24 @@ export const droneManagementApi = baseApi.injectEndpoints({
 
     createDroneIncidentReport: builder.mutation<
       ApiResponse<DroneIncidentReportResponse>,
-      { id: number; title: string; description: string; attachments?: ReportAttachmentRequest[] }
+      {
+        id: number;
+        title: string;
+        description: string;
+        attachments?: ReportAttachmentRequest[];
+        ticketType?: string;
+      }
     >({
       query: ({ id, ...body }) => ({
         url: `/api/admin/drones/${id}/reports`,
         method: "POST",
         body,
       }),
-      invalidatesTags: [TAG],
+      invalidatesTags: (_result, _error, { id }) => [
+        TAG,
+        { type: TAG, id },
+        { type: TAG, id: `logs-${id}` },
+      ],
     }),
 
     updateDroneBattery: builder.mutation<

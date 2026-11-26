@@ -1733,7 +1733,9 @@ export default function LockerLayoutPage() {
                       
                     </>
                   ) : (
-                    <p>{t("admin.lockers.layout.tech.unassignedHint")}</p>
+                    <p className="text-amber-700 dark:text-amber-300 font-medium">
+                      {t("admin.lockers.layout.tech.unassignedHint")}
+                    </p>
                   )}
                 </div>
               </div>

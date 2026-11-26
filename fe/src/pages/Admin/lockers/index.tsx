@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { PageHeader } from "~/components/shared/page-header";
 import { Card, CardContent } from "~/components/ui/card";
 import { TableToolbar } from "~/components/shared/data-table";
+import { ReportErrorState } from "~/components/shared/reporting/ReportErrorState";
 import { LockerTable } from "./components/LockerTable";
 import { LockerFilters } from "./components/LockerFilters";
 import { useLockers } from "./hooks/useLockers";
@@ -11,6 +12,8 @@ export default function LockersPage() {
   const {
     lockers,
     isLoading,
+    isError,
+    error,
     status,
     setStatus,
     searchQuery,
@@ -76,6 +79,14 @@ export default function LockersPage() {
               />
             </div>
           </div>
+
+          {isError && (
+            <ReportErrorState
+              error={error}
+              onRetry={refetch}
+              className="mb-4"
+            />
+          )}
 
           <LockerTable
             lockers={lockers}

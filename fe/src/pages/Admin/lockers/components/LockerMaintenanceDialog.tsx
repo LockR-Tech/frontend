@@ -78,6 +78,7 @@ export function LockerMaintenanceDialog({
           title: trimmedTitle,
           description: trimmedDesc,
           blocking: true,
+          ticketType: "LOCKER_MAINTENANCE",
         }).unwrap();
         const reportId = res?.data?.id;
         toast.success(

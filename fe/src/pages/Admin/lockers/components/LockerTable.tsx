@@ -340,7 +340,7 @@ export function LockerTable({
       cell: ({ row }) => {
         const { assignedTechnicianId, assignedTechnicianName } = row.original;
         const displayName =
-          assignedTechnicianName && !assignedTechnicianName.startsWith("KTV #")
+          typeof assignedTechnicianName === "string" && !assignedTechnicianName.startsWith("KTV #")
             ? assignedTechnicianName
             : (assignedTechnicianId != null
                 ? t("admin.lockers.table.technicianId", { id: assignedTechnicianId })
@@ -357,7 +357,21 @@ export function LockerTable({
             <span>{displayName}</span>
           </Link>
         ) : (
-          <span className="text-xs text-muted-foreground" data-tour={anchor}>{t("common.unassigned")}</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  data-tour={anchor}
+                  className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 cursor-help"
+                >
+                  {t("common.unassigned")}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t("admin.lockers.table.unassignedBroadcast")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         );
       },
     }),
