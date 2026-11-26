@@ -1706,7 +1706,16 @@
           "sendFailedTitle": "The open command could not be sent to the cabinet",
           "sendFailedHint": "The server could not reach the controller (MQTT), so the box did not open. Retry in a few minutes.",
           "systemErrorTitle": "System error while processing the open command",
-          "systemErrorHint": "The server failed while handling the command; the box may still be closed. Retry, or report this time to the tech team."
+          "systemErrorHint": "The server failed while handling the command; the box may still be closed. Retry, or report this time to the tech team.",
+          "hwCode": {
+            "INVALID_SLOT": "The box is not in the locker's hardware configuration",
+            "HW_ERROR": "Controller hardware error",
+            "JAMMED": "The box door is jammed",
+            "LID_JAMMED": "The sliding lid is jammed",
+            "LID_BUSY": "The sliding lid is busy with another command",
+            "LID_ERROR": "The sliding lid reported an error",
+            "DOOR_OPEN": "The box door is open"
+          }
         },
         "slotsUnknown": "— boxes",
         "title": "Operations & IoT Log for Locker {{locker}}",

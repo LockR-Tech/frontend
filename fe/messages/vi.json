@@ -1706,7 +1706,16 @@
           "sendFailedTitle": "Không gửi được lệnh mở tới tủ",
           "sendFailedHint": "Máy chủ không liên lạc được với bộ điều khiển (MQTT) nên ô chưa mở. Thử lại sau ít phút.",
           "systemErrorTitle": "Lỗi hệ thống khi xử lý lệnh mở ô",
-          "systemErrorHint": "Máy chủ gặp lỗi khi xử lý lệnh; ô có thể chưa mở. Thử lại hoặc báo đội kỹ thuật kèm thời điểm này."
+          "systemErrorHint": "Máy chủ gặp lỗi khi xử lý lệnh; ô có thể chưa mở. Thử lại hoặc báo đội kỹ thuật kèm thời điểm này.",
+          "hwCode": {
+            "INVALID_SLOT": "Ô không có trong cấu hình phần cứng của tủ",
+            "HW_ERROR": "Lỗi phần cứng bộ điều khiển",
+            "JAMMED": "Cửa ô bị kẹt",
+            "LID_JAMMED": "Nắp trượt bị kẹt",
+            "LID_BUSY": "Nắp trượt đang chạy lệnh khác",
+            "LID_ERROR": "Nắp trượt báo lỗi",
+            "DOOR_OPEN": "Cửa ô đang mở"
+          }
         },
         "slotsUnknown": "— ô",
         "title": "Nhật ký vận hành & IoT của tủ {{locker}}",

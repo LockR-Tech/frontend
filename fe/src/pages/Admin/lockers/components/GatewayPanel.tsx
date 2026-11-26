@@ -176,7 +176,7 @@ export function GatewayPanel({ lockerId, highestBoxNumber, cellCount }: GatewayP
                       }
                     >
                       <RadioTower className="w-3 h-3 mr-1" />
-                      {current.online ? "Online" : t("common.disconnected")}
+                      {current.online ? t("common.online") : t("common.disconnected")}
                     </Badge>
                     {status && (
                       <Badge variant="outline" className={status.cls}>

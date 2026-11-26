@@ -5,7 +5,7 @@
       "summary": "Menu bên trái, đường dẫn trang, tìm nhanh, thông báo, ngôn ngữ, giao diện sáng/tối và nút mở lại hướng dẫn."
     },
     "admin-dashboard": {
-      "title": "Dashboard",
+      "title": "Tổng quan",
       "summary": "Số liệu chính trong ngày và trong tháng, xu hướng đơn – doanh thu theo năm, công suất các tủ và địa điểm hiệu quả nhất."
     },
     "admin-orders": {
@@ -4564,7 +4564,7 @@
     },
     "customer-transactions-filter": {
       "title": "Lọc theo hình thức",
-      "body": "Lọc danh sách: \"Tất cả hình thức\", \"Cổng SePay\"; ví, VNPay, MoMo, rút tiền chỉ hiện khi có giao dịch cũ."
+      "body": "Lọc danh sách: \"Tất cả hình thức\", \"Cổng SePay\"; các phương thức cũ chỉ hiện khi có giao dịch cũ."
     },
     "customer-transactions-first": {
       "title": "Một giao dịch",
