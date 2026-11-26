@@ -1,0 +1,40 @@
+{
+  "image": "hdsd/admin-locker-maintenance-history.png",
+  "width": 1440,
+  "height": 1169,
+  "capturedAt": "2026-11-26",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-maintenance-history-tab",
+      "x": 663,
+      "y": 281,
+      "w": 142,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-maintenance-history-kpis",
+      "x": 313,
+      "y": 439,
+      "w": 1074,
+      "h": 73
+    },
+    {
+      "n": 3,
+      "stepId": "admin-locker-maintenance-history-filters",
+      "x": 313,
+      "y": 529,
+      "w": 304,
+      "h": 30
+    },
+    {
+      "n": 4,
+      "stepId": "admin-locker-maintenance-history-list",
+      "x": 313,
+      "y": 576,
+      "w": 1074,
+      "h": 538
+    }
+  ]
+}

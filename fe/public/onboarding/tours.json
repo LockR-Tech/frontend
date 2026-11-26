@@ -1578,6 +1578,64 @@
       ]
     },
     {
+      "id": "admin-settings-simulation",
+      "version": 1,
+      "order": 149,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-settings-simulation-card",
+          "anchor": "settings-simulation",
+          "webRoute": "/admin/settings",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-settings-simulation-status",
+          "anchor": "settings-simulation-status",
+          "webRoute": "/admin/settings",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom",
+          "optional": true
+        },
+        {
+          "id": "admin-settings-simulation-actions",
+          "anchor": "settings-simulation-actions",
+          "webRoute": "/admin/settings",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left"
+        },
+        {
+          "id": "admin-settings-simulation-list",
+          "anchor": "settings-simulation-list",
+          "webRoute": "/admin/settings",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top"
+        },
+        {
+          "id": "admin-settings-simulation-confirm",
+          "anchor": "settings-simulation-confirm",
+          "webRoute": "/admin/settings",
+          "platforms": [
+            "web"
+          ],
+          "placement": "right",
+          "via": "settings-simulation-off",
+          "optional": true
+        }
+      ]
+    },
+    {
       "id": "admin-settings",
       "version": 1,
       "order": 150,
@@ -4498,7 +4556,7 @@
     },
     {
       "id": "admin-locker-more-menu",
-      "version": 1,
+      "version": 2,
       "order": 302,
       "roles": [
         "ADMIN"
@@ -4564,6 +4622,28 @@
           ],
           "placement": "left",
           "via": "adm-locker-more"
+        },
+        {
+          "id": "admin-locker-more-menu-maintenance",
+          "anchor": "adm-locker-more-maintenance",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left",
+          "via": "adm-locker-more",
+          "optional": true
+        },
+        {
+          "id": "admin-locker-more-menu-activate",
+          "anchor": "adm-locker-more-activate",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left",
+          "via": "adm-locker-more",
+          "optional": true
         },
         {
           "id": "admin-locker-more-menu-delete-all",
@@ -5714,6 +5794,142 @@
           "placement": "auto",
           "via": "adm-locker-tab-installation",
           "optional": true
+        }
+      ]
+    },
+    {
+      "id": "admin-locker-maintenance-mode",
+      "version": 1,
+      "order": 316,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-locker-maintenance-mode-detail",
+          "anchor": "adm-lockers-first-row-view",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left",
+          "via": "adm-lockers-first-row-menu",
+          "optional": true
+        },
+        {
+          "id": "admin-locker-maintenance-mode-more",
+          "anchor": "adm-locker-more",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left",
+          "via": "adm-lockers-first-row-view"
+        },
+        {
+          "id": "admin-locker-maintenance-mode-menu",
+          "anchor": "adm-locker-more-maintenance",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left",
+          "via": "adm-locker-more",
+          "optional": true
+        },
+        {
+          "id": "admin-locker-maintenance-mode-dialog",
+          "anchor": "adm-locker-maint-dialog",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "right",
+          "via": "adm-locker-more-maintenance",
+          "optional": true
+        },
+        {
+          "id": "admin-locker-maintenance-mode-report",
+          "anchor": "adm-locker-maint-dialog-report",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "right",
+          "via": "adm-locker-more-maintenance",
+          "optional": true
+        },
+        {
+          "id": "admin-locker-maintenance-mode-confirm",
+          "anchor": "adm-locker-maint-dialog-confirm",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top",
+          "via": "adm-locker-more-maintenance",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "admin-locker-maintenance-history",
+      "version": 1,
+      "order": 317,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-locker-maintenance-history-detail",
+          "anchor": "adm-lockers-first-row-view",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left",
+          "via": "adm-lockers-first-row-menu",
+          "optional": true
+        },
+        {
+          "id": "admin-locker-maintenance-history-tab",
+          "anchor": "adm-locker-tab-maintenance",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom",
+          "via": "adm-lockers-first-row-view"
+        },
+        {
+          "id": "admin-locker-maintenance-history-kpis",
+          "anchor": "adm-locker-maint-kpis",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "auto",
+          "via": "adm-locker-tab-maintenance"
+        },
+        {
+          "id": "admin-locker-maintenance-history-filters",
+          "anchor": "adm-locker-maint-filters",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "auto",
+          "via": "adm-locker-tab-maintenance"
+        },
+        {
+          "id": "admin-locker-maintenance-history-list",
+          "anchor": "adm-locker-maint-list",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top",
+          "via": "adm-locker-tab-maintenance"
         }
       ]
     },

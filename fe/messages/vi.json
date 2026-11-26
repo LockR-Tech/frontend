@@ -1763,50 +1763,6 @@
           "open": "Đang mở",
           "rejected": "Từ chối",
           "noDescription": "Không có mô tả"
-        },
-        "maintenanceDialog": {
-          "title": "Chuyển tủ {{code}} sang bảo trì",
-          "description": "Tạm ngưng nhận đơn tại {{name}} để kiểm tra, bảo dưỡng.",
-          "createReportLabel": "Tạo phiếu sự cố cho KTV tủ xử lý",
-          "createReportHint": "Khuyến nghị bật — hệ thống mở phiếu chặn tủ (RPT), thông báo cho KTV phụ trách và tự mở lại tủ khi phiếu hoàn tất.",
-          "defaultTitle": "Bảo trì Kiosk {{code}}",
-          "reportTitleLabel": "Tiêu đề phiếu sự cố",
-          "reportTitlePlaceholder": "VD: Kiểm tra nguồn / bảo trì cửa Kiosk...",
-          "reportDescLabel": "Mô tả tình trạng / lý do bảo trì",
-          "reportDescPlaceholder": "Nhập nội dung cần KTV kiểm tra, sửa chữa...",
-          "validationRequired": "Vui lòng nhập đầy đủ tiêu đề và mô tả khi tạo phiếu sự cố.",
-          "createdReportSuccess": "Đã chuyển {{code}} sang bảo trì và tạo phiếu RPT-{{id}}",
-          "noReportWarning": "Tủ chỉ chuyển sang trạng thái Bảo trì và KHÔNG tạo phiếu sự cố hay gửi thông báo cho KTV.",
-          "submitting": "Đang xử lý...",
-          "confirmWithReport": "Xác nhận & Tạo phiếu",
-          "confirmOnly": "Chỉ chuyển bảo trì"
-        },
-        "maintenanceHistory": {
-          "title": "Lịch sử sửa chữa & bảo trì Kiosk {{locker}}",
-          "description": "Tổng hợp toàn bộ phiếu sự cố của Kiosk/ô tủ và các lần kiểm tra, bảo trì định kỳ.",
-          "scheduleFallback": "Lịch bảo trì định kỳ #{{id}}",
-          "routedTo": "Chờ nhận ({{name}})",
-          "kpi": {
-            "totalReports": "Tổng phiếu sự cố",
-            "activeReports": "Đang mở / Đang sửa",
-            "resolvedReports": "Đã hoàn tất",
-            "inspections": "Lần bảo trì định kỳ"
-          },
-          "filterAll": "Tất cả ({{count}})",
-          "filterIncidents": "Phiếu sự cố ({{count}})",
-          "filterInspections": "Bảo trì định kỳ ({{count}})",
-          "loading": "Đang tải lịch sử sửa chữa & bảo trì...",
-          "empty": "Chưa có phiếu sự cố hay lần bảo trì định kỳ nào cho Kiosk này.",
-          "blockingBadge": "Chặn cả tủ",
-          "openInMaintenance": "Trang Bảo trì",
-          "technicianLabel": "KTV:",
-          "createdAt": "Tạo lúc:",
-          "resolvedAt": "Hoàn tất:",
-          "completedAt": "Thực hiện:",
-          "periodicBadge": "Bảo trì định kỳ",
-          "linkedReport": "→ Sinh phiếu RPT-{{id}}",
-          "inspectionPhotoAlt": "Ảnh kiểm tra định kỳ #{{index}}",
-          "photoPreviewTitle": "Ảnh kiểm tra bảo trì"
         }
       },
       "boxQr": {
@@ -2163,6 +2119,50 @@
           "returned": "Đã trả hồ sơ về KTV",
           "cancelled": "Đã huỷ hồ sơ lắp đặt"
         }
+      },
+      "maintenanceDialog": {
+        "title": "Chuyển tủ {{code}} sang bảo trì",
+        "description": "Tạm ngưng nhận đơn tại {{name}} để kiểm tra, bảo dưỡng.",
+        "createReportLabel": "Tạo phiếu sự cố cho KTV tủ xử lý",
+        "createReportHint": "Khuyến nghị bật — hệ thống mở phiếu chặn tủ (RPT), thông báo cho KTV phụ trách và tự mở lại tủ khi phiếu hoàn tất.",
+        "defaultTitle": "Bảo trì Kiosk {{code}}",
+        "reportTitleLabel": "Tiêu đề phiếu sự cố",
+        "reportTitlePlaceholder": "VD: Kiểm tra nguồn / bảo trì cửa Kiosk...",
+        "reportDescLabel": "Mô tả tình trạng / lý do bảo trì",
+        "reportDescPlaceholder": "Nhập nội dung cần KTV kiểm tra, sửa chữa...",
+        "validationRequired": "Vui lòng nhập đầy đủ tiêu đề và mô tả khi tạo phiếu sự cố.",
+        "createdReportSuccess": "Đã chuyển {{code}} sang bảo trì và tạo phiếu RPT-{{id}}",
+        "noReportWarning": "Tủ chỉ chuyển sang trạng thái Bảo trì và KHÔNG tạo phiếu sự cố hay gửi thông báo cho KTV.",
+        "submitting": "Đang xử lý...",
+        "confirmWithReport": "Xác nhận & Tạo phiếu",
+        "confirmOnly": "Chỉ chuyển bảo trì"
+      },
+      "maintenanceHistory": {
+        "title": "Lịch sử sửa chữa & bảo trì Kiosk {{locker}}",
+        "description": "Tổng hợp toàn bộ phiếu sự cố của Kiosk/ô tủ và các lần kiểm tra, bảo trì định kỳ.",
+        "scheduleFallback": "Lịch bảo trì định kỳ #{{id}}",
+        "routedTo": "Chờ nhận ({{name}})",
+        "kpi": {
+          "totalReports": "Tổng phiếu sự cố",
+          "activeReports": "Đang mở / Đang sửa",
+          "resolvedReports": "Đã hoàn tất",
+          "inspections": "Lần bảo trì định kỳ"
+        },
+        "filterAll": "Tất cả ({{count}})",
+        "filterIncidents": "Phiếu sự cố ({{count}})",
+        "filterInspections": "Bảo trì định kỳ ({{count}})",
+        "loading": "Đang tải lịch sử sửa chữa & bảo trì...",
+        "empty": "Chưa có phiếu sự cố hay lần bảo trì định kỳ nào cho Kiosk này.",
+        "blockingBadge": "Chặn cả tủ",
+        "openInMaintenance": "Trang Bảo trì",
+        "technicianLabel": "KTV:",
+        "createdAt": "Tạo lúc:",
+        "resolvedAt": "Hoàn tất:",
+        "completedAt": "Thực hiện:",
+        "periodicBadge": "Bảo trì định kỳ",
+        "linkedReport": "→ Sinh phiếu RPT-{{id}}",
+        "inspectionPhotoAlt": "Ảnh kiểm tra định kỳ #{{index}}",
+        "photoPreviewTitle": "Ảnh kiểm tra bảo trì"
       }
     },
     "feedback": {
@@ -2523,6 +2523,65 @@
       "errors": {
         "timeout": "Máy chủ phản hồi quá lâu",
         "forbidden": "Tài khoản không có quyền thực hiện thao tác này"
+      },
+      "simulation": {
+        "title": "Giả lập & demo",
+        "description": "Gom mọi chế độ giả lập và dữ liệu demo ở các dịch vụ. Vận hành chính thức thì tắt hết; cần demo thì bật lại.",
+        "status": {
+          "off": "Đã tắt hết — vận hành chính thức",
+          "on": "Đang bật {{on}}/{{total}}"
+        },
+        "allOff": "Tắt toàn bộ (vận hành chính thức)",
+        "demoOn": "Bật chế độ demo",
+        "loading": "Đang tải…",
+        "unsupported": "Chưa hỗ trợ",
+        "confirmOff": {
+          "title": "Tắt toàn bộ giả lập?",
+          "description": "Các mục dưới đây tắt ngay trên hệ thống thật: khách không còn thấy nút giả lập thanh toán, tủ và điểm gửi demo; đơn drone mới bay bằng drone thật. Bật lại được bất cứ lúc nào.",
+          "action": "Tắt {{count}} mục"
+        },
+        "confirmDemo": {
+          "title": "Bật chế độ demo?",
+          "description": "Bật lại các mục phục vụ demo dưới đây. Hai công cụ thử tủ (mở thử ô bằng QR, thử nắp trượt) điều khiển tủ thật nên phải bật riêng bằng công tắc của từng mục.",
+          "action": "Bật {{count}} mục"
+        },
+        "toast": {
+          "allOff": "Đã tắt {{count}} mục giả lập",
+          "demoOn": "Đã bật {{count}} mục demo",
+          "oneOn": "Đã bật: {{name}}",
+          "oneOff": "Đã tắt: {{name}}",
+          "failed": "Không lưu được cấu hình giả lập"
+        },
+        "flags": {
+          "payment": {
+            "title": "Nút giả lập thanh toán",
+            "desc": "App và kiosk hiện nút \"Giả lập thanh toán (test)\": trả tiền đơn mà không chuyển khoản thật."
+          },
+          "droneDemo": {
+            "title": "Drone DEMO (bay giả lập)",
+            "desc": "Đơn drone mới chạy theo chặng bay giả lập thay vì drone thật."
+          },
+          "demoLockers": {
+            "title": "Tủ demo hiện cho khách",
+            "desc": "Các tủ demo HCM-… (bộ giả lập trả lời, không có tủ thật) hiện trong app, kiosk và nhận đơn. Tắt thì chỉ admin và tài khoản demo thấy."
+          },
+          "demoStores": {
+            "title": "Điểm gửi demo hiện cho khách",
+            "desc": "Các điểm gửi LockR demo trong mục Điểm gửi và bản đồ. Tắt thì chỉ admin và tài khoản demo thấy."
+          },
+          "bleTest": {
+            "title": "Thử mở ô qua Bluetooth",
+            "desc": "Tài khoản được admin cấp quyền thấy mục thử mở ô qua Bluetooth trong app."
+          },
+          "testOpen": {
+            "title": "Mở thử ô bằng QR",
+            "desc": "Công cụ thử tủ: quét QR mở ô không cần đơn. Chỉ bật khi đang thử tủ."
+          },
+          "lidTest": {
+            "title": "Thử nắp trượt theo mã ArUco",
+            "desc": "Camera drone thấy mã thử là nắp tủ thật mở rồi đóng. Chỉ bật khi đang thử nắp."
+          }
+        }
       }
     },
     "notifications": {
@@ -4209,7 +4268,9 @@
           "policy": "Chính sách: {{version}}",
           "sentToCustomer": "Nội dung gửi khách:",
           "customerResponse": "Phản hồi của khách:"
-        }
+        },
+        "relatedOrder": "Đơn hàng liên quan:",
+        "flightJourney": "Hành trình bay:"
       },
       "listPage": {
         "filters": {

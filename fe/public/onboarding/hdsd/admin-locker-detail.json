@@ -2,7 +2,7 @@
   "image": "hdsd/admin-locker-detail.png",
   "width": 1440,
   "height": 900,
-  "capturedAt": "2026-11-21",
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
@@ -49,7 +49,7 @@
       "stepId": "admin-locker-detail-tabs",
       "x": 292,
       "y": 277,
-      "w": 446,
+      "w": 588,
       "h": 40
     }
   ]

@@ -1763,50 +1763,6 @@
           "open": "Open",
           "rejected": "Rejected",
           "noDescription": "No description"
-        },
-        "maintenanceDialog": {
-          "title": "Switch locker {{code}} to maintenance",
-          "description": "Temporarily pause new orders at {{name}} for inspection and servicing.",
-          "createReportLabel": "Create an incident report for a locker technician",
-          "createReportHint": "Recommended — opens a blocking report (RPT), notifies the responsible technician, and auto-reactivates the locker when resolved.",
-          "defaultTitle": "Maintenance for Kiosk {{code}}",
-          "reportTitleLabel": "Incident report title",
-          "reportTitlePlaceholder": "e.g. Power supply inspection / door servicing...",
-          "reportDescLabel": "Condition description / maintenance reason",
-          "reportDescPlaceholder": "Describe what the technician needs to check or repair...",
-          "validationRequired": "Please enter both title and description when creating an incident report.",
-          "createdReportSuccess": "Switched {{code}} to maintenance and created report RPT-{{id}}",
-          "noReportWarning": "The locker will only switch to Maintenance WITHOUT creating an incident report or notifying technicians.",
-          "submitting": "Processing...",
-          "confirmWithReport": "Confirm & Create Report",
-          "confirmOnly": "Maintenance Only"
-        },
-        "maintenanceHistory": {
-          "title": "Repair & Maintenance History for Kiosk {{locker}}",
-          "description": "Unified timeline of all kiosk/box incident reports and periodic maintenance inspections.",
-          "scheduleFallback": "Periodic Schedule #{{id}}",
-          "routedTo": "Awaiting claim ({{name}})",
-          "kpi": {
-            "totalReports": "Total Incidents",
-            "activeReports": "Open / In Progress",
-            "resolvedReports": "Resolved",
-            "inspections": "Periodic Inspections"
-          },
-          "filterAll": "All ({{count}})",
-          "filterIncidents": "Incidents ({{count}})",
-          "filterInspections": "Periodic ({{count}})",
-          "loading": "Loading repair & maintenance history...",
-          "empty": "No incident reports or periodic maintenance records for this kiosk yet.",
-          "blockingBadge": "Blocking locker",
-          "openInMaintenance": "Maintenance Page",
-          "technicianLabel": "Technician:",
-          "createdAt": "Created:",
-          "resolvedAt": "Resolved:",
-          "completedAt": "Completed:",
-          "periodicBadge": "Periodic Inspection",
-          "linkedReport": "→ Opened RPT-{{id}}",
-          "inspectionPhotoAlt": "Periodic inspection photo #{{index}}",
-          "photoPreviewTitle": "Inspection photo"
         }
       },
       "boxQr": {
@@ -2163,6 +2119,50 @@
           "returned": "Dossier returned to technician",
           "cancelled": "Installation dossier cancelled"
         }
+      },
+      "maintenanceDialog": {
+        "title": "Switch locker {{code}} to maintenance",
+        "description": "Temporarily pause new orders at {{name}} for inspection and servicing.",
+        "createReportLabel": "Create an incident report for a locker technician",
+        "createReportHint": "Recommended — opens a blocking report (RPT), notifies the responsible technician, and auto-reactivates the locker when resolved.",
+        "defaultTitle": "Maintenance for Kiosk {{code}}",
+        "reportTitleLabel": "Incident report title",
+        "reportTitlePlaceholder": "e.g. Power supply inspection / door servicing...",
+        "reportDescLabel": "Condition description / maintenance reason",
+        "reportDescPlaceholder": "Describe what the technician needs to check or repair...",
+        "validationRequired": "Please enter both title and description when creating an incident report.",
+        "createdReportSuccess": "Switched {{code}} to maintenance and created report RPT-{{id}}",
+        "noReportWarning": "The locker will only switch to Maintenance WITHOUT creating an incident report or notifying technicians.",
+        "submitting": "Processing...",
+        "confirmWithReport": "Confirm & Create Report",
+        "confirmOnly": "Maintenance Only"
+      },
+      "maintenanceHistory": {
+        "title": "Repair & Maintenance History for Kiosk {{locker}}",
+        "description": "Unified timeline of all kiosk/box incident reports and periodic maintenance inspections.",
+        "scheduleFallback": "Periodic Schedule #{{id}}",
+        "routedTo": "Awaiting claim ({{name}})",
+        "kpi": {
+          "totalReports": "Total Incidents",
+          "activeReports": "Open / In Progress",
+          "resolvedReports": "Resolved",
+          "inspections": "Periodic Inspections"
+        },
+        "filterAll": "All ({{count}})",
+        "filterIncidents": "Incidents ({{count}})",
+        "filterInspections": "Periodic ({{count}})",
+        "loading": "Loading repair & maintenance history...",
+        "empty": "No incident reports or periodic maintenance records for this kiosk yet.",
+        "blockingBadge": "Blocking locker",
+        "openInMaintenance": "Maintenance Page",
+        "technicianLabel": "Technician:",
+        "createdAt": "Created:",
+        "resolvedAt": "Resolved:",
+        "completedAt": "Completed:",
+        "periodicBadge": "Periodic Inspection",
+        "linkedReport": "→ Opened RPT-{{id}}",
+        "inspectionPhotoAlt": "Periodic inspection photo #{{index}}",
+        "photoPreviewTitle": "Inspection photo"
       }
     },
     "feedback": {
@@ -2523,6 +2523,65 @@
       "errors": {
         "timeout": "The server took too long to respond",
         "forbidden": "Your account doesn't have permission to perform this action"
+      },
+      "simulation": {
+        "title": "Simulation & demo",
+        "description": "Every simulation mode and demo data set across services in one place. Turn everything off for live operation; turn it back on for demos.",
+        "status": {
+          "off": "All off — live operation",
+          "on": "{{on}}/{{total}} on"
+        },
+        "allOff": "Turn everything off (live operation)",
+        "demoOn": "Turn on demo mode",
+        "loading": "Loading…",
+        "unsupported": "Not supported yet",
+        "confirmOff": {
+          "title": "Turn off all simulation?",
+          "description": "The items below turn off immediately on the live system: customers no longer see the payment simulation button or demo lockers and drop-off points, and new drone orders fly with real drones. You can turn them back on at any time.",
+          "action": "Turn off {{count}}"
+        },
+        "confirmDemo": {
+          "title": "Turn on demo mode?",
+          "description": "Turns the demo items below back on. The two locker test tools (test-open by QR, sliding lid test) drive real hardware, so turn them on one by one with their own switches.",
+          "action": "Turn on {{count}}"
+        },
+        "toast": {
+          "allOff": "Turned off {{count}} simulation items",
+          "demoOn": "Turned on {{count}} demo items",
+          "oneOn": "Turned on: {{name}}",
+          "oneOff": "Turned off: {{name}}",
+          "failed": "Could not save the simulation settings"
+        },
+        "flags": {
+          "payment": {
+            "title": "Payment simulation button",
+            "desc": "The app and kiosks show a \"Simulate payment (test)\" button: orders get paid without a real transfer."
+          },
+          "droneDemo": {
+            "title": "DEMO drone (simulated flights)",
+            "desc": "New drone orders follow simulated flight stages instead of a real drone."
+          },
+          "demoLockers": {
+            "title": "Demo lockers visible to customers",
+            "desc": "The demo HCM-… lockers (answered by the simulator, no real cabinet) show in the app and kiosks and take orders. Off = only admins and demo accounts see them."
+          },
+          "demoStores": {
+            "title": "Demo drop-off points visible to customers",
+            "desc": "The demo LockR drop-off points in Drop-off points and the map. Off = only admins and demo accounts see them."
+          },
+          "bleTest": {
+            "title": "Bluetooth test-open",
+            "desc": "Accounts granted by an admin see the Bluetooth test-open entry in the app."
+          },
+          "testOpen": {
+            "title": "Test-open boxes by QR",
+            "desc": "Locker test tool: scan a QR to open a box without an order. Only turn on while testing a locker."
+          },
+          "lidTest": {
+            "title": "Sliding lid test by ArUco",
+            "desc": "When the drone camera sees a test marker, the real cabinet lid opens and closes. Only turn on while testing the lid."
+          }
+        }
       }
     },
     "notifications": {
@@ -4209,7 +4268,9 @@
           "policy": "Policy: {{version}}",
           "sentToCustomer": "Content sent to customer:",
           "customerResponse": "Customer response:"
-        }
+        },
+        "relatedOrder": "Related order:",
+        "flightJourney": "Flight journey:"
       },
       "listPage": {
         "filters": {

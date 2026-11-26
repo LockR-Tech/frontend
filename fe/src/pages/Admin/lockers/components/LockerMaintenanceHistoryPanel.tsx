@@ -228,7 +228,7 @@ export function LockerMaintenanceHistoryPanel({
   const content = (
     <div className="space-y-4">
       {/* KPI summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-tour="adm-locker-maint-kpis">
         <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex items-center justify-between">
           <div>
             <div className="text-[11px] font-medium text-muted-foreground">
@@ -278,7 +278,7 @@ export function LockerMaintenanceHistoryPanel({
 
       {/* Filter pills + refresh */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex rounded-lg border border-border bg-muted/50 p-0.5 text-xs">
+        <div className="inline-flex rounded-lg border border-border bg-muted/50 p-0.5 text-xs" data-tour="adm-locker-maint-filters">
           <button
             type="button"
             onClick={() => setFilter("ALL")}
@@ -337,12 +337,12 @@ export function LockerMaintenanceHistoryPanel({
       {isLoading ? (
         <AppLoading className="py-10" message={t("admin.lockers.maintenanceHistory.loading")} />
       ) : filteredItems.length === 0 ? (
-        <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed">
+        <div className="py-12 text-center text-xs text-muted-foreground border rounded-lg border-dashed" data-tour="adm-locker-maint-list">
           <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500 opacity-60" />
           {t("admin.lockers.maintenanceHistory.empty")}
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-2.5" data-tour="adm-locker-maint-list">
           {filteredItems.map((item) => {
             if (item.kind === "INCIDENT") {
               const report = item.report;
