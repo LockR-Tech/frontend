@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-audit-logs.png",
+  "width": 1440,
+  "height": 1009,
+  "capturedAt": "2026-11-26",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-audit-logs-filters",
+      "x": 316,
+      "y": 185,
+      "w": 860,
+      "h": 84
+    },
+    {
+      "n": 2,
+      "stepId": "admin-audit-logs-table",
+      "x": 316,
+      "y": 293,
+      "w": 1068,
+      "h": 668
+    }
+  ]
+}

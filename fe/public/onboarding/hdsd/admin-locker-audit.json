@@ -1,0 +1,24 @@
+{
+  "image": "hdsd/admin-locker-audit.png",
+  "width": 1440,
+  "height": 900,
+  "capturedAt": "2026-11-26",
+  "marks": [
+    {
+      "n": 1,
+      "stepId": "admin-locker-audit-tab",
+      "x": 876,
+      "y": 281,
+      "w": 129,
+      "h": 32
+    },
+    {
+      "n": 2,
+      "stepId": "admin-locker-audit-panel",
+      "x": 292,
+      "y": 333,
+      "w": 1116,
+      "h": 329
+    }
+  ]
+}

@@ -422,7 +422,7 @@
     },
     {
       "id": "admin-lockers",
-      "version": 2,
+      "version": 3,
       "order": 50,
       "roles": [
         "ADMIN"
@@ -993,7 +993,7 @@
     },
     {
       "id": "admin-preferences",
-      "version": 1,
+      "version": 2,
       "order": 114,
       "roles": [
         "ADMIN"
@@ -1023,6 +1023,15 @@
         {
           "id": "admin-preferences-theme",
           "anchor": "prefs-theme",
+          "platforms": [
+            "web"
+          ],
+          "placement": "right",
+          "via": "nav-account-preferences"
+        },
+        {
+          "id": "admin-preferences-map-cache",
+          "anchor": "prefs-map-cache",
           "platforms": [
             "web"
           ],
@@ -1570,6 +1579,34 @@
           "id": "admin-scheduler-info",
           "anchor": "scheduler-info",
           "webRoute": "/admin/scheduler",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top"
+        }
+      ]
+    },
+    {
+      "id": "admin-audit-logs",
+      "version": 1,
+      "order": 141,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-audit-logs-filters",
+          "anchor": "audit-logs-filters",
+          "webRoute": "/admin/audit-logs",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom"
+        },
+        {
+          "id": "admin-audit-logs-table",
+          "anchor": "audit-logs-table",
+          "webRoute": "/admin/audit-logs",
           "platforms": [
             "web"
           ],
@@ -5034,7 +5071,7 @@
     },
     {
       "id": "admin-locker-operations",
-      "version": 1,
+      "version": 2,
       "order": 311,
       "roles": [
         "ADMIN"
@@ -5474,6 +5511,47 @@
           "placement": "auto",
           "via": "adm-locker-tab-installation",
           "optional": true
+        }
+      ]
+    },
+    {
+      "id": "admin-locker-audit",
+      "version": 1,
+      "order": 316,
+      "roles": [
+        "ADMIN"
+      ],
+      "steps": [
+        {
+          "id": "admin-locker-audit-detail",
+          "anchor": "adm-lockers-first-row-view",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "left",
+          "via": "adm-lockers-first-row-menu",
+          "optional": true
+        },
+        {
+          "id": "admin-locker-audit-tab",
+          "anchor": "adm-locker-tab-audit",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "bottom",
+          "via": "adm-lockers-first-row-view"
+        },
+        {
+          "id": "admin-locker-audit-panel",
+          "anchor": "adm-locker-audit",
+          "webRoute": "/admin/lockers",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top",
+          "via": "adm-locker-tab-audit"
         }
       ]
     },
@@ -8301,7 +8379,7 @@
     },
     {
       "id": "admin-drone-detail-logs",
-      "version": 1,
+      "version": 2,
       "order": 423,
       "roles": [
         "ADMIN"
@@ -8348,6 +8426,16 @@
           "webRoute": "/admin/drones",
           "via": "drones-first-detail",
           "optional": true
+        },
+        {
+          "id": "admin-drone-detail-logs-audit",
+          "anchor": "drone-detail-audit",
+          "webRoute": "/admin/drones",
+          "platforms": [
+            "web"
+          ],
+          "placement": "top",
+          "via": "drones-first-detail"
         }
       ]
     },
@@ -16450,7 +16538,7 @@
     },
     {
       "id": "drone-tech-home",
-      "version": 2,
+      "version": 3,
       "order": 3010,
       "roles": [
         "DRONE_TECHNICIAN"
@@ -16534,7 +16622,7 @@
     },
     {
       "id": "drone-tech-dispatch",
-      "version": 2,
+      "version": 3,
       "order": 3020,
       "roles": [
         "DRONE_TECHNICIAN"
