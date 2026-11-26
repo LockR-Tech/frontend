@@ -1254,6 +1254,7 @@
       },
       "table": {
         "technicianId": "Technician #{{id}}",
+        "unassignedBroadcast": "Unassigned kiosk — new incident tickets notify all on-duty technicians.",
         "boxCount": "{{count}} box(es)",
         "availableCount": "{{count}} free",
         "underMaintenance": "Under maintenance",
@@ -2083,6 +2084,7 @@
         "iotUnavailable": "Could not read locker data from IoT — automatic checks show the previous reading.",
         "approve": "Approve",
         "approveBlocked": "Steps or photos are missing — cannot approve",
+        "assignOnApproveHint": "Upon approval, the locker becomes active and assigns {{name}} as technician if unassigned.",
         "return": "Return to technician",
         "returnTitle": "Return dossier",
         "returnDesc": "The technician is notified with your reason and resubmits. The locker goes back to Installing.",
@@ -3594,7 +3596,7 @@
           "description": "Flights, repair reports and actions (assignment, station change, battery, decommissioning) recorded for this drone.",
           "iotTab": "IoT Logs ({{count}})",
           "flightsTab": "Flight log ({{count}})",
-          "reportsTab": "Incidents & Repairs ({{count}})",
+          "reportsTab": "Repairs & Maintenance ({{count}})",
           "operationsTab": "Actions ({{count}})",
           "noFlights": "No flights recorded for this drone yet.",
           "operationsLoadFailed": "Could not load the action log. Click Refresh to try again.",
@@ -3660,6 +3662,32 @@
         "activateDesc": "The drone returns to ready and can be dispatched to new orders.",
         "noteLabel": "Note",
         "notePlaceholder": "E.g. propellers replaced, test flight OK (optional)"
+      },
+      "maintenanceDialog": {
+        "title": "Put drone {{code}} into maintenance",
+        "description": "A drone under maintenance cannot accept new flight missions until resolved and reactivated.",
+        "createReportLabel": "Create a maintenance ticket for a drone technician",
+        "createReportHint": "Recommended — opens a maintenance ticket (RPT), notifies the responsible drone technician, and returns the drone to ready when resolved.",
+        "defaultTitle": "Maintenance for Drone {{code}}",
+        "reportTitleLabel": "Maintenance ticket title",
+        "reportTitlePlaceholder": "E.g. Inspect motors, propellers, compass calibration...",
+        "reportDescLabel": "Details / maintenance reason",
+        "reportDescPlaceholder": "Describe what the drone technician needs to inspect or service...",
+        "validationRequired": "Please enter both title and description when creating a maintenance ticket.",
+        "createdReportSuccess": "Switched {{code}} to maintenance and created report RPT-{{id}}",
+        "noReportWarning": "The drone will only switch to Maintenance WITHOUT creating a ticket or notifying technicians.",
+        "routingToTechnician": "Ticket will be routed to the assigned technician: {{name}}.",
+        "routingAllTechnicians": "Unassigned drone — ticket will notify all on-duty drone technicians.",
+        "submitting": "Processing...",
+        "confirmWithReport": "Confirm & Create Ticket",
+        "confirmOnly": "Maintenance Only"
+      },
+      "maintenanceHistory": {
+        "title": "Repair & Maintenance History for {{drone}}",
+        "description": "Unified timeline of all drone incident/maintenance tickets and periodic inspections.",
+        "empty": "No incident tickets, maintenance records, or periodic inspections for this drone yet.",
+        "maintenanceTicketBadge": "Maintenance",
+        "incidentTicketBadge": "Incident"
       },
       "hardware": {
         "online": "Online",

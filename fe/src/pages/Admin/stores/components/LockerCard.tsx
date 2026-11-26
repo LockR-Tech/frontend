@@ -19,6 +19,7 @@ import { BOX_CFG, LOCKER_STATUS_CFG } from "./lockerConstants";
 import { LockerSettingModal } from "./LockerSettingModal";
 import { BoxSettingModal } from "./BoxSettingModal";
 import { AddBoxModal } from "./AddBoxModal";
+import { LockerMaintenanceDialog } from "~/pages/Admin/lockers/components/LockerMaintenanceDialog";
 
 interface Props {
   locker: AdminLockerResponse;
@@ -53,6 +54,7 @@ export function LockerCard({ locker, onRefresh, tourAnchors = false }: Props) {
   const [selectedBox, setSelectedBox] = useState<BoxInfo | null>(null);
   const [showLockerSetting, setShowLockerSetting] = useState(false);
   const [showAddBox, setShowAddBox] = useState(false);
+  const [showMaintenanceDialog, setShowMaintenanceDialog] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   // LockerResponse không kèm danh sách ô → tải riêng khi mở rộng thẻ.
   const [boxes, setBoxes] = useState<BoxInfo[] | null>(null);
@@ -129,16 +131,16 @@ export function LockerCard({ locker, onRefresh, tourAnchors = false }: Props) {
   };
 
   const handleToggleMaintenance = async () => {
+    if (!isMaintenance) {
+      setShowMaintenanceDialog(true);
+      return;
+    }
     setActionLoading(true);
     try {
       await apiPut(`/api/admin/lockers/${locker.id}/maintenance`, {
-        maintenance: !isMaintenance,
+        maintenance: false,
       });
-      toast.success(
-        isMaintenance
-          ? t("admin.stores.lockerCard.maintenanceOff")
-          : t("admin.stores.lockerCard.maintenanceOn"),
-      );
+      toast.success(t("admin.stores.lockerCard.maintenanceOff"));
       onRefresh();
     } catch (err) {
       toast.error(t("admin.stores.lockerCard.maintenanceFailed"), {
@@ -369,6 +371,19 @@ export function LockerCard({ locker, onRefresh, tourAnchors = false }: Props) {
           }}
         />
       )}
+
+      <LockerMaintenanceDialog
+        open={showMaintenanceDialog}
+        onOpenChange={setShowMaintenanceDialog}
+        locker={{
+          id: locker.id,
+          code: locker.code,
+          name: locker.name,
+          assignedTechnicianId: locker.assignedTechnicianId,
+          assignedTechnicianName: locker.assignedTechnicianName,
+        }}
+        onSuccess={refreshAll}
+      />
     </>
   );
 }

@@ -7,7 +7,6 @@ import type { TFunction } from "i18next";
 import {
   AlertTriangle,
   ArrowLeft,
-  CheckCircle2,
   ClipboardList,
   Cpu,
   ExternalLink,
@@ -47,6 +46,7 @@ import { formatDateTime } from "~/lib/datetime";
 import { extractList } from "~/lib/extract-list";
 import {
   useGetAllAdminReportsQuery,
+  useGetAllInspectionLogsQuery,
   useGetLockerStatsQuery,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
@@ -62,6 +62,7 @@ import {
 import { DroneAdminActions } from "./DroneAdminActions";
 import { DroneHardwarePanel } from "./components/DroneHardwarePanel";
 import { DroneIotLogsPanel } from "./components/DroneIotLogsPanel";
+import { DroneMaintenanceHistoryPanel } from "./components/DroneMaintenanceHistoryPanel";
 
 const NO_TECHNICIAN = "NONE";
 // Giá trị là khoá i18n; dịch lúc render.
@@ -85,12 +86,6 @@ const STATUS_BADGE: Record<string, string> = {
 function missionStatusLabel(status: string, t: TFunction) {
   const key = MISSION_STATUS_LABELS[status];
   return key ? t(key) : status;
-}
-
-function reportStatusLabel(status: string, t: TFunction) {
-  if (status === "RESOLVED") return t("admin.drones.reportStatus.resolved");
-  if (status === "IN_PROGRESS") return t("admin.drones.reportStatus.inProgress");
-  return t("admin.drones.reportStatus.open");
 }
 
 function flightStatusClass(status?: string | null) {
@@ -146,7 +141,12 @@ export default function DroneDetailPage() {
     skip: invalidId,
     pollingInterval: 10000,
   });
+  const droneInspectionsQuery = useGetAllInspectionLogsQuery(
+    { droneUnitId: id },
+    { skip: invalidId, pollingInterval: 15000 },
+  );
   const iotLogsCount = iotLogsQuery.data?.data?.length ?? 0;
+  const droneInspectionsCount = droneInspectionsQuery.data?.data?.length ?? 0;
   const lockersQuery = useGetLockerStatsQuery();
   // Một danh sách người dùng dùng chung: lọc KTV Drone cho ô chọn và tra tên người
   // xử lý phiếu / người thao tác trong nhật ký (backend chỉ trả userId).
@@ -692,7 +692,9 @@ export default function DroneDetailPage() {
                 onClick={() => setActiveLogTab("reports")}
                 data-tour="drone-detail-tab-reports"
               >
-                {t("admin.drones.detail.logs.reportsTab", { count: droneReports.length })}
+                {t("admin.drones.detail.logs.reportsTab", {
+                  count: droneReports.length + droneInspectionsCount,
+                })}
               </button>
               <button
                 type="button"
@@ -738,15 +740,8 @@ export default function DroneDetailPage() {
             ) : (
               <OperationLogTable logs={operationLogs} userNames={userNames} />
             )
-          ) : reportsQuery.isLoading ? (
-            <LoadingRows />
-          ) : droneReports.length === 0 ? (
-            <EmptyState
-              icon={<CheckCircle2 className="h-8 w-8 text-emerald-500" />}
-              text={t("admin.drones.detail.logs.noReports")}
-            />
           ) : (
-            <ReportTable reports={droneReports} userNames={userNames} />
+            <DroneMaintenanceHistoryPanel droneId={id} droneCode={drone.code} embedded />
           )}
         </CardContent>
       </Card>
@@ -829,77 +824,6 @@ function FlightTable({
                 {flight.missionCreatedAt || flight.createdAt
                   ? formatDateTime(flight.missionCreatedAt ?? flight.createdAt!)
                   : "—"}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
-function ReportTable({
-  reports,
-  userNames,
-}: {
-  reports: ReturnType<typeof useGetAllAdminReportsQuery>["data"] extends {
-    data: infer T;
-  }
-    ? T
-    : never;
-  userNames: Map<number, string>;
-}) {
-  const { t } = useTranslation();
-  const rows = reports as NonNullable<
-    ReturnType<typeof useGetAllAdminReportsQuery>["data"]
-  >["data"];
-  return (
-    <div className="overflow-hidden rounded-lg border border-border/80">
-      <Table className="text-xs">
-        <TableHeader className="bg-muted/40">
-          <TableRow>
-            <TableHead className="w-[110px] font-semibold">{t("admin.drones.detail.reportTable.code")}</TableHead>
-            <TableHead className="w-[120px] font-semibold">{t("admin.drones.detail.reportTable.category")}</TableHead>
-            <TableHead className="w-[130px] font-semibold">
-              {t("common.status")}
-            </TableHead>
-            <TableHead className="w-[180px] font-semibold">{t("admin.drones.detail.reportTable.technician")}</TableHead>
-            <TableHead className="font-semibold">{t("admin.drones.detail.reportTable.description")}</TableHead>
-            <TableHead className="w-[160px] font-semibold">{t("common.time")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((report) => (
-            <TableRow key={report.id} className="hover:bg-muted/30">
-              <TableCell className="font-bold text-primary">
-                RPT-{report.id}
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className="text-[10px]">
-                  DRONE
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge
-                  className={`text-[10px] ${report.status === "RESOLVED" ? "bg-emerald-100 text-emerald-800" : report.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-800" : "bg-rose-100 text-rose-800"}`}
-                >
-                  {reportStatusLabel(report.status, t)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {report.assignedToUserId != null
-                  ? (userNames.get(report.assignedToUserId) ??
-                    t("admin.drones.detail.tech.fallbackName", { id: report.assignedToUserId }))
-                  : t("common.unassigned")}
-              </TableCell>
-              <TableCell
-                className="max-w-[500px] truncate"
-                title={report.description}
-              >
-                {report.description || report.title}
-              </TableCell>
-              <TableCell className="whitespace-nowrap font-mono text-[11px] text-muted-foreground">
-                {formatDateTime(report.createdAt)}
               </TableCell>
             </TableRow>
           ))}
