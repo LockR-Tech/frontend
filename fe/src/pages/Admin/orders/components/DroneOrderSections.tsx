@@ -152,9 +152,6 @@ export function DroneParcelCard({
           <LabelValue label={t("admin.droneOrders.fields.declaredValue")}>
             {money(drone.declaredValue)}
           </LabelValue>
-          <LabelValue label={t("admin.droneOrders.fields.flightDistance")}>
-            {routeDistance(drone.routeDistanceMeters)}
-          </LabelValue>
           <LabelValue label={t("admin.droneOrders.fields.flightMode")}>
             {drone.fulfillmentMode === "DEMO"
               ? t("admin.droneOrders.fields.modeDemo")
@@ -165,22 +162,31 @@ export function DroneParcelCard({
           <LabelValue label={t("admin.droneOrders.fields.sealCode")} mono>
             {drone.sealCode}
           </LabelValue>
-          <LabelValue label={t("admin.droneOrders.fields.loadingNote")}>{drone.loadingNote}</LabelValue>
+          {drone.loadingNote && (
+            <LabelValue label={t("admin.droneOrders.fields.loadingNote")}>{drone.loadingNote}</LabelValue>
+          )}
         </div>
         <LabelValue label={t("admin.droneOrders.fields.parcelDescription")}>
           {drone.description ?? order.description}
         </LabelValue>
+        {/* Ghi chú / lý do huỷ chỉ hiện khi có. */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <LabelValue label={t("admin.orders.detail.parcel.customerNote")}>
-            {view?.customerNote ?? order.customerNote}
-          </LabelValue>
+          {(view?.customerNote ?? order.customerNote) && (
+            <LabelValue label={t("admin.orders.detail.parcel.customerNote")}>
+              {view?.customerNote ?? order.customerNote}
+            </LabelValue>
+          )}
           <LabelValue label={t("admin.orders.detail.parcel.prohibitedDeclared")}>
             {view?.parcel?.prohibitedItemsDeclaredAt ? formatDateTime(view.parcel.prohibitedItemsDeclaredAt) : null}
           </LabelValue>
-          <LabelValue label={t("admin.orders.detail.parcel.staffNote")}>{order.staffNote}</LabelValue>
-          <LabelValue label={t("admin.orders.detail.parcel.cancelReason")}>
-            {[cancelReason, drone.cancelNote].filter(Boolean).join(" · ") || null}
-          </LabelValue>
+          {order.staffNote && (
+            <LabelValue label={t("admin.orders.detail.parcel.staffNote")}>{order.staffNote}</LabelValue>
+          )}
+          {(cancelReason || drone.cancelNote) && (
+            <LabelValue label={t("admin.orders.detail.parcel.cancelReason")}>
+              {[cancelReason, drone.cancelNote].filter(Boolean).join(" · ")}
+            </LabelValue>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -230,16 +236,16 @@ export function DronePickupCard({ drone }: { drone: DroneOrderTracking }) {
             <LabelValue label={t("admin.orders.detail.droneInfo.coordinates")} mono>
               <Coordinates lat={pickup.latitude} lng={pickup.longitude} />
             </LabelValue>
-            <LabelValue label={t("admin.droneOrders.pickup.note")}>{pickup.note}</LabelValue>
+            {pickup.note && <LabelValue label={t("admin.droneOrders.pickup.note")}>{pickup.note}</LabelValue>}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <LabelValue label={t("admin.droneOrders.pickup.technician")}>
                 {pickup.technicianName
                   ? `${pickup.technicianName}${pickup.technicianPhone ? ` · ${pickup.technicianPhone}` : ""}`
                   : null}
               </LabelValue>
-              <LabelValue label={t("admin.droneOrders.pickup.technicianNote")}>
-                {pickup.technicianNote}
-              </LabelValue>
+              {pickup.technicianNote && (
+                <LabelValue label={t("admin.droneOrders.pickup.technicianNote")}>{pickup.technicianNote}</LabelValue>
+              )}
               <LabelValue label={t("admin.droneOrders.pickup.acceptedAt")} mono>
                 {pickup.acceptedAt ? formatDateTime(pickup.acceptedAt) : null}
               </LabelValue>

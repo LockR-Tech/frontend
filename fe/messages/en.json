@@ -617,7 +617,8 @@
         "sender": "Sender",
         "receiver": "Recipient",
         "fullName": "Full name",
-        "accountStatus": "Account status"
+        "accountStatus": "Account status",
+        "renter": "Renter"
       },
       "sort": {
         "createdDesc": "Newest first",
@@ -667,7 +668,6 @@
         "invalidId": "Invalid order ID",
         "backToList": "Back to Orders",
         "idCreated": "ID #{{id}} · created {{time}}",
-        "overtimeCharged": "Overtime fee charged",
         "updatedAtTime": "Updated {{time}}",
         "updatedAt": "Updated",
         "statusHistory": "Status History",
@@ -696,7 +696,11 @@
           "qrCode": "QR code",
           "receiveLocker": "Receiving locker",
           "receiveLockerAddress": "Receiving locker address",
-          "droneNoSendBox": "Drone orders only deliver into the receiving locker, so there is no drop-off box — the drone departs from a system-chosen locker (see the Drone card)."
+          "droneNoSendBox": "Drone orders only deliver into the receiving locker, so there is no drop-off box — the drone departs from a system-chosen locker (see the Drone card).",
+          "locker": "Locker",
+          "lockerAddress": "Locker address",
+          "rentalBox": "Rented box",
+          "sendBoxSingle": "Delivery box"
         },
         "payment": {
           "lastMethod": "Last payment method",
@@ -733,17 +737,6 @@
           "launching": "Launch started",
           "missionCreated": "Mission created"
         },
-        "milestones": {
-          "title": "Milestones",
-          "created": "Order created",
-          "paid": "Paid",
-          "pickupDeadline": "Pickup deadline",
-          "intendedReceive": "Scheduled pickup",
-          "actualReceive": "Actual pickup",
-          "completed": "Completed",
-          "returned": "Returned",
-          "lastReminder": "Last reminder"
-        },
         "fees": {
           "title": "Fee Breakdown",
           "originalPrice": "Original price",
@@ -773,7 +766,6 @@
         },
         "parcel": {
           "title": "Parcel & Notes",
-          "serviceCategory": "Service category",
           "declaredWeight": "Declared weight",
           "measuredWeight": "Measured weight",
           "rentalHours": "Rental hours",
@@ -798,18 +790,12 @@
           "prohibitedDeclared": "No-prohibited-items pledge",
           "services": "Services"
         },
-        "links": {
-          "title": "Links Summary",
-          "type": "Type"
-        },
         "view": {
           "title": "Order information",
           "subtitle": "The same rows the customer sees on the app's order detail screen.",
           "createdAt": "Ordered at",
           "rentalHours": "Rental duration",
-          "deadline": "Pickup / rental deadline",
           "intendedReceive": "Expected pickup by receiver",
-          "droppedAt": "Parcel dropped / handed to technician at",
           "deliveryAddress": "Delivery address",
           "overtimeFee": "Overtime fee (estimate)",
           "overtimeRate": "Overtime rate",
@@ -823,7 +809,6 @@
             "OVERTIME_FEE_UNPAID": "Blocked — overtime fee unpaid",
             "BOX_INCIDENT_OPEN": "Blocked — box incident open, waiting for a technician"
           },
-          "receiver": "Receiver",
           "delegate": "Pickup delegated to",
           "delegateNote": "Delegation message",
           "delegatedAt": "Delegated at",
@@ -834,7 +819,16 @@
           "failed": "Delivery not completed",
           "parcelReturned": "Parcel returned to sender",
           "boxIncident": "Box incident since",
-          "milestones": "Milestones the customer sees"
+          "milestones": "Milestones the customer sees",
+          "rentalEnd": "Rental ends",
+          "sendDeadline": "Receiver pickup deadline",
+          "droneDeadline": "Pickup deadline at the receiving locker",
+          "holdHours": "Hold time",
+          "rentalDroppedAt": "Items placed in the box at",
+          "sendDroppedAt": "Sender dropped off at",
+          "receivedAt": "Receiver picked up at",
+          "completedAt": "Completed at",
+          "lastReminder": "Last pickup reminder"
         },
         "code": {
           "title": "Pickup code",
@@ -849,7 +843,9 @@
           "qrSigned": "Same QR the customer scans in the app",
           "none": "No box-opening code has been issued for this order.",
           "homePickup": "Home pickup code (sender reads it to the technician)",
-          "homePickupUsed": "Used — the technician has the parcel or the order ended"
+          "homePickupUsed": "Used — the technician has the parcel or the order ended",
+          "revoked": "The order has ended — the box code has been revoked.",
+          "inStorage": "Items were moved to storage — handed back at the counter, no box code is used."
         },
         "extra": {
           "incidentStatus": {
@@ -867,6 +863,11 @@
           "dropIncidentWithCode": "Drop incident ({{code}}): {{status}}",
           "dropIncidentTitle": "Drop incident {{code}} - click to view details",
           "dropIncident": "Drop incident: {{status}}"
+        },
+        "overtime": {
+          "charged": "Overdue fee charged",
+          "rental": "Rental time exceeded — fee accruing",
+          "pickup": "Pickup overdue — fee accruing"
         }
       },
       "location": {
@@ -893,7 +894,11 @@
         "DROP_PARCEL_FOR_DRONE": "Customer places the parcel in the drone box at the sending locker and confirms",
         "PAY_BEFORE_PICKUP": "Pay the drone delivery fee before opening the box",
         "INCIDENT_IN_PROGRESS": "A delivery incident is being handled; follow it in the incident view",
-        "UNKNOWN": "Not determined"
+        "UNKNOWN": "Not determined",
+        "rental": {
+          "PICKUP": "The renter uses the box, takes the items and ends the rental",
+          "PAY_AND_DROP": "The renter pays and puts items in the box"
+        }
       }
     },
     "storage": {
