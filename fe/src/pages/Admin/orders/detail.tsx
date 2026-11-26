@@ -181,7 +181,9 @@ function CustomerCard({ order }: { order: AdminOrder }) {
             {customer?.phoneNumber}
           </LabelValue>
           <LabelValue label={t("common.email")}>{customer?.email}</LabelValue>
-          <LabelValue label={t("admin.orders.fields.accountStatus")}>{customer?.status}</LabelValue>
+          <LabelValue label={t("admin.orders.fields.accountStatus")}>
+            {customer?.status ? t(`shared.accountStatus.${customer.status}`, { defaultValue: customer.status }) : null}
+          </LabelValue>
         </div>
 
         <Separator />

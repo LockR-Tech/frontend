@@ -23,7 +23,7 @@
     "heroSubtitle": "Operate every locker, cell and drone mission from one place.",
     "featureLockers": "Monitor lockers and cells in real time",
     "featureDrones": "Dispatch and track drone deliveries",
-    "featureMaintenance": "Route tickets and maintenance to technicians",
+    "featureMaintenance": "Route incident tickets and maintenance to technicians",
     "errInvalid": "Incorrect email or password.",
     "errLocked": "This account is locked.",
     "errDisabled": "This account is disabled.",
@@ -152,7 +152,8 @@
     "cardFilter": {
       "showing": "Showing: {{label}} · {{count}}",
       "clear": "Clear"
-    }
+    },
+    "online": "Online"
   },
   "header": {
     "language": "Language",
@@ -232,8 +233,8 @@
       "subtitle": "Real-time overview of parcel orders, box rentals, revenue and kiosk network operations",
       "createScenario": "Create Scenario",
       "format": {
-        "billionVnd": "{{value}}B đ",
-        "millionVnd": "{{value}}M đ",
+        "billionVnd": "{{value}}B ₫",
+        "millionVnd": "{{value}}M ₫",
         "billionShort": "{{value}}B",
         "millionShort": "{{value}}M"
       },
@@ -386,7 +387,6 @@
       "table": {
         "deleted": "User deleted",
         "deleteFailed": "Couldn't delete user",
-        "wallet": "Wallet",
         "deleteTitle": "Delete user?",
         "deleteDesc": "User <b>{{name}}</b> will be deleted and can no longer sign in.",
         "deleteHint": "To only block sign-in, turn off the active status instead of deleting.",
@@ -407,19 +407,6 @@
         "enableAccountHint": "The account can sign in right away",
         "creating": "Creating...",
         "submit": "Create User"
-      },
-      "wallet": {
-        "title": "Wallet: {{name}}",
-        "invalidAmount": "Enter a valid amount (> 0).",
-        "topUpSuccess": "Wallet topped up successfully",
-        "deductSuccess": "Amount deducted from wallet",
-        "adjustFailed": "Failed to adjust the balance.",
-        "currentBalance": "Current Balance",
-        "amount": "Adjustment Amount",
-        "reason": "Reason (optional)",
-        "reasonPlaceholder": "Refund / promotion / adjustment...",
-        "deduct": "Deduct",
-        "add": "Add Funds"
       },
       "loyalty": {
         "txType": {
@@ -508,8 +495,6 @@
         "termsAcceptedAt": "Accepted at",
         "termsVersion": "Version",
         "termsNotAcceptedHint": "The user has not accepted in the app yet. The app asks the next time it opens.",
-        "walletBalance": "Wallet balance",
-        "walletBalanceHint": "Current balance",
         "loyaltyPoints": "Loyalty points",
         "loyaltyPointsHint": "Points available"
       },
@@ -540,7 +525,6 @@
           "received": "Orders received",
           "payments": "Payments",
           "refunds": "Refunds",
-          "wallet": "Wallet",
           "loyalty": "Loyalty",
           "feedback": "Feedback",
           "reports": "Issue reports",
@@ -578,7 +562,6 @@
         "emptyReceived": "This user has not received any orders",
         "emptyPayments": "No payments yet",
         "emptyRefunds": "No refund requests",
-        "emptyWallet": "No wallet activity",
         "emptyFeedback": "This user has not left any feedback",
         "emptyReports": "This user has not reported any issues",
         "emptyNotifications": "No notifications yet",
@@ -896,6 +879,21 @@
           "DESTINATION_LOCKER": "At the receiving locker",
           "ESTIMATED_ROUTE": "Estimated from the stage (older order, no GPS)"
         }
+      },
+      "nextAction": {
+        "PAY_AND_DROP": "Customer pays and places items in the box",
+        "PICKUP": "Recipient picks up the items",
+        "DONE": "Order completed, nothing left to do",
+        "CANCELED": "Order canceled, nothing left to do",
+        "CONTACT_STAFF": "Items moved to storage — the customer contacts staff to get them back",
+        "WAIT_FOR_BOX_INCIDENT": "A technician is handling the box; overtime fees are paused until it is fixed",
+        "PAY_FOR_DRONE": "Customer pays the drone delivery fee so the flight team can dispatch it",
+        "WAIT_FOR_PICKUP": "A drone technician goes to the pickup address to collect the parcel",
+        "WAIT_FOR_DRONE": "The flight team accepts and launches the drone",
+        "DROP_PARCEL_FOR_DRONE": "Customer places the parcel in the drone box at the sending locker and confirms",
+        "PAY_BEFORE_PICKUP": "Pay the drone delivery fee before opening the box",
+        "INCIDENT_IN_PROGRESS": "A delivery incident is being handled; follow it in the incident view",
+        "UNKNOWN": "Not determined"
       }
     },
     "storage": {
@@ -1101,8 +1099,8 @@
         "confirmSaveDesc": "Are you sure you want to save the changes to this store?",
         "deactivateTitle": "Deactivate store?",
         "reactivateTitle": "Reactivate store?",
-        "toInactive": "The store will be set to INACTIVE.",
-        "toActive": "The store will be set to ACTIVE.",
+        "toInactive": "The location will be set to Inactive.",
+        "toActive": "The location will be set to Active.",
         "updating": "Updating...",
         "deactivate": "Deactivate",
         "removeImageTitle": "Remove store photo?",
@@ -1333,7 +1331,7 @@
         "cellTypePlaceholder": "Select a function",
         "typeStandard": "Standard box (STANDARD)",
         "typeStandardHint": "Multi-service: drop-off, storage, laundry, C2C delivery",
-        "typeDrone": "Drone receiving box (DRONE)",
+        "typeDrone": "Drone receiving box",
         "typeDroneHint": "Automatically receives parcels dropped by drone through the ArUco sliding lid",
         "typeXlHint": "Double-height luggage compartment reserved for suitcases",
         "boxNumber": "Box number (#)",
@@ -1345,8 +1343,8 @@
         "colHint": "Kiosk screen is fixed at Row 1, Column 1. Column 1 (rows 2+) are boxes below the screen; Columns 2, 3... are for adjacent columns",
         "status": "Box status",
         "statusPlaceholder": "Select status",
-        "statusAvailable": "Available (AVAILABLE)",
-        "statusOutOfService": "Suspended (OUT_OF_SERVICE)",
+        "statusAvailable": "Available",
+        "statusOutOfService": "Suspended",
         "statusCleaning": "Cleaning (CLEANING)",
         "faultHint": "To report a fault, use \"Report box fault\" on the layout to open an incident report for the technician.",
         "note": "Technical note (optional)",
@@ -1559,7 +1557,7 @@
           "forceOpenDesc": "Sends an unlock command directly, without the customer's PIN. This action will be recorded in the IoT system's audit log (MASTER audit log).",
           "forceOpenConfirm": "Confirm Unlock",
           "faultTitle": "Report fault on box #{{number}}",
-          "faultDesc": "Sets the box status to FAULT and opens an incident report (if the box already has an open report, it is merged into that one). {{routing}}",
+          "faultDesc": "Sets the box to Faulty and opens an incident report (if the box already has an open report, it is merged into that one). {{routing}}",
           "faultConfirm": "Confirm Fault Report",
           "outOfServiceTitle": "Suspend box #{{number}}",
           "outOfServiceDesc": "The box will be temporarily removed from the available boxes (no new reservations/drop-offs).",
@@ -1567,7 +1565,7 @@
           "cleaningTitle": "Mark box #{{number}} for cleaning",
           "cleaningDesc": "Marks the box as undergoing disinfection and routine cleaning.",
           "returnTitle": "Return box #{{number}} to service",
-          "returnDesc": "Moves the box from suspended/cleaning back to AVAILABLE to serve customers.",
+          "returnDesc": "Moves the box from suspended/cleaning back to Available to serve customers.",
           "returnConfirm": "Return to Service",
           "clearFaultTitle": "Confirm box #{{number}} is working again?",
           "clearFaultDesc": "Closes the box's open incident report (if any) and returns the box to its status before the fault — a box still holding items goes back to \"Occupied\".",
@@ -1603,7 +1601,7 @@
         "deleteAllBoxes": "Delete All Boxes",
         "deleteAllBoxesTitle": "Delete all boxes?",
         "deleteAllBoxesDesc": "All {{count}} boxes in this locker will be deleted.",
-        "deleteAllBoxesWarning": "Note: Boxes currently holding parcels or reserved by customers (OCCUPIED / RESERVED) will be protected and not deleted.",
+        "deleteAllBoxesWarning": "Note: Boxes currently holding parcels or reserved by customers are protected and will not be deleted.",
         "deleteAllBoxesConfirm": "Confirm Delete All",
         "deleteAllSuccess": "Successfully deleted {{count}} boxes!",
         "deleteAllFailed": "Failed to delete all boxes",
@@ -1668,7 +1666,7 @@
       },
       "boxType": {
         "standard": "Standard (STANDARD)",
-        "drone": "Drone receiving (DRONE)",
+        "drone": "Drone receiving box",
         "xl": "Large luggage compartment (XL)"
       },
       "logs": {
@@ -1718,8 +1716,8 @@
         "totalEntries": "Total log entries",
         "hardwareIssues": "Hardware errors & warnings",
         "banner": {
-          "online": "🟢 Locker {{locker}} is powered & connected (Online):",
-          "offline": "🔴 Locker {{locker}} is disconnected / unplugged (Offline):",
+          "online": "🟢 Locker {{locker}} is powered and connected:",
+          "offline": "🔴 Locker {{locker}} is disconnected or unpowered:",
           "onlineDetail": "Hardware {{hardware}} · {{slots}} · firmware {{firmware}} · Latest signal: {{time}}",
           "offlineDetail": "The locker has no power or the controller is off · Last signal at: {{time}}"
         },
@@ -1764,50 +1762,8 @@
           "rejected": "Rejected",
           "noDescription": "No description"
         },
-        "maintenanceDialog": {
-          "title": "Switch locker {{code}} to maintenance",
-          "description": "Temporarily pause new orders at {{name}} for inspection and servicing.",
-          "createReportLabel": "Create an incident report for a locker technician",
-          "createReportHint": "Recommended — opens a blocking report (RPT), notifies the responsible technician, and auto-reactivates the locker when resolved.",
-          "defaultTitle": "Maintenance for Kiosk {{code}}",
-          "reportTitleLabel": "Incident report title",
-          "reportTitlePlaceholder": "e.g. Power supply inspection / door servicing...",
-          "reportDescLabel": "Condition description / maintenance reason",
-          "reportDescPlaceholder": "Describe what the technician needs to check or repair...",
-          "validationRequired": "Please enter both title and description when creating an incident report.",
-          "createdReportSuccess": "Switched {{code}} to maintenance and created report RPT-{{id}}",
-          "noReportWarning": "The locker will only switch to Maintenance WITHOUT creating an incident report or notifying technicians.",
-          "submitting": "Processing...",
-          "confirmWithReport": "Confirm & Create Report",
-          "confirmOnly": "Maintenance Only"
-        },
-        "maintenanceHistory": {
-          "title": "Repair & Maintenance History for Kiosk {{locker}}",
-          "description": "Unified timeline of all kiosk/box incident reports and periodic maintenance inspections.",
-          "scheduleFallback": "Periodic Schedule #{{id}}",
-          "routedTo": "Awaiting claim ({{name}})",
-          "kpi": {
-            "totalReports": "Total Incidents",
-            "activeReports": "Open / In Progress",
-            "resolvedReports": "Resolved",
-            "inspections": "Periodic Inspections"
-          },
-          "filterAll": "All ({{count}})",
-          "filterIncidents": "Incidents ({{count}})",
-          "filterInspections": "Periodic ({{count}})",
-          "loading": "Loading repair & maintenance history...",
-          "empty": "No incident reports or periodic maintenance records for this kiosk yet.",
-          "blockingBadge": "Blocking locker",
-          "openInMaintenance": "Maintenance Page",
-          "technicianLabel": "Technician:",
-          "createdAt": "Created:",
-          "resolvedAt": "Resolved:",
-          "completedAt": "Completed:",
-          "periodicBadge": "Periodic Inspection",
-          "linkedReport": "→ Opened RPT-{{id}}",
-          "inspectionPhotoAlt": "Periodic inspection photo #{{index}}",
-          "photoPreviewTitle": "Inspection photo"
-        }
+        "controllerPi": "Pi controller",
+        "displayScreen": "Waveshare 7-inch screen"
       },
       "boxQr": {
         "defaultLockerName": "Lock.R Locker",
@@ -1829,7 +1785,7 @@
         "positionValue": "Row {{row}} · Column {{col}}",
         "identifier": "IDENTIFIER (ID):",
         "scanHint": "* Scan this QR code with the Lock.R app to operate or check the box",
-        "payload": "QR payload (JSON):",
+        "payload": "QR content (JSON):",
         "copiedShort": "Copied",
         "copy": "Copy",
         "batchTitle": "Batch printing for the whole locker ({{count}} boxes)",
@@ -1853,11 +1809,11 @@
       },
       "kioskScreen": {
         "title": "7-inch Kiosk Touchscreen",
-        "online": "Active (Online)",
-        "offline": "Disconnected (Offline)",
+        "online": "Online",
+        "offline": "Disconnected",
         "description": "Customer display & interaction device at kiosk {{kiosk}}",
-        "appInfo": "React 19 app · Chromium Kiosk Mode (Port :3002)",
-        "noPower": "Screen has no power (Offline)",
+        "appInfo": "Kiosk app running on Chromium (port 3002)",
+        "noPower": "The screen has no power",
         "waitingPower": "Waiting for kiosk station power or for the Raspberry Pi to reconnect",
         "touchInfo": "5-point capacitive touch (USB HID)",
         "hardwareSpecs": "Screen Hardware Specs",
@@ -2163,6 +2119,59 @@
           "returned": "Dossier returned to technician",
           "cancelled": "Installation dossier cancelled"
         }
+      },
+      "maintenanceDialog": {
+        "title": "Switch locker {{code}} to maintenance",
+        "description": "Temporarily pause new orders at {{name}} for inspection and servicing.",
+        "createReportLabel": "Create an incident report for a locker technician",
+        "createReportHint": "Recommended — opens a blocking report (RPT), notifies the responsible technician, and auto-reactivates the locker when resolved.",
+        "defaultTitle": "Maintenance for Kiosk {{code}}",
+        "reportTitleLabel": "Incident report title",
+        "reportTitlePlaceholder": "e.g. Power supply inspection / door servicing...",
+        "reportDescLabel": "Condition description / maintenance reason",
+        "reportDescPlaceholder": "Describe what the technician needs to check or repair...",
+        "validationRequired": "Please enter both title and description when creating an incident report.",
+        "createdReportSuccess": "Switched {{code}} to maintenance and created report RPT-{{id}}",
+        "noReportWarning": "The locker will only switch to Maintenance WITHOUT creating an incident report or notifying technicians.",
+        "submitting": "Processing...",
+        "confirmWithReport": "Confirm & Create Report",
+        "confirmOnly": "Maintenance Only"
+      },
+      "maintenanceHistory": {
+        "title": "Repair & Maintenance History for Kiosk {{locker}}",
+        "description": "Unified timeline of all kiosk/box incident reports and periodic maintenance inspections.",
+        "scheduleFallback": "Periodic Schedule #{{id}}",
+        "routedTo": "Awaiting claim ({{name}})",
+        "kpi": {
+          "totalReports": "Total Incidents",
+          "activeReports": "Open / In Progress",
+          "resolvedReports": "Resolved",
+          "inspections": "Periodic Inspections"
+        },
+        "filterAll": "All ({{count}})",
+        "filterIncidents": "Incidents ({{count}})",
+        "filterInspections": "Periodic ({{count}})",
+        "loading": "Loading repair & maintenance history...",
+        "empty": "No incident reports or periodic maintenance records for this kiosk yet.",
+        "blockingBadge": "Blocking locker",
+        "openInMaintenance": "Maintenance Page",
+        "technicianLabel": "Technician:",
+        "createdAt": "Created:",
+        "resolvedAt": "Resolved:",
+        "completedAt": "Completed:",
+        "periodicBadge": "Periodic Inspection",
+        "linkedReport": "→ Opened RPT-{{id}}",
+        "inspectionPhotoAlt": "Periodic inspection photo #{{index}}",
+        "photoPreviewTitle": "Inspection photo",
+        "category": {
+          "BOX": "Box",
+          "LOCKER": "Whole locker",
+          "KIOSK": "Whole locker",
+          "LANDING_PAD": "Drone landing pad",
+          "DRONE": "Drone",
+          "SCREEN": "Kiosk screen",
+          "OTHER": "Other"
+        }
       }
     },
     "feedback": {
@@ -2202,7 +2211,8 @@
       "columns": {
         "rating": "Rating",
         "content": "Content",
-        "resolvedAt": "Resolved At"
+        "resolvedAt": "Resolved At",
+        "locker": "Locker"
       },
       "list": {
         "count": "{{total}} feedback",
@@ -2253,7 +2263,13 @@
         "topComplaint": "Most common complaint",
         "last90Days": "last 90 days",
         "complaint": {
-          "other": "Other"
+          "other": "Other",
+          "damaged": "Damaged goods",
+          "missing": "Missing / lost items",
+          "locker": "Locker / box issue",
+          "dirtyBox": "Dirty box",
+          "payment": "Payment / fees",
+          "service": "Service quality"
         },
         "topService": "Top-rated service",
         "scoreByService": "Score by service"
@@ -2319,7 +2335,7 @@
       "runningNow": "Running...",
       "auto": "Automatic",
       "infoTitle": "Information",
-      "info1": "Jobs run automatically inside order-service on the default OrderScheduler schedule; schedule times are server time (UTC).",
+      "info1": "Jobs run automatically on the order system's default schedule; schedule times are server time (UTC).",
       "info2": "Admins can trigger a job manually for testing or urgent processing — the effect is the same as an automatic run.",
       "info3": "The history below only keeps the last 10 manual runs in this browser session.",
       "confirmTitle": "Run \"{{job}}\" now?",
@@ -2335,29 +2351,29 @@
       "jobs": {
         "autoCancel": {
           "title": "Auto-cancel unconfirmed orders",
-          "description": "Cancels INITIALIZED orders past their hold window, releases the box and refunds promotion usage: unpaid orders after the «auto-cancel-unpaid-minutes» setting, paid orders never dropped off after the «auto-cancel-hours» setting.",
+          "description": "Cancels orders not yet dropped off that are past their hold window, releases the box and returns the promotion use: unpaid orders after the «Auto-cancel unpaid orders after» rule, paid orders never dropped off after the «Auto-cancel orders not dropped off after» rule.",
           "frequency": "Every 2 minutes",
-          "confirm": "Every INITIALIZED order past its hold window is canceled immediately and its box released. This cannot be undone."
+          "confirm": "Every order not yet dropped off and past its hold window is canceled immediately and its box released. This cannot be undone."
         },
         "releaseBoxes": {
           "title": "Release boxes of completed orders",
-          "description": "Safety net: sweeps COMPLETED orders and releases any box still held (e.g. orders completed through the legacy API).",
+          "description": "Safety net: sweeps completed orders and releases any box still held (e.g. orders completed through the legacy API).",
           "frequency": "Daily at 03:15 (server time UTC, 10:15 Vietnam time)"
         },
         "pickupReminders": {
           "title": "Overdue pickup reminders",
-          "description": "Notifies the sender (and receiver, if any) of stored orders past their pickup deadline; each order is reminded again only after the «reminder-cooldown-minutes» setting.",
+          "description": "Notifies the sender (and receiver, if any) of stored orders past their pickup deadline; each order is reminded again only after the «Overdue reminder interval» rule.",
           "frequency": "Every 10 minutes"
         },
         "releaseOverdue": {
           "title": "Move long-overdue orders to storage",
-          "description": "Stored orders overdue longer than the «overdue-release-hours» setting: finalizes the overtime fee, moves them to EXPIRED (items go to storage), releases the box, revokes the PIN and notifies the customer.",
+          "description": "Stored orders overdue longer than the «Release overdue boxes after» rule: finalizes the overtime fee, marks them Expired (items go to storage), releases the box, revokes the PIN and notifies the customer.",
           "frequency": "Hourly at minute 05",
-          "confirm": "Long-overdue orders become EXPIRED, get the overtime fee, lose their PIN and their box is released for other orders; customers are notified. This cannot be undone."
+          "confirm": "Long-overdue orders become Expired, get the overtime fee, lose their PIN and their box is released for other orders; customers are notified. This cannot be undone."
         },
         "reconcileBoxes": {
           "title": "Reconcile box states",
-          "description": "Compares box states in locker-service with active orders: releases RESERVED/OCCUPIED boxes no order holds, and reclaims AVAILABLE boxes that still belong to an active order.",
+          "description": "Compares box states in the locker system with active orders: releases reserved or occupied boxes no order holds, and reclaims free boxes that still belong to an active order.",
           "frequency": "Hourly at minute 35",
           "confirm": "Box states across all lockers may be changed to match active orders. Prefer running it when no drop-off/pickup is in progress."
         }
@@ -2373,7 +2389,7 @@
       "business": {
         "title": "Business Rules",
         "description": "Prices, fees, time limits, SLAs and limits for each service. Every change is validated and logged.",
-        "searchPlaceholder": "Search by name, key, description…",
+        "searchPlaceholder": "Search by name, setting key, description…",
         "searchAria": "Search rules in the current group",
         "clearSearch": "Clear search",
         "leave": {
@@ -2394,8 +2410,8 @@
           "description": "Incident handling SLAs, penalty thresholds, acceptance photos, box holds and drones."
         },
         "payment": {
-          "title": "Payments & Wallet",
-          "description": "Wallet top-up limits, suggested amounts and payment methods."
+          "title": "Payments",
+          "description": "Payment methods, refunds and payment simulation."
         },
         "iot": {
           "title": "IoT Devices",
@@ -2403,7 +2419,7 @@
         },
         "auth": {
           "title": "Authentication",
-          "description": "OTP validity and length, temporary token lifetime, splash screen duration."
+          "description": "OTP validity and length, temporary sign-in session lifetime, splash screen duration."
         },
         "loyalty": {
           "title": "Loyalty",
@@ -2663,13 +2679,51 @@
         "markedRead": "Marked as read",
         "markReadFailed": "Couldn't mark as read",
         "resent": "Notification resent",
-        "resendFailed": "Couldn't resend the notification"
+        "resendFailed": "Couldn't resend the notification",
+        "alreadyDeleted": "The notification was already deleted or no longer exists"
       },
       "deleteDialog": {
         "title": "Delete notification?",
         "desc": "Notification #{{id}} «{{title}}» will be removed from the recipient's inbox."
       },
-      "batchNoun": "notifications"
+      "batchNoun": "notifications",
+      "typeLabel": {
+        "ORDER_PICKUP_OVERDUE": "Pickup overdue",
+        "ORDER_COMPLETED": "Order completed",
+        "ORDER_STATUS_CHANGED": "Order status changed",
+        "REPORT_OPEN": "New incident ticket",
+        "REPORT_RESOLVED": "Ticket resolved",
+        "REPORT_RATED": "Ticket rated",
+        "PAYMENT_REFUNDED": "Payment refunded",
+        "drone_report_routed": "Drone ticket routed",
+        "drone_report_assigned": "Drone ticket assigned",
+        "drone_schedule_due": "Drone maintenance due",
+        "locker_report_routed": "Locker ticket routed",
+        "locker_report_assigned": "Locker ticket assigned",
+        "locker_report_claimed": "Locker ticket claimed",
+        "locker_report_resolved": "Locker ticket resolved",
+        "locker_schedule_due": "Locker maintenance due",
+        "locker_installation_assigned": "Locker installation assigned",
+        "locker_installation_reviewed": "Locker installation reviewed",
+        "SCHEDULE_TECHNICIAN_ASSIGNED": "Maintenance schedule assigned",
+        "DRONE_INCIDENT_RECOVERY_SUBMITTED": "Recovery result submitted",
+        "DRONE_INCIDENT_CUSTOMER_ACCEPTED": "Customer accepted the resolution",
+        "DRONE_INCIDENT_CUSTOMER_DISPUTED": "Customer disputed the resolution",
+        "DRONE_PARCEL_RECOVERY_VERIFIED": "Recovery verified",
+        "DRONE_PARCEL_RECOVERY_STATION": "Parcel brought to a station",
+        "ORDER_REFUND_PENDING": "Refund pending",
+        "ORDER_DELEGATED_TO_YOU": "Pickup delegated to you",
+        "ORDER_BOX_INCIDENT_OPENED": "Box incident on an order",
+        "ORDER_BOX_INCIDENT_RESOLVED": "Box incident resolved",
+        "ORDER": "Order",
+        "PAYMENT": "Payment",
+        "DELIVERY": "Delivery",
+        "PROMOTION": "Promotion",
+        "MAINTENANCE": "Maintenance",
+        "SYSTEM_ALERT": "System alert",
+        "SLA_WARNING": "SLA warning"
+      },
+      "countLabel": "{{count}} notifications"
     },
     "promotions": {
       "pointsCostBadge": "{{points}} points",
@@ -2778,15 +2832,15 @@
       },
       "deleteDialog": {
         "title": "Delete promotion?",
-        "desc": "Code <b>{{code}}</b> will be deleted. Codes that have been used or saved to a customer's wallet can't be deleted — deactivate them instead."
+        "desc": "Code <b>{{code}}</b> will be deleted. Codes that have been used or saved by a customer can't be deleted — deactivate them instead."
       },
       "historyDialog": {
         "title": "Can't delete a code with usage history",
-        "desc": "Code <b>{{code}}</b> has been used or saved to a customer's wallet, so it can't be deleted (to keep the orders' discount history).",
-        "hint": "Deactivating sets the code to INACTIVE — customers can no longer use it."
+        "desc": "Code <b>{{code}}</b> has been used or saved by a customer, so it can't be deleted (to keep the orders' discount history).",
+        "hint": "Deactivating sets the code to Inactive — customers can no longer use it."
       },
       "batchNoun": "promotions",
-      "batchNote": "Codes that were used or saved to a wallet cannot be deleted — set them to Inactive instead."
+      "batchNote": "Codes that were used or saved by a customer cannot be deleted — set them to Inactive instead."
     },
     "breadcrumb": {
       "admin": "Admin",
@@ -2874,7 +2928,7 @@
       "sharedRules": "Shared Rules",
       "sharedRulesHint": "Applies to all three services",
       "overtimeCollected": "Overtime Fees Collected in Period",
-      "overtimeHint": "Not included in the revenue of the three services above — the backend keeps it separate to avoid double counting.",
+      "overtimeHint": "Not included in the revenue of the three services above — the system counts it separately to avoid double counting.",
       "invalidValues": "Some values are invalid",
       "unsavedCount": "{{count}} unsaved change(s)",
       "discard": "Discard Changes",
@@ -3026,8 +3080,8 @@
         "flightTrack": "Flight position log · newest first"
       },
       "lockerBlock": {
-        "source": "Sending locker · Locker A",
-        "destination": "Receiving locker · Locker B",
+        "source": "Sending locker",
+        "destination": "Receiving locker",
         "parcelInDroneBox": "Parcel is in drone box no. {{number}}",
         "reservedBox": "Receiving box no. {{number}}",
         "sentAt": "Sent at",
@@ -3566,7 +3620,7 @@
           "flightMode": "Flight mode:",
           "motors": "Motors:",
           "armed": "ARMED (spinning)",
-          "disarmed": "DISARMED (safe)",
+          "disarmed": "Motors disarmed (safe)",
           "landed": {
             "inAir": "In the air",
             "onGround": "On the ground",
@@ -3625,7 +3679,7 @@
         },
         "iot": {
           "title": "Drone IoT log {{code}}",
-          "description": "Full hardware event chain: Pi Controller, Pixhawk MAVLink, cargo release hook, ArUco camera and battery",
+          "description": "Full hardware event chain: Pi controller, Pixhawk (MAVLink), cargo release hook, ArUco camera and battery",
           "refreshed": "Drone IoT log refreshed",
           "searchPlaceholder": "Search by message, order #, technician, error, IP, MAC...",
           "loading": "Loading drone IoT log...",
@@ -3636,13 +3690,13 @@
             "offline": "Drone {{code}} is offline (unplugged or network lost)",
             "onlineBadge": "ONLINE",
             "offlineBadge": "OFFLINE",
-            "onlineDetail": "Pi Controller: {{ip}} · MAVLink Pixhawk: {{mavlink}} · Updated: {{time}}",
+            "onlineDetail": "Pi controller: {{ip}} · Pixhawk (MAVLink): {{mavlink}} · Updated: {{time}}",
             "lastSeen": "Last connected: {{time}}",
             "noRecentSignal": "No recent signal"
           },
           "component": {
-            "piController": "Pi Controller",
-            "pixhawk": "Pixhawk Autopilot",
+            "piController": "Pi controller",
+            "pixhawk": "Pixhawk autopilot",
             "cargoHook": "Cargo hook",
             "visionCamera": "AI vision camera",
             "batteryPower": "Power & battery",
@@ -3662,7 +3716,7 @@
             "hookJammed": "Cargo hook jammed",
             "manualOverride": "Manual override (user/technician)",
             "armed": "Motors armed (ARMED)",
-            "disarmed": "Safety lock (DISARMED)",
+            "disarmed": "Motors disarmed (safe)",
             "flightModeChanged": "Flight mode changed",
             "failsafeTriggered": "Failsafe triggered",
             "hardwareAttach": "Pi controller attached",
@@ -3682,7 +3736,7 @@
           "filter": {
             "componentPlaceholder": "Hardware component",
             "allComponents": "All components",
-            "piController": "Pi Controller processor",
+            "piController": "Pi controller",
             "pixhawk": "Pixhawk flight controller",
             "cargoHook": "Cargo hook",
             "allEvents": "All events",
@@ -3839,7 +3893,7 @@
         "compensationProcessed": "Compensation approval/payout request processed",
         "approveCompensation": "Approve Compensation",
         "retryPayout": "Retry Compensation Payout",
-        "payoutNote": "If the compensation payout gateway is not configured, the system keeps the request pending and records Integration Unavailable in the history; it never fakes a completed payment."
+        "payoutNote": "If the compensation payout gateway is not configured, the system keeps the request pending and records “Payout gateway not connected” in the history; it never fakes a completed payment."
       },
       "detailPage": {
         "incidentStatus": {
@@ -4151,7 +4205,7 @@
           "on": "On",
           "off": "Off",
           "settingsLink": "Settings",
-          "description": "Compensation and shipping refund rules applied by the backend to this order",
+          "description": "Compensation and shipping refund rules the system applies to this order",
           "rate": "Suggested rate",
           "cap": "Compensation cap",
           "noCap": "No cap",
@@ -4247,7 +4301,7 @@
         "paymentMethod": {
           "sepay": "SePay bank transfer (VietQR)",
           "vnpay": "VNPAY gateway",
-          "momo": "MoMo wallet"
+          "momo": "MoMo"
         },
         "orderContext": {
           "title": "Order information",
@@ -4418,6 +4472,34 @@
         "selected": "Selected",
         "selectedTech": "Selected technician:",
         "selectPrompt": "Select a technician on the map or in the list to assign"
+      },
+      "process": {
+        "open": "Open",
+        "awaitingAssignment": "Awaiting assignment",
+        "assigned": "Assigned",
+        "accepted": "Accepted by technician",
+        "searching": "Searching",
+        "parcelFound": "Parcel found",
+        "parcelNotFound": "Parcel not found",
+        "recovered": "Recovered",
+        "submitted": "Awaiting admin review",
+        "verified": "Verified by admin",
+        "cancelled": "Cancelled",
+        "inspecting": "Inspecting",
+        "proposed": "Proposed",
+        "awaitingCustomerAcceptance": "Awaiting customer",
+        "rejected": "Rejected",
+        "executed": "Carried out"
+      },
+      "compensationStatus": {
+        "NOT_REQUIRED": "Not required",
+        "AWAITING_APPROVAL": "Awaiting approval",
+        "PROCESSING": "Processing",
+        "PAYMENT_PENDING": "Payment pending",
+        "PAID": "Paid",
+        "PAYMENT_FAILED": "Payment failed",
+        "DISPUTED": "Disputed",
+        "COMPLETED": "Completed"
       }
     },
     "knowledge": {
@@ -4503,8 +4585,8 @@
         "footer": "{{total}} chunks indexed in total. Documents being re-indexed are still answered from their old chunks until indexing finishes. Click a document title to view its content.",
         "deleteTitle": "Delete document?",
         "deleteDescriptionBefore": "Delete",
-        "deleteDescriptionAfter": "and all of its indexed chunks. The assistant will no longer use this document to answer.",
-        "deleteNote": "Evaluation cases pointing to this title will fail. This action can't be undone.",
+        "deleteDescriptionAfter": "will be hidden from the knowledge base and all its indexed chunks removed. The assistant will no longer use this document to answer.",
+        "deleteNote": "Evaluation questions pointing to this title will fail. The original file is kept together with the deletion reason.",
         "deleteAction": "Delete Document",
         "reindexTitle": "Re-index document?",
         "reindexDescriptionAfter": "will go back to “Pending indexing” and be chunked and embedded again from scratch (embedding costs apply).",
@@ -4884,7 +4966,7 @@
           "doorClosed": "Closed",
           "selectedBox": "Selected: Box #{{number}} ({{type}}) · {{status}}",
           "doorOpenNow": "Door open",
-          "selectedBoxNotice": "The system will set box #{{number}} to FAULT and open an incident report linked directly to this box.",
+          "selectedBoxNotice": "The system will set box #{{number}} to Faulty and open an incident report linked directly to this box.",
           "boxHint": "Select a box ⇒ it is set to Fault; if the box already has an open report, the result is merged into it. No box selected ⇒ locker-wide incident.",
           "faultReasonPlaceholder": "Describe the fault to fix (optional — defaults to listing the failed items)",
           "save": "Save Inspection Record"
@@ -4965,7 +5047,7 @@
         },
         "delete": {
           "title": "Delete this maintenance plan?",
-          "description": "Are you sure you want to delete the periodic inspection plan \"{{title}}\"? The history of previous inspections will be kept for reference.",
+          "description": "The inspection schedule “{{title}}” stops and is hidden from the list; past inspection records are kept.",
           "confirm": "Confirm Delete"
         },
         "toast": {
@@ -5373,7 +5455,7 @@
         "overdueCount": "{{count}} SLA-overdue report(s)",
         "noOverdue": "No overdue reports",
         "profile": "Technician Profile",
-        "role": "Role: TECHNICIAN",
+        "role": "Role: Technician",
         "copy": "Copy",
         "phoneLabel": "Phone number:",
         "editPhone": "Edit phone number",
@@ -5614,15 +5696,16 @@
         },
         "deleteDialog": {
           "title": "Delete incident report {{code}}",
-          "confirm": "Are you sure you want to permanently delete incident report <b>{{code}}</b> ({{title}})?",
-          "warning": "⚠️ This action cannot be undone. All related data, including attached photos, technical logs and ratings, will be permanently deleted. If this report is locking a box, the box will be unlocked automatically."
+          "confirm": "Remove incident report <b>{{code}}</b> ({{title}}) from the list?",
+          "warning": "The report is soft-deleted: attached photos, technical logs and ratings are kept together with the reason. If the report is locking a box, the box is unlocked automatically.",
+          "action": "Delete report"
         },
         "batchDialog": {
           "titleAll": "Confirm deleting ALL {{category}} incident reports",
           "titleSome": "Confirm bulk-deleting {{count}} incident report(s)",
-          "confirmAll": "Are you sure you want to delete <danger>all {{count}} incident report(s)</danger> in the <b>{{category}}</b> category?",
-          "confirmSome": "Are you sure you want to permanently delete the <danger>{{count}} selected</danger> incident report(s)?",
-          "warning": "⚠️ Warning: All selected incident reports, their attached photos in storage and their handling logs will be permanently deleted from the database.",
+          "confirmAll": "Remove <danger>all {{count}} incident report(s)</danger> in the <b>{{category}}</b> group from the list?",
+          "confirmSome": "Remove the <danger>{{count}} selected</danger> incident report(s) from the list?",
+          "warning": "The reports are soft-deleted with the same reason: photos and handling logs stay in the system. Reports locking a box unlock it automatically.",
           "deleteAll": "Delete all",
           "deleteCount": "Delete {{count}} report(s)"
         },
@@ -5683,18 +5766,14 @@
           "fieldNote": "[FIELD NOTE]",
           "accepted": "[ACCEPTANCE PASSED]"
         }
-      }
+      },
+      "deletedAccount": "deleted account (#{{id}})"
     },
     "payments": {
       "title": "Payment Management",
-      "description": "Transactions, refunds and wallet movements — data comes directly from payment-service",
+      "description": "Order payments and refunds, taken directly from the payment system.",
       "viewRevenue": "View Revenue Analytics",
       "matchCount": "{{total}} transaction(s) match the filters",
-      "tabs": {
-        "transactions": "Transactions",
-        "wallet": "Wallet Movements",
-        "withdrawals": "Withdrawal Requests"
-      },
       "refunds": "Refunds",
       "method": "Method",
       "amount": "Amount",
@@ -5713,17 +5792,11 @@
         "accountNumber": "Account number",
         "accountHolder": "Account holder"
       },
-      "kind": {
-        "all": "Orders and top-ups",
-        "order": "Order payments only",
-        "topup": "Top-ups only"
-      },
       "sort": {
         "idDesc": "Transaction ID descending"
       },
       "filters": {
         "searchPlaceholder": "Reference, description, transaction ID or order code…",
-        "kindPlaceholder": "Transaction type",
         "dateHint": "The date range filters by transaction creation time. Leave it empty to see all time."
       },
       "stats": {
@@ -5736,7 +5809,7 @@
         "successRateHint": "Successful transactions / total",
         "refundCount": "{{total}} refund(s)",
         "netCollected": "Net Order Collections",
-        "netCollectedHint": "Order collections minus refunds, excluding wallet top-ups",
+        "netCollectedHint": "Order collections minus refunds",
         "byStatus": "By status",
         "byMethod": "By method",
         "breakdownRow": "{{total}} txn · {{amount}}",
@@ -5744,22 +5817,21 @@
       },
       "table": {
         "transaction": "Transaction",
-        "transactionId": "Transaction {{id}}",
+        "transactionId": "Transaction #{{id}}",
         "refundedAmount": "Refunded {{amount}}",
         "openOrder": "Open Order",
         "empty": "No transactions match the filters"
       },
       "detail": {
         "title": "Transaction Details #{{id}}",
-        "description": "Collection, refund and wallet movement details related to this transaction.",
+        "description": "Collection and refund details for this transaction.",
         "loadFailed": "Couldn't load the transaction",
         "statusUpdated": "Moved transaction {{ref}} to “{{status}}”",
         "relatedOrder": "Related order",
         "openOrder": "Open order",
         "orderTotal": "Order total",
         "orderCreatedAt": "Order created at",
-        "lockTopup": "Wallet top-ups can only be confirmed through the payment gateway. Changing the status manually doesn't credit or debit the wallet, so it can't be edited here.",
-        "lockTerminal": "The transaction is in a final status (“{{status}}”) and can't be changed manually. To pay the customer back, use the Refunds tab.",
+        "lockTerminal": "The transaction is in a final status (“{{status}}”) and can't be changed manually. To pay the customer back, use the Refunds page.",
         "selectStatus": "Select status",
         "saveStatus": "Save Status",
         "referenceId": "Reference ID",
@@ -5771,9 +5843,6 @@
         "refundTxnId": "Refund transaction ID",
         "processedBy": "Processed by",
         "refundNote": "Creating a refund doesn't automatically change the transaction status or the order's payment status.",
-        "walletCount": "Wallet movements ({{count}})",
-        "noWallet": "This transaction produced no wallet movements.",
-        "balanceAfter": "Balance after: {{amount}}",
         "otherPayments": "Other transactions for the same order ({{count}})"
       },
       "refund": {
@@ -5814,7 +5883,7 @@
           "transferRefLabel": "Bank transaction ID / transfer order no.",
           "transferRefPlaceholder": "e.g. FT24100712345678 or the transfer reference",
           "transferRefRequiredHint": "System policy requires this code before confirming the transfer.",
-          "warning": "This will mark the order as <b>REFUNDED</b> and notify the customer.",
+          "warning": "This will mark the order as <b>Refunded</b> and notify the customer.",
           "confirm": "Confirm Transfer Sent"
         },
         "reject": {
@@ -5829,57 +5898,6 @@
           "receivingBank": "Receiving bank",
           "transferRef": "Transfer transaction ID",
           "originalReason": "Original refund reason"
-        }
-      },
-      "withdrawal": {
-        "searchPlaceholder": "Search code, name, account no., bank...",
-        "loading": "Loading withdrawal requests...",
-        "empty": "No withdrawal requests found",
-        "status": {
-          "completed": "Transferred"
-        },
-        "toast": {
-          "reasonRequired": "Please enter a rejection reason",
-          "approved": "Withdrawal request #{{ref}} approved",
-          "rejected": "Request #{{ref}} rejected and the amount returned to the customer's wallet",
-          "failed": "Couldn't process the withdrawal request. Please try again!"
-        },
-        "table": {
-          "requestId": "Request ID",
-          "beneficiary": "Beneficiary Account",
-          "amount": "Withdrawal amount",
-          "note": "Note / Reason",
-          "processedAt": "Reviewed: {{time}}",
-          "done": "Done"
-        },
-        "approveDialog": {
-          "title": "Confirm Withdrawal Approval",
-          "description": "Check the account details carefully and confirm that the actual transfer has been made:",
-          "warning": "This will mark the transaction as <b>TRANSFERRED</b> and cannot be undone.",
-          "confirm": "Confirm Transfer & Approve"
-        },
-        "rejectDialog": {
-          "title": "Reject Withdrawal Request",
-          "description": "When rejected, the system automatically returns the withdrawal amount to the customer's wallet.",
-          "refundToWallet": "Amount returned to wallet",
-          "placeholder": "e.g. Incorrect account holder, the bank declined the transaction...",
-          "warning": "{{amount}} will be credited back to the wallet immediately.",
-          "confirm": "Confirm Rejection & Refund to Wallet"
-        }
-      },
-      "wallet": {
-        "direction": "Direction",
-        "source": "Source",
-        "searchPlaceholder": "Reference or content…",
-        "count": "{{total}} wallet movement(s).",
-        "empty": "No wallet movements match the filters",
-        "table": {
-          "movement": "Movement",
-          "walletId": "Wallet #{{id}}",
-          "balance": "Balance {{amount}}",
-          "relatedOrder": "Related Order",
-          "reference": "Reference",
-          "timestamp": "Timestamp"
         }
       }
     },
@@ -5962,7 +5980,7 @@
           "copyContent": "Copy transfer content",
           "transferAmount": "Transfer amount:",
           "warningCompensation": "This records the <b>compensation as paid</b> for incident {{code}} (the order's refund status is unchanged), updates the incident and notifies the customer with the proof image.",
-          "warningRefund": "This will mark the order as <b>REFUNDED</b> and notify the customer with the transfer proof image.",
+          "warningRefund": "This will mark the order as <b>Refunded</b> and notify the customer with the transfer proof image.",
           "proofMissingHint": "* Upload the receipt / transfer order before confirming"
         },
         "reject": {
@@ -6007,7 +6025,7 @@
             },
             "s4": {
               "title": "Confirm the refund",
-              "description": "The system records the REFUNDED status and notifies the customer with the image."
+              "description": "The system records the Refunded status and notifies the customer with the image."
             }
           },
           "scenariosTitle": "Refund scenarios:",
@@ -6027,8 +6045,8 @@
                 "c3": "No other free box of the same size is available for automatic reassignment."
               },
               "evidence": {
-                "e1": "The technician's incident ticket (Maintenance Report ID).",
-                "e2": "Log of failed open commands in the IoT/Locker system."
+                "e1": "The technician's incident ticket (maintenance ticket number).",
+                "e2": "Log of failed open commands in the locker system."
               },
               "adminCheck": {
                 "a1": "Match the order code and box number with the incident report.",
@@ -6049,7 +6067,7 @@
                 "e2": "Drone camera snapshot or the technician's parcel recovery report."
               },
               "adminCheck": {
-                "a1": "Check the drone order status (DROPPED, CANCELLED, TIMED_OUT).",
+                "a1": "Check the drone order status (parcel dropped, canceled, timed out).",
                 "a2": "If the goods are damaged, check the compensation amount under the shipping insurance policy."
               }
             },
@@ -6058,12 +6076,12 @@
               "badge": "Voluntary cancellation",
               "refundRate": "100% (conditions apply)",
               "conditions": {
-                "c1": "The customer has paid but not yet placed items in the locker (no ITEM_PLACED event yet).",
+                "c1": "The customer has paid but not yet placed items in the locker (no drop-off recorded yet).",
                 "c2": "Cancellation and refund are requested within {{days}} days of successful payment.",
                 "c3": "For long-term locker rentals: not yet expired and the box has not been handed over."
               },
               "evidence": {
-                "e1": "Order status history (Order Timeline): no locker opening to drop off items.",
+                "e1": "Order status history: no locker opening to drop off items.",
                 "e2": "Valid payment time (within the configured refundMaxDays limit)."
               },
               "adminCheck": {
@@ -6109,7 +6127,7 @@
     },
     "revenue": {
       "title": "Revenue Management",
-      "description": "Revenue is based on money actually collected from real orders; wallet top-ups are not counted as revenue.",
+      "description": "Revenue is based on money actually collected from real orders.",
       "reconcile": "Reconcile Transactions",
       "invalidRange": "The date range is invalid, so no data could be loaded.",
       "netAfterRefund": "Net After Refunds",
@@ -6165,7 +6183,7 @@
       "method": {
         "loadFailed": "Couldn't load revenue by method",
         "empty": "No collections in the selected range",
-        "note": "Refunds are attributed to the method of the refunded transaction. Wallet top-ups are not revenue; the wallet only counts when a customer uses the balance to pay for an order."
+        "note": "Refunds are attributed to the method of the refunded transaction."
       },
       "service": {
         "loadFailed": "Couldn't load revenue by service",
@@ -6381,7 +6399,7 @@
       }
     },
     "droneLogs": {
-      "title": "Drone & Smart Locker communication log",
+      "title": "Drone & locker communication log",
       "description": "Live view of MQTT messages, responses and processing status, linked to orders, drones and smart lockers",
       "toast": {
         "refreshed": "Drone & locker communication log updated"
@@ -6473,6 +6491,28 @@
         "closeLidRetry": "Resent box sliding lid close command (locker reconnected, attempt {{n}})",
         "closeLidSent": "Sent box sliding lid close request",
         "deliveryReady": "Delivery completed safely — parcel ready for customer pickup"
+      },
+      "event": {
+        "TARGET_REQUEST": "Target requested",
+        "MARKER_DETECTED": "Marker detected",
+        "MARKER_VALIDATED": "Marker validated",
+        "MARKER_REJECTED": "Marker rejected",
+        "WRONG_MARKER": "Wrong marker",
+        "OPEN_LID_REQUESTED": "Lid open requested",
+        "LID_OPEN_ACCEPTED": "Lid open accepted",
+        "LID_OPENED": "Lid opened",
+        "LID_OPEN_FAILED": "Lid open failed",
+        "DROP_PHASE_STARTED": "Drop started",
+        "DROP_PHASE_COMPLETED": "Drop completed",
+        "DROP_REPORT_TIMEOUT": "Drop report timed out",
+        "PARCEL_RELEASE_FAILED": "Parcel release failed",
+        "LID_TEST_HOLD": "Lid test: holding open",
+        "CLOSE_LID_REQUESTED": "Lid close requested",
+        "LID_CLOSE_ACCEPTED": "Lid close accepted",
+        "LID_CLOSED": "Lid closed",
+        "LID_CLOSE_FAILED": "Lid close failed",
+        "DELIVERY_READY": "Ready for delivery",
+        "SAFETY_ABORT": "Safety abort"
       }
     },
     "cabinetControl": {
@@ -6529,6 +6569,21 @@
           "target": "Box / axis",
           "revolutions": "Revolutions",
           "result": "Result"
+        },
+        "sourceWeb": "Web",
+        "actor": "user #{{id}}",
+        "status": {
+          "ok": "Succeeded",
+          "success": "Succeeded",
+          "accepted": "Accepted by locker",
+          "open": "Open",
+          "issued": "Issued",
+          "stopped": "Stopped",
+          "failed": "Failed",
+          "timeout": "Timed out",
+          "rejected": "Rejected",
+          "error": "Error",
+          "unknown": "Unknown"
         }
       },
       "lid": {
@@ -6716,33 +6771,16 @@
       },
       "paymentMethod": {
         "cash": "Cash",
-        "wallet": "Lock.R Wallet",
         "vnpay": "VNPay",
         "momo": "MoMo",
         "sepay": "SePay (bank transfer)",
-        "vnpayTopup": "Wallet top-up via VNPay",
-        "sepayTopup": "Wallet top-up via SePay"
-      },
-      "paymentKind": {
-        "order": "Order payment",
-        "topup": "Wallet top-up"
+        "legacy": "Legacy method"
       },
       "refundStatus": {
         "completed": "Refunded",
         "pending": "Refund pending",
         "rejected": "Rejected",
         "failed": "Refund failed"
-      },
-      "walletType": {
-        "credit": "Credit",
-        "debit": "Debit"
-      },
-      "walletSource": {
-        "topup": "Wallet top-up",
-        "orderPayment": "Order payment",
-        "refund": "Refund",
-        "adjust": "Manual adjustment",
-        "withdraw": "Withdrawal"
       },
       "revenueService": {
         "send": "Send parcel",
@@ -6944,7 +6982,15 @@
       "customerDropped": "Customer confirmed items dropped in locker",
       "checkedOutByStaff": "Order checked out by staff",
       "rentalEnded": "Rental ended, cell released",
-      "storagePickedUp": "Storage order picked up"
+      "storagePickedUp": "Storage order picked up",
+      "orderCreated": "Order created",
+      "orderCanceled": "Canceled by the customer"
+    },
+    "accountStatus": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Locked",
+      "LOCKED": "Locked",
+      "DELETED": "Deleted"
     }
   },
   "errorPage": {

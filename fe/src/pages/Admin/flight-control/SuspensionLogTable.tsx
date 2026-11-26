@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { formatDateTime } from "~/lib/datetime";
 import { useGetStationSuspensionLogsQuery } from "~/stores/apis/admin/droneFlightControl";
 import { reasonLabel } from "./labels";
+import { UserName } from "~/components/shared/UserName";
 
 /** Ai dừng / mở lại trạm nào, lúc nào (100 lần gần nhất). */
 export function SuspensionLogTable({ stationName }: { stationName: (lockerId: number | null) => string }) {
@@ -59,7 +60,7 @@ export function SuspensionLogTable({ stationName }: { stationName: (lockerId: nu
                       : t("admin.flightControl.stations.untilManual")
                     : "—"}
                 </TableCell>
-                <TableCell className="text-sm">{row.actorUserId != null ? `#${row.actorUserId}` : "—"}</TableCell>
+                <TableCell className="text-sm">{row.actorUserId != null ? <UserName id={row.actorUserId} /> : "—"}</TableCell>
               </TableRow>
             ))
           )}

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getDroneStatusLabel } from "~/lib/drone-status";
 import { AppLoading } from "~/components/ui/app-loading";
 import { useTranslation, Trans } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -92,6 +93,7 @@ import {
   vnWallClockToBackendUtc,
 } from "./maintenancePhotos";
 import { InspectionChecklistResults } from "./InspectionChecklistResults";
+import { DeleteReasonDialog } from "~/components/shared/data-table";
 
 /** Checklist soạn mỗi dòng một mục; server tách theo dòng hoặc ';' nên không cho dùng ';' trong mục. */
 const parseChecklistLines = (text: string) =>
@@ -1226,7 +1228,7 @@ export function MaintenanceSchedules() {
                   <option value="">{t("admin.maintenance.schedules.form.selectDrone")}</option>
                   {drones.map((d) => (
                     <option key={d.id} value={String(d.id)}>
-                      {d.code} ({d.status}) - 📍 {d.lockerName ?? t("admin.maintenance.schedules.labels.lockerNumber", { id: d.lockerId ?? t("admin.maintenance.schedules.form.notAssigned") })}
+                      {d.code} ({getDroneStatusLabel(d.status)}) - 📍 {d.lockerName ?? t("admin.maintenance.schedules.labels.lockerNumber", { id: d.lockerId ?? t("admin.maintenance.schedules.form.notAssigned") })}
                     </option>
                   ))}
                 </select>
@@ -2816,40 +2818,29 @@ export function MaintenanceSchedules() {
         </DialogContent>
       </Dialog>
 
-      {/* Alert Dialog xác nhận xóa lịch kiểm tra */}
-      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("admin.maintenance.schedules.delete.title")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("admin.maintenance.schedules.delete.description", { title: deleteConfirm?.title ?? "" })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancelAction")}</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-rose-600 hover:bg-rose-700 text-white"
-              onClick={async () => {
-                if (!deleteConfirm) return;
-                await act(
-                  () => deleteSchedule(deleteConfirm.id).unwrap(),
-                  {
-                    title: t("admin.maintenance.schedules.toast.deleted"),
-                    desc: t("admin.maintenance.schedules.toast.deletedDesc", { title: deleteConfirm.title }),
-                  },
-                  {
-                    title: t("admin.maintenance.schedules.toast.deleteFailed"),
-                    desc: t("admin.maintenance.schedules.toast.deleteFailedDesc"),
-                  },
-                );
-                setDeleteConfirm(null);
-              }}
-            >
-              {t("admin.maintenance.schedules.delete.confirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Xoá mềm lịch kiểm tra: bắt buộc lý do (ADR-0009) */}
+      <DeleteReasonDialog
+        open={!!deleteConfirm}
+        onOpenChange={(open) => !open && setDeleteConfirm(null)}
+        title={t("admin.maintenance.schedules.delete.title")}
+        description={t("admin.maintenance.schedules.delete.description", { title: deleteConfirm?.title ?? "" })}
+        actionLabel={t("admin.maintenance.schedules.delete.confirm")}
+        onConfirm={async (reason) => {
+          if (!deleteConfirm) return;
+          await act(
+            () => deleteSchedule({ id: deleteConfirm.id, reason }).unwrap(),
+            {
+              title: t("admin.maintenance.schedules.toast.deleted"),
+              desc: t("admin.maintenance.schedules.toast.deletedDesc", { title: deleteConfirm.title }),
+            },
+            {
+              title: t("admin.maintenance.schedules.toast.deleteFailed"),
+              desc: t("admin.maintenance.schedules.toast.deleteFailedDesc"),
+            },
+          );
+          setDeleteConfirm(null);
+        }}
+      />
     </Card>
   );
 }

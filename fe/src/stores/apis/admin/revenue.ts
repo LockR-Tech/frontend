@@ -20,7 +20,7 @@ import { toQueryParams } from "./reporting-params";
 
 // Báo cáo doanh thu theo TIỀN THỰC THU — docs/01-overview/admin-reporting-api.md § 3.
 // Khác quy tắc cũ (`/api/admin/orders/revenue` cộng `totalPrice` của đơn COMPLETED):
-// ở đây doanh thu = tổng thanh toán COMPLETED của đơn thật, nạp ví không tính.
+// ở đây doanh thu = tổng thanh toán COMPLETED của đơn thật.
 //
 // Mọi endpoint nhận `from`/`to` dạng `yyyy-MM-dd` (ngày Việt Nam, tính cả hai đầu),
 // mặc định từ mùng 1 tháng này tới hôm nay, tối đa 366 ngày. Nếu payment-service

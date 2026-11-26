@@ -41,6 +41,45 @@ export default function ServicesPage() {
     refetch,
   } = useServices();
 
+  // Quy tắc dùng chung — để riêng cho khỏi lặp ba lần ở ba thẻ dịch vụ.
+  const sharedRulesCard = (
+    <Card className="border border-border bg-card" data-tour="services-shared">
+      <CardContent className="p-5 space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-foreground leading-tight">
+            {t("admin.services.sharedRules")}
+          </h2>
+          <p className="text-[11px] text-muted-foreground">
+            {t("admin.services.sharedRulesHint")}
+          </p>
+        </div>
+        <RuleGroup
+          group={SHARED_RULE_GROUP}
+          settingByKey={settingByKey}
+          valueOf={valueOf}
+          errorOf={errorOf}
+          onChange={setDraft}
+          disabled={isSaving}
+        />
+
+        {/* Phí quá hạn được backend tách khỏi doanh thu loại đơn để không đếm hai lần. */}
+        {overtimeRevenue && (
+          <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {t("admin.services.overtimeCollected")}
+            </p>
+            <p className="text-lg font-bold text-foreground mt-1">
+              {formatCurrency(overtimeRevenue.revenue)}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {t("admin.services.overtimeHint")}
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-6 pb-24">
       <PageHeader
@@ -71,60 +110,31 @@ export default function ServicesPage() {
         />
       )}
 
+      {/* Hai cột độc lập (không dùng một lưới chung) để thẻ ngắn không để lại khoảng trống dưới nó:
+          cột trái Gửi hàng + Thuê ô, cột phải Giao drone + Quy tắc chung. */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
-        {SERVICE_CATALOG.map((service, index) => (
-          <ServiceCard
-            key={service.type}
-            tourAnchors={index === 0}
-            service={service}
-            settingByKey={settingByKey}
-            valueOf={valueOf}
-            errorOf={errorOf}
-            onChange={setDraft}
-            revenue={revenueByType.get(service.type)}
-            isSettingsLoading={isSettingsLoading}
-            isRevenueFetching={isRevenueFetching}
-            disabled={isSaving}
-          />
+        {[SERVICE_CATALOG.slice(0, 2), SERVICE_CATALOG.slice(2)].map((column, columnIndex) => (
+          <div key={columnIndex} className="space-y-5 min-w-0">
+            {column.map((service) => (
+              <ServiceCard
+                key={service.type}
+                tourAnchors={service.type === SERVICE_CATALOG[0].type}
+                service={service}
+                settingByKey={settingByKey}
+                valueOf={valueOf}
+                errorOf={errorOf}
+                onChange={setDraft}
+                revenue={revenueByType.get(service.type)}
+                isSettingsLoading={isSettingsLoading}
+                isRevenueFetching={isRevenueFetching}
+                disabled={isSaving}
+              />
+            ))}
+            {columnIndex === 1 && sharedRulesCard}
+          </div>
         ))}
-
-        {/* Quy tắc dùng chung — để riêng cho khỏi lặp ba lần ở ba thẻ trên. */}
-        <Card className="border border-border bg-card" data-tour="services-shared">
-          <CardContent className="p-5 space-y-4">
-            <div>
-              <h2 className="text-base font-bold text-foreground leading-tight">
-                {t("admin.services.sharedRules")}
-              </h2>
-              <p className="text-[11px] text-muted-foreground">
-                {t("admin.services.sharedRulesHint")}
-              </p>
-            </div>
-            <RuleGroup
-              group={SHARED_RULE_GROUP}
-              settingByKey={settingByKey}
-              valueOf={valueOf}
-              errorOf={errorOf}
-              onChange={setDraft}
-              disabled={isSaving}
-            />
-
-            {/* Phí quá hạn được backend tách khỏi doanh thu loại đơn để không đếm hai lần. */}
-            {overtimeRevenue && (
-              <div className="rounded-xl border border-border/70 bg-secondary/30 p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("admin.services.overtimeCollected")}
-                </p>
-                <p className="text-lg font-bold text-foreground mt-1">
-                  {formatCurrency(overtimeRevenue.revenue)}
-                </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {t("admin.services.overtimeHint")}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
+
 
       {/* Thanh lưu, chỉ hiện khi có thay đổi chưa lưu. */}
       {dirtyCount > 0 && (

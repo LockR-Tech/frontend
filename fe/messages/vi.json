@@ -23,7 +23,7 @@
     "heroSubtitle": "Vận hành mọi tủ, ô và chuyến bay drone tại một nơi.",
     "featureLockers": "Giám sát tủ và ô theo thời gian thực",
     "featureDrones": "Điều phối và theo dõi đơn giao bằng drone",
-    "featureMaintenance": "Chuyển ticket, lịch bảo trì tới kỹ thuật viên",
+    "featureMaintenance": "Chuyển phiếu sự cố, lịch bảo trì tới kỹ thuật viên",
     "errInvalid": "Email hoặc mật khẩu không đúng.",
     "errLocked": "Tài khoản đã bị khóa.",
     "errDisabled": "Tài khoản đã bị vô hiệu hóa.",
@@ -71,8 +71,8 @@
       "failedReason": "{{count}} mục không xoá được: {{reason}}"
     },
     "coordinates": {
-      "copy": "Copy toạ độ",
-      "copied": "Đã copy toạ độ {{value}}",
+      "copy": "Sao chép toạ độ",
+      "copied": "Đã sao chép toạ độ {{value}}",
       "copyFailed": "Không copy được — hãy bôi đen và copy tay",
       "openMap": "Mở vị trí trên Google Maps"
     },
@@ -152,7 +152,8 @@
     "cardFilter": {
       "showing": "Đang xem: {{label}} · {{count}}",
       "clear": "Bỏ lọc"
-    }
+    },
+    "online": "Trực tuyến"
   },
   "header": {
     "language": "Ngôn ngữ",
@@ -187,7 +188,7 @@
   },
   "admin": {
     "sidebar": {
-      "dashboard": "Dashboard",
+      "dashboard": "Tổng quan",
       "users": "Tài khoản",
       "orders": "Đơn hàng",
       "storage": "Đồ lưu kho",
@@ -232,8 +233,8 @@
       "subtitle": "Tổng quan thời gian thực về đơn gửi hàng, thuê ô, doanh thu và vận hành mạng lưới Kiosk",
       "createScenario": "Tạo kịch bản",
       "format": {
-        "billionVnd": "{{value}} tỷ đ",
-        "millionVnd": "{{value}} tr đ",
+        "billionVnd": "{{value}} tỷ ₫",
+        "millionVnd": "{{value}} tr ₫",
         "billionShort": "{{value}} tỷ",
         "millionShort": "{{value}} tr"
       },
@@ -386,7 +387,6 @@
       "table": {
         "deleted": "Đã xoá người dùng",
         "deleteFailed": "Không xoá được người dùng",
-        "wallet": "Ví",
         "deleteTitle": "Xoá người dùng?",
         "deleteDesc": "Người dùng <b>{{name}}</b> sẽ bị xoá và không đăng nhập được nữa.",
         "deleteHint": "Nếu chỉ muốn chặn đăng nhập, hãy tắt trạng thái hoạt động thay vì xoá.",
@@ -407,19 +407,6 @@
         "enableAccountHint": "Tài khoản sẽ đăng nhập được ngay",
         "creating": "Đang tạo...",
         "submit": "Tạo người dùng"
-      },
-      "wallet": {
-        "title": "Ví của {{name}}",
-        "invalidAmount": "Nhập số tiền hợp lệ (> 0).",
-        "topUpSuccess": "Nạp tiền vào ví thành công",
-        "deductSuccess": "Trừ tiền ví thành công",
-        "adjustFailed": "Điều chỉnh số dư thất bại.",
-        "currentBalance": "Số dư hiện tại",
-        "amount": "Số tiền điều chỉnh",
-        "reason": "Lý do (tuỳ chọn)",
-        "reasonPlaceholder": "Hoàn tiền / khuyến mãi / điều chỉnh...",
-        "deduct": "Trừ tiền",
-        "add": "Cộng tiền"
       },
       "loyalty": {
         "txType": {
@@ -508,8 +495,6 @@
         "termsAcceptedAt": "Thời điểm đồng ý",
         "termsVersion": "Phiên bản",
         "termsNotAcceptedHint": "Người dùng chưa bấm đồng ý trên app. App sẽ hỏi ở lần mở tiếp theo.",
-        "walletBalance": "Số dư ví",
-        "walletBalanceHint": "Số dư hiện tại",
         "loyaltyPoints": "Điểm thưởng",
         "loyaltyPointsHint": "Điểm hiện có"
       },
@@ -540,7 +525,6 @@
           "received": "Đơn nhận",
           "payments": "Thanh toán",
           "refunds": "Hoàn tiền",
-          "wallet": "Ví",
           "loyalty": "Điểm thưởng",
           "feedback": "Đánh giá",
           "reports": "Báo cáo sự cố",
@@ -578,7 +562,6 @@
         "emptyReceived": "Người dùng chưa nhận đơn nào",
         "emptyPayments": "Chưa có giao dịch thanh toán",
         "emptyRefunds": "Chưa có yêu cầu hoàn tiền",
-        "emptyWallet": "Chưa có biến động ví",
         "emptyFeedback": "Người dùng chưa gửi đánh giá",
         "emptyReports": "Người dùng chưa báo sự cố",
         "emptyNotifications": "Chưa có thông báo",
@@ -896,6 +879,21 @@
           "DESTINATION_LOCKER": "Tại tủ nhận",
           "ESTIMATED_ROUTE": "Ước theo chặng (đơn cũ, không có GPS)"
         }
+      },
+      "nextAction": {
+        "PAY_AND_DROP": "Khách thanh toán và bỏ đồ vào ô",
+        "PICKUP": "Người nhận tới lấy hàng",
+        "DONE": "Đơn đã hoàn tất, không cần làm gì thêm",
+        "CANCELED": "Đơn đã huỷ, không cần làm gì thêm",
+        "CONTACT_STAFF": "Đồ đã dời vào kho — khách liên hệ nhân viên để nhận lại",
+        "WAIT_FOR_BOX_INCIDENT": "Ô đang được KTV xử lý sự cố; phí quá giờ tạm dừng tới khi sửa xong",
+        "PAY_FOR_DRONE": "Khách thanh toán phí giao drone để đội bay điều phối",
+        "WAIT_FOR_PICKUP": "KTV drone tới địa chỉ lấy hàng để nhận kiện",
+        "WAIT_FOR_DRONE": "Đội bay tiếp nhận và phóng drone",
+        "DROP_PARCEL_FOR_DRONE": "Khách bỏ kiện vào ô drone ở tủ gửi và xác nhận",
+        "PAY_BEFORE_PICKUP": "Thanh toán phí giao drone trước khi mở ô lấy hàng",
+        "INCIDENT_IN_PROGRESS": "Đang xử lý sự cố giao hàng; theo dõi ở mục sự cố",
+        "UNKNOWN": "Chưa xác định"
       }
     },
     "storage": {
@@ -1101,8 +1099,8 @@
         "confirmSaveDesc": "Bạn có chắc chắn muốn lưu các thay đổi của địa điểm này không?",
         "deactivateTitle": "Ngừng hoạt động địa điểm?",
         "reactivateTitle": "Kích hoạt lại địa điểm?",
-        "toInactive": "Địa điểm sẽ chuyển sang trạng thái INACTIVE.",
-        "toActive": "Địa điểm sẽ chuyển sang trạng thái ACTIVE.",
+        "toInactive": "Địa điểm sẽ chuyển sang Ngưng hoạt động.",
+        "toActive": "Địa điểm sẽ chuyển sang Hoạt động.",
         "updating": "Đang cập nhật...",
         "deactivate": "Ngừng hoạt động",
         "removeImageTitle": "Xoá ảnh địa điểm?",
@@ -1121,8 +1119,8 @@
         "descriptionPlaceholder": "Mô tả ngắn về địa điểm",
         "stats": "Thống kê",
         "totalKiosks": "Tổng Kiosk",
-        "totalBoxes": "Tổng box",
-        "freeBoxes": "Box trống",
+        "totalBoxes": "Tổng số ô",
+        "freeBoxes": "Ô trống",
         "ordersHint": "Đơn tạo trong 12 tháng gần nhất",
         "orders12m": "Đơn hàng (12 tháng)",
         "usageRate": "Tỉ lệ sử dụng",
@@ -1333,7 +1331,7 @@
         "cellTypePlaceholder": "Chọn loại công năng",
         "typeStandard": "Ô tiêu chuẩn (STANDARD)",
         "typeStandardHint": "Đa dịch vụ: Gửi đồ, giữ đồ, giặt ủi, giao nhận C2C",
-        "typeDrone": "Ô tiếp nhận Drone (DRONE)",
+        "typeDrone": "Ô nhận hàng drone",
         "typeDroneHint": "Nhận hàng tự động thả từ Drone qua nắp trượt ArUco",
         "typeXlHint": "Khoang hành lý chiều cao 2 tầng, dành riêng gửi vali",
         "boxNumber": "Số thứ tự ô (#)",
@@ -1345,8 +1343,8 @@
         "colHint": "Màn hình Kiosk cố định ở Hàng 1, Cột 1. Cột 1 hàng 2 trở xuống là các ô dưới màn hình; Cột 2, 3... cho các cột bên cạnh",
         "status": "Trạng thái ô tủ",
         "statusPlaceholder": "Chọn trạng thái",
-        "statusAvailable": "Sẵn sàng (AVAILABLE)",
-        "statusOutOfService": "Tạm ngưng dùng (OUT_OF_SERVICE)",
+        "statusAvailable": "Sẵn sàng",
+        "statusOutOfService": "Tạm ngưng dùng",
         "statusCleaning": "Đang vệ sinh (CLEANING)",
         "faultHint": "Báo hỏng ô dùng mục \"Báo hỏng ô tủ\" trên sơ đồ để mở phiếu sự cố cho KTV.",
         "note": "Ghi chú kỹ thuật (tùy chọn)",
@@ -1603,7 +1601,7 @@
         "deleteAllBoxes": "Xóa tất cả ô",
         "deleteAllBoxesTitle": "Xác nhận xóa tất cả ô tủ?",
         "deleteAllBoxesDesc": "Toàn bộ {{count}} ô tủ trong trạm này sẽ bị xoá.",
-        "deleteAllBoxesWarning": "Lưu ý: Các ô đang chứa đồ hoặc đã được khách đặt chỗ (OCCUPIED / RESERVED) sẽ được bảo vệ và không bị xóa.",
+        "deleteAllBoxesWarning": "Lưu ý: Các ô đang chứa đồ hoặc đã được khách đặt chỗ sẽ được bảo vệ và không bị xoá.",
         "deleteAllBoxesConfirm": "Xác nhận xóa tất cả",
         "deleteAllSuccess": "Đã xóa thành công {{count}} ô tủ!",
         "deleteAllFailed": "Không thể xóa tất cả ô tủ",
@@ -1668,7 +1666,7 @@
       },
       "boxType": {
         "standard": "Tiêu chuẩn (STANDARD)",
-        "drone": "Tiếp nhận Drone (DRONE)",
+        "drone": "Ô nhận hàng drone",
         "xl": "Khoang vali lớn (XL)"
       },
       "logs": {
@@ -1718,8 +1716,8 @@
         "totalEntries": "Tổng bản ghi nhật ký",
         "hardwareIssues": "Lỗi & Cảnh báo phần cứng",
         "banner": {
-          "online": " Tủ {{locker}} đang cấp nguồn & kết nối (Online):",
-          "offline": " Tủ {{locker}} mất kết nối / rút điện (Offline):",
+          "online": " Tủ {{locker}} đang cấp nguồn và kết nối:",
+          "offline": " Tủ {{locker}} mất kết nối hoặc mất nguồn:",
           "onlineDetail": "Phần cứng {{hardware}} · {{slots}} · firmware {{firmware}} · Tín hiệu gần nhất: {{time}}",
           "offlineDetail": "Tủ hiện chưa có nguồn điện hoặc bộ điều khiển đã tắt · Tín hiệu cuối lúc: {{time}}"
         },
@@ -1764,50 +1762,8 @@
           "rejected": "Từ chối",
           "noDescription": "Không có mô tả"
         },
-        "maintenanceDialog": {
-          "title": "Chuyển tủ {{code}} sang bảo trì",
-          "description": "Tạm ngưng nhận đơn tại {{name}} để kiểm tra, bảo dưỡng.",
-          "createReportLabel": "Tạo phiếu sự cố cho KTV tủ xử lý",
-          "createReportHint": "Khuyến nghị bật — hệ thống mở phiếu chặn tủ (RPT), thông báo cho KTV phụ trách và tự mở lại tủ khi phiếu hoàn tất.",
-          "defaultTitle": "Bảo trì Kiosk {{code}}",
-          "reportTitleLabel": "Tiêu đề phiếu sự cố",
-          "reportTitlePlaceholder": "VD: Kiểm tra nguồn / bảo trì cửa Kiosk...",
-          "reportDescLabel": "Mô tả tình trạng / lý do bảo trì",
-          "reportDescPlaceholder": "Nhập nội dung cần KTV kiểm tra, sửa chữa...",
-          "validationRequired": "Vui lòng nhập đầy đủ tiêu đề và mô tả khi tạo phiếu sự cố.",
-          "createdReportSuccess": "Đã chuyển {{code}} sang bảo trì và tạo phiếu RPT-{{id}}",
-          "noReportWarning": "Tủ chỉ chuyển sang trạng thái Bảo trì và KHÔNG tạo phiếu sự cố hay gửi thông báo cho KTV.",
-          "submitting": "Đang xử lý...",
-          "confirmWithReport": "Xác nhận & Tạo phiếu",
-          "confirmOnly": "Chỉ chuyển bảo trì"
-        },
-        "maintenanceHistory": {
-          "title": "Lịch sử sửa chữa & bảo trì Kiosk {{locker}}",
-          "description": "Tổng hợp toàn bộ phiếu sự cố của Kiosk/ô tủ và các lần kiểm tra, bảo trì định kỳ.",
-          "scheduleFallback": "Lịch bảo trì định kỳ #{{id}}",
-          "routedTo": "Chờ nhận ({{name}})",
-          "kpi": {
-            "totalReports": "Tổng phiếu sự cố",
-            "activeReports": "Đang mở / Đang sửa",
-            "resolvedReports": "Đã hoàn tất",
-            "inspections": "Lần bảo trì định kỳ"
-          },
-          "filterAll": "Tất cả ({{count}})",
-          "filterIncidents": "Phiếu sự cố ({{count}})",
-          "filterInspections": "Bảo trì định kỳ ({{count}})",
-          "loading": "Đang tải lịch sử sửa chữa & bảo trì...",
-          "empty": "Chưa có phiếu sự cố hay lần bảo trì định kỳ nào cho Kiosk này.",
-          "blockingBadge": "Chặn cả tủ",
-          "openInMaintenance": "Trang Bảo trì",
-          "technicianLabel": "KTV:",
-          "createdAt": "Tạo lúc:",
-          "resolvedAt": "Hoàn tất:",
-          "completedAt": "Thực hiện:",
-          "periodicBadge": "Bảo trì định kỳ",
-          "linkedReport": "→ Sinh phiếu RPT-{{id}}",
-          "inspectionPhotoAlt": "Ảnh kiểm tra định kỳ #{{index}}",
-          "photoPreviewTitle": "Ảnh kiểm tra bảo trì"
-        }
+        "controllerPi": "Bộ điều khiển Pi",
+        "displayScreen": "Màn hình 7 inch Waveshare"
       },
       "boxQr": {
         "defaultLockerName": "Tủ đồ Lock.R",
@@ -1829,7 +1785,7 @@
         "positionValue": "Hàng {{row}} · Cột {{col}}",
         "identifier": "MÃ ĐỊNH DANH (ID):",
         "scanHint": "* Quét mã QR này bằng Ứng dụng Lock.R để thao tác hoặc kiểm tra ô tủ",
-        "payload": "Payload mã QR (JSON):",
+        "payload": "Nội dung mã QR (JSON):",
         "copiedShort": "Đã chép",
         "copy": "Sao chép",
         "batchTitle": "Chế độ in hàng loạt cả tủ ({{count}} ô tủ)",
@@ -1853,11 +1809,11 @@
       },
       "kioskScreen": {
         "title": "Màn hình cảm ứng Kiosk 7 inch",
-        "online": "Hoạt động (Online)",
-        "offline": "Mất kết nối (Offline)",
+        "online": "Đang hoạt động",
+        "offline": "Mất kết nối",
         "description": "Thiết bị hiển thị & tương tác khách hàng tại Kiosk {{kiosk}}",
-        "appInfo": "Ứng dụng React 19 · Chromium Kiosk Mode (Cổng :3002)",
-        "noPower": "Màn hình chưa có nguồn (Offline)",
+        "appInfo": "Ứng dụng kiosk chạy trên Chromium (cổng 3002)",
+        "noPower": "Màn hình chưa có nguồn",
         "waitingPower": "Chờ cấp nguồn trạm Kiosk hoặc kết nối lại Raspberry Pi",
         "touchInfo": "Cảm ứng điện dung 5 điểm (USB HID)",
         "hardwareSpecs": "Thông số phần cứng màn hình",
@@ -2163,6 +2119,59 @@
           "returned": "Đã trả hồ sơ về KTV",
           "cancelled": "Đã huỷ hồ sơ lắp đặt"
         }
+      },
+      "maintenanceDialog": {
+        "title": "Chuyển tủ {{code}} sang bảo trì",
+        "description": "Tạm ngưng nhận đơn tại {{name}} để kiểm tra, bảo dưỡng.",
+        "createReportLabel": "Tạo phiếu sự cố cho KTV tủ xử lý",
+        "createReportHint": "Khuyến nghị bật — hệ thống mở phiếu chặn tủ (RPT), thông báo cho KTV phụ trách và tự mở lại tủ khi phiếu hoàn tất.",
+        "defaultTitle": "Bảo trì Kiosk {{code}}",
+        "reportTitleLabel": "Tiêu đề phiếu sự cố",
+        "reportTitlePlaceholder": "VD: Kiểm tra nguồn / bảo trì cửa Kiosk...",
+        "reportDescLabel": "Mô tả tình trạng / lý do bảo trì",
+        "reportDescPlaceholder": "Nhập nội dung cần KTV kiểm tra, sửa chữa...",
+        "validationRequired": "Vui lòng nhập đầy đủ tiêu đề và mô tả khi tạo phiếu sự cố.",
+        "createdReportSuccess": "Đã chuyển {{code}} sang bảo trì và tạo phiếu RPT-{{id}}",
+        "noReportWarning": "Tủ chỉ chuyển sang trạng thái Bảo trì và KHÔNG tạo phiếu sự cố hay gửi thông báo cho KTV.",
+        "submitting": "Đang xử lý...",
+        "confirmWithReport": "Xác nhận & Tạo phiếu",
+        "confirmOnly": "Chỉ chuyển bảo trì"
+      },
+      "maintenanceHistory": {
+        "title": "Lịch sử sửa chữa & bảo trì Kiosk {{locker}}",
+        "description": "Tổng hợp toàn bộ phiếu sự cố của Kiosk/ô tủ và các lần kiểm tra, bảo trì định kỳ.",
+        "scheduleFallback": "Lịch bảo trì định kỳ #{{id}}",
+        "routedTo": "Chờ nhận ({{name}})",
+        "kpi": {
+          "totalReports": "Tổng phiếu sự cố",
+          "activeReports": "Đang mở / Đang sửa",
+          "resolvedReports": "Đã hoàn tất",
+          "inspections": "Lần bảo trì định kỳ"
+        },
+        "filterAll": "Tất cả ({{count}})",
+        "filterIncidents": "Phiếu sự cố ({{count}})",
+        "filterInspections": "Bảo trì định kỳ ({{count}})",
+        "loading": "Đang tải lịch sử sửa chữa & bảo trì...",
+        "empty": "Chưa có phiếu sự cố hay lần bảo trì định kỳ nào cho Kiosk này.",
+        "blockingBadge": "Chặn cả tủ",
+        "openInMaintenance": "Trang Bảo trì",
+        "technicianLabel": "KTV:",
+        "createdAt": "Tạo lúc:",
+        "resolvedAt": "Hoàn tất:",
+        "completedAt": "Thực hiện:",
+        "periodicBadge": "Bảo trì định kỳ",
+        "linkedReport": "→ Sinh phiếu RPT-{{id}}",
+        "inspectionPhotoAlt": "Ảnh kiểm tra định kỳ #{{index}}",
+        "photoPreviewTitle": "Ảnh kiểm tra bảo trì",
+        "category": {
+          "BOX": "Ô tủ",
+          "LOCKER": "Cả tủ",
+          "KIOSK": "Cả tủ",
+          "LANDING_PAD": "Bãi đáp drone",
+          "DRONE": "Drone",
+          "SCREEN": "Màn hình kiosk",
+          "OTHER": "Khác"
+        }
       }
     },
     "feedback": {
@@ -2202,7 +2211,8 @@
       "columns": {
         "rating": "Đánh giá",
         "content": "Nội dung",
-        "resolvedAt": "Giải quyết lúc"
+        "resolvedAt": "Giải quyết lúc",
+        "locker": "Tủ"
       },
       "list": {
         "count": "{{total}} phản hồi",
@@ -2253,7 +2263,13 @@
         "topComplaint": "Khiếu nại phổ biến nhất",
         "last90Days": "90 ngày qua",
         "complaint": {
-          "other": "Khác"
+          "other": "Khác",
+          "damaged": "Hàng bị hư hỏng",
+          "missing": "Thiếu / mất hàng",
+          "locker": "Tủ / ô gặp sự cố",
+          "dirtyBox": "Ô tủ bẩn",
+          "payment": "Thanh toán / phí",
+          "service": "Chất lượng dịch vụ"
         },
         "topService": "Dịch vụ được đánh giá cao nhất",
         "scoreByService": "Điểm theo dịch vụ"
@@ -2302,16 +2318,16 @@
     "scheduler": {
       "title": "Lập lịch",
       "description": "Quản lý các tác vụ tự động và trigger thủ công",
-      "statusTitle": "Trạng thái Scheduler",
+      "statusTitle": "Trạng thái lập lịch",
       "systemStatus": "Trạng thái hệ thống",
-      "ownerLabel": "Dịch vụ chạy job:",
+      "ownerLabel": "Dịch vụ chạy tác vụ:",
       "loading": "Đang tải...",
       "cannotConnect": "Không thể kết nối",
       "running": "Đang hoạt động",
       "stopped": "Đã tắt",
-      "autoJobs": "Các job tự động",
-      "historyTitle": "Lịch sử chạy job",
-      "noResults": "Chưa có job nào được chạy",
+      "autoJobs": "Các tác vụ tự động",
+      "historyTitle": "Lịch sử chạy tác vụ",
+      "noResults": "Chưa có tác vụ nào được chạy",
       "noResultsDesc": "Các kết quả sẽ hiển thị ở đây",
       "frequencyLabel": "Tần suất:",
       "lastRunLabel": "Chạy gần nhất:",
@@ -2319,7 +2335,7 @@
       "runningNow": "Đang chạy...",
       "auto": "Tự động",
       "infoTitle": "Thông tin",
-      "info1": "Các job chạy tự động trong order-service theo lịch mặc định của OrderScheduler; giờ trong lịch là giờ máy chủ (UTC).",
+      "info1": "Các tác vụ chạy tự động theo lịch mặc định của hệ thống đơn hàng; giờ trong lịch là giờ máy chủ (UTC).",
       "info2": "Admin có thể chạy tay để kiểm tra hoặc xử lý gấp — kết quả giống hệt một lần chạy tự động.",
       "info3": "Lịch sử bên dưới chỉ giữ 10 lần chạy tay gần nhất trong phiên trình duyệt này.",
       "confirmTitle": "Chạy ngay «{{job}}»?",
@@ -2330,34 +2346,34 @@
         "reconciled": "Đã nhả {{released}} ô không còn đơn giữ, giữ lại {{reclaimed}} ô cho đơn đang hoạt động",
         "reconcileSkipped": "Bỏ qua: không kết nối được locker-service",
         "done": "Đã chạy xong",
-        "failed": "Không chạy được job"
+        "failed": "Không chạy được tác vụ"
       },
       "jobs": {
         "autoCancel": {
           "title": "Tự huỷ đơn chưa xác nhận",
-          "description": "Huỷ các đơn INITIALIZED quá hạn giữ ô, nhả ô và hoàn lượt khuyến mãi: đơn chưa thanh toán sau số phút ở cấu hình «auto-cancel-unpaid-minutes», đơn đã thanh toán nhưng chưa bỏ đồ sau số giờ ở cấu hình «auto-cancel-hours».",
+          "description": "Huỷ các đơn chưa bỏ hàng đã quá hạn giữ ô, nhả ô và hoàn lượt dùng mã khuyến mãi: đơn chưa thanh toán sau số phút ở quy tắc «Tự huỷ đơn chưa thanh toán sau», đơn đã thanh toán nhưng chưa bỏ đồ sau số giờ ở quy tắc «Tự huỷ đơn chưa bỏ hàng sau».",
           "frequency": "Mỗi 2 phút",
-          "confirm": "Mọi đơn INITIALIZED đã quá hạn giữ ô sẽ bị huỷ ngay và ô được nhả. Không hoàn tác được."
+          "confirm": "Mọi đơn chưa bỏ hàng đã quá hạn giữ ô sẽ bị huỷ ngay và ô được nhả. Không hoàn tác được."
         },
         "releaseBoxes": {
           "title": "Nhả ô của đơn đã hoàn tất",
-          "description": "Lưới an toàn: quét các đơn COMPLETED và nhả những ô vẫn còn bị giữ (ví dụ đơn được hoàn tất qua API cũ).",
+          "description": "Lưới an toàn: quét các đơn đã hoàn thành và nhả những ô vẫn còn bị giữ (ví dụ đơn được hoàn tất qua API cũ).",
           "frequency": "Hằng ngày 03:15 (giờ máy chủ UTC, tức 10:15 giờ Việt Nam)"
         },
         "pickupReminders": {
           "title": "Nhắc lấy đồ quá hạn",
-          "description": "Gửi thông báo cho người gửi (và người nhận nếu có) của các đơn đang giữ hàng đã quá hạn lấy đồ; mỗi đơn chỉ được nhắc lại sau khoảng chờ ở cấu hình «reminder-cooldown-minutes».",
+          "description": "Gửi thông báo cho người gửi (và người nhận nếu có) của các đơn đang giữ hàng đã quá hạn lấy đồ; mỗi đơn chỉ được nhắc lại sau khoảng chờ ở quy tắc «Khoảng cách nhắc quá hạn».",
           "frequency": "Mỗi 10 phút"
         },
         "releaseOverdue": {
           "title": "Chuyển kho đơn quá hạn lâu",
-          "description": "Đơn đang giữ hàng quá hạn lấy đồ lâu hơn số giờ ở cấu hình «overdue-release-hours»: chốt phí quá hạn, chuyển sang EXPIRED (đồ dời vào kho), nhả ô, thu hồi PIN và báo cho khách.",
+          "description": "Đơn đang giữ hàng quá hạn lấy đồ lâu hơn số giờ ở quy tắc «Nhả ô quá hạn sau»: chốt phí quá hạn, chuyển sang Quá hạn (đồ dời vào kho), nhả ô, thu hồi PIN và báo cho khách.",
           "frequency": "Mỗi giờ, vào phút 05",
-          "confirm": "Các đơn quá hạn lâu sẽ chuyển sang EXPIRED, bị cộng phí quá hạn, mất PIN và ô được nhả cho đơn khác; khách nhận thông báo. Không hoàn tác được."
+          "confirm": "Các đơn quá hạn lâu sẽ chuyển sang Quá hạn, bị cộng phí quá hạn, mất PIN và ô được nhả cho đơn khác; khách nhận thông báo. Không hoàn tác được."
         },
         "reconcileBoxes": {
           "title": "Đối soát trạng thái ô",
-          "description": "So trạng thái ô ở locker-service với các đơn đang hoạt động: nhả ô RESERVED/OCCUPIED không còn đơn nào giữ, và giữ lại ô đang AVAILABLE nhưng vẫn thuộc một đơn đang hoạt động.",
+          "description": "So trạng thái ô ở hệ thống tủ với các đơn đang hoạt động: nhả các ô đang giữ chỗ hoặc đang dùng mà không còn đơn nào giữ, và giữ lại các ô đang trống nhưng vẫn thuộc một đơn đang hoạt động.",
           "frequency": "Mỗi giờ, vào phút 35",
           "confirm": "Trạng thái ô ở mọi tủ có thể bị sửa cho khớp với các đơn đang hoạt động. Nên chạy khi không có thao tác gửi/nhận đang diễn ra."
         }
@@ -2372,8 +2388,8 @@
       "themeHelp": "Chuyển đổi sáng / tối / hệ thống",
       "business": {
         "title": "Cấu hình quy tắc nghiệp vụ",
-        "description": "Giá, phí, thời hạn, SLA và giới hạn của từng service. Mọi thay đổi được kiểm tra và ghi lịch sử.",
-        "searchPlaceholder": "Tìm theo tên, key, mô tả…",
+        "description": "Giá, phí, thời hạn, SLA và giới hạn của từng dịch vụ. Mọi thay đổi được kiểm tra và ghi lịch sử.",
+        "searchPlaceholder": "Tìm theo tên, mã cấu hình, mô tả…",
         "searchAria": "Tìm quy tắc trong nhóm đang xem",
         "clearSearch": "Xoá tìm kiếm",
         "leave": {
@@ -2394,8 +2410,8 @@
           "description": "SLA xử lý sự cố, ngưỡng phạt, ảnh nghiệm thu, giữ ô và drone."
         },
         "payment": {
-          "title": "Thanh toán & ví",
-          "description": "Hạn mức nạp ví, mệnh giá gợi ý và phương thức thanh toán."
+          "title": "Thanh toán",
+          "description": "Phương thức thanh toán, hoàn tiền và chế độ giả lập thanh toán."
         },
         "iot": {
           "title": "Thiết bị IoT",
@@ -2403,7 +2419,7 @@
         },
         "auth": {
           "title": "Xác thực",
-          "description": "Hiệu lực và độ dài mã OTP, thời hạn token tạm, thời gian màn hình splash."
+          "description": "Hiệu lực và độ dài mã OTP, thời hạn phiên đăng nhập tạm, thời gian màn hình chào."
         },
         "loyalty": {
           "title": "Khách hàng thân thiết",
@@ -2428,14 +2444,14 @@
         "loadFailedTitle": "Không tải được cấu hình",
         "loadFailedMessage": "Đã có lỗi khi tải quy tắc nghiệp vụ. Vui lòng thử lại.",
         "emptyTitle": "Chưa có quy tắc nào",
-        "emptyMessage": "Service chưa khai báo quy tắc nghiệp vụ cho nhóm này.",
+        "emptyMessage": "Dịch vụ này chưa khai báo quy tắc nghiệp vụ cho nhóm này.",
         "noMatchTitle": "Không tìm thấy quy tắc phù hợp",
         "noMatchMessage": "Không có quy tắc nào khớp “{{query}}” trong nhóm này.",
         "ruleCount": "{{count}} quy tắc",
         "unsavedCount": "{{count}} thay đổi chưa lưu",
         "invalidCount": "{{count}} giá trị không hợp lệ",
         "hiddenCount": "{{count}} thay đổi đang bị ẩn bởi ô tìm kiếm",
-        "unsupportedTitle": "Service chưa hỗ trợ cấu hình",
+        "unsupportedTitle": "Dịch vụ chưa hỗ trợ cấu hình",
         "unsupportedMessage": "Service phụ trách nhóm “{{title}}” chưa triển khai API cấu hình quy tắc nghiệp vụ, nên tạm thời chưa chỉnh được từ trang quản trị. Các nhóm khác vẫn dùng bình thường.",
         "recheck": "Kiểm tra lại",
         "loadingAria": "Đang tải cấu hình"
@@ -2454,7 +2470,7 @@
         "undo": "Hoàn tác",
         "resetDefault": "Khôi phục mặc định",
         "resetTitle": "Khôi phục giá trị mặc định?",
-        "resetDescriptionSuffix": "sẽ quay về giá trị mặc định của service.",
+        "resetDescriptionSuffix": "sẽ quay về giá trị mặc định của hệ thống.",
         "dirtyWarning": "Thay đổi chưa lưu của quy tắc này sẽ bị bỏ.",
         "restore": "Khôi phục"
       },
@@ -2468,7 +2484,7 @@
         "filterAria": "Lọc theo quy tắc",
         "allRules": "Tất cả quy tắc",
         "refreshAria": "Làm mới lịch sử",
-        "unsupportedMessage": "Service của nhóm này chưa triển khai lịch sử thay đổi.",
+        "unsupportedMessage": "Dịch vụ của nhóm này chưa có lịch sử thay đổi.",
         "loadFailed": "Không tải được lịch sử",
         "loadFailedMessage": "Đã có lỗi xảy ra. Vui lòng thử lại.",
         "emptyTitle": "Chưa có thay đổi nào",
@@ -2529,7 +2545,7 @@
       "title": "Quản lý thông báo",
       "description": "Quản lý và gửi thông báo đến người dùng",
       "createBtn": "Tạo thông báo",
-      "broadcastBtn": "Broadcast",
+      "broadcastBtn": "Gửi hàng loạt",
       "searchPlaceholder": "Tìm theo tiêu đề, người nhận...",
       "emptyMessage": "Không có thông báo nào",
       "filter": {
@@ -2549,7 +2565,7 @@
         "inApp": "In-App",
         "email": "Email",
         "sms": "SMS",
-        "push": "Push"
+        "push": "Thông báo đẩy"
       },
       "type": {
         "orderCreated": "Tạo đơn",
@@ -2607,7 +2623,7 @@
         "delete": "Xóa"
       },
       "broadcast": {
-        "title": "Gửi broadcast thông báo",
+        "title": "Gửi thông báo hàng loạt",
         "notifType": "Loại thông báo",
         "channel": "Kênh gửi",
         "subject": "Tiêu đề",
@@ -2620,13 +2636,13 @@
         "recipientIdsPlaceholder": "Nhập ID người dùng, cách nhau bởi dấu phẩy (VD: 1, 2, 3)",
         "scheduledFor": "Thời gian gửi (tuỳ chọn)",
         "scheduledHint": "Để trống để gửi ngay lập tức",
-        "sendBtn": "Gửi broadcast",
+        "sendBtn": "Gửi hàng loạt",
         "sending": "Đang gửi...",
-        "successMsg": "Đã gửi broadcast đến {count} người dùng",
-        "errorMsg": "Gửi broadcast thất bại, vui lòng thử lại",
+        "successMsg": "Đã gửi thông báo tới {count} người dùng",
+        "errorMsg": "Gửi thông báo hàng loạt thất bại, vui lòng thử lại",
         "requiredFields": "Vui lòng nhập tiêu đề và nội dung",
         "invalidRecipients": "Nhập ít nhất một ID người nhận hợp lệ",
-        "sentCount": "Đã gửi broadcast đến {{count}} người dùng",
+        "sentCount": "Đã gửi thông báo tới {{count}} người dùng",
         "sendNowHint": "Thông báo được gửi ngay; số người nhận thực tế hiển thị sau khi gửi."
       },
       "create": {
@@ -2663,13 +2679,51 @@
         "markedRead": "Đã đánh dấu đã đọc",
         "markReadFailed": "Không đánh dấu được",
         "resent": "Đã gửi lại thông báo",
-        "resendFailed": "Không gửi lại được thông báo"
+        "resendFailed": "Không gửi lại được thông báo",
+        "alreadyDeleted": "Thông báo đã bị xoá hoặc không còn tồn tại"
       },
       "deleteDialog": {
         "title": "Xoá thông báo?",
         "desc": "Thông báo #{{id}} «{{title}}» sẽ bị xoá khỏi hộp thư của người nhận."
       },
-      "batchNoun": "thông báo"
+      "batchNoun": "thông báo",
+      "typeLabel": {
+        "ORDER_PICKUP_OVERDUE": "Quá hạn lấy hàng",
+        "ORDER_COMPLETED": "Đơn hoàn tất",
+        "ORDER_STATUS_CHANGED": "Đơn đổi trạng thái",
+        "REPORT_OPEN": "Phiếu sự cố mới",
+        "REPORT_RESOLVED": "Phiếu sự cố đã xử lý",
+        "REPORT_RATED": "Phiếu sự cố được đánh giá",
+        "PAYMENT_REFUNDED": "Đã hoàn tiền",
+        "drone_report_routed": "Phiếu sự cố drone được chuyển",
+        "drone_report_assigned": "Giao phiếu sự cố drone",
+        "drone_schedule_due": "Tới lịch bảo trì drone",
+        "locker_report_routed": "Phiếu sự cố tủ được chuyển",
+        "locker_report_assigned": "Giao phiếu sự cố tủ",
+        "locker_report_claimed": "KTV nhận phiếu sự cố tủ",
+        "locker_report_resolved": "Phiếu sự cố tủ đã xử lý",
+        "locker_schedule_due": "Tới lịch bảo trì tủ",
+        "locker_installation_assigned": "Giao lắp đặt tủ",
+        "locker_installation_reviewed": "Duyệt nghiệm thu tủ",
+        "SCHEDULE_TECHNICIAN_ASSIGNED": "Được giao lịch bảo trì",
+        "DRONE_INCIDENT_RECOVERY_SUBMITTED": "KTV gửi kết quả thu hồi",
+        "DRONE_INCIDENT_CUSTOMER_ACCEPTED": "Khách đồng ý phương án",
+        "DRONE_INCIDENT_CUSTOMER_DISPUTED": "Khách khiếu nại phương án",
+        "DRONE_PARCEL_RECOVERY_VERIFIED": "Admin xác minh thu hồi",
+        "DRONE_PARCEL_RECOVERY_STATION": "Kiện đã về trạm",
+        "ORDER_REFUND_PENDING": "Chờ hoàn tiền",
+        "ORDER_DELEGATED_TO_YOU": "Được uỷ quyền lấy hàng",
+        "ORDER_BOX_INCIDENT_OPENED": "Sự cố ô của đơn",
+        "ORDER_BOX_INCIDENT_RESOLVED": "Đã xử lý sự cố ô",
+        "ORDER": "Đơn hàng",
+        "PAYMENT": "Thanh toán",
+        "DELIVERY": "Giao hàng",
+        "PROMOTION": "Khuyến mãi",
+        "MAINTENANCE": "Bảo trì",
+        "SYSTEM_ALERT": "Cảnh báo hệ thống",
+        "SLA_WARNING": "Cảnh cáo SLA"
+      },
+      "countLabel": "{{count}} thông báo"
     },
     "promotions": {
       "pointsCostBadge": "Đổi {{points}} điểm",
@@ -2778,15 +2832,15 @@
       },
       "deleteDialog": {
         "title": "Xoá khuyến mãi?",
-        "desc": "Mã <b>{{code}}</b> sẽ bị xoá. Mã đã có lượt dùng hoặc đã được khách lưu vào ví không thể xoá — khi đó có thể ngưng áp dụng thay thế."
+        "desc": "Mã <b>{{code}}</b> sẽ bị xoá. Mã đã có lượt dùng hoặc đã có khách lưu lại thì không xoá được — khi đó có thể ngưng áp dụng thay thế."
       },
       "historyDialog": {
         "title": "Không thể xoá mã đã có lịch sử",
-        "desc": "Mã <b>{{code}}</b> đã có lượt sử dụng hoặc đã được lưu vào ví khách hàng nên không xoá được (để giữ lịch sử giảm giá của các đơn).",
-        "hint": "Ngưng áp dụng sẽ chuyển mã sang trạng thái INACTIVE — khách không dùng được nữa."
+        "desc": "Mã <b>{{code}}</b> đã có lượt sử dụng hoặc đã có khách lưu lại nên không xoá được (để giữ lịch sử giảm giá của các đơn).",
+        "hint": "Ngưng áp dụng sẽ chuyển mã sang Ngừng hoạt động — khách không dùng được nữa."
       },
       "batchNoun": "khuyến mãi",
-      "batchNote": "Mã đã có người dùng hoặc đã lưu vào ví sẽ không xoá được — hãy chuyển sang Ngừng hoạt động."
+      "batchNote": "Mã đã có người dùng hoặc đã có khách lưu lại sẽ không xoá được — hãy chuyển sang Ngừng hoạt động."
     },
     "breadcrumb": {
       "admin": "Quản trị",
@@ -2874,7 +2928,7 @@
       "sharedRules": "Quy tắc chung",
       "sharedRulesHint": "Áp dụng cho cả ba dịch vụ",
       "overtimeCollected": "Phí quá hạn đã thu trong kỳ",
-      "overtimeHint": "Không nằm trong doanh thu của ba dịch vụ trên — backend tách riêng để không đếm hai lần.",
+      "overtimeHint": "Không nằm trong doanh thu của ba dịch vụ trên — hệ thống tính riêng để không đếm hai lần.",
       "invalidValues": "Còn giá trị không hợp lệ",
       "unsavedCount": "{{count}} thay đổi chưa lưu",
       "discard": "Bỏ thay đổi",
@@ -3026,8 +3080,8 @@
         "flightTrack": "Nhật ký vị trí bay · mới nhất trước"
       },
       "lockerBlock": {
-        "source": "Tủ gửi · Locker A",
-        "destination": "Tủ nhận · Locker B",
+        "source": "Tủ gửi",
+        "destination": "Tủ nhận",
         "parcelInDroneBox": "Kiện đang ở ô drone số {{number}}",
         "reservedBox": "Ô nhận số {{number}}",
         "sentAt": "Gửi đi lúc",
@@ -3167,7 +3221,7 @@
         "title": "Giám sát camera trực tiếp",
         "subtitle": "Dữ liệu thật từ drone; hệ thống không tạo ảnh hoặc trạng thái giả khi camera mất kết nối.",
         "reportDrop": "Báo rơi kiện",
-        "noGateway": "Chưa có camera gateway cho {{drone}}. Vẫn có thể báo sự cố thủ công và đính kèm ảnh thật.",
+        "noGateway": "Chưa có cổng camera cho {{drone}}. Vẫn có thể báo sự cố thủ công và đính kèm ảnh thật.",
         "reconnect": "Thử kết nối lại",
         "battery": "Pin",
         "flightMode": "Chế độ bay",
@@ -3566,7 +3620,7 @@
           "flightMode": "Chế độ bay:",
           "motors": "Động cơ:",
           "armed": "ARMED (Đang quay)",
-          "disarmed": "DISARMED (An toàn)",
+          "disarmed": "Đã khoá động cơ (an toàn)",
           "landed": {
             "inAir": "Đang bay trên không",
             "onGround": "Đậu trên mặt đất",
@@ -3583,7 +3637,7 @@
         },
         "camera": {
           "title": "Camera Trực tiếp từ Drone ({{code}})",
-          "reload": "Tải lại stream",
+          "reload": "Tải lại luồng video",
           "openNewTab": "Mở tab mới",
           "enlarge": "Phóng to",
           "notStreaming": "Camera của drone {{code}} chưa phát luồng trực tiếp",
@@ -3625,7 +3679,7 @@
         },
         "iot": {
           "title": "Nhật ký IoT Drone {{code}}",
-          "description": "Toàn bộ chuỗi sự kiện phần cứng: Pi Controller, Pixhawk MAVLink, Móc treo thả hàng, Camera ArUco và Pin",
+          "description": "Toàn bộ chuỗi sự kiện phần cứng: bộ điều khiển Pi, Pixhawk (MAVLink), móc thả hàng, camera ArUco và pin",
           "refreshed": "Đã làm mới nhật ký IoT của drone",
           "searchPlaceholder": "Tìm theo nội dung, đơn hàng #, KTV, lỗi, IP, MAC...",
           "loading": "Đang tải dữ liệu nhật ký IoT drone...",
@@ -3636,23 +3690,23 @@
             "offline": "Drone {{code}} đang ngoại tuyến (Rút nguồn hoặc Mất mạng)",
             "onlineBadge": "TRỰC TUYẾN",
             "offlineBadge": "NGOẠI TUYẾN",
-            "onlineDetail": "Pi Controller: {{ip}} · MAVLink Pixhawk: {{mavlink}} · Cập nhật: {{time}}",
+            "onlineDetail": "Bộ điều khiển Pi: {{ip}} · Pixhawk (MAVLink): {{mavlink}} · Cập nhật: {{time}}",
             "lastSeen": "Lần cuối kết nối: {{time}}",
             "noRecentSignal": "Chưa có tín hiệu gần đây"
           },
           "component": {
-            "piController": "Pi Controller",
-            "pixhawk": "Pixhawk Autopilot",
+            "piController": "Bộ điều khiển Pi",
+            "pixhawk": "Bộ lái tự động Pixhawk",
             "cargoHook": "Móc treo hàng",
             "visionCamera": "Camera AI thị giác",
             "batteryPower": "Nguồn & Pin",
-            "telemetry": "Viễn thông Telemetry"
+            "telemetry": "Đường truyền telemetry"
           },
           "event": {
             "powerConnected": "Cắm nguồn trực tuyến",
             "powerDisconnected": "Rút nguồn / Ngắt điện",
-            "telemetryOnline": "Telemetry kết nối",
-            "telemetryLost": "Mất tín hiệu Telemetry",
+            "telemetryOnline": "Có tín hiệu telemetry",
+            "telemetryLost": "Mất tín hiệu telemetry",
             "pixhawkConnected": "Pi kết nối Pixhawk",
             "pixhawkDisconnected": "Pi mất kết nối Pixhawk",
             "detectTarget": "Detect mã ô/tủ",
@@ -3660,9 +3714,9 @@
             "hookAttach": "Móc ngậm hàng",
             "hookRelease": "Móc thả hàng",
             "hookJammed": "Kẹt móc treo hàng",
-            "manualOverride": "Can thiệp thủ công (User/KTV)",
+            "manualOverride": "Can thiệp thủ công (người dùng/KTV)",
             "armed": "Khởi động động cơ (ARMED)",
-            "disarmed": "Khóa an toàn (DISARMED)",
+            "disarmed": "Đã khoá động cơ (an toàn)",
             "flightModeChanged": "Đổi chế độ bay",
             "failsafeTriggered": "Kích hoạt Failsafe",
             "hardwareAttach": "Gắn bộ điều khiển Pi",
@@ -3682,13 +3736,13 @@
           "filter": {
             "componentPlaceholder": "Bộ phận phần cứng",
             "allComponents": "Tất cả bộ phận",
-            "piController": "Bộ xử lý Pi Controller",
+            "piController": "Bộ điều khiển Pi",
             "pixhawk": "Bộ điều khiển Pixhawk",
-            "cargoHook": "Móc treo hàng (Hook)",
+            "cargoHook": "Móc treo hàng",
             "allEvents": "Tất cả sự kiện",
             "armed": "Khởi động động cơ",
-            "online": "Trực tuyến (ONLINE)",
-            "offline": "Mất kết nối (OFFLINE)",
+            "online": "Trực tuyến",
+            "offline": "Mất kết nối",
             "reset": "Đặt lại lọc"
           },
           "col": {
@@ -3839,7 +3893,7 @@
         "compensationProcessed": "Đã xử lý yêu cầu duyệt/chi bồi thường",
         "approveCompensation": "Duyệt bồi thường",
         "retryPayout": "Thử lại chi bồi thường",
-        "payoutNote": "Nếu cổng chi bồi thường chưa được cấu hình, hệ thống giữ trạng thái chờ và ghi rõ Integration Unavailable trong lịch sử; không giả lập đã thanh toán."
+        "payoutNote": "Nếu cổng chi bồi thường chưa được cấu hình, hệ thống giữ trạng thái chờ và ghi rõ “Chưa kết nối cổng chi” trong lịch sử; không giả lập đã chi."
       },
       "detailPage": {
         "incidentStatus": {
@@ -4151,7 +4205,7 @@
           "on": "Đang bật",
           "off": "Đang tắt",
           "settingsLink": "Cài đặt",
-          "description": "Quy tắc xử lý bồi thường và hoàn cước áp dụng từ backend cho đơn hàng này",
+          "description": "Quy tắc bồi thường và hoàn cước hệ thống áp dụng cho đơn hàng này",
           "rate": "Tỷ lệ đề xuất",
           "cap": "Trần bồi thường",
           "noCap": "Không đặt trần",
@@ -4247,7 +4301,7 @@
         "paymentMethod": {
           "sepay": "Chuyển khoản SePay (VietQR)",
           "vnpay": "Cổng VNPAY",
-          "momo": "Ví MoMo"
+          "momo": "MoMo"
         },
         "orderContext": {
           "title": "Thông tin Đơn hàng",
@@ -4375,7 +4429,7 @@
         "acceptedHint": "KTV đang trong quy trình tiếp cận hiện trường và thu hồi kiện. Để đảm bảo an toàn vận hành và tính nhất quán của hiện trường, Quản trị viên không được phép đổi KTV khác. Bản đồ chuyển sang chế độ theo dõi vị trí thực địa.",
         "searchTechPhoneLocation": "Tìm tên KTV, số ĐT, địa điểm...",
         "assignedTechToast": "Đã phân công kỹ thuật viên {{name}} tìm hàng!",
-        "assignedTechToastDemo": "Đã phân công {{name}} (Demo)",
+        "assignedTechToastDemo": "Đã phân công {{name}} (thử nghiệm)",
         "assignFailed": "Không thể phân công KTV. Vui lòng thử lại!",
         "radius": "Bán kính:",
         "onShiftCount": "KTV đang trong ca:",
@@ -4418,6 +4472,34 @@
         "selected": "Đang chọn",
         "selectedTech": "KTV đang chọn:",
         "selectPrompt": "Chọn một kỹ thuật viên trên bản đồ hoặc danh sách để phân công"
+      },
+      "process": {
+        "open": "Chờ xử lý",
+        "awaitingAssignment": "Chờ phân công KTV",
+        "assigned": "Đã phân công",
+        "accepted": "KTV đã nhận",
+        "searching": "KTV đang tìm kiện",
+        "parcelFound": "Đã tìm thấy kiện",
+        "parcelNotFound": "Không tìm thấy kiện",
+        "recovered": "Đã thu hồi kiện",
+        "submitted": "Chờ admin duyệt",
+        "verified": "Admin đã xác minh",
+        "cancelled": "Đã huỷ",
+        "inspecting": "Đang kiểm tra",
+        "proposed": "Đã đề xuất",
+        "awaitingCustomerAcceptance": "Chờ khách đồng ý",
+        "rejected": "Bị từ chối",
+        "executed": "Đã thực hiện"
+      },
+      "compensationStatus": {
+        "NOT_REQUIRED": "Không cần bồi thường",
+        "AWAITING_APPROVAL": "Chờ admin duyệt",
+        "PROCESSING": "Đang xử lý",
+        "PAYMENT_PENDING": "Chờ chuyển khoản",
+        "PAID": "Đã chi trả",
+        "PAYMENT_FAILED": "Chi trả thất bại",
+        "DISPUTED": "Khách khiếu nại",
+        "COMPLETED": "Đã hoàn tất"
       }
     },
     "knowledge": {
@@ -4503,8 +4585,8 @@
         "footer": "Tổng {{total}} đoạn đã đánh chỉ mục. Tài liệu đang đánh chỉ mục lại vẫn được trả lời bằng các đoạn cũ cho tới khi xong. Bấm tên tài liệu để xem nội dung.",
         "deleteTitle": "Xoá tài liệu?",
         "deleteDescriptionBefore": "Xoá",
-        "deleteDescriptionAfter": "cùng toàn bộ đoạn đã đánh chỉ mục. Trợ lý sẽ không dùng tài liệu này để trả lời nữa.",
-        "deleteNote": "Câu đánh giá đang trỏ tới tiêu đề này sẽ trượt. Thao tác không hoàn tác được.",
+        "deleteDescriptionAfter": "sẽ bị ẩn khỏi kho tri thức và gỡ toàn bộ đoạn đã đánh chỉ mục. Trợ lý sẽ không dùng tài liệu này để trả lời nữa.",
+        "deleteNote": "Câu đánh giá đang trỏ tới tiêu đề này sẽ trượt. Bản gốc của tài liệu vẫn được lưu cùng lý do xoá.",
         "deleteAction": "Xoá tài liệu",
         "reindexTitle": "Đánh chỉ mục lại?",
         "reindexDescriptionAfter": "sẽ về trạng thái “Chờ đánh chỉ mục” và được chia đoạn, nhúng lại từ đầu (tốn phí nhúng).",
@@ -4707,7 +4789,7 @@
       "schedules": {
         "noAddress": "Chưa có địa chỉ",
         "header": {
-          "title": "Kế hoạch bảo trì định kỳ Kiosk & Drone (Preventive Maintenance)",
+          "title": "Kế hoạch bảo trì định kỳ Kiosk & Drone",
           "description": "Thiết lập chu kỳ kiểm tra phòng ngừa, phân công KTV và giám sát chất lượng vận hành trạm",
           "kioskTab": "Phần Kiosk ({{count}})",
           "kioskTabBadge": "Chính",
@@ -4965,7 +5047,7 @@
         },
         "delete": {
           "title": "Xác nhận xóa kế hoạch bảo trì?",
-          "description": "Bạn có chắc chắn muốn xóa kế hoạch kiểm tra định kỳ \"{{title}}\"? Lịch sử các đợt kiểm tra trước đó vẫn sẽ được lưu trữ để tra cứu.",
+          "description": "Lịch kiểm tra “{{title}}” sẽ ngừng và ẩn khỏi danh sách; lịch sử các lần kiểm tra vẫn được giữ.",
           "confirm": "Xác nhận xóa"
         },
         "toast": {
@@ -5373,7 +5455,7 @@
         "overdueCount": "{{count}} phiếu quá hạn SLA",
         "noOverdue": "Không có phiếu trễ",
         "profile": "Hồ sơ kỹ thuật viên",
-        "role": "Vai trò: TECHNICIAN",
+        "role": "Vai trò: Kỹ thuật viên",
         "copy": "Sao chép",
         "phoneLabel": "Số điện thoại:",
         "editPhone": "Chỉnh sửa số điện thoại",
@@ -5513,7 +5595,7 @@
         "logsTab": "Nhật ký KTV ({{count}})",
         "reportedContent": "Nội dung sự cố báo cáo:",
         "noDescription": "Không có mô tả chi tiết sự cố.",
-        "userPhotos": "Ảnh hiện trường User gửi ({{count}} ảnh):",
+        "userPhotos": "Ảnh hiện trường người dùng gửi ({{count}} ảnh):",
         "createdAt": "Thời gian tạo phiếu:",
         "assignedTech": "KTV phụ trách:",
         "assignedAt": "Thời gian phân công:",
@@ -5614,15 +5696,16 @@
         },
         "deleteDialog": {
           "title": "Xóa phiếu sự cố {{code}}",
-          "confirm": "Bạn có chắc chắn muốn xóa vĩnh viễn phiếu sự cố <b>{{code}}</b> ({{title}}) không?",
-          "warning": "⚠️ Hành động này không thể hoàn tác. Mọi dữ liệu liên quan bao gồm hình ảnh đính kèm, nhật ký kỹ thuật và đánh giá sẽ bị xóa hoàn toàn. Nếu phiếu này đang khóa ô tủ, ô tủ sẽ tự động được mở khóa."
+          "confirm": "Xoá phiếu sự cố <b>{{code}}</b> ({{title}}) khỏi danh sách?",
+          "warning": "Phiếu được xoá mềm: ảnh đính kèm, nhật ký kỹ thuật và đánh giá vẫn được lưu cùng lý do xoá. Nếu phiếu đang khoá ô tủ, ô tủ sẽ tự động được mở khoá.",
+          "action": "Xoá phiếu"
         },
         "batchDialog": {
           "titleAll": "Xác nhận xóa TOÀN BỘ phiếu sự cố {{category}}",
           "titleSome": "Xác nhận xóa hàng loạt {{count}} phiếu sự cố",
-          "confirmAll": "Bạn có chắc chắn muốn xóa <danger>toàn bộ {{count}} phiếu sự cố</danger> thuộc danh mục <b>{{category}}</b> không?",
-          "confirmSome": "Bạn có chắc chắn muốn xóa vĩnh viễn <danger>{{count}} phiếu</danger> sự cố đã chọn không?",
-          "warning": "⚠️ Cảnh báo: Tất cả phiếu sự cố được chọn, hình ảnh đính kèm trên hệ thống lưu trữ và nhật ký xử lý sẽ bị xóa vĩnh viễn khỏi cơ sở dữ liệu.",
+          "confirmAll": "Xoá <danger>toàn bộ {{count}} phiếu sự cố</danger> thuộc nhóm <b>{{category}}</b> khỏi danh sách?",
+          "confirmSome": "Xoá <danger>{{count}} phiếu</danger> sự cố đã chọn khỏi danh sách?",
+          "warning": "Các phiếu được xoá mềm cùng một lý do: ảnh và nhật ký xử lý vẫn được giữ trong hệ thống. Phiếu đang khoá ô tủ sẽ tự mở khoá ô.",
           "deleteAll": "Xóa toàn bộ",
           "deleteCount": "Xóa {{count}} phiếu"
         },
@@ -5683,18 +5766,14 @@
           "fieldNote": "[GHI CHÚ HIỆN TRƯỜNG]",
           "accepted": "[NGHIỆM THU THÀNH CÔNG]"
         }
-      }
+      },
+      "deletedAccount": "tài khoản đã xoá (#{{id}})"
     },
     "payments": {
       "title": "Quản lý thanh toán",
-      "description": "Giao dịch, hoàn tiền và biến động ví — số liệu lấy trực tiếp từ payment-service",
+      "description": "Giao dịch thu tiền theo đơn và hoàn tiền, số liệu lấy trực tiếp từ hệ thống thanh toán.",
       "viewRevenue": "Xem phân tích doanh thu",
       "matchCount": "{{total}} giao dịch khớp bộ lọc",
-      "tabs": {
-        "transactions": "Giao dịch",
-        "wallet": "Biến động ví",
-        "withdrawals": "Yêu cầu rút tiền"
-      },
       "refunds": "Hoàn tiền",
       "method": "Phương thức",
       "amount": "Số tiền",
@@ -5713,17 +5792,11 @@
         "accountNumber": "Số tài khoản",
         "accountHolder": "Chủ tài khoản"
       },
-      "kind": {
-        "all": "Đơn và nạp ví",
-        "order": "Chỉ thu theo đơn",
-        "topup": "Chỉ nạp ví"
-      },
       "sort": {
         "idDesc": "Mã giao dịch giảm dần"
       },
       "filters": {
         "searchPlaceholder": "Mã tham chiếu, mô tả, mã giao dịch hoặc mã đơn…",
-        "kindPlaceholder": "Loại giao dịch",
         "dateHint": "Khoảng ngày lọc theo thời điểm tạo giao dịch. Bỏ trống để xem mọi thời điểm."
       },
       "stats": {
@@ -5736,7 +5809,7 @@
         "successRateHint": "Số giao dịch thành công / tổng",
         "refundCount": "{{total}} lượt hoàn",
         "netCollected": "Thực thu theo đơn",
-        "netCollectedHint": "Thu theo đơn trừ hoàn tiền, không tính nạp ví",
+        "netCollectedHint": "Thu theo đơn trừ hoàn tiền",
         "byStatus": "Theo trạng thái",
         "byMethod": "Theo phương thức",
         "breakdownRow": "{{total}} GD · {{amount}}",
@@ -5744,22 +5817,21 @@
       },
       "table": {
         "transaction": "Giao dịch",
-        "transactionId": "Giao dịch {{id}}",
+        "transactionId": "Giao dịch #{{id}}",
         "refundedAmount": "Hoàn {{amount}}",
         "openOrder": "Mở đơn hàng",
         "empty": "Không có giao dịch nào khớp bộ lọc"
       },
       "detail": {
         "title": "Chi tiết giao dịch #{{id}}",
-        "description": "Thông tin thu tiền, hoàn tiền và biến động ví liên quan tới giao dịch này.",
+        "description": "Thông tin thu tiền và hoàn tiền liên quan tới giao dịch này.",
         "loadFailed": "Không tải được giao dịch",
         "statusUpdated": "Đã chuyển giao dịch {{ref}} sang “{{status}}”",
         "relatedOrder": "Đơn hàng liên quan",
         "openOrder": "Mở đơn",
         "orderTotal": "Tổng tiền đơn",
         "orderCreatedAt": "Đơn tạo lúc",
-        "lockTopup": "Giao dịch nạp ví chỉ được xác nhận qua cổng thanh toán. Đổi tay trạng thái không cộng hay trừ tiền ví nên không cho phép sửa ở đây.",
-        "lockTerminal": "Giao dịch đã ở trạng thái cuối (“{{status}}”) nên không đổi tay được. Cần trả tiền cho khách thì xử lý qua tab Hoàn tiền.",
+        "lockTerminal": "Giao dịch đã ở trạng thái cuối (“{{status}}”) nên không đổi tay được. Cần trả tiền cho khách thì xử lý ở trang Hoàn tiền.",
         "selectStatus": "Chọn trạng thái",
         "saveStatus": "Lưu trạng thái",
         "referenceId": "Mã tham chiếu",
@@ -5771,9 +5843,6 @@
         "refundTxnId": "Mã giao dịch hoàn",
         "processedBy": "Người xử lý",
         "refundNote": "Tạo hoàn tiền không tự đổi trạng thái giao dịch hay tình trạng thanh toán của đơn.",
-        "walletCount": "Biến động ví ({{count}})",
-        "noWallet": "Giao dịch này không sinh biến động ví.",
-        "balanceAfter": "Số dư sau: {{amount}}",
         "otherPayments": "Giao dịch khác của cùng đơn ({{count}})"
       },
       "refund": {
@@ -5829,57 +5898,6 @@
           "receivingBank": "Ngân hàng nhận",
           "transferRef": "Mã GD chuyển tiền",
           "originalReason": "Lý do hoàn gốc"
-        }
-      },
-      "withdrawal": {
-        "searchPlaceholder": "Tìm mã, tên, STK, ngân hàng...",
-        "loading": "Đang tải danh sách yêu cầu rút tiền...",
-        "empty": "Không tìm thấy yêu cầu rút tiền nào",
-        "status": {
-          "completed": "Đã chuyển"
-        },
-        "toast": {
-          "reasonRequired": "Vui lòng nhập lý do từ chối",
-          "approved": "Đã duyệt yêu cầu rút tiền #{{ref}}",
-          "rejected": "Đã từ chối yêu cầu #{{ref}} và hoàn tiền về ví cho khách",
-          "failed": "Không thể xử lý yêu cầu rút tiền. Vui lòng thử lại!"
-        },
-        "table": {
-          "requestId": "Mã yêu cầu",
-          "beneficiary": "Tài khoản thụ hưởng",
-          "amount": "Số tiền rút",
-          "note": "Ghi chú / Lý do",
-          "processedAt": "Duyệt: {{time}}",
-          "done": "Hoàn tất"
-        },
-        "approveDialog": {
-          "title": "Xác nhận duyệt yêu cầu rút tiền",
-          "description": "Kiểm tra kỹ thông tin tài khoản và xác nhận đã thực hiện chuyển tiền thực tế:",
-          "warning": "Hành động này sẽ đánh dấu giao dịch là <b>ĐÃ CHUYỂN TIỀN</b> và không thể hoàn tác.",
-          "confirm": "Xác nhận đã chuyển & Duyệt"
-        },
-        "rejectDialog": {
-          "title": "Từ chối yêu cầu rút tiền",
-          "description": "Khi từ chối, hệ thống sẽ tự động hoàn trả số tiền rút về ví khách hàng.",
-          "refundToWallet": "Số tiền hoàn lại ví",
-          "placeholder": "Ví dụ: Sai thông tin chủ tài khoản, ngân hàng từ chối giao dịch...",
-          "warning": "Số tiền {{amount}} sẽ được cộng trả lại vào ví ngay lập tức.",
-          "confirm": "Xác nhận từ chối & Hoàn tiền ví"
-        }
-      },
-      "wallet": {
-        "direction": "Chiều",
-        "source": "Nguồn",
-        "searchPlaceholder": "Mã tham chiếu hoặc nội dung…",
-        "count": "{{total}} biến động ví.",
-        "empty": "Không có biến động ví nào khớp bộ lọc",
-        "table": {
-          "movement": "Biến động",
-          "walletId": "Ví #{{id}}",
-          "balance": "Số dư {{amount}}",
-          "relatedOrder": "Đơn liên quan",
-          "reference": "Tham chiếu",
-          "timestamp": "Thời điểm"
         }
       }
     },
@@ -6027,8 +6045,8 @@
                 "c3": "Không có ô trống khác cùng kích cỡ để điều chuyển ô tự động."
               },
               "evidence": {
-                "e1": "Phiếu báo cáo sự cố của KTV (Maintenance Report ID).",
-                "e2": "Nhật ký lệnh mở tủ thất bại trên hệ thống IoT/Locker."
+                "e1": "Phiếu sự cố của KTV (mã phiếu bảo trì).",
+                "e2": "Nhật ký lệnh mở tủ thất bại trên hệ thống tủ."
               },
               "adminCheck": {
                 "a1": "Đối chiếu mã đơn hàng và số ô tủ trên báo cáo sự cố.",
@@ -6042,14 +6060,14 @@
               "conditions": {
                 "c1": "Drone phải hạ cánh khẩn cấp hoặc hủy bay do thời tiết xấu/mưa bão.",
                 "c2": "Drone gặp sự cố rơi kiện hàng hoặc kiện hàng bị va đập hư hỏng.",
-                "c3": "Giao trễ vượt quá thời gian cam kết của hệ thống Drone delivery."
+                "c3": "Giao trễ vượt quá thời gian cam kết của dịch vụ giao hàng bằng drone."
               },
               "evidence": {
                 "e1": "Mã chuyến bay Drone, tọa độ và thời gian xảy ra sự cố.",
                 "e2": "Ảnh chụp snapshot camera Drone hoặc biên bản KTV thu hồi kiện hàng."
               },
               "adminCheck": {
-                "a1": "Kiểm tra trạng thái đơn Drone (DROPPED, CANCELLED, TIMED_OUT).",
+                "a1": "Kiểm tra trạng thái đơn drone (rơi kiện, đã huỷ, quá thời gian chờ).",
                 "a2": "Nếu hàng hóa bị hỏng, kiểm tra mức đền bù theo quy định bảo hiểm vận chuyển."
               }
             },
@@ -6058,12 +6076,12 @@
               "badge": "Huỷ đơn tự nguyện",
               "refundRate": "100% (theo điều kiện)",
               "conditions": {
-                "c1": "Khách đã thanh toán nhưng chưa đặt đồ vào tủ (chưa phát sinh sự kiện ITEM_PLACED).",
+                "c1": "Khách đã thanh toán nhưng chưa đặt đồ vào tủ (chưa ghi nhận lượt bỏ đồ vào ô).",
                 "c2": "Yêu cầu huỷ và hoàn tiền trong vòng {{days}} ngày kể từ khi thanh toán thành công.",
                 "c3": "Với đơn thuê tủ dài ngày: chưa hết hạn và chưa nhận bàn giao ô."
               },
               "evidence": {
-                "e1": "Lịch sử trạng thái đơn hàng (Order Timeline): không có lượt mở tủ cất đồ.",
+                "e1": "Lịch sử trạng thái đơn hàng: không có lượt mở tủ cất đồ.",
                 "e2": "Thời gian thanh toán hợp lệ (không vượt quá thời hạn cấu hình refundMaxDays)."
               },
               "adminCheck": {
@@ -6109,7 +6127,7 @@
     },
     "revenue": {
       "title": "Quản lý doanh thu",
-      "description": "Doanh thu tính theo tiền thực thu của đơn thật; tiền nạp ví không được tính là doanh thu.",
+      "description": "Doanh thu tính theo tiền thực thu của đơn thật.",
       "reconcile": "Đối soát giao dịch",
       "invalidRange": "Khoảng ngày chưa hợp lệ nên chưa tải được số liệu.",
       "netAfterRefund": "Thực thu sau hoàn",
@@ -6165,7 +6183,7 @@
       "method": {
         "loadFailed": "Không tải được doanh thu theo phương thức",
         "empty": "Chưa có khoản thu nào trong khoảng đã chọn",
-        "note": "Hoàn tiền được quy về phương thức của giao dịch bị hoàn. Tiền nạp ví không nằm trong doanh thu; ví chỉ tính khi khách dùng số dư trả cho một đơn."
+        "note": "Hoàn tiền được quy về phương thức của giao dịch bị hoàn."
       },
       "service": {
         "loadFailed": "Không tải được doanh thu theo dịch vụ",
@@ -6381,7 +6399,7 @@
       }
     },
     "droneLogs": {
-      "title": "Nhật ký giao tiếp Drone & Tủ Smart Locker",
+      "title": "Nhật ký giao tiếp Drone & Tủ",
       "description": "Theo dõi trực tiếp thông điệp MQTT, nội dung phản hồi, trạng thái xử lý và liên kết tới Đơn hàng, Drone, Tủ thông minh",
       "toast": {
         "refreshed": "Đã cập nhật nhật ký giao tiếp Drone & Tủ"
@@ -6429,7 +6447,7 @@
       "listTitle": "Danh sách thông điệp giao tiếp ({{total}})",
       "col": {
         "event": "Sự kiện",
-        "message": "Nội dung thông điệp (Message)"
+        "message": "Nội dung thông điệp"
       },
       "loading": "Đang tải danh sách nhật ký giao tiếp...",
       "empty": "Không có thông điệp giao tiếp nào phù hợp với bộ lọc.",
@@ -6470,6 +6488,28 @@
         "closeLidRetry": "Gửi lại lệnh đóng nắp trượt ô tủ (tủ đã kết nối lại, lần {{n}})",
         "closeLidSent": "Gửi lệnh yêu cầu đóng nắp trượt ô tủ",
         "deliveryReady": "Giao hàng hoàn tất an toàn — Kiện hàng sẵn sàng để khách nhận"
+      },
+      "event": {
+        "TARGET_REQUEST": "Drone hỏi ô đích",
+        "MARKER_DETECTED": "Thấy mã ArUco",
+        "MARKER_VALIDATED": "Mã ArUco hợp lệ",
+        "MARKER_REJECTED": "Mã ArUco bị từ chối",
+        "WRONG_MARKER": "Sai mã ArUco",
+        "OPEN_LID_REQUESTED": "Yêu cầu mở nắp",
+        "LID_OPEN_ACCEPTED": "Tủ nhận lệnh mở nắp",
+        "LID_OPENED": "Nắp đã mở",
+        "LID_OPEN_FAILED": "Mở nắp thất bại",
+        "DROP_PHASE_STARTED": "Bắt đầu thả hàng",
+        "DROP_PHASE_COMPLETED": "Thả hàng xong",
+        "DROP_REPORT_TIMEOUT": "Quá hạn báo thả hàng",
+        "PARCEL_RELEASE_FAILED": "Nhả kiện thất bại",
+        "LID_TEST_HOLD": "Thử nắp: đang giữ mở",
+        "CLOSE_LID_REQUESTED": "Yêu cầu đóng nắp",
+        "LID_CLOSE_ACCEPTED": "Tủ nhận lệnh đóng nắp",
+        "LID_CLOSED": "Nắp đã đóng",
+        "LID_CLOSE_FAILED": "Đóng nắp thất bại",
+        "DELIVERY_READY": "Sẵn sàng nhận hàng",
+        "SAFETY_ABORT": "Huỷ vì an toàn"
       }
     },
     "cabinetControl": {
@@ -6526,6 +6566,21 @@
           "target": "Ô / trục",
           "revolutions": "Số vòng",
           "result": "Kết quả"
+        },
+        "sourceWeb": "Web",
+        "actor": "người dùng #{{id}}",
+        "status": {
+          "ok": "Thành công",
+          "success": "Thành công",
+          "accepted": "Tủ đã nhận lệnh",
+          "open": "Đang mở",
+          "issued": "Đã cấp",
+          "stopped": "Đã dừng",
+          "failed": "Thất bại",
+          "timeout": "Quá thời gian chờ",
+          "rejected": "Bị từ chối",
+          "error": "Lỗi",
+          "unknown": "Không rõ"
         }
       },
       "lid": {
@@ -6713,33 +6768,16 @@
       },
       "paymentMethod": {
         "cash": "Tiền mặt",
-        "wallet": "Ví Lock.R",
         "vnpay": "VNPay",
         "momo": "MoMo",
         "sepay": "SePay (chuyển khoản)",
-        "vnpayTopup": "Nạp ví qua VNPay",
-        "sepayTopup": "Nạp ví qua SePay"
-      },
-      "paymentKind": {
-        "order": "Thu theo đơn",
-        "topup": "Nạp ví"
+        "legacy": "Phương thức cũ"
       },
       "refundStatus": {
         "completed": "Đã hoàn",
         "pending": "Chờ hoàn",
         "rejected": "Từ chối",
         "failed": "Hoàn thất bại"
-      },
-      "walletType": {
-        "credit": "Cộng tiền",
-        "debit": "Trừ tiền"
-      },
-      "walletSource": {
-        "topup": "Nạp ví",
-        "orderPayment": "Thanh toán đơn",
-        "refund": "Hoàn tiền",
-        "adjust": "Điều chỉnh tay",
-        "withdraw": "Rút tiền"
       },
       "revenueService": {
         "send": "Gửi hàng",
@@ -6795,7 +6833,7 @@
     },
     "media": {
       "error": {
-        "storageDisabled": "Chưa cấu hình lưu trữ ảnh Cloudinary trên server",
+        "storageDisabled": "Máy chủ chưa cấu hình lưu trữ ảnh Cloudinary",
         "purposeInvalid": "Loại ảnh không hợp lệ",
         "purposeForbidden": "Tài khoản không có quyền tải loại ảnh này",
         "signatureInvalid": "Chữ ký ảnh không hợp lệ hoặc đã hết hạn, vui lòng tải lại ảnh",
@@ -6814,16 +6852,16 @@
         "fileFormat": "\"{{name}}\" không đúng định dạng (chỉ nhận {{formats}})",
         "fileTooLarge": "\"{{name}}\" quá lớn ({{size}}, tối đa {{max}})",
         "readFailed": "Không đọc được ảnh",
-        "uploadCanceled": "Đã huỷ upload",
+        "uploadCanceled": "Đã huỷ tải ảnh lên",
         "cloudinaryRejected": "Cloudinary từ chối ảnh (HTTP {{status}})",
         "cloudinaryNetwork": "Lỗi mạng khi tải ảnh lên Cloudinary"
       },
       "upload": {
-        "invalidSignature": "Máy chủ trả về chữ ký upload không hợp lệ",
-        "signatureFailed": "Không xin được chữ ký upload ảnh",
+        "invalidSignature": "Máy chủ trả về chữ ký tải ảnh không hợp lệ",
+        "signatureFailed": "Không xin được chữ ký tải ảnh lên",
         "failedTitle": "Không thể tải ảnh lên",
-        "storageDisabledHint": "Liên hệ quản trị hệ thống để đặt CLOUDINARY_URL cho các service.",
-        "failed": "Upload thất bại",
+        "storageDisabledHint": "Liên hệ quản trị hệ thống để đặt CLOUDINARY_URL cho các dịch vụ.",
+        "failed": "Tải ảnh lên thất bại",
         "partialFailed": "Không tải lên được {{failed}}/{{total}} ảnh"
       },
       "invalidImage": "Ảnh không hợp lệ",
@@ -6941,7 +6979,15 @@
       "customerDropped": "Khách xác nhận đã bỏ đồ vào tủ",
       "checkedOutByStaff": "Nhân viên đã kết thúc đơn",
       "rentalEnded": "Kết thúc thuê, đã nhả ô",
-      "storagePickedUp": "Đã lấy đồ gửi giữ"
+      "storagePickedUp": "Đã lấy đồ gửi giữ",
+      "orderCreated": "Đơn đã được tạo",
+      "orderCanceled": "Khách huỷ đơn"
+    },
+    "accountStatus": {
+      "ACTIVE": "Đang hoạt động",
+      "INACTIVE": "Đã khoá",
+      "LOCKED": "Đã khoá",
+      "DELETED": "Đã xoá"
     }
   },
   "errorPage": {

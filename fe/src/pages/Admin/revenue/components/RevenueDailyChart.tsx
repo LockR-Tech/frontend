@@ -30,12 +30,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { ReportErrorState } from "~/components/shared/reporting";
-import {
-  formatCurrency,
-  formatDayLabel,
-  formatDayShort,
-  formatNumber,
-} from "~/lib/report-format";
+import { formatCurrency, formatDayLabel, formatDayShort, formatNumber, formatDecimal } from "~/lib/report-format";
 import type { SerializedError } from "@reduxjs/toolkit";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import type { RevenueDailyResponse } from "~/types/admin/reporting";
@@ -58,15 +53,15 @@ const SERIES = [
 function axisMoney(value: number, t: TFunction): string {
   if (Math.abs(value) >= 1_000_000) {
     return t("admin.revenue.chart.axisMillion", {
-      value: (value / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 }),
+      value: formatDecimal((value / 1_000_000), 1),
     });
   }
   if (Math.abs(value) >= 1_000) {
     return t("admin.revenue.chart.axisThousand", {
-      value: (value / 1_000).toLocaleString("vi-VN", { maximumFractionDigits: 0 }),
+      value: formatDecimal((value / 1_000), 0),
     });
   }
-  return value.toLocaleString("vi-VN");
+  return formatNumber(value);
 }
 
 export function RevenueDailyChart({

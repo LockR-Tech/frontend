@@ -1,6 +1,7 @@
 import { parseBackendDateTime } from "~/lib/datetime";
 import i18n from "~/utils/i18n";
 import type { DroneJourneyEvent, DroneOrderTracking } from "~/stores/apis/admin/droneOrders";
+import { formatDecimal } from "~/lib/report-format";
 
 // Phép tính dùng chung cho timeline và bản đồ hành trình drone — khớp logic màn
 // theo dõi trên app (drone_delivery_detail.dart, drone_route_geometry.dart).
@@ -84,7 +85,7 @@ export function distanceKm(lat1: number, lng1: number, lat2: number, lng2: numbe
 
 export function kmLabel(km: number): string {
   if (km < 1) return `${Math.round(km * 1000)} m`;
-  return `${km.toLocaleString("vi-VN", { maximumFractionDigits: 2 })} km`;
+  return `${formatDecimal(km, 2)} km`;
 }
 
 /**

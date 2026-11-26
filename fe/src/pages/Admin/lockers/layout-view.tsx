@@ -1601,7 +1601,7 @@ export default function LockerLayoutPage() {
                   {isKioskScreenOnline ? (
                     <div className="flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-500/50" />
-                      <span className="text-[11px] font-semibold text-emerald-400">Online</span>
+                      <span className="text-[11px] font-semibold text-emerald-400">{t("common.online")}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1">

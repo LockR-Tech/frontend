@@ -9,7 +9,7 @@ import {
   Receipt,
   ShoppingBag,
   Undo2,
-  Wallet,
+  Banknote,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -261,7 +261,9 @@ export default function RevenueDetailPage() {
                     ) : null}
                   </LabelValue>
                   <LabelValue label={t("admin.orders.fields.accountStatus")}>
-                    {customer?.status}
+                    {customer?.status
+                      ? t(`shared.accountStatus.${customer.status}`, { defaultValue: customer.status })
+                      : null}
                   </LabelValue>
                 </>
               )}
@@ -272,7 +274,7 @@ export default function RevenueDetailPage() {
             <ReportStatCard
               label={t("admin.revenue.detail.stats.spent")}
               value={formatCurrency(customer?.totalSpent)}
-              icon={Wallet}
+              icon={Banknote}
               isLoading={isLoading}
             />
             <ReportStatCard

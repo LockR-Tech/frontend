@@ -772,7 +772,11 @@ export default function DroneIncidentDetailPage() {
             <div className="pt-1 flex items-center justify-between text-xs">
               <span className="text-muted-foreground">{t("admin.droneIncidents.detailPage.kpi.status")}</span>
               <Badge variant="outline" className="text-[10px] font-semibold">
-                {incident.compensationStatus}
+                {incident.compensationStatus
+                  ? t(`admin.droneIncidents.compensationStatus.${incident.compensationStatus}`, {
+                      defaultValue: incident.compensationStatus,
+                    })
+                  : "—"}
               </Badge>
             </div>
           </CardContent>

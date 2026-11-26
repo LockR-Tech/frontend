@@ -101,8 +101,33 @@ export const statusLabel: Record<string, string> = {
     "admin.droneIncidents.status.manualInterventionRequired",
 };
 
+// Trạng thái thu hồi kiện, kiểm tra drone và phương án xử lý (DroneIncidentStates.RECOVERY…, phiếu kiểm tra,
+// phương án gửi khách). Mã trùng với trạng thái sự cố (CLOSED, DISPUTED…) dùng nhãn của sự cố ở trên.
+const processStatusLabel: Record<string, string> = {
+  OPEN: "admin.droneIncidents.process.open",
+  AWAITING_ASSIGNMENT: "admin.droneIncidents.process.awaitingAssignment",
+  ASSIGNED: "admin.droneIncidents.process.assigned",
+  ACCEPTED: "admin.droneIncidents.process.accepted",
+  SEARCHING: "admin.droneIncidents.process.searching",
+  PARCEL_FOUND: "admin.droneIncidents.process.parcelFound",
+  PARCEL_NOT_FOUND: "admin.droneIncidents.process.parcelNotFound",
+  RECOVERED: "admin.droneIncidents.process.recovered",
+  SUBMITTED: "admin.droneIncidents.process.submitted",
+  VERIFIED: "admin.droneIncidents.process.verified",
+  CANCELLED: "admin.droneIncidents.process.cancelled",
+  INSPECTING: "admin.droneIncidents.process.inspecting",
+  PROPOSED: "admin.droneIncidents.process.proposed",
+  AWAITING_CUSTOMER_ACCEPTANCE: "admin.droneIncidents.process.awaitingCustomerAcceptance",
+  REJECTED: "admin.droneIncidents.process.rejected",
+  EXECUTED: "admin.droneIncidents.process.executed",
+};
+
+function labelKeyOf(value: string): string | undefined {
+  return statusLabel[value] ?? processStatusLabel[value];
+}
+
 export function statusText(value: string, t: TFunction): string {
-  const key = statusLabel[value];
+  const key = labelKeyOf(value);
   return key ? t(key) : value;
 }
 
@@ -631,7 +656,7 @@ export function Status({ value }: { value: string }) {
       variant="outline"
       className={`whitespace-nowrap border-0 ${statusTone(value)}`}
     >
-      {statusLabel[value] ? t(statusLabel[value]) : value.replaceAll("_", " ")}
+      {value ? statusText(value, t) : "—"}
     </Badge>
   );
 }
@@ -963,7 +988,7 @@ export function translateParcelCategory(
 
 // Giá trị là khoá i18n; dịch lúc gọi.
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  WALLET: "shared.reportMeta.paymentMethod.wallet",
+  WALLET: "shared.reportMeta.paymentMethod.legacy",
   SEPAY: "admin.droneIncidents.listPage.paymentMethod.sepay",
   VNPAY: "admin.droneIncidents.listPage.paymentMethod.vnpay",
   MOMO: "admin.droneIncidents.listPage.paymentMethod.momo",

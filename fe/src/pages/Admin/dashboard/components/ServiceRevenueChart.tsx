@@ -7,6 +7,7 @@ import { revenueServiceMeta } from "~/components/shared/reporting";
 import i18n from "~/utils/i18n";
 import type { RevenueByServiceItem } from "~/types/admin/reporting";
 import { ChartPlaceholder } from "./ChartPlaceholder";
+import { formatCurrency, formatDecimal } from "~/lib/report-format";
 
 interface ServiceRevenueChartProps {
   items?: RevenueByServiceItem[];
@@ -29,8 +30,8 @@ const SERVICE_COLORS: Record<string, string> = {
 
 function formatVND(val: number) {
   if (val >= 1_000_000)
-    return i18n.t("admin.dashboard.format.millionVnd", { value: (val / 1_000_000).toFixed(1) });
-  return `${val.toLocaleString("vi-VN")} đ`;
+    return i18n.t("admin.dashboard.format.millionVnd", { value: formatDecimal(val / 1_000_000, 1) });
+  return formatCurrency(val);
 }
 
 // /api/admin/revenue/by-service — gồm dòng OVERTIME_FEE (phí quá hạn đã thu).
@@ -93,7 +94,7 @@ export function ServiceRevenueChart({ items, year, isLoading, error, onRetry, on
                 <Tooltip
                   formatter={(val, _name, item) => [
                     t("admin.dashboard.serviceRevenue.tooltipValue", {
-                      value: `${Number(val).toLocaleString("vi-VN")} đ`,
+                      value: formatCurrency(Number(val)),
                       count: (item?.payload as { paidOrders?: number } | undefined)?.paidOrders ?? 0,
                     }),
                     t("admin.dashboard.chart.collected"),

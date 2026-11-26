@@ -27,6 +27,7 @@ import {
   validateSetting,
 } from "./setting-utils";
 import { useTranslation } from "react-i18next";
+import { UserName } from "~/components/shared/UserName";
 
 interface SettingRowProps {
   setting: SettingView;
@@ -117,12 +118,13 @@ function SettingRowComponent({
           </span>
           {setting.updatedAt && (
             <span>
-              {setting.updatedByUserId != null
-                ? t("admin.settings.row.updatedAtBy", {
-                    date: formatDateTime(setting.updatedAt),
-                    id: setting.updatedByUserId,
-                  })
-                : t("admin.settings.row.updatedAt", { date: formatDateTime(setting.updatedAt) })}
+              {t("admin.settings.row.updatedAt", { date: formatDateTime(setting.updatedAt) })}
+              {setting.updatedByUserId != null && (
+                <>
+                  {" · "}
+                  <UserName id={setting.updatedByUserId} />
+                </>
+              )}
             </span>
           )}
           <button

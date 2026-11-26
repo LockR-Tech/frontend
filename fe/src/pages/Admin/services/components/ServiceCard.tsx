@@ -61,8 +61,7 @@ export function ServiceCard({
               {t(service.nameKey)}
             </h2>
             <p className="text-[11px] text-muted-foreground">
-              {t(service.taglineKey)} · {t("admin.services.card.orderTypeCode")}{" "}
-              <span className="font-mono">{service.type}</span>
+              {t(service.taglineKey)}
             </p>
           </div>
           <div className="text-right shrink-0">

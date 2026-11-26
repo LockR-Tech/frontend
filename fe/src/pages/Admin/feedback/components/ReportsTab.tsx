@@ -32,6 +32,7 @@ import {
   type ResolveReportPayload,
 } from "~/pages/Admin/maintenance/ResolveReportDialog";
 import { useTranslation } from "react-i18next";
+import { formatNumber } from "~/lib/report-format";
 
 const PAGE_SIZE = 20;
 
@@ -97,7 +98,7 @@ export function ReportsTab() {
         </div>
 
         <span className="text-xs text-muted-foreground">
-          {isLoading ? "..." : t("admin.feedback.reports.count", { total: total.toLocaleString("vi-VN") })}
+          {isLoading ? "..." : t("admin.feedback.reports.count", { total: formatNumber(total) })}
         </span>
       </div>
 
@@ -114,7 +115,7 @@ export function ReportsTab() {
             <TableHeader>
               <TableRow className="bg-secondary/60 hover:bg-secondary/60">
                 <TableHead className="font-semibold text-foreground">{t("common.customer")}</TableHead>
-                <TableHead className="font-semibold text-foreground">Locker</TableHead>
+                <TableHead className="font-semibold text-foreground">{t("admin.feedback.columns.locker")}</TableHead>
                 <TableHead className="font-semibold text-foreground">{t("common.description")}</TableHead>
                 <TableHead className="font-semibold text-foreground">{t("common.status")}</TableHead>
                 <TableHead className="font-semibold text-foreground">{t("common.createdAt")}</TableHead>

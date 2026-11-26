@@ -9,7 +9,7 @@ import {
   ShoppingBag,
   TrendingUp,
   Undo2,
-  Wallet,
+  Banknote,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -123,7 +123,7 @@ export default function RevenuePage() {
             hint={t("admin.revenue.refundedHint", {
               amount: formatCurrency(current?.refundAmount),
             })}
-            icon={Wallet}
+            icon={Banknote}
             changePct={changes?.netRevenuePct}
             onClick={() => showEntries("NET", t("admin.revenue.netAfterRefund"))}
             isLoading={isSummaryLoading}

@@ -39,15 +39,22 @@ import {
   CreditCard,
   TrendingUp,
 } from "lucide-react";
-import { changeDirection, formatDayLabel, formatPercentChange } from "~/lib/report-format";
+import {
+  changeDirection,
+  formatCurrency,
+  formatDayLabel,
+  formatDecimal,
+  formatNumber,
+  formatPercentChange,
+} from "~/lib/report-format";
 import { toReportError } from "~/lib/report-error";
 
 function formatVND(amount: number, t: TFunction): string {
   if (amount >= 1_000_000_000)
-    return t("admin.dashboard.format.billionVnd", { value: (amount / 1_000_000_000).toFixed(1) });
+    return t("admin.dashboard.format.billionVnd", { value: formatDecimal(amount / 1_000_000_000, 1) });
   if (amount >= 1_000_000)
-    return t("admin.dashboard.format.millionVnd", { value: (amount / 1_000_000).toFixed(2) });
-  return `${amount.toLocaleString("vi-VN")} đ`;
+    return t("admin.dashboard.format.millionVnd", { value: formatDecimal(amount / 1_000_000, 2) });
+  return formatCurrency(amount);
 }
 
 /** Ngày đầu và cuối của tháng `month` (1–12) năm `year`, dạng yyyy-MM-dd. */
@@ -163,11 +170,11 @@ export default function Dashboard() {
   const heroCards = [
     {
       label: t("admin.dashboard.hero.totalOrders"),
-      value: overview.totalOrders.toLocaleString("vi-VN"),
+      value: formatNumber(overview.totalOrders),
       icon: Package,
       sublabel: month
         ? t("admin.dashboard.hero.ordersThisMonth", {
-            value: month.current.orderCount.toLocaleString("vi-VN"),
+            value: formatNumber(month.current.orderCount),
           })
         : t("admin.dashboard.hero.wholeNetwork"),
       delta: month
@@ -186,7 +193,7 @@ export default function Dashboard() {
     {
       label: t("admin.dashboard.hero.ordersToday"),
       // Ngày theo giờ Việt Nam từ báo cáo; overview (giờ máy chủ) chỉ là dự phòng.
-      value: (day ? day.current.orderCount : overview.ordersToday).toLocaleString("vi-VN"),
+      value: formatNumber((day ? day.current.orderCount : overview.ordersToday)),
       icon: CalendarCheck,
       sublabel: t("admin.dashboard.hero.ordersCreatedToday"),
       delta: day

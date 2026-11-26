@@ -3,7 +3,7 @@ import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { useTranslation } from "react-i18next";
-import { formatDayLabel } from "~/lib/report-format";
+import { formatDayLabel, formatNumber } from "~/lib/report-format";
 import type { PeakHourPoint } from "../hooks/dashboardExtraApi";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
@@ -77,7 +77,7 @@ export function PeakHoursChart({ points, range, isLoading, error, onRetry, onHou
                 />
                 <Tooltip
                   formatter={(val) => [
-                    t("admin.dashboard.chart.ordersValue", { value: Number(val).toLocaleString("vi-VN") }),
+                    t("admin.dashboard.chart.ordersValue", { value: formatNumber(Number(val)) }),
                     t("admin.dashboard.chart.ordersCreated"),
                   ]}
                   contentStyle={{

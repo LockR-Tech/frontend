@@ -1,4 +1,5 @@
 import type { DroneOrderTracking } from "~/stores/apis/admin/droneOrders";
+import { formatNumber } from "~/lib/report-format";
 
 // Cách ghi các trường của đơn drone, dùng chung cho trang hành trình drone và trang chi tiết đơn
 // để hai nơi (và app khách) đọc cùng một chữ.
@@ -33,5 +34,5 @@ export function routeDistance(meters: number | null | undefined): string | null 
 
 export function grams(value: number | null | undefined): string | null {
   if (value === null || value === undefined) return null;
-  return `${value.toLocaleString("vi-VN")} g`;
+  return `${formatNumber(value)} g`;
 }

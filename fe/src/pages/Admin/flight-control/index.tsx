@@ -38,8 +38,9 @@ import { BLOCK_CAUSES, causeLabel, causeTone } from "./labels";
 
 const FLIGHTS_SUSPENDED_KEY = "app.order.drone-flights-suspended";
 const WEATHER_CHECK_KEY = "app.drone.weather.check-enabled";
-// Nhóm quy tắc do order-service khai báo (OrderSettingsCatalog) + vài quy tắc bay lẻ trong nhóm "Giao hàng drone".
-const RULE_GROUPS = ["Thời tiết & điều kiện bay"];
+// Quy tắc thời tiết của order-service (OrderSettingsCatalog, khoá `app.drone.weather.*`) + vài quy tắc bay lẻ
+// trong nhóm "Giao hàng drone". Lọc theo khoá chứ không theo tên nhóm vì tên nhóm được dịch theo ngôn ngữ.
+const RULE_KEY_PREFIXES = ["app.drone.weather."];
 const RULE_KEYS = [
   "app.order.drone-flight-start-hour",
   "app.order.drone-flight-end-hour",
@@ -140,7 +141,7 @@ export default function FlightControlPage() {
               tab={RULES_TAB}
               drafts={drafts}
               search=""
-              groups={RULE_GROUPS}
+              keyPrefixes={RULE_KEY_PREFIXES}
               keys={RULE_KEYS}
               onDraftChange={setDraft}
               onRevertDraft={revertDraft}

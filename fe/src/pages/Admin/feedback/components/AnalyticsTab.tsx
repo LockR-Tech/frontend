@@ -12,6 +12,7 @@ import type { FeedbackTrendDTO } from "~/types/admin/feedback";
 import { StarRow, ErrorBanner } from "./shared";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
+import { formatNumber } from "~/lib/report-format";
 
 type Period = "day" | "week" | "month";
 
@@ -29,7 +30,15 @@ const PERIOD_BUTTON_KEY: Record<Period, string> = {
 };
 
 // Loại khiếu nại do khách nhập tự do — chỉ dịch các giá trị đã biết.
+// Loại khiếu nại khách chọn trên app (`order_feedback_section.dart`); dữ liệu cũ có thêm vài mã riêng.
 const COMPLAINT_LABEL_KEY: Record<string, string> = {
+  DAMAGED: "admin.feedback.analytics.complaint.damaged",
+  MISSING: "admin.feedback.analytics.complaint.missing",
+  LOCKER: "admin.feedback.analytics.complaint.locker",
+  LOCKER_ISSUE: "admin.feedback.analytics.complaint.locker",
+  DIRTY_BOX: "admin.feedback.analytics.complaint.dirtyBox",
+  PAYMENT: "admin.feedback.analytics.complaint.payment",
+  SERVICE: "admin.feedback.analytics.complaint.service",
   OTHER: "admin.feedback.analytics.complaint.other",
 };
 
@@ -187,7 +196,7 @@ export function AnalyticsTab() {
                       className="text-center p-2.5 bg-secondary/30 border border-border/50 rounded-lg"
                     >
                       <p className="text-base font-bold text-foreground">
-                        {value?.toLocaleString("vi-VN") ?? "—"}
+                        {formatNumber(value) ?? "—"}
                       </p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">{label}</p>
                     </div>
@@ -213,7 +222,7 @@ export function AnalyticsTab() {
                           {pct}%
                         </span>
                         <span className="text-xs text-muted-foreground/70 w-12 text-right">
-                          {count.toLocaleString("vi-VN")}
+                          {formatNumber(count)}
                         </span>
                       </div>
                     );
@@ -224,7 +233,7 @@ export function AnalyticsTab() {
                   <div className="flex items-center justify-between p-2.5 bg-secondary/40 border border-border/60 rounded-lg">
                     <span className="text-xs text-muted-foreground font-medium">{t("admin.feedback.analytics.pendingFeedback")}</span>
                     <span className="font-bold text-sm text-foreground">
-                      {analytics.unresolvedCount.toLocaleString("vi-VN")}
+                      {formatNumber(analytics.unresolvedCount)}
                     </span>
                   </div>
                 )}
@@ -297,9 +306,7 @@ export function AnalyticsTab() {
                       {t("admin.feedback.analytics.topComplaint")}
                     </p>
                     <p className="text-xs font-semibold text-foreground mt-1">
-                      {COMPLAINT_LABEL_KEY[satisfaction.mostCommonComplaint]
-                        ? t(COMPLAINT_LABEL_KEY[satisfaction.mostCommonComplaint])
-                        : satisfaction.mostCommonComplaint}
+                      {t(COMPLAINT_LABEL_KEY[satisfaction.mostCommonComplaint] ?? COMPLAINT_LABEL_KEY.OTHER)}
                       <span className="font-normal text-muted-foreground">
                         {" · "}
                         {t("admin.feedback.analytics.last90Days")}

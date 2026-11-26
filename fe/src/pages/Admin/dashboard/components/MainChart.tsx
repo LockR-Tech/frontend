@@ -23,7 +23,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { MonthlyDataPoint } from "~/types/admin/dashboard";
-import { formatCurrency, formatNumber, monthName } from "~/lib/report-format";
+import { formatCurrency, formatDecimal, formatNumber, monthName } from "~/lib/report-format";
 import i18n, { currentLanguage } from "~/utils/i18n";
 import { ChartPlaceholder } from "./ChartPlaceholder";
 
@@ -41,7 +41,7 @@ interface MainChartProps {
 
 /** Tối đa một chữ số lẻ: vạch trục hay rơi vào 1,5 / 4,5 triệu, làm tròn về số nguyên sẽ ghi sai. */
 function shortAmount(value: number) {
-  return value.toLocaleString(currentLanguage(i18n) === "vi" ? "vi-VN" : "en-US", { maximumFractionDigits: 1 });
+  return formatDecimal(value, 1);
 }
 
 function formatRevenueTick(value: number) {
@@ -92,12 +92,12 @@ function CustomTooltip({
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{t("admin.dashboard.mainChart.ordersCreatedLabel")}</span>
         <span className="font-medium text-foreground">
-          {t("admin.dashboard.chart.ordersValue", { value: orders.toLocaleString("vi-VN") })}
+          {t("admin.dashboard.chart.ordersValue", { value: formatNumber(orders) })}
         </span>
       </div>
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{t("admin.dashboard.mainChart.collectedLabel")}</span>
-        <span className="font-medium text-foreground">{revenue.toLocaleString("vi-VN")} đ</span>
+        <span className="font-medium text-foreground">{formatCurrency(revenue)}</span>
       </div>
     </div>
   );

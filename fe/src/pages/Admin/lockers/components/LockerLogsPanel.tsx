@@ -632,9 +632,9 @@ export function LockerLogsPanel({ lockerId, lockerCode, cells, gateway: propGate
                               ) : log.actorUserId ? (
                                 <span className="text-[11px]">{t("admin.lockers.table.technicianId", { id: log.actorUserId })}</span>
                               ) : isDisplay ? (
-                                <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400">Waveshare 7"</span>
+                                <span className="text-[11px] text-sky-600 dark:text-sky-400">{t("admin.lockers.logs.displayScreen")}</span>
                               ) : isDiscovery ? (
-                                <span className="text-[11px] font-mono text-purple-600 dark:text-purple-400">Pi Controller</span>
+                                <span className="text-[11px] text-purple-600 dark:text-purple-400">{t("admin.lockers.logs.controllerPi")}</span>
                               ) : drone?.droneId ? (
                                 <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400">{drone.droneId}</span>
                               ) : (

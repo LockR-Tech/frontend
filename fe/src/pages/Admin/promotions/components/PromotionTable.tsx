@@ -33,6 +33,7 @@ import { DiscountType, PromotionStatus } from "~/types/admin/enums";
 import type { AdminPromotion } from "~/stores/apis/admin/promotions";
 import type { PromotionRow } from "../hooks/usePromotions";
 import { promotionLockerLabel } from "../promotion-status";
+import { formatDecimal, formatNumber } from "~/lib/report-format";
 
 interface PromotionTableProps {
   promotions: PromotionRow[];
@@ -105,7 +106,7 @@ const getStatusBadge = (
 };
 
 const formatK = (value: number) =>
-  value >= 1000 ? `${(value / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}K` : `${value}`;
+  value >= 1000 ? `${formatDecimal((value / 1000), 1)}K` : `${value}`;
 
 // Backend chỉ phân biệt PERCENTAGE; loại khác (kể cả FREE_SERVICE cũ) là số tiền cố định.
 const formatDiscount = (promotion: AdminPromotion) => {
@@ -162,7 +163,7 @@ export function PromotionTable({
             {pointsCost != null && pointsCost > 0 && (
               <span className="text-[11px] font-medium text-violet-600">
                 {t("admin.promotions.pointsCostBadge", {
-                  points: pointsCost.toLocaleString("vi-VN"),
+                  points: formatNumber(pointsCost),
                 })}
               </span>
             )}

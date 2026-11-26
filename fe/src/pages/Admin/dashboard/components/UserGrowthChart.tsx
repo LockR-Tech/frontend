@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/com
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { monthName } from "~/lib/report-format";
+import { monthName, formatNumber } from "~/lib/report-format";
 import { currentLanguage } from "~/utils/i18n";
 import type { UserGrowthPoint } from "../hooks/dashboardExtraApi";
 import { ChartPlaceholder } from "./ChartPlaceholder";
@@ -53,7 +53,7 @@ export function UserGrowthChart({ points, isLoading, error, onRetry, onMonthClic
           <div className="text-right text-xs">
             <p className="text-muted-foreground">{t("admin.dashboard.userGrowth.total12Months")}</p>
             <p className="font-semibold text-foreground">
-              {t("admin.dashboard.userGrowth.peopleValue", { value: total.toLocaleString("vi-VN") })}
+              {t("admin.dashboard.userGrowth.peopleValue", { value: formatNumber(total) })}
             </p>
           </div>
         )}
@@ -90,7 +90,7 @@ export function UserGrowthChart({ points, isLoading, error, onRetry, onMonthClic
                 <YAxis allowDecimals={false} tickLine={false} axisLine={false} className="text-[11px] fill-muted-foreground" />
                 <Tooltip
                   formatter={(val) => [
-                    t("admin.dashboard.userGrowth.peopleValue", { value: Number(val).toLocaleString("vi-VN") }),
+                    t("admin.dashboard.userGrowth.peopleValue", { value: formatNumber(Number(val)) }),
                     t("admin.dashboard.userGrowth.newSignups"),
                   ]}
                   contentStyle={{

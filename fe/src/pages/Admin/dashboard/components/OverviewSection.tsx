@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Trans, useTranslation } from "react-i18next";
 import type { DashboardOverviewResponse } from "~/types/admin/dashboard";
+import { formatNumber } from "~/lib/report-format";
 
 interface OverviewSectionProps {
   data: DashboardOverviewResponse;
@@ -136,7 +137,7 @@ export function OverviewSection({ data, activeLockers, onOpen }: OverviewSection
                 </div>
                 <p className="text-lg font-bold text-foreground tracking-tight">
                   {typeof item.value === "number"
-                    ? item.value.toLocaleString("vi-VN")
+                    ? formatNumber(item.value)
                     : item.value}
                 </p>
               </button>

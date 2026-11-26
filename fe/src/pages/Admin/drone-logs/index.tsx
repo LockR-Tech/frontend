@@ -91,6 +91,52 @@ function recipientOf(log: DroneLockerCommLog, sender: Device): Device | null {
 }
 
 /// "mã ArUco #7" (vi) / "ArUco marker #7" (en) trong nội dung ⇒ hiển thị trong badge.
+// Màu badge theo nhóm sự kiện drone ↔ tủ (mã lạ: viền xám).
+const EVENT_TONE: Record<string, string> = {
+  MARKER_DETECTED: "bg-sky-600",
+  MARKER_VALIDATED: "bg-emerald-600",
+  OPEN_LID_REQUESTED: "bg-indigo-600",
+  LID_OPEN_ACCEPTED: "bg-cyan-600",
+  LID_CLOSE_ACCEPTED: "bg-cyan-600",
+  TARGET_REQUEST: "bg-slate-600",
+  LID_OPENED: "bg-blue-600",
+  DROP_PHASE_STARTED: "bg-amber-600",
+  LID_TEST_HOLD: "bg-amber-500",
+  DROP_PHASE_COMPLETED: "bg-teal-600",
+  CLOSE_LID_REQUESTED: "bg-violet-600",
+  LID_CLOSED: "bg-purple-600",
+  DELIVERY_READY: "bg-green-700",
+  MARKER_REJECTED: "bg-rose-600",
+  WRONG_MARKER: "bg-rose-600",
+  LID_OPEN_FAILED: "bg-red-700",
+  LID_CLOSE_FAILED: "bg-red-700",
+  DROP_REPORT_TIMEOUT: "bg-red-700",
+  PARCEL_RELEASE_FAILED: "bg-red-700",
+  SAFETY_ABORT: "bg-red-700",
+};
+
+const EVENT_FILTER_TYPES = [
+  "TARGET_REQUEST",
+  "MARKER_DETECTED",
+  "MARKER_VALIDATED",
+  "OPEN_LID_REQUESTED",
+  "LID_OPEN_ACCEPTED",
+  "LID_OPENED",
+  "LID_OPEN_FAILED",
+  "DROP_PHASE_STARTED",
+  "DROP_PHASE_COMPLETED",
+  "DROP_REPORT_TIMEOUT",
+  "PARCEL_RELEASE_FAILED",
+  "LID_TEST_HOLD",
+  "CLOSE_LID_REQUESTED",
+  "LID_CLOSE_ACCEPTED",
+  "LID_CLOSED",
+  "LID_CLOSE_FAILED",
+  "DELIVERY_READY",
+  "MARKER_REJECTED",
+  "SAFETY_ABORT",
+] as const;
+
 const ARUCO_PATTERN = /(mã ArUco #\d+|ArUco marker #\d+)/gi;
 
 function MessageWithArucoBadges({ text }: { text: string }) {
@@ -369,45 +415,15 @@ export default function DroneLogsPage() {
     return box ? `${lockerLabel(ctx)} · ${box}` : lockerLabel(ctx);
   };
 
+  // Nhãn đọc được cho mã sự kiện giao thức drone ↔ tủ; mã gốc nằm ở tooltip để đối chiếu log thiết bị.
   const renderEventBadge = (type: string) => {
-    switch (type) {
-      case 'MARKER_DETECTED':
-        return <Badge className="bg-sky-600 text-white font-mono text-[11px]">MARKER_DETECTED</Badge>;
-      case 'MARKER_VALIDATED':
-        return <Badge className="bg-emerald-600 text-white font-mono text-[11px]">MARKER_VALIDATED</Badge>;
-      case 'OPEN_LID_REQUESTED':
-        return <Badge className="bg-indigo-600 text-white font-mono text-[11px]">OPEN_LID_REQUESTED</Badge>;
-      case 'LID_OPEN_ACCEPTED':
-      case 'LID_CLOSE_ACCEPTED':
-        return <Badge className="bg-cyan-600 text-white font-mono text-[11px]">{type}</Badge>;
-      case 'TARGET_REQUEST':
-        return <Badge className="bg-slate-600 text-white font-mono text-[11px]">TARGET_REQUEST</Badge>;
-      case 'LID_OPENED':
-        return <Badge className="bg-blue-600 text-white font-mono text-[11px]">LID_OPENED</Badge>;
-      case 'DROP_PHASE_STARTED':
-        return <Badge className="bg-amber-600 text-white font-mono text-[11px]">DROP_PHASE_STARTED</Badge>;
-      case 'LID_TEST_HOLD':
-        return <Badge className="bg-amber-500 text-white font-mono text-[11px]">LID_TEST_HOLD</Badge>;
-      case 'DROP_PHASE_COMPLETED':
-        return <Badge className="bg-teal-600 text-white font-mono text-[11px]">DROP_PHASE_COMPLETED</Badge>;
-      case 'CLOSE_LID_REQUESTED':
-        return <Badge className="bg-violet-600 text-white font-mono text-[11px]">CLOSE_LID_REQUESTED</Badge>;
-      case 'LID_CLOSED':
-        return <Badge className="bg-purple-600 text-white font-mono text-[11px]">LID_CLOSED</Badge>;
-      case 'DELIVERY_READY':
-        return <Badge className="bg-green-700 text-white font-mono text-[11px]">DELIVERY_READY</Badge>;
-      case 'MARKER_REJECTED':
-      case 'WRONG_MARKER':
-        return <Badge className="bg-rose-600 text-white font-mono text-[11px]">{type}</Badge>;
-      case 'LID_OPEN_FAILED':
-      case 'LID_CLOSE_FAILED':
-      case 'DROP_REPORT_TIMEOUT':
-      case 'PARCEL_RELEASE_FAILED':
-      case 'SAFETY_ABORT':
-        return <Badge className="bg-red-700 text-white font-mono text-[11px]">{type}</Badge>;
-      default:
-        return <Badge variant="outline" className="font-mono text-[11px]">{type}</Badge>;
-    }
+    const label = t(`admin.droneLogs.event.${type}`, { defaultValue: type });
+    const tone = EVENT_TONE[type];
+    return tone ? (
+      <Badge className={`${tone} text-white text-[11px]`} title={type}>{label}</Badge>
+    ) : (
+      <Badge variant="outline" className="text-[11px]" title={type}>{label}</Badge>
+    );
   };
 
   const renderStatusBadge = (s: string | undefined | null) => {
@@ -665,25 +681,11 @@ export default function DroneLogsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">{t('admin.droneLogs.filter.allEvents')}</SelectItem>
-                  <SelectItem value="TARGET_REQUEST">TARGET_REQUEST</SelectItem>
-                  <SelectItem value="MARKER_DETECTED">MARKER_DETECTED</SelectItem>
-                  <SelectItem value="MARKER_VALIDATED">MARKER_VALIDATED</SelectItem>
-                  <SelectItem value="OPEN_LID_REQUESTED">OPEN_LID_REQUESTED</SelectItem>
-                  <SelectItem value="LID_OPEN_ACCEPTED">LID_OPEN_ACCEPTED</SelectItem>
-                  <SelectItem value="LID_OPENED">LID_OPENED</SelectItem>
-                  <SelectItem value="LID_OPEN_FAILED">LID_OPEN_FAILED</SelectItem>
-                  <SelectItem value="DROP_PHASE_STARTED">DROP_PHASE_STARTED</SelectItem>
-                  <SelectItem value="DROP_PHASE_COMPLETED">DROP_PHASE_COMPLETED</SelectItem>
-                  <SelectItem value="DROP_REPORT_TIMEOUT">DROP_REPORT_TIMEOUT</SelectItem>
-                  <SelectItem value="PARCEL_RELEASE_FAILED">PARCEL_RELEASE_FAILED</SelectItem>
-                  <SelectItem value="LID_TEST_HOLD">LID_TEST_HOLD</SelectItem>
-                  <SelectItem value="CLOSE_LID_REQUESTED">CLOSE_LID_REQUESTED</SelectItem>
-                  <SelectItem value="LID_CLOSE_ACCEPTED">LID_CLOSE_ACCEPTED</SelectItem>
-                  <SelectItem value="LID_CLOSED">LID_CLOSED</SelectItem>
-                  <SelectItem value="LID_CLOSE_FAILED">LID_CLOSE_FAILED</SelectItem>
-                  <SelectItem value="DELIVERY_READY">DELIVERY_READY</SelectItem>
-                  <SelectItem value="MARKER_REJECTED">MARKER_REJECTED</SelectItem>
-                  <SelectItem value="SAFETY_ABORT">SAFETY_ABORT</SelectItem>
+                  {EVENT_FILTER_TYPES.map((code) => (
+                    <SelectItem key={code} value={code}>
+                      {t(`admin.droneLogs.event.${code}`, { defaultValue: code })}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

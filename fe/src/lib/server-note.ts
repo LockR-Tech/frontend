@@ -13,6 +13,8 @@ const EN_NOTES: Array<{ pattern: RegExp; key: string }> = [
   { pattern: /^Order checked out by staff$/, key: "shared.serverNote.checkedOutByStaff" },
   { pattern: /^Rental ended, cell released$/, key: "shared.serverNote.rentalEnded" },
   { pattern: /^Storage order picked up$/, key: "shared.serverNote.storagePickedUp" },
+  { pattern: /^Order created$/, key: "shared.serverNote.orderCreated" },
+  { pattern: /^Order canceled$/, key: "shared.serverNote.orderCanceled" },
 ];
 
 export function localizeServerNote(note: string | null | undefined): string | null | undefined {

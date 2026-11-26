@@ -29,6 +29,7 @@ import {
   statusMeta,
 } from "./knowledge-utils";
 import { useTranslation } from "react-i18next";
+import { formatNumber } from "~/lib/report-format";
 
 interface DocumentDetailSheetProps {
   open: boolean;
@@ -217,7 +218,7 @@ function ChunkCard({ chunk }: { chunk: KnowledgeChunk }) {
           {t("admin.knowledge.detail.chunkMeta", {
             position: chunk.ordinal + 1,
             id: chunk.id,
-            chars: chunk.content.length.toLocaleString("vi-VN"),
+            chars: formatNumber(chunk.content.length),
           })}
         </span>
       </div>
