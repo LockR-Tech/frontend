@@ -160,30 +160,29 @@ function payment(h, i, over = {}) {
   const o = h.order(i);
   const statuses = ['COMPLETED', 'COMPLETED', 'FAILED', 'COMPLETED', 'COMPLETED', 'PENDING'];
   const status = statuses[i % statuses.length];
-  const topup = i % 7 === 4;
   const created = ago(i * 53 + 20);
   return {
-    id: 970000 + i, orderId: topup ? 0 : o.id, userId: o.userId, amount: topup ? 100000 : o.totalPrice,
-    method: topup ? 'SEPAY_TOPUP' : i % 9 === 3 ? 'CASH' : 'SEPAY', status, kind: topup ? 'TOPUP' : 'ORDER',
+    id: 970000 + i, orderId: o.id, userId: o.userId, amount: o.totalPrice,
+    method: i % 9 === 3 ? 'CASH' : 'SEPAY', status,
     referenceId: `LKR2611${String(970000 + i)}`, referenceTransactionId: status === 'COMPLETED' ? `FT2611${String(41000000 + i * 7717)}` : null,
-    paymentUrl: null, qrCodeUrl: null, deeplink: null, description: topup ? 'Nạp ví Lock.R' : `Thanh toán đơn ${o.orderCode}`,
+    paymentUrl: null, qrCodeUrl: null, deeplink: null, description: `Thanh toán đơn ${o.orderCode}`,
     content: `LKR2611${String(970000 + i)}`, createdAt: created, updatedAt: created, paidAt: status === 'COMPLETED' ? created : null,
     refundedAmount: i % 8 === 1 ? 5000 : 0,
-    order: topup ? null : { id: o.id, orderCode: o.orderCode, type: o.type, serviceCategory: o.serviceCategory, status: o.status,
+    order: { id: o.id, orderCode: o.orderCode, type: o.type, serviceCategory: o.serviceCategory, status: o.status,
       paymentStatus: o.paymentStatus, totalPrice: o.totalPrice, lockerId: o.lockerId, createdAt: o.createdAt },
     customer: o.customer, ...over,
   };
 }
 function firstPayment(h) {
   const o = h.order(5);
-  return payment(h, 5, { id: FIRST_PAYMENT_ID, status: 'PENDING', method: 'SEPAY', kind: 'ORDER', paidAt: null,
+  return payment(h, 5, { id: FIRST_PAYMENT_ID, status: 'PENDING', method: 'SEPAY', paidAt: null,
     referenceTransactionId: null, createdAt: ago(4), updatedAt: ago(4), referenceId: 'LKR2611970500', content: 'LKR2611970500',
     description: `Thanh toán đơn ${o.orderCode} (chờ khách chuyển khoản)` });
 }
 function richPayments(h) {
   const o = richOrder(h);
   const mk = (id, status, minutes, extra = {}) => ({
-    id, orderId: o.id, userId: o.userId, amount: 15000, method: 'SEPAY', status, kind: 'ORDER', referenceId: `LKR2611${id}`,
+    id, orderId: o.id, userId: o.userId, amount: 15000, method: 'SEPAY', status, referenceId: `LKR2611${id}`,
     referenceTransactionId: status === 'COMPLETED' ? `FT2611${id}88` : null, paymentUrl: null, qrCodeUrl: null, deeplink: null,
     description: status === 'FAILED' ? 'Mã VietQR hết hạn trước khi khách chuyển khoản' : `Thanh toán đơn ${o.orderCode}`,
     content: `LKR2611${id}`, createdAt: ago(minutes), updatedAt: ago(minutes), paidAt: status === 'COMPLETED' ? ago(minutes) : null,
@@ -208,61 +207,27 @@ function paymentDetail(h, id) {
   const others = id === FIRST_PAYMENT_ID
     ? [{ ...p, id: 970499, status: 'FAILED', createdAt: ago(31), updatedAt: ago(31), referenceId: 'LKR2611970499' }]
     : [];
-  return { payment: p, refunds: [], walletTransactions: [], orderPayments: others };
+  return { payment: p, refunds: [], orderPayments: others };
 }
 function stats(from, to, scale = 1) {
   const n = (x) => Math.round(x * scale);
   const period = {
-    from, to, totalCount: n(1018), totalAmount: n(19840000), completedCount: n(912), completedAmount: n(18210000), pendingCount: n(41),
-    pendingAmount: n(712000), failedCount: n(65), failedAmount: n(918000), otherCount: 0, otherAmount: 0, successRate: 89.6,
+    from, to, totalCount: n(968), totalAmount: n(18690000), completedCount: n(868), completedAmount: n(17110000), pendingCount: n(41),
+    pendingAmount: n(712000), failedCount: n(59), failedAmount: n(868000), otherCount: 0, otherAmount: 0, successRate: 89.7,
     orderPayments: { count: n(968), amount: n(18690000), completedCount: n(868), completedAmount: n(17110000) },
-    topups: { count: n(50), amount: n(1150000), completedCount: n(44), completedAmount: n(1100000) },
     refundCount: n(27), refundAmount: n(486000), netCollectedAmount: n(16624000),
     byStatus: [
-      { key: 'COMPLETED', count: n(912), amount: n(18210000), completedCount: n(912), completedAmount: n(18210000) },
+      { key: 'COMPLETED', count: n(868), amount: n(17110000), completedCount: n(868), completedAmount: n(17110000) },
       { key: 'PENDING', count: n(41), amount: n(712000), completedCount: 0, completedAmount: 0 },
-      { key: 'FAILED', count: n(65), amount: n(918000), completedCount: 0, completedAmount: 0 },
+      { key: 'FAILED', count: n(59), amount: n(868000), completedCount: 0, completedAmount: 0 },
     ],
     byMethod: [
       { key: 'SEPAY', count: n(941), amount: n(18240000), completedCount: n(846), completedAmount: n(16760000) },
-      { key: 'SEPAY_TOPUP', count: n(50), amount: n(1150000), completedCount: n(44), completedAmount: n(1100000) },
       { key: 'CASH', count: n(27), amount: n(450000), completedCount: n(22), completedAmount: n(350000) },
     ],
   };
   return period;
 }
-function walletTx(h, userId) {
-  const sources = [['TOPUP', 'CREDIT', 100000], ['ORDER_PAYMENT', 'DEBIT', 15000], ['REFUND', 'CREDIT', 15000], ['ADJUST', 'CREDIT', 20000],
-    ['WITHDRAW', 'DEBIT', 50000], ['ORDER_PAYMENT', 'DEBIT', 26000], ['TOPUP', 'CREDIT', 50000], ['REFUND', 'CREDIT', 9000]];
-  let balance = 245000;
-  return sources.map(([source, type, amount], i) => {
-    const o = h.order(i + 1);
-    const c = userId ? customerById(h, userId) : customerById(h, 800101 + (i % 6));
-    const row = { id: 980000 + i, walletId: 60000 + (c?.id ?? 0) - 800000, userId: c?.id ?? null, type, amount, balanceAfter: balance,
-      source, referenceId: source === 'ORDER_PAYMENT' ? null : `W2611${980000 + i}`,
-      description: { TOPUP: 'Nạp ví qua SePay', ORDER_PAYMENT: `Trả đơn ${o.orderCode}`, REFUND: 'Hoàn tiền đơn huỷ',
-        ADJUST: 'Admin cộng bù phí quá hạn thu nhầm', WITHDRAW: 'Rút về tài khoản ngân hàng' }[source],
-      createdAt: ago(i * 190 + 15), relatedOrderId: source === 'ORDER_PAYMENT' ? o.id : null,
-      orderCode: source === 'ORDER_PAYMENT' ? o.orderCode : null, customer: c ? brief(c) : null };
-    balance += type === 'CREDIT' ? -amount : amount;
-    return row;
-  });
-}
-function withdrawals(h, status) {
-  const banks = [['Vietcombank', 'VCB'], ['Techcombank', 'TCB'], ['MB Bank', 'MB'], ['ACB', 'ACB'], ['BIDV', 'BIDV']];
-  const st = ['PENDING', 'PENDING', 'COMPLETED', 'COMPLETED', 'REJECTED'];
-  const list = st.map((s, i) => {
-    const c = customerById(h, 800102 + i * 2);
-    const [bankName, bankCode] = banks[i];
-    return { id: 990100 + i, referenceId: `WD2611${String(4100 + i * 37)}`, amount: [200000, 150000, 300000, 100000, 500000][i],
-      balanceAfter: 45000 + i * 10000, withdrawableBalance: 45000 + i * 10000, bankName, bankCode,
-      accountNumber: String(1903456781 + i * 1117), accountHolderName: h.plain(c.fullName).toUpperCase(), status: s,
-      rejectionReason: s === 'REJECTED' ? 'Tên chủ tài khoản không khớp với tên đăng ký' : null, createdAt: ago(i * 300 + 25),
-      processedAt: s === 'PENDING' ? null : ago(i * 300), userId: c.id, userName: c.fullName, userPhone: c.phoneNumber };
-  });
-  return status ? list.filter((w) => w.status === status) : list;
-}
-
 // ---------------------------------------------------------------------------------------------- hoàn tiền
 const REFUND_COUNTS = { PENDING: 4, COMPLETED: 27, REJECTED: 3 };
 function refund(h, i, status) {
@@ -437,7 +402,7 @@ export default function ({ url, path, query, method }, h) {
   }
   if (path === `/api/admin/drone-orders/${DRONE_ID}`) return h.ok(droneTracking(h));
 
-  // Người dùng (khách trước để dòng đầu là một khách hàng có ví, điểm, điều khoản)
+  // Người dùng (khách trước để dòng đầu là một khách hàng có đơn, điểm, điều khoản)
   if (path === '/api/admin/users') {
     const list = [...customers(h), ...staff(h)];
     return h.ok({ content: list, totalElements: list.length, totalPages: 1, number: 0, size: 1000 });
@@ -451,8 +416,6 @@ export default function ({ url, path, query, method }, h) {
     const c = customerById(h, Number(user[1]));
     return c ? h.ok({ ...c, name: c.fullName }) : undefined;
   }
-  const wallet = path.match(/^\/api\/admin\/wallet\/(\d+)$/);
-  if (wallet) return h.ok({ userId: Number(wallet[1]), balance: 245000, currency: 'VND' });
   if (path === '/api/admin/knowledge/conversations' && query.userId) {
     const titles = ['Hỏi cách gia hạn ô thuê', 'Phí quá hạn tính thế nào?', 'Đơn drone bao lâu thì tới?'];
     return h.ok(titles.map((title, i) => ({ id: 930100 + i, userId: Number(query.userId), title, messageCount: 6 - i,
@@ -474,11 +437,6 @@ export default function ({ url, path, query, method }, h) {
       todayChanges: { totalCountPct: 4.0, totalAmountPct: 3.1, completedCountPct: 5.2, completedAmountPct: 4.4, refundAmountPct: 0,
         netCollectedAmountPct: 4.1, successRatePoints: 0.4 } });
   }
-  if (path === '/api/admin/payments/wallet-transactions') {
-    const list = walletTx(h, query.userId ? Number(query.userId) : null);
-    return h.ok(page(list, query.userId ? list.length : 326, Number(query.size ?? 20)));
-  }
-  if (path === '/api/admin/withdrawals') return h.ok(withdrawals(h, query.status));
   if (path === '/api/admin/payments/refunds') return h.ok(refundsList(h, url, query));
 
   // Doanh thu (tổng quan giống dữ liệu chung, chỉ thêm kỳ so sánh có ngày thật)

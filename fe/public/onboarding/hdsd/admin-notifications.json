@@ -2,14 +2,14 @@
   "image": "hdsd/admin-notifications.png",
   "width": 1440,
   "height": 1163,
-  "capturedAt": "2026-11-21",
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
       "stepId": "admin-notifications-actions",
-      "x": 1150,
+      "x": 1127,
       "y": 89,
-      "w": 258,
+      "w": 282,
       "h": 36
     },
     {

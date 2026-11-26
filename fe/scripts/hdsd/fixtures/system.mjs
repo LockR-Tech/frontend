@@ -116,7 +116,7 @@ const SATISFACTION = {
 // ------------------------------------------------------------------------------------------------ cấu hình nghiệp vụ
 const SCOPE_RULES = {
   locker: [['app.locker.report-sla-hours', 'Hạn xử lý sự cố', 'Bảo trì', 'INTEGER', '4', '4', 'giờ']],
-  payment: [['app.payment.topup-max-amount', 'Hạn mức nạp ví mỗi lần', 'Ví', 'INTEGER', '2000000', '2000000', 'đ']],
+  payment: [['app.payment.refund-min-amount', 'Số tiền hoàn tối thiểu', 'Hoàn tiền & khiếu nại', 'INTEGER', '10000', '10000', 'VND']],
   iot: [['app.iot.max-wrong-pin', 'Số lần nhập sai PIN trước khi khoá tạm', 'Bảo mật', 'INTEGER', '5', '5', 'lần']],
   auth: [['app.auth.otp-ttl-seconds', 'Hiệu lực mã OTP', 'OTP', 'INTEGER', '300', '300', 'giây']],
   loyalty: [['app.loyalty.points-per-order', 'Điểm cộng mỗi đơn', 'Điểm', 'INTEGER', '10', '10', 'điểm']],
@@ -233,6 +233,25 @@ export default function system({ path, query, method }, h) {
   if (path === '/api/notifications/unread/count') return h.ok(INBOX.filter((n) => !n[3]).length);
 
   if (path === '/api/admin/notifications') return h.ok(adminNotifications(h));
+  if (path === '/api/admin/notifications/search') {
+    // Bảng phân trang ở backend: lọc trạng thái/loại/chữ giống AdminNotificationController.
+    const q = (query.search ?? '').toLowerCase();
+    const rows = adminNotifications(h).filter((n) => (!query.status || n.status === query.status)
+      && (!query.type || n.type === query.type)
+      && (!q || n.title.toLowerCase().includes(q) || n.message.toLowerCase().includes(q) || String(n.id) === q));
+    const size = Number(query.size ?? 10);
+    const number = Number(query.page ?? 0);
+    return h.ok({ content: rows.slice(number * size, (number + 1) * size), page: number, size, totalElements: rows.length,
+      totalPages: Math.max(1, Math.ceil(rows.length / size)) });
+  }
+  if (path === '/api/admin/notifications/stats') {
+    const rows = adminNotifications(h);
+    const read = rows.filter((n) => n.status === 'READ').length;
+    const counts = new Map();
+    for (const n of rows) counts.set(n.type, (counts.get(n.type) ?? 0) + 1);
+    return h.ok({ total: rows.length, unread: rows.length - read, read, averageReadMinutes: 9,
+      types: [...counts].map(([type, count]) => ({ type, count })) });
+  }
 
   if (path === '/api/admin/feedback') return h.ok(feedbackPage(h, query));
   let m = path.match(/^\/api\/admin\/feedback\/(\d+)$/);

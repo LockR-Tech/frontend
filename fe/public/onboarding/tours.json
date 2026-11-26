@@ -337,7 +337,7 @@
     },
     {
       "id": "admin-users",
-      "version": 2,
+      "version": 3,
       "order": 40,
       "roles": [
         "ADMIN"
@@ -1661,7 +1661,7 @@
     },
     {
       "id": "admin-settings-scopes",
-      "version": 1,
+      "version": 2,
       "order": 151,
       "roles": [
         "ADMIN"
@@ -2700,7 +2700,7 @@
     },
     {
       "id": "admin-user-detail",
-      "version": 1,
+      "version": 2,
       "order": 211,
       "roles": [
         "ADMIN"
@@ -2790,64 +2790,8 @@
       ]
     },
     {
-      "id": "admin-user-wallet",
-      "version": 1,
-      "order": 212,
-      "roles": [
-        "ADMIN"
-      ],
-      "steps": [
-        {
-          "id": "admin-user-wallet-open",
-          "anchor": "user-detail-wallet-btn",
-          "webRoute": "/admin/users",
-          "platforms": [
-            "web"
-          ],
-          "placement": "left",
-          "via": "users-first-row"
-        },
-        {
-          "id": "admin-user-wallet-balance",
-          "anchor": "user-wallet-balance",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom",
-          "via": "user-detail-wallet-btn"
-        },
-        {
-          "id": "admin-user-wallet-amount",
-          "anchor": "user-wallet-amount",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom",
-          "via": "user-detail-wallet-btn"
-        },
-        {
-          "id": "admin-user-wallet-reason",
-          "anchor": "user-wallet-reason",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom",
-          "via": "user-detail-wallet-btn"
-        },
-        {
-          "id": "admin-user-wallet-actions",
-          "anchor": "user-wallet-actions",
-          "platforms": [
-            "web"
-          ],
-          "placement": "top",
-          "via": "user-detail-wallet-btn"
-        }
-      ]
-    },
-    {
       "id": "admin-user-tab-orders",
-      "version": 1,
+      "version": 2,
       "order": 213,
       "roles": [
         "ADMIN"
@@ -2876,7 +2820,7 @@
     },
     {
       "id": "admin-user-tab-payments",
-      "version": 1,
+      "version": 2,
       "order": 214,
       "roles": [
         "ADMIN"
@@ -2900,35 +2844,6 @@
           ],
           "placement": "top",
           "via": "user-tab-payments"
-        }
-      ]
-    },
-    {
-      "id": "admin-user-tab-wallet",
-      "version": 1,
-      "order": 215,
-      "roles": [
-        "ADMIN"
-      ],
-      "steps": [
-        {
-          "id": "admin-user-tab-wallet-tab",
-          "anchor": "user-tab-wallet",
-          "webRoute": "/admin/users",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom",
-          "via": "users-first-row"
-        },
-        {
-          "id": "admin-user-tab-wallet-panel",
-          "anchor": "user-panel-wallet",
-          "platforms": [
-            "web"
-          ],
-          "placement": "top",
-          "via": "user-tab-wallet"
         }
       ]
     },
@@ -3010,7 +2925,7 @@
     },
     {
       "id": "admin-payments",
-      "version": 1,
+      "version": 2,
       "order": 220,
       "roles": [
         "ADMIN"
@@ -3052,21 +2967,12 @@
           ],
           "placement": "top",
           "optional": true
-        },
-        {
-          "id": "admin-payments-tabs",
-          "anchor": "payments-tabs",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "top"
         }
       ]
     },
     {
       "id": "admin-payments-list",
-      "version": 1,
+      "version": 2,
       "order": 221,
       "roles": [
         "ADMIN"
@@ -3079,8 +2985,7 @@
           "platforms": [
             "web"
           ],
-          "placement": "bottom",
-          "via": "payments-tab-transactions"
+          "placement": "bottom"
         },
         {
           "id": "admin-payments-list-dates",
@@ -3089,8 +2994,7 @@
           "platforms": [
             "web"
           ],
-          "placement": "bottom",
-          "via": "payments-tab-transactions"
+          "placement": "bottom"
         },
         {
           "id": "admin-payments-list-toolbar",
@@ -3099,8 +3003,7 @@
           "platforms": [
             "web"
           ],
-          "placement": "left",
-          "via": "payments-tab-transactions"
+          "placement": "left"
         },
         {
           "id": "admin-payments-list-first-row",
@@ -3109,8 +3012,7 @@
           "platforms": [
             "web"
           ],
-          "placement": "right",
-          "via": "payments-tab-transactions"
+          "placement": "right"
         },
         {
           "id": "admin-payments-list-table",
@@ -3119,14 +3021,13 @@
           "platforms": [
             "web"
           ],
-          "placement": "top",
-          "via": "payments-tab-transactions"
+          "placement": "top"
         }
       ]
     },
     {
       "id": "admin-payment-detail",
-      "version": 1,
+      "version": 2,
       "order": 222,
       "roles": [
         "ADMIN"
@@ -3164,16 +3065,6 @@
           "via": "payments-first-row"
         },
         {
-          "id": "admin-payment-detail-wallet",
-          "anchor": "payment-detail-wallet",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "right",
-          "via": "payments-first-row"
-        },
-        {
           "id": "admin-payment-detail-others",
           "anchor": "payment-detail-others",
           "webRoute": "/admin/payments",
@@ -3193,197 +3084,6 @@
           ],
           "placement": "top",
           "via": "payments-first-row"
-        }
-      ]
-    },
-    {
-      "id": "admin-payments-wallet",
-      "version": 1,
-      "order": 223,
-      "roles": [
-        "ADMIN"
-      ],
-      "steps": [
-        {
-          "id": "admin-payments-wallet-tab",
-          "anchor": "payments-tab-wallet",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom"
-        },
-        {
-          "id": "admin-payments-wallet-filters",
-          "anchor": "wallet-tx-filters",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom",
-          "via": "payments-tab-wallet"
-        },
-        {
-          "id": "admin-payments-wallet-dates",
-          "anchor": "wallet-tx-date-range",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom",
-          "via": "payments-tab-wallet"
-        },
-        {
-          "id": "admin-payments-wallet-table",
-          "anchor": "wallet-tx-table",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "top",
-          "via": "payments-tab-wallet"
-        }
-      ]
-    },
-    {
-      "id": "admin-payments-withdrawals",
-      "version": 1,
-      "order": 224,
-      "roles": [
-        "ADMIN"
-      ],
-      "steps": [
-        {
-          "id": "admin-payments-withdrawals-tab",
-          "anchor": "payments-tab-withdrawals",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom"
-        },
-        {
-          "id": "admin-payments-withdrawals-status",
-          "anchor": "withdrawals-status-filter",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "bottom",
-          "via": "payments-tab-withdrawals"
-        },
-        {
-          "id": "admin-payments-withdrawals-search",
-          "anchor": "withdrawals-search",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "left",
-          "via": "payments-tab-withdrawals"
-        },
-        {
-          "id": "admin-payments-withdrawals-table",
-          "anchor": "withdrawals-table",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "top",
-          "via": "payments-tab-withdrawals"
-        },
-        {
-          "id": "admin-payments-withdrawals-actions",
-          "anchor": "withdrawals-first-actions",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "left",
-          "via": "payments-tab-withdrawals",
-          "optional": true
-        }
-      ]
-    },
-    {
-      "id": "admin-withdrawal-approve",
-      "version": 1,
-      "order": 225,
-      "roles": [
-        "ADMIN"
-      ],
-      "manualOnly": true,
-      "steps": [
-        {
-          "id": "admin-withdrawal-approve-info",
-          "anchor": "withdrawal-approve-info",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "right",
-          "via": "payments-tab-withdrawals"
-        },
-        {
-          "id": "admin-withdrawal-approve-warning",
-          "anchor": "withdrawal-approve-warning",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "right",
-          "via": "withdrawals-first-approve"
-        },
-        {
-          "id": "admin-withdrawal-approve-actions",
-          "anchor": "withdrawal-approve-actions",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "top",
-          "via": "withdrawals-first-approve"
-        }
-      ]
-    },
-    {
-      "id": "admin-withdrawal-reject",
-      "version": 1,
-      "order": 226,
-      "roles": [
-        "ADMIN"
-      ],
-      "manualOnly": true,
-      "steps": [
-        {
-          "id": "admin-withdrawal-reject-info",
-          "anchor": "withdrawal-reject-info",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "right",
-          "via": "payments-tab-withdrawals"
-        },
-        {
-          "id": "admin-withdrawal-reject-reason",
-          "anchor": "withdrawal-reject-reason",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "right",
-          "via": "withdrawals-first-reject"
-        },
-        {
-          "id": "admin-withdrawal-reject-actions",
-          "anchor": "withdrawal-reject-actions",
-          "webRoute": "/admin/payments",
-          "platforms": [
-            "web"
-          ],
-          "placement": "top",
-          "via": "withdrawals-first-reject"
         }
       ]
     },

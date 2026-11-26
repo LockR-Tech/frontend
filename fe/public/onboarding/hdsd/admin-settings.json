@@ -2,14 +2,14 @@
   "image": "hdsd/admin-settings.png",
   "width": 1440,
   "height": 1042,
-  "capturedAt": "2026-11-21",
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
       "stepId": "admin-settings-tabs",
       "x": 292,
       "y": 162,
-      "w": 1113,
+      "w": 1084,
       "h": 46
     },
     {

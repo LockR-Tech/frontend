@@ -2,14 +2,14 @@
   "image": "hdsd/admin-user-tab-orders.png",
   "width": 1440,
   "height": 1249,
-  "capturedAt": "2026-11-21",
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
       "stepId": "admin-user-tab-orders-tabs",
       "x": 292,
       "y": 832,
-      "w": 878,
+      "w": 842,
       "h": 40
     },
     {

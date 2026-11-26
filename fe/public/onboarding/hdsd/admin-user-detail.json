@@ -2,7 +2,7 @@
   "image": "hdsd/admin-user-detail.png",
   "width": 1440,
   "height": 900,
-  "capturedAt": "2026-11-21",
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
@@ -15,10 +15,10 @@
     {
       "n": 2,
       "stepId": "admin-user-detail-actions",
-      "x": 1226,
-      "y": 97,
-      "w": 182,
-      "h": 36
+      "x": 1297,
+      "y": 104,
+      "w": 111,
+      "h": 22
     },
     {
       "n": 3,
