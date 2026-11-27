@@ -43,6 +43,7 @@ const RevenuePage = lazy(() => import("../pages/Admin/revenue"));
 const RevenueDetailPage = lazy(() => import("../pages/Admin/revenue/detail"));
 const LoyaltyPage = lazy(() => import("../pages/Admin/loyalty"));
 const SchedulerPage = lazy(() => import("../pages/Admin/scheduler"));
+const AuditLogsPage = lazy(() => import("../pages/Admin/audit-logs"));
 const LockersAdminPage = lazy(() => import("../pages/Admin/lockers"));
 const CabinetControlPage = lazy(() => import("../pages/Admin/cabinet-control"));
 const LockerLayoutPage = lazy(() => import("../pages/Admin/lockers/layout-view"));
@@ -370,6 +371,14 @@ const routesConfig: RouteObject[] = [
         element: (
           <LazyWrapper>
             <SchedulerPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: "audit-logs",
+        element: (
+          <LazyWrapper>
+            <AuditLogsPage />
           </LazyWrapper>
         ),
       },

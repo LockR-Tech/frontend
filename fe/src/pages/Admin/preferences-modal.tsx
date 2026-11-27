@@ -1,4 +1,5 @@
 import * as React from "react";
+import { MapCacheSetting } from "./components/MapCacheSetting";
 import { useNavigate } from "react-router-dom";
 import { Button } from "~/components/ui";
 import LanguageSwitcher from "~/components/ui/LanguageSwitcher";
@@ -99,6 +100,9 @@ export default function PreferencesModal({
               ))}
             </div>
           </div>
+
+          {/* Bộ nhớ bản đồ 30 ngày của trình duyệt này (F3-G16) */}
+          <MapCacheSetting />
 
           {/* On-screen guide */}
           <button

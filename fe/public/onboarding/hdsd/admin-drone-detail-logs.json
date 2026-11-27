@@ -1,15 +1,15 @@
 {
   "image": "hdsd/admin-drone-detail-logs.png",
   "width": 1440,
-  "height": 1926,
-  "capturedAt": "2026-11-21",
+  "height": 2225,
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
       "stepId": "admin-drone-detail-logs-tabs",
-      "x": 918,
+      "x": 913,
       "y": 1352,
-      "w": 465,
+      "w": 470,
       "h": 50
     },
     {
@@ -35,6 +35,14 @@
       "y": 1570,
       "w": 1082,
       "h": 315
+    },
+    {
+      "n": 5,
+      "stepId": "admin-drone-detail-logs-audit",
+      "x": 292,
+      "y": 1926,
+      "w": 1116,
+      "h": 275
     }
   ]
 }

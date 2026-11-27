@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useMapPointDialog } from "~/components/shared/map/MapPointView";
+import { ActionLogPanel } from "~/pages/Admin/audit-logs/components/ActionLogPanel";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -39,6 +41,16 @@ import {
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Trans, useTranslation } from "react-i18next";
 import {
@@ -718,6 +730,8 @@ export default function LockerLayoutPage() {
   // KTV phụ trách tủ: phiếu mới của tủ chỉ gửi cho người này; chưa gán ⇒ báo mọi KTV tủ
   const { data: staffLockerData, refetch: refetchStaffLocker } = useGetStaffLockerQuery(id, { skip: !Number.isFinite(id) });
   const staffLocker = staffLockerData?.data;
+  // Xem vị trí tủ trên bản đồ ngay trong web (F3-G16).
+  const { openMap, dialog: mapDialog } = useMapPointDialog();
   const [assignLockerTechnician, { isLoading: savingTechnician }] = useAssignLockerTechnicianMutation();
   const { data: usersData } = useGetAllUsersQuery(TECHNICIAN_USERS_QUERY);
   const lockerTechnicians = useMemo(
@@ -745,8 +759,15 @@ export default function LockerLayoutPage() {
   const [techChoice, setTechChoice] = useState<string | null>(null);
   const selectedTechValue = techChoice ?? currentTechValue;
 
-  const handleSaveTechnician = async () => {
+  // Bỏ KTV phụ trách ⇒ tủ ngừng nhận đơn mới (F3-G16): hỏi lại trước khi lưu.
+  const [confirmUnassign, setConfirmUnassign] = useState(false);
+
+  const handleSaveTechnician = async (confirmed = false) => {
     const technicianId = selectedTechValue === NO_TECHNICIAN ? null : Number(selectedTechValue);
+    if (technicianId == null && assignedTechId != null && !confirmed) {
+      setConfirmUnassign(true);
+      return;
+    }
     try {
       const res = await assignLockerTechnician({ lockerId: id, technicianId }).unwrap();
       setTechChoice(null);
@@ -1523,6 +1544,7 @@ export default function LockerLayoutPage() {
           <TabsTrigger value="logs" data-tour="adm-locker-tab-logs">{t("admin.lockers.layout.tabs.logs")}</TabsTrigger>
           <TabsTrigger value="maintenance" data-tour="adm-locker-tab-maintenance">{t("admin.lockers.layout.tabs.maintenance")}</TabsTrigger>
           <TabsTrigger value="installation" data-tour="adm-locker-tab-installation">{t("admin.lockers.layout.tabs.installation")}</TabsTrigger>
+          <TabsTrigger value="audit" data-tour="adm-locker-tab-audit">{t("admin.lockers.layout.tabs.audit")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="grid" className="mt-0">
@@ -1762,7 +1784,7 @@ export default function LockerLayoutPage() {
               <Button
                 size="sm"
                 className="h-9 text-xs"
-                onClick={handleSaveTechnician}
+                onClick={() => handleSaveTechnician()}
                 disabled={!staffLocker || savingTechnician || selectedTechValue === currentTechValue}
               >
                 {savingTechnician ? t("common.saving") : t("button.save")}
@@ -1770,6 +1792,28 @@ export default function LockerLayoutPage() {
             </div>
           </CardContent>
         </Card>
+        <AlertDialog open={confirmUnassign} onOpenChange={setConfirmUnassign}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("admin.lockers.layout.tech.unassignConfirmTitle")}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("admin.lockers.layout.tech.unassignConfirmBody", { name: assignedTechName ?? "" })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("button.cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-amber-600 hover:bg-amber-700"
+                onClick={() => {
+                  setConfirmUnassign(false);
+                  void handleSaveTechnician(true);
+                }}
+              >
+                {t("admin.lockers.layout.tech.unassignConfirmAction")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Vị trí & Tọa độ GPS của tủ */}
         <Card className="border border-border/80 shadow-xs" data-tour="adm-locker-ops-gps">
@@ -1808,11 +1852,14 @@ export default function LockerLayoutPage() {
                   variant="outline"
                   className="h-9 w-9 text-muted-foreground hover:text-foreground"
                   title={t("admin.lockers.tools.layout.openGoogleMaps")}
-                  onClick={() => window.open(`https://www.google.com/maps?q=${staffLocker.latitude},${staffLocker.longitude}`, "_blank")}
+                  onClick={() =>
+                    openMap({ lat: staffLocker.latitude!, lng: staffLocker.longitude!, title: staffLocker.name })
+                  }
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <MapPin className="w-3.5 h-3.5" />
                 </Button>
               )}
+              {mapDialog}
               <Button
                 size="sm"
                 variant="outline"
@@ -1849,6 +1896,13 @@ export default function LockerLayoutPage() {
 
         <TabsContent value="maintenance" className="mt-0">
           <LockerMaintenanceHistoryPanel lockerId={id} lockerCode={layout.code} />
+        </TabsContent>
+
+        {/* Ai bật bảo trì / kích hoạt / gán KTV / báo hỏng ô… của tủ này, lúc nào (F3-G16). */}
+        <TabsContent value="audit" className="mt-0">
+          <div data-tour="adm-locker-audit">
+            <ActionLogPanel scope={{ lockerId: id }} />
+          </div>
         </TabsContent>
 
         <TabsContent value="installation" className="mt-0">

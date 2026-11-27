@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { MapPointView } from "~/components/shared/map/MapPointView";
 import { gpsSourceLabel, parcelConditionLabel, recoveryOutcomeLabel } from "./incident-labels";
 import { AppLoading } from "~/components/ui/app-loading";
 import { Link, useSearchParams } from "react-router-dom";
@@ -891,13 +892,8 @@ function IncidentBody({ incident }: { incident: DroneParcelIncident }) {
             {t("admin.droneIncidents.detail.dropLocation")}
           </h3>
           {incident.dropLatitude != null && incident.dropLongitude != null ? (
-            <iframe
-              title={`${t("admin.droneIncidents.detail.dropLocation")}: ${incident.incidentCode}`}
-              src={`https://www.google.com/maps?q=${incident.dropLatitude},${incident.dropLongitude}&z=16&output=embed`}
-              className="h-48 w-full rounded-md border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+            // Bản đồ trong web, cùng nền với mọi bản đồ khác (F3-G16) — không nhúng Google Maps.
+            <MapPointView lat={incident.dropLatitude} lng={incident.dropLongitude} />
           ) : (
             <div className="flex h-48 items-center justify-center rounded-md bg-muted px-4 text-center text-sm text-muted-foreground">
               {t("admin.droneIncidents.detail.noGps")}

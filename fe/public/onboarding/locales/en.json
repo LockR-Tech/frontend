@@ -58,7 +58,7 @@
     },
     "drone-tech-dispatch": {
       "title": "Drone dispatch",
-      "summary": "Dispatch tab: weather at the lockers, the pickup-jobs switch, stage filters and what you see when there are no orders."
+      "summary": "Dispatch tab: locker weather, pickup-job status from your shift, leg filters and the empty state."
     },
     "admin-maintenance": {
       "title": "Maintenance & device incidents",
@@ -521,8 +521,8 @@
       "summary": "Click your account name at the bottom of the left menu to open \"Settings\" or \"Logout\"."
     },
     "admin-preferences": {
-      "title": "Personal options",
-      "summary": "The \"Settings\" box (account menu at the bottom of the left menu): language, theme, on-screen guide and a Business rules shortcut."
+      "title": "Personal preferences",
+      "summary": "The \"Settings\" box (account menu at the bottom of the left menu): language, theme, map cache, on-screen guide, Business settings shortcut."
     },
     "admin-notifications": {
       "title": "Notification management",
@@ -1131,6 +1131,14 @@
     "admin-settings-simulation": {
       "title": "Simulation & demo cluster",
       "summary": "Turn all simulation off for live operation and back on for demos — one button for every service."
+    },
+    "admin-audit-logs": {
+      "title": "Activity log",
+      "summary": "Who did what, and when: maintenance on, locker activated, technician assigned / removed, box faults, drone status, account locks, deletions…"
+    },
+    "admin-locker-audit": {
+      "title": "Locker activity log",
+      "summary": "On the locker page: who put this locker in maintenance, activated it, assigned / removed its technician, or faulted / reopened its boxes, and when."
     }
   },
   "steps": {
@@ -1228,7 +1236,7 @@
     },
     "drone-tech-home-shift": {
       "title": "Start and end shift",
-      "body": "Tap \"Start shift\" to begin your shift (location must be on); \"End shift\" ends it and also turns off pickup jobs. The locate button refreshes GPS; tap the card for GPS details and Google Maps."
+      "body": "Tap \"Start shift\" (location must be on) to take pickup jobs right away: the app opens the Dispatch tab and shows nearby orders to pick up. \"End shift\" stops pickup jobs; finish any accepted pickup first. The locate button refreshes GPS."
     },
     "drone-tech-home-hud": {
       "title": "Quick work tiles",
@@ -1328,7 +1336,7 @@
     },
     "drone-tech-dispatch-duty": {
       "title": "Pickup jobs",
-      "body": "Once on shift, turn the switch on to receive home-pickup invitations near you (location required; the app re-sends it every minute). While you have an invitation or unfinished job you get no more."
+      "body": "While on shift you take home-pickup jobs — there is no separate switch. Invitations and pickups in progress show right below; while you have an invitation or unfinished job you get no more."
     },
     "admin-maintenance-intro": {
       "title": "Maintenance page",
@@ -2672,11 +2680,11 @@
     },
     "admin-lockers-tech": {
       "title": "Assigned technician",
-      "body": "The technician in charge — click to open their page. \"Unassigned\" means fault tickets go to every cabinet technician."
+      "body": "The technician in charge — click to open their page. \"No technician\" means the locker takes NO new orders (send, rental, drone) until one is assigned."
     },
     "admin-lockers-boxes": {
       "title": "Boxes and free boxes",
-      "body": "Total boxes and free boxes; shows \"Under maintenance\" or \"Not accepting orders\" when the cabinet is paused."
+      "body": "Total boxes and free boxes; shows \"Under maintenance\", \"Not accepting orders\" or \"No technician · not taking orders\" when the locker is paused."
     },
     "admin-lockers-menu": {
       "title": "Actions menu",
@@ -3008,11 +3016,11 @@
     },
     "admin-locker-operations-tech": {
       "title": "Technician in charge",
-      "body": "Gets the cabinet fault tickets. \"Unassigned\" sends new tickets to every cabinet technician."
+      "body": "Gets the locker's fault tickets. A locker only takes new orders while it has a technician — \"Unassigned\" stops new orders."
     },
     "admin-locker-operations-select": {
       "title": "Change technician",
-      "body": "Pick a technician (locked ones are disabled) and press \"Save\"."
+      "body": "Pick a technician (locked ones are disabled) and press \"Save\". Choosing \"Unassigned\" asks again because the locker will stop taking new orders."
     },
     "admin-locker-operations-gps": {
       "title": "Location & GPS",
@@ -6953,6 +6961,34 @@
     "kiosk-home-language": {
       "title": "Vietnamese / English",
       "body": "Pick VI or EN before you start. When your session ends, the kiosk switches back to Vietnamese for the next customer."
+    },
+    "admin-audit-logs-filters": {
+      "title": "Filter the log",
+      "body": "Search by person, locker code, drone or reason; filter by action group (maintenance, technician, boxes, drones, accounts, deletions), target type, people or system, and date range."
+    },
+    "admin-audit-logs-table": {
+      "title": "Each action",
+      "body": "Each row: when, who (with role; \"System\" means automatic), the action, the target (click to open the locker / drone / account) and the change from → to with the reason if any."
+    },
+    "admin-locker-audit-detail": {
+      "title": "Open the locker",
+      "body": "Open a locker's ⋯ menu and choose \"View details\"."
+    },
+    "admin-locker-audit-tab": {
+      "title": "Activity log tab",
+      "body": "Every action by people and the system on this locker and its boxes."
+    },
+    "admin-locker-audit-panel": {
+      "title": "Who did what, when",
+      "body": "Newest first: time, who, the action, the related box and the change from → to. Press refresh to load actions that just happened."
+    },
+    "admin-drone-detail-logs-audit": {
+      "title": "Drone activity log",
+      "body": "Who changed this drone's status (maintenance, fault, ready), assigned / removed its technician or moved its station, and when."
+    },
+    "admin-preferences-map-cache": {
+      "title": "Map cache",
+      "body": "Map tiles you have viewed are kept for 30 days in this browser, so maps open without reloading. See the size and press \"Clear cache\" when needed."
     }
   }
 }

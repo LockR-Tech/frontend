@@ -12,6 +12,10 @@ import { I18nextProvider } from "react-i18next";
 import { MockDataProvider } from "./context/mock/mock-data-context.tsx";
 import { ErrorBoundary } from "~/components/shared/error-boundary/ErrorBoundary";
 import { PerformanceMonitor } from "~/components/shared/performance/PerformanceMonitor";
+import { registerMapTileCache } from "~/lib/map-tile-cache";
+
+// Ô bản đồ giữ 30 ngày (F3-G16) — mở lại trang không phải tải lại bản đồ.
+registerMapTileCache();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

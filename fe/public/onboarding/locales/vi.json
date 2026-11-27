@@ -58,7 +58,7 @@
     },
     "drone-tech-dispatch": {
       "title": "Điều phối giao drone",
-      "summary": "Tab Điều phối: thời tiết các tủ, công tắc nhận việc lấy hàng, bộ lọc chặng và trạng thái khi chưa có đơn."
+      "summary": "Tab Điều phối: thời tiết các tủ, trạng thái nhận việc lấy hàng theo ca trực, bộ lọc chặng và trạng thái khi chưa có đơn."
     },
     "admin-maintenance": {
       "title": "Bảo trì, sự cố thiết bị",
@@ -522,7 +522,7 @@
     },
     "admin-preferences": {
       "title": "Tuỳ chọn cá nhân",
-      "summary": "Hộp \"Cài đặt\" (menu tài khoản ở cuối menu trái): ngôn ngữ, giao diện, hướng dẫn trên màn hình, lối tắt Cấu hình nghiệp vụ."
+      "summary": "Hộp \"Cài đặt\" (menu tài khoản ở cuối menu trái): ngôn ngữ, giao diện, bộ nhớ bản đồ, hướng dẫn trên màn hình, lối tắt Cấu hình nghiệp vụ."
     },
     "admin-notifications": {
       "title": "Quản lý thông báo",
@@ -1131,6 +1131,14 @@
     "admin-settings-simulation": {
       "title": "Cụm Giả lập & demo",
       "summary": "Tắt toàn bộ giả lập khi vận hành chính thức, bật lại khi cần demo — một nút cho mọi dịch vụ."
+    },
+    "admin-audit-logs": {
+      "title": "Nhật ký thao tác",
+      "summary": "Ai làm gì, lúc nào: bật bảo trì, kích hoạt tủ, gán / bỏ KTV, báo hỏng ô, đổi trạng thái drone, khoá tài khoản, xoá…"
+    },
+    "admin-locker-audit": {
+      "title": "Nhật ký thao tác của tủ",
+      "summary": "Trong trang chi tiết tủ: ai bật bảo trì, kích hoạt, gán / bỏ KTV, báo hỏng hay mở lại ô của tủ này, lúc nào."
     }
   },
   "steps": {
@@ -1228,7 +1236,7 @@
     },
     "drone-tech-home-shift": {
       "title": "Vào ca và hết ca",
-      "body": "Bấm \"Vào ca\" để bắt đầu ca trực (cần bật vị trí); \"Hết ca\" kết thúc ca và tắt luôn nhận việc lấy hàng. Nút định vị cập nhật lại GPS; chạm vào thẻ để xem chi tiết GPS và mở Google Maps."
+      "body": "Bấm \"Vào ca\" (cần bật vị trí) là nhận việc lấy hàng luôn: app mở tab Điều phối và hiện ngay đơn cần lấy gần bạn. \"Hết ca\" thôi nhận việc; còn việc lấy hàng đã nhận thì phải làm xong mới hết ca được. Nút định vị cập nhật lại GPS."
     },
     "drone-tech-home-hud": {
       "title": "Bốn ô việc nhanh",
@@ -1328,7 +1336,7 @@
     },
     "drone-tech-dispatch-duty": {
       "title": "Nhận việc lấy hàng",
-      "body": "Đã vào ca thì bật công tắc để nhận lời mời lấy hàng tận nhà gần bạn (cần vị trí, app gửi lại vị trí mỗi phút). Đang có lời mời hoặc việc dở thì chưa được mời thêm."
+      "body": "Đang trong ca là nhận việc lấy hàng tận nhà — không còn công tắc riêng. Lời mời và đơn đang đi lấy hiện ngay bên dưới; đang có lời mời hoặc việc dở thì chưa được mời thêm."
     },
     "admin-maintenance-intro": {
       "title": "Trang bảo trì",
@@ -2672,11 +2680,11 @@
     },
     "admin-lockers-tech": {
       "title": "KTV phụ trách",
-      "body": "Tên KTV phụ trách tủ — bấm để mở trang kỹ thuật viên. \"Chưa phân công\" thì phiếu sự cố của tủ báo cho mọi KTV tủ."
+      "body": "Tên KTV phụ trách tủ — bấm để mở trang kỹ thuật viên. \"Chưa có KTV\" thì tủ KHÔNG nhận đơn mới (gửi, thuê, drone) cho tới khi được gán KTV."
     },
     "admin-lockers-boxes": {
       "title": "Số ô và ô trống",
-      "body": "Tổng số ô và số ô còn trống; ghi \"Đang bảo trì\" hoặc \"Không nhận đơn\" khi tủ đang tạm ngưng."
+      "body": "Tổng số ô và số ô còn trống; ghi \"Đang bảo trì\", \"Không nhận đơn\" hoặc \"Chưa có KTV · không nhận đơn\" khi tủ đang tạm ngưng."
     },
     "admin-lockers-menu": {
       "title": "Menu thao tác",
@@ -3008,11 +3016,11 @@
     },
     "admin-locker-operations-tech": {
       "title": "KTV phụ trách",
-      "body": "KTV nhận phiếu sự cố của tủ. \"Chưa phân công\" thì phiếu mới báo cho mọi KTV tủ."
+      "body": "KTV nhận phiếu sự cố của tủ. Tủ chỉ nhận đơn mới khi có KTV phụ trách — \"Chưa phân công\" thì tủ ngừng nhận đơn."
     },
     "admin-locker-operations-select": {
       "title": "Đổi KTV",
-      "body": "Chọn KTV trong danh sách (KTV đã khoá không chọn được) rồi bấm \"Lưu\"."
+      "body": "Chọn KTV trong danh sách (KTV đã khoá không chọn được) rồi bấm \"Lưu\". Chọn \"Chưa phân công\" sẽ hỏi lại vì tủ sẽ ngừng nhận đơn mới."
     },
     "admin-locker-operations-gps": {
       "title": "Vị trí & tọa độ GPS",
@@ -6953,6 +6961,34 @@
     "kiosk-home-language": {
       "title": "Tiếng Việt / English",
       "body": "Chọn VI hoặc EN trước khi bắt đầu. Hết lượt của bạn, kiosk tự về tiếng Việt cho khách sau."
+    },
+    "admin-audit-logs-filters": {
+      "title": "Lọc nhật ký",
+      "body": "Tìm theo tên người, mã tủ, drone hay lý do; lọc nhóm hành động (bảo trì, gán KTV, ô tủ, drone, tài khoản, xoá), loại đối tượng, người bấm hay hệ thống tự làm, và khoảng ngày."
+    },
+    "admin-audit-logs-table": {
+      "title": "Từng thao tác",
+      "body": "Mỗi dòng: lúc nào, ai bấm (kèm vai trò; \"Hệ thống\" là việc tự động), hành động, đối tượng (bấm để mở tủ / drone / tài khoản) và thay đổi từ → thành kèm lý do nếu có."
+    },
+    "admin-locker-audit-detail": {
+      "title": "Mở chi tiết tủ",
+      "body": "Mở menu ⋯ của một tủ rồi chọn \"Xem chi tiết\"."
+    },
+    "admin-locker-audit-tab": {
+      "title": "Tab Nhật ký thao tác",
+      "body": "Mọi thao tác của người và hệ thống trên tủ này và các ô của nó."
+    },
+    "admin-locker-audit-panel": {
+      "title": "Ai làm gì, lúc nào",
+      "body": "Mới nhất ở trên: thời gian, người bấm, hành động, ô liên quan và thay đổi từ → thành. Bấm làm mới để tải thao tác vừa xảy ra."
+    },
+    "admin-drone-detail-logs-audit": {
+      "title": "Nhật ký thao tác của drone",
+      "body": "Ai đổi trạng thái (bảo trì, hỏng, sẵn sàng), gán / bỏ KTV, chuyển trạm drone này và lúc nào."
+    },
+    "admin-preferences-map-cache": {
+      "title": "Bộ nhớ bản đồ",
+      "body": "Ô bản đồ đã xem được giữ 30 ngày trên trình duyệt này nên mở bản đồ không phải tải lại. Xem dung lượng và bấm \"Xoá bộ nhớ\" khi cần."
     }
   }
 }

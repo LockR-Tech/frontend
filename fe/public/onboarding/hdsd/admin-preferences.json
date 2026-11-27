@@ -2,13 +2,13 @@
   "image": "hdsd/admin-preferences.png",
   "width": 1440,
   "height": 900,
-  "capturedAt": "2026-11-21",
+  "capturedAt": "2026-11-26",
   "marks": [
     {
       "n": 1,
       "stepId": "admin-preferences-language",
       "x": 553,
-      "y": 331,
+      "y": 275,
       "w": 334,
       "h": 61
     },
@@ -16,31 +16,39 @@
       "n": 2,
       "stepId": "admin-preferences-theme",
       "x": 553,
-      "y": 392,
+      "y": 336,
       "w": 334,
       "h": 61
     },
     {
       "n": 3,
+      "stepId": "admin-preferences-map-cache",
+      "x": 553,
+      "y": 397,
+      "w": 334,
+      "h": 111
+    },
+    {
+      "n": 4,
       "stepId": "admin-preferences-guide",
       "x": 553,
-      "y": 453,
+      "y": 508,
       "w": 334,
       "h": 61
     },
     {
-      "n": 4,
+      "n": 5,
       "stepId": "admin-preferences-business",
       "x": 553,
-      "y": 514,
+      "y": 569,
       "w": 334,
       "h": 60
     },
     {
-      "n": 5,
+      "n": 6,
       "stepId": "admin-preferences-close",
       "x": 818,
-      "y": 590,
+      "y": 645,
       "w": 69,
       "h": 40
     }

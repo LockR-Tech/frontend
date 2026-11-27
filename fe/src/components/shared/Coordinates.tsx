@@ -1,16 +1,13 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Copy, ExternalLink } from "lucide-react";
+import { Copy, MapPin } from "lucide-react";
 import { toast } from "sonner";
-
-/** Link Google Maps mở đúng điểm toạ độ (ghim tại vị trí, có địa chỉ thực tế bên dưới). */
-function googleMapsUrl(lat: number, lng: number) {
-  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-}
+import { MapPointDialog } from "~/components/shared/map/MapPointView";
 
 /**
- * Toạ độ ghi gộp một dòng `vĩ độ, kinh độ` — đúng dạng dán thẳng vào ô tìm kiếm Google Maps.
- * Bấm vào toạ độ mở Google Maps tại điểm đó; nút copy chép nguyên chuỗi. Thiếu số ⇒ null
- * (LabelValue tự hiện dấu "—").
+ * Toạ độ ghi gộp một dòng `vĩ độ, kinh độ` — đúng dạng dán thẳng vào ô tìm kiếm bản đồ.
+ * Bấm vào toạ độ mở bản đồ NGAY TRONG WEB tại điểm đó (F3-G16, cùng nền bản đồ với app; trong hộp vẫn có link
+ * Google Maps nếu cần dẫn đường); nút copy chép nguyên chuỗi. Thiếu số ⇒ null (LabelValue tự hiện dấu "—").
  */
 export function Coordinates({
   lat,
@@ -20,6 +17,7 @@ export function Coordinates({
   lng: number | null | undefined;
 }) {
   const { t } = useTranslation();
+  const [mapOpen, setMapOpen] = useState(false);
   if (typeof lat !== "number" || typeof lng !== "number") return null;
   const text = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
@@ -34,16 +32,16 @@ export function Coordinates({
 
   return (
     <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-mono">
-      <a
-        href={googleMapsUrl(lat, lng)}
-        target="_blank"
-        rel="noreferrer"
+      <button
+        type="button"
+        onClick={() => setMapOpen(true)}
         title={t("common.coordinates.openMap")}
         className="inline-flex items-center gap-1 text-primary hover:underline"
       >
         {text}
-        <ExternalLink className="h-3 w-3" />
-      </a>
+        <MapPin className="h-3 w-3" />
+      </button>
+      <MapPointDialog lat={lat} lng={lng} open={mapOpen} onOpenChange={setMapOpen} />
       <button
         type="button"
         onClick={copy}

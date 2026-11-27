@@ -29,6 +29,10 @@ export interface AdminLockerResponse {
   /** KTV tủ phụ trách — chỉ API admin/KTV trả; backend cũ chưa có. */
   assignedTechnicianId?: number | null;
   assignedTechnicianName?: string | null;
+  /** Tủ nhận đơn mới: đang hoạt động VÀ có KTV phụ trách (F3-G16). Backend cũ chưa có. */
+  acceptingOrders?: boolean | null;
+  /** Lý do không nhận đơn: MAINTENANCE / INSTALLING / NO_TECHNICIAN. */
+  orderPauseReason?: string | null;
 }
 
 export interface CreateLockerRequest {

@@ -161,6 +161,9 @@ export interface StaffLockerResponse {
   availableBoxes: number | null;
   assignedTechnicianId: number | null;
   assignedTechnicianName: string | null;
+  /** Tủ nhận đơn mới: đang hoạt động VÀ có KTV phụ trách (F3-G16). Backend cũ chưa có. */
+  acceptingOrders?: boolean | null;
+  orderPauseReason?: string | null;
 }
 
 export interface ExtendSlaRequest {

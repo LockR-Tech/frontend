@@ -74,7 +74,9 @@
       "copy": "Sao chép toạ độ",
       "copied": "Đã sao chép toạ độ {{value}}",
       "copyFailed": "Không copy được — hãy bôi đen và copy tay",
-      "openMap": "Mở vị trí trên Google Maps"
+      "openMap": "Xem vị trí trên bản đồ",
+      "mapTitle": "Vị trí trên bản đồ",
+      "openGoogleMaps": "Mở bằng Google Maps (dẫn đường)"
     },
     "loading": "Đang tải...",
     "noData": "Không có dữ liệu",
@@ -222,7 +224,8 @@
         "customers": "Người dùng",
         "rewards": "Ưu đãi & phản hồi",
         "system": "Hệ thống"
-      }
+      },
+      "auditLogs": "Nhật ký thao tác"
     },
     "dashboard": {
       "title": "Tổng quan",
@@ -1254,12 +1257,14 @@
       },
       "table": {
         "technicianId": "KTV #{{id}}",
-        "unassignedBroadcast": "Kiosk chưa gán KTV — phiếu sự cố mới sẽ thông báo tới toàn bộ KTV đang trực.",
+        "unassignedBroadcast": "Tủ chưa có KTV phụ trách nên KHÔNG nhận đơn mới (gửi, thuê, drone). Gán KTV ở trang chi tiết tủ để mở lại. Phiếu sự cố mới báo cho mọi KTV tủ.",
         "boxCount": "{{count}} ô",
         "availableCount": "{{count}} trống",
         "underMaintenance": "Đang bảo trì",
         "disabled": "Đã vô hiệu",
-        "notAcceptingOrders": "· không nhận đơn"
+        "notAcceptingOrders": "· không nhận đơn",
+        "noTechnicianNoOrders": "Chưa có KTV · không nhận đơn",
+        "unassignedNoOrders": "Chưa có KTV"
       },
       "toast": {
         "maintenanceOn": "Đã chuyển tủ sang bảo trì",
@@ -1491,20 +1496,23 @@
         },
         "tech": {
           "unassignedToast": "Đã bỏ KTV phụ trách tủ",
-          "unassignedToastDesc": "Phiếu sự cố mới của tủ sẽ báo cho mọi KTV tủ.",
+          "unassignedToastDesc": "Tủ tạm ngưng nhận đơn mới cho tới khi có KTV phụ trách. Đơn đang chạy vẫn tiếp tục; phiếu sự cố mới báo cho mọi KTV tủ.",
           "assignedToast": "Đã giao tủ cho {{name}}",
-          "assignedToastDesc": "KTV đã được thông báo. Phiếu mới và phiếu đang chờ nhận của tủ chuyển cho KTV này.",
+          "assignedToastDesc": "KTV đã được thông báo. Tủ nhận đơn mới; phiếu mới và phiếu đang chờ nhận của tủ chuyển cho KTV này.",
           "saveFailed": "Không lưu được KTV phụ trách",
           "routedTo": "Phiếu sự cố mới của tủ gửi riêng cho <b>{{name}}</b>.",
-          "unassignedHint": "Chưa phân công — phiếu sự cố mới của tủ được báo cho mọi KTV tủ.",
+          "unassignedHint": "Chưa phân công — tủ KHÔNG nhận đơn mới (gửi, thuê, drone) cho tới khi có KTV phụ trách.",
           "selectPlaceholder": "Chọn KTV phụ trách",
-          "noneOption": "Chưa phân công (báo tất cả KTV tủ)",
-          "locked": "Đã khóa"
+          "noneOption": "Chưa phân công (tủ ngừng nhận đơn)",
+          "locked": "Đã khóa",
+          "unassignConfirmTitle": "Bỏ KTV phụ trách tủ?",
+          "unassignConfirmBody": "Bỏ {{name}} khỏi tủ này thì tủ NGỪNG NHẬN ĐƠN MỚI (gửi, thuê, drone) trên app, kiosk và web cho tới khi có KTV phụ trách khác. Đơn đang chạy không bị ảnh hưởng.",
+          "unassignConfirmAction": "Bỏ KTV, ngừng nhận đơn"
         },
         "routing": {
           "byTechnician": "Phiếu được định tuyến theo KTV phụ trách tủ.",
           "toTechnician": "Phiếu gửi tới KTV phụ trách tủ: {{name}}.",
-          "allTechnicians": "Tủ chưa có KTV phụ trách — phiếu được báo cho mọi KTV tủ."
+          "allTechnicians": "Tủ chưa có KTV phụ trách — tủ không nhận đơn mới; phiếu được báo cho mọi KTV tủ."
         },
         "arrange": {
           "done": "Đã sắp xếp lại {{count}} ô tủ",
@@ -1663,7 +1671,8 @@
           "devices": "Thiết bị",
           "logs": "Nhật ký",
           "maintenance": "Sửa chữa & Bảo trì",
-          "installation": "Lắp đặt"
+          "installation": "Lắp đặt",
+          "audit": "Nhật ký thao tác"
         },
         "installing": {
           "title": "Tủ đang trong quá trình lắp đặt ({{status}})",
@@ -2007,7 +2016,7 @@
           "located": "Đã định vị",
           "noGps": "Chưa có GPS",
           "noAddress": "Chưa thiết lập địa chỉ cụ thể",
-          "openGoogleMaps": "Mở Google Maps",
+          "openGoogleMaps": "Xem vị trí tủ trên bản đồ",
           "editMap": "Chỉnh sửa bản đồ",
           "pickOnMap": "Chọn vị trí bản đồ"
         },
@@ -3324,7 +3333,7 @@
         "address": "Địa chỉ lấy hàng",
         "note": "Ghi chú người gửi",
         "technicianNote": "Ghi chú KTV",
-        "openMap": "Mở bản đồ",
+        "openMap": "xem trên bản đồ",
         "toSourceLocker": "Khoảng cách tới tủ gửi",
         "technician": "KTV lấy hàng",
         "technicianDistance": "Cách điểm lấy {{distance}}",
@@ -4889,7 +4898,20 @@
       }
     },
     "preferences": {
-      "businessSettingsHelp": "Giá, phí, thời hạn, SLA và giới hạn của hệ thống"
+      "businessSettingsHelp": "Giá, phí, thời hạn, SLA và giới hạn của hệ thống",
+      "mapCache": {
+        "title": "Bộ nhớ bản đồ",
+        "help": "Ô bản đồ đã xem được giữ 30 ngày trên trình duyệt này để mở bản đồ không phải tải lại.",
+        "summary": "{{tiles}} ô · {{size}} · lưu từ {{since}}",
+        "empty": "Chưa lưu ô bản đồ nào.",
+        "loading": "Đang đọc dung lượng…",
+        "notReady": "Bộ nhớ bản đồ sẽ bật sau khi tải lại trang.",
+        "unsupported": "Trình duyệt này không hỗ trợ lưu bản đồ.",
+        "clear": "Xoá bộ nhớ",
+        "clearing": "Đang xoá…",
+        "cleared": "Đã xoá bộ nhớ bản đồ",
+        "clearFailed": "Không xoá được bộ nhớ bản đồ"
+      }
     },
     "maintenance": {
       "schedules": {
@@ -5838,7 +5860,7 @@
           "accuracy": "Độ chính xác:",
           "meters": "±{{value}} mét",
           "updatedAt": "Cập nhật lúc:",
-          "openMaps": "Mở trên Google Maps",
+          "openMaps": "Xem trên bản đồ",
           "waitingGps": "Đang chờ KTV gửi tọa độ GPS...",
           "noGps": "Chưa có dữ liệu vị trí GPS",
           "hint": "Vị trí sẽ được cập nhật khi KTV bật ca trực trên ứng dụng Mobile."
@@ -6806,6 +6828,123 @@
     },
     "technicians": {
       "description": "Xem trạng thái ca trực, vị trí tọa độ GPS, hiệu suất SLA và phân công thiết bị cho KTV kiosk và drone"
+    },
+    "auditLogs": {
+      "title": "Nhật ký thao tác",
+      "description": "Ai làm gì, lúc nào: bật bảo trì, kích hoạt tủ, gán KTV, đổi trạng thái ô / drone, khoá tài khoản, xoá…",
+      "countLabel": "{{count}} dòng",
+      "panelTitle": "Nhật ký thao tác",
+      "searchPlaceholder": "Tìm theo người, mã tủ, drone, lý do…",
+      "empty": "Chưa có thao tác nào được ghi.",
+      "system": "Hệ thống",
+      "userId": "Người dùng #{{id}}",
+      "note": "Lý do / ghi chú",
+      "columns": {
+        "time": "Thời gian",
+        "actor": "Người thao tác",
+        "action": "Hành động",
+        "target": "Đối tượng",
+        "change": "Thay đổi"
+      },
+      "filter": {
+        "group": "Nhóm hành động",
+        "allGroups": "Mọi hành động",
+        "target": "Đối tượng",
+        "allTargets": "Mọi đối tượng",
+        "actor": "Người thao tác",
+        "allActors": "Người và hệ thống",
+        "actors": {
+          "people": "Chỉ người bấm",
+          "system": "Chỉ hệ thống tự làm"
+        },
+        "from": "Từ ngày",
+        "to": "Đến ngày"
+      },
+      "groups": {
+        "maintenance": "Bảo trì / kích hoạt tủ",
+        "technician": "Gán / bỏ KTV",
+        "boxes": "Ô tủ",
+        "landingPad": "Bãi đáp drone",
+        "drones": "Drone",
+        "accounts": "Tài khoản",
+        "deleted": "Xoá"
+      },
+      "targetTypes": {
+        "LOCKER": "Tủ",
+        "BOX": "Ô tủ",
+        "DRONE": "Drone",
+        "USER": "Tài khoản"
+      },
+      "actions": {
+        "LOCKER_CREATED": "Tạo tủ",
+        "LOCKER_DELETED": "Xoá tủ",
+        "LOCKER_MAINTENANCE_ON": "Bật bảo trì tủ",
+        "LOCKER_MAINTENANCE_BY_TICKET": "Phiếu sự cố đưa tủ vào bảo trì",
+        "LOCKER_ACTIVATED": "Kích hoạt tủ",
+        "LOCKER_DEACTIVATED": "Ngưng hoạt động tủ",
+        "LOCKER_STATUS_CHANGED": "Đổi trạng thái tủ",
+        "LOCKER_TECHNICIAN_ASSIGNED": "Gán KTV phụ trách tủ",
+        "LOCKER_TECHNICIAN_CHANGED": "Đổi KTV phụ trách tủ",
+        "LOCKER_TECHNICIAN_UNASSIGNED": "Bỏ KTV phụ trách tủ",
+        "LOCKER_INFO_UPDATED": "Sửa thông tin tủ",
+        "LANDING_PAD_STATUS_CHANGED": "Đổi trạng thái bãi đáp",
+        "LANDING_PAD_ENABLED": "Bật bãi đáp drone",
+        "LANDING_PAD_DISABLED": "Tắt bãi đáp drone",
+        "BOX_CREATED": "Thêm ô",
+        "BOX_DELETED": "Xoá ô",
+        "BOX_FAULT": "Báo hỏng ô",
+        "BOX_CLEANING": "Đưa ô đi vệ sinh",
+        "BOX_OUT_OF_SERVICE": "Ngưng dùng ô",
+        "BOX_BACK_IN_SERVICE": "Mở lại ô",
+        "BOX_STATUS_CHANGED": "Đổi trạng thái ô",
+        "BOX_ENABLED": "Bật ô",
+        "BOX_DISABLED": "Tắt ô",
+        "BOX_UPDATED": "Sửa ô",
+        "DRONE_CREATED": "Thêm drone",
+        "DRONE_DELETED": "Xoá drone",
+        "DRONE_STATUS_CHANGED": "Đổi trạng thái drone",
+        "DRONE_TECHNICIAN_ASSIGNED": "Gán KTV phụ trách drone",
+        "DRONE_TECHNICIAN_CHANGED": "Đổi KTV phụ trách drone",
+        "DRONE_TECHNICIAN_UNASSIGNED": "Bỏ KTV phụ trách drone",
+        "DRONE_MOVED": "Chuyển drone sang trạm khác",
+        "DRONE_ENABLED": "Bật drone",
+        "DRONE_DISABLED": "Tắt drone",
+        "USER_CREATED": "Tạo tài khoản",
+        "USER_ACTIVATED": "Mở khoá tài khoản",
+        "USER_LOCKED": "Khoá tài khoản",
+        "USER_ROLES_CHANGED": "Đổi vai trò",
+        "USER_DELETED": "Xoá tài khoản"
+      },
+      "values": {
+        "ACTIVE": "Hoạt động",
+        "INACTIVE": "Ngưng hoạt động",
+        "MAINTENANCE": "Bảo trì",
+        "PLANNED": "Đã lên kế hoạch",
+        "INSTALLING": "Đang lắp đặt",
+        "COMMISSIONING": "Đang nghiệm thu",
+        "AVAILABLE": "Trống",
+        "RESERVED": "Giữ chỗ",
+        "OCCUPIED": "Có hàng",
+        "FAULT": "Hỏng",
+        "CLEANING": "Đang vệ sinh",
+        "OUT_OF_SERVICE": "Ngưng dùng",
+        "DISABLED": "Đã tắt",
+        "OK": "Sẵn sàng",
+        "IDLE": "Sẵn sàng",
+        "CHARGING": "Đang sạc",
+        "IN_FLIGHT": "Đang bay"
+      },
+      "fields": {
+        "code": "Mã",
+        "name": "Tên",
+        "address": "Địa chỉ",
+        "latitude": "Vĩ độ",
+        "longitude": "Kinh độ",
+        "storeId": "Điểm đặt",
+        "description": "Mô tả",
+        "size": "Cỡ ô",
+        "cellType": "Loại ô"
+      }
     }
   },
   "dropdown": {

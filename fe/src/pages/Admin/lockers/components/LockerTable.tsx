@@ -364,7 +364,7 @@ export function LockerTable({
                   data-tour={anchor}
                   className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 cursor-help"
                 >
-                  {t("common.unassigned")}
+                  {t("admin.lockers.table.unassignedNoOrders")}
                 </span>
               </TooltipTrigger>
               <TooltipContent>
@@ -384,6 +384,21 @@ export function LockerTable({
 
         // Tủ bảo trì / vô hiệu: server trả availableBoxes = 0 ⇒ không suy ra "đang dùng", chỉ ghi số ô + trạng thái
         const anchor = row.index === 0 ? "adm-lockers-first-row-boxes" : undefined; // neo data-tour dòng đầu
+        // Tủ hoạt động nhưng chưa có KTV phụ trách: không nhận đơn mới (F3-G16).
+        const noTechnician =
+          row.original.status === LockerStatus.ACTIVE &&
+          (row.original.orderPauseReason === "NO_TECHNICIAN" ||
+            (row.original.acceptingOrders == null && row.original.assignedTechnicianId == null));
+        if (noTechnician) {
+          return (
+            <div className="flex flex-col gap-0.5 w-32" data-tour={anchor}>
+              <span className="text-sm font-semibold text-foreground/80">{t("admin.lockers.table.boxCount", { count: totalBoxes })}</span>
+              <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                {t("admin.lockers.table.noTechnicianNoOrders")}
+              </span>
+            </div>
+          );
+        }
         if (row.original.status !== LockerStatus.ACTIVE) {
           return (
             <div className="flex flex-col gap-0.5 w-32" data-tour={anchor}>

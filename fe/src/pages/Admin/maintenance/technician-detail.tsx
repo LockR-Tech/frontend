@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useMapPointDialog } from "~/components/shared/map/MapPointView";
 import { getLockerStatusLabel } from "~/lib/lockerLayoutHelper";
 import { getDroneStatusLabel } from "~/lib/drone-status";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -169,6 +170,7 @@ export default function TechnicianDetailPage() {
   const { technicianId } = useParams<{ technicianId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { openMap, dialog: mapDialog } = useMapPointDialog();
   const techId = Number(technicianId);
 
   const [activeTab, setActiveTab] = useState("tickets");
@@ -1230,16 +1232,14 @@ export default function TechnicianDetailPage() {
                       variant="outline"
                       size="sm"
                       className="w-full h-8 text-xs bg-white text-sky-700 border-sky-300 hover:bg-sky-50 gap-1.5 dark:bg-slate-900 dark:text-sky-300 dark:border-sky-800"
-                      onClick={() => {
-                        window.open(
-                          `https://www.google.com/maps/search/?api=1&query=${technicianPresence.latitude},${technicianPresence.longitude}`,
-                          "_blank",
-                        );
-                      }}
+                      onClick={() =>
+                        openMap({ lat: technicianPresence.latitude!, lng: technicianPresence.longitude! })
+                      }
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <MapPin className="w-3.5 h-3.5" />
                       {t("admin.maintenance.ui.presence.openMaps")}
                     </Button>
+                    {mapDialog}
                   </div>
                 </div>
               ) : (
