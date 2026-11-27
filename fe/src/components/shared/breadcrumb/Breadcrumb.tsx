@@ -31,6 +31,7 @@ const pathMap: Record<string, string> = {
   feedback: "admin.sidebar.feedback",
   settings: "admin.sidebar.settings",
   scheduler: "admin.sidebar.scheduler",
+  "audit-logs": "admin.sidebar.auditLogs",
   detail: "admin.breadcrumb.detail",
   create: "admin.breadcrumb.create",
   edit: "admin.breadcrumb.edit",
