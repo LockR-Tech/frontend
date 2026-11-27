@@ -34,6 +34,7 @@ import {
   useGetMaintenanceSchedulesQuery,
   type LockerReportResponse,
   type MaintenanceInspectionLogResponse,
+  type MaintenanceScheduleResponse,
 } from "~/stores/apis/admin/lockerOps";
 import { useGetAllUsersQuery } from "~/stores/apis/admin/users";
 import { extractList } from "~/lib/extract-list";
@@ -67,6 +68,12 @@ type UnifiedHistoryItem =
       sortMs: number;
       log: MaintenanceInspectionLogResponse;
       scheduleTitle: string;
+    }
+  | {
+      kind: "ACTIVE_SCHEDULE";
+      key: string;
+      sortMs: number;
+      schedule: MaintenanceScheduleResponse;
     };
 
 function toTimestamp(raw?: string | null): number {
@@ -160,6 +167,14 @@ export function DroneMaintenanceHistoryPanel({
     [inspectionsData, droneId],
   );
 
+  const droneActiveSchedules = useMemo(
+    () =>
+      (schedulesData?.data ?? []).filter(
+        (s) => s.droneUnitId === droneId && s.active !== false,
+      ),
+    [schedulesData, droneId],
+  );
+
   const timelineItems = useMemo<UnifiedHistoryItem[]>(() => {
     const items: UnifiedHistoryItem[] = [];
 
@@ -169,6 +184,15 @@ export function DroneMaintenanceHistoryPanel({
         key: `incident-${report.id}`,
         sortMs: toTimestamp(report.resolvedAt ?? report.updatedAt ?? report.createdAt),
         report,
+      });
+    }
+
+    for (const schedule of droneActiveSchedules) {
+      items.push({
+        kind: "ACTIVE_SCHEDULE",
+        key: `schedule-${schedule.id}`,
+        sortMs: toTimestamp(schedule.updatedAt ?? schedule.createdAt ?? schedule.nextDueAt),
+        schedule,
       });
     }
 
@@ -186,11 +210,13 @@ export function DroneMaintenanceHistoryPanel({
 
     items.sort((a, b) => b.sortMs - a.sortMs);
     return items;
-  }, [droneReports, droneInspections, scheduleTitles, t]);
+  }, [droneReports, droneActiveSchedules, droneInspections, scheduleTitles, t]);
 
   const filteredItems = useMemo(() => {
     if (filter === "INCIDENT") return timelineItems.filter((i) => i.kind === "INCIDENT");
-    if (filter === "SCHEDULE") return timelineItems.filter((i) => i.kind === "SCHEDULE");
+    if (filter === "SCHEDULE") {
+      return timelineItems.filter((i) => i.kind === "SCHEDULE" || i.kind === "ACTIVE_SCHEDULE");
+    }
     return timelineItems;
   }, [timelineItems, filter]);
 
@@ -318,7 +344,7 @@ export function DroneMaintenanceHistoryPanel({
             }`}
           >
             {t("admin.lockers.maintenanceHistory.filterInspections", {
-              count: droneInspections.length,
+              count: droneInspections.length + droneActiveSchedules.length,
             })}
           </button>
         </div>
@@ -442,6 +468,78 @@ export function DroneMaintenanceHistoryPanel({
                         <span className="font-mono text-foreground">{formatDateTime(report.resolvedAt)}</span>
                       </span>
                     )}
+                  </div>
+                </div>
+              );
+            }
+
+            if (item.kind === "ACTIVE_SCHEDULE") {
+              const s = item.schedule;
+              const techName =
+                s.assignedTechnicianName ||
+                (s.assignedTechnicianId
+                  ? userNames[s.assignedTechnicianId] ??
+                    t("admin.drones.detail.tech.fallbackName", { id: s.assignedTechnicianId })
+                  : t("common.unassigned"));
+              return (
+                <div
+                  key={item.key}
+                  className="rounded-lg border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/30 dark:bg-amber-950/10 p-3.5 space-y-2"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] font-semibold bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                        >
+                          {t("admin.lockers.maintenanceHistory.scheduledBadge")}
+                        </Badge>
+                        {s.due && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-semibold bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300"
+                          >
+                            {t("admin.lockers.maintenanceHistory.dueBadge")}
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-[10px]">
+                          {(s.intervalDays ?? 0) <= 0
+                            ? t("admin.drones.maintenanceDialog.oneTimeOption")
+                            : t("admin.maintenance.schedules.labels.everyDays", { days: s.intervalDays })}
+                        </Badge>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground break-words">
+                        {s.title}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs text-primary shrink-0"
+                      onClick={() => navigate("/admin/maintenance?tab=schedules&subTab=drone")}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                      {t("admin.lockers.maintenanceHistory.openInScheduleTab")}
+                    </Button>
+                  </div>
+                  {s.description && (
+                    <p className="text-xs text-muted-foreground whitespace-pre-line break-words">
+                      {s.description}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground pt-1 border-t border-border/50">
+                    <span className="inline-flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      {t("admin.lockers.maintenanceHistory.technicianLabel")}{" "}
+                      <span className="font-medium text-foreground">{techName}</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <CalendarClock className="w-3 h-3" />
+                      {t("admin.maintenance.schedules.list.dueAt")}{" "}
+                      <span className="font-mono text-foreground">{formatDateTime(s.nextDueAt)}</span>
+                    </span>
                   </div>
                 </div>
               );
