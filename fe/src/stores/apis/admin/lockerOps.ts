@@ -231,6 +231,7 @@ export interface MaintenanceScheduleRequest {
   firstDueDate?: string;
   locationNote?: string;
   scheduledTimeSlot?: string;
+  putInMaintenance?: boolean;
 }
 
 export interface MaintenanceScheduleResponse {
@@ -847,7 +848,7 @@ export const lockerOpsApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: [{ type: TAG, id: 'schedules' }],
+      invalidatesTags: [{ type: TAG, id: 'schedules' }, TAG, 'Drones'],
     }),
 
     completeMaintenanceSchedule: builder.mutation<
@@ -863,11 +864,11 @@ export const lockerOpsApi = baseApi.injectEndpoints({
           body,
         };
       },
-      // KHÔNG ĐẠT ⇒ server mở phiếu (và có thể đưa ô sang FAULT) ⇒ làm mới cả phiếu + sơ đồ tủ
+      // KHÔNG ĐẠT ⇒ server mở phiếu (và có thể đưa ô sang FAULT); ĐẠT ⇒ có thể mở lại tủ/drone
       invalidatesTags: (result) =>
         result?.data?.lastResult === 'FAILED'
-          ? [TAG]
-          : [{ type: TAG, id: 'schedules' }, { type: TAG, id: 'inspection-logs' }],
+          ? [TAG, 'Drones']
+          : [{ type: TAG, id: 'schedules' }, { type: TAG, id: 'inspection-logs' }, TAG, 'Drones'],
     }),
 
     getScheduleInspectionLogs: builder.query<

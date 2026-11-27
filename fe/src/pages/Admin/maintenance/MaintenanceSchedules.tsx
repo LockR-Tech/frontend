@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getDroneStatusLabel } from "~/lib/drone-status";
 import { AppLoading } from "~/components/ui/app-loading";
 import { useTranslation, Trans } from "react-i18next";
@@ -201,7 +202,16 @@ export function MaintenanceSchedules() {
     });
   }, [usersData]);
 
-  const [subTab, setSubTab] = useState<"kiosk" | "drone">("kiosk");
+  const [searchParams] = useSearchParams();
+  const subTabParam = searchParams.get("subTab");
+  const [subTab, setSubTab] = useState<"kiosk" | "drone">(
+    subTabParam === "drone" ? "drone" : "kiosk",
+  );
+  useEffect(() => {
+    if (subTabParam === "kiosk" || subTabParam === "drone") {
+      setSubTab(subTabParam);
+    }
+  }, [subTabParam]);
 
   // Bộ lọc tìm kiếm & trạng thái
   const [searchQuery, setSearchQuery] = useState("");
@@ -336,7 +346,21 @@ export function MaintenanceSchedules() {
   const inspectCells = inspectLayoutData?.data?.cells ?? [];
 
   const kioskSchedules = useMemo(
-    () => effectiveSchedules.filter((s) => !isDroneSchedule(s)),
+    () =>
+      effectiveSchedules
+        .filter((s) => !isDroneSchedule(s))
+        .sort((a, b) => {
+          // Phiếu bảo trì đột xuất (intervalDays === 0) mới tạo hiển thị trước để Admin/KTV thấy ngay
+          const adHocA = (a.intervalDays ?? 0) <= 0 ? 1 : 0;
+          const adHocB = (b.intervalDays ?? 0) <= 0 ? 1 : 0;
+          if (adHocA !== adHocB) return adHocB - adHocA;
+          if (adHocA === 1) {
+            const createdA = parseBackendDateTime(a.createdAt)?.getTime() ?? 0;
+            const createdB = parseBackendDateTime(b.createdAt)?.getTime() ?? 0;
+            return createdB - createdA;
+          }
+          return 0;
+        }),
     [effectiveSchedules]
   );
 
@@ -698,7 +722,7 @@ export function MaintenanceSchedules() {
       toast.error(t("admin.maintenance.schedules.toast.planNameRequired"));
       return;
     }
-    if (!Number.isInteger(editForm.intervalDays) || editForm.intervalDays < 1 || editForm.intervalDays > 365) {
+    if (!Number.isInteger(editForm.intervalDays) || editForm.intervalDays < 0 || editForm.intervalDays > 365) {
       toast.error(t("admin.maintenance.schedules.toast.intervalRange"));
       return;
     }
@@ -1579,7 +1603,11 @@ export function MaintenanceSchedules() {
 
                       <span>·</span>
                       <span>
-                        <Trans i18nKey="admin.maintenance.schedules.list.interval" values={{ days: s.intervalDays }} components={{ b: <strong /> }} />
+                        {(s.intervalDays ?? 0) <= 0 ? (
+                          <strong>{t("admin.lockers.maintenanceDialog.oneTimeOption")}</strong>
+                        ) : (
+                          <Trans i18nKey="admin.maintenance.schedules.list.interval" values={{ days: s.intervalDays }} components={{ b: <strong /> }} />
+                        )}
                       </span>
 
                       <span>·</span>
@@ -1728,7 +1756,9 @@ export function MaintenanceSchedules() {
                   {t("admin.maintenance.schedules.inspect.title")}
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  {t("admin.maintenance.schedules.inspect.description", { title: inspectingSchedule.title, days: inspectingSchedule.intervalDays })}
+                  {(inspectingSchedule.intervalDays ?? 0) <= 0
+                    ? `${inspectingSchedule.title} · ${t("admin.lockers.maintenanceDialog.oneTimeOption")}`
+                    : t("admin.maintenance.schedules.inspect.description", { title: inspectingSchedule.title, days: inspectingSchedule.intervalDays })}
                 </DialogDescription>
               </DialogHeader>
 
@@ -2181,9 +2211,15 @@ export function MaintenanceSchedules() {
                   <div>
                     <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.detail.interval")}</span>
                     <span className="font-bold text-foreground mt-0.5 block">
-                      {t("admin.maintenance.schedules.labels.everyDays", { days: selectedSchedule.intervalDays })}
+                      {(selectedSchedule.intervalDays ?? 0) <= 0
+                        ? t("admin.lockers.maintenanceDialog.oneTimeOption")
+                        : t("admin.maintenance.schedules.labels.everyDays", { days: selectedSchedule.intervalDays })}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">{t("admin.maintenance.schedules.detail.autoRepeat")}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {(selectedSchedule.intervalDays ?? 0) <= 0
+                        ? t("admin.lockers.maintenanceDialog.oneTimeOption")
+                        : t("admin.maintenance.schedules.detail.autoRepeat")}
+                    </span>
                   </div>
                   <div>
                     <span className="text-muted-foreground block font-medium">{t("admin.maintenance.schedules.detail.nextDue")}</span>
@@ -2582,7 +2618,11 @@ export function MaintenanceSchedules() {
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/60">
                   <span>{t("admin.maintenance.schedules.assign.interval")}</span>
-                  <span>{t("admin.maintenance.schedules.labels.everyDays", { days: assigningSchedule.intervalDays })}</span>
+                  <span>
+                    {(assigningSchedule.intervalDays ?? 0) <= 0
+                      ? t("admin.lockers.maintenanceDialog.oneTimeOption")
+                      : t("admin.maintenance.schedules.labels.everyDays", { days: assigningSchedule.intervalDays })}
+                  </span>
                 </div>
               </div>
 
@@ -2675,10 +2715,13 @@ export function MaintenanceSchedules() {
                   </label>
                   <Input
                     type="number"
-                    min={1}
+                    min={0}
                     max={365}
                     value={editForm.intervalDays}
-                    onChange={(e) => setEditForm((f) => ({ ...f, intervalDays: Number(e.target.value) || 1 }))}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setEditForm((f) => ({ ...f, intervalDays: Number.isFinite(val) ? val : 0 }));
+                    }}
                     className="h-9 text-xs"
                   />
                 </div>
