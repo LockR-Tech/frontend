@@ -76,6 +76,7 @@ const pathLabelKeys: Record<string, string> = {
   feedback: "admin.sidebar.feedback",
   settings: "admin.sidebar.settings",
   scheduler: "admin.sidebar.scheduler",
+  "audit-logs": "admin.sidebar.auditLogs",
   staff: "admin.breadcrumb.staff",
   revenue: "admin.sidebar.revenue",
   notifications: "admin.sidebar.notifications",
